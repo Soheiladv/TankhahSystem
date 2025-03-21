@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+🚫 سیستم قفل شده است
+{% endblock title %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 max-w-lg w-full text-center">
+        <!-- آیکون قفل -->
+        <div class="text-red-500 text-6xl mb-4">
+            <i class="fas fa-lock" aria-label="سیستم قفل شده"></i>
+        </div>
+
+        <!-- عنوان اصلی -->
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">
+            🚫 سیستم موقتاً قفل شده است
+        </h1>
+
+        <!-- توضیحات -->
+        <p class="text-gray-600 dark:text-gray-300 text-base">
+            این سیستم از تاریخ
+            <span class="text-blue-600 dark:text-blue-400 font-semibold">
+                {{ expiry_date|date:"Y/m/d" }}
+            </span>
+            قفل شده است. 
+        </p>
+
+        <!-- هشدار -->
+        <div class="mt-4 flex items-center justify-center bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-4 py-2 rounded-lg">
+            <i class="fas fa-exclamation-triangle text-xl mr-2" aria-label="هشدار"></i>
+            <span>لطفاً برای اطلاعات بیشتر با پشتیبانی تماس بگیرید.</span>
+        </div>
+
+        <!-- دکمه تماس با پشتیبانی -->
+        <div class="mt-4">
+            <a href="mailto:{{ support_email }}"
+               class="inline-flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors duration-200">
+                <i class="fas fa-envelope mr-2"></i> تماس با پشتیبانی
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- CSS می‌تواند به فایل خارجی منتقل شود -->
+{% endblock %}

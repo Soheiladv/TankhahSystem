@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Default Dashboard{% endblock %}
+{% block header %}Default Dashboard{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <h2>Welcome, {{ user.username }}</h2>
+        <p class="text-muted">This is the default dashboard. Customize this as needed.</p>
+        <ul class="list-group">
+            <li class="list-group-item"><i class="fas fa-question-circle"></i> Help Center</li>
+            <li class="list-group-item"><i class="fas fa-info-circle"></i> General Information</li>
+            <li class="list-group-item"><i class="fas fa-user-cog"></i> Account Settings</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

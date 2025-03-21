@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+    <style>
+        body {
+            direction: rtl;
+            margin: 0;
+            padding: 0;
+         }
+
+        .container {
+            width: 100%;
+            max-width: 100%;
+            padding: 10px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .table th, .table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .table th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        /* Media Query for Print */
+        @media print {
+            body {
+                background-color: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            .container {
+                width: 100%;
+                padding: 0;
+                page-break-before: always;
+            }
+
+            .header {
+                margin-bottom: 10px;
+            }
+
+            .table {
+                width: 100%;
+                border: 1px solid black;
+            }
+
+            .table th, .table td {
+                border: 1px solid black;
+                padding: 8px;
+                font-size: 12pt;
+            }
+
+            .footer {
+                margin-top: 20px;
+                font-size: 12pt;
+            }
+
+            @page {
+                size: A4 landscape; /* Set A4 Landscape */
+                margin: 10mm;
+            }
+        }
+
+        @media print {
+            .print-section {
+                display: block;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+
+        .img-thumbnail {
+            width: 100px;
+            height: auto;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .custom-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .custom-btn:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+
+        /* رسپانسیو برای جدول */
+        @media (max-width: 768px) {
+            .table-responsive {
+                overflow-x: auto;
+            }
+
+            .table th, .table td {
+                font-size: 14px;
+                padding: 6px;
+            }
+
+            .btn {
+                font-size: 14px;
+                padding: 5px 10px;
+            }
+        }
+    </style>
+
+    <div class="container mt-5 animate__animated animate__fadeInDown">
+        <h2 class="text-center mb-4 animate__animated animate__bounceIn">لیست گروه‌ها</h2>
+
+        <!-- فرم فیلتر -->
+        <form method="get" class="mb-4 animate__animated animate__fadeIn">
+            <div class="input-group">
+                {{ filter_form.name }}
+                <button type="submit" class="btn btn-primary animate__animated animate__tada">
+                    <i class="fas fa-search"></i> جستجو
+                </button>
+            </div>
+        </form>
+
+        <!-- جدول با قابلیت ریسپانسیو -->
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>نام گروه</th>
+                        <th>نقش‌ها</th>
+                        <th>کاربران</th>
+                        <th>تعداد کاربران</th>
+                        <th>توضیحات</th>
+                        <th>تاریخ ایجاد</th>
+                        <th>تاریخ ویرایش</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for group in groups %}
+                        <tr class="animate__animated animate__fadeInLeft">
+                            <td>{{ group.name }}</td>
+                            <td>
+                                {% if group.roles.exists %}
+                                    {% for role in group.roles.all %}
+                                        <span class="badge bg-primary animate__animated animate__zoomIn">{{ role.name }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-muted">بدون نقش</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if group.users %}
+                                    {% for user in group.users %}
+                                        <span class="badge bg-secondary animate__animated animate__pulse">{{ user.username }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-muted">بدون کاربر</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ group.member_count }}</td>
+                            <td>{{ group.description|default:"-" }}</td>
+                            <td>{{ group.created_at|date:"Y-m-d H:i"|default:"-" }}</td>
+                            <td>{{ group.updated_at|date:"Y-m-d H:i"|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'accounts:group_update' group.id %}" class="btn btn-warning animate__animated animate__tada">
+                                    <i class="fas fa-edit"></i> ویرایش
+                                </a>
+                                <a href="{% url 'accounts:group_delete' group.id %}" class="btn btn-danger animate__animated animate__shakeX">
+                                    <i class="fas fa-trash"></i> حذف
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">هیچ گروهی یافت نشد.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- دکمه ایجاد گروه جدید -->
+        <div class="text-center mt-4">
+            <a href="{% url 'accounts:group_create' %}" class="btn btn-success animate__animated animate__flipInX">
+                <i class="fas fa-plus-circle"></i> ایجاد گروه جدید
+            </a>
+        </div>
+    </div>
+{% endblock %}

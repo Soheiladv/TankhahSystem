@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+    <style>
+        body {
+            direction: rtl;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 100%;
+            padding: 10px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .table th, .table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .table th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        /* Media Query for Print */
+        @media print {
+            body {
+                background-color: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            .container {
+                width: 100%;
+                padding: 0;
+                page-break-before: always;
+            }
+
+            .header {
+                margin-bottom: 10px;
+            }
+
+            .table {
+                width: 100%;
+                border: 1px solid black;
+            }
+
+            .table th, .table td {
+                border: 1px solid black;
+                padding: 8px;
+                font-size: 12pt;
+            }
+
+            .footer {
+                margin-top: 20px;
+                font-size: 12pt;
+            }
+
+            @page {
+                size: A4 landscape; /* Set A4 Landscape */
+                margin: 10mm;
+            }
+        }
+
+        @media print {
+            .print-section {
+                display: block;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+
+        .img-thumbnail {
+            width: 100px;
+            height: auto;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .custom-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .custom-btn:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+
+    </style>
+
+
+
+    <div class="container mt-5 animate__animated animate__fadeIn">
+        <div class="card shadow-lg animate__animated animate__zoomIn">
+            <div class="card-header bg-primary text-white text-center animate__animated animate__bounceIn">
+                <h3><i class="fas fa-users"></i> لیست نقش‌ها</h3>
+            </div>
+            <div class="card-body">
+                <!-- دکمه‌های نمایش نقش‌های فعال و غیرفعال -->
+                <div class="mb-3 d-flex justify-content-center gap-3">
+                    <a href="?show_inactive=false"
+                       class="btn btn-info btn-lg custom-btn animate__animated animate__flipInX">
+                        <i class="fas fa-eye"></i> نمایش نقش‌های فعال
+                    </a>
+                    <a href="?show_inactive=true"
+                       class="btn btn-secondary btn-lg custom-btn animate__animated animate__flipInX">
+                        <i class="fas fa-eye-slash"></i> نمایش نقش‌های غیرفعال
+                    </a>
+                </div>
+
+                <!-- جدول با قابلیت ریسپانسیو -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover">
+                        <thead class="table-light">
+                        <tr>
+                            <th class="animate__animated animate__fadeInLeft">نام نقش</th>
+                            <th class="animate__animated animate__fadeInLeft">مجوزها</th>
+                            {#                            <th class="animate__animated animate__fadeInLeft">وضعیت</th>#}
+                            <th class="animate__animated animate__fadeInLeft">عملیات</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for role in roles %}
+                            <tr class="animate__animated animate__fadeInUp">
+                                <td>{{ role.name }}</td>
+                                <td>
+                                    {% for perm in role.permissions.all %}
+                                        <span class="badge bg-info animate__animated animate__zoomIn">{{ perm.name }}</span>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% if role.is_active %}
+                                        <span class="badge bg-success animate__animated animate__zoomIn">فعال</span>
+                                    {% else %}
+                                        <span class="badge bg-danger animate__animated animate__zoomIn">غیرفعال</span>
+                                    {% endif %}
+
+                                    <!-- دکمه‌های ویرایش و حذف -->
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <a href="{% url 'accounts:role_update' role.id %}"
+                                           class="btn btn-warning btn-sm animate__animated animate__tada">
+                                            <i class="fas fa-edit"></i> ویرایش
+                                        </a>
+
+                                        <!-- فرم غیرفعال کردن نقش -->
+                                        {% if role.is_active %}
+                                            <form method="post" action="{% url 'accounts:deactivate_role' role.id %}"
+                                                  style="display:inline;">
+                                                {% csrf_token %}
+                                                <button type="submit"
+                                                        class="btn btn-danger btn-sm animate__animated animate__shakeX">
+                                                    <i class="fas fa-ban"></i> غیرفعال کردن
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span class="text-muted">نقش غیرفعال است</span>
+                                        {% endif %}
+                                        {#                                  <a href="{% url 'accounts:role_delete' role.id %}" class="btn btn-danger btn-sm animate__animated animate__shakeX" onclick="return confirm('آیا از حذف این نقش مطمئن هستید؟');">#}
+                                        {#                                        <i class="fas fa-trash"></i> حذف#}
+                                        {#                                    </a>#}
+
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- دکمه ایجاد نقش جدید -->
+                <div class="d-grid gap-2">
+                    <a href="{% url 'accounts:role_create' %}"
+                       class="btn btn-success animate__animated animate__flipInX">
+                        <i class="fas fa-plus-circle"></i> ایجاد نقش جدید
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

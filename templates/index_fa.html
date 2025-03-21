@@ -1,0 +1,678 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4 animate__animated animate__fadeInDown">منوی مدیریت سیستم</h1>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+        
+        <!-- کارت مدیریت هزینه‌ها -->
+        <div class="col">
+            <div class="card animate__animated animate__fadeInUp shadow-lg hover-card elegant-card">
+                <div class="card-header bg-gradient-success text-white d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-cog"></i> مدیریت هزینه‌ها</span>
+                    <button class="btn btn-sm btn-outline-light toggle-card">
+                        <i class="fas fa-eye-slash"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        <!-- لینک‌های مدیریت هزینه‌ها -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت تعاریف سیستم -->
+        <div class="col">
+                <div class="card animate__animated animate__fadeInUp shadow-lg hover-card">
+                    <div class="card-header   text-white d-flex justify-content-between align-items-center">
+
+                        <span><i class="fas fa-cog"></i> تعاریف سیستم</span>
+                        <button class="btn btn-sm btn-outline-light toggle-card">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <a href="{% url 'RCMS_index_view' %}"
+                                   class="btn btn-outline-primary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                    <i class="fas fa-tools"></i> مدیریت سیستم
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+        </div>
+
+        <!-- کارت عملیات هزینه -->
+        <div class="col">
+                <div class="card animate__animated animate__fadeInUp shadow-lg hover-card">
+                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-dollar-sign"></i> عملیات هزینه</span>
+                        <button class="btn btn-sm btn-outline-light toggle-card">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% if user_permissions.Transaction_Add %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'transaction_create' %}"
+                                       class="btn btn-outline-primary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-money-check-alt"></i> عملیات پرداخت/دریافت
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.Expense_Add %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'expense_create' %}"
+                                       class="btn btn-outline-success btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-plus"></i> محاسبه و ثبت هزینه‌ها
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.transaction_list_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'transaction_list' %}"
+                                       class="btn btn-outline-info btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-exchange-alt"></i> فهرست تراکنش‌ها
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.Complex_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'select_complex' %}"
+                                       class="btn btn-outline-warning btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-building"></i> فهرست تراکنش واحد
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.view_transaction_report %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'transaction_list_DateSort' %}"
+                                       class="btn btn-outline-danger btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-calendar-alt"></i> فهرست تراکنش واحد (فیلتر تاریخ)
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.Expense_View %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'expense_list' %}"
+                                       class="btn btn-outline-secondary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-file-invoice"></i> فهرست قبوض
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {#                            {% if user_permissions.Expense_View %}#}
+                            <li class="list-group-item">
+                                <a href="{% url 'payment_report' %}"
+                                   class="btn btn-outline-secondary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                    <i class="fas fa-user-pen"></i>گردش مالی کاربر</a>
+                            </li>
+                            {#                            {% endif %}#}
+                        </ul>
+                    </div>
+                </div>
+        </div>
+
+        <!-- کارت گزارشات -->
+        <div class="col">
+                <div class="card animate__animated animate__fadeInUp shadow-lg hover-card">
+                    <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-chart-bar"></i> گزارشات</span>
+                        <button class="btn btn-sm btn-outline-light toggle-card">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% if user_permissions.transaction_list_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'transaction_list' %}"
+                                       class="btn btn-outline-primary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-exchange-alt"></i> فهرست تراکنش‌ها
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.select_complex_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'select_complex' %}"
+                                       class="btn btn-outline-success btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-building"></i> فهرست تراکنش مالک/مستاجر
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.transaction_list_DateSort_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'transaction_list_DateSort' %}"
+                                       class="btn btn-outline-info btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-calendar-alt"></i> فهرست تراکنش واحد (فیلتر تاریخ)
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.expense_list_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'expense_list' %}"
+                                       class="btn btn-outline-warning btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-file-invoice"></i> فهرست قبوض
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.Unit_View %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'unitList' %}"
+                                       class="btn btn-outline-danger btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-list"></i> فهرست مقیم
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.Expense_View %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'expense_list' %}"
+                                       class="btn btn-outline-secondary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-receipt"></i> فهرست هزینه‌ها
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+        </div>
+
+        <!-- کارت HSE ایمنی -->
+        <div class="col">
+                <div class="card animate__animated animate__fadeInUp shadow-lg hover-card">
+                    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-shield-alt"></i> HSE ایمنی</span>
+                        <button class="btn btn-sm btn-outline-light toggle-card">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% if user_permissions.HSEPolicy_View %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'hse_policy_list' %}"
+                                       class="btn btn-outline-primary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-file-alt"></i> لیست فرآیند HSE
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.HSETraining_View %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'hse_training_list' %}"
+                                       class="btn btn-outline-success btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-chalkboard-teacher"></i> آموزش‌های HSE
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.HSERiskAssessment_View %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'hse_riskassessment_list' %}"
+                                       class="btn btn-outline-info btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-exclamation-triangle"></i> سیاست‌های HSE
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+        </div>
+
+        <!-- کارت مدیریت تاسیسات -->
+        <div class="col">
+                <div class="card animate__animated animate__fadeInUp shadow-lg hover-card">
+                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-tools"></i> مدیریت تاسیسات</span>
+                        <button class="btn btn-sm btn-outline-light toggle-card">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% if user_permissions.equipmentcategory_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'equipmentcategory_list' %}"
+                                       class="btn btn-outline-primary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-list"></i> دسته‌بندی تاسیسات
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.facilitytype_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'facilitytype_list' %}"
+                                       class="btn btn-outline-success btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-building"></i> نوع تاسیسات
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.facility_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'facility_list' %}"
+                                       class="btn btn-outline-info btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-tools"></i> تاسیسات
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.maintenancerequest_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'maintenance_report' %}"
+                                       class="btn btn-outline-warning btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-chart-line"></i> گزارش تعمیرات
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.equipmentfault_add %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'equipment_fault_create' %}"
+                                       class="btn btn-outline-danger btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-tools"></i> ثبت خرابی تجهیزات
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.maintenancerequest_add %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'maintenance_request_create' %}"
+                                       class="btn btn-outline-secondary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-wrench"></i> ثبت درخواست تعمیرات
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.maintenanceverification_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'maintenance_verification_create' %}"
+                                       class="btn btn-outline-primary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-check-circle"></i> تأیید تعمیرات
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.maintenanceschedule_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'maintenance_schedule_list' %}"
+                                       class="btn btn-outline-success btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-check-circle"></i> پیگیری تاسیساتی
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.maintenanceverification_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'maintenance_verification_list' %}"
+                                       class="btn btn-outline-info btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-chart-line"></i> گزارش بازیابی
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+        </div>
+
+        <!-- کارت نظافت -->
+        <div class="col">
+                <div class="card animate__animated animate__fadeInUp shadow-lg hover-card">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-broom"></i> نظافت</span>
+                        <button class="btn btn-sm btn-outline-light toggle-card">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% if user_permissions.wasteshoot_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'waste_shoot_list' %}"
+                                       class="btn btn-outline-primary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-dumpster"></i> شوتینگ زباله
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.wasteshootcleaning_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'waste_shoot_cleaning_list' %}"
+                                       class="btn btn-outline-success btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-broom"></i> نظافت شوتینگ زباله
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.generalcleaning_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'general_cleaning_list' %}"
+                                       class="btn btn-outline-info btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-clipboard-list"></i> نظافت عمومی
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.wasteshoot_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'waste_shoot_report' %}"
+                                       class="btn btn-outline-warning btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-chart-line"></i> گزارش نظافت
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.wasteshootcleaning_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'waste_shoot_cleaning_report' %}"
+                                       class="btn btn-outline-danger btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-chart-line"></i> گزارش شوتینگ
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.WasteHelpView %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'waste_help' %}"
+                                       class="btn btn-outline-secondary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-chart-line"></i> راهنمای سیستم
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+        </div>
+
+        <!-- کارت جلسات و پیام‌ها -->
+        <div class="col-12">
+               <div class="container-fluid">
+                    <div class="row g-3">
+
+                        <!-- بخش جلسات -->
+                        <div class="col-md-6">
+                            <div class="card border-primary shadow-sm">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="fas fa-calendar-alt me-2"></i>مدیریت جلسات
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group">
+                                        {% if user_permissions.MeetingRequest_Add %}
+                                            <a href="{% url 'meeting_request_create' %}"
+                                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="fas fa-plus-circle me-2 text-success"></i>
+                                    ایجاد جلسه جدید
+                                </span>
+                                                <span class="badge bg-primary rounded-pill">New</span>
+                                            </a>
+                                        {% endif %}
+
+                                        <a href="{% url 'meeting_request_list_1' %}"
+                                           class="list-group-item list-group-item-action">
+                                            <i class="fas fa-list-ol me-2 text-info"></i>
+                                            لیست جلسات فعال
+                                        </a>
+
+                                        <a href="{% url 'meeting_request_archive' %}"
+                                           class="list-group-item list-group-item-action">
+                                            <i class="fas fa-archive me-2 text-warning"></i>
+                                            جلسات بایگانی شده
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- بخش نظرسنجی‌ها -->
+                        <div class="col-md-6">
+                            <div class="card border-info shadow-sm">
+                                <div class="card-header bg-info text-white">
+                                    <i class="fas fa-poll me-2"></i>مدیریت نظرسنجی‌ها
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group">
+                                        <a href="{{ poll_create_url }}"
+                                           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="fas fa-plus-square me-2 text-success"></i>
+                                    ایجاد نظرسنجی جدید
+                                </span>
+                                            <span class="badge bg-info rounded-pill">New</span>
+                                        </a>
+
+                                        {#                                        <a href="{% url 'poll_list' meeting_id=current_meeting.id %}"#}
+                                        {#                                           class="list-group-item list-group-item-action">#}
+                                        {#                                            <i class="fas fa-chart-bar me-2 text-primary"></i>#}
+                                        {#                                            نظرسنجی‌های فعال#}
+                                        {#                                        </a>#}
+
+                                        {#                                        <a href="{% url 'poll_results' poll_id=active_poll.id %}"#}
+                                        {#                                           class="list-group-item list-group-item-action">#}
+                                        {#                                            <i class="fas fa-chart-pie me-2 text-danger"></i>#}
+                                        {#                                            مشاهده نتایج#}
+                                        {#                                        </a>#}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- بخش پیام‌ها و حضورغیاب -->
+                        <div class="col-12">
+                            <div class="card border-success shadow-sm mt-3">
+                                <div class="card-header bg-success text-white">
+                                    <i class="fas fa-comments me-2"></i>مدیریت پیام‌ها
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="list-group">
+                                                {% if user_permissions.UserMessage_View %}
+                                                    <a href="{% url 'message_list' %}"
+                                                       class="list-group-item list-group-item-action">
+                                                        <i class="fas fa-inbox me-2 text-warning"></i>
+                                                        صندوق پیام‌ها
+                                                    </a>
+                                                {% endif %}
+
+                                                {% if user_permissions.UserMessage_Add %}
+                                                    <a href="{% url 'message_create' %}"
+                                                       class="list-group-item list-group-item-action">
+                                                        <i class="fas fa-paper-plane me-2 text-primary"></i>
+                                                        ارسال پیام جدید
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="list-group">
+                                                {% if current_meeting %}
+                                                    <a href="{% url 'meeting-attendance-list' meeting_id=current_meeting.id %}"
+                                                       class="list-group-item list-group-item-action">
+                                                        <i class="fas fa-clipboard-list me-2 text-danger"></i>
+                                                        حضور و غیاب جلسه
+                                                    </a>
+                                                {% else %}
+                                                    <div class="alert alert-warning">
+                                                        در حال حاضر هیچ جلسه فعالی وجود ندارد
+                                                    </div>
+                                                {% endif %}
+
+
+                                                {% if poll %}
+                                                    <a href="{% url 'vote_status' pk=poll.id %}" class="btn btn-info">
+                                                        مشاهده وضعیت رای‌دهی
+                                                    </a>
+                                                {% else %}
+                                                    <div class="alert alert-warning">نظرسنجی فعالی وجود ندارد</div>
+                                                {% endif %} 
+                                                 
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+        </div>
+
+        <!-- کارت رزرواسیون -->
+        <div class="col">
+             
+        </div> 
+        <!-- کارت رزرواسیون -->
+        <div class="col">
+                <div class="card animate__animated animate__fadeInUp shadow-lg hover-card">
+                    <div class="card-header   text-white d-flex justify-content-between align-items-center">
+
+                        <span><i class="fas fa-calendar-check"></i> رزرواسیون</span>
+                        <button class="btn btn-sm btn-outline-light toggle-card">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% if user_permissions.reservation_list_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'reservation_list' %}"
+                                       class="btn btn-outline-primary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-calendar-check"></i> رزروها
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.LocationType_list_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'LocationType_list' %}"
+                                       class="btn btn-outline-success btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-store"></i> تعاریف محل
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.sales_location_list_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'sales_location_list' %}"
+                                       class="btn btn-outline-info btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-store"></i> محل‌های فروش
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.table_list_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'table_list' %}"
+                                       class="btn btn-outline-warning btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-store"></i> میز فروش
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.manager_note_list_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'manager_note_list' %}"
+                                       class="btn btn-outline-danger btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-store"></i> کانفرم رزرو
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.reservation_create %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'reservation_create' %}"
+                                       class="btn btn-outline-secondary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-plus"></i> ایجاد رزرو
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.reservation_overview_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'reservation_overview' %}"
+                                       class="btn btn-outline-primary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-eye"></i> وضعیت میزها و رزروها
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.reservation_overview_1_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'reservation_overview_1' %}"
+                                       class="btn btn-outline-success btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-eye"></i> امکانت رزرو
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.pricing_list_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'pricing_list' %}"
+                                       class="btn btn-outline-info btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-dollar-sign"></i> ثبت هزینه‌های رزرو
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% if user_permissions.contract_list_view %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'contract_list' %}"
+                                       class="btn btn-outline-warning btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-file-contract"></i> امور قراردادها
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+        </div>
+
+        <!-- کارت مدیریت کاربری -->
+        <div class="col">
+                <div class="card animate__animated animate__fadeInUp shadow-lg hover-card">
+                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-users-cog"></i> مدیریت کاربری {{ user.username }} </span>
+                        <button class="btn btn-sm btn-outline-light toggle-card">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% if user.is_authenticated %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'accounts:user_management_view' %}"
+                                       class="btn btn-outline-primary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-user"></i> مدیریت کاربری
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'accounts:login' %}"
+                                       class="btn btn-outline-primary btn-sm rounded-pill w-100 btn-hover elegant-btn">
+                                        <i class="fas fa-sign-in-alt"></i> ورود
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* استایل‌های یکپارچه شده */
+    .card {
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card-header {
+        font-size: 1.2em;
+        font-weight: bold;
+        padding: 15px;
+    }
+    
+    .list-group-item {
+        padding: 12px 20px;
+        margin-bottom: 8px;
+    }
+    
+    /* سایر استایل‌ها */
+</style>
+
+<script>
+    // اسکریپت‌های بهینه شده
+    document.querySelectorAll('.toggle-card').forEach(button => {
+        button.addEventListener('click', function() {
+            const cardBody = this.closest('.card').querySelector('.card-body');
+            cardBody.style.display = cardBody.style.display === 'none' ? 'block' : 'none';
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+            this.querySelector('i').classList.toggle('fa-eye');
+        });
+    });
+</script>
+{% endblock %}  

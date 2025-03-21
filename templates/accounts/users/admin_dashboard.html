@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+{% block header %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <h2>Welcome, {{ user.username }}</h2>
+        <p class="text-muted">This is the admin dashboard. Manage system users and settings here.</p>
+        <ul class="list-group">
+            <li class="list-group-item"><i class="fas fa-users"></i> Manage Users</li>
+            <li class="list-group-item"><i class="fas fa-cogs"></i> System Settings</li>
+            <li class="list-group-item"><i class="fas fa-chart-line"></i> View Reports</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

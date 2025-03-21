@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4 animate__animated animate__fadeInDown"><i class="fas fa-trash-alt me-2"></i>{% trans "حذف تأیید" %}</h1>
+        <div class="card animate__animated animate__zoomIn">
+            <div class="card-body">
+                <p>{% trans "آیا مطمئن هستید که می‌خواهید تأیید توسط" %} <strong>{{ object.user }}</strong> {% trans "را حذف کنید؟" %}</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash me-2"></i>{% trans "بله" %}</button>
+                    <a href="{% url 'approval_list' %}" class="btn btn-secondary"><i class="fas fa-times me-2"></i>{% trans "خیر" %}</a>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

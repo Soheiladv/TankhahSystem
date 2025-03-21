@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center text-primary mb-4">{% if object %}ویرایش{% else %}ایجاد{% endif %} نقش</h1>
+    <form method="post" enctype="multipart/form-data" id="roleForm" class="bg-light p-4 rounded">
+        {% csrf_token %}
+        <div class="form-group">
+            <h4>
+                <label for="{{ form.name.id_for_label }}" class="font-weight-bold text-info">عنوان نقش</label>
+            </h4>
+            <input type="text" id="{{ form.name.id_for_label }}" name="{{ form.name.name }}" class="form-control"
+                   value="{{ form.name.value|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <h3 class="text-info">مجوزها بر اساس اپلیکیشن‌ها</h3>
+            <p>
+            <label for="permission_search" class="mb-2">جستجو مجوز:</label>
+            <input type="text" id="permission_search" class="form-control mb-2" placeholder="جستجو مجوز...">
+            <div id="accordion" class="accordion">
+                {% for app_label, permissions in permissions_tree.items %}
+                <div class="card mb-3">
+                    <div class="card-header bg-info text-white" id="heading{{ forloop.counter }}">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link text-white" type="button" data-toggle="collapse"
+                                    data-target="#collapse{{ forloop.counter }}" aria-expanded="true"
+                                    aria-controls="collapse{{ forloop.counter }}" style="width: 100%; text-align: left;">
+                                <div class="d-flex justify-content-between align-items-center w-100">
+                                    <span>{{ app_label|title }}</span>
+                                    <div>
+                                        <input type="checkbox" class="branch-toggle" id="toggle_{{ app_label }}"
+                                               data-branch="{{ app_label }}">
+                                        <label for="toggle_{{ app_label }}">
+                                            <i class="fas fa-check-square fa-lg" style="transition: all 0.3s ease; opacity: 0.5;"></i>
+                                        </label>
+                                    </div>
+                                </div>
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapse{{ forloop.counter }}" class="collapse show" aria-labelledby="heading{{ forloop.counter }}" data-parent="#accordion">
+                        <div class="card-body" id="permissions">
+                            {% for perm in permissions %}
+                            <div class="form-check animated-item">
+                                <input class="form-check-input permission-checkbox" type="checkbox"
+                                       name="permissions" value="{{ perm.id }}" id="perm_{{ perm.id }}"
+                                       data-app="{{ app_label }}" {% if perm.id in form.permissions.value %}checked{% endif %}>
+                                <label class="form-check-label text-muted" for="perm_{{ perm.id }}">
+                                    <i class="fas fa-lock-open mr-2"></i>{{ perm.name }} ({{ perm.codename }})
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.description.id_for_label }}" class="font-weight-bold text-info">توضیحات نقش</label>
+            <textarea id="{{ form.description.id_for_label }}" name="{{ form.description.name }}" class="form-control"
+                      rows="4">{{ form.description.value|default:'' }}</textarea>
+        </div>
+
+        <div class="text-center mt-3">
+            <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save mr-2"></i>ذخیره</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const branchToggles = document.querySelectorAll('.branch-toggle');
+        branchToggles.forEach(toggle => {
+            toggle.addEventListener('change', function () {
+                const branch = this.dataset.branch.trim(); // حذف فاصله‌های اضافی
+                const checkboxes = document.querySelectorAll(`.permission-checkbox[data-app="${branch}"]`);
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                    checkbox.parentNode.classList.add('animated');
+                    setTimeout(() => checkbox.parentNode.classList.remove('animated'), 300);
+                });
+                this.nextElementSibling.querySelector('i').style.opacity = this.checked ? 1 : 0.5;
+            });
+        });
+
+        // اضافه کردن انیمیشن برای تیک‌های فردی
+        document.querySelectorAll('.permission-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                this.parentNode.classList.add('animated');
+                setTimeout(() => this.parentNode.classList.remove('animated'), 300);
+            });
+        });
+
+        // انیمیشن برای آیتم‌های داخل کارت
+        document.querySelectorAll('.animated-item').forEach(item => {
+            item.addEventListener('mouseover', function () {
+                this.style.transform = 'scale(1.05)';
+                this.style.transition = 'transform 0.3s ease';
+            });
+            item.addEventListener('mouseout', function () {
+                this.style.transform = 'scale(1)';
+            });
+        });
+
+        // جستجوی مجوزها
+        const searchInput = document.getElementById('permission_search');
+        searchInput.addEventListener('keyup', function () {
+            const filter = this.value.toLowerCase();
+            document.querySelectorAll('.form-check').forEach(check => {
+                const label = check.querySelector('label');
+                const txtValue = label.textContent || label.innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    check.style.display = "";
+                } else {
+                    check.style.display = "none";
+                }
+            });
+        });
+        // باز و بسته کردن کارت با کلیک روی card-header
+        const cardHeaders = document.querySelectorAll('.card-header');
+        cardHeaders.forEach(header => {
+            header.addEventListener('click', function () {
+                const collapseElement = this.nextElementSibling;
+                if (collapseElement.classList.contains('show')) {
+                    collapseElement.classList.remove('show');
+                } else {
+                    collapseElement.classList.add('show');
+                }
+            });
+        });
+    }); 
+</script>
+
+{% block extra_css %}
+<style>
+    .branch-toggle {
+        display: none;
+    }
+    .branch-toggle + label > i {
+        transition: all 0.3s ease;
+    }
+    .branch-toggle:checked + label > i {
+        opacity: 1;
+    }
+    .animated {
+        transition: all 0.3s ease;
+        transform: scale(1.05);
+    }
+    .animated-item:hover {
+        background-color: #f8f9fa;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+    <h1>تأیید تنخواه</h1>
+    <p>آیا مطمئن هستید که می‌خواهید تنخواه {{ object.number }} را تأیید کنید؟</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">بله، تأیید کن</button>
+        <a href="{% url 'tanbakh_list' %}" class="btn btn-secondary">خیر، لغو</a>
+    </form>
+{% endblock %}

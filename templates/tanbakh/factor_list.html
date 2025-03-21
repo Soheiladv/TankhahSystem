@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4 animate__animated animate__fadeInDown"><i class="fas fa-file-invoice me-2"></i>{{ title }}</h1>
+        <div class="row">
+            {% for factor in factors %}
+                <div class="col-md-4 mb-4">
+                    <div class="card animate__animated animate__zoomIn">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-barcode me-2"></i>{{ factor.number }}</h5>
+                            <p class="card-text"><i class="fas fa-wallet me-2"></i>{{ factor.amount }}</p>
+                            <p class="card-text"><i class="fas fa-info-circle me-2"></i>{{ factor.status }}</p>
+                            <a href="{% url 'factor_detail' factor.pk %}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
+                            <a href="{% url 'factor_update' factor.pk %}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'factor_delete' factor.pk %}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12"><p class="text-center">{% trans "فاکتوری یافت نشد." %}</p></div>
+            {% endfor %}
+        </div>
+        <a href="{% url 'factor_create' %}" class="btn btn-success"><i class="fas fa-plus me-2"></i>{% trans "ایجاد فاکتور" %}</a>
+    </div>
+{% endblock %}

@@ -1,0 +1,123 @@
+<!-- core/templates/home.html -->
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<style>
+            /* styles.css */
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .list-group-item {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+
+        .list-group-item:hover {
+            background-color: #f1f1f1;
+        }
+
+        .text-dark {
+            color: #212529;
+        }
+
+        .text-muted {
+            color: #6c757d;
+        }
+
+        .text-primary {
+            color: #007bff;
+        }
+
+</style>
+<br>
+<div class="container mt-4">
+    <h1 class="text-center mb-4">مدیریت منوها</h1>
+    <a href="{{ item.get_absolute_url }}" class="btn btn-primary">مشاهده</a>
+    <br>
+
+    <!-- اپلیکیشن‌ها -->
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <i class="fas fa-cogs"></i> اپلیکیشن‌ها
+        </div>
+        {% for category, apps in app_details.items %}
+            <div class="card mb-2">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">{{ category }}</h5>
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for app_name, app_info in apps.items %}
+                        <li class="list-group-item">
+                            <a href="{% url 'app_detail' app_name=app_name %}" class="d-flex justify-content-between align-items-center">
+                                <strong>{{ app_name }}</strong>
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item text-center">هیچ اپلیکیشن‌ای در این دسته‌بندی یافت نشد.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+    </div>
+    <!-- منوها -->
+    
+
+<div class="container mt-4">
+    <h1 class="text-center mb-4">مدیریت منوها</h1>
+
+    <!-- منوها -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-th-list"></i> منوها
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for menu in menus %}
+                <li class="list-group-item d-flex flex-column flex-md-row align-items-start align-items-md-center">
+                    <a href="{{ menu.url }}" class="d-flex w-100 text-decoration-none">
+                        <div class="flex-grow-1 mb-2 mb-md-0">
+                            <!-- نام منو -->
+                            <div class="mb-2">
+                                <h5 class="mb-1 text-dark"><strong>نام منو:</strong> {{ menu.name_fa }}</h5>
+                            </div>
+                            <!-- عنوان منو -->
+                            <div class="mb-2">
+                                <p class="mb-1 text-muted"><strong>عنوان:</strong> {{ menu.title }}</p>
+                            </div>
+                            <!-- نشانی منو -->
+                            <div class="mb-2">
+                                <p class="mb-1 text-muted"><strong>نشانی:</strong> <small>{{ menu.url }}</small></p>
+                            </div>
+                            <!-- شرح منو -->
+                            <div class="mb-2">
+                                <p class="mb-1 text-muted"><strong>شرح:</strong> <small>{{ menu.description }}</small></p>
+                            </div>
+                            <!-- دسته بندی منو -->
+                            <div class="mb-2">
+                                <p class="mb-1 text-muted"><strong>دسته بندی:</strong> <small>{{ menu.category }}</small></p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right ml-2 text-primary"></i>
+                    </a>
+                </li>
+            {% empty %}
+                <li class="list-group-item text-center">هیچ منویی پیدا نشد.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+
+
+
+
+</div>
+{% endblock %}

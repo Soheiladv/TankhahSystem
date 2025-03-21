@@ -1,0 +1,13 @@
+{% extends "base.html" %}   
+
+{% block content %}
+  <h1>لیست کاربران</h1>
+  <ul>
+    {% for user in users %}
+      <li>
+        {{ user.username }}
+        <a href="{% url 'reset_password' user.id %}" class="btn btn-warning">ریست گذرواژه</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

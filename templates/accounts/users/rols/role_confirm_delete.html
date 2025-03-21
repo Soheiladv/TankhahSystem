@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container mt-5 animate__animated animate__fadeIn">
+    <h1 class="text-center"><i class="fas fa-trash"></i> حذف نقش</h1>
+    
+    {% if users or groups %}
+      <div class="alert alert-danger animate__animated animate__shakeX" role="alert">
+        این نقش دارای وابستگی‌هایی است و نمی‌توان آن را حذف کرد.
+        <ul>
+          {% if users %}
+            <li><strong>کاربران مرتبط:</strong></li>
+            <ul>
+              {% for user in users %}
+                <li>{{ user.username }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+          
+          {% if groups %}
+            <li><strong>گروه‌های مرتبط:</strong></li>
+            <ul>
+              {% for group in groups %}
+                <li>{{ group.name }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </ul>
+      </div>
+
+      <div class="alert alert-info animate__animated animate__slideInUp" role="alert">
+        <h5>گزینه‌های جایگزین:</h5>
+        <ul class="list-unstyled">
+          <li class="mb-3">
+            <a href="{% url 'accounts:transfer_role_dependencies' object.id %}" class="btn btn-warning btn-lg w-100 animate__animated animate__pulse animate__infinite">
+              <i class="fas fa-exchange-alt"></i> انتقال وابستگی‌ها به نقش دیگر
+            </a>
+          </li>
+          <li>
+            <form method="post" action="{% url 'accounts:deactivate_role' object.id %}" style="display: inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-secondary btn-lg w-100">
+                <i class="fas fa-ban"></i> غیرفعال کردن نقش
+              </button>
+            </form>
+          </li>
+        </ul>
+      </div>
+
+      <a href="{% url 'accounts:role_list' %}" class="btn btn-secondary btn-lg w-100">
+        <i class="fas fa-times"></i> بازگشت
+      </a>
+    {% else %}
+      <div class="card shadow-lg p-3 mb-5 bg-white rounded animate__animated animate__slideInUp">
+        <div class="card-body">
+          <p class="text-center">آیا مطمئن هستید که می‌خواهید نقش "{{ object.name }}" را حذف کنید؟</p>
+          <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-lg w-100 animate__animated animate__pulse animate__infinite">
+              <i class="fas fa-trash"></i> حذف
+            </button>
+          </form>
+          <a href="{% url 'accounts:role_list' %}" class="btn btn-secondary btn-lg w-100 mt-3">
+            <i class="fas fa-times"></i> لغو
+          </a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

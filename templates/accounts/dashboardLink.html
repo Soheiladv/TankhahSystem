@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4">داشبورد مدیریت</h2>
+    <div class="row">
+        {% for card in cards %}
+        <div class="col-md-6">
+            <div class="card mb-4 shadow-sm border-{{ card.items.0.color }}">
+                <div class="card-header bg-{{ card.items.0.color }} text-white">
+                    <i class="{{ card.icon }}"></i> {{ card.title }}
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for item in card.items %}
+                        <li class="list-group-item">
+                            <a href="{% url item.url %}" class="text-decoration-none">
+                                <i class="{{ item.icon }} text-{{ item.color }}"></i>
+                                {{ item.label }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+    <style>
+        /* طراحی کلی کارت */
+        .custom-card {
+            border-radius: 15px;
+            box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.12);
+            transition: all 0.3s ease-in-out;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border: none;
+        }
+
+        .custom-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        /* طراحی هدر کارت */
+        .custom-header {
+            background: linear-gradient(to right, #007bff, #17a2b8);
+            color: white;
+            border-radius: 15px 15px 0 0;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        /* طراحی دکمه‌ها */
+        .stylish-btn {
+            border-radius: 30px;
+            padding: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease-in-out;
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+
+        .stylish-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* رنگ‌بندی دکمه‌ها */
+        .btn-outline-primary:hover { background-color: #007bff !important; color: white !important; }
+        .btn-outline-danger:hover { background-color: #dc3545 !important; color: white !important; }
+
+        /* افکت لیست آیتم‌ها */
+        .list-group-item {
+            background-color: transparent;
+            transition: background 0.3s ease-in-out;
+        }
+
+        .list-group-item:hover {
+            background: rgba(0, 123, 255, 0.1);
+        }
+    </style>
+
+{% endblock %}

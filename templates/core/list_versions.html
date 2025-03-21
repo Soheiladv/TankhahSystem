@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %} 
+<!-- versions/list_versions.html -->
+<h1>لیست نسخه‌ها</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>شماره نسخه</th>
+            <th>نوع نسخه</th>
+            <th>عنوان اپ  </th>
+            <th>تاریخ انتشار</th>
+            <th>نویسنده</th>
+            <th>توضیحات تغییرات</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for version in versions %}
+        <tr>
+            <td>{{ version.version_number }}</td>
+            <td>{{ version.get_version_type_display }}</td>
+            <td>{{ version.app_name }}</td>
+            <td>{{ version.release_date }}</td>
+            <td>{{ version.author }}</td>
+            <td>{{ version.change_log }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href="{% url 'create_version' %}" class="btn btn-success">ایجاد نسخه جدید</a>
+
+ 
+{% endblock %}

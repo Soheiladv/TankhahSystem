@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container my-5">
+        <h2 class="text-center mb-4 text-primary font-weight-bold">
+            <i class="fas fa-user-cog mr-2"></i> مدیریت کاربری {{ user.username }}
+        </h2>
+
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card custom-card animate__animated animate__fadeInUp">
+                    <div class="card-header custom-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-users-cog mr-2"></i> تنظیمات حساب</span>
+                        <button class="btn btn-sm btn-outline-light toggle-card">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                    <div class="card-body p-4">
+                        <ul class="list-group list-group-flush">
+                            {% if user.is_authenticated %}
+                                {% for item in user_menu %}
+                                    {% if item.permission %}
+                                        <li class="list-group-item border-0 mb-2 text-center">
+                                            <a href="{% url item.url %}"
+                                               class="btn btn-outline-{{ item.color }} btn-block btn-sm rounded-pill stylish-btn d-flex align-items-center justify-content-center">
+                                                <i class="{{ item.icon }} mr-2"></i> {{ item.label }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                <!-- دکمه خروج -->
+                                <li class="list-group-item border-0 mt-3 text-center">
+                                    <form method="post" action="{% url 'accounts:logout' %}">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                class="btn btn-outline-danger btn-block btn-sm rounded-pill stylish-btn d-flex align-items-center justify-content-center">
+                                            <i class="fas fa-sign-out-alt mr-2"></i> خروج
+                                        </button>
+                                    </form>
+                                </li>
+                            {% else %}
+                                <li class="list-group-item border-0 text-center">
+                                    <a href="{% url 'accounts:login' %}"
+                                       class="btn btn-outline-primary btn-block btn-sm rounded-pill stylish-btn d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-sign-in-alt mr-2"></i> ورود
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* طراحی کلی کارت */
+        .custom-card {
+            border-radius: 15px;
+            box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.12);
+            transition: all 0.3s ease-in-out;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border: none;
+        }
+
+        .custom-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        /* طراحی هدر کارت */
+        .custom-header {
+            background: linear-gradient(to right, #007bff, #17a2b8);
+            color: white;
+            border-radius: 15px 15px 0 0;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        /* طراحی دکمه‌ها */
+        .stylish-btn {
+            border-radius: 30px;
+            padding: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease-in-out;
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+
+        .stylish-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* رنگ‌بندی دکمه‌ها */
+        .btn-outline-primary:hover { background-color: #007bff !important; color: white !important; }
+        .btn-outline-danger:hover { background-color: #dc3545 !important; color: white !important; }
+
+        /* افکت لیست آیتم‌ها */
+        .list-group-item {
+            background-color: transparent;
+            transition: background 0.3s ease-in-out;
+        }
+
+        .list-group-item:hover {
+            background: rgba(0, 123, 255, 0.1);
+        }
+    </style>
+{% endblock %}

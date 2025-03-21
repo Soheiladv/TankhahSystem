@@ -1,0 +1,380 @@
+<!-- menu.html -->
+
+{% load jalali_tags %}
+{% load static %}
+{% load humanize %}
+{% load jformat %}
+
+
+<div class="sidebar no-print animate__animated animate__slideInRight d-md-block hidden" id="sidebar">
+    <button class="btn btn-secondary mb-3" id="toggleSidebar"><i class="fas fa-bars"></i></button>
+    <a href="{% url 'index' %}"><i class="fas fa-home"></i><span>خانه</span></a>
+
+    <!-- منوی کوتاه -->
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#ShortMenu"><i class="fas fa-user"></i>منوی کوتاه</a>
+    <div id="ShortMenu" class="collapse" style="background: #0b2e13">
+        {% if user_permissions.software_links_view %}
+            <a href="{% url 'software_links' %}"><i class="fas fa-user"></i> مدیریت لینک </a>
+        {% endif %}
+        <!-- و بقیه منوهای کوتاه -->
+    </div>
+
+    <!-- تنظیمات سیستم -->
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#userOperationsMenu" onclick="toggleMenu()">
+        <i class="fas fa-user"></i> تنظیمات سیستم
+        <i class="fas fa-chevron-down rotate-icon"></i>
+    </a>
+    <div id="userOperationsMenu" class="collapse">
+        {% if user_permissions.Complex_view %}
+            <a href="{% url 'complexList' %}"><i class="fas fa-building"></i> مجتمع‌ها </a>
+        {% endif %}
+        <!-- و بقیه منوهای تنظیمات سیستم -->
+    </div>
+تمامی منو ها را میخواهم در یک فایل جدا گانه لود کنم و در تملیت بارگذاری شود
+
+
+
+                            {% if user_permissions.Complex_view %}
+                                <li><a href="{% url 'complexList' %}">مشاهده مجتمع‌ها</a></li>
+                            {% endif %}
+                            {% if user_permissions.Complex_add %}
+                                <li><a href="{% url 'complex_add' %}">اضافه کردن مجتمع جدید</a></li>
+                            {% endif %}
+                             {% if user.is_authenticated %}
+                                <span style="color: lightgoldenrodyellow"> {{ user.username }}</span><span> کاربر فعال</span>
+                             {% else %}
+                             <!-- ورود -->
+                                <a href="{% url 'accounts:login' %}" class="btn btn-outline-warning w-100 mb-2">
+                                    <i class="fas fa-sign-in-alt"></i> ورود
+                                </a>
+                            {% endif %}
+
+
+
+        {% if user_permissions.software_links_view %}
+            <a href="{% url 'software_links' %}"><i class="fas fa-user"></i> مدیریت لینک </a>
+        {% endif %}
+        {% if user_permissions.Expense_View %}
+            <a href="{% url 'expense_list' %}"><i class="fas fa-file-invoice"></i> فهرست قبوض </a>
+        {% endif %}
+        {% if user_permissions.Expense_Add %}
+            <a href="{% url 'expense_create' %}"><i class="fas fa-file-invoice"></i> صدور قبوض </a>
+        {% endif %}
+        {% if user_permissions.TenantHistory_View %}
+            <a href="{% url 'tenant_history_list' %}"><i class="fas fa-user-clock"></i> مالک/مستجر </a>
+        {% endif %}
+        {% if user_permissions.UserMessage_View %}
+            <a href="{% url 'user_message_list' %}"><i class="fas fa-envelope"></i> پیام‌ها </a>
+        {% endif %}
+        {% if user_permissions.Fund_View %}
+            <a href="{% url 'fund_list' %}"><i class="fas fa-piggy-bank"></i> صندوق </a>
+        {% endif %}
+        {% if user_permissions.Unit_View %}
+            <a href="{% url 'unitList' %}"><i class="fas fa-list"></i> فهرست واحدها</a>
+        {% endif %}
+        {% if user_permissions.Complex_View %}
+            <a href="{% url 'select_complex' %}"><i class="fas fa-building"></i> فهرست تراکنش واحد</a>
+        {% endif %}
+        {% if user_permissions.Reservation_View %}
+            <a href="{% url 'reservation_list' %}" class="nav-link"><i class="fas fa-calendar-check"></i> رزروها</a>
+        {% endif %}
+{#        {% if user_permissions.MeetingRequest_Add %}#}
+{#            <a href="{% url 'meeting_request_create' %}"><i class="fas fa-calendar-plus"></i> درخواست جلسه</a>#}
+{#        {% endif %}#}
+
+{#        {% if user_permissions.RCMS.MeetingRequest_Add %}#}
+{#                <a href="{% url 'meeting_request_create' %}"><i class="fas fa-calendar-plus"></i> درخواست جلسه</a>#}
+{#        {% endif %}#}
+
+{##########################################################################################################################}
+
+  <div class="sidebar no-print animate__animated animate__slideInRight d-md-block hidden" id="sidebar">
+
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#ShortMenu"><i class="fas fa-user"></i>منوی کوتاه</a>
+    <div id="ShortMenu" class="collapse" style="background: #0b2e13">
+
+    <button class="btn btn-secondary mb-3 " id="toggleSidebar"><i class="fas fa-bars"></i></button>
+    <a href="{% url 'index' %}"><i class="fas fa-home"></i><span>خانه</span></a>
+
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#ShortMenu"><i class="fas fa-user"></i>منوی کوتاه</a>
+    <div id="ShortMenu" class="collapse" style="background: #0b2e13">
+
+        {% if user_permissions.software_links_view %}
+            <a href="{% url 'software_links' %}"><i class="fas fa-user"></i> مدیریت لینک </a>
+        {% endif %}
+        {% if user_permissions.Expense_View %}
+            <a href="{% url 'expense_list' %}"><i class="fas fa-file-invoice"></i> فهرست قبوض </a>
+        {% endif %}
+        {% if user_permissions.Expense_Add %}
+            <a href="{% url 'expense_create' %}"><i class="fas fa-file-invoice"></i> صدور قبوض </a>
+        {% endif %}
+        {% if user_permissions.tenant_history_view %}
+            <a href="{% url 'tenant_history_list' %}"><i class="fas fa-user-clock"></i> مالک/مستجر </a>
+        {% endif %}
+        {% if user_permissions.user_message_list_view %}
+            <a href="{% url 'user_message_list' %}"><i class="fas fa-envelope"></i> پیام‌ها </a>
+        {% endif %}
+        {% if user_permissions.fund_list_view %}
+            <a href="{% url 'fund_list' %}"><i class="fas fa-piggy-bank"></i> صندوق </a>
+        {% endif %}
+        {% if user_permissions.unitList_view %}
+            <a href="{% url 'unitList' %}"><i class="fas fa-list"></i> فهرست مقیم‌ها در بلوک </a>
+        {% endif %}
+        {% if user_permissions.select_complex_view %}
+            <a href="{% url 'select_complex' %}"><i class="fas fa-building"></i> فهرست تراکنش واحد</a>
+        {% endif %}
+        {% if user_permissions.reservation_list_view %}
+            <a href="{% url 'reservation_list' %}" class="nav-link"><i class="fas fa-calendar-check"></i> رزروها</a>
+        {% endif %}
+        {% if user_permissions.meeting_request_create %}
+            <a href="{% url 'meeting_request_create' %}"><i class="fas fa-calendar-plus"></i> درخواست جلسه</a>
+        {% endif %}
+    </div>
+
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#userOperationsMenu" onclick="toggleMenu()">
+        <i class="fas fa-user"></i> تنظیمات سیستم
+        <i class="fas fa-chevron-down rotate-icon"></i>
+    </a>
+    <div id="userOperationsMenu" class="collapse">
+
+        {% if user_permissions.Complex_view %}
+            <a href="{% url 'complexList' %}"><i class="fas fa-building"></i> مجتمع‌ها </a>
+        {% endif %}
+        {% if user_permissions.Block_View %}
+            <a href="{% url 'blockList' %}"><i class="fas fa-cube"></i> بلوک‌ها </a>
+        {% endif %}
+        {% if user_permissions.Unit_View %}
+            <a href="{% url 'unitList' %}"><i class="fas fa-home"></i> واحدها </a>
+        {% endif %}
+        {% if user_permissions.TenantHistory_View %}
+            <a href="{% url 'tenant_history_list' %}"><i class="fas fa-user-clock"></i> مالک/مستجر </a>
+        {% endif %}
+        {% if user_permissions.ExpenseType_View %}
+            <a href="{% url 'expense_type_list' %}"><i class="fas fa-file-invoice-dollar"></i> تعاریف قبوض </a>
+        {% endif %}
+        {% if user_permissions.Expense_Add %}
+            <a href="{% url 'expense_create' %}"><i class="fas fa-file-invoice"></i> صدور قبوض </a>
+        {% endif %}
+        {% if user_permissions.Expense_View %}
+            <a href="{% url 'expense_list' %}"><i class="fas fa-file-invoice"></i> فهرست قبوض </a>
+        {% endif %}
+        {% if user_permissions.UserMessage_View %}
+            <a href="{% url 'user_message_list' %}"><i class="fas fa-envelope"></i> پیام‌ها </a>
+        {% endif %}
+        {% if user_permissions.Fund_View %}
+            <a href="{% url 'fund_list' %}"><i class="fas fa-piggy-bank"></i> صندوق </a>
+        {% endif %}
+        {% if user_permissions.can_view_units_search %}
+            <a href="{% url 'search_unitlistView' %}"><i class="fas fa-search"></i> جستجوی واحد </a>
+        {% endif %}
+{#        {% if user_permissions.upload_csv %}#}
+{#            <a href="{% url 'upload_csv' %}"><i class="fas fa-upload"></i> بارگذاری دیتا کاربری </a>#}
+{#        {% endif %}#}
+        {% if user_permissions.Unit_View %}
+            <a href="{% url 'unitList' %}"><i class="fas fa-list"></i> فهرست مقیم‌ها در بلوک </a>
+        {% endif %}
+        {% if user_permissions.Expense_View %}
+            <a href="{% url 'expense_list' %}"><i class="fas fa-receipt"></i> فهرست هزینه‌ها </a>
+        {% endif %}
+    </div>
+
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#reportOperationsMenu"><i class="fas fa-user"></i>صدور قبض و
+        سند</a>
+    <div id="reportOperationsMenu" class="collapse">
+
+        {% if user_permissions.transaction_create %}
+            <a href="{% url 'transaction_create' %}"><i class="fas fa-money-check-alt"></i> عملیات پرداخت/دریافت</a>
+        {% endif %}
+        {% if user_permissions.expense_create %}
+            <a href="{% url 'expense_create' %}" class="btn btn-primary">محاسبه و ثبت هزینه‌ها</a>
+        {% endif %}
+    </div>
+
+    <a href="#" style="color: #00dd1c" data-bs-toggle="collapse" data-bs-target="#transactionListMenu"><i
+            class="fas fa-list"></i> فهرست تراکنش‌ها</a>
+    <div id="transactionListMenu" class="collapse">
+
+        {% if user_permissions.transaction_list_view %}
+            <a style="color: #5ddcff" href="{% url 'transaction_list' %}"><i class="fas fa-exchange-alt"></i> فهرست
+                تراکنش‌ها</a>
+        {% endif %}
+        {% if user_permissions.select_complex_view %}
+            <a style="color: #5ddcff" href="{% url 'select_complex' %}"><i class="fas fa-building"></i> فهرست تراکنش
+                واحد</a>
+        {% endif %}
+        {% if user_permissions.transaction_list_DateSort_view %}
+            <a style="color: #5ddcff" href="{% url 'transaction_list_DateSort' %}"><i class="fas fa-calendar-alt"></i> فهرست
+                تراکنش واحد (فیلتر تاریخ)</a>
+        {% endif %}
+        {% if user_permissions.expense_list_view %}
+            <a style="color: #5ddcff" href="{% url 'expense_list' %}"><i class="fas fa-file-invoice"></i>فهرست قبوض</a>
+        {% endif %}
+    </div>
+
+    <a href="#" data-bs-toggle="collapse" style="color: #00ffd5" data-bs-target="#adminOperationsMenu"><i
+            class="fas fa-cogs"></i>فهرست‌ها</a>
+    <div id="adminOperationsMenu" class="collapse">
+        {% if user_permissions.unitList_view %}
+            <a style="color: #00ffd5" href="{% url 'unitList' %}"><i class="fas fa-list"></i> فهرست مقیم</a>
+        {% endif %}
+        {% if user_permissions.expense_list_view %}
+            <a style="color: #00ffd5" href="{% url 'expense_list' %}"><i class="fas fa-receipt"></i> فهرست هزینه‌ها</a>
+        {% endif %}
+    </div>
+
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#reservMenu"><i class="fas fa-calendar-check"></i>
+        رزرواسیون</a>
+    <div id="reservMenu" class="collapse">
+        {% if user_permissions.reservation_list_view %}
+            <a class="nav-link" href="{% url 'reservation_list' %}"><i class="fas fa-calendar-check"></i> رزروها</a>
+        {% endif %}
+        {% if user_permissions.LocationType_list_view %}
+            <a class="nav-link" href="{% url 'LocationType_list' %}"><i class="fas fa-store"></i>تعاریف محل </a>
+        {% endif %}
+        {% if user_permissions.sales_location_list_view %}
+            <a class="nav-link" href="{% url 'sales_location_list' %}"><i class="fas fa-store"></i> محل‌های فروش</a>
+        {% endif %}
+        {% if user_permissions.table_list_view %}
+            <a class="nav-link" href="{% url 'table_list' %}"><i class="fas fa-store"></i>میز فروش </a>
+        {% endif %}
+        {% if user_permissions.manager_note_list_view %}
+            <a class="nav-link" href="{% url 'manager_note_list' %}"><i class="fas fa-store"></i> کانفرم رزرو </a>
+        {% endif %}
+        {% if user_permissions.reservation_create %}
+            <a class="nav-link" href="{% url 'reservation_create' %}">ایجاد رزرو </a>
+        {% endif %}
+        {% if user_permissions.reservation_overview_view %}
+            <a class="nav-link" href="{% url 'reservation_overview' %}">وضعیت میزها و رزروها</a>
+        {% endif %}
+        {% if user_permissions.reservation_overview_1_view %}
+            <a class="nav-link" href="{% url 'reservation_overview_1' %}">امکانت رزرو </a>
+        {% endif %}
+        {% if user_permissions.pricing_list_view %}
+            <a class="nav-link" href="{% url 'pricing_list' %}">ثبت هزینه‌های رزرو </a>
+        {% endif %}
+        {% if user_permissions.contract_list_view %}
+            <a class="nav-link" href="{% url 'contract_list' %}">امور قراردادها </a>
+        {% endif %}
+    </div>
+
+    <a href="#" style="color: #81d4fa" data-bs-toggle="collapse" data-bs-target="#userManagementMessage">
+        <i class="fas fa-users"></i>جلسات و پیام‌ها
+    </a>
+    <div id="userManagementMessage" class="collapse">
+        {% if user_permissions.meeting_request_create %}
+            <a style="color: #81d4fa" href="{% url 'meeting_request_create' %}"><i class="fas fa-calendar-plus"></i> درخواست
+                جلسه</a>
+        {% endif %}
+        {% if user_permissions.meeting_request_list_view %}
+            <a style="color: #81d4fa" href="{% url 'meeting_request_list' %}"><i class="fas fa-calendar-check"></i> حضور در
+                جلسه</a>
+        {% endif %}
+        {% if user_permissions.user_message_list_view %}
+            <a style="color: #81d4fa" href="{% url 'message_list' %}"><i class="fas fa-envelope"></i> پیام‌های خصوصی
+                کاربری</a>
+        {% endif %}
+        {% if user_permissions.user_message_create %}
+            <a style="color: #81d4fa" href="{% url 'message_create' %}"><i class="fas fa-calendar-plus"></i> ارسال پیام
+            </a>
+        {% endif %}
+    </div>
+
+    <a href="#" style="color: yellow  " data-bs-toggle="collapse" data-bs-target="#hseMenu"><i
+            class="fas fa-hard-hat"></i> HSE ایمنی</a>
+    <div id="hseMenu" class="collapse">
+        {% if user_permissions.hse_policy_list_view %}
+            <a style="color: yellow  " href="{% url 'hse_policy_list' %}"><i class="fas fa-file-alt"></i> لیست فرآیند
+                HSE</a>
+        {% endif %}
+        {% if user_permissions.hse_training_list_view %}
+            <a style="color: yellow  " href="{% url 'hse_training_list' %}"><i class="fas fa-chalkboard-teacher"></i>
+                آموزش‌های HSE</a>
+        {% endif %}
+        {% if user_permissions.hse_riskassessment_list_view %}
+            <a style="color: yellow  " href="{% url 'hse_riskassessment_list' %}"><i
+                    class="fas fa-exclamation-triangle"></i> سیاست‌های HSE</a>
+        {% endif %}
+    </div>
+
+    <a href="#" style="color:#00ffd5" data-bs-toggle="collapse" data-bs-target="#FacilityManagementMenu">
+        <i class="fas fa-users"></i>مدیریت تاسیسات
+    </a>
+    <div id="FacilityManagementMenu" class="collapse">
+        <ul class="navbar-nav">
+            {% if user_permissions.equipment_category_list_view %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'equipment_category_list' %}" style="color:#00ffd5"><i
+                        class="fas fa-list"></i> دسته‌بندی تاسیسات</a></li>
+            {% endif %}
+            {% if user_permissions.facilitytype_list_view %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'facilitytype_list' %}" style="color:#00ffd5"><i
+                        class="fas fa-building"></i> نوع تاسیسات</a></li>
+            {% endif %}
+            {% if user_permissions.facility_list_view %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'facility_list' %}" style="color:#00ffd5"><i
+                        class="fas fa-tools"></i> تاسیسات</a></li>
+            {% endif %}
+            {% if user_permissions.maintenance_report_view %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'maintenance_report' %}" style="color:#00ffd5"><i
+                        class="fas fa-chart-line"></i> گزارش تعمیرات</a></li>
+            {% endif %}
+            {% if user_permissions.equipment_fault_create %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'equipment_fault_create' %}" style="color:#00ffd5"><i
+                        class="fas fa-tools"></i> ثبت خرابی تجهیزات</a></li>
+            {% endif %}
+            {% if user_permissions.maintenance_request_create %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'maintenance_request_create' %}"
+                                            style="color:#00ffd5"><i class="fas fa-wrench"></i> ثبت درخواست تعمیرات</a></li>
+            {% endif %}
+            {% if user_permissions.maintenance_verification_create %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'maintenance_verification_create' %}"
+                                            style="color:#00ffd5"><i class="fas fa-check-circle"></i> تأیید تعمیرات</a></li>
+            {% endif %}
+            {% if user_permissions.maintenance_schedule_list_view %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'maintenance_schedule_list' %}" style="color:#00ffd5"><i
+                        class="fas fa-check-circle"></i> پیگیری تاسیساتی</a></li>
+            {% endif %}
+            {% if user_permissions.maintenance_verification_list_view %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'maintenance_verification_list' %}"
+                                            style="color:#00ffd5"><i class="fas fa-chart-line"></i> گزارش بازیابی </a></li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#WasteShoot">
+        <i class="fas fa-users"></i> نظافت
+    </a>
+    <div id="WasteShoot" class="collapse">
+        <ul class="navbar-nav" style="background-color: #363209cb;">
+            {% if user_permissions.waste_shoot_list_view %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'waste_shoot_list' %}"><i class="fas fa-dumpster"></i>
+                    شوتینگ زباله</a></li>
+            {% endif %}
+            {% if user_permissions.waste_shoot_cleaning_list_view %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'waste_shoot_cleaning_list' %}"><i
+                        class="fas fa-broom"></i> نظافت شوتینگ زباله</a></li>
+            {% endif %}
+            {% if user_permissions.general_cleaning_list_view %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'general_cleaning_list' %}"><i
+                        class="fas fa-clipboard-list"></i> نظافت عمومی</a></li>
+            {% endif %}
+            {% if user_permissions.waste_shoot_report_view %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'waste_shoot_report' %}"><i
+                        class="fas fa-chart-line"></i> گزارش نظافت</a></li>
+            {% endif %}
+            {% if user_permissions.waste_shoot_cleaning_report_view %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'waste_shoot_cleaning_report' %}"><i
+                        class="fas fa-chart-line"></i> گزارش شوتینگ</a></li>
+            {% endif %}
+            {% if user_permissions.waste_help_view %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'waste_help' %}"><i class="fas fa-chart-line"></i>راهنمای
+                    سیستم</a></li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <a href="#" class="btn btn-dark w-100" data-bs-toggle="collapse" data-bs-target="#userManagementMenu">
+        <i class="fas fa-users"></i> کاربری سیستم
+    </a>
+
+
+</div>

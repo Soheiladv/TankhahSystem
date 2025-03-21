@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">حذف نسخه: {{ object.get_app_name_fa }} v{{ object.version_number }}</h1>
+        <p class="text-center">آیا مطمئن هستید که می‌خواهید این شماره نسخه برنامه را حذف کنید؟</p>
+        <form method="post" class="text-center">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">بله، حذف کن</button>
+            <a href="{% url 'appversion_list' %}" class="btn btn-secondary">لغو</a>
+        </form>
+    </div>
+{% endblock %}

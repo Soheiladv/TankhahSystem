@@ -1,0 +1,55 @@
+<!-- advanced_search.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>جستجوی پیشرفته پروفایل‌ها</h2>
+  <form method="get" action=".">
+    {{ form.first_name.label_tag }}{{ form.first_name }}
+    {{ form.last_name.label_tag }}{{ form.last_name }}
+    {{ form.phone_number.label_tag }}{{ form.phone_number }}
+    
+    <!-- فیلد استان و شهر را جداگانه اضافه می‌کنیم تا از تکرار جلوگیری شود -->
+     <div id="city-field">
+      {{ form.city.label_tag }}{{ form.city }}
+    </div>
+
+    <button type="submit">جستجو</button>
+  </form>
+
+  <h3>نتایج جستجو</h3>
+  {% if profiles %}
+    <ul>
+      {% for profile in profiles %}
+        <li>{{ profile.first_name }} {{ profile.last_name }} - {{ profile.phone_number }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>نتیجه‌ای یافت نشد.</p>
+  {% endif %}
+{% endblock %}
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      const stateField = document.getElementById("id_state");
+      const cityField = document.getElementById("id_city");
+
+      // وقتی استان انتخاب می‌شود، لیست شهرها را به‌روزرسانی می‌کنیم.
+      stateField.addEventListener("change", function() {
+          const stateId = stateField.value;
+          cityField.innerHTML = '<option value="">همه</option>'; // تنظیم اولیه
+          
+          if (stateId) {
+              fetch(`/get-cities/?state_id=${stateId}`)
+                  .then(response => response.json())
+                  .then(data => {
+                      data.cities.forEach(city => {
+                          const option = document.createElement("option");
+                          option.value = city.id;
+                          option.text = city.name;
+                          cityField.add(option);
+                      });
+                  });
+          }
+      });
+  });
+</script>

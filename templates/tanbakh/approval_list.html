@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4 animate__animated animate__fadeInDown"><i class="fas fa-check-circle me-2"></i>{{ title }}</h1>
+        <div class="row">
+            {% for approval in approvals %}
+                <div class="col-md-4 mb-4">
+                    <div class="card animate__animated animate__zoomIn">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-user me-2"></i>{{ approval.user }}</h5>
+                            <p class="card-text"><i class="fas fa-calendar me-2"></i>{{ approval.date }}</p>
+                            <p class="card-text"><i class="fas fa-comment me-2"></i>{{ approval.comment|default:_("بدون توضیح") }}</p>
+                            <a href="{% url 'approval_detail' approval.pk %}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
+                            <a href="{% url 'approval_update' approval.pk %}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'approval_delete' approval.pk %}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12"><p class="text-center">{% trans "تأییدی یافت نشد." %}</p></div>
+            {% endfor %}
+        </div>
+        <a href="{% url 'approval_create' %}" class="btn btn-success"><i class="fas fa-plus me-2"></i>{% trans "ثبت تأیید" %}</a>
+    </div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container mt-5">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h1 class="card-title">
+                    <i class="fas fa-user"></i> مشخصات کاربر
+                </h1>
+            </div>
+            <div class="card-body">
+                <p><strong><i class="fas fa-user"></i> نام کاربری:</strong> {{ user.username }}</p>
+                <p><strong><i class="fas fa-envelope"></i> ایمیل:</strong> {{ user.email }}</p>
+                <p>
+                    <strong><i class="fas fa-check-circle"></i> فعال:</strong>
+                    {% if user.is_active %}
+                        <span class="badge bg-success">بله</span>
+                    {% else %}
+                        <span class="badge bg-danger">خیر</span>
+                    {% endif %}
+                </p>
+                <p>
+                    <strong><i class="fas fa-user-shield"></i> ادمین:</strong>
+                    {% if user.is_staff %}
+                        <span class="badge bg-success">بله</span>
+                    {% else %}
+                        <span class="badge bg-danger">خیر</span>
+                    {% endif %}
+                </p>
+
+                <h2><i class="fas fa-users"></i> گروه‌ها</h2>
+                <ul class="list-group mb-3">
+                    {% for group in groups %}
+                        <li class="list-group-item">
+                            <i class="fas fa-users-cog"></i> {{ group.name }}
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                <h2><i class="fas fa-key"></i> مجوزها</h2>
+                <ul class="list-group mb-3">
+                    {% for permission in permissions %}
+                        <li class="list-group-item">
+                            <i class="fas fa-unlock-alt"></i> {{ permission.name }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            
+            
+                <h2><i class="fas fa-user-tag"></i> نقش‌ها</h2>
+                <ul class="list-group">
+                    {% for role in roles %}
+                        <li class="list-group-item">
+                            <i class="fas fa-tag"></i> {{ role }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

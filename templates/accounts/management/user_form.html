@@ -1,0 +1,12 @@
+<!-- templates/management/user_form.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2>{% if form.instance.pk %}ویرایش کاربر{% else %}افزودن کاربر جدید{% endif %}</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">ذخیره</button>
+    </form>
+</div>
+{% endblock %}

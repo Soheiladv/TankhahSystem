@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5 animate__animated animate__fadeIn">  <!-- اضافه کردن animate__animated و animate__fadeIn -->
+    <h2 class="animate__animated animate__bounceIn"><i class="fas fa-users"></i> لیست پروفایل‌ها</h2>
+
+    {% if user.is_staff %}
+    <a href="{% url 'accounts:profile_create' %}" class="btn btn-success mb-3 animate__animated animate__zoomIn">
+        <i class="fas fa-plus"></i> افزودن پروفایل جدید
+    </a>
+    <a href="{% url 'accounts:advanced_profile_search' %}" class="btn btn-secondary mb-3 ml-2 animate__animated animate__zoomIn">
+        <i class="fas fa-search"></i> جستجوی پیشرفته پروفایل‌ها
+    </a>
+    {% endif %}
+
+    <!-- جدول پروفایل‌ها -->
+    <table class="table table-bordered table-hover animate__animated animate__fadeInUp">
+        <thead class="thead-dark">
+            <tr>
+                <th>کاربری</th>
+                <th>نام کاربر</th>
+                <th>نام خانوادگی کاربر</th>
+                <th>عملیات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for profile in profiles %}
+            <tr class="profile-row animate__animated animate__fadeInLeft">
+                <td>{{ profile.user.username }}</td>
+                <td>{{ profile.user.first_name }}</td>
+                <td>{{ profile.user.last_name }}</td>
+                <td>
+                    <a href="{% url 'accounts:profile_detail' profile.user.pk %}" class="btn btn-info btn-sm profile-btn animate__animated animate__flipInX">
+                        <i class="fas fa-eye"></i> مشاهده
+                    </a>
+                    <a href="{% url 'accounts:profile_update' profile.user.pk %}" class="btn btn-warning btn-sm profile-btn animate__animated animate__flipInX">
+                        <i class="fas fa-edit"></i> ویرایش
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center animate__animated animate__shakeX">هیچ پروفایلی برای نمایش وجود ندارد.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock %}

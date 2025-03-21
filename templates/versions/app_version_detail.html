@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h5 class="mb-0">جزئیات نسخه برنامه</h5>
+                </div>
+                <div class="card-body">
+                    <h5>نام برنامه: {{ version.app_name }}</h5>
+                    <p>شماره نسخه: {{ version.version_number }}</p>
+                    <p>نوع نسخه: {{ version.get_version_type_display }}</p>
+                    <p>تاریخ انتشار: {{ version.release_date }}</p>
+                    <p>کد هش: {{ version.code_hash }}</p>
+                    <p>تغییرات:</p>
+                    <pre>{{ version.changed_files }}</pre>
+                    <p>اطلاعات سیستم:</p>
+                    <pre>{{ version.system_info }}</pre>
+                    <h5>تغییرات کد:</h5>
+                    {% for change in changes %}
+                        <div class="mb-3">
+                            <h6>فایل: {{ change.file_name }}</h6>
+                            <p><strong>کد قدیمی:</strong></p>
+                            <pre>{{ change.old_code }}</pre>
+                            <p><strong>کد جدید:</strong></p>
+                            <pre>{{ change.new_code }}</pre>
+                            <p><strong>تاریخ تغییر:</strong> {{ change.change_date }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

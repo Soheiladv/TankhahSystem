@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}حذف کاربر فعال{% endblock %}
+
+{% block content %}
+     <link href="{% static 'admin/css/accountsStyle.css' %}" rel="stylesheet">
+
+<div class="container">
+    <h1><i class="fas fa-trash me-2"></i> حذف کاربر فعال</h1>
+    <p>آیا مطمئن هستید که می‌خواهید کاربر فعال "{{ active_user.user.username }}" را حذف کنید؟</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="text-center">
+            <button type="submit" class="btn btn-delete">
+                <i class="fas fa-trash me-2"></i> حذف
+            </button>
+            <a href="{% url 'accounts:active_user_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-right me-2"></i> بازگشت
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
