@@ -1,2 +1,2 @@
-VERSION = '3.0.0.69'
+VERSION = '1.0.0.1'
 VERBOSE_NAME = 'مدیریت کاربران'

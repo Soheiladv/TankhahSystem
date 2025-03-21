@@ -33,6 +33,7 @@ from .forms import (CustomUserCreationForm, CustomUserForm, RoleForm, MyGroupFor
 from .forms import GroupFilterForm
 from .forms import TransferRoleDependenciesForm
 from .has_role_permission import has_permission
+from .mixins import UserAccessMixin
 from .models import AuditLog
 from .models import CustomProfile, CustomUser, Role, MyGroup, CustomUserGroup
 from django.contrib.auth.mixins import UserPassesTestMixin
@@ -391,7 +392,6 @@ class UserListView(LoginRequiredMixin, ListView):
         context['inactive_users'] = self.request.GET.get('inactive_users', '')
         return context
 
-
 @method_decorator(login_required, name='dispatch')
 @method_decorator(has_permission('add_customuser'), name='dispatch')
 class UserCreateView(LoginRequiredMixin, CreateView):
@@ -493,9 +493,16 @@ class GroupUserListView(LoginRequiredMixin, ListView):
 '''
 از get_or_create در ProfileView استفاده شده است تا هم برای ایجاد و هم برای ویرایش پروفایل کار کند.
 '''
+
+
+# @method_decorator(has_permission('Expense_Add'), name='dispatch')
+# class ExpenseCreateView(UserAccessMixin, CreateView):
+
+
+
 User = get_user_model()
-# @method_decorator(has_permission('delete_customuser'), name='dispatch')
-class ProfileView(LoginRequiredMixin, View):
+@method_decorator(has_permission('users_view_userprofile'), name='dispatch')
+class ProfileView(LoginRequiredMixin , View):
     template_name = 'accounts/profile/profile_list.html'
 
     def get(self, request):
@@ -554,7 +561,8 @@ get_success_url: پس از ذخیره تغییرات، کاربر به صفحه 
 
 ویو ProfileCreateView 
 '''
-class BaseProfileView(UpdateView):
+@method_decorator(has_permission('users_add_userprofile'), name='dispatch')
+class BaseProfileView(LoginRequiredMixin,UpdateView):
     model = CustomProfile
     form_class = ProfileForm
     template_name = 'accounts/profile/profile_form.html'
@@ -576,7 +584,7 @@ class BaseProfileView(UpdateView):
         return reverse_lazy('accounts:profile')
 ###################################################
 # برای ایجاد پروفایل جدی
-# @method_decorator(has_permission('delete_customuser'), name='dispatch')
+@method_decorator(has_permission('users_add_userprofile'), name='dispatch')
 class ProfileCreateView(BaseProfileView, CreateView):
     model = CustomProfile
     form_class = ProfileForm
@@ -614,8 +622,8 @@ class ProfileCreateView(BaseProfileView, CreateView):
             return self.form_invalid(form)
 
 ## برای به‌روزرسانی پروفایل
-@method_decorator(has_permission('delete_customuser'), name='dispatch')
-class ProfileUpdateView(BaseProfileView, UpdateView):
+@method_decorator(has_permission('users_update_userprofile'), name='dispatch')
+class ProfileUpdateView( BaseProfileView, UpdateView):
     pass
 ################################
 # ویو برای نمایش پروفایل یک کاربر خاص (خواندن)
@@ -648,6 +656,7 @@ def profile_update_view(request):
 def profile_update_success(request):
     return render(request, 'accounts/users/profile_update_success.html')
 
+@method_decorator(has_permission('users_Search_userprofile'), name='dispatch')
 class AdvancedProfileSearchView(LoginRequiredMixin, ListView):
     model = CustomProfile
     template_name = 'accounts/profile/advanced_search.html'
@@ -754,6 +763,7 @@ class UserChangePasswordView(FormView):
 برای پیاده‌سازی گزینه‌های جایگزین، باید دو ویوی جدید ایجاد کنید:
 ۱. انتقال وابستگی‌ها به نقش دیگر
 '''
+@method_decorator(has_permission('Role_create'), name='dispatch')
 class TransferRoleDependenciesView(FormView):
     template_name = 'accounts/role/transfer_role_dependencies.html'
     form_class = TransferRoleDependenciesForm
@@ -788,6 +798,7 @@ class TransferRoleDependenciesView(FormView):
 
 '''غیرفعال کردن نقش'''
 # @method_decorator(has_permission('delete_customuser'), name='dispatch')
+@method_decorator(has_permission('Role_create'), name='dispatch')
 class DeactivateRoleView(LoginRequiredMixin, View):
     def post(self, request, pk):
         role = get_object_or_404(Role, pk=pk)
