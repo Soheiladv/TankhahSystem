@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'reports',
     'django_jalali',
      'jalali_date',
+    'version_tracker',
 
     'accounts',
     'tanbakh',

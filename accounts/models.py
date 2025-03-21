@@ -175,6 +175,7 @@ class CustomProfile(models.Model):
             ("users_add_userprofile", _("می‌تواند پروفایل کاربری اضافه دهد")),
             ("users_update_userprofile", _("می‌تواند پروفایل کاربر را تغییر دهد")),
             ("users_delete_userprofile", _("می‌تواند پروفایل کاربر را غیرفعال کرد")),
+            ("users_Search_userprofile", _("می‌تواند پروفایل کاربر را جستجو کند")),
         ]
 
     def __str__(self):
