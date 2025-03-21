@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+    <h1 class="mb-4"><i class="fas fa-trash-alt me-2"></i>{% trans "حذف پروژه" %}</h1>
+
+    <div class="project-card">
+        <div class="card-header">
+            <i class="fas fa-exclamation-triangle me-2"></i>{% trans "تأیید حذف" %}
+        </div>
+        <div class="card-body">
+            <p>{% trans "آیا مطمئن هستید که می‌خواهید پروژه" %} <strong>{{ object.name }}</strong> {% trans "را حذف کنید؟" %}</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-danger btn-animate"><i class="fas fa-trash me-2"></i>{% trans "بله، حذف کن" %}</button>
+                    <a href="{% url 'project_list' %}" class="btn btn-secondary btn-animate"><i class="fas fa-times me-2"></i>{% trans "خیر، لغو" %}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <link rel="stylesheet" href="{% static 'css/project_style.css' %}">
+{% endblock %}

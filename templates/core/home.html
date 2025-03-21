@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+    <h1 class="mb-4"><i class="fas fa-tachometer-alt me-2"></i>{{ title }}</h1>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5><i class="fas fa-building me-2"></i>{% trans "مجتمع‌ها" %}</h5>
+                    <ul class="list-group">
+                        {% for complex in complexes %}
+                            <li class="list-group-item">{{ complex.name }}</li>
+                        {% empty %}
+                            <li class="list-group-item">{% trans "مجتمعی یافت نشد." %}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5><i class="fas fa-project-diagram me-2"></i>{% trans "پروژه‌ها" %}</h5>
+                    <ul class="list-group">
+                        {% for project in projects %}
+                            <li class="list-group-item">{{ project.name }}</li>
+                        {% empty %}
+                            <li class="list-group-item">{% trans "پروژه‌ای یافت نشد." %}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5><i class="fas fa-file-invoice me-2"></i>{% trans "آخرین تنخواه‌ها" %}</h5>
+                    <ul class="list-group">
+                        {% for tanbakh in tanbakhs %}
+                            <li class="list-group-item">{{ tanbakh.number }}</li>
+                        {% empty %}
+                            <li class="list-group-item">{% trans "تنخواهی یافت نشد." %}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

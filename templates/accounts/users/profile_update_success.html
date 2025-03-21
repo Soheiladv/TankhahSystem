@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header text-center bg-success text-white">
+                    <h3><i class="fas fa-check-circle"></i> ویرایش پروفایل با موفقیت انجام شد</h3>
+                </div>
+                <div class="card-body text-center">
+                    <p class="lead">اطلاعات پروفایل شما با موفقیت به‌روزرسانی شد.</p>
+                    <a href="{% url 'profile_update' %}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left"></i> بازگشت به ویرایش پروفایل
+                    </a>
+                    <a href="{% url 'index' %}" class="btn btn-secondary">
+                        <i class="fas fa-home"></i> بازگشت به صفحه اصلی
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

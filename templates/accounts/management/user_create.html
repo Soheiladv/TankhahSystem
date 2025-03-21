@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>ایجاد کاربر جدید</h2>
+    <form method="post" action="{% url 'user_create' %}">
+        {% csrf_token %}
+        {{ form  }}
+
+        <div class="form-group mt-3">
+            <button type="submit" class="btn btn-primary">ثبت کاربر</button>
+            <a href="{% url 'user_list' %}" class="btn btn-secondary">لغو</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

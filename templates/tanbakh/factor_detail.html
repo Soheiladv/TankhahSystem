@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4 animate__animated animate__fadeInDown"><i class="fas fa-file-invoice me-2"></i>{{ factor.number }}</h1>
+        <div class="card animate__animated animate__zoomIn">
+            <div class="card-body">
+                <p><strong><i class="fas fa-calendar me-2"></i>{% trans "تاریخ:" %}</strong> {{ factor.date }}</p>
+                <p><strong><i class="fas fa-wallet me-2"></i>{% trans "مبلغ:" %}</strong> {{ factor.amount }}</p>
+                <p><strong><i class="fas fa-info-circle me-2"></i>{% trans "وضعیت:" %}</strong> {{ factor.get_status_display }}</p>
+                <p><strong><i class="fas fa-comment me-2"></i>{% trans "توضیحات:" %}</strong> {{ factor.description }}</p>
+                {% if factor.file %}<p><a href="{{ factor.file.url }}" class="btn btn-primary btn-sm"><i class="fas fa-download me-2"></i>{% trans "دانلود فایل" %}</a></p>{% endif %}
+                <a href="{% url 'factor_list' %}" class="btn btn-secondary"><i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت" %}</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

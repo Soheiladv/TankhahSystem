@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<h1>حذف نقش: {{ object.name }}</h1>
+
+{% if users or groups %}
+    <p>این نقش دارای وابستگی‌های زیر است. لطفاً یک نقش جدید برای انتقال وابستگی‌ها انتخاب کنید:</p>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <!-- نمایش لیست کاربران وابسته -->
+        <h3>کاربران وابسته:</h3>
+        <ul>
+            {% for user in users %}
+                <li>{{ user.username }}</li>
+            {% endfor %}
+        </ul>
+
+        <!-- نمایش لیست گروه‌های وابسته -->
+        <h3>گروه‌های وابسته:</h3>
+        <ul>
+            {% for group in groups %}
+                <li>{{ group.name }}</li>
+            {% endfor %}
+        </ul>
+
+        <!-- فرم انتخاب نقش جدید -->
+        <div>
+            {{ role_form.as_p }}
+        </div>
+
+        <button type="submit" class="btn btn-danger">حذف نقش و انتقال وابستگی‌ها</button>
+        <a href="{% url 'accounts:role_list' %}" class="btn btn-secondary">انصراف</a>
+    </form>
+{% else %}
+    <p>این نقش هیچ وابستگی ندارد. آیا مطمئن هستید که می‌خواهید آن را حذف کنید؟</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">حذف نقش</button>
+        <a href="{% url 'accounts:role_list' %}" class="btn btn-secondary">انصراف</a>
+    </form>
+{% endif %}
+{% endblock %}

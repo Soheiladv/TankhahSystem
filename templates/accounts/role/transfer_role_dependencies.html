@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container mt-5 animate__animated animate__fadeIn">
+    <h1 class="text-center"><i class="fas fa-exchange-alt"></i> انتقال وابستگی‌ها</h1>
+    
+    <div class="card shadow-lg p-3 mb-5 bg-white rounded animate__animated animate__slideInUp">
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            {{ form.new_role.label_tag }}
+            {{ form.new_role }}
+          </div>
+          <button type="submit" class="btn btn-warning btn-lg w-100 animate__animated animate__pulse animate__infinite">
+            <i class="fas fa-exchange-alt"></i> انتقال
+          </button>
+        </form>
+        <a href="{% url 'accounts:role_list' %}" class="btn btn-secondary btn-lg w-100 mt-3">
+          <i class="fas fa-times"></i> لغو
+        </a>
+      </div>
+    </div>
+  </div>
+{% endblock %}

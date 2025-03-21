@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <script src="{% static 'admin/js/datepicker.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'admin/css/datepicker.css' %}">
+
+  <div class="container">
+        <h1>تقویم شمسی در Django</h1>
+        <input type="text" id="datepicker-input" placeholder="تاریخ را انتخاب کنید">
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const input = document.getElementById('datepicker-input');
+            new PersianDatepicker(input, {
+                holidays: ['1402/07/15', '1402/07/16'], // تعطیلات
+                weekendColor: '#ffcccc', // رنگ تعطیلات
+                onDateSelect: function (date) {
+                    console.log('تاریخ انتخاب شده:', date);
+                }
+            });
+        });
+    </script>
+{% endblock %} 
+
+
+
+
+
+
+{#    <link rel="stylesheet" href="{% static 'admin/css/datepicker.css' %}">#}
+{# #}
+{#    <div class="container mt-5">#}
+{#        <h1>دیتاپیکر فارسی</h1>#}
+{#        <input type="text" id="jalali-datepicker" class="form-control" placeholder="تاریخ خود را انتخاب کنید">#}
+{#    </div> #}
+{#        <h4>#}
+{#    # تبدیل تاریخ میلادی به شمسی#}
+{#jalali_date = DateConverter.gregorian_to_jalali(2023, 10, 7)#}
+{#print("تاریخ شمسی:", DateConverter.jalali_to_string(*jalali_date))#}
+{##}
+{## تبدیل تاریخ شمسی به میلادی#}
+{#gregorian_date = DateConverter.jalali_to_gregorian(1402, 7, 15)#}
+{#print("تاریخ میلادی:", DateConverter.gregorian_to_string(*gregorian_date))#}
+{##}
+{## تعداد روزهای ماه شمسی#}
+{#print("تعداد روزهای ماه:", DateConverter.jalali_month_days(1402, 7))#}
+{##}
+{## تاریخ و زمان فعلی شمسی#}
+{#print("تاریخ و زمان فعلی شمسی:", DateConverter.now_jalali())#}
+{##}
+{## تاریخ و زمان فعلی میلادی#}
+{#print("تاریخ و زمان فعلی میلادی:", DateConverter.now_gregorian())#}
+{#    </h4>#}
+{##}
+{#    <script src="{% static 'admin/js/datepicker.js' %}"></script>#}
+{#    <script>#}
+{#        $(document).ready(function () {#}
+{#            $('#jalali-datepicker').datepicker({#}
+{#                language: 'fa',#}
+{#                holidays: {{ holidays|safe }},#}
+{#                weekendColor: 'red',#}
+{#                onDateSelect: function (date) {#}
+{#                    alert('تاریخ انتخاب شده: ' + date);#}
+{#                },#}
+{#            });#}
+{#        });#}
+{#    </script>#}

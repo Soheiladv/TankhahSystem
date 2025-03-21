@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+قفل سیستم
+{% endblock title %}
+
+{% block content %}
+<style>
+    body {
+            direction: rtl;
+        text-align: right;
+        background-color: #f8f9fa;
+    }
+    .container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 20px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .card {
+        border: 0;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+        background-color: #007bff;
+        color: white;
+        border-radius: 10px 10px 0 0;
+    }
+    .card-title {
+        margin-bottom: 0;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .btn {
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+    .btn-set {
+        background-color: #28a745;
+        color: white;
+    }
+    .btn-set:hover {
+        background-color: #218838;
+    }
+    .btn-remove {
+        background-color: #dc3545;
+        color: white;
+    }
+    .btn-remove:hover {
+        background-color: #c82333;
+    }
+    .status {
+        margin-top: 20px;
+    }
+    .locked {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    .unlocked {
+        color: #28a745;
+        font-weight: bold;
+    }
+    .alert {
+        transition: all 0.3s ease;
+    }
+</style>
+
+<div class="container">
+    <div class="card shadow-lg">
+        <div class="card-header">
+            <h4 class="card-title">
+                <i class="fas fa-lock me-2"></i> مدیریت قفل زمانی
+            </h4>
+        </div>
+        <div class="card-body">
+            <!-- فرم تنظیم تاریخ انقضا -->
+            <form method="post" class="form-group">
+                {% csrf_token %}
+                <label for="expiry_date" class="form-label">
+                    <i class="fas fa-calendar-alt me-2"></i> تاریخ انقضا:
+                </label>
+                <input type="date" name="expiry_date" id="expiry_date" class="form-control"
+                       value="{{ current_expiry|date:'Y-m-d' }}" required>
+                <div class="text-center mt-3">
+                    <button type="submit" name="set_date" class="btn btn-set">
+                        <i class="fas fa-save me-2"></i> تنظیم قفل
+                    </button>
+                    <button type="submit" name="remove_lock" class="btn btn-remove">
+                        <i class="fas fa-unlock me-2"></i> حذف قفل
+                    </button>
+                </div>
+            </form>
+
+            <!-- وضعیت قفل -->
+            <div class="status">
+                <h5 class="mt-4">
+                    <i class="fas fa-info-circle me-2"></i> وضعیت فعلی:
+                </h5>
+                <div class="alert alert-info" id="lock-status">
+                    <i class="fas fa-spinner fa-spin me-2"></i> در حال بارگذاری...
+                </div>
+            </div>
+                        <!-- تعداد کاربران فعال -->
+            <div class="user-status">
+                <h5 class="mt-4">
+                    <i class="fas fa-users me-2"></i> کاربران فعال:
+                </h5>
+                <div class="alert alert-info" id="user-status">
+                    <i class="fas fa-spinner fa-spin me-2"></i> در حال بارگذاری...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    function updateLockStatus() {
+        fetch("{% url 'set_lock' %}", {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const statusElement = document.getElementById("lock-status");
+            if (data.locked) {
+                statusElement.innerHTML = `
+                    <i class="fas fa-lock me-2"></i> 🚫 قفل فعال است تا ${data.expiry_date}
+                `;
+                statusElement.classList.remove("alert-info", "alert-success");
+                statusElement.classList.add("alert-warning");
+            } else {
+                statusElement.innerHTML = `
+                    <i class="fas fa-unlock me-2"></i> ✅ سیستم باز است تا ${data.expiry_date || 'تنظیم نشده'}
+                `;
+                statusElement.classList.remove("alert-info", "alert-warning");
+                statusElement.classList.add("alert-success");
+            }
+              // به‌روزرسانی تعداد کاربران
+            const userStatusElement = document.getElementById("user-status");
+            userStatusElement.innerHTML = `
+                <i class="fas fa-users me-2"></i> ${data.active_users} از ${data.max_active_users} کاربر فعال
+            `;
+            if (data.active_users >= data.max_active_users) {
+                userStatusElement.classList.remove("alert-info", "alert-success");
+                userStatusElement.classList.add("alert-danger");
+            } else {
+                userStatusElement.classList.remove("alert-info", "alert-danger");
+                userStatusElement.classList.add("alert-success");
+            }
+        })
+        .catch(error => {
+            const statusElement = document.getElementById("lock-status");
+            statusElement.innerHTML = `
+                <i class="fas fa-exclamation-triangle me-2"></i> خطا در دریافت وضعیت!
+            `;
+            statusElement.classList.remove("alert-info", "alert-success");
+            statusElement.classList.add("alert-danger");
+        });
+    }
+
+    // به‌روزرسانی اولیه و هر 5 ثانیه
+    updateLockStatus();
+    setInterval(updateLockStatus, 5000);
+</script>
+{% endblock %}

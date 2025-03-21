@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}اختصاص کاربران به گروه{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4 animate__animated animate__fadeInDown">
+        <i class="fas fa-user-tag me-2"></i> اختصاص کاربران به گروه {{ group.name }}
+    </h1>
+
+    <form method="post" class="animate__animated animate__fadeIn">
+        {% csrf_token %}
+        <div class="card p-3"> {# اضافه کردن کارت برای زیبایی بیشتر #}
+            {{ form.as_p }}
+        </div>
+        <div class="mt-3 d-flex justify-content-between">
+            <button type="submit" class="btn btn-success animate__animated animate__fadeInUp">
+                <i class="fas fa-save me-2"></i> ذخیره
+            </button>
+            <a href="{% url 'accounts:group_list' %}" class="btn btn-secondary animate__animated animate__fadeInUp">
+                <i class="fas fa-arrow-left me-2"></i> بازگشت به لیست گروه‌ها
+            </a>
+        </div>
+    </form>
+        <br>
+    <a href="{% url 'accounts:group_user_list' group.pk %}" class="btn btn-info animate__animated animate__fadeInUp"> <i class="fas fa-list me-2"></i> مشاهده لیست کاربران گروه {{ group.name }}</a>
+
+</div>
+{% endblock %}

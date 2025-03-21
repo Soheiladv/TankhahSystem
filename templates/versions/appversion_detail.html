@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+ <style>
+        body {
+            direction: rtl;
+            text-align: right;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 900px;
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .title {
+            color: #007bff;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .table th {
+            background-color: #007bff;
+            color: #fff;
+            width: 30%;
+        }
+        .table td {
+            background-color: #fff;
+        }
+        .back-link, .home-link {
+            display: inline-block;
+            margin: 10px 10px 0 0;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .back-link:hover, .home-link:hover {
+            background: #0056b3;
+            color: #fff;
+        }
+        .icon {
+            margin-left: 5px;
+        }
+        pre {
+            background: #f1f1f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .list-group-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .change-link {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .change-link:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+    </style>
+ 
+    <div class="container">
+        <h1 class="title"><i class="fas fa-info-circle icon"></i> جزئیات نسخه</h1>
+
+        <table class="table table-bordered">
+            <tbody>
+                <tr>
+                    <th><i class="fas fa-code-branch icon"></i> نام اپلیکیشن:</th>
+                    <td>{{ object.get_app_name_fa }}</td>
+                </tr>
+                <tr>
+                    <th><i class="fas fa-tag icon"></i> شماره نسخه:</th>
+                    <td>{{ object.version_number }}</td>
+                </tr>
+                <tr>
+                    <th><i class="fas fa-layer-group icon"></i> نوع نسخه:</th>
+                    <td>{{ object.get_version_type_display }}</td>
+                </tr>
+                <tr>
+                    <th><i class="fas fa-calendar-alt icon"></i> تاریخ انتشار:</th>
+                    <td>{{ object.release_date|date:"Y-m-d H:i" }}</td>
+                </tr>
+                <tr>
+                    <th><i class="fas fa-fingerprint icon"></i> هش کد:</th>
+                    <td><code>{{ object.code_hash }}</code></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 class="mt-4"><i class="fas fa-file-alt icon"></i> فایل‌های تغییر یافته</h3>
+        <ul class="list-group mb-4">
+            {% for file in object.changed_files %}
+                <li class="list-group-item"><i class="fas fa-file-code icon"></i> {{ file }}</li>
+            {% empty %}
+                <li class="list-group-item text-muted">هیچ فایلی تغییر نکرده است.</li>
+            {% endfor %}
+        </ul>
+
+        <h3 class="mt-4"><i class="fas fa-desktop icon"></i> اطلاعات سیستم</h3>
+        <pre>{{ object.system_info|json_script:"system_info" }}</pre>
+
+        <h3 class="mt-4"><i class="fas fa-code icon"></i> تغییرات کد</h3>
+        <ul class="list-group mb-4">
+            {% for change in changes %}
+                <li class="list-group-item">
+                    <a href="{% url 'codechangelog_detail' change.pk %}" class="change-link">
+                        <i class="fas fa-file-code icon"></i> {{ change.file_name }}
+                    </a> -
+                    <span>{{ change.change_date|date:"Y/m/d H:i" }}</span>
+                </li>
+            {% empty %}
+                <li class="list-group-item text-muted">بدون تغییر کد</li>
+            {% endfor %}
+        </ul>
+
+        <div>
+            <a href="{% url 'index' %}" class="home-link">
+                <i class="fas fa-home me-2"></i> بازگشت به صفحه اصلی
+            </a>
+            <a href="{% url 'appversion_list' %}" class="back-link">
+                <i class="fas fa-arrow-right me-2"></i> بازگشت به لیست نسخه‌ها
+            </a>
+        </div>
+    </div>
+ 
+{% endblock %}

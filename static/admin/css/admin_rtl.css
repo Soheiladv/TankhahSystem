@@ -1,0 +1,588 @@
+body {
+    direction: rtl;
+    font-family: 'Parastoo', 'Tahoma', sans-serif; /* یه فونت فارسی مثل Vazir اضافه کنید */
+}
+.module caption, .inline-group h2 {
+    text-align: right;
+}
+
+.card-header {
+    font-weight: bold;
+}
+
+.fas {
+    font-size: 1.2rem;
+    color: #007bff;
+    margin-left: 5px;
+}
+
+:root {
+    --bg-color: #f8f9fa;
+    --text-color: #212529;
+    --navbar-bg: #343a40;
+    --sidebar-bg: #343a40;
+    --footer-bg: #2c3e50;
+    --footer-text-color: #ecf0f1;
+    --table-bg: #ffffff;
+    --table-border-color: #dee2e6;
+    --table-header-bg: #ecf0f1;
+    --table-header-color: #34495e;
+    --table-text-color: #34495e;
+    --sidebar-text: #ffffff;
+    --sidebar-hover-bg: #51a9ff;
+    --sidebar-active-bg: #5a6268;
+    --sidebar-submenu-bg: #2b3035;
+}
+
+
+body {
+    font-family: 'Parastoo', 'Yekan', 'IRANSans', sans-serif;
+    direction: rtl;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    text-align: right;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar {
+    padding: 0.5rem 1rem;
+}
+
+.navbar-dark {
+    background-color: var(--navbar-bg);
+}
+
+.navbar-brand {
+    margin-right: 0;
+    margin-left: auto;
+}
+
+
+.navbar-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center; /* مرکز چینی عمودی */
+}
+
+.sidebar {
+    height: 100vh;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    right: -250px; /* ابتدا مخفی است */
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    padding: 20px;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar.active {
+    right: 0; /* نمایش سایدبار */
+}
+
+.sidebar.hidden {
+    transform: translateX(240px);
+}
+
+.sidebar a, .sidebar button {
+    color: var(--sidebar-text);
+    text-decoration: none;
+    display: block;
+    padding: 12px 15px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    border-radius: 5px;
+}
+
+.sidebar a:hover, .sidebar button:hover {
+    background-color: var(--sidebar-hover-bg);
+}
+
+.sidebar .collapse {
+    background-color: var(--sidebar-submenu-bg);
+    padding-left: 10px;
+}
+
+.sidebar .collapse a {
+    font-size: 0.95em;
+    color: rgba(var(--sidebar-text), 0.8);
+    padding: 8px 15px;
+    border-radius: 3px;
+}
+
+.sidebar .collapse a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar .nav-link, .sidebar .collapse .nav-link {
+    width: 100%;
+    text-align: right;
+}
+
+.sidebar > a, .sidebar > button {
+    font-weight: 600;
+}
+
+.sidebar i {
+    margin-left: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar .nav-link.active {
+    background-color: var(--sidebar-active-bg);
+}
+
+.rotate-icon {
+    transition: transform 0.3s ease;
+}
+
+.collapse.show + a > .rotate-icon {
+    transform: rotate(180deg);
+}
+
+.sidebar .collapse {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.animated-title {
+    animation: fadeIn 2s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        0% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* اطمینان از اینکه محتوا به درستی تنظیم می‌شود */
+.content {
+    margin-right: 0; /* در حالت عادی بدون حاشیه */
+    transition: margin-right 0.3s ease;
+    flex: 1;
+    padding: 20px;
+}
+
+.content.shifted {
+    margin-right: 250px; /* هنگام باز شدن منو، محتوا کوچک می‌شود */
+}
+
+.footer {
+    background-color: var(--footer-bg);
+    color: var(--footer-text-color);
+    padding: 15px 0;
+    text-align: center;
+}
+
+.footer a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid var(--table-border-color);
+}
+
+th, td {
+    padding: 12px;
+    text-align: right;
+}
+
+th {
+    background-color: var(--table-header-bg);
+    color: var(--table-header-color);
+}
+
+.theme-light {
+    --bg-color: #f8f9fa;
+    --text-color: #212529;
+    --navbar-bg: #343a40;
+    --sidebar-bg: #343a40;
+    --footer-bg: #2c3e50;
+    --footer-text-color: #ecf0f1;
+    --table-bg: #ffffff;
+    --table-border-color: #dee2e6;
+    --table-header-bg: #ecf0f1;
+    --table-header-color: #34495e;
+    --table-text-color: #34495e;
+}
+
+.theme-dark {
+    --bg-color: #212529;
+    --text-color: #ffda2b;
+    --navbar-bg: #1a1d20;
+    --sidebar-bg: #1a1d20;
+    --footer-bg: #2c3e50;
+    --footer-text-color: #ecf0f1;
+    --table-bg: #34495e;
+    --table-border-color: #495057;
+    --table-header-bg: #2c3e50;
+    --table-header-color: #ecf0f1;
+    --table-text-color: #ecf0f1;
+}
+
+/* Blue Theme */
+.theme-blue {
+    --bg-color: #e3f2fd;
+    --text-color: #0d47a1;
+    --navbar-bg: #2196f3;
+    --sidebar-bg: #1565c0;
+    --footer-bg: #0d47a1;
+    --footer-text-color: #e3f2fd;
+    --table-bg: #bbdefb;
+    --table-border-color: #90caf9;
+    --table-header-bg: #90caf9;
+    --table-header-color: #1565c0;
+    --table-text-color: #1565c0;
+}
+
+/* Green Theme */
+.theme-green {
+    --bg-color: #f1f8e9;
+    --text-color: #1b5e20;
+    --navbar-bg: #4caf50;
+    --sidebar-bg: #388e3c;
+    --footer-bg: #1b5e20;
+    --footer-text-color: #f1f8e9;
+    --table-bg: #e8f5e9;
+    --table-border-color: #c8e6c9;
+    --table-header-bg: #c8e6c9;
+    --table-header-color: #388e3c;
+    --table-text-color: #388e3c;
+}
+
+/* اضافه کردن استایل‌های جدول برای هر تم */
+body.theme-light table,
+body.theme-dark table,
+body.theme-blue table,
+body.theme-green table {
+    background-color: var(--table-bg);
+}
+
+body.theme-light th,
+body.theme-dark th,
+body.theme-blue th,
+body.theme-green th {
+    background-color: var(--table-header-bg);
+    color: var(--table-header-color);
+}
+
+body.theme-light td,
+body.theme-dark td,
+body.theme-blue td,
+body.theme-green td {
+    color: var(--table-text-color);
+}
+
+/* اطمینان از اینکه مرزها با تم هماهنگ هستند */
+body.theme-light table,
+body.theme-light th,
+body.theme-light td,
+body.theme-dark table,
+body.theme-dark th,
+body.theme-dark td,
+body.theme-blue table,
+body.theme-blue th,
+body.theme-blue td,
+body.theme-green table,
+body.theme-green th,
+body.theme-green td {
+    border-color: var(--table-border-color);
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        right: -250px;
+        width: 250px;
+        height: 100vh;
+        transition: right 0.3s ease-in-out;
+        z-index: 1000;
+    }
+
+    .sidebar.active {
+        right: 0;
+    }
+
+    .sidebar.hidden {
+        right: -250px;
+    }
+
+    .content {
+        margin-right: 0;
+        padding: 20px;
+        flex: 1;
+    }
+
+    .content.shifted {
+        margin-right: 0; /* در موبایل، محتوا بدون تغییر می‌ماند */
+    }
+
+    .navbar-nav {
+        margin: 0;
+    }
+
+    .navbar-collapse {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background-color: var(--navbar-bg);
+        padding: 1rem;
+    }
+
+
+    .navbar-brand {
+        margin: 0;
+    }
+
+    #themeSelector {
+        position: static;
+        margin: 0 10px;
+        width: auto; /* عرض خودکار برای سلکت باکس */
+
+    }
+
+    .navbar-nav .nav-item {
+        margin-bottom: 10px;
+    }
+}
+
+/* انیمیشن‌های جدید */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* اعمال انیمیشن‌ها */
+.content h1 {
+    animation: fadeInUp 1s ease-out;
+}
+
+.sidebar.active {
+    animation: slideInRight 0.5s ease-out;
+}
+
+.navbar-toggler {
+    margin-right: 0;
+    margin-left: 1rem;
+
+}
+
+.navbar-toggle i {
+    animation: pulse 2s infinite;
+}
+
+/* تغییر در انیمیشن‌های موجود */
+.collapse {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.collapse.show {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* و بقیه CSS ها */
+/* انیمیشن لودینگ زیبا */
+.loader {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    display: none;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* تغییرات در ناوبار برای وسط‌چینی */
+.navbar-nav {
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .navbar-nav {
+        margin: 0;
+        width: 100%;
+        justify-content: flex-start; /* برای موبایل */
+        flex-direction: row; /* در موبایل هم یک خط باقی بماند */
+        overflow-x: auto; /* اسکرول افقی اگر آیتم‌ها زیاد باشند */
+        white-space: nowrap; /* از شکستن خط جلوگیری می‌کند */
+    }
+
+    .navbar-nav .nav-item {
+        display: inline-block; /* اطمینان از اینکه آیتم‌ها در یک خط قرار می‌گیرند */
+    }
+
+}
+
+/* اطمینان از اینکه سایدبار روی ناوبری نمی‌رود */
+.sidebar {
+    top: 56px; /* ارتفاع ناوبار را به عنوان مثال در نظر گرفته شده است. این مقدار را به ارتفاع واقعی ناوبار خود تنظیم کنید */
+    transition: all 0.3s ease;
+    z-index: 1000; /* اطمینان از اینکه سایدبار روی ناوبری قرار نگیرد */
+}
+
+.navbar-date {
+    padding-left: 15px;
+    padding: 0 10px; /* فاصله بین آیتم‌ها */
+}
+
+/* انیمیشن‌ها */
+/* اضافه کردن انیمیشن به تاریخ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* اعمال انیمیشن به تاریخ */
+.navbar-date {
+    padding-left: 15px;
+    opacity: 0; /* شروع با اوپسیتی صفر */
+    animation: fadeInUp 1s ease-out forwards; /* فورواردز برای حفظ حالت نهایی انیمیشن */
+}
+
+.sidebar.active {
+    animation: slideInRight 0.5s ease-out;
+}
+
+.collapse.show {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+
+/* اطمینان از اینکه ناوبری به درستی نمایش داده می‌شود */
+.navbar-nav {
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .navbar-nav {
+        margin: 0;
+        width: 100%;
+        justify-content: flex-start; /* برای موبایل */
+    }
+}
+
+@media (max-width: 768px) {
+    .table th, .table td {
+        font-size: 14px; /* کاهش اندازه فونت برای موبایل */
+        padding: 6px; /* کاهش padding برای موبایل */
+    }
+
+    .btn {
+        font-size: 14px; /* کاهش اندازه فونت دکمه‌ها */
+        padding: 5px 10px; /* کاهش padding دکمه‌ها */
+    }
+
+}
+
+.final-version {
+    font-size: 14px;
+    color: #fdfaa4;
+    margin: 10px 0;
+    text-align: center;
+}

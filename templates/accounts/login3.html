@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    ورود کاربران
+{% endblock %}
+
+<link href="{% static 'admin/css/sign-in.css' %}" rel="stylesheet">
+
+{% block content %}
+<div class="container">
+
+<main class="form-signin w-100 m-auto">
+    <form action="{% url 'login' %}" method="post">
+        {% csrf_token %}
+        {% if form.errors %}
+            <p>نام کاربری و رمز عبور شما مطابقت نداشت. لطفا دوباره تلاش کنید.</p>
+        {% endif %}
+
+        {% if next %}
+            {% if user.is_authenticated %}
+                <p>حساب شما به این صفحه دسترسی ندارد. برای ادامه، لطفا با حسابی که دسترسی دارد وارد شوید.</p>
+            {% else %}
+                <p>لطفا برای دیدن این صفحه وارد شوید</p>
+            {% endif %}
+        {% endif %}
+
+        <h6>اطلاعات کاربری را وارد نمایید</h6>
+        <img class="mb-4" src="{% static 'admin/img/Logo Hotel.png' %}" alt="" width="72" height="57">
+        <h6 class="h3 mb-3 fw-normal">ورود به سیستم</h6>
+
+        {% if login_status == 'success' %}
+            <div class="alert alert-success">
+                <strong>موفقیت!</strong> وارد حساب کاربری شدید.
+            </div>
+        {% elif login_status == 'error' %}
+            <div class="alert alert-danger">
+                <strong>خطا!</strong> نام کاربری و یا رمز عبور اشتباه است.
+            </div>
+        {% endif %}
+
+        <div class="form-group">
+            <div class="d-flex justify-content-start align-items-center mb-3">
+                <i class="fa fa-user fa-2x" style="margin-right: 10px;"></i>
+                <div class="flex-grow-1">
+                    <input type="text" class="form-control" id="username" name="username" autofocus autocapitalize="none"
+                           autocomplete="username" maxlength="150" required placeholder="نام کاربری اخذ شده از IT را وارد کنید">
+                    <label for="username" class="mt-2">نام کاربری</label>
+                </div>
+            </div>
+        </div> 
+
+        <div class="form-row">
+            <div class="form-floating w-100"> 
+                <input  type="password" autocomplete="current-password" required class="form-control"
+                       id="password" name="password" placeholder="رمز عبور را وارد کنید">
+                <label class="fa fa-lock" for="password">رمز عبور</label>
+            </div>
+        </div>
+
+        <div class="form-check text-start w-100 my-3">
+            <input class="form-check-input" type="checkbox" value="remember-me" id="flexCheckDefault">
+            <label class="form-check-label" for="flexCheckDefault">
+                بخاطر بسپار
+            </label>
+        </div>
+        <input type="hidden" name="next" value="{{ next }}">
+        <button class="btn btn-primary w-100 py-2" type="submit">ورود به سیستم</button>
+
+    </form>
+</main>
+</div>
+{% endblock %}
+
+
+
+

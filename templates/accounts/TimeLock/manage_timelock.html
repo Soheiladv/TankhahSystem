@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>مدیریت قفل زمانی و محدودیت کاربران</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="expiry_date" class="form-label">تاریخ انقضاء قفل:</label>
+            {{ form.expiry_date }}
+        </div>
+
+        <div class="mb-3">
+            <label for="max_active_users" class="form-label">حداکثر تعداد کاربران فعال:</label>
+            {{ form.max_active_users }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">ایجاد تنظیم جدید</button>
+    </form>
+
+    {% if generated_hash %}
+        <div class="alert alert-info mt-3">
+            <strong>هش تولیدشده:</strong> {{ generated_hash }}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

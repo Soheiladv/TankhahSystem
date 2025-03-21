@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4 text-center animate__animated animate__fadeInDown"><i class="fas fa-users"></i> لیست کاربران</h1>
+
+<!-- فرم جستجو -->
+    <div class="mb-4 text-center animate__animated animate__bounceIn">
+        <form id="user-filter-form">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" name="search" placeholder="جستجو بر اساس نام کاربری یا ایمیل" value="{{ search_query }}">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="button" id="search-button"><i class="fas fa-search"></i> جستجو</button>
+                </div>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="active-users" name="active_users" value="active" {% if active_users == 'active' %}checked{% endif %}>
+                <label class="form-check-label" for="active-users">کاربران فعال</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="inactive-users" name="inactive_users" value="inactive" {% if inactive_users == 'inactive' %}checked{% endif %}>
+                <label class="form-check-label" for="inactive-users">کاربران غیرفعال</label>
+            </div>
+        </form>
+    </div>
+     <!--  ایجاد کاربر جدید   -->
+    <div class="mb-4 text-center animate__animated animate__bounceIn">
+        <a href="{% url 'accounts:user_create' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-user-plus"></i> ایجاد کاربر جدید
+        </a>
+    </div>
+
+    <!-- نمایش پیام‌ها -->
+    {% if messages %}
+        <div class="alert alert-info alert-dismissible fade show animate__animated animate__fadeIn" role="alert">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+    {% endif %}
+
+    <div class="row">
+        {% for user in users %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm animate__animated animate__zoomIn">
+                <div class="card-body">
+                    <h5 class="card-title text-center animate__animated animate__flipInX"><i class="fas fa-user"></i> {{ user.username }}</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>ایمیل:</strong> {{ user.email }}</li>
+
+                        <li class="list-group-item">
+                            <strong>گروه‌ها:</strong>
+                            {% for group in user.groups.all %}
+                                <span class="badge bg-warning text-dark">{{ group.name }}</span>
+                            {% empty %}
+                                <span class="badge bg-secondary">بدون گروه</span>
+                            {% endfor %}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>وضعیت:</strong>
+                             {% if user.is_active %}
+                                <i class="fas fa-check-circle text-success"></i> فعال
+                            {% else %}
+                                <i class="fas fa-times-circle text-danger"></i> غیرفعال
+                            {% endif %}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>مدیر/کارمند:</strong>
+                            {% if user.is_superuser %}
+                                <i class="fas fa-crown text-warning"></i> مدیر
+                            {% elif user.is_staff %}
+                                <i class="fas fa-user-tie text-info"></i> کارمند
+                            {% else %}
+                                <i class="fas fa-user text-secondary"></i> کاربر عادی
+                            {% endif %}
+                        </li>
+
+
+                    </ul>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'accounts:user_edit' user.id %}" class="btn btn-sm btn-warning animate__animated animate__pulse animate__infinite">
+                            <i class="fas fa-edit"></i> ویرایش
+                        </a>
+                        <a href="{% url 'accounts:user_change_password' user.id %}" class="btn btn-sm btn-info">
+                            <i class="fas fa-lock"></i> تغییر رمز عبور
+                        </a>
+                        <a href="{% url 'accounts:reset_password_to_default' user.id %}" class="btn btn-sm btn-danger">
+                            <i class="fas fa-key"></i> تغییر به پسورد پیش‌فرض
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('user-filter-form');
+    const userListContainer = document.querySelector('.row');
+
+    function updateUserList() {
+        const formData = new FormData(form);
+        fetch('{% url "accounts:user_list" %}?' + new URLSearchParams(formData), {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json(); // پاسخ JSON
+        })
+        .then(data => {
+            if (data.html) {
+                userListContainer.innerHTML = data.html; // محتوای جدید را جایگزین کنید
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching user list:', error);
+        });
+    }
+
+    // اعمال تغییرات در هنگام تغییر فیلترها
+    form.querySelectorAll('input').forEach(input => {
+        input.addEventListener('change', updateUserList);
+    });
+});
+
+
+</script>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5 animate__animated animate__fadeIn">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg animate__animated animate__zoomIn">
+                <div class="card-header text-center bg-danger text-white animate__animated animate__bounceIn">
+                    <h3>
+                        <i class="fas fa-exclamation-triangle"></i> حذف گروه
+                    </h3>
+                </div>
+                <div class="card-body animate__animated animate__slideInUp">
+                    <h4 class="text-center mb-4 animate__animated animate__pulse">آیا مطمئن هستید؟</h4>
+                    <p class="text-center">
+                        شما در حال حذف گروه "<strong>{{ object.name }}</strong>" هستید. این عملیات قابل بازگشت نیست.
+                    </p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="submit" class="btn btn-danger animate__animated animate__tada">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                            <a href="{% url 'accounts:group_list' %}" class="btn btn-secondary animate__animated animate__flipInX">
+                                <i class="fas fa-times"></i> لغو
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">لیست نسخه‌های اپلیکیشن</h2>
+
+    <form method="GET" class="row g-3">
+        <div class="col-md-2">
+            <label class="form-label">نسخه Major:</label>
+            <input type="text" name="major" value="{{ request.GET.major }}" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">نسخه Minor:</label>
+            <input type="text" name="minor" value="{{ request.GET.minor }}" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Patch:</label>
+            <input type="text" name="patch" value="{{ request.GET.patch }}" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Build:</label>
+            <input type="text" name="build" value="{{ request.GET.build }}" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary mt-4">فیلتر</button>
+        </div>
+    </form>
+
+    <table class="table table-bordered table-striped mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>شناسه</th>
+                <th>نام اپلیکیشن</th>
+                <th>نسخه</th>
+                <th>تاریخ انتشار</th>
+                <th>جزئیات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for version in app_versions %}
+            <tr>
+                <td>{{ version.id }}</td>
+                <td>{{ version.get_app_name_fa  }}</td>
+                <td>{{ version.major }}.{{ version.minor }}.{{ version.patch }}.{{ version.build }}</td>
+                <td>{{ version.release_date }}</td>
+                <td><a href="{% url 'appversion_detail' version.id %}" class="btn btn-info btn-sm">مشاهده</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <nav>
+        <ul class="pagination">
+            {% if app_versions.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1">ابتدا</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ app_versions.previous_page_number }}">قبلی</a></li>
+            {% endif %}
+
+            <li class="page-item active"><span class="page-link">صفحه {{ app_versions.number }} از {{ app_versions.paginator.num_pages }}</span></li>
+
+            {% if app_versions.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ app_versions.next_page_number }}">بعدی</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ app_versions.paginator.num_pages }}">انتهای</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}

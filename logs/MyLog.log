@@ -1,0 +1,202 @@
+ INFO 2025-03-21 17:21:02,923 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:21:03,823 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:21:06,839 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 200 17920
+INFO 2025-03-21 17:22:31,526 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 200 17920
+INFO 2025-03-21 17:22:31,610 basehttp "GET /static/admin/js/jalalidatepicker.min.js HTTP/1.1" 304 0
+INFO 2025-03-21 17:24:35,914 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:24:38,281 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:25:03,665 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:25:04,921 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:25:10,088 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 200 17920
+INFO 2025-03-21 17:25:10,153 basehttp "GET /static/admin/css/jalalidatepicker.min.css HTTP/1.1" 304 0
+INFO 2025-03-21 17:25:13,280 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 200 17920
+INFO 2025-03-21 17:25:15,106 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 200 17920
+INFO 2025-03-21 17:28:11,446 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:28:14,019 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:29:16,553 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:29:18,576 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:30:15,066 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:30:17,078 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:30:30,918 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:30:32,416 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:33:00,069 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:33:03,348 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 302 0
+INFO 2025-03-21 17:33:03,417 basehttp "GET /admin/login/?next=/accounts/set_time_lock/ HTTP/1.1" 200 4634
+INFO 2025-03-21 17:33:03,523 basehttp "GET /static/admin/css/admin_rtl.css HTTP/1.1" 304 0
+INFO 2025-03-21 17:33:03,531 basehttp "GET /static/admin/jquery.ui.datepicker.jalali/themes/base/jquery-ui.min.css HTTP/1.1" 304 0
+INFO 2025-03-21 17:33:03,569 basehttp "GET /static/admin/css/login.css HTTP/1.1" 200 951
+INFO 2025-03-21 17:33:05,503 basehttp "POST /admin/login/?next=/accounts/set_time_lock/ HTTP/1.1" 302 0
+ERROR 2025-03-21 17:33:05,586 log Internal Server Error: /accounts/set_time_lock/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\utils\decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\utils\decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\views.py", line 1072, in get
+    return render(request, self.template_name, self.get_context_data(form=self.form_class()))
+                                                                          ~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py", line 664, in __init__
+    super().__init__(*args, **kwargs)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\forms\models.py", line 362, in __init__
+    raise ValueError("ModelForm has no model class specified.")
+ValueError: ModelForm has no model class specified.
+ERROR 2025-03-21 17:33:05,593 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 500 120504
+INFO 2025-03-21 17:33:20,009 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:33:21,520 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:33:21,880 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 16899
+INFO 2025-03-21 17:33:21,956 basehttp "GET /static/admin/css/custom_datepicker.css HTTP/1.1" 304 0
+INFO 2025-03-21 17:33:21,971 basehttp "GET /static/admin/js/jalalidatepicker.min.js HTTP/1.1" 304 0
+INFO 2025-03-21 17:33:22,017 basehttp "GET /static/admin/webfonts/fa-solid-900.woff2 HTTP/1.1" 304 0
+ERROR 2025-03-21 17:33:34,260 log Internal Server Error: /accounts/set_time_lock/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\utils\decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\utils\decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\views.py", line 1081, in post
+    return redirect(self.success_url)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\shortcuts.py", line 49, in redirect
+    return redirect_class(resolve_url(to, *args, **kwargs))
+                          ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\shortcuts.py", line 172, in resolve_url
+    to = str(to)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\utils\functional.py", line 119, in __str__
+    return str(self.__cast())
+               ~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\utils\functional.py", line 110, in __cast
+    return func(*self._args, **self._kw)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'set_time_lock' not found. 'set_time_lock' is not a valid view function or pattern name.
+ERROR 2025-03-21 17:33:34,271 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 500 138745
+INFO 2025-03-21 17:34:55,419 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\views.py changed, reloading.
+INFO 2025-03-21 17:34:57,340 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:34:58,464 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 302 0
+INFO 2025-03-21 17:34:58,585 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 19539
+INFO 2025-03-21 17:34:58,665 basehttp "GET /static/admin/css/jalalidatepicker.min.css HTTP/1.1" 304 0
+INFO 2025-03-21 17:35:52,831 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:37:48,381 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\views.py changed, reloading.
+INFO 2025-03-21 17:37:51,247 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:37:54,060 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\views.py changed, reloading.
+INFO 2025-03-21 17:37:55,937 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:38:14,651 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\views.py changed, reloading.
+INFO 2025-03-21 17:38:16,806 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:38:28,203 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\views.py changed, reloading.
+INFO 2025-03-21 17:38:30,854 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:38:43,732 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 302 0
+INFO 2025-03-21 17:38:43,879 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 20831
+INFO 2025-03-21 17:39:57,957 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\views.py changed, reloading.
+INFO 2025-03-21 17:39:59,346 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:40:10,458 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 302 0
+INFO 2025-03-21 17:40:10,536 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 22107
+INFO 2025-03-21 17:40:10,580 basehttp "GET /static/admin/css/bootstrap.rtl.min.css HTTP/1.1" 304 0
+INFO 2025-03-21 17:40:10,581 basehttp "GET /static/admin/css/all.min.css HTTP/1.1" 304 0
+INFO 2025-03-21 17:40:10,593 basehttp "GET /static/admin/css/custom.css HTTP/1.1" 304 0
+INFO 2025-03-21 17:40:10,593 basehttp "GET /static/admin/css/animate.min.css HTTP/1.1" 304 0
+INFO 2025-03-21 17:40:10,594 basehttp "GET /static/admin/js/jquery-3.6.0.min.js HTTP/1.1" 304 0
+INFO 2025-03-21 17:40:10,596 basehttp "GET /static/admin/img/RCMS2.svg HTTP/1.1" 304 0
+INFO 2025-03-21 17:40:10,596 basehttp "GET /static/admin/fonts/Parastoo.ttf HTTP/1.1" 304 0
+INFO 2025-03-21 17:40:10,597 basehttp "GET /static/admin/js/jquery-ui.min.js HTTP/1.1" 304 0
+INFO 2025-03-21 17:40:10,604 basehttp "GET /static/admin/js/datepicker-fa.js HTTP/1.1" 304 0
+INFO 2025-03-21 17:40:10,606 basehttp "GET /static/admin/js/django_jalali.min.js HTTP/1.1" 304 0
+INFO 2025-03-21 17:40:10,664 basehttp "GET /static/admin/img/favicon.ico HTTP/1.1" 304 0
+INFO 2025-03-21 17:41:11,716 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\core\models.py changed, reloading.
+INFO 2025-03-21 17:41:14,014 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:42:09,043 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\views.py changed, reloading.
+INFO 2025-03-21 17:42:10,975 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:42:21,993 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 302 0
+INFO 2025-03-21 17:42:22,066 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 23383
+INFO 2025-03-21 17:42:25,216 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 23383
+INFO 2025-03-21 17:42:25,989 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 23383
+INFO 2025-03-21 17:42:26,167 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 23383
+INFO 2025-03-21 17:43:40,213 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:43:41,609 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:44:00,019 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:44:01,744 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:44:08,865 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 302 0
+INFO 2025-03-21 17:44:08,934 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 24659
+INFO 2025-03-21 17:44:08,980 basehttp "GET /static/admin/js/jalalidatepicker.min.js HTTP/1.1" 304 0
+INFO 2025-03-21 17:44:11,647 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 24659
+INFO 2025-03-21 17:44:33,611 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:44:35,502 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:44:55,050 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:44:56,107 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:47:52,335 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:47:54,122 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:48:22,526 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:48:23,402 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:48:34,369 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 302 0
+INFO 2025-03-21 17:48:34,435 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 25935
+INFO 2025-03-21 17:48:34,481 basehttp "GET /static/admin/css/jalalidatepicker.min.css HTTP/1.1" 304 0
+INFO 2025-03-21 17:48:38,450 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 25935
+INFO 2025-03-21 17:48:38,615 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 25935
+INFO 2025-03-21 17:48:38,796 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 25935
+INFO 2025-03-21 17:48:44,936 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 302 0
+INFO 2025-03-21 17:48:44,974 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 27208
+INFO 2025-03-21 17:49:06,448 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:49:13,445 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 27208
+INFO 2025-03-21 17:49:19,771 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 302 0
+INFO 2025-03-21 17:49:19,809 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 28486
+INFO 2025-03-21 17:50:26,065 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:50:26,853 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:50:40,154 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 302 0
+INFO 2025-03-21 17:50:40,210 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 29736
+INFO 2025-03-21 17:50:40,256 basehttp "GET /static/admin/css/custom_datepicker.css HTTP/1.1" 304 0
+INFO 2025-03-21 17:51:08,548 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 302 0
+INFO 2025-03-21 17:51:08,584 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 31015
+INFO 2025-03-21 17:51:21,100 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:51:22,014 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:52:42,991 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\views.py changed, reloading.
+INFO 2025-03-21 17:52:43,932 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:54:05,897 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\views.py changed, reloading.
+INFO 2025-03-21 17:54:08,749 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:55:05,218 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\views.py changed, reloading.
+INFO 2025-03-21 17:55:06,849 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:56:07,260 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\views.py changed, reloading.
+INFO 2025-03-21 17:56:09,569 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:56:36,413 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\forms.py changed, reloading.
+INFO 2025-03-21 17:56:38,629 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:56:56,536 autoreload D:\Design & Source Code\Source Coding\Tanbakhsystem\accounts\urls.py changed, reloading.
+INFO 2025-03-21 17:56:58,116 autoreload Watching for file changes with StatReloader
+INFO 2025-03-21 17:57:01,796 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 302 0
+INFO 2025-03-21 17:57:01,850 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 33209
+INFO 2025-03-21 17:57:01,905 basehttp "GET /static/admin/js/jalalidatepicker.min.js HTTP/1.1" 304 0
+INFO 2025-03-21 17:57:27,973 basehttp "POST /accounts/set_time_lock/ HTTP/1.1" 302 0
+INFO 2025-03-21 17:57:28,013 basehttp "GET /accounts/set_time_lock/ HTTP/1.1" 200 34495
+INFO 2025-03-21 18:14:28,096 autoreload Watching for file changes with StatReloader

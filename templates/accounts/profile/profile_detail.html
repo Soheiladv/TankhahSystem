@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2><i class="fas fa-user"></i> پروفایل {{ profile.get_full_name }}</h2>
+    <ul class="list-group">
+        <li class="list-group-item"><strong>نام کاربر:</strong> {{ profile.user.username }}</li>
+        <li class="list-group-item"><strong>نام کامل:</strong> {{ profile.first_name }}  {{ profile.last_name }}</li>
+        <li class="list-group-item"><strong>ایمیل:</strong> {{ profile.user.email }}</li>
+        <li class="list-group-item"><strong>وضعیت:</strong>  {% if profile.user.is_active %} فعال {% else %}غیرفعال{% endif %} </li>
+        <li class="list-group-item"><strong>گروه:</strong>  {{profile.user.groups }} </li>
+        <li class="list-group-item"><strong>شماره تماس:</strong> {{ profile.phone_number }}</li>
+    </ul>
+    <a href="{% url 'profile_update' profile.pk %}" class="btn btn-warning mt-3">
+        <i class="fas fa-edit"></i> ویرایش پروفایل
+    </a>
+    <a href="{% url 'profile_list' %}" class="btn btn-secondary mt-3">
+        <i class="fas fa-arrow-left"></i> بازگشت به لیست
+    </a>
+</div>
+{% endblock %}

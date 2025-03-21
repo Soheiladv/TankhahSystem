@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}راهنمای مدیریت نسخه{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3">راهنمای مدیریت نسخه در پروژه جنگو</h2>
+    <p>این راهنما نحوه تغییر شماره نسخه‌ها در مدل <strong>AppVersion</strong> را توضیح می‌دهد.</p>
+
+    <h3>ساختار شماره نسخه‌ها</h3>
+    <p>شماره نسخه به‌صورت <code>major.minor.patch.build</code> تنظیم می‌شود.</p>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>نوع تغییر</th>
+                <th>افزایش شماره نسخه</th>
+                <th>توضیحات</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Major (اصلی)</td>
+                <td><code>1.2.3.4 → 2.0.0.0</code></td>
+                <td>تغییرات اساسی مانند ویرایش models.py یا migrations.</td>
+            </tr>
+            <tr>
+                <td>Minor (فرعی)</td>
+                <td><code>1.2.3.4 → 1.3.0.0</code></td>
+                <td>تغییر در views.py یا forms.py که منطق برنامه را تغییر می‌دهد.</td>
+            </tr>
+            <tr>
+                <td>Patch (پچ)</td>
+                <td><code>1.2.3.4 → 1.2.4.0</code></td>
+                <td>رفع باگ یا تغییر در settings.py یا tests.py.</td>
+            </tr>
+            <tr>
+                <td>Build (بیلد)</td>
+                <td><code>1.2.3.4 → 1.2.3.5</code></td>
+                <td>تغییرات جزئی مانند تغییر در فایل‌های استاتیک، قالب‌ها و ...</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>مراحل بررسی و ثبت نسخه جدید</h3>
+    <ol>
+        <li>تشخیص تغییرات در فایل‌های اپلیکیشن.</li>
+        <li>محاسبه هش جدید کد برای بررسی تغییرات.</li>
+        <li>افزایش نسخه متناسب با تغییرات.</li>
+        <li>ثبت نسخه جدید همراه با اطلاعات سیستم.</li>
+    </ol>
+
+    <p class="mt-4">برای مشاهده نسخه‌های ثبت شده، می‌توانید از این URL استفاده کنید:</p>
+    <pre><code>{% url 'appversion_list' %}</code></pre>
+    <pre><code><a href="{% url 'appversion_list'   %}">لیست نسخه ها</a></code></pre>
+
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+ثبت کاربران
+{% endblock %}
+
+<!-- Custom styles for this template -->
+<link href="{% static 'admin/css/sign-in.css' %}" rel="stylesheet">
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6 col-xl-4">
+      <div class="card">
+        <div class="card-header text-center">
+          <h2><i class="fa fa-user-plus"></i> ثبت‌نام</h2>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+              <div class="form-group">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}
+                  <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                  <div class="invalid-feedback d-block">{{ error }}</div>
+                {% endfor %}
+              </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary btn-block">
+              <i class="fa fa-sign-in"></i> ثبت‌نام
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
+
+<!-- Add custom responsive styles -->
+<style>
+  .card {
+    border-radius: 8px;
+  }
+
+  .card-header {
+    background-color: #007bff;
+    color: white;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .card-body {
+    padding: 2rem;
+  }
+
+  .form-control {
+    border-radius: 5px;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    font-size: 16px;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+  }
+
+  @media (max-width: 767.98px) {
+    .card-body {
+      padding: 1rem;
+    }
+  }
+</style>
+{% endblock %}

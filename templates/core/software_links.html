@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center text-primary mb-4">
+        <i class="fas fa-list-alt"></i> فهرست انتخاب قسمت‌ها
+    </h1>
+
+    <!-- فرم فیلتر کردن بر اساس دسته‌بندی -->
+    <form method="get" action="" class="mb-5 d-flex justify-content-center">
+        <div class="form-group w-50">
+            <label for="category" class="font-weight-bold">انتخاب دسته‌بندی:</label>
+            <select name="category" id="category" class="form-control" onchange="this.form.submit()">
+                <option value="">همه دسته‌بندی‌ها</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category.id == selected_category %}selected{% endif %}>
+                        {{ category.display_name_fa }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+
+    <!-- نمایش لیست اپ‌ها -->
+    <div class="row">
+        {% for app in app_menus %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-lg border-0">
+                    <div class="card-body text-center">
+                        <!-- آیکون لینک -->
+                        {% if app.icon %}
+                            <div class="icon mb-3">
+                                <!-- استفاده از آیکون با رنگ‌بندی زیبا -->
+                                <i class="{{ app.icon }} fa-3x text-primary"></i>
+                            </div>
+                        {% else %}
+                            <!-- جایگزین آیکون در صورت نبود آیکون در دیتابیس -->
+                            <div class="icon mb-3">
+                                <i class="fas fa-cube fa-3x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- نام فارسی لینک و توضیحات -->
+                        <h5 class="card-title font-weight-bold">
+                            <a href="{{ app.get_absolute_url }}" class="text-decoration-none text-dark">
+                                {{ app.name_fa }}
+                            </a>
+                        </h5>
+                        <p class="card-text">{{ app.description|truncatechars:50 }}</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 text-center">
+                        <a href="{{ app.get_absolute_url }}" class="btn btn-primary btn-block">
+                            <i class="fas fa-arrow-right"></i> رفتن به {{ app.name_fa }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <p class="text-center text-muted">هیچ اپی در این دسته‌بندی وجود ندارد.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

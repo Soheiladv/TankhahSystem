@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+    <h1 class="mb-4"><i class="fas fa-tachometer-alt me-2"></i>{{ title }}</h1>
+
+    <div class="row">
+        <!-- کارت تعداد مجتمع‌ها -->
+        <div class="col-md-4 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-building fa-2x mb-2 text-primary"></i>
+                    <h5 class="card-title">{% trans "تعداد مجتمع‌ها" %}</h5>
+                    <p class="card-text display-6">{{ complex_count }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت تعداد پروژه‌ها -->
+        <div class="col-md-4 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-project-diagram fa-2x mb-2 text-success"></i>
+                    <h5 class="card-title">{% trans "تعداد پروژه‌ها" %}</h5>
+                    <p class="card-text display-6">{{ project_count }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت تعداد تنخواه‌ها -->
+        <div class="col-md-4 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-file-invoice fa-2x mb-2 text-warning"></i>
+                    <h5 class="card-title">{% trans "تعداد تنخواه‌ها" %}</h5>
+                    <p class="card-text display-6">{{ tanbakh_count }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- پروژه‌های فعال -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5><i class="fas fa-tasks me-2"></i>{% trans "پروژه‌های فعال" %}</h5>
+            <p class="display-6">{{ active_projects }}</p>
+        </div>
+    </div>
+
+    <!-- آخرین تنخواه‌ها -->
+    <div class="card">
+        <div class="card-body">
+            <h5><i class="fas fa-file-invoice me-2"></i>{% trans "آخرین تنخواه‌ها" %}</h5>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>{% trans "شماره" %}</th>
+                            <th>{% trans "تاریخ" %}</th>
+                            <th>{% trans "وضعیت" %}</th>
+                            <th>{% trans "جزئیات" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tanbakh in recent_tanbakhs %}
+                            <tr>
+                                <td>{{ tanbakh.number }}</td>
+                                <td>{{ tanbakh.date|date:"Y/m/d" }}</td>
+                                <td>{{ tanbakh.get_status_display }}</td>
+                                <td>
+                                    <a href="{% url 'tanbakh_detail' tanbakh.pk %}" class="btn btn-info btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="4" class="text-center">{% trans "تنخواهی یافت نشد." %}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

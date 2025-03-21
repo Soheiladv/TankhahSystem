@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% load jalali_tags %}
+{% load static %}
+{% load humanize %}
+{% load jformat %}
+
+{% block extrahead %}
+ 
+    <style>
+        body {
+            font-family: 'Vazir', sans-serif;
+        }
+
+        .accordion-item {
+            border: none;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .accordion-item:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .accordion-header button {
+            font-weight: bold;
+            background-color: #f8f9fa;
+            color: #333;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .accordion-header button.collapsed {
+            background-color: #ffffff;
+        }
+
+        .accordion-body {
+            font-size: 14px;
+            line-height: 1.6;
+            background-color: #f8f9fa;
+            border-radius: 0 0 15px 15px;
+        }
+
+        .card-header {
+            border-radius: 10px 10px 0 0;
+        }
+
+        .card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary, .btn-secondary {
+            border-radius: 5px;
+        }
+
+        .form-label {
+            font-weight: 500;
+        }
+
+        .summary {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container mt-4">
+        <h1 class="text-center mb-4"><i class="fas fa-clipboard-list me-2 text-primary"></i> لاگ‌های سیستم</h1>
+
+        <!-- بخش فیلتر و جستجو -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white"><i class="fas fa-filter me-2"></i> فیلترها و جستجو</div>
+            <div class="card-body">
+                <form method="get" class="row g-4">
+                    <!-- فیلتر بر اساس کاربر -->
+                    <div class="col-md-6 col-sm-12">
+                        <label for="user" class="form-label"><i class="fas fa-user me-2"></i> کاربر</label>
+                        <select name="user" id="user" class="form-select">
+                            <option value="">همه کاربران</option>
+                            {% for user in users %}
+                                <option value="{{ user.id }}"
+                                        {% if request.GET.user|stringformat:"s" == user.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ user.username }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- فیلتر بر اساس نوع عملیات -->
+                    <div class="col-md-6 col-sm-12">
+                        <label for="action" class="form-label"><i class="fas fa-cog me-2"></i> نوع عملیات</label>
+                        <select name="action" id="action" class="form-select">
+                            <option value="">همه عملیات‌ها</option>
+                            <option value="create" {% if request.GET.action == "create" %}selected{% endif %}>افزودن
+                            </option>
+                            <option value="update" {% if request.GET.action == "update" %}selected{% endif %}>
+                                بروزرسانی
+                            </option>
+                            <option value="delete" {% if request.GET.action == "delete" %}selected{% endif %}>حذف
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- فیلتر بر اساس مدل -->
+                    <div class="col-md-6 col-sm-12">
+                        <label for="model_name" class="form-label"><i class="fas fa-database me-2"></i> مدل</label>
+                        <select name="model_name" id="model_name" class="form-select">
+                            <option value="">همه مدل‌ها</option>
+                            {% for model in models %}
+                                <option value="{{ model.model_name }}"
+                                        {% if request.GET.model_name == model.model_name %}selected{% endif %}>
+                                    {{ model.verbose_name_plural }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- فیلتر بر اساس تاریخ -->
+                    <div class="col-md-6 col-sm-12">
+                        <label for="date" class="form-label"><i class="fas fa-calendar me-2"></i> تاریخ</label>
+                        <input type="date" name="date" id="date" class="form-control"
+                               value="{{ request.GET.date|to_jalali:'%Y-%m-%d' }}">
+                    </div>
+
+                    <!-- جستجو -->
+                    <div class="col-md-12 col-sm-12">
+                        <label for="search" class="form-label"><i class="fas fa-search me-2"></i> جستجو</label>
+                        <input type="text" name="search" id="search" class="form-control"
+                               placeholder="جستجو در لاگ‌ها..." value="{{ request.GET.search }}">
+                    </div>
+
+                    <!-- دکمه‌های اعمال و پاک کردن فیلتر -->
+                    <div class="col-md-12 text-center">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-filter me-2"></i> اعمال فیلتر
+                        </button>
+                        <a href="{% url 'accounts:audit_log_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i> پاک کردن فیلترها
+                        </a>
+                    </div>
+
+                    <!-- دکمه نمایش یا عدم نمایش ردیف‌های بدون تغییر -->
+                    <div class="col-md-12 text-center mt-3">
+                        <input type="hidden" name="show_empty"
+                               value="{% if not show_empty %}true{% else %}false{% endif %}">
+                        <button type="submit" class="btn btn-sm btn-secondary">
+                            {% if show_empty %}
+                                مخفی کردن ردیف‌های بدون تغییر
+                            {% else %}
+                                نمایش ردیف‌های بدون تغییر
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- لیست لاگ‌ها -->
+<div class="accordion" id="logsAccordion">
+    {% for log in logs %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading{{ log.id }}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapse{{ log.id }}" aria-expanded="false"
+                        aria-controls="collapse{{ log.id }}">
+                    <i class="fas fa-user me-2"></i><strong>{{ log.user.username|default:"سیستم" }}</strong> -
+                    <i class="fas fa-cog me-2"></i>{{ log.get_action_display }} -
+                    <i class="fas fa-clock me-2"></i>{{ log.timestamp|to_jalali:'%Y/%m/%d %H:%M:%S' }}
+                    {% if log.changes and log.changes != "-" and log.changes != "" %}
+                        <div class="summary mt-1">
+                            <i class="fas fa-info-circle me-2"></i>
+                            {% for field, values in log.changes.items %}
+                                <strong>{{ field }}:</strong>
+                                از <span class="text-danger">{{ values.old_value|truncatechars:10 }}</span>
+                                به <span class="text-success">{{ values.new_value|truncatechars:10 }}</span>
+                                {% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </button>
+            </h2>
+            <div id="collapse{{ log.id }}" class="accordion-collapse collapse"
+                 aria-labelledby="heading{{ log.id }}" data-bs-parent="#logsAccordion">
+                <div class="accordion-body">
+{#                    <p><i class="fas fa-database me-2"></i><strong>مدل:</strong>{{ log.model_name }}</p> #}
+                    <p><i class="fas fa-database me-2"></i><strong>مدل:</strong> دسترسی ندارید</p>  
+                    <p>
+                        <i class="fas fa-cube me-2"></i><strong>شیء:</strong> {{ log.related_object|default:"-" }}
+                    </p>
+                    <h6><i class="fas fa-exchange-alt me-2"></i> تغییرات:</h6>
+                    {% if log.changes and log.changes != "-" %}
+                        <ul>
+                            {% for field, values in log.changes.items %}
+                                <li>
+                                    <strong>{{ field }}:</strong>
+                                    از <span class="text-danger"><i
+                                        class="fas fa-arrow-left me-1"></i>{{ values.old_value }}</span>
+                                    به <span class="text-success"><i
+                                        class="fas fa-arrow-right me-1"></i>{{ values.new_value }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted"><i class="fas fa-ban me-2"></i>بدون تغییرات</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <p class="text-center text-muted"><i class="fas fa-exclamation-triangle me-2"></i>هیچ لاگی یافت نشد.</p>
+    {% endfor %}
+</div>
+        <!-- صفحه‌بندی -->
+        <nav aria-label="Page navigation" class="d-flex justify-content-center mt-4">
+            <ul class="pagination">
+                {% if logs.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page=1"><i
+                            class="fas fa-angle-double-left me-1"></i> اولین</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ logs.previous_page_number }}"><i
+                            class="fas fa-angle-left me-1"></i> قبلی</a></li>
+                {% endif %}
+                <li class="page-item disabled"><span
+                        class="page-link">صفحه {{ logs.number }} از {{ logs.paginator.num_pages }}</span></li>
+                {% if logs.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ logs.next_page_number }}">بعدی <i
+                            class="fas fa-angle-right ms-1"></i></a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ logs.paginator.num_pages }}">آخرین <i
+                            class="fas fa-angle-double-right ms-1"></i></a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+{% endblock %}

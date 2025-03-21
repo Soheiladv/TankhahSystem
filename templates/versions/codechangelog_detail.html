@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-primary">جزئیات تغییر کد: <span class="font-weight-bold">{{ change.file_name }}</span></h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <p><strong>نسخه:</strong> {{ change.version.get_app_name_fa }} v{{ change.version.version_number }}</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <p><strong>تاریخ تغییر:</strong> {{ change.change_date|date:"Y/m/d H:i" }}</p>
+        </div>
+    </div>
+
+    <h2 class="text-secondary mb-3">تفاوت‌ها</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <pre class="bg-light p-3 rounded">
+{% for line in diff %}
+{{ line }}
+{% empty %}
+بدون تفاوت
+{% endfor %}
+            </pre>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'codechangelog_list' %}" class="btn btn-outline-secondary">بازگشت به لیست تغییرات</a>
+        <a href="{% url 'appversion_detail' change.version.pk %}" class="btn btn-outline-primary">بازگشت به نسخه</a>
+    </div>
+</div>
+{% endblock %}

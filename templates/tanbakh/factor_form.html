@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+<div class="container">
+    <h1>{% trans "ایجاد فاکتور جدید" %}</h1>
+    <form method="post" enctype="multipart/form-data" id="factor-form">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.as_p }}
+        </div>
+
+        <h3>{% trans "اقلام فاکتور" %}</h3>
+        {{ item_formset.management_form }}
+        <div id="item-formset">
+            {% for item_form in item_formset %}
+                <div class="form-row mb-3 item-row">
+                    {{ item_form.id }}
+                    <div class="row">
+                        <div class="col-md-4">{{ item_form.description }}</div>
+                        <div class="col-md-3">{{ item_form.amount }}</div>
+                        <div class="col-md-2">{{ item_form.quantity }}</div>
+                        <div class="col-md-3">
+                            {% if item_form.instance.pk or forloop.counter > 1 %}
+                                {{ item_form.DELETE }}
+                                <label>{% trans "حذف" %}</label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if item_form.errors %}
+                        <div class="alert alert-danger">{{ item_form.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <button type="button" class="btn btn-secondary mb-3" id="add-item">{% trans "اضافه کردن ردیف" %}</button>
+        <button type="submit" class="btn btn-primary">{% trans "ثبت فاکتور" %}</button>
+    </form>
+</div>
+
+ <script>
+    $(document).ready(function() {
+        var formCount = {{ item_formset.total_form_count }};
+        var emptyForm = $('#item-formset .item-row:first').clone(true).get(0);
+        emptyForm.querySelectorAll('input').forEach(input => input.value = '');
+
+        $('#add-item').click(function() {
+            var newForm = $(emptyForm).clone(true);
+            newForm.find('input, select, textarea').each(function() {
+                var name = $(this).attr('name').replace('-0-', '-' + formCount + '-');
+                var id = 'id_' + name;
+                $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
+            });
+            formCount++;
+            $('#item-formset').append(newForm);
+            $('#id_form-TOTAL_FORMS').val(formCount);
+        });
+    });
+</script>
+{% endblock %}
