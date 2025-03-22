@@ -35,15 +35,21 @@ class Organization(models.Model):
             ('Organization_delete','حــذف سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
             ('Organization_view','نمایش سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
         ]
+
 class Project(models.Model):
     """مدل پروژه برای مدیریت پروژه‌های چندمجتمعی"""
+    priority_CHOICES = (
+        ('LOW', _('کم')), ('MEDIUM', _('متوسط')), ('HIGH', _('زیاد')),
+    )
     name = models.CharField(max_length=100, verbose_name=_("نام پروژه"))
-    code = models.CharField(max_length=10, unique=True, verbose_name=_("کد پروژه"))
+    code = models.CharField(max_length=20, unique=True, verbose_name=_("کد پروژه"))
     organizations = models.ManyToManyField(Organization, limit_choices_to={'org_type': 'COMPLEX'}, verbose_name=_("مجتمع‌های مرتبط"))
     start_date = models.DateField(verbose_name=_("تاریخ شروع"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
-
+    budget = models.IntegerField(blank=True, null=True, verbose_name= _("بودجه (ريال)"))
+    is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
+    priority = models.CharField(max_length=10, choices=priority_CHOICES, null=True, blank=True, verbose_name=_("اولویت"))
     def __str__(self):
         return f"{self.code} - {self.name}"
 
@@ -85,6 +91,7 @@ class Post(models.Model):
             ('Post_view','نمایش  پست سازمانی برای تعریف سلسله مراتب'),
             ('Post_delete','حــذف  پست سازمانی برای تعریف سلسله مراتب'),
             ]
+
 class UserPost(models.Model):
     """مدل اتصال کاربر به پست"""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name=_("کاربر"))
@@ -105,9 +112,6 @@ class UserPost(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.post.name}"
-
-#--
-
 
 class PostHistory(models.Model):
     """
@@ -152,7 +156,6 @@ class PostHistory(models.Model):
 
     # غیرفعال کردن مجوزهای پیش‌فرض (add, change, delete, view)
     default_permissions = ()
-
     # تعریف مجوزهای سفارشی
     permissions = [
         ("view_posthistory", _("می‌تواند تاریخچه پست‌ها را مشاهده کند")),
@@ -172,6 +175,29 @@ class PostHistory(models.Model):
         indexes = [
             models.Index(fields=['post', 'changed_at']),
         ]
+
+#--
+
+class WorkflowStage(models.Model):
+    name = models.CharField(max_length=100, verbose_name=_('نام مرحله'))
+    order = models.IntegerField(verbose_name=_('ترتیب'))
+    description = models.TextField(blank=True, verbose_name=_('توضیحات'))
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('مرحله گردش کار')
+        verbose_name_plural = _('مراحل گردش کار')
+        ordering = ['order']
+        default_permissions = ()
+        permissions = [
+            ('WorkflowStage_view','نمایش مرحله گردش کار'),
+            ('WorkflowStage_add','افزودن مرحله گردش کار'),
+            ('WorkflowStage_update','بروزرسانی مرحله گردش کار'),
+            ('WorkflowStage_delete','حــذف مرحله گردش کار'),
+        ]
+
 # lock -------
 from cryptography.fernet import Fernet, InvalidToken
 cipher = Fernet(settings.RCMS_SECRET_KEY.encode())
@@ -263,3 +289,9 @@ class TimeLockModel(models.Model):
             ("TimeLockModel_add", "افزودن قفل سیستم"),
         ]
 
+class Dashboard_Core(models.Model):
+    class Meta:
+        default_permissions = ()
+        permissions = [
+            ('Dashboard_Core_view','دسترسی به داشبورد Core پایه')
+        ]

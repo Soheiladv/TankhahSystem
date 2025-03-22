@@ -1,8 +1,9 @@
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
-
 from core.models import Post, PostHistory
-
+from tanbakh.models import Factor
+import logging
+logger = logging.getLogger(__name__)
 
 @receiver(pre_save, sender=Post)
 def log_post_changes(sender, instance, **kwargs):
@@ -20,3 +21,21 @@ def log_post_changes(sender, instance, **kwargs):
                     new_value=new_value,
                     changed_by=instance._current_user if hasattr(instance, '_current_user') else None
                 )
+
+
+
+@receiver(post_save, sender=Factor)
+def log_factor_changes(sender, instance, created, **kwargs):
+    user = getattr(instance, '_changed_by', None)  # کاربر تغییر دهنده
+    if created:
+        logger.info(f"فاکتور جدید ایجاد شد: {instance.number} توسط {user or 'ناشناس'}")
+    else:
+        changes = instance._meta.fields  # تغییرات را بررسی کنید
+        for field in changes:
+            field_name = field.name
+            old_value = getattr(instance, f'_old_{field_name}', None)
+            new_value = getattr(instance, field_name)
+            if old_value != new_value:
+                logger.info(f"تغییر در فاکتور {instance.number}: {field_name} از {old_value} به {new_value} توسط {user or 'ناشناس'}")
+
+

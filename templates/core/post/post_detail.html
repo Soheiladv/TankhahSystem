@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h1 class="card-title mb-0">{{ title }}</h1>
+        </div>
+        <div class="card-body">
+            <!-- اطلاعات پایه پست -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h4>{% trans "اطلاعات پایه" %}</h4>
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <strong>{% trans "نام پست:" %}</strong> {{ post.name }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>{% trans "سازمان:" %}</strong> {{ post.organization.name }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>{% trans "پست والد:" %}</strong> {{ post.parent.name|default:"-" }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>{% trans "سطح:" %}</strong> {{ post.level }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>{% trans "شاخه:" %}</strong> {{ post.get_branch_display|default:"-" }}
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h4>{% trans "توضیحات" %}</h4>
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="card-text">{{ post.description|default:"-" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- تاریخچه تغییرات پست -->
+            <div class="row">
+                <div class="col-md-12">
+                    <h4>{% trans "تاریخچه تغییرات" %}</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>{% trans "فیلد تغییر یافته" %}</th>
+                                    <th>{% trans "مقدار قبلی" %}</th>
+                                    <th>{% trans "مقدار جدید" %}</th>
+                                    <th>{% trans "تغییر دهنده" %}</th>
+                                    <th>{% trans "تاریخ تغییر" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for history in post.posthistory_set.all %}
+                                    <tr>
+                                        <td>{{ history.changed_field }}</td>
+                                        <td>{{ history.old_value|default:"-" }}</td>
+                                        <td>{{ history.new_value|default:"-" }}</td>
+                                        <td>{{ history.changed_by.username }}</td>
+                                        <td>{{ history.changed_at|date:"Y/m/d H:i" }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">{% trans "هیچ تاریخچه‌ای یافت نشد." %}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- دکمه‌های اقدام -->
+            <div class="mt-4">
+                <a href="{% url 'post_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>{% trans "بازگشت به لیست" %}
+                </a>
+                {% if perms.core.Post_update %}
+                    <a href="{% url 'post_update' post.pk %}" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>{% trans "ویرایش" %}
+                    </a>
+                {% endif %}
+                {% if perms.core.Post_delete %}
+                    <a href="{% url 'post_delete' post.pk %}" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>{% trans "حذف" %}
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,9 +1,11 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
+
+from .RCMS_Lock.security import TimeLock
 from .models import Organization, Project, Post, UserPost, PostHistory, TimeLockModel
 from accounts.models import CustomUser
-
+from tanbakh.models import WorkflowStage
 
 # ادمین سازمان
 @admin.register(Organization)
@@ -132,3 +134,6 @@ class TimeLockModelAdmin(admin.ModelAdmin):
     def decrypted_org(self, obj):
         return obj.get_decrypted_organization_name()
     decrypted_org.short_description = _('نام سازمان')
+
+
+admin.site.register(WorkflowStage)

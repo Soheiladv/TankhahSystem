@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n static %}
+{% load i18n static jformat rcms_custom_filters %}
 
 {% block content %}
     <h1 class="mb-4"><i class="fas fa-project-diagram me-2"></i>{{ title }}</h1>
@@ -26,8 +26,8 @@
                         <i class="fas fa-project-diagram me-2"></i>{{ project.name }}
                     </div>
                     <div class="card-body">
-                        <p><strong>{% trans "کد:" %}</strong> {{ project.code }}</p>
-                        <p><strong>{% trans "تاریخ شروع:" %}</strong> {{ project.start_date|date:"Y/m/d" }}</p>
+                        <p><strong>{% trans "کد:" %}</strong> {{ project.code|to_persian_number }}</p>
+                        <p><strong>{% trans "تاریخ شروع:" %}</strong> {{ project.start_date|jformat:"%Y/%m/%d"|to_persian_number }}</p>
                         <p><strong>{% trans "وضعیت:" %}</strong> {% if project.is_active %}{% trans "فعال" %}{% else %}{% trans "غیرفعال" %}{% endif %}</p>
                         <div class="d-flex gap-2">
                             <a href="{% url 'project_detail' project.pk %}" class="btn btn-info btn-sm btn-animate"><i class="fas fa-eye"></i></a>

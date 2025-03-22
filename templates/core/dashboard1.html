@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+    <style>
+    /* استایل‌های سفارشی برای داشبورد */
+.card {
+    border: none;
+    border-radius: 10px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.card-text {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.list-group-item {
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+.list-group-item i {
+    color: #007bff;
+}
+    </style>
+    <div class="container">
+    <h1 class="mb-4">{{ title }}</h1>
+
+    <!-- آمار و اطلاعات -->
+    <div class="row mb-4">
+        <!-- کارت تعداد سازمان‌ها -->
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-primary">{% trans "تعداد سازمان‌ها" %}</h5>
+                    <p class="card-text display-4">{{ complex_count }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت تعداد پروژه‌ها -->
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-success">{% trans "تعداد پروژه‌ها" %}</h5>
+                    <p class="card-text display-4">{{ project_count }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت تعداد تنخواه‌ها -->
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-warning">{% trans "تعداد تنخواه‌ها" %}</h5>
+                    <p class="card-text display-4">{{ tanbakh_count }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- لینک‌های مهم -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">{% trans "لینک‌های مهم" %}</h3>
+                    <div class="list-group">
+                        {% for link in links %}
+                            <a href="{% url link.url %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                                <i class="{{ link.icon }} me-3 fa-lg"></i>
+                                <span class="flex-grow-1">{{ link.name }}</span>
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

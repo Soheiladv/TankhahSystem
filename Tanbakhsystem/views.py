@@ -133,8 +133,6 @@ class Tanbakhsystem_DashboardView(LoginRequiredMixin, TemplateView):
         context["cards"] = filtered_cards
         return context
 
-
-
 # class Tanbakhsystem_DashboardView(LoginRequiredMixin, TemplateView):
 #     template_name = 'index.html'  # استفاده از index.html شما
 #     extra_context = {'title': _('منوی مدیریت سیستم')}

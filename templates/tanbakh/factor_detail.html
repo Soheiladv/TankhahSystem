@@ -2,17 +2,118 @@
 {% load i18n static %}
 
 {% block content %}
-    <div class="container mt-5">
-        <h1 class="mb-4 animate__animated animate__fadeInDown"><i class="fas fa-file-invoice me-2"></i>{{ factor.number }}</h1>
-        <div class="card animate__animated animate__zoomIn">
-            <div class="card-body">
-                <p><strong><i class="fas fa-calendar me-2"></i>{% trans "تاریخ:" %}</strong> {{ factor.date }}</p>
-                <p><strong><i class="fas fa-wallet me-2"></i>{% trans "مبلغ:" %}</strong> {{ factor.amount }}</p>
-                <p><strong><i class="fas fa-info-circle me-2"></i>{% trans "وضعیت:" %}</strong> {{ factor.get_status_display }}</p>
-                <p><strong><i class="fas fa-comment me-2"></i>{% trans "توضیحات:" %}</strong> {{ factor.description }}</p>
-                {% if factor.file %}<p><a href="{{ factor.file.url }}" class="btn btn-primary btn-sm"><i class="fas fa-download me-2"></i>{% trans "دانلود فایل" %}</a></p>{% endif %}
-                <a href="{% url 'factor_list' %}" class="btn btn-secondary"><i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت" %}</a>
-            </div>
+<div class="container mt-5">
+    <h1>{{ title }}</h1>
+    <form method="post" enctype="multipart/form-data" id="factor-form">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.as_p }}
         </div>
-    </div>
+
+        <h3>{% trans "اقلام فاکتور" %}</h3>
+        {{ item_formset.management_form }}
+        <div id="item-formset">
+            {% for item_form in item_formset %}
+                <div class="form-row mb-3 item-row" data-id="{{ forloop.counter0 }}">
+                    {{ item_form.id }}
+                    <div class="row">
+                        <div class="col-md-4">{{ item_form.description }}</div>
+                        <div class="col-md-2">{{ item_form.amount }}</div>
+                        <div class="col-md-2">{{ item_form.quantity }}</div>
+                        <div class="col-md-2">
+                            <span class="item-total">0</span> {% trans "ریال" %}
+                        </div>
+                        <div class="col-md-2">
+                            {% if item_form.instance.pk or forloop.counter > 1 %}
+                                {{ item_form.DELETE }} <label>{% trans "حذف" %}</label>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if item_form.errors %}
+                        <div class="alert alert-danger">{{ item_form.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <button type="button" class="btn btn-secondary mb-3" id="add-item">{% trans "اضافه کردن ردیف" %}</button>
+
+        <h3>{% trans "اسناد فاکتور" %}</h3>
+        {{ document_formset.management_form }}
+        <div id="document-formset">
+            {% for doc_form in document_formset %}
+                <div class="form-row mb-3">
+                    {{ doc_form.id }}
+                    {{ doc_form.file }}
+                    {% if doc_form.DELETE %}
+                        {{ doc_form.DELETE }} <label>{% trans "حذف" %}</label>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+<button type="button" class="btn btn-secondary mb-3" id="add-document">{% trans "اضافه کردن سند" %}</button>
+
+        <div class="mt-3">
+            <strong>{% trans "جمع کل:" %}</strong> <span id="total-amount">0</span> {% trans "ریال" %}
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">{% trans "ثبت فاکتور" %}</button>
+    </form>
+</div>
+<script>
+    $(document).ready(function() {
+        var docFormCount = {{ document_formset.total_form_count }};
+        var emptyDocForm = $('#document-formset .form-row:first').clone(true).get(0);
+        emptyDocForm.querySelectorAll('input').forEach(input => input.value = '');
+
+        $('#add-document').click(function() {
+            var newDocForm = $(emptyDocForm).clone(true);
+            newDocForm.find('input, select, textarea').each(function() {
+                var name = $(this).attr('name').replace('-0-', '-' + docFormCount + '-');
+                var id = 'id_' + name;
+                $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
+            });
+            docFormCount++;
+            $('#document-formset').append(newDocForm);
+            $('#id_documents-TOTAL_FORMS').val(docFormCount);
+        });
+    });
+</script>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        var formCount = {{ item_formset.total_form_count }};
+        var emptyForm = $('#item-formset .item-row:first').clone(true).get(0);
+        emptyForm.querySelectorAll('input').forEach(input => input.value = '');
+
+        function updateTotal() {
+            let total = 0;
+            $('.item-row').each(function() {
+                let amount = parseFloat($(this).find('.amount-field').val()) || 0;
+                let quantity = parseInt($(this).find('.quantity-field').val()) || 0;
+                let itemTotal = amount * quantity;
+                $(this).find('.item-total').text(itemTotal.toLocaleString('fa-IR'));
+                total += itemTotal;
+            });
+            $('#total-amount').text(total.toLocaleString('fa-IR'));
+        }
+
+        $('#add-item').click(function() {
+            var newForm = $(emptyForm).clone(true);
+            newForm.attr('data-id', formCount);
+            newForm.find('input, select, textarea').each(function() {
+                var name = $(this).attr('name').replace('-0-', '-' + formCount + '-');
+                var id = 'id_' + name;
+                $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
+            });
+            formCount++;
+            $('#item-formset').append(newForm);
+            $('#id_form-TOTAL_FORMS').val(formCount);
+            updateTotal();
+        });
+
+        $(document).on('change', '.amount-field, .quantity-field', updateTotal);
+        updateTotal(); // محاسبه اولیه
+    });
+</script>
 {% endblock %}

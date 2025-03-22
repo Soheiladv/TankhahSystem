@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load i18n%}
+{% load static jalali_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg border-danger">
+        <div class="card-header bg-danger text-white">
+            <h2 class="card-title mb-0"><i class="fas fa-trash-alt me-2"></i>{% trans "حذف پست سازمانی" %}</h2>
+        </div>
+        <div class="card-body">
+            <p class="lead">{% trans "آیا مطمئن هستید که می‌خواهید پست" %} <strong>{{ object.name }}</strong> {% trans "را حذف کنید؟" %}</p>
+            <p class="text-muted">{% trans "این عملیات قابل بازگشت نیست." %}</p>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger"><i class="fas fa-check me-2"></i>{% trans "بله، حذف کن" %}</button>
+                <a href="{% url 'post_list' %}" class="btn btn-secondary"><i class="fas fa-times me-2"></i>{% trans "خیر، بازگشت" %}</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

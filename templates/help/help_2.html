@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>راهنمای مراحل ارسال تنخواه</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Vazir', 'Tahoma', sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .step {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .step-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #007bff;
+            margin-left: 10px;
+        }
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .step-description {
+            font-size: 1rem;
+            color: #555;
+        }
+        .step-action {
+            font-size: 0.9rem;
+            color: #28a745;
+            margin-top: 10px;
+        }
+        .timeline {
+            border-right: 3px solid #007bff;
+            padding-right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">راهنمای مراحل ارسال تنخواه</h1>
+        <div class="timeline">
+            <!-- گام 1: ثبت تنخواه توسط کارمند -->
+            <div class="step">
+                <span class="step-number">۱</span>
+                <div class="step-title">ثبت تنخواه توسط کارمند (سطح پایین - مجتمع)</div>
+                <div class="step-description">
+                    کارمند در مجتمع با دسترسی <code>Tanbakh_add</code> تنخواه را ثبت می‌کند. اطلاعات شامل تاریخ (مثلاً ۱۴۰۴/۰۱/۱۷)، سازمان، پروژه، مبلغ و توضیحات است. وضعیت اولیه: <strong>در حال بررسی (PENDING)</strong>.
+                </div>
+                <div class="step-action">اقدام: ورود به فرم ثبت تنخواه و ارسال درخواست.</div>
+            </div>
+
+            <!-- گام 2: تأیید توسط رئیس قسمت -->
+            <div class="step">
+                <span class="step-number">۲</span>
+                <div class="step-title">تأیید توسط رئیس قسمت (سطح میانی - مجتمع)</div>
+                <div class="step-description">
+                    رئیس قسمت با دسترسی <code>Tanbakh_part_approve</code> تنخواه را بررسی می‌کند. در صورت تأیید، وضعیت به <strong>تأییدشده (APPROVED)</strong> تغییر می‌کند و به مدیر مجموعه ارسال می‌شود.
+                </div>
+                <div class="step-action">اقدام: ورود به صفحه ویرایش تنخواه، تأیید و ثبت توضیحات در لاگ.</div>
+            </div>
+
+            <!-- گام 3: تأیید توسط مدیر مجموعه -->
+            <div class="step">
+                <span class="step-number">۳</span>
+                <div class="step-title">تأیید توسط مدیر مجموعه (سطح میانی - مجتمع)</div>
+                <div class="step-description">
+                    مدیر مجموعه با دسترسی <code>Tanbakh_approve</code> تنخواه را تأیید نهایی می‌کند. وضعیت به <strong>ارسال‌شده به HQ (SENT_TO_HQ)</strong> تغییر کرده و مرحله به <strong>بهره‌برداری (OPS)</strong> منتقل می‌شود.
+                </div>
+                <div class="step-action">اقدام: تأیید در فرم ویرایش و ارسال به دفتر مرکزی.</div>
+            </div>
+
+            <!-- گام 4: بررسی توسط بهره‌برداری در دفتر مرکزی -->
+            <div class="step">
+                <span class="step-number">۴</span>
+                <div class="step-title">بررسی توسط بهره‌برداری (دفتر مرکزی - OPS)</div>
+                <div class="step-description">
+                    مسئول بهره‌برداری در HQ با دسترسی <code>Tanbakh_hq_approve</code> تنخواه را بررسی می‌کند. وضعیت به <strong>در حال بررسی - بهره‌برداری (HQ_OPS_PENDING)</strong> و سپس <strong>تأییدشده - بهره‌برداری (HQ_OPS_APPROVED)</strong> تغییر می‌کند. مرحله به <strong>مالی (FIN)</strong> منتقل می‌شود.
+                </div>
+                <div class="step-action">اقدام: تأیید در فرم و ثبت لاگ تأیید.</div>
+            </div>
+
+            <!-- گام 5: تأیید نهایی توسط مالی در دفتر مرکزی -->
+            <div class="step">
+                <span class="step-number">۵</span>
+                <div class="step-title">تأیید نهایی توسط مالی (دفتر مرکزی - FIN)</div>
+                <div class="step-description">
+                    مسئول مالی در HQ با دسترسی <code>Tanbakh_PAID</code> تنخواه را تأیید می‌کند. وضعیت به <strong>پرداخت‌شده (PAID)</strong> تغییر می‌کند و فرآیند پایان می‌یابد.
+                </div>
+                <div class="step-action">اقدام: تأیید نهایی و ثبت پرداخت در سیستم.</div>
+            </div>
+
+            <!-- نکته: رد درخواست -->
+            <div class="step">
+                <span class="step-number">نکته</span>
+                <div class="step-title">رد درخواست در هر مرحله</div>
+                <div class="step-description">
+                    در هر مرحله، اگر مسئول مربوطه درخواست را رد کند (با دسترسی مناسب مثل <code>Tanbakh_REJECTED</code>)، وضعیت به <strong>ردشده (REJECTED)</strong> تغییر می‌کند و فرآیند متوقف می‌شود. توضیحات رد در <code>ApprovalLog</code> ثبت می‌شود.
+                </div>
+                <div class="step-action">اقدام: انتخاب گزینه رد و ثبت توضیحات.</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -218,7 +218,8 @@
 <div class="sidebar" id="sidebar">
     <ul class="nav flex-column">
         <li class="nav-item">
-            <a href="{% url 'all_links' %}" class="nav-link">
+            <a href="{% url 'dashboard' %}" class="nav-link">
+{#            <a href="{% url 'all_links' %}" class="nav-link">#}
                 <i class="fas fa-home me-2"></i> {% trans "خانه" %}
             </a>
         </li>
@@ -309,8 +310,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             jalaliDatepicker.startWatch();
         });
-    </script>
-
+    jalaliDatepicker.startWatch();
+</script>
 
 <script>
     $(document).ready(function () {

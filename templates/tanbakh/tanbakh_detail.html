@@ -100,13 +100,17 @@
         <!-- تب‌ها برای سازماندهی اطلاعات -->
         <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="details" aria-selected="true">{% trans "جزئیات تنخواه" %}</button>
+                <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details"
+                        type="button" role="tab" aria-controls="details"
+                        aria-selected="true">{% trans "جزئیات تنخواه" %}</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="factors-tab" data-bs-toggle="tab" data-bs-target="#factors" type="button" role="tab" aria-controls="factors" aria-selected="false">{% trans "فاکتورها" %}</button>
+                <button class="nav-link" id="factors-tab" data-bs-toggle="tab" data-bs-target="#factors" type="button"
+                        role="tab" aria-controls="factors" aria-selected="false">{% trans "فاکتورها" %}</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">{% trans "تاریخچه تأییدات" %}</button>
+                <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button"
+                        role="tab" aria-controls="history" aria-selected="false">{% trans "تاریخچه تأییدات" %}</button>
             </li>
         </ul>
 
@@ -123,12 +127,12 @@
                             <tbody>
                             <tr>
                                 <th class="bg-light">{% trans "شماره" %}</th>
-                                <td>{{ tanbakh.number  }}</td>
+                                <td>{{ tanbakh.number }}</td>
                             </tr>
                             <tr>
                                 <th class="bg-light">{% trans "تاریخ" %}</th>
                                 <td>{{ tanbakh.date|jformat:"%Y/%m/%d" }} ساعت
-                                 {{ tanbakh.date|jformat:"%H:%m" }}</td>
+                                    {{ tanbakh.date|jformat:"%H:%m" }}</td>
                             </tr>
                             <tr>
                                 <th class="bg-light">{% trans "مجتمع" %}</th>
@@ -175,7 +179,8 @@
 
                 <!-- دکمه تأیید تنخواه -->
                 {% if perms.tanbakh.Approval_add %}
-                    <a href="{% url 'approval_create' %}?tanbakh={{ tanbakh.id }}" class="btn btn-primary mb-4 no-print">
+                    <a href="{% url 'approval_create' %}?tanbakh={{ tanbakh.id }}"
+                       class="btn btn-primary mb-4 no-print">
                         <i class="fas fa-check me-2"></i>{% trans "ثبت تأیید تنخواه" %}
                     </a>
                 {% endif %}
@@ -191,6 +196,10 @@
                             <th>{% trans "تاریخ" %}</th>
                             <th>{% trans "مبلغ" %}</th>
                             <th>{% trans "وضعیت" %}</th>
+                            <th>{% trans "مرحله فعلی" %} </th>
+                            <th>{% trans "آخرین پست" %} </th>
+                            <th>{% trans "مراحل تأیید" %}</th>
+
                             <th class="no-print">{% trans "اقدامات" %}</th>
                         </tr>
                         </thead>
@@ -199,7 +208,7 @@
                             <tr class="table-primary">
                                 <td>{{ factor.number|to_persian_number }}</td>
                                 <td>{{ factor.date|jformat:"%Y/%m/%d" }} ساعت
-                                 {{ factor.date|jformat:"%H:%m" }}</td>
+                                    {{ factor.date|jformat:"%H:%m" }}</td>
                                 <td>{{ factor.amount|format_negative }}</td>
                                 <td>{{ factor.get_status_display }}</td>
                                 <td class="no-print">
@@ -210,6 +219,24 @@
                                         </a>
                                     {% endif %}
                                 </td>
+                                <td>  {{ tanbakh.current_stage }}</td>
+                                <td>  {{ tanbakh.last_stopped_post|default:"مشخص نشده" }}</td>
+                                <td>{% trans "مراحل تأیید" %}
+                                    <ul>
+                                        {% for log in approval_logs %}
+                                            <li>{{ log.action }} - {{ log.user }}
+                                                - {{ log.timestamp }}: {{ log.comment|default:"بدون توضیح" }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    <h3>{% trans "فاکتورها" %}</h3>
+                                    <ul>
+                                        {% for factor in factors %}
+                                            <li>{{ factor.number }} - {{ factor.amount }} - {{ factor.status }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+
+
                             </tr>
                             <!-- ردیف‌های فاکتور -->
                             {% for item in factor.items.all %}
@@ -262,7 +289,7 @@
                                 {% endif %} </td>
                             <td>{{ approval.is_approved|yesno:"تأیید,رد" }}</td>
                             <td>روز {{ approval.date|jformat:"%Y/%m/%d" }} ساعت
-                                 {{ approval.date|jformat:"%H:%m" }}</td>
+                                {{ approval.date|jformat:"%H:%m" }}</td>
                         </tr>
                     {% empty %}
                         <tr>
@@ -284,8 +311,8 @@
             </button>
         </div>
     </div>
-            <p>{% trans "تاریخ چاپ:" %} {{ current_date|jformat:"%Y/%m/%d" }} {% trans "ساعت:" %}
-            {{ current_date|jformat:"%H:%m" }} | {% trans "کاربر:" %} {{ user.username }}</p>
+    <p>{% trans "تاریخ چاپ:" %} {{ current_date|jformat:"%Y/%m/%d" }} {% trans "ساعت:" %}
+        {{ current_date|jformat:"%H:%m" }} | {% trans "کاربر:" %} {{ user.username }}</p>
 
 
 {% endblock %}

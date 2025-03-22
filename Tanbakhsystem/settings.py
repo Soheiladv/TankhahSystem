@@ -1,10 +1,10 @@
 import locale
-import os
-from pathlib import Path
 import logging
 import logging.config
+import os
 # Warnings
 import warnings
+from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
@@ -29,12 +29,13 @@ INSTALLED_APPS = [
     'core',
     'reports',
     'django_jalali',
-     'jalali_date',
+    'jalali_date',
     'version_tracker',
 
     'accounts',
     'tanbakh',
     'Tanbakhsystem',
+    'notifications',
 ]
 # APPEND_SLASH = True
 # #حد بازگشیتی تست
@@ -95,7 +96,6 @@ DATABASES = {
     }
 }
 
-
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql',
@@ -125,7 +125,7 @@ LANGUAGES = (
     ('fa', 'فارسی'),
     ('en', 'English'),
 )
-LOCALE_PATHS = [BASE_DIR / 'locale'] # پوشه‌ای برای فایل‌های ترجمه
+LOCALE_PATHS = [BASE_DIR / 'locale']  # پوشه‌ای برای فایل‌های ترجمه
 try:
     locale.setlocale(locale.LC_ALL, "fa_IR.UTF-8")
 except locale.Error:
@@ -147,7 +147,6 @@ USE_THOUSAND_SEPARATOR = True
 #
 
 SECRET_KEY = 'django-insecure-k=jhx8cj8&0z!!#8o291(=dc%$#g)rhr+63#!0-d0op8m&wrnr'
-
 
 # CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 # CSRF_TRUSTED_ORIGINS = [
@@ -257,7 +256,6 @@ file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelnam
 logger = logging.getLogger(__name__)
 logger.addHandler(file_handler)
 logger.setLevel(logging.INFO)
-
 
 warnings.filterwarnings('always', category=RuntimeWarning)
 
