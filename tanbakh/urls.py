@@ -1,3 +1,4 @@
+from tanbakh.reports.FinancialReportView import FinancialReportView, PerformanceReportView
 from django.urls import path
 
 from tanbakh.views import TanbakhDetailView, TanbakhCreateView, TanbakhDeleteView, \
@@ -22,7 +23,13 @@ urlpatterns = [
     path('approval/create/', ApprovalCreateView.as_view(), name='approval_create'),
     path('approval/<int:pk>/update/', ApprovalUpdateView.as_view(), name='approval_update'),
     path('approval/<int:pk>/delete/', ApprovalDeleteView.as_view(), name='approval_delete'),
-    path('approval/<int:pk>/', TanbakhApproveView.as_view(), name='tanbakh_approve'),
-    path('approval/<int:pk>/', TanbakhRejectView.as_view(), name='tanbakh_reject'),
+
+
+    path('tanbakh/<int:pk>/approve/', TanbakhApproveView.as_view(), name='tanbakh_approve'),
+    path('tanbakh/<int:pk>/reject/', TanbakhRejectView.as_view(), name='tanbakh_reject'),
+
+    # گزارش‌ها
+    path('reports/financial/', FinancialReportView.as_view(), name='financial_report'),
+    path('reports/performance/', PerformanceReportView.as_view(), name='performance_report'),
 
 ]

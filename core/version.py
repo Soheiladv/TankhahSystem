@@ -1,2 +1,2 @@
-VERSION = '1.0.0.1'
+VERSION = '3.1.0.20'
 VERBOSE_NAME = 'Core'

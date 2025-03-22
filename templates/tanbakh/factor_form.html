@@ -2,50 +2,134 @@
 {% load i18n static %}
 
 {% block content %}
-<div class="container">
-    <h1>{% trans "ایجاد فاکتور جدید" %}</h1>
-    <form method="post" enctype="multipart/form-data" id="factor-form">
-        {% csrf_token %}
-        <div class="form-group">
-            {{ form.as_p }}
+<div class="container mt-5">
+    <div class="card shadow-lg animate__animated animate__fadeIn">
+        <div class="card-header bg-primary text-white">
+            <h1 class="card-title mb-0">{{ title }}</h1>
         </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" id="factor-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    {{ form.as_p }}
+                </div>
 
-        <h3>{% trans "اقلام فاکتور" %}</h3>
-        {{ item_formset.management_form }}
-        <div id="item-formset">
-            {% for item_form in item_formset %}
-                <div class="form-row mb-3 item-row">
-                    {{ item_form.id }}
-                    <div class="row">
-                        <div class="col-md-4">{{ item_form.description }}</div>
-                        <div class="col-md-3">{{ item_form.amount }}</div>
-                        <div class="col-md-2">{{ item_form.quantity }}</div>
-                        <div class="col-md-3">
-                            {% if item_form.instance.pk or forloop.counter > 1 %}
-                                {{ item_form.DELETE }}
-                                <label>{% trans "حذف" %}</label>
-                            {% endif %}
+                <!-- کارت ویزیتی برای اقلام فاکتور -->
+                <div class="card mb-4 animate__animated animate__fadeInUp">
+                    <div class="card-header bg-info text-white">
+                        <h3 class="card-title mb-0">{% trans "اقلام فاکتور" %}</h3>
+                    </div>
+                    <div class="card-body">
+                        {{ item_formset.management_form }}
+                        <div id="item-formset">
+                            {% for item_form in item_formset %}
+                                <div class="form-row mb-3 item-row" data-id="{{ forloop.counter0 }}">
+                                    {{ item_form.id }}
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label>{% trans "شرح" %}</label>
+                                            {{ item_form.description }}
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label>{% trans "مبلغ" %}</label>
+                                            {{ item_form.amount }}
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label>{% trans "تعداد" %}</label>
+                                            {{ item_form.quantity }}
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label>{% trans "جمع" %}</label>
+                                            <span class="item-total">0</span> {% trans "ریال" %}
+                                        </div>
+                                        <div class="col-md-2">
+                                            {% if item_form.instance.pk or forloop.counter > 1 %}
+                                                <label>{% trans "حذف" %}</label>
+                                                {{ item_form.DELETE }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% if item_form.errors %}
+                                        <div class="alert alert-danger">{{ item_form.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn btn-secondary mt-3" id="add-item">
+                            <i class="fas fa-plus me-2"></i>{% trans "اضافه کردن ردیف" %}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- کارت ویزیتی برای اسناد فاکتور -->
+                <div class="card mb-4 animate__animated animate__fadeInUp">
+                    <div class="card-header bg-warning text-white">
+                        <h3 class="card-title mb-0">{% trans "اسناد فاکتور" %}</h3>
+                    </div>
+                    <div class="card-body">
+                        {{ document_formset.management_form }}
+                        <div id="document-formset">
+                            {% for doc_form in document_formset %}
+                                <div class="form-row mb-3">
+                                    {{ doc_form.id }}
+                                    <div class="col-md-10">
+                                        <label>{% trans "فایل" %}</label>
+                                        {{ doc_form.file }}
+                                    </div>
+                                    <div class="col-md-2">
+                                        {% if doc_form.DELETE %}
+                                            <label>{% trans "حذف" %}</label>
+                                            {{ doc_form.DELETE }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
                         </div>
                     </div>
-                    {% if item_form.errors %}
-                        <div class="alert alert-danger">{{ item_form.errors }}</div>
-                    {% endif %}
                 </div>
-            {% endfor %}
+
+                <!-- جمع کل -->
+                <div class="card mb-4 animate__animated animate__fadeInUp">
+                    <div class="card-header bg-success text-white">
+                        <h3 class="card-title mb-0">{% trans "جمع کل" %}</h3>
+                    </div>
+                    <div class="card-body">
+                        <strong>{% trans "جمع کل:" %}</strong> <span id="total-amount">0</span> {% trans "ریال" %}
+                    </div>
+                </div>
+
+                <!-- دکمه ثبت -->
+                <button type="submit" class="btn btn-primary mt-3 animate__animated animate__fadeIn">
+                    <i class="fas fa-save me-2"></i>{% trans "ثبت فاکتور" %}
+                </button>
+            </form>
         </div>
-        <button type="button" class="btn btn-secondary mb-3" id="add-item">{% trans "اضافه کردن ردیف" %}</button>
-        <button type="submit" class="btn btn-primary">{% trans "ثبت فاکتور" %}</button>
-    </form>
+    </div>
 </div>
 
- <script>
+<!-- اسکریپت‌ها -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
     $(document).ready(function() {
         var formCount = {{ item_formset.total_form_count }};
         var emptyForm = $('#item-formset .item-row:first').clone(true).get(0);
         emptyForm.querySelectorAll('input').forEach(input => input.value = '');
 
+        function updateTotal() {
+            let total = 0;
+            $('.item-row').each(function() {
+                let amount = parseFloat($(this).find('.amount-field').val()) || 0;
+                let quantity = parseInt($(this).find('.quantity-field').val()) || 0;
+                let itemTotal = amount * quantity;
+                $(this).find('.item-total').text(itemTotal.toLocaleString('fa-IR'));
+                total += itemTotal;
+            });
+            $('#total-amount').text(total.toLocaleString('fa-IR'));
+        }
+
         $('#add-item').click(function() {
             var newForm = $(emptyForm).clone(true);
+            newForm.attr('data-id', formCount);
             newForm.find('input, select, textarea').each(function() {
                 var name = $(this).attr('name').replace('-0-', '-' + formCount + '-');
                 var id = 'id_' + name;
@@ -54,7 +138,11 @@
             formCount++;
             $('#item-formset').append(newForm);
             $('#id_form-TOTAL_FORMS').val(formCount);
+            updateTotal();
         });
+
+        $(document).on('change', '.amount-field, .quantity-field', updateTotal);
+        updateTotal(); // محاسبه اولیه
     });
 </script>
 {% endblock %}

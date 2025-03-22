@@ -1,10 +1,15 @@
 from django.urls import path
+
 from .views import (
     IndexView, OrganizationListView, OrganizationDetailView, OrganizationCreateView, OrganizationUpdateView,
     OrganizationDeleteView,
     ProjectListView, ProjectDetailView, ProjectCreateView, ProjectUpdateView, ProjectDeleteView, AllLinksView,DashboardView
 )
-
+from .views import (
+    PostListView, PostDetailView, PostCreateView, PostUpdateView, PostDeleteView,
+    UserPostListView, UserPostCreateView, UserPostUpdateView, UserPostDeleteView,
+    PostHistoryListView, PostHistoryCreateView, PostHistoryDeleteView
+)
 urlpatterns = [
     path('', IndexView.as_view(), name='index'),
     path('organizations/', OrganizationListView.as_view(), name='organization_list'),
@@ -22,3 +27,24 @@ urlpatterns = [
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
 
 ]
+urlpatterns += [
+    # Post URLs
+    path('posts/', PostListView.as_view(), name='post_list'),
+    path('post/<int:pk>/', PostDetailView.as_view(), name='post_detail'),
+    path('post/create/', PostCreateView.as_view(), name='post_create'),
+    path('post/<int:pk>/update/', PostUpdateView.as_view(), name='post_update'),
+    path('post/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),
+
+    # UserPost URLs
+    path('userposts/', UserPostListView.as_view(), name='userpost_list'),
+    path('userpost/create/', UserPostCreateView.as_view(), name='userpost_create'),
+    path('userpost/<int:pk>/update/', UserPostUpdateView.as_view(), name='userpost_update'),
+    path('userpost/<int:pk>/delete/', UserPostDeleteView.as_view(), name='userpost_delete'),
+
+    # PostHistory URLs
+    path('posthistories/', PostHistoryListView.as_view(), name='posthistory_list'),
+    path('posthistory/create/', PostHistoryCreateView.as_view(), name='posthistory_create'),
+    path('posthistory/<int:pk>/delete/', PostHistoryDeleteView.as_view(), name='posthistory_delete'),
+
+]
+

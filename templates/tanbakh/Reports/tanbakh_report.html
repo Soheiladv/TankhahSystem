@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>شماره</th>
+            <th>مبلغ</th>
+            <th>وضعیت</th>
+            {% if request.user.has_perm 'Tanbakh_full_view' %}
+            <th>سازمان</th>
+            <th>پروژه</th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for tanbakh in tanbakhs %}
+        <tr>
+            <td>{{ tanbakh.number }}</td>
+            <td>{{ tanbakh.amount }}</td>
+            <td>{{ tanbakh.status }}</td>
+            {% if request.user.has_perm 'Tanbakh_full_view' %}
+            <td>{{ tanbakh.organization }}</td>
+            <td>{{ tanbakh.project }}</td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<p>جمع کل: {{ total_amount }}</p>
+{% endblock %}

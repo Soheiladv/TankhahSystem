@@ -2,15 +2,14 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
 
-from .models import Tanbakh, Factor, Approval
-from core.models import Organization, Post, Project
-from accounts.models import CustomUser
+from .models import Tanbakh, Factor, ApprovalLog
 
 
 # ادمین تنخواه
 @admin.register(Tanbakh)
 class TanbakhAdmin(admin.ModelAdmin):
-    list_display = ('number', 'date', 'organization', 'project', 'status', 'hq_status', 'created_by_short', 'approved_by_short')
+    list_display = (
+    'number', 'date', 'organization', 'project', 'status', 'hq_status', 'created_by_short', 'approved_by_short')
     list_filter = (
         ('date', JDateFieldListFilter),
         'status',
@@ -34,10 +33,12 @@ class TanbakhAdmin(admin.ModelAdmin):
 
     def created_by_short(self, obj):
         return obj.created_by.username if obj.created_by else '-'
+
     created_by_short.short_description = _('ایجادکننده')
 
     def approved_by_short(self, obj):
         return obj.approved_by.username if obj.approved_by else '-'
+
     approved_by_short.short_description = _('تأییدکننده')
 
     # نمایش فاکتورهای مرتبط به صورت اینلاین
@@ -75,40 +76,42 @@ class FactorAdmin(admin.ModelAdmin):
             'fields': ('number', 'tanbakh', 'date', 'amount', 'status')
         }),
         (_('جزئیات'), {
-            'fields': ('description', 'file', 'file_size'),
+            'fields': ('description',),
             'classes': ('collapse',)
         }),
     )
-    readonly_fields = ('number', 'file_size')  # شماره و حجم فایل خودکار ست می‌شن
+    readonly_fields = ('number' ,)  # شماره و حجم فایل خودکار ست می‌شن
 
     def tanbakh_number(self, obj):
         return obj.tanbakh.number
+
     tanbakh_number.short_description = _('شماره تنخواه')
 
     def file_link(self, obj):
         if obj.file:
             return admin.utils.format_html('<a href="{}" target="_blank">{}</a>', obj.file.url, _('دانلود فایل'))
         return '-'
+
     file_link.short_description = _('فایل')
 
     # نمایش تأییدات مرتبط به صورت اینلاین
     class ApprovalInline(admin.TabularInline):
-        model = Approval
+        model = ApprovalLog
         extra = 1
-        fields = ('user', 'date', 'branch', 'is_approved', 'comment')
+        fields = ('user', 'date', 'action', 'comment')
         autocomplete_fields = ('user',)
 
     inlines = [ApprovalInline]
 
 
 # ادمین تأیید
-@admin.register(Approval)
+@admin.register(ApprovalLog)
 class ApprovalAdmin(admin.ModelAdmin):
-    list_display = ('tanbakh_number', 'factor_number', 'user', 'date', 'branch', 'is_approved', 'comment_short')
+    list_display = ('tanbakh_number', 'factor_number', 'user', 'date', 'action', 'comment_short')
     list_filter = (
         ('date', JDateFieldListFilter),
-        'branch',
-        'is_approved',
+        'action',
+
         'tanbakh__organization',
     )
     search_fields = ('tanbakh__number', 'factor__number', 'user__username', 'comment')
@@ -117,7 +120,7 @@ class ApprovalAdmin(admin.ModelAdmin):
     ordering = ('-date',)
     fieldsets = (
         (None, {
-            'fields': ('tanbakh', 'factor', 'user', 'date', 'branch', 'is_approved')
+            'fields': ('tanbakh', 'factor', 'user', 'date',)
         }),
         (_('توضیحات'), {
             'fields': ('comment',),
@@ -128,14 +131,17 @@ class ApprovalAdmin(admin.ModelAdmin):
 
     def tanbakh_number(self, obj):
         return obj.tanbakh.number if obj.tanbakh else '-'
+
     tanbakh_number.short_description = _('شماره تنخواه')
 
     def factor_number(self, obj):
         return obj.factor.number if obj.factor else '-'
+
     factor_number.short_description = _('شماره فاکتور')
 
     def comment_short(self, obj):
         return obj.comment[:50] + '...' if obj.comment and len(obj.comment) > 50 else obj.comment
+
     comment_short.short_description = _('توضیحات کوتاه')
 
     def save_model(self, request, obj, form, change):
