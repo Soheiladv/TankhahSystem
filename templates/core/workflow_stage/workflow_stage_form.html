@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3">{{ title }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+        </div>
+        <div class="mb-3">
+            {{ form.order.label_tag }}
+            {{ form.order }}
+        </div>
+        <div class="mb-3">
+            {{ form.description.label_tag }}
+            {{ form.description }}
+        </div>
+        <button type="submit" class="btn btn-success">ذخیره</button>
+        <a href="{% url 'workflow_stage_list' %}" class="btn btn-secondary">لغو</a>
+    </form>
+</div>
+{% endblock %}

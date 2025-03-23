@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n rcms_custom_filters %}
+{% load static i18n rcms_custom_filters %}
 
 {% block content  %}
     <style>
@@ -130,8 +130,8 @@
     </div>
 
     <!-- اسکریپت‌ها -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
+     <script src="{% static 'admin/js/chart.js' %}"></script>
+<script>
         var ctx = document.getElementById('costChart').getContext('2d');
         var costChart = new Chart(ctx, {
             type: 'line',

@@ -3,13 +3,21 @@ from django.urls import path
 from .views import (
     IndexView, OrganizationListView, OrganizationDetailView, OrganizationCreateView, OrganizationUpdateView,
     OrganizationDeleteView,
-    ProjectListView, ProjectDetailView, ProjectCreateView, ProjectUpdateView, ProjectDeleteView, AllLinksView,DashboardView
+    ProjectListView, ProjectDetailView, ProjectCreateView, ProjectUpdateView, ProjectDeleteView, AllLinksView,
+    DashboardView, DashboardView_flows
 )
 from .views import (
     PostListView, PostDetailView, PostCreateView, PostUpdateView, PostDeleteView,
     UserPostListView, UserPostCreateView, UserPostUpdateView, UserPostDeleteView,
     PostHistoryListView, PostHistoryCreateView, PostHistoryDeleteView
 )
+from core.views import (
+    WorkflowStageListView,
+    WorkflowStageCreateView,
+    WorkflowStageUpdateView,
+    WorkflowStageDeleteView,
+)
+
 urlpatterns = [
     path('', IndexView.as_view(), name='index'),
     path('organizations/', OrganizationListView.as_view(), name='organization_list'),
@@ -25,6 +33,7 @@ urlpatterns = [
 
     path('all_links/', AllLinksView.as_view(), name='all_links'),
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
+    path('dashboard_flows/', DashboardView_flows.as_view(), name='dashboard_flows'), # داشبورد تنخواه ها
 
 ]
 urlpatterns += [
@@ -47,4 +56,9 @@ urlpatterns += [
     path('posthistory/<int:pk>/delete/', PostHistoryDeleteView.as_view(), name='posthistory_delete'),
 
 ]
-
+urlpatterns += [
+    path("workflow-stages/", WorkflowStageListView.as_view(), name="workflow_stage_list"),
+    path("workflow-stages/new/", WorkflowStageCreateView.as_view(), name="workflow_stage_create"),
+    path("workflow-stages/<int:pk>/edit/", WorkflowStageUpdateView.as_view(), name="workflow_stage_update"),
+    path("workflow-stages/<int:pk>/delete/", WorkflowStageDeleteView.as_view(), name="workflow_stage_delete"),
+] # workflow_stage

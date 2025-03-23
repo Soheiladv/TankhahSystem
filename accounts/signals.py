@@ -13,17 +13,32 @@ from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from .models import AuditLog
 
+# @receiver(pre_save)
+# def store_old_values(sender, instance, **kwargs):
+#     if sender.__name__ == "AuditLog":  # جلوگیری از لاگ‌گیری خود لاگ‌ها
+#         return
+#
+#     if instance.pk:  # فقط برای به‌روزرسانی‌ها
+#         try:
+#             old_instance = sender.objects.get(pk=instance.pk)
+#             instance._old_values = {field.name: getattr(old_instance, field.name) for field in instance._meta.fields}
+#         except sender.DoesNotExist:
+#             instance._old_values = {}
+
 @receiver(pre_save)
 def store_old_values(sender, instance, **kwargs):
-    if sender.__name__ == "AuditLog":  # جلوگیری از لاگ‌گیری خود لاگ‌ها
-        return
-
-    if instance.pk:  # فقط برای به‌روزرسانی‌ها
+    if not hasattr(instance, '_old_values'):
         try:
             old_instance = sender.objects.get(pk=instance.pk)
-            instance._old_values = {field.name: getattr(old_instance, field.name) for field in instance._meta.fields}
+            instance._old_values = {}
+            for field in instance._meta.fields:
+                try:
+                    instance._old_values[field.name] = getattr(old_instance, field.name, None)
+                except Exception:
+                    instance._old_values[field.name] = None
         except sender.DoesNotExist:
             instance._old_values = {}
+
 
 @receiver(post_save)
 
