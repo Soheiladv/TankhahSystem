@@ -1,0 +1,49 @@
+<!-- tanbakh/templates/tanbakh/factor_approval.html -->
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ title }}</h1>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>{% trans "توضیحات کلی" %}</label>
+            {{ form.comment }}
+        </div>
+
+        <h3>{% trans "ردیف‌های فاکتور" %}</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>{% trans "شرح" %}</th>
+                    <th>{% trans "مبلغ" %}</th>
+                    <th>{% trans "تعداد" %}</th>
+                    <th>{% trans "وضعیت" %}</th>
+                    <th>{% trans "توضیحات" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in object.items.all %}
+                <tr>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.amount }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ form.fields|lookup:"action_"|add:item.id }}</td>
+                    <td>{{ form.fields|lookup:"comment_"|add:item.id }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <button type="submit" class="btn btn-primary">{% trans "ثبت تأییدات" %}</button>
+        <a href="{% url 'factor_list' %}" class="btn btn-secondary">{% trans "بازگشت" %}</a>
+    </form>
+</div>
+{% endblock %}

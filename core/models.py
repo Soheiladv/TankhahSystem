@@ -5,20 +5,22 @@ import secrets
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+
 from accounts.models import CustomUser
 
 class Organization(models.Model):
     """مدل سازمان برای تعریف مجتمع‌ها و دفتر مرکزی"""
     ORG_TYPES = (
         ('COMPLEX', _('مجتمع')),
-        ('COMPLEX', _('هتل')),
-        ('COMPLEX', _('دفاتر استانی')),
-        ('COMPLEX', _('مجموعه های استیجاری')),
+        ('HOTEL', _('هتل')),
+        ('PROVINCE', _('دفاتر استانی')),
+        ('RENTAL', _('مجموعه‌های استیجاری')),
         ('HQ', _('دفتر مرکزی')),
     )
     code = models.CharField(max_length=10, unique=True, verbose_name=_("کد سازمان"))
     name = models.CharField(max_length=100, verbose_name=_("نام سازمان"))
-    org_type = models.CharField(max_length=10, choices=ORG_TYPES, verbose_name=_("نوع سازمان"))
+    org_type = models.CharField(max_length=25, choices=ORG_TYPES, verbose_name=_("نوع سازمان"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
 
     def __str__(self):
@@ -294,4 +296,18 @@ class Dashboard_Core(models.Model):
         default_permissions = ()
         permissions = [
             ('Dashboard_Core_view','دسترسی به داشبورد Core پایه')
+        ]
+
+class DashboardView_flows(models.Model):
+    class Meta:
+        default_permissions = ()
+        permissions = [
+            ('DashboardView_flows_view','دسترسی به روند تنخواه گردانی ')
+        ]
+
+class DashboardView(models.Model):
+    class Meta:
+        default_permissions = ()
+        permissions = [
+            ('Dashboard__view','دسترسی به داشبورد اصلی 💻')
         ]

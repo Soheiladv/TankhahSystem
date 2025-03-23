@@ -1,13 +1,18 @@
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
+from django.db.models import Sum, Max
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
+from core.models import Post  # بررسی کنید که مسیر درست است
+from core.models import WorkflowStage  # اگر در همان اپلیکیشن است
 from accounts.models import CustomUser
 from core.models import Organization, Post, UserPost, Project, WorkflowStage
+from django.views.generic import TemplateView
 
 NUMBER_SEPARATOR = getattr(settings, 'NUMBER_SEPARATOR', '-')
 
+def get_default_workflow_stage():
+    return WorkflowStage.objects.get(name='HQ_INITIAL').id  # نام را با 'HQ_ITDC' جایگزین کنید اگر متفاوت است
 class Tanbakh(models.Model):
     """مدل تنخواه برای ثبت و مدیریت درخواست‌های مالی"""
     STATUS_CHOICES = (
@@ -23,36 +28,58 @@ class Tanbakh(models.Model):
     )
     number = models.CharField(max_length=50, unique=True, blank=True, verbose_name=_("شماره تنخواه"))
     amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ"))
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name=_("وضعیت"))
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد  "))
-
-    date = models.DateField(default=timezone.now, verbose_name=_("تاریخ"))
-    due_date = models.DateField(verbose_name=_('مهلت زمانی'))
-    # organization = models.ForeignKey(Organization, on_delete=models.CASCADE, limit_choices_to={'org_type': 'COMPLEX'}, verbose_name=_("مجتمع"))
-    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_('سازمان'))
-    # project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("پروژه"))
+    date = models.DateTimeField(default=timezone.now, verbose_name=_("تاریخ"))
+    due_date = models.DateTimeField(null=True, blank=True, verbose_name=_('مهلت زمانی'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_('مجموعه/شعبه'))
     project = models.ForeignKey('core.Project', on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('پروژه'))
-    hq_status = models.CharField(max_length=20, choices=STATUS_CHOICES, null=True, blank=True, verbose_name=_("وضعیت در HQ"))
-    last_stopped_post = models.ForeignKey(Post, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("آخرین پست متوقف‌شده"))
     letter_number = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("شماره نامه"))
     created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='tanbakh_created', verbose_name=_("ایجادکننده"))
-    # approved_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='tanbakh_approved', verbose_name=_("تأییدکننده"))
     approved_by = models.ManyToManyField(CustomUser, blank=True, verbose_name=_('تأییدکنندگان'))
-    description = models.TextField()
+    description = models.TextField(verbose_name=_("توضیحات"))
 
-    # current_stage = models.CharField(max_length=20, default='COMPLEX',
-    #                                  choices=[('COMPLEX', 'مجموعه ها'), ('OPS', 'بهره‌برداری'), ('FIN', 'مالی')])
-    current_stage = models.ForeignKey(WorkflowStage, on_delete=models.PROTECT, verbose_name=_('مرحله فعلی'))
-    # namemamma=models.CharField(max_length=3)
+    # current_stage = models.ForeignKey(WorkflowStage, on_delete=models.PROTECT, verbose_name=_('مرحله فعلی'))
+    current_stage = models.ForeignKey(WorkflowStage,
+              on_delete=models.SET_NULL,null=True,default=1,#get_default_workflow_stage,  # پیش‌فرض: ثبت در دفتر مرکزی
+        verbose_name="مرحله فعلی")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES,  default='DRAFT', verbose_name=_("وضعیت"))
+    hq_status = models.CharField(max_length=20, default='PENDING',
+                                 choices=STATUS_CHOICES, null=True, blank=True,
+                                 verbose_name=_("وضعیت در HQ"))
+    last_stopped_post = models.ForeignKey(Post, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("آخرین پست متوقف‌شده"))
+
+    is_archived = models.BooleanField(default=False, verbose_name=_("آرشیو شده"))
+
+    archived_at = models.DateTimeField(null=True, blank=True, verbose_name="زمان آرشیو")
+    canceled = models.BooleanField(default=False, verbose_name="لغو شده")
 
     def generate_number(self):
-        """تولید شماره تنخواه با جداکننده قابل تنظیم"""
+        """تولید شماره یکتا برای تنخواه"""
         sep = NUMBER_SEPARATOR
         date_str = self.date.strftime('%Y%m%d')
         org_code = self.organization.code
         project_code = self.project.code if self.project else 'NOPRJ'
-        serial = Tanbakh.objects.filter(organization=self.organization, date=self.date).count() + 1
-        return f"TNKH{sep}{date_str}{sep}{org_code}{sep}{project_code}{sep}{serial:03d}"
+
+        # پیدا کردن بالاترین شماره سریال برای این تاریخ و سازمان
+        with transaction.atomic():
+            max_serial = Tanbakh.objects.filter(
+                organization=self.organization,
+                date__date=self.date.date()
+            ).aggregate(Max('number'))['number__max']
+
+            if max_serial:
+                # استخراج شماره سریال از آخرین شماره موجود
+                last_number = max_serial.split(sep)[-1]
+                serial = int(last_number) + 1
+            else:
+                serial = 1
+
+            new_number = f"TNKH{sep}{date_str}{sep}{org_code}{sep}{project_code}{sep}{serial:03d}"
+            # چک کردن یکتایی و افزایش سریال در صورت نیاز
+            while Tanbakh.objects.filter(number=new_number).exists():
+                serial += 1
+                new_number = f"TNKH{sep}{date_str}{sep}{org_code}{sep}{project_code}{sep}{serial:03d}"
+            return new_number
 
     def save(self, *args, **kwargs):
         if not self.number:
@@ -76,17 +103,18 @@ class Tanbakh(models.Model):
             ('Tanbakh_view', 'نمایش تنخواه'),
             ('Tanbakh_delete', 'حذف تنخواه'),
 
-            ('Tanbakh_part_approve', 'تأیید رئیس قسمت'),
-            ('Tanbakh_approve', 'تأیید مدیر مجموعه'),
+            ('Tanbakh_part_approve', '👍تأیید رئیس قسمت'),
+            ('Tanbakh_approve', '👍تأیید مدیر مجموعه'),
             ('Tanbakh_hq_view', 'رصد دفتر مرکزی'),
-            ('Tanbakh_hq_approve', 'تأیید رده بالا در دفتر مرکزی'),
+            ('Tanbakh_hq_approve', '👍تأیید رده بالا در دفتر مرکزی'),
 
             ('Tanbakh_HQ_OPS_PENDING', _('در حال بررسی - بهره‌برداری')),
-            ('Tanbakh_HQ_OPS_APPROVED', _('تأییدشده - بهره‌برداری')),
+            ('Tanbakh_HQ_OPS_APPROVED', _('👍تأییدشده - بهره‌برداری')),
             ('Tanbakh_HQ_FIN_PENDING', _('در حال بررسی - مالی')),
             ('Tanbakh_PAID', _('پرداخت‌شده')),
             ('Tanbakh_REJECTED', _('ردشده')),
-
+            ("FactorItem_approve", "👍تایید/رد ردیف فاکتور"),
+            ('edit_full_tanbakh','👍😊تغییرات کاربری در فاکتور /تایید یا رد ردیف ها ')
 
         ]
 
@@ -107,6 +135,13 @@ class FactorDocument(models.Model):
     class Meta:
         verbose_name = _("سند فاکتور")
         verbose_name_plural = _("اسناد فاکتور")
+        default_permissions = ()
+        permissions = [
+            ('FactorDocument_add','افزودن سند فاکتور'),
+            ('FactorDocument_update','بروزرسانی سند فاکتور'),
+            ('FactorDocument_view','نمایش سند فاکتور'),
+            ('FactorDocument_delete','حــذف سند فاکتور'),
+        ]
 
 class Factor(models.Model):
     """مدل فاکتور برای جزئیات تنخواه"""
@@ -124,6 +159,9 @@ class Factor(models.Model):
     # file_size = models.IntegerField(null=True, blank=True, verbose_name=_("حجم فایل (بایت)"))
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name=_("وضعیت"))
     approved_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("تأییدکننده"))
+    is_finalized = models.BooleanField(default=False, verbose_name=_("نهایی شده"))
+
+    locked = models.BooleanField(default=False, verbose_name="قفل شده")
 
     def generate_number(self):
         """تولید شماره فاکتور با جداکننده قابل تنظیم"""
@@ -188,7 +226,8 @@ class ApprovalLog(models.Model):
     ACTION_CHOICES = (
         ('APPROVE', _('تأیید')),
         ('REJECT', _('رد')),
-        ('EDIT', _('ویرایش')),
+        ('RETURN', _('بازگشت')),
+        ('CANCEL', _('لغو'))
     )
     tanbakh = models.ForeignKey(Tanbakh, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_logs', verbose_name=_("تنخواه"))
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_logs', verbose_name=_("فاکتور"))
@@ -200,7 +239,7 @@ class ApprovalLog(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان"))
     date = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
     post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True, verbose_name=_("پست تأییدکننده"))
-
+    changed_field = models.CharField(max_length=50, blank=True, null=True, verbose_name="فیلد تغییر یافته")
     def __str__(self):
         return f"{self.user.username} - {self.date}"
 
@@ -218,8 +257,7 @@ class ApprovalLog(models.Model):
 """مشخص کردن کاربران یا نقش‌های مجاز برای هر مرحله"""
 class StageApprover(models.Model):
     stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_('مرحله'))
-    post = models.ForeignKey('core.Post', on_delete=models.CASCADE, verbose_name=_('پست مجاز'))  # فرض بر وجود مدل Post
-
+    post = models.ForeignKey( 'core.Post', on_delete=models.CASCADE, verbose_name=_('پست مجاز'))  # فرض بر وجود مدل Post
     def __str__(self):
         return f"{self.stage} - {self.post}"
 
@@ -228,16 +266,11 @@ class StageApprover(models.Model):
         verbose_name_plural = _('تأییدکنندگان مرحله')
         default_permissions=()
         permissions = [
-            ('StageApprover_view','نمایش تأییدکننده مرحله'),
-            ('StageApprover_add','افزودن تأییدکننده مرحله'),
-            ('StageApprover_Update','بروزرسانی تأییدکننده مرحله'),
-            ('StageApprover_delete','حــذف تأییدکننده مرحله'),
+            ('stageapprover__view','نمایش تأییدکننده مرحله'),
+            ('stageapprover__add','افزودن تأییدکننده مرحله'),
+            ('stageapprover__Update','بروزرسانی تأییدکننده مرحله'),
+            ('stageapprover__delete','حــذف تأییدکننده مرحله'),
         ]
-
-from django.views.generic import TemplateView
-from django.utils import timezone
-from django.db.models import Count, Sum
-from .models import Tanbakh, ApprovalLog, WorkflowStage
 
 class DashboardView(TemplateView):
     template_name = 'tanbakh/calc_dashboard.html'
@@ -276,3 +309,16 @@ class Dashboard_Tankhah(models.Model):
         permissions = [
             ('Dashboard_Tankhah_view','دسترسی به داشبورد تنخواه گردان ')
         ]
+
+class TanbakhFinalApproval(models.Model):
+    class Meta:
+        default_permissions = ()
+        permissions = [
+            ('TanbakhFinalApproval_view','دسترسی تایید یا رد تنخواه گردان ')
+        ]
+# class IndexView(models.Model):
+#     class Meta:
+#         default_permissions = ()
+#         permissions = [
+#             ('IndexView_dashboard_view','دسترسی به داشبورد تنخواه گردان IndexView_dashboard')
+#         ]

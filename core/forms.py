@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 from Tanbakhsystem.utils import convert_jalali_to_gregorian, convert_gregorian_to_jalali, convert_to_farsi_numbers
-from .models import Project, Organization, TimeLockModel, UserPost, Post, PostHistory
+from .models import Project, Organization, TimeLockModel, UserPost, Post, PostHistory, WorkflowStage
 from django.utils.translation import gettext_lazy as _
 
 from django import forms
@@ -69,10 +69,15 @@ class ProjectForm(forms.ModelForm):
         }),
         required=False
     )
-
+    workflow_stages = forms.ModelMultipleChoiceField(
+        queryset=WorkflowStage.objects.all(),
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        required=False,
+        label=_('مراحل گردش کار مرتبط')
+    )
     class Meta:
         model = Project
-        fields = ['name', 'code', 'organizations', 'start_date', 'end_date', 'description', 'budget', 'priority', 'is_active']
+        fields = ['name', 'code', 'organizations', 'start_date', 'end_date', 'description', 'budget', 'priority', 'is_active', 'workflow_stages']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام پروژه را وارد کنید'}),
             'code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'کد پروژه'}),
@@ -150,62 +155,10 @@ class OrganizationForm(forms.ModelForm):
             'description': _('توضیحات'),
         }
 
-# class PostForm(forms.ModelForm):
-#     class Meta:
-#         model = Post
-#         fields = ['name', 'organization', 'parent', 'level', 'branch', 'description']
-#         widgets = {
-#             'name': forms.TextInput(attrs={'class': 'form-control'}),
-#             'organization': forms.Select(attrs={'class': 'form-control'}),
-#             'parent': forms.Select(attrs={'class': 'form-control'}),
-#             'level': forms.NumberInput(attrs={'class': 'form-control'}),
-#             'branch': forms.Select(attrs={'class': 'form-control'}),
-#             'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-#         }
-#         labels = {
-#             'name': _('نام پست'),
-#             'organization': _('سازمان'),
-#             'parent': _('پست والد'),
-#             'level': _('سطح'),
-#             'branch': _('شاخه'),
-#             'description': _('توضیحات'),
-#         }
-# class UserPostForm(forms.ModelForm):
-#     class Meta:
-#         model = UserPost
-#         fields = ['user', 'post']
-#         widgets = {
-#             'user': forms.Select(attrs={'class': 'form-control'}),
-#             'post': forms.Select(attrs={'class': 'form-control'}),
-#         }
-#         labels = {
-#             'user': _('کاربر'),
-#             'post': _('پست'),
-#         }
-# class PostHistoryForm(forms.ModelForm):
-#     class Meta:
-#         model = PostHistory
-#         fields = ['post', 'changed_field', 'old_value', 'new_value', 'changed_by']
-#         widgets = {
-#             'post': forms.Select(attrs={'class': 'form-control'}),
-#             'changed_field': forms.TextInput(attrs={'class': 'form-control'}),
-#             'old_value': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
-#             'new_value': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
-#             'changed_by': forms.Select(attrs={'class': 'form-control'}),
-#         }
-#         labels = {
-#             'post': _('پست سازمانی'),
-#             'changed_field': _('فیلد تغییر یافته'),
-#             'old_value': _('مقدار قبلی'),
-#             'new_value': _('مقدار جدید'),
-#             'changed_by': _('تغییر دهنده'),
-#         }
 
 # -- new
 # tanbakh/forms.py
-from django import forms
-from .models import Post, UserPost, PostHistory
-from django_jalali.forms import jDateField
+from tanbakh.models import StageApprover
 
 class PostForm(forms.ModelForm):
     class Meta:
@@ -219,6 +172,27 @@ class PostForm(forms.ModelForm):
             'branch': forms.Select(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields['workflow_stages'] = forms.ModelMultipleChoiceField(
+                queryset=WorkflowStage.objects.all(),
+                widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+                required=False,
+                label=_('مراحل تأیید'),
+                initial=WorkflowStage.objects.filter(stageapprover__post=self.instance)
+            )
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            instance.save()
+            if 'workflow_stages' in self.fields:
+                StageApprover.objects.filter(post=instance).delete()
+                for stage in self.cleaned_data['workflow_stages']:
+                    StageApprover.objects.create(post=instance, stage=stage)
+        return instance
 
 class UserPostForm(forms.ModelForm):
     class Meta:
@@ -245,3 +219,18 @@ class PostHistoryForm(forms.ModelForm):
             'new_value': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'changed_by': forms.Select(attrs={'class': 'form-control'}),
         }
+
+
+from django import forms
+from core.models import WorkflowStage
+
+class WorkflowStageForm(forms.ModelForm):
+    class Meta:
+        model = WorkflowStage
+        fields = ['name', 'order', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام مرحله'}),
+            'order': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'ترتیب'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'توضیحات'}),
+        }
+

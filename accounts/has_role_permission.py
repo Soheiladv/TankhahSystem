@@ -54,3 +54,18 @@ def has_permission(permission_codename):
     #
     # return decorator
 
+
+# باشرط OR کار میکند
+from django.contrib.auth.decorators import permission_required
+from functools import wraps
+from django.http import HttpResponseForbidden
+
+def has_any_permission(permissions):
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            if any(request.user.has_perm(perm) for perm in permissions):
+                return view_func(request, *args, **kwargs)
+            return HttpResponseForbidden("شما دسترسی لازم را ندارید.")
+        return _wrapped_view
+    return decorator

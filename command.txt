@@ -1,6 +1,18 @@
 D@d123
 
+from tanbakh.models import Tanbakh, Factor, ApprovalLog
 
+# پاک کردن تمام فاکتورها
+Factor.objects.all().delete()
+print("All Factors deleted.")
+
+# پاک کردن تمام لاگ‌های تأیید
+ApprovalLog.objects.all().delete()
+print("All ApprovalLogs deleted.")
+
+# پاک کردن تمام تنخواه‌ها
+Tanbakh.objects.all().delete()
+print("All Tanbakhs deleted.")
 
 
 یک سناریو تعریف میکنم :

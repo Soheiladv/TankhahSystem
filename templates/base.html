@@ -16,8 +16,6 @@
 
     <!-- CSS فارسی دیتاپیکر -->
     <link href="{% static 'admin/css/jalalidatepicker.min.css' %}" rel="stylesheet">
-
-
     <style>
         @font-face {
             font-family: 'Parastoo';
@@ -162,12 +160,9 @@
             }
         }
     </style>
-
     <!-- DataPicker CSS -->
-<link rel="stylesheet" href="{% static 'admin/css/custom_datepicker.css' %}">
-
+    <link rel="stylesheet" href="{% static 'admin/css/custom_datepicker.css' %}">
 </head>
-
 <body>
 <!-- لودر -->
 <div class="loader" id="loader"></div>
@@ -182,12 +177,12 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mx-auto align-items-center">
                 <li class="nav-item">
-                    <a class="nav-link text-light" href="{% url 'dashboard' %}">
+                    <a class="nav-link text-light" href="{% url 'dashboard_flows' %}">
                         <img src="{% static 'admin/img/RCMS2.svg' %}" alt="RCMS"> {% trans "خانه" %}
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-light" href="sms:+989104084857?body=help ME!">
+                    <a class="nav-link text-light" href="sms:+989xxxxxx ?body=help ME!">
                         <i class="fas fa-headset me-2"></i> {% trans "پشتیبانی" %}
                     </a>
                 </li>
@@ -204,6 +199,10 @@
                         <option value="green">{% trans "سبز" %}</option>
                     </select>
                 </li>
+
+                <li class="nav-item navbar-date animate__animated animate__fadeInUp">
+                     <strong><i class="fas fa-user"></i> کاربر فعال: {{ user.username }}</strong>
+                </li>
             </ul>
         </div>
     </div>
@@ -219,7 +218,7 @@
     <ul class="nav flex-column">
         <li class="nav-item">
             <a href="{% url 'dashboard' %}" class="nav-link">
-{#            <a href="{% url 'all_links' %}" class="nav-link">#}
+                {#            <a href="{% url 'all_links' %}" class="nav-link">#}
                 <i class="fas fa-home me-2"></i> {% trans "خانه" %}
             </a>
         </li>
@@ -249,9 +248,13 @@
             </a>
         </li>
         <li class="nav-item">
-            <a href="{% url 'accounts:logout' %}" class="nav-link">
-                <i class="fas fa-sign-out-alt me-2"></i> {% trans "خروج" %}
-            </a>
+
+            <form method="post" action="{% url 'accounts:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-warning w-100 mb-2">
+                    <i class="fas fa-sign-out-alt"></i> خروج
+                </button>
+            </form>
         </li>
     </ul>
 </div>
@@ -293,23 +296,22 @@
     </div>
 </footer>
 
-    {###########################################}
-    <!-- فایل‌های JS مورد نیاز برای Persian Datepicker -->
-    <!-- فایل‌های JS -->
-    <script src="{% static 'admin/js/jquery-3.6.0.min.js' %}"></script>
-    <script src="{% static 'admin/js/jquery-ui.min.js' %}"></script>
-    <script src="{% static 'admin/js/datepicker-fa.js' %}"></script>
-    <script src="{% static 'admin/js/django_jalali.min.js' %}"></script>
-    <script src="{% static 'admin/js/jalalidatepicker.min.js' %}"></script>
+{###########################################}
+<!-- فایل‌های JS مورد نیاز برای Persian Datepicker -->
+<!-- فایل‌های JS -->
+<script src="{% static 'admin/js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'admin/js/jquery-ui.min.js' %}"></script>
+<script src="{% static 'admin/js/datepicker-fa.js' %}"></script>
+<script src="{% static 'admin/js/django_jalali.min.js' %}"></script>
+<script src="{% static 'admin/js/jalalidatepicker.min.js' %}"></script>
+<script src="{% static 'admin/js/bootstrap.bundle.min.js' %}"></script>
 <!-- تبدیل اعداد هنگام تابپ به هزارگان  -->
 <script src="{% static 'admin/js/numberFormatter.js' %}"></script>
 
-
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            jalaliDatepicker.startWatch();
-        });
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        jalaliDatepicker.startWatch();
+    });
     jalaliDatepicker.startWatch();
 </script>
 

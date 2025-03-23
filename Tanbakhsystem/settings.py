@@ -294,7 +294,8 @@ SESSION_SAVE_EVERY_REQUEST: تعیین می‌کند که آیا سشن در ه�
 """
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        # 'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
         'LOCATION': 'unique-snowflake',
     }
 }

@@ -1,3 +1,25 @@
+{#{% extends 'base.html' %}#}
+{#{% load i18n %}#}
+{##}
+{#{% block content %}#}
+{#<div class="container mt-4">#}
+{#    <h1 class="text-center mb-4">{% trans "جزئیات فاکتور" %} - {{ factor.number }}</h1>#}
+{#    <div class="card">#}
+{#        <div class="card-header bg-info text-white">#}
+{#            <h5>{% trans "اطلاعات وضعیت" %}</h5>#}
+{#        </div>#}
+{#        <div class="card-body">#}
+{#            <form>#}
+{#                {{ status_form.as_p }}#}
+{#            </form>#}
+{#        </div>#}
+{#    </div>#}
+{#    <div class="text-center mt-4">#}
+{#        <a href="{% url 'factor_list' %}" class="btn btn-secondary">{% trans "بازگشت به لیست" %}</a>#}
+{#    </div>#}
+{#</div>#}
+{#{% endblock %}#}
+
 {% extends 'base.html' %}
 {% load i18n static %}
 

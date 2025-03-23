@@ -1,26 +1,71 @@
-from django.forms import inlineformset_factory
-
+import logging
+logger = logging.getLogger(__name__)
+import jdatetime
+from django.utils import timezone
 from Tanbakhsystem.utils import convert_to_farsi_numbers, convert_jalali_to_gregorian, convert_gregorian_to_jalali
-from .models import Factor, ApprovalLog, FactorDocument
-from .models import FactorItem
-
-FactorItemFormSet = inlineformset_factory(Factor, FactorItem, fields=['description', 'amount', 'quantity'], extra=1)
-
+from core.models import WorkflowStage
+from .models import Factor, ApprovalLog, FactorDocument, FactorItem, Tanbakh
 from django.forms import inlineformset_factory
-from .models import Factor, FactorItem
-
-from .models import Tanbakh
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-import logging
+FactorItemFormSet = inlineformset_factory(Factor, FactorItem, fields=['description', 'amount', 'quantity'], extra=1)
 
-logger = logging.getLogger(__name__)
+class FactorItemApprovalForm(forms.Form):
+    action = forms.ChoiceField(choices=[('', '-----'), ('APPROVE', 'تأیید'), ('REJECT', 'رد')], required=False)
+    comment = forms.CharField(widget=forms.Textarea, required=False)
+#------------ New
+class FactorApprovalForm(forms.ModelForm):
+    """فرم تأیید یا رد فاکتور و ردیف‌های آن"""
+
+    comment = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        required=False,
+        label=_("توضیحات کلی")
+    )
+
+    class Meta:
+        model = Factor
+        fields = ['comment']  # فقط توضیحات کلی برای کل فاکتور
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # اضافه کردن فیلدهای پویا برای هر ردیف فاکتور
+        for item in self.instance.items.all():
+            self.fields[f'action_{item.id}'] = forms.ChoiceField(
+                choices=[
+                    ('', _('-------')),
+                    ('APPROVED', _('تأیید')),
+                    ('REJECTED', _('رد')),
+                ],
+                label=f"وضعیت ردیف: {item.description}",
+                widget=forms.Select(attrs={'class': 'form-control'}),
+                required=False
+            )
+            self.fields[f'comment_{item.id}'] = forms.CharField(
+                label=f"توضیحات برای {item.description}",
+                widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+                required=False
+            )
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            instance.save()
+            # به‌روزرسانی وضعیت ردیف‌ها
+            for item in self.instance.items.all():
+                action_field = f'action_{item.id}'
+                comment_field = f'comment_{item.id}'
+                if action_field in self.cleaned_data and self.cleaned_data[action_field]:
+                    item.status = self.cleaned_data[action_field]
+                    item.comment = self.cleaned_data[comment_field]
+                    item.save()
+        return instance
 
 
+#------------
 class TanbakhForm(forms.ModelForm):
-    """فرم ایجاد و ویرایش تنخواه"""
-    comment = forms.CharField(widget=forms.Textarea, required=False, label=_("توضیحات"))
+    # description = forms.CharField(widget=forms.Textarea, required=False, label=_("توضیحات"))
 
     date = forms.CharField(
         label=_('تاریخ'),
@@ -31,19 +76,18 @@ class TanbakhForm(forms.ModelForm):
         })
     )
     due_date = forms.CharField(
-            label=_('فرصت باقی مانده'),
-            widget=forms.TextInput(attrs={
-                'data-jdp': '',
-                'class': 'form-control',
-                'placeholder': convert_to_farsi_numbers(_('تاریخ را انتخاب کنید (1404/01/17)'))
-            })
-        )
+        label=_('مهلت باقی مانده'),
+        widget=forms.TextInput(attrs={
+            'data-jdp': '',
+            'class': 'form-control',
+            'placeholder': convert_to_farsi_numbers(_('تاریخ را انتخاب کنید (1404/01/17)'))
+        })
+    )
 
     class Meta:
-        model = Tanbakh  # مدل مشخص شده
+        model = Tanbakh
         fields = ['date', 'organization', 'project', 'status', 'hq_status', 'last_stopped_post', 'letter_number',
-                  'number','due_date', 'current_stage',                    'amount', 'description']
-
+                  'due_date', 'current_stage', 'amount', 'description']
         widgets = {
             'organization': forms.Select(attrs={'class': 'form-control'}),
             'project': forms.Select(attrs={'class': 'form-control'}),
@@ -51,11 +95,9 @@ class TanbakhForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-control'}),
             'hq_status': forms.Select(attrs={'class': 'form-control'}),
             'last_stopped_post': forms.Select(attrs={'class': 'form-control'}),
-            'approved_by': forms.Select(attrs={'class': 'form-control'}),
-            'number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'شماره تنخواه'}),
+            'current_stage': forms.Select(attrs={'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'due_date': forms.DateInput(attrs={'class': 'persian-date'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows':2}),
         }
         labels = {
             'date': _('تاریخ'),
@@ -64,9 +106,7 @@ class TanbakhForm(forms.ModelForm):
             'status': _('وضعیت'),
             'hq_status': _('وضعیت در HQ'),
             'last_stopped_post': _('آخرین پست متوقف‌شده'),
-            'letter_number': _('شماره نامه'),
-            'approved_by': _('تأییدکننده'),
-            'number': _('شماره تنخواه'),
+            'letter_number': _('شماره نامه درصورت الصاق نامه در اتوماسیون اداری'),
             'amount': _('مبلغ'),
             'description': _('توضیحات'),
         }
@@ -74,20 +114,47 @@ class TanbakhForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        for field in ['current_stage', 'status', 'hq_status', 'last_stopped_post']:
+            self.fields[field].widget = forms.HiddenInput()
+
+
         if self.user:
             user_posts = self.user.userpost_set.all()
-            if not any(post.post.organization == self.instance.organization for post in user_posts):
-                for field_name in self.fields:
-                    if field_name != 'status' and field_name != 'comment':
-                        self.fields[field_name].disabled = True
+            if self.instance.pk and self.instance.organization:
+                if not any(post.post.organization == self.instance.organization for post in user_posts):
+                    for field_name in self.fields:
+                        if field_name != 'status' and field_name != 'description':
+                            self.fields[field_name].disabled = True
         if self.instance.pk:
-            self.fields['date'].initial = convert_gregorian_to_jalali(self.instance.date)
-            self.fields['number'].initial = convert_to_farsi_numbers(self.instance.number)
-            self.fields['amount'].initial = convert_to_farsi_numbers(self.instance.amount)
+            self.fields['date'].initial = jdatetime.date.fromgregorian(date=self.instance.date).strftime('%Y/%m/%d')
+            self.fields['due_date'].initial = (
+                jdatetime.date.fromgregorian(date=self.instance.due_date).strftime('%Y/%m/%d')
+                if self.instance.due_date else ''
+            )
 
     def clean_date(self):
         date_str = self.cleaned_data.get('date')
-        return convert_jalali_to_gregorian(date_str) if date_str else None
+        if date_str:
+            try:
+                j_date = jdatetime.datetime.strptime(date_str, '%Y/%m/%d')
+                gregorian_date = j_date.togregorian()
+                # تبدیل به datetime آگاه از منطقه زمانی
+                return timezone.make_aware(gregorian_date)
+            except ValueError:
+                raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
+        return timezone.now()  # مقدار پیش‌فرض در صورت خالی بودن
+
+    def clean_due_date(self):
+        due_date_str = self.cleaned_data.get('due_date')
+        if due_date_str:
+            try:
+                j_date = jdatetime.datetime.strptime(due_date_str, '%Y/%m/%d')
+                gregorian_date = j_date.togregorian()
+                # تبدیل به datetime آگاه از منطقه زمانی
+                return timezone.make_aware(gregorian_date)
+            except ValueError:
+                raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
+        return None  # اختیاری بودن due_date
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -100,6 +167,7 @@ class TanbakhForm(forms.ModelForm):
                 old_status = Tanbakh.objects.get(pk=instance.pk).status if instance.pk else 'DRAFT'
                 new_status = self.cleaned_data['status']
                 action = 'APPROVE' if new_status != 'REJECTED' else 'REJECT'
+                from .models import ApprovalLog
                 ApprovalLog.objects.create(
                     tanbakh=instance,
                     action=action,
@@ -108,16 +176,25 @@ class TanbakhForm(forms.ModelForm):
                     post=user_post.post if user_post else None
                 )
                 if new_status == 'SENT_TO_HQ':
-                    instance.current_stage = 'OPS'
+                    instance.current_stage = WorkflowStage.objects.get(name='OPS')
                 elif new_status == 'HQ_OPS_APPROVED':
-                    instance.current_stage = 'FIN'
+                    instance.current_stage = WorkflowStage.objects.get(name='FIN')
         if commit:
             instance.save()
         return instance
 
+class TanbakhApprovalForm(forms.ModelForm):
+    comment = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+        required=False,
+        label=_("توضیحات")
+    )
+
+    class Meta:
+        model = Tanbakh
+        fields = []  # هیچ فیلد دیگری از مدل نیاز نیست
 
 class FactorForm(forms.ModelForm):
-    """فرم ایجاد و ویرایش فاکتور"""
     date = forms.CharField(
         label=_('تاریخ'),
         widget=forms.TextInput(attrs={
@@ -129,37 +206,36 @@ class FactorForm(forms.ModelForm):
 
     class Meta:
         model = Factor
-        fields = ['tanbakh', 'date', 'amount', 'description']  # status حذف شده
+        fields = ['tanbakh',   'date', 'amount', 'description']
         widgets = {
             'tanbakh': forms.Select(attrs={'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('مبلغ را وارد کنید')}),
             'description': forms.Textarea(
                 attrs={'class': 'form-control', 'rows': 3, 'placeholder': _('توضیحات فاکتور')}),
-            # 'file': forms.FileInput(attrs={'class': 'form-control'}),
         }
         labels = {
             'tanbakh': _('تنخواه'),
             'date': _('تاریخ'),
             'amount': _('مبلغ'),
             'description': _('توضیحات'),
-            # 'file': _('فایل پیوست'),
         }
 
     def clean_date(self):
-        """تبدیل تاریخ شمسی به میلادی هنگام اعتبارسنجی فرم"""
         date_str = self.cleaned_data.get('date')
         return convert_jalali_to_gregorian(date_str) if date_str else None
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)  # استخراج user از kwargs و حذف آن
-        super().__init__(*args, **kwargs)  # فراخوانی super بعد از حذف user
-        if self.instance.pk:
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        user_orgs = [up.post.organization for up in self.user.userpost_set.all()]
+        self.fields['tanbakh'].queryset = Tanbakh.objects.filter(organization__in=user_orgs, current_stage__order=1)
+
+        if self.instance.pk:  # فقط برای ویرایش
             self.fields['date'].initial = convert_gregorian_to_jalali(self.instance.date)
             self.fields['amount'].initial = convert_to_farsi_numbers(self.instance.amount)
-        if self.user and not self.user.has_perm('Factor_full_edit'):
-            for field_name in self.fields:
-                if field_name != 'status':
-                    self.fields[field_name].disabled = True
+            if self.user and not self.user.has_perm('Factor_full_edit'):
+                for field_name in self.fields:
+                    self.fields[field_name].disabled = True  # غیرفعال کردن فیلدها فقط در ویرایش
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -171,12 +247,10 @@ class FactorForm(forms.ModelForm):
                 logger.info(
                     f"تغییر در فاکتور {instance.number}: {field} از {old_value} به {new_value} توسط {self.user}")
             if 'status' in self.changed_data:
-                instance.approved_by = self.user  # ثبت تأییدکننده
+                instance.approved_by = self.user
         if commit:
             instance.save()
         return instance
-
-
 class FactorItemForm(forms.ModelForm):
     """فرم ایجاد و ویرایش اقلام فاکتور"""
 
@@ -202,12 +276,14 @@ class FactorItemForm(forms.ModelForm):
         if quantity < 1:
             raise forms.ValidationError(_('تعداد باید حداقل ۱ باشد.'))
         return quantity
-
-
-
-
 class ApprovalForm(forms.ModelForm):
     """فرم ثبت تأیید یا رد"""
+    action = forms.ChoiceField(choices=[
+        ('APPROVE', 'تأیید'),
+        ('REJECT', 'رد'),
+        ('RETURN', 'بازگشت'),
+        ('CANCEL', 'لغو')
+    ])
 
     class Meta:
         model = ApprovalLog
@@ -226,6 +302,45 @@ class ApprovalForm(forms.ModelForm):
             'action': _('شاخه'),
             # 'is_approved': _('تأیید شده؟'),
         }
+
+"""این فرم وضعیت و مرحله فعلی تنخواه را نمایش می‌دهد:"""
+class TanbakhStatusForm(forms.ModelForm):
+    class Meta:
+        model = Tanbakh
+        fields = ['status', 'current_stage', 'due_date', 'approved_by']
+        widgets = {
+            'status': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'current_stage': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'due_date': forms.DateInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'approved_by': forms.SelectMultiple(attrs={'class': 'form-control', 'disabled': 'disabled'}),
+        }
+        labels = {
+            'status': _('وضعیت'),
+            'current_stage': _('مرحله فعلی'),
+            'due_date': _('مهلت زمانی'),
+            'approved_by': _('تأییدکنندگان'),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # غیرفعال کردن فیلدها برای نمایش فقط خواندنی
+        for field in self.fields.values():
+            field.disabled = True
+
+class FactorStatusForm(forms.ModelForm):
+    class Meta:
+        model = Factor
+        fields = ['status']
+        widgets = {
+            'status': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+        }
+        labels = {
+            'status': _('وضعیت'),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['status'].disabled = True
 
 # فرم‌ست برای اقلام فاکتور
 FactorItemFormSet = inlineformset_factory(

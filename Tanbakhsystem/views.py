@@ -3,6 +3,9 @@ from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.translation import gettext_lazy as _
 
+from core.models import WorkflowStage
+
+
 class Tanbakhsystem_DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "index.html"  # مسیر تمپلیت
     def get_context_data(self, **kwargs):
@@ -29,7 +32,7 @@ class Tanbakhsystem_DashboardView(LoginRequiredMixin, TemplateView):
                 "title": _("مدیریت سازمان"),
                 "icon": "fas fa-cog",
                 "items": [
-                    {"label": _("لیست تنخواه‌ها"), "url": "tanbakh_list", "icon": "fas fa-list", "color": "info",
+                    {"label": _("داشبورد تنخواه گردان"), "url": "dashboard_flows", "icon": "fas fa-list", "color": "info",
                      "perm": "tanbakh.Tanbakh_view"},
                     {"label": _("ایجاد تنخواه"), "url": "tanbakh_create", "icon": "fas fa-plus", "color": "success",
                      "perm": "tanbakh.Tanbakh_add"},
@@ -132,6 +135,22 @@ class Tanbakhsystem_DashboardView(LoginRequiredMixin, TemplateView):
 
         context["cards"] = filtered_cards
         return context
+
+class TanbakhWorkflowView1(TemplateView):
+    template_name = 'help/run_tankhahSystem.html'
+    extra_context = {'title': _('جریان کار تنخواه‌گردانی')}
+
+
+class TanbakhWorkflowView(TemplateView):
+    template_name =  'help/run_tankhahSystem.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('جریان کار تنخواه‌گردانی')
+        context['stages'] = WorkflowStage.objects.all().order_by('order')
+        return context
+
+
 
 # class Tanbakhsystem_DashboardView(LoginRequiredMixin, TemplateView):
 #     template_name = 'index.html'  # استفاده از index.html شما

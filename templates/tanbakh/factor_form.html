@@ -94,7 +94,19 @@
                         <h3 class="card-title mb-0">{% trans "جمع کل" %}</h3>
                     </div>
                     <div class="card-body">
-                        <strong>{% trans "جمع کل:" %}</strong> <span id="total-amount">0</span> {% trans "ریال" %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>{% trans "جمع کل اقلام:" %}</strong> <span id="total-items-amount">0</span> {% trans "ریال" %}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>{% trans "مبلغ فاکتور:" %}</strong> <span id="factor-amount">{{ form.amount.value|default:0 }}</span> {% trans "ریال" %}
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <strong>{% trans "تفاوت:" %}</strong> <span id="difference-amount">0</span> {% trans "ریال" %}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -115,16 +127,38 @@
         var emptyForm = $('#item-formset .item-row:first').clone(true).get(0);
         emptyForm.querySelectorAll('input').forEach(input => input.value = '');
 
+        // اضافه کردن کلاس به فیلدهای مبلغ و تعداد برای شناسایی آسان‌تر
+        $('#item-formset .item-row').each(function() {
+            $(this).find('input[name$="amount"]').addClass('amount-field');
+            $(this).find('input[name$="quantity"]').addClass('quantity-field');
+        });
+
         function updateTotal() {
-            let total = 0;
+            let totalItems = 0;
             $('.item-row').each(function() {
                 let amount = parseFloat($(this).find('.amount-field').val()) || 0;
                 let quantity = parseInt($(this).find('.quantity-field').val()) || 0;
                 let itemTotal = amount * quantity;
                 $(this).find('.item-total').text(itemTotal.toLocaleString('fa-IR'));
-                total += itemTotal;
+                if (!$(this).find('input[name$="DELETE"]').is(':checked')) { // فقط ردیف‌های غیرحذف‌شده
+                    totalItems += itemTotal;
+                }
             });
-            $('#total-amount').text(total.toLocaleString('fa-IR'));
+            $('#total-items-amount').text(totalItems.toLocaleString('fa-IR'));
+
+            // محاسبه تفاوت
+            let factorAmount = parseFloat($('#id_amount').val()) || 0; // مقدار فیلد amount از فرم اصلی
+            let difference = factorAmount - totalItems;
+            $('#difference-amount').text(difference.toLocaleString('fa-IR'));
+
+            // تغییر رنگ تفاوت برای وضوح بیشتر
+            if (difference < 0) {
+                $('#difference-amount').css('color', 'red');
+            } else if (difference > 0) {
+                $('#difference-amount').css('color', 'green');
+            } else {
+                $('#difference-amount').css('color', 'black');
+            }
         }
 
         $('#add-item').click(function() {
@@ -134,6 +168,8 @@
                 var name = $(this).attr('name').replace('-0-', '-' + formCount + '-');
                 var id = 'id_' + name;
                 $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
+                if (name.includes('amount')) $(this).addClass('amount-field');
+                if (name.includes('quantity')) $(this).addClass('quantity-field');
             });
             formCount++;
             $('#item-formset').append(newForm);
@@ -141,7 +177,8 @@
             updateTotal();
         });
 
-        $(document).on('change', '.amount-field, .quantity-field', updateTotal);
+        $(document).on('change', '.amount-field, .quantity-field, #id_amount', updateTotal);
+        $(document).on('change', 'input[name$="DELETE"]', updateTotal); // به‌روزرسانی هنگام تغییر وضعیت حذف
         updateTotal(); // محاسبه اولیه
     });
 </script>
