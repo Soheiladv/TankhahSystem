@@ -22,7 +22,7 @@ urlpatterns = [
     path('tanbakh/factor/<int:pk>/approve/', FactorItemApproveView.as_view(), name='factor_item_approve'),
 
     path('factors/', FactorListView.as_view(), name='factor_list'),
-    path('factor/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'),
+    path('factor/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'), # جزئیات فاکتور
     path('factor/create/', FactorCreateView.as_view(), name='factor_create'),
     path('factor/<int:pk>/update/', FactorUpdateView.as_view(), name='factor_update'),
     path('factor/<int:pk>/delete/', FactorDeleteView.as_view(), name='factor_delete'),

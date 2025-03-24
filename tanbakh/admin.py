@@ -4,6 +4,13 @@ from django_jalali.admin.filters import JDateFieldListFilter
 
 from .models import Tanbakh, Factor, ApprovalLog
 
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+
+def register_permissions(apps, schema_editor):
+    ct = ContentType.objects.get_for_model(Factor)
+    Permission.objects.get_or_create(codename='Factor_view', name='Can view factor', content_type=ct)
+    Permission.objects.get_or_create(codename='Factor_update', name='Can update factor', content_type=ct)
 
 # ادمین تنخواه
 @admin.register(Tanbakh)

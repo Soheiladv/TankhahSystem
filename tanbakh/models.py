@@ -188,10 +188,10 @@ class Factor(models.Model):
         ]
         default_permissions=()
         permissions = [
-                    ('Factor_add','افزودن فاکتور برای جزئیات تنخواه '),
-                    ('Factor_update','ویرایش فاکتور برای جزئیات تنخواه'),
-                    ('Factor_delete','حــذف فاکتور برای جزئیات تنخواه'),
-                    ('Factor_view','نمایش فاکتور برای جزئیات تنخواه'),
+                    ('a_factor_add','افزودن فاکتور برای جزئیات تنخواه '),
+                    ('a_factor_update','ویرایش فاکتور برای جزئیات تنخواه'),
+                    ('a_factor_delete','حــذف فاکتور برای جزئیات تنخواه'),
+                    ('a_factor_view','نمایش فاکتور برای جزئیات تنخواه'),
                 ]
 
 class FactorItem(models.Model):
