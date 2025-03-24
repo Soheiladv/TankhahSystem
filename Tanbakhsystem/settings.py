@@ -281,7 +281,7 @@ MAX_ACTIVE_USERS = 3
 # تنظیمات پیشرفته سشن
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # اطمینان از استفاده از دیتابیس
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # جدید
-SESSION_COOKIE_AGE = 420  # 7 دقیقه
+SESSION_COOKIE_AGE =  1500  # 7 دقیقه
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_HTTPONLY = True

@@ -1,11 +1,11 @@
 from django.urls import path
 
 from .views import (
-    IndexView, OrganizationListView, OrganizationDetailView, OrganizationCreateView, OrganizationUpdateView,
+    OrganizationListView, OrganizationDetailView, OrganizationCreateView, OrganizationUpdateView,
     OrganizationDeleteView,
     ProjectListView, ProjectDetailView, ProjectCreateView, ProjectUpdateView, ProjectDeleteView, AllLinksView,
-    DashboardView, DashboardView_flows
-)
+   DashboardView_flows
+)# DashboardView,
 from .views import (
     PostListView, PostDetailView, PostCreateView, PostUpdateView, PostDeleteView,
     UserPostListView, UserPostCreateView, UserPostUpdateView, UserPostDeleteView,
@@ -19,7 +19,6 @@ from core.views import (
 )
 
 urlpatterns = [
-    path('', IndexView.as_view(), name='index'),
     path('organizations/', OrganizationListView.as_view(), name='organization_list'),
     path('organization/<int:pk>/', OrganizationDetailView.as_view(), name='organization_detail'),
     path('organization/create/', OrganizationCreateView.as_view(), name='organization_create'),
@@ -32,7 +31,6 @@ urlpatterns = [
     path('project/<int:pk>/delete/', ProjectDeleteView.as_view(), name='project_delete'),
 
     path('all_links/', AllLinksView.as_view(), name='all_links'),
-    path('dashboard/', DashboardView.as_view(), name='dashboard'),
     path('dashboard_flows/', DashboardView_flows.as_view(), name='dashboard_flows'), # داشبورد تنخواه ها
 
 ]

@@ -2,166 +2,456 @@
 {% load i18n %}
 
 {% block content %}
-    <div class="container mt-4">
-        <h1 class="text-center mb-4">
-            <i class="fas fa-tachometer-alt me-2"></i>{% trans "داشبورد مدیریت" %}
-        </h1>
+<div class="container mt-5">
+    <h1 class="text-center mb-5">
+        <i class="fas fa-tachometer-alt me-2"></i>{% trans "داشبورد مدیریت تنخواه" %}
+    </h1>
 
-        <!-- کارت‌های وضعیت تنخواه‌ها بر اساس مرحله -->
-        <div class="row">
-
-            {% for stage, count in tanbakh_pending_by_stage.items %}
-                <div class="col-md-4 mb-4">
-                    <div class="card text-center {% if count > 0 %}border-warning{% else %}border-success{% endif %}">
-                        <div class="card-header {% if count > 0 %}bg-warning text-dark{% else %}bg-success text-white{% endif %}">
-                            <h5 class="mb-0">
-                                <i class="fas fa-tasks me-2"></i>{{ stage.name }}
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <p class="card-text fs-3">{{ count }}</p>
-                            <p class="card-text">{% trans "تنخواه در انتظار تأیید" %}</p>
-                            <a href="{% url 'tanbakh_list' %}?stage={{ stage.id }}" class="btn btn-primary btn-sm">
-                                {% trans "مشاهده تنخواه‌ها" %}
-                            </a>
-                        </div>
-                    </div>
+    <div class="row g-4">
+        <!-- تنخواه‌های بدون فاکتور -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card tanbakh-card shadow-sm text-center h-100">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>{% trans "بدون فاکتور" %}</h5>
                 </div>
-            {% empty %}
-                <div class="col-12">
-                    <div class="alert alert-info text-center">
-                        {% trans "هیچ مرحله‌ای برای نمایش وجود ندارد." %}
-                    </div>
+                <div class="card-body">
+                    <h2 class="fw-bold">{{ tanbakh_summary.no_factor.count }}</h2>
+                    <p class="text-muted">{% trans "تنخواه‌های بدون فاکتور" %}</p>
+                    <p class="small text-muted">{% trans "مراکز:" %} {{ tanbakh_summary.no_factor.orgs|join:", " }}</p>
+                    <a href="{% url 'tanbakh_list' %}?status=no_factor" class="btn btn-warning btn-sm mt-2">
+                        {% trans "مشاهده لیست" %}
+                    </a>
                 </div>
-            {% endfor %}
-
+            </div>
         </div>
 
-        <!-- دکمه بازگشت یا لینک‌های اضافی -->
-        <div class="text-center mt-4">
-            <a href="{% url 'tanbakh_list' %}" class="btn btn-secondary">
-                <i class="fas fa-list me-2"></i>{% trans "لیست همه تنخواه‌ها" %}
-            </a>
+        <!-- تنخواه‌های ثبت‌شده -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card tanbakh-card shadow-sm text-center h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>{% trans "ثبت‌شده" %}</h5>
+                </div>
+                <div class="card-body">
+                    <h2 class="fw-bold">{{ tanbakh_summary.registered.count }}</h2>
+                    <p class="text-muted">{% trans "تنخواه‌های دارای فاکتور" %}</p>
+                    <p class="small text-muted">{% trans "مراکز:" %} {{ tanbakh_summary.registered.orgs|join:", " }}</p>
+                    <a href="{% url 'tanbakh_list' %}?status=registered" class="btn btn-success btn-sm mt-2">
+                        {% trans "مشاهده لیست" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- تنخواه‌های در دست اقدام -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card tanbakh-card shadow-sm text-center h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-hourglass-half me-2"></i>{% trans "در دست اقدام" %}</h5>
+                </div>
+                <div class="card-body">
+                    <h2 class="fw-bold">{{ tanbakh_summary.pending.count }}</h2>
+                    <p class="text-muted">{% trans "تنخواه‌های در انتظار تأیید" %}</p>
+                    <p class="small text-muted">{% trans "مراکز:" %} {{ tanbakh_summary.pending.orgs|join:", " }}</p>
+                    <a href="{% url 'tanbakh_list' %}?status=pending" class="btn btn-info btn-sm mt-2">
+                        {% trans "مشاهده لیست" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- تنخواه‌های آرشیو شده -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card tanbakh-card shadow-sm text-center h-100">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-archive me-2"></i>{% trans "آرشیو شده" %}</h5>
+                </div>
+                <div class="card-body">
+                    <h2 class="fw-bold">{{ tanbakh_summary.archived.count }}</h2>
+                    <p class="text-muted">{% trans "تنخواه‌های آرشیو شده" %}</p>
+                    <p class="small text-muted">{% trans "مراکز:" %} {{ tanbakh_summary.archived.orgs|join:", " }}</p>
+                    <a href="{% url 'tanbakh_list' %}?status=archived" class="btn btn-secondary btn-sm mt-2">
+                        {% trans "مشاهده لیست" %}
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- استایل‌های اضافی -->
-    <style>
-        .card {
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
+    <!-- مراحل با سلسله مراتب -->
+    <div class="row mt-5">
+        {% for stage, data in tanbakh_by_stage.items %}
+        <div class="col-md-4 mb-4">
+            <div class="card tanbakh-card shadow-sm">
+                <div class="card-header {{ data.color_class }} text-white text-center">
+                    <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>{{ stage.name }}</h5>
+                    <small>{{ data.status_label }}</small>
+                </div>
+                <div class="card-body">
+                    <h3 class="text-center">{{ data.count }}</h3>
+                    <p class="text-center text-muted">{% trans "تعداد تنخواه" %}</p>
+                    <p class="small text-center text-muted">
+                        {% trans "تأییدکنندگان:" %}
+                        {% if data.approvers %}
+                            {{ data.approvers|join:", " }}
+                        {% else %}
+                            {% trans "نامشخص" %}
+                        {% endif %}
+                    </p>
+                    {% if data.tanbakhs %}
+                    <ul class="list-group list-group-flush">
+                        {% for tanbakh in data.tanbakhs|slice:":3" %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{{ tanbakh.number }} ({{ tanbakh.organization.name }})</span>
+                            {% if data.can_approve and tanbakh.status == 'PENDING' %}
+                            <div>
+                                <a href="{% url 'tanbakh_approve' tanbakh.pk %}" class="btn btn-success btn-sm me-1">{% trans "تأیید" %}</a>
+                                <a href="{% url 'tanbakh_reject' tanbakh.pk %}" class="btn btn-danger btn-sm">{% trans "رد" %}</a>
+                            </div>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 
-        .card-header {
-            font-weight: bold;
-        }
-
-        .fs-3 {
-            font-size: 2rem;
-            font-weight: bold;
-        }
-    </style>
-
-    <!-- اسکریپت‌های مورد نیاز -->
+<style>
+    .tanbakh-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        border-radius: 10px;
+    }
+    .tanbakh-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+        border-radius: 10px 10px 0 0;
+        padding: 15px;
+    }
+    .card-body {
+        padding: 20px;
+    }
+    .btn-sm {
+        padding: 5px 10px;
+        font-size: 0.9rem;
+    }
+    .list-group-item {
+        border: none;
+        padding: 10px 0;
+    }
+    .small {
+        font-size: 0.85rem;
+    }
+</style>
 {% endblock %}
+{#{% extends 'base.html' %}#}
+{#{% load i18n %}#}
+{##}
+{#{% block content %}#}
+{#<div class="container mt-5">#}
+{# <h1 class="text-center mb-5">#}
+{# <i class="fas fa-tachometer-alt me-2"></i>{% trans "داشبورد مدیریت تنخواه" %}#}
+{# </h1>#}
+{##}
+{# <div class="row g-4">#}
+{# <!-- تنخواه‌های بدون فاکتور -->#}
+{# <div class="col-md-3 col-sm-6">#}
+{# <div class="card tanbakh-card shadow-sm text-center h-100">#}
+{# <div class="card-header bg-warning text-white">#}
+{# <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>{% trans "بدون فاکتور" %}</h5>#}
+{# </div>#}
+{# <div class="card-body">#}
+{# <h2 class="fw-bold">{{ tanbakh_summary.no_factor.count }}</h2>#}
+{# <p class="text-muted">{% trans "تنخواه‌های بدون فاکتور" %}</p>#}
+{# <p class="small text-muted">{% trans "مراکز:" %} {{ tanbakh_summary.no_factor.orgs|join:", " }}</p>#}
+{# <a href="{% url 'tanbakh_list' %}?status=no_factor" class="btn btn-warning btn-sm mt-2">#}
+{# {% trans "مشاهده لیست" %}#}
+{# </a>#}
+{# </div>#}
+{# </div>#}
+{# </div>#}
+{##}
+{# <!-- تنخواه‌های ثبت‌شده -->#}
+{# <div class="col-md-3 col-sm-6">#}
+{# <div class="card tanbakh-card shadow-sm text-center h-100">#}
+{# <div class="card-header bg-success text-white">#}
+{# <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>{% trans "ثبت‌شده" %}</h5>#}
+{# </div>#}
+{# <div class="card-body">#}
+{# <h2 class="fw-bold">{{ tanbakh_summary.registered.count }}</h2>#}
+{# <p class="text-muted">{% trans "تنخواه‌های دارای فاکتور" %}</p>#}
+{# <p class="small text-muted">{% trans "مراکز:" %} {{ tanbakh_summary.registered.orgs|join:", " }}</p>#}
+{# <a href="{% url 'tanbakh_list' %}?status=registered" class="btn btn-success btn-sm mt-2">#}
+{# {% trans "مشاهده لیست" %}#}
+{# </a>#}
+{# </div>#}
+{# </div>#}
+{# </div>#}
+{##}
+{# <!-- تنخواه‌های در دست اقدام -->#}
+{# <div class="col-md-3 col-sm-6">#}
+{# <div class="card tanbakh-card shadow-sm text-center h-100">#}
+{# <div class="card-header bg-info text-white">#}
+{# <h5 class="mb-0"><i class="fas fa-hourglass-half me-2"></i>{% trans "در دست اقدام" %}</h5>#}
+{# </div>#}
+{# <div class="card-body">#}
+{# <h2 class="fw-bold">{{ tanbakh_summary.pending.count }}</h2>#}
+{# <p class="text-muted">{% trans "تنخواه‌های در انتظار تأیید" %}</p>#}
+{# <p class="small text-muted">{% trans "مراکز:" %} {{ tanbakh_summary.pending.orgs|join:", " }}</p>#}
+{# <a href="{% url 'tanbakh_list' %}?status =pending" class="btn btn-info btn-sm mt-2">#}
+{# {% trans "مشاهده لیست" %}#}
+{# </a>#}
+{# </div>#}
+{# </div>#}
+{# </div>#}
+{##}
+{# <!-- تنخواه‌های آرشیو شده -->#}
+{# <div class="col-md-3 col-sm-6">#}
+{# <div class="card tanbakh-card shadow-sm text-center h-100">#}
+{# <div class="card-header bg-secondary text-white">#}
+{# <h5 class="mb-0"><i class="fas fa-archive me-2"></i>{% trans "آرشیو شده" %}</h5>#}
+{# </div>#}
+{# <div class="card-body">#}
+{# <h2 class="fw-bold">{{ tanbakh_summary.archived.count }}</h2>#}
+{# <p class="text-muted">{% trans "تنخواه‌های آرشیو شده" %}</p>#}
+{# <p class="small text-muted">{% trans "مراکز:" %} {{ tanbakh_summary.archived.orgs|join:", " }}</p>#}
+{# <a href="{% url 'tanbakh_list' %}?status=archived" class="btn btn-secondary btn-sm mt-2">#}
+{# {% trans "مشاهده لیست" %}#}
+{# </a>#}
+{# </div>#}
+{# </div>#}
+{# </div>#}
+{# </div>#}
+{##}
+{# <!-- مراحل با سلسله مراتب -->#}
+{# <div class="row mt-5">#}
+{# {% for stage, data in tanbakh_by_stage.items %}#}
+{# <div class="col-md-4 mb-4">#}
+{# <div class="card tanbakh-card shadow-sm">#}
+{# <div class="card-header {{ data.color_class }} text-white text-center">#}
+{# <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>{{ stage.name }}</h5>#}
+{# <small>{{ data.status_label }}</small>#}
+{# </div>#}
+{# <div class="card-body">#}
+{# <h3 class="text-center">{{ data.count }}</h3>#}
+{# <p class="text-center text-muted">{% trans "تعداد تنخواه" %}</p>#}
+{# <p class="small text-center text-muted">#}
+{# {% trans "تأییدکنندگان:" %}#}
+{# {% if data.approvers %}#}
+{# {{ data.approvers|join:", " }}#}
+{# {% else %}#}
+{# {% trans "نامشخص" %}#}
+{# {% endif %}#}
+{# </p>#}
+{# {% if data.tanbakhs %}#}
+{# <ul class="list-group list-group-flush">#}
+{# {% for tanbakh in data.tanbakhs|slice:":3" %}#}
+{# <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{# <span>{{ tanbakh.number }} ({{ tanbakh.organization.name }})</span>#}
+{# {% if data.can_approve and tanbakh.status == 'PENDING' %}#}
+{# <div>#}
+{# <a href="{% url 'tanbakh_approve' tanbakh.pk %}" class="btn btn-success btn-sm me-1">{% trans "تأیید" %}</a>#}
+{# <a href="{% url 'tanbakh_reject' tanbakh.pk %}" class="btn btn-danger btn-sm">{% trans "رد" %}</a>#}
+{# </div>#}
+{# {% endif %}#}
+{# </li>#}
+{# {% endfor %}#}
+{# </ul>#}
+{# {% endif %}#}
+{# </div>#}
+{# </div>#}
+{# </div>#}
+{# {% endfor %}#}
+{# </div>#}
+{#</div>#}
+{##}
+{#<style>#}
+{# .tanbakh-card {#}
+{# transition: transform 0.3s ease, box-shadow 0.3s ease;#}
+{# border: none;#}
+{# border-radius: 10px;#}
+{# }#}
+{# .tanbakh-card:hover {#}
+{# transform: translateY(-5px);#}
+{# box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);#}
+{# }#}
+{# .card-header {#}
+{# border-radius: 10px 10px 0 0;#}
+{# padding: 15px;#}
+{# }#}
+{# .card-body {#}
+{# padding: 20px;#}
+{# }#}
+{# .btn-sm {#}
+{# padding: 5px 10px;#}
+{# font-size: 0.9rem;#}
+{# }#}
+{# .list-group-item {#}
+{# border: none;#}
+{# padding: 10px 0;#}
+{# }#}
+{# .small {#}
+{# font-size: 0.85rem;#}
+{# }#}
+{#</style>#}
+{#{% endblock %}#}
+
+
 
 
 {#{% extends 'base.html' %}#}
 {#{% load i18n %}#}
 {##}
 {#{% block content %}#}
-{#    <style>#}
-{#    /* استایل‌های سفارشی برای داشبورد */#}
-{#.card {#}
-{#    border: none;#}
-{#    border-radius: 10px;#}
-{#    transition: transform 0.3s ease, box-shadow 0.3s ease;#}
-{#}#}
+{#<div class="container mt-5">#}
+{#    <h1 class="text-center mb-5">#}
+{#        <i class="fas fa-tachometer-alt me-2"></i>{% trans "داشبورد مدیریت تنخواه" %}#}
+{#    </h1>#}
 {##}
-{#.card:hover {#}
-{#    transform: translateY(-5px);#}
-{#    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);#}
-{#}#}
-{##}
-{#.card-title {#}
-{#    font-size: 1.25rem;#}
-{#    font-weight: bold;#}
-{#}#}
-{##}
-{#.card-text {#}
-{#    font-size: 2.5rem;#}
-{#    font-weight: bold;#}
-{#}#}
-{##}
-{#.list-group-item {#}
-{#    border: none;#}
-{#    border-radius: 8px;#}
-{#    margin-bottom: 10px;#}
-{#    transition: background-color 0.3s ease;#}
-{#}#}
-{##}
-{#.list-group-item:hover {#}
-{#    background-color: #f8f9fa;#}
-{#}#}
-{##}
-{#.list-group-item i {#}
-{#    color: #007bff;#}
-{#}#}
-{#    </style>#}
-{#    <div class="container">#}
-{#    <h1 class="mb-4">{{ title }}</h1>#}
-{##}
-{#    <!-- آمار و اطلاعات -->#}
-{#    <div class="row mb-4">#}
-{#        <!-- کارت تعداد سازمان‌ها -->#}
-{#        <div class="col-md-4 mb-3">#}
-{#            <div class="card shadow-sm">#}
-{#                <div class="card-body text-center">#}
-{#                    <h5 class="card-title text-primary">{% trans "تعداد سازمان‌ها" %}</h5>#}
-{#                    <p class="card-text display-4">{{ complex_count }}</p>#}
+{#    <div class="row g-4">#}
+{#        <!-- کارت: تنخواه‌های بدون فاکتور -->#}
+{#        <div class="col-md-3 col-sm-6">#}
+{#            <div class="card tanbakh-card shadow-sm text-center h-100">#}
+{#                <div class="card-header bg-warning text-white">#}
+{#                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>{% trans "بدون فاکتور" %}</h5>#}
+{#                </div>#}
+{#                <div class="card-body">#}
+{#                    <h2 class="fw-bold">{{ tanbakh_by_stage.no_factor.count }}</h2>#}
+{#                    <p class="text-muted">{% trans "تنخواه‌های بدون فاکتور" %}</p>#}
+{#                    <p class="small text-muted">{% trans "مربوط به:" %} {{ tanbakh_by_stage.no_factor.related_to|join:", " }}</p>#}
+{#                    <a href="{% url 'tanbakh_list' %}?status=no_factor" class="btn btn-warning btn-sm mt-2">#}
+{#                        {% trans "مشاهده لیست" %}#}
+{#                    </a>#}
 {#                </div>#}
 {#            </div>#}
 {#        </div>#}
 {##}
-{#        <!-- کارت تعداد پروژه‌ها -->#}
-{#        <div class="col-md-4 mb-3">#}
-{#            <div class="card shadow-sm">#}
-{#                <div class="card-body text-center">#}
-{#                    <h5 class="card-title text-success">{% trans "تعداد پروژه‌ها" %}</h5>#}
-{#                    <p class="card-text display-4">{{ project_count }}</p>#}
+{#        <!-- کارت: تنخواه‌های ثبت‌شده -->#}
+{#        <div class="col-md-3 col-sm-6">#}
+{#            <div class="card tanbakh-card shadow-sm text-center h-100">#}
+{#                <div class="card-header bg-success text-white">#}
+{#                    <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>{% trans "ثبت‌شده" %}</h5>#}
+{#                </div>#}
+{#                <div class="card-body">#}
+{#                    <h2 class="fw-bold">{{ tanbakh_by_stage.registered.count }}</h2>#}
+{#                    <p class="text-muted">{% trans "تنخواه‌های دارای فاکتور" %}</p>#}
+{#                    <p class="small text-muted">{% trans "مربوط به:" %} {{ tanbakh_by_stage.registered.related_to|join:", " }}</p>#}
+{#                    <a href="{% url 'tanbakh_list' %}?status=registered" class="btn btn-success btn-sm mt-2">#}
+{#                        {% trans "مشاهده لیست" %}#}
+{#                    </a>#}
 {#                </div>#}
 {#            </div>#}
 {#        </div>#}
 {##}
-{#        <!-- کارت تعداد تنخواه‌ها -->#}
-{#        <div class="col-md-4 mb-3">#}
-{#            <div class="card shadow-sm">#}
-{#                <div class="card-body text-center">#}
-{#                    <h5 class="card-title text-warning">{% trans "تعداد تنخواه‌ها" %}</h5>#}
-{#                    <p class="card-text display-4">{{ tanbakh_count }}</p>#}
+{#        <!-- کارت: تنخواه‌های در دست اقدام -->#}
+{#        <div class="col-md-3 col-sm-6">#}
+{#            <div class="card tanbakh-card shadow-sm text-center h-100">#}
+{#                <div class="card-header bg-info text-white">#}
+{#                    <h5 class="mb-0"><i class="fas fa-hourglass-half me-2"></i>{% trans "در دست اقدام" %}</h5>#}
+{#                </div>#}
+{#                <div class="card-body">#}
+{#                    <h2 class="fw-bold">{{ tanbakh_by_stage.pending.count }}</h2>#}
+{#                    <p class="text-muted">{% trans "تنخواه‌های در انتظار تأیید" %}</p>#}
+{#                    <p class="small text-muted">{% trans "مربوط به:" %} {{ tanbakh_by_stage.pending.related_to|join:", " }}</p>#}
+{#                    <a href="{% url 'tanbakh_list' %}?status=pending" class="btn btn-info btn-sm mt-2">#}
+{#                        {% trans "مشاهده لیست" %}#}
+{#                    </a>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{##}
+{#        <!-- کارت: تنخواه‌های آرشیو شده -->#}
+{#        <div class="col-md-3 col-sm-6">#}
+{#            <div class="card tanbakh-card shadow-sm text-center h-100">#}
+{#                <div class="card-header bg-secondary text-white">#}
+{#                    <h5 class="mb-0"><i class="fas fa-archive me-2"></i>{% trans "آرشیو شده" %}</h5>#}
+{#                </div>#}
+{#                <div class="card-body">#}
+{#                    <h2 class="fw-bold">{{ tanbakh_by_stage.archived.count }}</h2>#}
+{#                    <p class="text-muted">{% trans "تنخواه‌های آرشیو شده" %}</p>#}
+{#                    <p class="small text-muted">{% trans "مربوط به:" %} {{ tanbakh_by_stage.archived.related_to|join:", " }}</p>#}
+{#                    <a href="{% url 'tanbakh_list' %}?status=archived" class="btn btn-secondary btn-sm mt-2">#}
+{#                        {% trans "مشاهده لیست" %}#}
+{#                    </a>#}
 {#                </div>#}
 {#            </div>#}
 {#        </div>#}
 {#    </div>#}
 {##}
-{#    <!-- لینک‌های مهم -->#}
-{#    <div class="row">#}
-{#        <div class="col-md-12">#}
-{#            <div class="card shadow-sm">#}
+{#    <!-- نمایش جزئیات مراحل تنخواه با سلسله مراتب -->#}
+{#    <div class="row mt-5">#}
+{#        {% for stage, data in tanbakh_by_stage.stages.items %}#}
+{#        <div class="col-md-4 mb-4">#}
+{#            <div class="card tanbakh-card shadow-sm">#}
+{#                <div class="card-header {{ data.color_class }} text-white text-center">#}
+{#                    <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>{{ stage.name }}</h5>#}
+{#                    <small>{{ data.status_label }}</small>#}
+{#                </div>#}
 {#                <div class="card-body">#}
-{#                    <h3 class="card-title mb-4">{% trans "لینک‌های مهم" %}</h3>#}
-{#                    <div class="list-group">#}
-{#                        {% for link in links %}#}
-{#                            <a href="{% url link.url %}" class="list-group-item list-group-item-action d-flex align-items-center">#}
-{#                                <i class="{{ link.icon }} me-3 fa-lg"></i>#}
-{#                                <span class="flex-grow-1">{{ link.name }}</span>#}
-{#                                <i class="fas fa-chevron-left"></i>#}
-{#                            </a>#}
+{#                    <h3 class="text-center">{{ data.count }}</h3>#}
+{#                    <p class="text-center text-muted">{% trans "تعداد تنخواه" %}</p>#}
+{#                    <p class="small text-center text-muted">#}
+{#                        {% trans "تأییدکننده:" %}#}
+{#                        {% if data.approvers %}#}
+{#                            {{ data.approvers|join:", " }}#}
+{#                        {% else %}#}
+{#                            {% trans "نامشخص" %}#}
+{#                        {% endif %}#}
+{#                    </p>#}
+{#                    {% if data.tanbakhs %}#}
+{#                    <ul class="list-group list-group-flush">#}
+{#                        {% for tanbakh in data.tanbakhs|slice:":3" %}#}
+{#                        <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                            <span>{{ tanbakh.number }} - {{ tanbakh.organization.name }}</span>#}
+{#                            {% if data.can_approve and tanbakh.status == 'PENDING' %}#}
+{#                            <div>#}
+{#                                <a href="{% url 'tanbakh_approve' tanbakh.pk %}" class="btn btn-success btn-sm me-1">{% trans "تأیید" %}</a>#}
+{#                                <a href="{% url 'tanbakh_reject' tanbakh.pk %}" class="btn btn-danger btn-sm">{% trans "رد" %}</a>#}
+{#                            </div>#}
+{#                            {% endif %}#}
+{#                        </li>#}
 {#                        {% endfor %}#}
-{#                    </div>#}
+{#                    </ul>#}
+{#                    {% endif %}#}
 {#                </div>#}
 {#            </div>#}
 {#        </div>#}
+{#        {% endfor %}#}
 {#    </div>#}
 {#</div>#}
+{##}
+{#<style>#}
+{#    .tanbakh-card {#}
+{#        transition: transform 0.3s ease, box-shadow 0.3s ease;#}
+{#        border: none;#}
+{#        border-radius: 10px;#}
+{#    }#}
+{#    .tanbakh-card:hover {#}
+{#        transform: translateY(-5px);#}
+{#        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);#}
+{#    }#}
+{#    .card-header {#}
+{#        border-radius: 10px 10px 0 0;#}
+{#        padding: 15px;#}
+{#    }#}
+{#    .card-body {#}
+{#        padding: 20px;#}
+{#    }#}
+{#    .btn-sm {#}
+{#        padding: 5px 10px;#}
+{#        font-size: 0.9rem;#}
+{#    }#}
+{#    .list-group-item {#}
+{#        border: none;#}
+{#        padding: 10px 0;#}
+{#    }#}
+{#    .small {#}
+{#        font-size: 0.85rem;#}
+{#    }#}
+{#</style>#}
 {#{% endblock %}#}

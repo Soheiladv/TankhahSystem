@@ -1,28 +1,162 @@
 import json
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from core.PermissionBase import  PermissionBaseView
 from django.db.models import Q, Sum, F
 from django.urls import reverse_lazy
-from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.views.generic import TemplateView
 
-from accounts.has_role_permission import has_permission
-from tanbakh.models import Tanbakh, Factor, FactorItem
 from .forms import OrganizationForm, ProjectForm, PostForm, UserPostForm, PostHistoryForm, WorkflowStageForm
 from .models import Organization, Project, Post, UserPost, PostHistory, WorkflowStage
+#######################################################################################
+# داشبورد آماری تنخواه گردان
+class DashboardView_flows_1(PermissionBaseView, TemplateView):
+    template_name = 'core/dashboard1.html'
+    extra_context = {'title': _('داشبورد مدیریت تنخواه')}
+    permission_codenames = ['core.DashboardView_flows_view']  # تغییر به لیست
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+
+        # گرفتن مراحل به ترتیب (پایین به بالا: order=5 تا order=0)
+        workflow_stages = WorkflowStage.objects.all().order_by('-order')
+        context['workflow_stages'] = workflow_stages
+
+        # گرفتن پست‌های سازمانی کاربر
+        user_posts = self.request.user.userpost_set.all()
+        user_post_ids = [up.post.id for up in user_posts]
+        logger.info(f"User {self.request.user} posts: {user_post_ids}")
+
+        # دیکشنری برای ذخیره اطلاعات تنخواه‌ها
+        tanbakh_by_stage = {}
+
+        for stage in workflow_stages:
+            # تنخواه‌ها در این مرحله
+            tanbakhs = Tanbakh.objects.filter(current_stage=stage)
+
+            # شمارش تنخواه‌ها
+            draft_count = tanbakhs.filter(status='DRAFT').count()
+            created_by_user_count = tanbakhs.filter(created_by=self.request.user).count()
+            rejected_count = tanbakhs.filter(status='REJECTED').count()
+            completed_count = tanbakhs.filter(status='COMPLETED').count()
+
+            # تعیین رنگ و برچسب بر اساس مرحله و وضعیت
+            if stage.order == 5 and draft_count > 0:  # شروع فرآیند (پایین‌ترین)
+                color_class = 'bg-warning'  # نارنجی
+                status_label = 'پیش‌نویس (جدید)'
+            elif stage.order == 0 and tanbakhs.exists():  # سوپروایزر یا معاون مالی (بالاترین)
+                if completed_count > 0:
+                    color_class = 'bg-primary'  # آبی
+                    status_label = 'تمام‌شده'
+                elif rejected_count > 0:
+                    color_class = 'bg-danger'  # قرمز
+                    status_label = 'رد شده'
+                else:
+                    color_class = 'bg-info'  # فیروزه‌ای برای در حال بررسی
+                    status_label = 'در حال بررسی سوپروایزر'
+            elif created_by_user_count > 0:  # ثبت‌شده توسط کاربر
+                color_class = 'bg-success'  # سبز
+                status_label = 'ثبت‌شده توسط شما'
+            elif rejected_count > 0:  # رد شده
+                color_class = 'bg-danger'  # قرمز
+                status_label = 'رد شده'
+            elif completed_count > 0:  # تمام‌شده
+                color_class = 'bg-primary'  # آبی
+                status_label = 'تمام‌شده'
+            else:  # در حال بررسی در مراحل میانی
+                color_class = 'bg-secondary'  # خاکستری
+                status_label = 'در انتظار بررسی'
+
+            total_count = tanbakhs.count()
+            tanbakh_by_stage[stage] = {
+                'count': total_count,
+                'color_class': color_class,
+                'status_label': status_label,
+            }
+            logger.info(
+                f"Stage {stage.name} (order={stage.order}): {total_count} tanbakhs, Color: {color_class}, Status: {status_label}")
+
+        context['tanbakh_by_stage'] = tanbakh_by_stage
+        return context
 
 
+class DashboardView_flows(TemplateView):
+    template_name = 'core/dashboard1.html'  # Adjust this to your actual template path
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        user_posts = user.userpost_set.all()
+        user_orgs = [up.post.organization for up in user_posts] if user_posts else []
+        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
+
+        # Filter Tanbakh objects based on user permissions
+        tanbakhs = Tanbakh.objects.all()
+        if not is_hq_user and not self.request.user.is_superuser:
+            tanbakhs = tanbakhs.filter(organization__in=user_orgs)
+
+        # Summary of Tanbakh statuses
+        context['tanbakh_summary'] = {
+            'no_factor': {
+                'count': tanbakhs.filter(factors__isnull=True).count(),
+                'orgs': list(
+                    tanbakhs.filter(factors__isnull=True).values_list('organization__name', flat=True).distinct())
+            },
+            'registered': {
+                'count': tanbakhs.filter(factors__isnull=False).count(),
+                'orgs': list(
+                    tanbakhs.filter(factors__isnull=False).values_list('organization__name', flat=True).distinct())
+            },
+            'pending': {
+                'count': tanbakhs.filter(status='PENDING').count(),
+                'orgs': list(tanbakhs.filter(status='PENDING').values_list('organization__name', flat=True).distinct())
+            },
+            'archived': {
+                'count': tanbakhs.filter(is_archived=True).count(),
+                'orgs': list(tanbakhs.filter(is_archived=True).values_list('organization__name', flat=True).distinct())
+            }
+        }
+
+        # Workflow stages with approvers
+        workflow_stages = WorkflowStage.objects.all().order_by('-order')
+        tanbakh_by_stage = {}
+        for stage in workflow_stages:
+            stage_tanbakhs = tanbakhs.filter(current_stage=stage)
+            can_approve = user.has_perm('tanbakh.tanbakh_approve') and any(
+                p.post.stageapprover_set.filter(stage=stage).exists() for p in user_posts
+            )
+            # Use 'post__name' instead of 'post__title'
+            approvers = StageApprover.objects.filter(stage=stage).values_list('post__name', flat=True)
+
+            tanbakh_by_stage[stage] = {
+                'count': stage_tanbakhs.count(),
+                'color_class': 'bg-info' if stage_tanbakhs.filter(status='PENDING').exists() else 'bg-secondary',
+                'status_label': 'در انتظار تأیید' if stage_tanbakhs.filter(
+                    status='PENDING').exists() else 'بدون تنخواه',
+                'tanbakhs': stage_tanbakhs,
+                'can_approve': can_approve,
+                'approvers': list(approvers),
+            }
+        context['tanbakh_by_stage'] = tanbakh_by_stage
+
+        return context
+
+
+#######################################################################################
 # سازمان‌ها
-@method_decorator(has_permission('Organization_view'), name='dispatch')
-class OrganizationListView(LoginRequiredMixin, ListView):
+# @method_decorator(has_permission('Organization_view'), name='dispatch')
+class OrganizationListView(PermissionBaseView, ListView):
     model = Organization
     template_name = 'core/organization_list.html'
     context_object_name = 'organizations'
     paginate_by = 10
     extra_context = {'title': _('لیست سازمان‌ها')}
+    permission_codename =  'core.Organization_view'
+    check_organization = True  # فعال کردن چک سازمان
+
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -41,11 +175,13 @@ class OrganizationListView(LoginRequiredMixin, ListView):
         return context
 
 
-@method_decorator(has_permission('Organization_view'), name='dispatch')
-class OrganizationDetailView(LoginRequiredMixin, DetailView):
+# @method_decorator(has_permission('Organization_view'), name='dispatch')
+class OrganizationDetailView(PermissionBaseView, DetailView):
     model = Organization
     template_name = 'core/organization_detail.html'
     context_object_name = 'organization'
+    permission_codename =  'core.Organization_view'
+    check_organization = True  # فعال کردن چک سازمان
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -53,12 +189,15 @@ class OrganizationDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-@method_decorator(has_permission('Organization_add'), name='dispatch')
-class OrganizationCreateView(LoginRequiredMixin, CreateView):
+# @method_decorator(has_permission('Organization_add'), name='dispatch')
+class OrganizationCreateView(PermissionBaseView, CreateView):
     model = Organization
     form_class = OrganizationForm
     template_name = 'core/organization_form.html'
     success_url = reverse_lazy('organization_list')
+
+    permission_codename =  'core.Organization_add'
+    check_organization = True  # فعال کردن چک سازمان
 
     def form_valid(self, form):
         messages.success(self.request, _('سازمان با موفقیت ایجاد شد.'))
@@ -70,12 +209,14 @@ class OrganizationCreateView(LoginRequiredMixin, CreateView):
         return context
 
 
-@method_decorator(has_permission('Organization_update'), name='dispatch')
-class OrganizationUpdateView(LoginRequiredMixin, UpdateView):
+# @method_decorator(has_permission('Organization_update'), name='dispatch')
+class OrganizationUpdateView(PermissionBaseView, UpdateView):
     model = Organization
     form_class = OrganizationForm
     template_name = 'core/organization_form.html'
     success_url = reverse_lazy('organization_list')
+    permission_codename =  'core.Organization_update'
+    check_organization = True  # فعال کردن چک سازمان
 
     def form_valid(self, form):
         messages.success(self.request, _('سازمان با موفقیت به‌روزرسانی شد.'))
@@ -87,11 +228,13 @@ class OrganizationUpdateView(LoginRequiredMixin, UpdateView):
         return context
 
 
-@method_decorator(has_permission('Organization_delete'), name='dispatch')
-class OrganizationDeleteView(LoginRequiredMixin, DeleteView):
+# @method_decorator(has_permission('Organization_delete'), name='dispatch')
+class OrganizationDeleteView(PermissionBaseView, DeleteView):
     model = Organization
     template_name = 'core/organization_confirm_delete.html'
     success_url = reverse_lazy('organization_list')
+    permission_codename =  'core.Organization_delete'
+    check_organization = True  # فعال کردن چک سازمان
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('سازمان با موفقیت حذف شد.'))
@@ -99,13 +242,15 @@ class OrganizationDeleteView(LoginRequiredMixin, DeleteView):
 
 
 # پروژه‌ها
-@method_decorator(has_permission('Project_view'), name='dispatch')
-class ProjectListView(LoginRequiredMixin, ListView):
+# @method_decorator(has_permission('Project_view'), name='dispatch')
+class ProjectListView(PermissionBaseView, ListView):
     model = Project
     template_name = 'core/project_list.html'
     context_object_name = 'projects'
     paginate_by = 10
     extra_context = {'title': _('لیست پروژه‌ها')}
+    permission_codename =  'core.Project_view'
+    check_organization = True  # فعال کردن چک سازمان
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -124,11 +269,13 @@ class ProjectListView(LoginRequiredMixin, ListView):
         return context
 
 
-@method_decorator(has_permission('Project_view'), name='dispatch')
-class ProjectDetailView(LoginRequiredMixin, DetailView):
+# @method_decorator(has_permission('Project_view'), name='dispatch')
+class ProjectDetailView(PermissionBaseView, DetailView):
     model = Project
     template_name = 'core/project_detail.html'
     context_object_name = 'project'
+    permission_codename = 'core.Project_view'
+    check_organization = True  # فعال کردن چک سازمان
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -138,12 +285,14 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-@method_decorator(has_permission('Project_add'), name='dispatch')
-class ProjectCreateView(LoginRequiredMixin, CreateView):
+# @method_decorator(has_permission('Project_add'), name='dispatch')
+class ProjectCreateView(PermissionBaseView, CreateView):
     model = Project
     form_class = ProjectForm
     template_name = 'core/project_form.html'
     success_url = reverse_lazy('project_list')
+    permission_codename = 'core.Project_add'
+    check_organization = True  # فعال کردن چک سازمان
 
     def form_valid(self, form):
         messages.success(self.request, _('پروژه با موفقیت ایجاد شد.'))
@@ -160,12 +309,14 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
         return context
 
 
-@method_decorator(has_permission('Project_update'), name='dispatch')
-class ProjectUpdateView(LoginRequiredMixin, UpdateView):
+# @method_decorator(has_permission('Project_update'), name='dispatch')
+class ProjectUpdateView(PermissionBaseView, UpdateView):
     model = Project
     form_class = ProjectForm
     template_name = 'core/project_form.html'
     success_url = reverse_lazy('project_list')
+    permission_codename = 'core.Project_update'
+    check_organization = True  # فعال کردن چک سازمان
 
     def form_valid(self, form):
         messages.success(self.request, _('پروژه با موفقیت به‌روزرسانی شد.'))
@@ -177,11 +328,13 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
         return context
 
 
-@method_decorator(has_permission('Project_delete'), name='dispatch')
-class ProjectDeleteView(LoginRequiredMixin, DeleteView):
+# @method_decorator(has_permission('Project_delete'), name='dispatch')
+class ProjectDeleteView(PermissionBaseView, DeleteView):
     model = Project
     template_name = 'core/project_confirm_delete.html'
     success_url = reverse_lazy('project_list')
+    permission_codename = 'core.Project_delete'
+    check_organization = True  # فعال کردن چک سازمان
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('پروژه با موفقیت حذف شد.'))
@@ -189,37 +342,25 @@ class ProjectDeleteView(LoginRequiredMixin, DeleteView):
 
 
 # --------------
-# UPlink SoftWare
-class IndexView( TemplateView):
-    # Fascades = True
-    template_name = 'index.html'
-    extra_context = {'title': _('داشبورد')}
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['complexes'] = Organization.objects.filter(org_type='COMPLEX')
-        context['hq'] = Organization.objects.filter(org_type='HQ').first()
-        context['projects'] = Project.objects.all()
-        context['tanbakhs'] = Tanbakh.objects.filter(organization__org_type='COMPLEX')[:5]
-        # اضافه کردن مراحل گردش کار
-        context['workflow_stages'] = WorkflowStage.objects.all()
-        context['tanbakh_by_stage'] = {
-            stage: Tanbakh.objects.filter(current_stage=stage).count() for stage in context['workflow_stages']
-        }
-        return context
 
 #-- داشبورد گزارشات مالی
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.db.models import Sum, F
-from tanbakh.models import Tanbakh, Factor, FactorItem
+from tanbakh.models import Tanbakh, Factor, FactorItem, StageApprover
 from core.models import WorkflowStage, Organization
 import json
 from django.utils.translation import gettext_lazy as _
+import logging
 
-class FinancialDashboardView(LoginRequiredMixin, TemplateView):
+logger = logging.getLogger(__name__)
+
+class FinancialDashboardView(PermissionBaseView, TemplateView):
+    """داشبورد گزارشات تنخواه گردان"""
     template_name = 'tanbakh/Reports/calc_dashboard.html'
     login_url = '/accounts/login/'
+    # permission_codename = 'core.Project_delete'
+    # check_organization = True  # فعال کردن چک سازمان
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -301,9 +442,11 @@ class FinancialDashboardView(LoginRequiredMixin, TemplateView):
 
         return context
 
-class AllLinksView(LoginRequiredMixin, TemplateView):
+class AllLinksView(PermissionBaseView, TemplateView):
     template_name = 'core/core_index.html'  # تمپلیت Index
     extra_context = {'title': _('همه لینک‌ها')}
+    # permission_codename = 'core.Project_delete'
+    # check_organization = True  # فعال کردن چک سازمان
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -322,118 +465,37 @@ class AllLinksView(LoginRequiredMixin, TemplateView):
         return context
 
 #-- روند تنخواه گردانی داشبورد ---
-@method_decorator(has_permission('DashboardView_flows_view'), name='dispatch')
-class DashboardView_flows(TemplateView):
-    template_name = 'core/dashboard1.html'
-    extra_context = {'title': _('داشبورد مدیریت')}
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['user'] = self.request.user
-
-        # گرفتن مراحل بدون کش
-        workflow_stages = WorkflowStage.objects.all()
-        context['workflow_stages'] = workflow_stages
-
-        # محاسبه تعداد تنخواه‌های در انتظار با دیباگ
-        tanbakh_pending_by_stage = {}
-        for stage in workflow_stages:
-            count = Tanbakh.objects.filter(current_stage=stage, status='PENDING').count()
-            tanbakh_pending_by_stage[stage] = count
-            print(f"Stage {stage.name}: {count} pending Tanbakhs")
-        context['tanbakh_pending_by_stage'] = tanbakh_pending_by_stage
-        return context
-
-
-# ---dashboard Main
-# @method_decorator(has_permission('Dashboard_view'), name='dispatch')
-class DashboardView(TemplateView):
-    template_name = 'core/dashboard.html'
-    extra_context = {
-        'title': _('داشبورد مدیریت'),
-        # تعریف لینک‌ها به صورت دسته‌بندی‌شده
-        'dashboard_links': {
-                'روند تنخواه': [
-                    {'name': _('روند تنخواه'), 'url': 'dashboard_flows', 'permission': 'Dashboard__view',
-                     'icon': 'fas fa-link'},
-                ],
-                'سازمـان': [
-                    {'name': _('فهرست سازمان‌ها'), 'url': 'organization_list', 'permission': 'organization_view',
-                     'icon': 'fas fa-building'},
-                    {'name': _('ایجاد سازمان'), 'url': 'organization_create', 'permission': 'organization_add',
-                     'icon': 'fas fa-plus'},
-                ],
-
-                'عنوان پروژه ': [
-                    {'name': _('فهرست پروژه‌ها'), 'url': 'project_list', 'permission': 'project_view',
-                     'icon': 'fas fa-project-diagram'},
-                    {'name': _('ایجاد پروژه'), 'url': 'project_create', 'permission': 'project_add', 'icon': 'fas fa-plus'},
-                ],
-                'تنخواه': [
-                    {'name': _('فهرست تنخواه'), 'url': 'tanbakh_list', 'permission': 'project_view',
-                     'icon': 'fas fa-project-diagram'},
-                    {'name': _('ایجاد تنخواه'), 'url': 'tanbakh_create', 'permission': 'project_add',
-                     'icon': 'fas fa-plus'},
-                ],
-
-                ' فاکتورها': [
-                    {'name': _('فهرست فاکتورها'), 'url': 'factor_list', 'permission': 'project_view',
-                     'icon': 'fas fa-project-diagram'},
-                    {'name': _('ایجاد فاکتور'), 'url': 'factor_create', 'permission': 'project_add', 'icon': 'fas fa-plus'},
-                ],
-                'پست و سلسله مراتب': [
-                    {'name': _('فهرست پست‌ها'), 'url': 'post_list', 'permission': 'post_view', 'icon': 'fas fa-sitemap'},
-                    {'name': _('ایجاد پست'), 'url': 'post_create', 'permission': 'post_add', 'icon': 'fas fa-plus'},
-                ],
-                'پست همکار در سازمان': [
-                    {'name': _('فهرست اتصالات کاربر به پست'), 'url': 'userpost_list', 'permission': 'userpost_view',
-                     'icon': 'fas fa-users'},
-                    {'name': _('ایجاد اتصال'), 'url': 'userpost_create', 'permission': 'userpost_add',
-                     'icon': 'fas fa-plus'},
-                ],
-                'تاریخچه پست ها': [
-                    {'name': _('فهرست تاریخچه پست‌ها'), 'url': 'posthistory_list', 'permission': 'posthistory_view',
-                     'icon': 'fas fa-history'},
-                    {'name': _('ثبت تاریخچه'), 'url': 'posthistory_create', 'permission': 'posthistory_add',
-                     'icon': 'fas fa-plus'},
-                ],
-                'گردش کار': [
-                    {'name': _('فهرست گردش کار'), 'url': 'workflow_stage_list', 'permission': 'workflow_stage_create',
-                     'icon': 'fas fa-history'},
-                    {'name': _('ثبت گردش کار'), 'url': 'workflow_stage_create', 'permission': 'workflow_stage_create',
-                     'icon': 'fas fa-plus'},
-                ],
-                'دیگر لینکها': [
-                    {'name': _('همه لینک‌ها'), 'url': 'all_links', 'icon': 'fas fa-link'},
-                    {'name': _('BI گزارشات'), 'url': 'financialDashboardView', 'icon': 'fas fa-link'},
-                ],
-
-        }
-    }
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # اضافه کردن اطلاعات کاربر برای نمایش در داشبورد (اختیاری)
-        context['user'] = self.request.user
-        return context
-
-
-# --- Post Views ---
-@method_decorator(has_permission('Post_view'), name='dispatch')
-class PostListView(LoginRequiredMixin, ListView):
+class PostListView(PermissionBaseView, ListView):
     model = Post
     template_name = 'core/post/post_list.html'
     context_object_name = 'posts'
-    paginate_by = 10
+    paginate_by = 25
     extra_context = {'title': _('لیست پست‌های سازمانی')}
+    permission_codenames = ['core.Post_view']
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        sort_order = self.request.GET.get('sort', 'asc')  # پیش‌فرض: از پایین به بالا
+        if sort_order == 'desc':
+            qs = qs.order_by('-level')  # از بالا به پایین
+            logger.info("Sorting posts from high to low level")
+        else:
+            qs = qs.order_by('level')  # از پایین به بالا
+            logger.info("Sorting posts from low to high level")
+        return qs
 
-@method_decorator(has_permission('Post_view'), name='dispatch')
-class PostDetailView(LoginRequiredMixin, DetailView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_sort'] = self.request.GET.get('sort', 'asc')
+        return context
+# @method_decorator(has_permission('Post_view'), name='dispatch')
+class PostDetailView(PermissionBaseView, DetailView):
     model = Post
     template_name = 'core/post/post_detail.html'
     context_object_name = 'post'
     extra_context = {'title': _('جزئیات پست سازمانی')}
+    permission_codename = 'core.Post_view'
+    # check_organization = True  # فعال کردن چک سازمان
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -442,38 +504,44 @@ class PostDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-@method_decorator(has_permission('Post_add'), name='dispatch')
-class PostCreateView(PermissionRequiredMixin, CreateView):
+# @method_decorator(has_permission('Post_add'), name='dispatch')
+class PostCreateView(PermissionBaseView, CreateView):
     model = Post
     form_class = PostForm
     template_name = 'core/post/post_form.html'
     success_url = reverse_lazy('post_list')
-    permission_required = 'core.Post_add'
+    # permission_required = 'core.Post_add'
+    permission_codename = 'core.Post_add'
+    # check_organization = True  # فعال کردن چک سازمان
 
     def form_valid(self, form):
         messages.success(self.request, _('پست سازمانی با موفقیت ایجاد شد.'))
         return super().form_valid(form)
 
 
-@method_decorator(has_permission('Post_update'), name='dispatch')
-class PostUpdateView(PermissionRequiredMixin, UpdateView):
+# @method_decorator(has_permission('Post_update'), name='dispatch')
+class PostUpdateView(PermissionBaseView, UpdateView):
     model = Post
     form_class = PostForm
     template_name = 'core/post/post_form.html'
     success_url = reverse_lazy('post_list')
-    permission_required = 'core.Post_update'
+    # permission_required = 'core.Post_update'
+    permission_codename = 'core.Post_update'
+    # check_organization = True  # فعال کردن چک سازمان
 
     def form_valid(self, form):
         messages.success(self.request, _('پست سازمانی با موفقیت به‌روزرسانی شد.'))
         return super().form_valid(form)
 
 
-@method_decorator(has_permission('Post_delete'), name='dispatch')
-class PostDeleteView(PermissionRequiredMixin, DeleteView):
+# @method_decorator(has_permission('Post_delete'), name='dispatch')
+class PostDeleteView(PermissionBaseView, DeleteView):
     model = Post
     template_name = 'core/post/post_confirm_delete.html'
     success_url = reverse_lazy('post_list')
-    permission_required = 'core.Post_delete'
+    # permission_required = 'core.Post_delete'
+    permission_codename = 'core.Post_delete'
+    # check_organization = True  # فعال کردن چک سازمان
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('پست سازمانی با موفقیت حذف شد.'))
@@ -481,47 +549,55 @@ class PostDeleteView(PermissionRequiredMixin, DeleteView):
 
 
 # --- UserPost Views ---
-@method_decorator(has_permission('UserPost_view'), name='dispatch')
-class UserPostListView(LoginRequiredMixin, ListView):
+# @method_decorator(has_permission('UserPost_view'), name='dispatch')
+class UserPostListView(PermissionBaseView, ListView):
     model = UserPost
     template_name = 'core/post/userpost_list.html'
     context_object_name = 'userposts'
     paginate_by = 10
     extra_context = {'title': _('لیست اتصالات کاربر به پست')}
 
+    permission_codename = 'core.UserPost_view'
+    # check_organization = True  # فعال کردن چک سازمان
 
-@method_decorator(has_permission('UserPost_add'), name='dispatch')
-class UserPostCreateView(PermissionRequiredMixin, CreateView):
+# @method_decorator(has_permission('UserPost_add'), name='dispatch')
+class UserPostCreateView(PermissionBaseView, CreateView):
     model = UserPost
     form_class = UserPostForm
     template_name = 'core/post/userpost_form.html'
     success_url = reverse_lazy('userpost_list')
-    permission_required = 'tanbakh.UserPost_add'
+    # permission_required = 'tanbakh.UserPost_add'
+    permission_codename = 'core.UserPost_add'
+    # check_organization = True  # فعال کردن چک سازمان
 
     def form_valid(self, form):
         messages.success(self.request, _('اتصال کاربر به پست با موفقیت ایجاد شد.'))
         return super().form_valid(form)
 
 
-@method_decorator(has_permission('UserPost_update'), name='dispatch')
-class UserPostUpdateView(PermissionRequiredMixin, UpdateView):
+# @method_decorator(has_permission('UserPost_update'), name='dispatch')
+class UserPostUpdateView(PermissionBaseView, UpdateView):
     model = UserPost
     form_class = UserPostForm
     template_name = 'core/post/userpost_form.html'
     success_url = reverse_lazy('userpost_list')
-    permission_required = 'tanbakh.UserPost_update'
+    # permission_required = 'tanbakh.UserPost_update'
+    permission_codename = 'core.UserPost_update'
+    # check_organization = True  # فعال کردن چک سازمان
 
     def form_valid(self, form):
         messages.success(self.request, _('اتصال کاربر به پست با موفقیت به‌روزرسانی شد.'))
         return super().form_valid(form)
 
 
-@method_decorator(has_permission('UserPost_delete'), name='dispatch')
-class UserPostDeleteView(PermissionRequiredMixin, DeleteView):
+# @method_decorator(has_permission('UserPost_delete'), name='dispatch')
+class UserPostDeleteView(PermissionBaseView, DeleteView):
     model = UserPost
     template_name = 'core/post/post_confirm_delete.html'
     success_url = reverse_lazy('userpost_list')
-    permission_required = 'tanbakh.UserPost_delete'
+    # permission_required = 'tanbakh.UserPost_delete'
+    permission_codename = 'core.UserPost_delete'
+    # check_organization = True  # فعال کردن چک سازمان
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('اتصال کاربر به پست با موفقیت حذف شد.'))
@@ -529,22 +605,26 @@ class UserPostDeleteView(PermissionRequiredMixin, DeleteView):
 
 
 # --- PostHistory Views ---
-@method_decorator(has_permission('view_posthistory'), name='dispatch')
-class PostHistoryListView(LoginRequiredMixin, ListView):
+# @method_decorator(has_permission('view_posthistory'), name='dispatch')
+class PostHistoryListView(PermissionBaseView, ListView):
     model = PostHistory
     template_name = 'core/post/posthistory_list.html'
     context_object_name = 'histories'
     paginate_by = 10
     extra_context = {'title': _('لیست تاریخچه پست‌ها')}
+    permission_codename = 'core.view_posthistory'
+    # check_organization = True  # فعال کردن چک سازمان
 
 
-@method_decorator(has_permission('add_posthistory'), name='dispatch')
-class PostHistoryCreateView(PermissionRequiredMixin, CreateView):
+# @method_decorator(has_permission('add_posthistory'), name='dispatch')
+class PostHistoryCreateView(PermissionBaseView, CreateView):
     model = PostHistory
     form_class = PostHistoryForm
     template_name = 'core/post/posthistory_form.html'
     success_url = reverse_lazy('posthistory_list')
-    permission_required = 'tanbakh.add_posthistory'
+    # permission_required = 'tanbakh.add_posthistory'
+    permission_codename = 'core.add_posthistory'
+    # check_organization = True  # فعال کردن چک سازمان
 
     def form_valid(self, form):
         form.instance.changed_by = self.request.user
@@ -552,12 +632,14 @@ class PostHistoryCreateView(PermissionRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-@method_decorator(has_permission('delete_posthistory'), name='dispatch')
-class PostHistoryDeleteView(PermissionRequiredMixin, DeleteView):
+# @method_decorator(has_permission('delete_posthistory'), name='dispatch')
+class PostHistoryDeleteView(PermissionBaseView, DeleteView):
     model = PostHistory
     template_name = 'core/post/posthistory_confirm_delete.html'
     success_url = reverse_lazy('posthistory_list')
-    permission_required = 'tanbakh.delete_posthistory'
+    # permission_required = 'tanbakh.delete_posthistory'
+    permission_codename = 'core.delete_posthistory'
+    # check_organization = True  # فعال کردن چک سازمان
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('تاریخچه پست با موفقیت حذف شد.'))
@@ -567,19 +649,23 @@ class PostHistoryDeleteView(PermissionRequiredMixin, DeleteView):
 # ---- WorkFlow
 
 
-class WorkflowStageListView(PermissionRequiredMixin, ListView):
+class WorkflowStageListView(PermissionBaseView, ListView):
     model = WorkflowStage
     template_name = "core/workflow_stage/workflow_stage_list.html"
     context_object_name = "stages"
-    permission_required = "core.WorkflowStage_view"
+    # permission_required = "core.WorkflowStage_view"
+    permission_codename = 'core.WorkflowStage_view'
+    # check_organization = True  # فعال کردن چک سازمان
 
 
-class WorkflowStageCreateView(PermissionRequiredMixin, CreateView):
+class WorkflowStageCreateView(PermissionBaseView, CreateView):
     model = WorkflowStage
     form_class = WorkflowStageForm
     template_name = "core/workflow_stage/workflow_stage_form.html"
     success_url = reverse_lazy("workflow_stage_list")
-    permission_required = "core.WorkflowStage_add"
+    # permission_required = "core.WorkflowStage_add"
+    permission_codename = 'core.WorkflowStage_add'
+    # check_organization = True  # فعال کردن چک سازمان
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -587,12 +673,14 @@ class WorkflowStageCreateView(PermissionRequiredMixin, CreateView):
         return context
 
 
-class WorkflowStageUpdateView(PermissionRequiredMixin, UpdateView):
+class WorkflowStageUpdateView(PermissionBaseView, UpdateView):
     model = WorkflowStage
     form_class = WorkflowStageForm
     template_name = "core/workflow_stage/workflow_stage_form.html"
     success_url = reverse_lazy("workflow_stage_list")
-    permission_required = "core.WorkflowStage_update"
+    # permission_required = "core.WorkflowStage_update"
+    permission_codename = 'core.WorkflowStage_update'
+    # check_organization = True  # فعال کردن چک سازمان
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -600,11 +688,13 @@ class WorkflowStageUpdateView(PermissionRequiredMixin, UpdateView):
         return context
 
 
-class WorkflowStageDeleteView(PermissionRequiredMixin, DeleteView):
+class WorkflowStageDeleteView(PermissionBaseView, DeleteView):
     model = WorkflowStage
     template_name = "core/workflow_stage/workflow_stage_confirm_delete.html"
     success_url = reverse_lazy("workflow_stage_list")
-    permission_required = "core.WorkflowStage_delete"
+    # permission_required = "core.WorkflowStage_delete"
+    permission_codename = 'core.WorkflowStage_delete'
+    # check_organization = True  # فعال کردن چک سازمان
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

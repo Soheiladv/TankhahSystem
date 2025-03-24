@@ -1,4 +1,7 @@
 import logging
+
+from .utils import restrict_to_user_organization
+
 logger = logging.getLogger(__name__)
 import jdatetime
 from django.utils import timezone
@@ -86,16 +89,16 @@ class TanbakhForm(forms.ModelForm):
 
     class Meta:
         model = Tanbakh
-        fields = ['date', 'organization', 'project', 'status', 'hq_status', 'last_stopped_post', 'letter_number',
-                  'due_date', 'current_stage', 'amount', 'description']
+        fields = ['date', 'organization', 'project',   'letter_number',
+                  'due_date',  'amount', 'description']#  'current_stage','last_stopped_post', 'status','hq_status',
         widgets = {
             'organization': forms.Select(attrs={'class': 'form-control'}),
             'project': forms.Select(attrs={'class': 'form-control'}),
             'letter_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('اختیاری')}),
-            'status': forms.Select(attrs={'class': 'form-control'}),
-            'hq_status': forms.Select(attrs={'class': 'form-control'}),
-            'last_stopped_post': forms.Select(attrs={'class': 'form-control'}),
-            'current_stage': forms.Select(attrs={'class': 'form-control'}),
+            # 'status': forms.Select(attrs={'class': 'form-control'}),
+            # 'hq_status': forms.Select(attrs={'class': 'form-control'}),
+            # 'last_stopped_post': forms.Select(attrs={'class': 'form-control'}),
+            # 'current_stage': forms.Select(attrs={'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows':2}),
         }
@@ -103,9 +106,9 @@ class TanbakhForm(forms.ModelForm):
             'date': _('تاریخ'),
             'organization': _('مجتمع'),
             'project': _('پروژه'),
-            'status': _('وضعیت'),
-            'hq_status': _('وضعیت در HQ'),
-            'last_stopped_post': _('آخرین پست متوقف‌شده'),
+            # 'status': _('وضعیت'),
+            # 'hq_status': _('وضعیت در HQ'),
+            # 'last_stopped_post': _('آخرین پست متوقف‌شده'),
             'letter_number': _('شماره نامه درصورت الصاق نامه در اتوماسیون اداری'),
             'amount': _('مبلغ'),
             'description': _('توضیحات'),
@@ -114,8 +117,8 @@ class TanbakhForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        for field in ['current_stage', 'status', 'hq_status', 'last_stopped_post']:
-            self.fields[field].widget = forms.HiddenInput()
+        # for field in ['current_stage',]: #   'last_stopped_post''status', 'hq_status',
+        #     self.fields[field].widget = forms.HiddenInput()
 
 
         if self.user:
@@ -223,28 +226,34 @@ class FactorForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         self.tanbakh = kwargs.pop('tanbakh', None)
         super().__init__(*args, **kwargs)
-        if self.user:
-            user_orgs = [up.post.organization for up in self.user.userpost_set.all()]
-            if self.instance.pk:  # حالت ویرایش
-                self.fields['tanbakh'].queryset = Tanbakh.objects.filter(id=self.instance.tanbakh.id)
-            else:  # حالت ایجاد
-                self.fields['tanbakh'].queryset = Tanbakh.objects.filter(organization__in=user_orgs)
+        initial_stage_order = WorkflowStage.objects.order_by('-order').first().order if WorkflowStage.objects.exists() else None
 
-        # تنظیم queryset برای tanbakh
-        if self.instance.pk:  # حالت ویرایش
+        if self.user:
+            user_orgs = restrict_to_user_organization(self.user)
+            if user_orgs is None:  # HQ یا Superuser
+                self.fields['tanbakh'].queryset = Tanbakh.objects.filter(
+                    status__in=['DRAFT', 'PENDING'],
+                    current_stage__order=initial_stage_order
+                )
+            else:  # شعبات
+                self.fields['tanbakh'].queryset = Tanbakh.objects.filter(
+                    organization__in=user_orgs,
+                    status__in=['DRAFT', 'PENDING'],
+                    current_stage__order=initial_stage_order
+                )
+
+        # تنظیمات برای ویرایش
+        if self.instance.pk:
             self.fields['tanbakh'].queryset = Tanbakh.objects.filter(id=self.instance.tanbakh.id)
             self.fields['tanbakh'].initial = self.instance.tanbakh
-            # تبدیل تاریخ میلادی به جلالی
             if self.instance.date:
                 j_date = jdatetime.date.fromgregorian(date=self.instance.date)
                 jalali_date_str = j_date.strftime('%Y/%m/%d')
                 self.fields['date'].initial = jalali_date_str
-                self.initial['date'] = jalali_date_str  # اطمینان از تنظیم مقدار اولیه
+                self.initial['date'] = jalali_date_str
             self.fields['amount'].initial = convert_to_farsi_numbers(self.instance.amount)
-        else:  # حالت ایجاد
-            self.fields['tanbakh'].queryset = Tanbakh.objects.filter(organization__in=user_orgs, current_stage__order=1)
-            if self.tanbakh:
-                self.fields['tanbakh'].initial = self.tanbakh
+        elif self.tanbakh:
+            self.fields['tanbakh'].initial = self.tanbakh
 
         # غیرفعال کردن فیلدها در صورت عدم دسترسی
         if self.instance.pk and self.user and not self.user.has_perm('tanbakh.Factor_full_edit'):
@@ -258,7 +267,7 @@ class FactorForm(forms.ModelForm):
         try:
             j_date = jdatetime.datetime.strptime(date_str, '%Y/%m/%d')
             gregorian_date = j_date.togregorian()
-            return timezone.make_aware(gregorian_date)  # تبدیل به تاریخ میلادی آگاه از منطقه زمانی
+            return timezone.make_aware(gregorian_date)
         except ValueError:
             raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
 
@@ -269,10 +278,12 @@ class FactorForm(forms.ModelForm):
             for field in self.changed_data:
                 old_value = getattr(old_instance, field)
                 new_value = getattr(instance, field)
-                logger.info(f"تغییر در فاکتور {instance.number}: {field} از {old_value} به {new_value} توسط {self.user}")
+                logger.info(
+                    f"تغییر در فاکتور {instance.number}: {field} از {old_value} به {new_value} توسط {self.user}")
         if commit:
             instance.save()
         return instance
+
 
 class FactorItemForm(forms.ModelForm):
     """فرم ایجاد و ویرایش اقلام فاکتور"""
