@@ -1,4 +1,3 @@
-<!-- tanbakh/templates/tanbakh/factor_approval.html -->
 {% extends "base.html" %}
 {% load i18n %}
 
@@ -26,23 +25,21 @@
                     <th>{% trans "مبلغ" %}</th>
                     <th>{% trans "تعداد" %}</th>
                     <th>{% trans "وضعیت" %}</th>
-                    <th>{% trans "توضیحات" %}</th>
                 </tr>
             </thead>
             <tbody>
-                {% for item in object.items.all %}
+                {% for item in items %}
                 <tr>
                     <td>{{ item.description }}</td>
                     <td>{{ item.amount }}</td>
                     <td>{{ item.quantity }}</td>
-                    <td>{{ form.fields|lookup:"action_"|add:item.id }}</td>
-                    <td>{{ form.fields|lookup:"comment_"|add:item.id }}</td>
+                    <td>{{ item.get_status_display }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
 
-        <button type="submit" class="btn btn-primary">{% trans "ثبت تأییدات" %}</button>
+        <button type="submit" class="btn btn-primary">{% trans "ثبت تأیید" %}</button>
         <a href="{% url 'factor_list' %}" class="btn btn-secondary">{% trans "بازگشت" %}</a>
     </form>
 </div>

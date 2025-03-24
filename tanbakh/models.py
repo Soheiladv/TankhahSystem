@@ -53,7 +53,7 @@ class Tanbakh(models.Model):
     archived_at = models.DateTimeField(null=True, blank=True, verbose_name="زمان آرشیو")
     canceled = models.BooleanField(default=False, verbose_name="لغو شده")
 
-    def generate_number(self):
+    def generate_number_(self):
         """تولید شماره یکتا برای تنخواه"""
         sep = NUMBER_SEPARATOR
         date_str = self.date.strftime('%Y%m%d')
@@ -65,6 +65,39 @@ class Tanbakh(models.Model):
             max_serial = Tanbakh.objects.filter(
                 organization=self.organization,
                 date__date=self.date.date()
+            ).aggregate(Max('number'))['number__max']
+
+            if max_serial:
+                # استخراج شماره سریال از آخرین شماره موجود
+                last_number = max_serial.split(sep)[-1]
+                serial = int(last_number) + 1
+            else:
+                serial = 1
+
+            new_number = f"TNKH{sep}{date_str}{sep}{org_code}{sep}{project_code}{sep}{serial:03d}"
+            # چک کردن یکتایی و افزایش سریال در صورت نیاز
+            while Tanbakh.objects.filter(number=new_number).exists():
+                serial += 1
+                new_number = f"TNKH{sep}{date_str}{sep}{org_code}{sep}{project_code}{sep}{serial:03d}"
+            return new_number
+
+    def generate_number(self):
+        """تولید شماره یکتا برای تنخواه با تاریخ شمسی"""
+        sep = NUMBER_SEPARATOR
+
+        # تبدیل تاریخ میلادی به شمسی
+        import jdatetime
+        jalali_date = jdatetime.datetime.fromgregorian(datetime=self.date)
+        date_str = jalali_date.strftime('%Y%m%d')  # فرمت YYYYMMDD شمسی
+
+        org_code = self.organization.code
+        project_code = self.project.code if self.project else 'NOPRJ'
+
+        # پیدا کردن بالاترین شماره سریال برای این تاریخ و سازمان
+        with transaction.atomic():
+            max_serial = Tanbakh.objects.filter(
+                organization=self.organization,
+                date__date=self.date.date()  # همچنان از تاریخ میلادی برای فیلتر استفاده می‌کنیم
             ).aggregate(Max('number'))['number__max']
 
             if max_serial:
@@ -113,7 +146,7 @@ class Tanbakh(models.Model):
             ('Tanbakh_HQ_FIN_PENDING', _('در حال بررسی - مالی')),
             ('Tanbakh_PAID', _('پرداخت‌شده')),
             ('Tanbakh_REJECTED', _('ردشده')),
-            ("FactorItem_approve", "👍تایید/رد ردیف فاکتور"),
+            ("FactorItem_approve", "👍تایید/رد ردیف فاکتور دفتر مرکزی "),
             ('edit_full_tanbakh','👍😊تغییرات کاربری در فاکتور /تایید یا رد ردیف ها ')
 
         ]

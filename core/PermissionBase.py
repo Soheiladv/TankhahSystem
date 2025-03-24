@@ -71,18 +71,18 @@ class PermissionBaseView(LoginRequiredMixin, View):
     کلاس پایه برای ویوهای کلاس‌محور با چک مجوز و سازمان.
     """
     permission_codenames = []
-    check_organization = False  # فعال‌سازی چک سازمان
-
+    check_organization = False
+    allowed_stages = []  # مراحل مجاز برای دسترسی (مثلاً ['DRAFT', 'PENDING'])
     def dispatch(self, request, *args, **kwargs):
         logger.info(f"Checking permissions for user: {request.user}")
         if not request.user.is_authenticated:
             return self.handle_no_permission()
 
         if request.user.is_superuser:
-            logger.info("User is superuser. Access granted.")
+            logger.info("User is superuser. Access granted.😉")
             return super().dispatch(request, *args, **kwargs)
 
-        # Check each permission
+        # چک کردن مجوزها
         for perm in self.permission_codenames:
             if not request.user.has_perm(perm):
                 user_groups = request.user.groups.all()
@@ -99,6 +99,7 @@ class PermissionBaseView(LoginRequiredMixin, View):
                     if has_perm:
                         break
                 if not has_perm:
+                    # چک سازمان فقط برای ویوهایی که شیء دارند
                     if self.check_organization and hasattr(self, 'get_object'):
                         try:
                             obj = self.get_object()
@@ -110,17 +111,28 @@ class PermissionBaseView(LoginRequiredMixin, View):
                                     messages.warning(request, "شما به این سازمان دسترسی ندارید.")
                                     raise PermissionDenied("شما به این سازمان دسترسی ندارید.")
                         except AttributeError:
-                            logger.warning(f"Organization check failed for object {obj}")
+                            logger.warning("Organization check failed due to missing attributes")
                             messages.warning(request, "خطا در بررسی دسترسی سازمان.")
                             raise PermissionDenied("خطا در بررسی دسترسی سازمان.")
                     logger.warning(f"Access denied for user: {request.user} to permission: {perm}")
                     return self.handle_no_permission()
+
+        # برای CreateView، چک سازمان باید بر اساس داده‌های فرم باشد (نه شیء)
+        if self.check_organization and not hasattr(self, 'get_object'):
+            user_orgs = [up.post.organization for up in request.user.userpost_set.all()] if request.user.userpost_set.exists() else []
+            is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
+            if not is_hq_user and not request.user.is_superuser:
+                logger.warning(f"User {request.user} is not HQ and cannot create tanbakh")
+                messages.warning(request, "فقط کاربران دفتر مرکزی می‌توانند تنخواه ایجاد کنند.")
+                raise PermissionDenied("فقط کاربران دفتر مرکزی می‌توانند تنخواه ایجاد کنند.")
 
         return super().dispatch(request, *args, **kwargs)
 
     def handle_no_permission(self):
         messages.warning(self.request, "شما اجازه دسترسی به این بخش را ندارید.")
         return redirect('factor_list')
+
+
 
 
 """1. برای ویوهای تابع‌محور:"""
