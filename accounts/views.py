@@ -647,10 +647,12 @@ def profile_update_view(request):
         form = ProfileUpdateForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
-            return redirect('profile_update_success')
+            messages.success(request, 'پروفایل شما با موفقیت به‌روزرسانی شد.')
+            return redirect('index')  # بازگشت به همان صفحه
     else:
         form = ProfileUpdateForm(instance=request.user)
     return render(request, 'accounts/users/profile_update.html', {'form': form})
+
 
 @login_required
 def profile_update_success(request):
@@ -1127,3 +1129,17 @@ class LockStatusView(BaseTimeLockView):
             "active_users": context["active_users_count"],
             "max_active_users": context["max_active_users"],
         })
+
+
+@login_required
+def set_theme(request):
+    if request.method == 'POST':
+        theme = request.POST.get('theme')
+        if theme in ['light', 'dark', 'blue', 'green']:
+            # اگر پروفایل وجود ندارد، آن را ایجاد کنید
+            if not hasattr(request.user, 'profile'):
+                CustomProfile.objects.create(user=request.user, theme=theme)
+            else:
+                request.user.profile.theme = theme
+                request.user.profile.save()
+    return redirect(request.META.get('HTTP_REFERER', 'index'))

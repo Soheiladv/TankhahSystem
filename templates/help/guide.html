@@ -1,0 +1,232 @@
+
+
+
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+    <style>
+        body {
+             background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: #007bff;
+            color: white;
+            padding: 30px;
+            border-radius: 15px 15px 0 0;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .section {
+            background: white;
+            margin: 20px 0;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        .section:hover {
+            transform: translateY(-5px);
+        }
+        h2 {
+            color: #007bff;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+        }
+        h3 {
+            color: #0056b3;
+            margin-top: 20px;
+        }
+        .feature-list, .detail-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li, .detail-list li {
+            background: #e9ecef;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .feature-list li i, .detail-list li i {
+            margin-left: 10px;
+            color: #28a745;
+        }
+        .btn-custom {
+            background: #28a745;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s ease;
+        }
+        .btn-custom:hover {
+            background: #218838;
+            color: white;
+        }
+        .logo-section {
+            text-align: center;
+            margin-top: 50px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+        .logo-img {
+            max-width: 200px;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #666;
+            background: #f1f3f5;
+            margin-top: 50px;
+            border-radius: 0 0 15px 15px;
+        }
+        .table-custom th, .table-custom td {
+            padding: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-tachometer-alt me-2"></i> راهنمای پیشرفته سیستم تنخواه‌گردانی</h1>
+            <p>این راهنما شما را با جزئیات نرم‌افزار، مدیریت پست‌ها، کاربران، لاگ‌ها و گزارش‌های آماری آشنا می‌کند.</p>
+        </div>
+
+        <div class="section">
+            <h2>معرفی نرم‌افزار</h2>
+            <p>سیستم تنخواه‌گردانی یک نرم‌افزار جامع برای مدیریت مالی در سازمان‌ها و شعب است که با هدف خودکارسازی فرآیندهای ثبت، تأیید و پیگیری تنخواه‌ها طراحی شده است. این سیستم از تاریخ شمسی برای تولید شماره‌های یکتا استفاده می‌کند و امکان اتصال به ساختار سازمانی، مدیریت کاربران و ارائه گزارش‌های لحظه‌ای را فراهم می‌کند.</p>
+        </div>
+
+        <div class="section">
+            <h2>پست‌ها و اتصال به نرم‌افزار</h2>
+            <h3>تعریف پست‌ها</h3>
+            <p>پست‌ها در این سیستم به‌عنوان نقش‌های سازمانی (مثل مدیر شعبه، کارشناس مالی، تأییدکننده HQ) تعریف می‌شوند که هر کدام وظایف و دسترسی‌های مشخصی دارند.</p>
+            <ul class="detail-list">
+                <li><i class="fas fa-user-tie"></i> هر پست به یک سازمان (شعبه یا دفتر مرکزی) متصل است.</li>
+                <li><i class="fas fa-link"></i> اتصال پست‌ها به مراحل تأیید (Workflow Stages) از طریق مدل <code>StageApprover</code>.</li>
+                <li><i class="fas fa-lock"></i> دسترسی هر پست توسط مدیر سیستم تعیین می‌شود.</li>
+            </ul>
+
+            <h3>اتصال پست‌ها به نرم‌افزار</h3>
+            <p>پست‌ها از طریق جدول <code>Post</code> به کاربران و مراحل کاری متصل می‌شوند:</p>
+            <table class="table table-custom table-bordered">
+                <thead>
+                    <tr>
+                        <th>ویژگی</th>
+                        <th>توضیحات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>نام پست</td>
+                        <td>مانند "مدیر شعبه" یا "کارشناس مالی HQ"</td>
+                    </tr>
+                    <tr>
+                        <td>سازمان</td>
+                        <td>اتصال به یک شعبه یا واحد سازمانی خاص</td>
+                    </tr>
+                    <tr>
+                        <td>مرحله تأیید</td>
+                        <td>اتصال به <code>WorkflowStage</code> برای تعیین نقش در فرآیند</td>
+                    </tr>
+                    <tr>
+                        <td>کاربر</td>
+                        <td>اتصال به <code>CustomUser</code> برای تخصیص به افراد</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>هر کاربر می‌تواند چندین پست داشته باشد و نرم‌افزار به‌طور خودکار دسترسی‌ها را بر اساس پست‌ها تنظیم می‌کند.</p>
+        </div>
+
+        <div class="section">
+            <h2>طراحی مدیریت کاربری</h2>
+            <h3>ساختار مدیریت کاربران</h3>
+            <p>مدیریت کاربران بر اساس مدل <code>CustomUser</code> طراحی شده که امکانات زیر را فراهم می‌کند:</p>
+            <ul class="detail-list">
+                <li><i class="fas fa-users"></i> تعریف نقش‌ها (Role-Based Access Control) مثل مدیر سیستم، تأییدکننده، یا کاربر عادی.</li>
+                <li><i class="fas fa-key"></i> ورود امن با رمزنگاری پیشرفته و امکان SSO (Single Sign-On).</li>
+                <li><i class="fas fa-eye"></i> نمایش پست‌های متصل به هر کاربر در پروفایل.</li>
+                <li><i class="fas fa-shield-alt"></i> مجوزهای دقیق (Permissions) برای هر عملیات (ثبت، تأیید، مشاهده).</li>
+            </ul>
+
+            <h3>فرآیند تخصیص دسترسی</h3>
+            <p>مدیر سیستم می‌تواند از طریق پنل ادمین:</p>
+            <ol>
+                <li>کاربران را به پست‌ها متصل کند.</li>
+                <li>سطح دسترسی (مثل <code>تایید یا رد تنخواه</code>) را تنظیم کند.</li>
+                <li>لاگ‌های فعالیت هر کاربر را بررسی کند.</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>لاگ سیستم</h2>
+            <p>سیستم لاگ برای ردیابی تمام فعالیت‌ها طراحی شده و اطلاعات زیر را ثبت می‌کند:</p>
+            <ul class="detail-list">
+                <li><i class="fas fa-history"></i> زمان و تاریخ هر عملیات (ثبت، تأیید، رد).</li>
+                <li><i class="fas fa-user"></i> شناسه کاربر انجام‌دهنده عملیات.</li>
+                <li><i class="fas fa-file-alt"></i> جزئیات تنخواه مرتبط (شماره، مبلغ، وضعیت).</li>
+                <li><i class="fas fa-download"></i> امکان خروجی‌گیری لاگ‌ها به‌صورت CSV یا PDF.</li>
+            </ul>
+            <p>لاگ‌ها در جدول <code>تاریخچه </code> ذخیره می‌شوند و برای حسابرسی (Audit) و رفع اشکال قابل استفاده‌اند.</p>
+        </div>
+
+        <div class="section">
+            <h2>گزارش‌های آماری لحظه‌ای</h2>
+            <h3>انواع گزارش‌ها</h3>
+            <p>نرم‌افزار گزارش‌های زیر را به‌صورت لحظه‌ای ارائه می‌دهد:</p>
+            <ul class="detail-list">
+                <li><i class="fas fa-chart-bar"></i> تعداد تنخواه‌ها در هر وضعیت (در دست اقدام، تأییدشده، ردشده).</li>
+                <li><i class="fas fa-building"></i> تفکیک تنخواه‌ها بر اساس سازمان یا شعبه.</li>
+                <li><i class="fas fa-clock"></i> میانگین زمان تأیید هر مرحله.</li>
+                <li><i class="fas fa-money-bill"></i> جمع کل مبالغ تنخواه‌ها در بازه زمانی مشخص.</li>
+            </ul>
+
+            <h3>ویژگی‌های گزارش‌دهی</h3>
+            <p>گزارش‌ها از طریق داشبورد قابل دسترسی‌اند و امکانات زیر را دارند:</p>
+            <ul class="detail-list">
+                <li><i class="fas fa-sync"></i> به‌روزرسانی لحظه‌ای با استفاده از WebSocket.</li>
+                <li><i class="fas fa-filter"></i> فیلتر بر اساس تاریخ، سازمان، یا وضعیت.</li>
+                <li><i class="fas fa-chart-pie"></i> نمایش گرافیکی (نمودار میله‌ای، دایره‌ای).</li>
+                <li><i class="fas fa-file-export"></i> خروجی به Excel یا PDF.</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>چگونه شروع کنیم؟</h2>
+            <p>برای استفاده از سیستم، مراحل زیر را دنبال کنید:</p>
+            <ol>
+                <li>ورود با نام کاربری و رمز عبور.</li>
+                <li>مشاهده داشبورد و وضعیت تنخواه‌ها.</li>
+                <li>ثبت تنخواه جدید از منوی "ثبت تنخواه".</li>
+                <li>پیگیری مراحل تأیید و بررسی گزارش‌ها.</li>
+            </ol>
+            <a href="#" class="btn-custom">شروع استفاده</a>
+        </div>
+
+        <div class="logo-section">
+            <h2>لوگوی سیستم</h2>
+            <img src="https://via.placeholder.com/200?text=لوگوی+تنخواه" alt="لوگوی سیستم تنخواه‌گردانی" class="logo-img">
+            <p>این لوگو نمایانگر شفافیت و دقت در مدیریت تنخواه‌هاست.</p>
+        </div>
+
+        <footer>
+            <p>طراحی‌شده توسط تیم توسعه | نسخه ۱.۰ | تاریخ انتشار: ۲۴ مارس ۱۴۰۴</p>
+        </footer>
+    </div>
+
+{% endblock %}

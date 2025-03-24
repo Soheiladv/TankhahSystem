@@ -1,0 +1,603 @@
+{% load static i18n humanize jformat rcms_custom_filters jalali_tags %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% trans "نرم‌افزار RCMS" %}{% endblock %}</title>
+    <link rel="icon" href="{% static 'admin/img/favicon.ico' %}" type="image/x-icon">
+    <!-- CSS های اصلی -->
+    <link href="{% static 'admin/css/bootstrap.rtl.min.css' %}" rel="stylesheet">
+    <link href="{% static 'admin/css/all.min.css' %}" rel="stylesheet">
+    <link href="{% static 'admin/css/animate.min.css' %}" rel="stylesheet">
+    <link href="{% static 'admin/css/custom.css' %}" rel="stylesheet">
+    <!-- CSS فارسی دیتاپیکر -->
+    <link href="{% static 'admin/css/jalalidatepicker.min.css' %}" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'Parastoo';
+            src: url('{% static "admin/fonts/Parastoo.ttf" %}') format('truetype');
+        }
+
+        .persian-datepicker {
+            direction: rtl;
+        }
+
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --navbar-bg: #343a40;
+            --sidebar-bg: #343a40;
+            --footer-bg: #2c3e50;
+            --footer-text-color: #ecf0f1;
+            --sidebar-hover-bg: #51a9ff;
+            --sidebar-active-bg: #5a6268;
+        }
+
+        body {
+            font-family: 'Parastoo', 'Yekan', 'IRANSans', sans-serif;
+            direction: rtl;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* نوار ناوبری */
+        .navbar {
+            background-color: var(--navbar-bg);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand img {
+            width: 40px;
+            margin-left: 10px;
+        }
+
+        .navbar-nav {
+            justify-content: center;
+            width: 100%;
+        }
+
+        .navbar-date {
+            color: #fff;
+            display: flex;
+            align-items: center;
+        }
+
+        /* منوی کناری */
+        .sidebar {
+            position: fixed;
+            top: 56px;
+            right: -250px;
+            width: 250px;
+            height: calc(100vh - 56px);
+            background-color: var(--sidebar-bg);
+            color: #fff;
+            padding: 20px;
+            transition: right 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar.active {
+            right: 0;
+        }
+
+        .sidebar a {
+            color: #fff;
+            padding: 12px 15px;
+            display: block;
+            transition: background-color 0.3s ease;
+        }
+
+        .sidebar a:hover {
+            background-color: var(--sidebar-hover-bg);
+        }
+
+        /* محتوای اصلی */
+        .content {
+            flex: 1;
+            padding: 20px;
+            transition: margin-right 0.3s ease;
+        }
+
+        .content.shifted {
+            margin-right: 250px;
+        }
+
+        /* فوتر */
+        .footer {
+            background-color: var(--footer-bg);
+            color: var(--footer-text-color);
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        /* انیمیشن‌ها */
+        .animate__fadeInUp {
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* واکنش‌گرایی */
+        @media (max-width: 768px) {
+            .sidebar {
+                right: -250px;
+            }
+
+            .content.shifted {
+                margin-right: 0;
+            }
+
+            .navbar-nav {
+                flex-direction: column;
+                text-align: right;
+            }
+        }
+    </style>
+    <!-- DataPicker CSS -->
+    <link rel="stylesheet" href="{% static 'admin/css/custom_datepicker.css' %}">
+
+
+    <style>
+        :root {
+            --primary: #87bcf5;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --danger: #dc3545;
+            --bg-light: #f8f9fa;
+            --sidebar-bg: #343a40;
+            --footer-bg: #2c3e50;
+
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --navbar-bg: #343a40;
+
+            --footer-text-color: #ecf0f1;
+            --table-bg: #ffffff;
+            --table-border-color: #dee2e6;
+            --table-header-bg: #ecf0f1;
+            --table-header-color: #34495e;
+            --table-text-color: #34495e;
+            --sidebar-text: #ffffff;
+            --sidebar-hover-bg: #51a9ff;
+            --sidebar-active-bg: #5a6268;
+            --sidebar-submenu-bg: #2b3035;
+        }
+
+        body {
+            font-family: 'Parastoo', 'Yekan', sans-serif;
+            background-color: var(--bg-light);
+            color: #212529;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        table, th, td {
+            border: 1px solid var(--table-border-color);
+        }
+
+        th {
+            background-color: var(--table-header-bg);
+            color: var(--table-header-color);
+        }
+
+        .navbar {
+            background-color: var(--sidebar-bg);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand img {
+            width: 40px;
+            margin-left: 10px;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -280px;
+            width: 280px;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), #0056b3);
+            z-index: 1050;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .sidebar {
+            height: 100vh;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            right: -250px; /* ابتدا مخفی است */
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 20px;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar .nav-link.active {
+            background-color: var(--sidebar-active-bg);
+        }
+
+        .sidebar.active {
+            right: 0;
+        }
+
+        .sidebar .nav-link {
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 25px;
+            margin: 5px 0;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-5px);
+        }
+ .sidebar .collapse a {
+            font-size: 0.95em;
+            color: rgba(var(--sidebar-text), 0.8);
+            padding: 8px 15px;
+            border-radius: 3px;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            transition: margin-right 0.3s ease;
+        }
+
+        .content.shifted {
+            margin-right: 280px;
+        }
+
+        .footer {
+            background-color: var(--footer-bg);
+            color: var(--footer-text-color);
+        {#color: #ecf0f1;#} padding: 20px 0;
+            text-align: center;
+        }
+
+        .navbar-toggle {
+            position: fixed;
+            top: 65px;
+            right: 15px;
+            z-index: 1100;
+            background: var(--primary);
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            color: #fff;
+        }
+
+        .theme-light {
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --navbar-bg: #343a40;
+            --sidebar-bg: #343a40;
+            --footer-bg: #2c3e50;
+            --footer-text-color: #ecf0f1;
+            --table-bg: #ffffff;
+            --table-border-color: #dee2e6;
+            --table-header-bg: #ecf0f1;
+            --table-header-color: #34495e;
+            --table-text-color: #34495e;
+        }
+
+        .theme-dark {
+            --bg-color: #212529;
+            --text-color: #ffda2b;
+            --navbar-bg: #1a1d20;
+            --sidebar-bg: #1a1d20;
+            --footer-bg: #2c3e50;
+            --footer-text-color: #ecf0f1;
+            --table-bg: #34495e;
+            --table-border-color: #495057;
+            --table-header-bg: #2c3e50;
+            --table-header-color: #ecf0f1;
+            --table-text-color: #ecf0f1;
+        }
+
+        /* Blue Theme */
+        .theme-blue {
+            --bg-color: #e3f2fd;
+            --text-color: #0d47a1;
+            --navbar-bg: #2196f3;
+            --sidebar-bg: #1565c0;
+            --footer-bg: #0d47a1;
+            --footer-text-color: #e3f2fd;
+            --table-bg: #bbdefb;
+            --table-border-color: #90caf9;
+            --table-header-bg: #90caf9;
+            --table-header-color: #1565c0;
+            --table-text-color: #1565c0;
+        }
+
+        /* Green Theme */
+        .theme-green {
+            --bg-color: #f1f8e9;
+            --text-color: #1b5e20;
+            --navbar-bg: #4caf50;
+            --sidebar-bg: #388e3c;
+            --footer-bg: #1b5e20;
+            --footer-text-color: #f1f8e9;
+            --table-bg: #e8f5e9;
+            --table-border-color: #c8e6c9;
+            --table-header-bg: #c8e6c9;
+            --table-header-color: #388e3c;
+            --table-text-color: #388e3c;
+        }
+
+        /* اضافه کردن استایل‌های جدول برای هر تم */
+        body.theme-light table,
+        body.theme-dark table,
+        body.theme-blue table,
+        body.theme-green table {
+            background-color: var(--table-bg);
+        }
+
+        body.theme-light th,
+        body.theme-dark th,
+        body.theme-blue th,
+        body.theme-green th {
+            background-color: var(--table-header-bg);
+            color: var(--table-header-color);
+        }
+
+        body.theme-light td,
+        body.theme-dark td,
+        body.theme-blue td,
+        body.theme-green td {
+            color: var(--table-text-color);
+        }
+
+        /* اطمینان از اینکه مرزها با تم هماهنگ هستند */
+        body.theme-light table,
+        body.theme-light th,
+        body.theme-light td,
+        body.theme-dark table,
+        body.theme-dark th,
+        body.theme-dark td,
+        body.theme-blue table,
+        body.theme-blue th,
+        body.theme-blue td,
+        body.theme-green table,
+        body.theme-green th,
+        body.theme-green td {
+            border-color: var(--table-border-color);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                right: -250px;
+                width: 250px;
+                height: 100vh;
+                transition: right 0.3s ease-in-out;
+                z-index: 1000;
+            }
+
+            /*.sidebar {
+                width: 100%;
+                right: -100%;
+            }*/
+            .content.shifted {
+                margin-right: 0;
+            }
+
+            .navbar-nav {
+                text-align: right;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- نوار ناوبری -->
+<nav class="navbar navbar-expand-md navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'index' %}">
+            <img src="{% static 'admin/img/RCMS2.svg' %}" alt="RCMS">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link text-light" href="{% url 'index' %}">{% trans "خانه" %}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-light" href="sms:+989xxxxxx?body=help ME!"><i
+                            class="fas fa-headset me-2"></i>{% trans "پشتیبانی" %}</a>
+                </li>
+                <li class="nav-item navbar-date animate__animated animate__fadeInUp">
+                    <i class="fas fa-calendar-day me-2"></i>
+                    <span class="text-danger">{% trans "امروز:" %}</span>
+                    <span id="datetime" class="text-warning fw-bold ms-2"></span>
+                </li>
+                <li class="nav-item">
+                    <select id="themeSelector" class="form-select w-auto ms-2">
+                        <option value="light">{% trans "روشن" %}</option>
+                        <option value="dark">{% trans "تاریک" %}</option>
+                        <option value="blue">{% trans "آبی" %}</option>
+                        <option value="green">{% trans "سبز" %}</option>
+                    </select>
+                </li>
+                {% if user.is_authenticated %}
+                    <li class="nav-item text-white ms-3 animate__animated animate__fadeInUp">
+                        <strong><i class="fas fa-user me-2"></i>{{ user.first_name }} {{ user.last_name }}</strong>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- دکمه منو -->
+<button class="navbar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+
+<!-- سایدبار -->
+<div class="sidebar" id="sidebar">
+    <div class="p-3">
+        <div class="text-center mb-4 animate__animated animate__fadeInDown">
+            <img src="{% static 'images/logo.png' %}" alt="لوگو" class="img-fluid rounded-circle"
+                 style="max-width: 80px;">
+            <h5 class="text-white mt-2">{% trans "تنخواه‌گردانی" %}</h5>
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a href="{% url 'index' %}" class="nav-link"><i class="fas fa-home me-2"></i>{% trans "خانه" %}</a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'index' %}" class="nav-link"><i
+                        class="fas fa-tachometer-alt me-2"></i>{% trans "داشبورد" %}</a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'all_links' %}" class="nav-link"><i
+                        class="fas fa-link me-2"></i>{% trans "همه لینک‌ها" %}</a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'organization_list' %}" class="nav-link"><i
+                        class="fas fa-building me-2"></i>{% trans "سازمان‌ها" %}</a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'project_list' %}" class="nav-link"><i
+                        class="fas fa-project-diagram me-2"></i>{% trans "پروژه‌ها" %}</a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'dashboard_flows' %}" class="nav-link"><i
+                        class="fas fa-file-invoice me-2"></i>{% trans "تنخواه‌ها" %}</a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'guide' %}" class="nav-link"><i class="fas fa-book-open me-2"></i>{% trans "راهنما" %}
+                </a>
+            </li>
+        </ul>
+        <div class="mt-4 text-center">
+            {% if user.is_authenticated %}
+                <p class="text-white mb-2 animate__animated animate__fadeInUp"><i
+                        class="fas fa-user me-2"></i>{{ user.first_name }} {{ user.last_name }}</p>
+                <form method="post" action="{% url 'accounts:logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-light w-75 rounded-pill"><i
+                            class="fas fa-sign-out-alt me-2"></i>{% trans "خروج" %}</button>
+                </form>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="btn btn-outline-light w-75 rounded-pill"><i
+                        class="fas fa-sign-in-alt me-2"></i>{% trans "ورود" %}</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- محتوای اصلی -->
+<main class="content" id="mainContent">
+    <div class="container-fluid mt-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show animate__animated animate__fadeIn"
+                     role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<!-- فوتر -->
+<footer class="footer animate__animated animate__fadeInUp">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-4 mb-3">
+                <h5><i class="fas fa-map-marker-alt me-2"></i>{% trans "دفتر ما" %}</h5>
+                <p>{% trans "آدرس دفتر" %}</p>
+            </div>
+            <div class="col-md-4 mb-3">
+                <h5><i class="fas fa-envelope me-2"></i>{% trans "ایمیل" %}</h5>
+                <p><a href="mailto:info@rcms.com" class="text-white">info@rcms.com</a></p>
+            </div>
+            <div class="col-md-4 mb-3">
+                <h5><i class="fas fa-phone me-2"></i>{% trans "تلفن" %}</h5>
+                <p><a href="tel:123-456-7890" class="text-white">123-456-7890</a></p>
+            </div>
+        </div>
+        <p>© 1404 RCMS. {% trans "همه حقوق محفوظ است." %}</p>
+    </div>
+</footer>
+
+<!-- اسکریپت‌ها -->
+<!-- فایل‌های JS -->
+
+<script src="{% static 'admin/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'admin/js/jquery-ui.min.js' %}"></script>
+<script src="{% static 'admin/js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'admin/js/datepicker-fa.js' %}"></script>
+<script src="{% static 'admin/js/django_jalali.min.js' %}"></script>
+<script src="{% static 'admin/js/jalalidatepicker.min.js' %}"></script>
+<script src="{% static 'admin/js/numberFormatter.js' %}"></script>
+<script>
+    $(document).ready(function () {
+        // تاریخ شمسی
+        function updateDateTime() {
+            const now = new Date().toLocaleDateString('fa-IR', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+            $('#datetime').text(now);
+        }
+
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+
+        // کنترل سایدبار
+        const sidebar = $('#sidebar');
+        const toggleBtn = $('#sidebarToggle');
+        const content = $('#mainContent');
+        toggleBtn.on('click', function () {
+            sidebar.toggleClass('active');
+            content.toggleClass('shifted');
+        });
+
+        // تم
+        $('#themeSelector').on('change', function () {
+            document.body.className = 'theme-' + this.value;
+        });
+
+        // تاریخ‌پیکر جلالی
+        jalaliDatepicker.startWatch();
+    });
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
