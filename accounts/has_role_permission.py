@@ -22,7 +22,7 @@ def has_permission(permission_codename):
                 # logger.info(f"Group {group.name} roles: {[role.name for role in group_roles]}")
 
                 for role in group_roles:
-                    logger.info(f"Checking role: {role.name}")
+                    logger.info(f"Checking role😎: {role.name}")
                     if role.permissions.filter(codename=permission_codename).exists():
                         logger.warning(f"Permission {permission_codename} found👍in role {role.name} of group {group.name}. Access granted.👍")
                         return view_func(request, *args, **kwargs)
@@ -38,22 +38,6 @@ def has_permission(permission_codename):
 
         return _wrapped_view
     return decorator
-
-
-
-    #         for role in request.user.roles.all():  # مستقیم به نقش‌های کاربر دسترسی پیدا می‌کنیم
-    #             logger.info(f"Checking role: {role.name}")  # نمایش نام نقش در لاگ
-    #             if role.permissions.filter(codename=permission_codename).exists():
-    #                 logger.info(f"Permission {permission_codename} found for role {role.name}. Access granted.")
-    #                 return view_func(request, *args, **kwargs)
-    #
-    #         logger.error(f"Permission denied for user: {request.user}")
-    #         raise PermissionDenied("شما اجازه دسترسی به این صفحه را ندارید.")
-    #
-    #     return _wrapped_view
-    #
-    # return decorator
-
 
 # باشرط OR کار میکند
 from django.contrib.auth.decorators import permission_required
