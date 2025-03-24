@@ -1,4 +1,4 @@
-
+from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.translation import gettext_lazy as _
@@ -224,8 +224,11 @@ class TanbakhWorkflowView(TemplateView): #help
         context['stages'] = WorkflowStage.objects.all().order_by('order')
         return context
 
+def about(request):
+    return render(request, template_name='about.html')
 
-
+class GuideView(TemplateView):
+    template_name = 'help/guide.html'
 # class Tanbakhsystem_DashboardView(LoginRequiredMixin, TemplateView):
 #     template_name = 'index.html'  # استفاده از index.html شما
 #     extra_context = {'title': _('منوی مدیریت سیستم')}

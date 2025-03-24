@@ -165,6 +165,13 @@ class CustomProfile(models.Model):
     zip_code = models.CharField(max_length=10, blank=True, verbose_name=_("کد پستی"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
 
+    theme = models.CharField(max_length=20, default='light', choices=[
+        ('light', 'روشن'),
+        ('dark', 'تاریک'),
+        ('blue', 'آبی'),
+        ('green', 'سبز'),
+    ])
+
     class Meta:
         verbose_name = _("ساخت پروفایل سفارشی")
         verbose_name_plural = _("ساخت پروفایل سفارشی")

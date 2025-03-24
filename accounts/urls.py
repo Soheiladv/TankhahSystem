@@ -10,7 +10,7 @@ from django.urls import path
 from accounts import views
 from accounts.views import (AdvancedProfileSearchView, user_management_view, dashboard_view,
                             ActiveUserListView, TimeLockCreateView, TimeLockListView,
-                            SetTimeLockView, lock_status,  # AssignRoleToUserView,
+                            SetTimeLockView, lock_status, set_theme,  # AssignRoleToUserView,
                             )
 from .views import (
     RoleListView, RoleCreateView, RoleUpdateView, RoleDeleteView,
@@ -117,6 +117,8 @@ urlpatterns = [
                   # Profile URLs
                   path('profile/update/', profile_update_view, name='profile_update'),
                   path('profile/update/success/', profile_update_success, name='profile_update_success'),
+                  # path('profile/update/success/', profile_update_success_view, name='profile_update_success'),
+                  # مسیر جدید
 
                   # Password Reset URLs
                   path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
@@ -185,4 +187,9 @@ urlpatterns = [
 
                   # Heartbeat
                   path('heartbeat/', heartbeat_view, name='heartbeat'),
+
+                  path('set_theme/', set_theme, name='set_theme'),# User Color
+
+
+
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

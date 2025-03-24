@@ -48,5 +48,5 @@ urlpatterns += [
     path('factor/<int:pk>/approve/', FactorApproveView.as_view(), name='factor_approve'),
     path('factor-item/<int:pk>/approve/', FactorItemApproveView.as_view(), name='factor_item_approve'),
     path('factor-item/<int:pk>/reject/', FactorItemRejectView.as_view(), name='factor_item_reject'),
-    # سایر مسیرها...
+ 
 ]

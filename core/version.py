@@ -1,2 +1,2 @@
-VERSION = '5.2.0.10'
-VERBOSE_NAME = 'Core'
+VERSION = '5.2.0.32'
+VERBOSE_NAME = 'مدیریت ساختار نرم افزار تنخواه گردان'

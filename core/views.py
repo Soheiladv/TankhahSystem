@@ -469,7 +469,7 @@ class PostListView(PermissionBaseView, ListView):
     model = Post
     template_name = 'core/post/post_list.html'
     context_object_name = 'posts'
-    paginate_by = 25
+    paginate_by = 10
     extra_context = {'title': _('لیست پست‌های سازمانی')}
     permission_codenames = ['core.Post_view']
 
