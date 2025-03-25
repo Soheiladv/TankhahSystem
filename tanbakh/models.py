@@ -13,6 +13,19 @@ NUMBER_SEPARATOR = getattr(settings, 'NUMBER_SEPARATOR', '-')
 
 def get_default_workflow_stage():
     return WorkflowStage.objects.get(name='HQ_INITIAL').id  # نام را با 'HQ_ITDC' جایگزین کنید اگر متفاوت است
+
+def tanbakh_document_path(instance, filename):
+    # پوشه با نام تنخواه
+    return f'tankhah_documents/{instance.tanbakh.number}/{filename}'
+
+class TanbakhDocument(models.Model):
+    tanbakh = models.ForeignKey('Tanbakh', on_delete=models.CASCADE, related_name='documents')
+    document = models.FileField(upload_to=tanbakh_document_path, verbose_name="سند")
+    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ آپلود")
+
+    def __str__(self):
+        return f"سند {self.tanbakh.number} - {self.uploaded_at}"
+
 class Tanbakh(models.Model):
     """مدل تنخواه برای ثبت و مدیریت درخواست‌های مالی"""
     STATUS_CHOICES = (
@@ -37,8 +50,6 @@ class Tanbakh(models.Model):
     created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='tanbakh_created', verbose_name=_("ایجادکننده"))
     approved_by = models.ManyToManyField(CustomUser, blank=True, verbose_name=_('تأییدکنندگان'))
     description = models.TextField(verbose_name=_("توضیحات"))
-
-    # current_stage = models.ForeignKey(WorkflowStage, on_delete=models.PROTECT, verbose_name=_('مرحله فعلی'))
     current_stage = models.ForeignKey(WorkflowStage,
               on_delete=models.SET_NULL,null=True,default=1,#get_default_workflow_stage,  # پیش‌فرض: ثبت در دفتر مرکزی
         verbose_name="مرحله فعلی")

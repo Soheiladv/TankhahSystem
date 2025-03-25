@@ -1,7 +1,10 @@
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.shortcuts import render, redirect
+
+from core.PermissionBase import PermissionBaseView
 from .models import AppVersion, FinalVersion, CodeChangeLog, FileHash
 from .forms import AppVersionForm
 import logging
@@ -222,9 +225,8 @@ class FileHashListView(ListView):
 #############
 MONITORED_APPS = {'RCMS', 'hse', 'Reservations', 'facility', 'core', 'accounts', 'version_tracker'}
 from django.apps import apps
-
-def update_versions_view(request):
-    """به‌روزرسانی نسخه‌ها از طریق رابط کاربری"""
+@login_required(login_url='/accounts/login/')
+def update_versions_view1(request):
     if request.method == 'POST':
         updates = {}
         try:
@@ -232,7 +234,6 @@ def update_versions_view(request):
                 if app_config.name not in MONITORED_APPS:
                     logger.debug(f"Skipping app: {app_config.name} (not in monitored apps)")
                     continue
-
                 app_name = app_config.name
                 app_path = app_config.path
                 logger.info(f"Checking {app_name} for changes...")
@@ -241,7 +242,7 @@ def update_versions_view(request):
                     updates[app_name] = new_version.version_number
 
             if updates:
-                FinalVersion.calculate_final_version()  # به‌روزرسانی نسخه نهایی
+                FinalVersion.calculate_final_version()
                 messages.success(request, f"نسخه‌ها به‌روزرسانی شدند: {updates}")
                 logger.info(f"Versions updated: {updates}")
             else:
@@ -251,13 +252,58 @@ def update_versions_view(request):
             messages.error(request, f"خطا در به‌روزرسانی: {str(e)}")
             logger.error(f"Error updating versions: {str(e)}", exc_info=True)
 
-    # نمایش صفحه Index با اطلاعات فعلی
-    final_version = FinalVersion.objects.filter(is_active=True).first()
-    app_versions = AppVersion.objects.all().order_by('-release_date')[:10]
+    try:
+        final_version_obj = FinalVersion.objects.filter(is_active=True).latest('release_date')
+        final_version = final_version_obj.version_number
+        release_date = final_version_obj.release_date
+    except FinalVersion.DoesNotExist:
+        final_version = None
+        release_date = None
 
+    app_versions = AppVersion.objects.all().order_by('-release_date')[:10]
     context = {
-        'final_version': final_version.version_number if final_version else "نسخه نهایی تعریف نشده",
-        'release_date': final_version.release_date if final_version else None,
+        'final_version': final_version,
+        'release_date': release_date,
+        'app_versions': app_versions,
+    }
+    return render(request, 'versions/lastVersion.html', context)
+
+ 
+@login_required(login_url='/accounts/login/')
+def update_versions_view(request):
+    if request.method == 'POST':
+        updates = {}
+        try:
+            for app_config in apps.get_app_configs():
+                if app_config.name not in MONITORED_APPS:
+                    logger.debug(f"Skipping app: {app_config.name}")
+                    continue
+                app_name = app_config.name
+                app_path = app_config.path
+                new_version = AppVersion.update_version(app_path, app_name)
+                if new_version:
+                    updates[app_name] = new_version.version_number
+
+            if updates:
+                FinalVersion.calculate_final_version()
+                messages.success(request, f"نسخه‌ها به‌روزرسانی شدند: {updates}")
+            else:
+                messages.info(request, "هیچ تغییری تشخیص داده نشد.")
+        except Exception as e:
+            messages.error(request, f"خطا در به‌روزرسانی: {str(e)}")
+
+    try:
+        final_version_obj = FinalVersion.objects.filter(is_active=True).latest('release_date')
+        final_version = final_version_obj.version_number
+        release_date = final_version_obj.release_date
+    except FinalVersion.DoesNotExist:
+        final_version = None
+        release_date = None
+
+    app_versions = AppVersion.objects.all().order_by('-release_date')[:10]
+    context = {
+        'final_version': final_version,
+        'release_date': release_date,
         'app_versions': app_versions,
     }
     return render(request, 'versions/lastVersion.html', context)

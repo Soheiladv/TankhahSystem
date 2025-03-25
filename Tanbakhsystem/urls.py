@@ -20,6 +20,7 @@ urlpatterns = [
                   path('core/', include('core.urls')),
                   path('reports/', include('reports.urls')),
                   path('tanbakh/', include('tanbakh.urls')),  # اضافه کردن اپلیکیشن tanbakh
+                  path('version_tracker/', include('version_tracker.urls')),  # اضافه کردن اپلیکیشن tanbakh
                   path('workflow/', TanbakhWorkflowView.as_view(), name='workflow'),  # help workflow
 
                   path('about/', views.about, name='about'),

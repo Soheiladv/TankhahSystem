@@ -5,7 +5,8 @@ from django.urls import path
 from tanbakh.views import TanbakhDetailView, TanbakhCreateView, TanbakhDeleteView, \
     FactorListView, FactorDetailView, FactorUpdateView, FactorCreateView, ApprovalListView, FactorDeleteView, \
     ApprovalCreateView, ApprovalDetailView, ApprovalUpdateView, ApprovalDeleteView, DashboardView, TanbakhListView, \
-    TanbakhApproveView, TanbakhRejectView, FactorItemApproveView, FactorApproveView, FactorItemRejectView
+    TanbakhApproveView, TanbakhRejectView, FactorItemApproveView, FactorApproveView, FactorItemRejectView, \
+    upload_tanbakh_documents
 
 urlpatterns = [
     # path('IndexView_dashboard/', IndexView.as_view(), name='IndexView_dashboard'),  # مسیر اصلی داشبورد
@@ -48,5 +49,10 @@ urlpatterns += [
     path('factor/<int:pk>/approve/', FactorApproveView.as_view(), name='factor_approve'),
     path('factor-item/<int:pk>/approve/', FactorItemApproveView.as_view(), name='factor_item_approve'),
     path('factor-item/<int:pk>/reject/', FactorItemRejectView.as_view(), name='factor_item_reject'),
- 
+
 ]
+urlpatterns += [
+    # path('upload/<int:tanbakh_id>/', upload_documents, name='upload_documents'),
+    path('<int:tanbakh_id>/upload/', upload_tanbakh_documents, name='upload_tanbakh_documents'),
+
+] # آپلود تصویر

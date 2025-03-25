@@ -14,7 +14,10 @@ print("All ApprovalLogs deleted.")
 Tanbakh.objects.all().delete()
 print("All Tanbakhs deleted.")
 
-
+<strong>{% trans "تفاوت:" %}</strong>
+                            <span class="badge fs-5 {{ difference|floatformat:0| yesno:'bg-success,bg-danger,bg-warning' }} text-white">
+                                {{ difference|format_negative}}
+                            </span> {% trans "ریال" %}
 یک سناریو تعریف میکنم :
 سیستم برای بررسی و ارسال تنخواه یک مجموعه :
 که باید با توجه به سلسه مراتب بررسی و تایید بشه :سلسله مراتب را در سناریو تعریف کنیم یعنی درختواره یک سازمان : کارشناس ثبت رویس تایید کننده و یا ... این مراتب را باید در تایید و ارسال در نظر داشت.
