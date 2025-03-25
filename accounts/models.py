@@ -1,8 +1,6 @@
 import datetime
 import logging
-
 from django.utils.timezone import now
-
 logger = logging.getLogger(__name__)
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -287,10 +285,6 @@ class AuditLog(models.Model):
         ]
 ####
 class ActiveUser(models.Model):
-    """
-        مدل برای ردیابی کاربران فعال در سیستم
-        این مدل اطلاعات ورود، فعالیت و محدودیت‌های کاربران را مدیریت می‌کند.
-    """
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -306,7 +300,7 @@ class ActiveUser(models.Model):
         null=False,
         verbose_name=_("کلید سشن"),
         help_text=_("شناسه یکتا برای سشن کاربر"),
-        db_index=True,  # ایندکس برای جستجوی سریع‌تر
+        db_index=True,
     )
     login_time = models.DateTimeField(
         auto_now_add=True,
@@ -328,7 +322,7 @@ class ActiveUser(models.Model):
         db_index=True,
     )
     user_ip = models.GenericIPAddressField(
-        protocol='both',  # پشتیبانی از IPv4 و IPv6
+        protocol='both',
         unpack_ipv4=False,
         verbose_name=_("آی‌پی کاربر"),
         blank=True,
@@ -354,70 +348,49 @@ class ActiveUser(models.Model):
         help_text=_("زمان خروج کاربر از سیستم، در صورت ثبت"),
     )
 
-    # ثابت‌های مدل (Constants)
-    # MAX_ACTIVE_USERS = 5  # حداکثر تعداد کاربران مجاز (قابل تنظیم)
-    MAX_ACTIVE_USERS = getattr(settings, 'MAX_ACTIVE_USERS', 2)  # از تنظیمات می‌خونه یا پیش‌فرض 5
+    # MAX_ACTIVE_USERS = getattr(settings, 'MAX_ACTIVE_USERS')#, 2)
 
     class Meta:
-        # نام‌های نمایشی
         verbose_name = _("کاربر فعال")
         verbose_name_plural = _("کاربران فعال")
-        # مجوزها
-        default_permissions = []  # غیرفعال کردن مجوزهای پیش‌فرض
+        default_permissions = []
         permissions = [
             ('activeuser_view', _('نمایش تعداد کاربر دارای مجوز برای کار در سیستم')),
             ('activeuser_add', _('افزودن تعداد کاربر دارای مجوز برای کار در سیستم')),
             ('activeuser_update', _('آپدیت تعداد کاربر دارای مجوز برای کار در سیستم')),
             ('activeuser_delete', _('حذف تعداد کاربر دارای مجوز برای کار در سیستم')),
         ]
-        # ایندکس‌ها
         indexes = [
-            models.Index(fields=['user', 'session_key'], name='idx_user_session'),
+            # models.Index(fields=['session_key'], name='idx_user_session'),
+            models.Index(fields=['user'], name='idx_user'),
             models.Index(fields=['last_activity'], name='idx_last_activity'),
         ]
-
-        # محدودیت‌ها (Constraints)
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'session_key'],
+                fields=['user'],#, 'session_key'],
                 name='unique_user_session',
-                violation_error_message=_("هر کاربر تنها می‌تواند یک سشن با کلید مشخص داشته باشد.")
-            ),
+                violation_error_message=_("هر کاربر تنها می‌تواند یک سشن فعال داشته باشد.")            ),
             models.CheckConstraint(
                 check=models.Q(login_time__lte=models.F('last_activity')),
                 name='check_login_before_activity',
-                violation_error_message=_("زمان ورود باید قبل از آخرین فعالیت باشد.")
-            ),
+                violation_error_message=_("هر کاربر تنها می‌تواند یک سشن فعال داشته باشد.")            ),
         ]
-
-        # تنظیمات مرتب‌سازی
         ordering = ['-last_activity', 'user']
-
-        # تنظیمات دیتابیس
-        # db_table = 'active_users'  # نام جدول در دیتابیس
-        # db_tablespace = 'active_users_space'  # فضای جدول (در صورت استفاده از دیتابیس خاص)
-        managed = True  # آیا جنگو جدول را مدیریت کند؟
-        app_label = 'accounts'  # نام اپلیکیشن (در صورت نیاز به تعیین دستی)
-
-        # سایر تنظیمات متا
-        get_latest_by = 'last_activity'  # برای متد latest()
-        abstract = False  # مدل انتزاعی نیست
-        swappable = False  # مدل قابل تعویض نیست
+        app_label = 'accounts'
 
     @classmethod
     def remove_inactive_users(cls):
         """پاکسازی کاربران غیرفعال و حذف سشن‌های قدیمی"""
-        inactivity_threshold = now() - datetime.timedelta(minutes=30)  # ۳۰ دقیقه
+        inactivity_threshold = now() - datetime.timedelta(minutes=30)
         inactive_users = cls.objects.filter(last_activity__lt=inactivity_threshold)
         if inactive_users.exists():
             for user in inactive_users:
-                # logger.warning(f"حذف کاربر غیرفعال: {user.user.username} (آی‌پی: {user.user_ip})")
+                logger.info(f"حذف کاربر غیرفعال: {user.user.username} (آی‌پی: {user.user_ip})")
                 from django.contrib.sessions.models import Session
                 Session.objects.filter(session_key=user.session_key).delete()
                 user.delete()
-        # else:
-        #     logger.info("هیچ کاربر غیرفعالی برای حذف یافت نشد.")
-
+        else:
+            logger.info("هیچ کاربر غیرفعالی برای حذف یافت نشد.")
 
     @classmethod
     def delete_expired_sessions(cls):
@@ -428,21 +401,33 @@ class ActiveUser(models.Model):
             cls.objects.filter(session_key=session.session_key).delete()
             session.delete()
 
-
-
     def save(self, *args, **kwargs):
         """هش کردن تعداد کاربران فعال"""
-        active_count = ActiveUser.objects.count()
-        self.last_activity = now()  # همیشه آخرین فعالیت را به‌روزرسانی کن
+        active_count = ActiveUser.objects.filter(last_activity__gte=now() - datetime.timedelta(minutes=30)).count()
+        self.last_activity = now()
         self.hashed_count = hashlib.sha256(str(active_count).encode()).hexdigest()
         super().save(*args, **kwargs)
 
     @classmethod
     def can_login(cls, session_key):
         """بررسی اینکه آیا کاربر جدید می‌تونه وارد بشه"""
-        current_count = cls.objects.count()
-        return current_count < cls.MAX_ACTIVE_USERS
+        active_count = cls.objects.filter(
+            last_activity__gte=now() - datetime.timedelta(minutes=30)
+        ).count()
+        max_users = cls.get_max_active_users()
+        logger.info(
+            f"کاربران فعال: {cls.objects.filter(last_activity__gte=now() - datetime.timedelta(minutes=30)).values_list('user__username', flat=True)}")
+        return active_count < max_users # and not cls.objects.filter(session_key=session_key).exists()
 
     def __str__(self):
         return f"{self.user.username} - {self.session_key} - {self.login_time}"
+
+    @classmethod
+    def get_max_active_users(cls):
+            """گرفتن حداکثر تعداد کاربران از TimeLockModel"""
+            from core.models import TimeLockModel
+            expiry_date, max_users, _, _ = TimeLockModel.get_latest_lock()
+            return max_users if max_users is not None else getattr(settings, 'MAX_ACTIVE_USERS', 2)
+
+
 ############# Security Lock

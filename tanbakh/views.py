@@ -2,33 +2,33 @@ import logging
 
 import jdatetime
 from django.contrib import messages
-from django.contrib.auth.mixins import   PermissionRequiredMixin
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q
-from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy
-from django.utils.decorators import method_decorator
-from django.utils.translation import gettext_lazy as _
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
-# ---
-from django.views.generic import TemplateView
-
-from core.PermissionBase  import PermissionBaseView
-from accounts.has_role_permission import has_permission
-from accounts.models import CustomUser
-from core.models import UserPost, Post, WorkflowStage
-from .forms import ApprovalForm, FactorItemApprovalForm, FactorApprovalForm
-from .forms import FactorForm, FactorItemFormSet
-from .forms import TanbakhForm, FactorDocumentFormSet, TanbakhApprovalForm
-from .models import Factor, ApprovalLog, FactorItem
-from .models import Tanbakh, StageApprover
-from .utils import restrict_to_user_organization
 from django.forms import formset_factory
-
-logger = logging.getLogger(__name__)
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse_lazy
+from django.utils.translation import gettext_lazy as _
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View, TemplateView
+from jalali_date.fields import JalaliDateField
 from notifications.signals import notify
-from .forms import TanbakhStatusForm
+
+from accounts.models import CustomUser
+# Local imports
+from core.PermissionBase import PermissionBaseView
+from core.models import UserPost, Post, WorkflowStage
+from .forms import (
+    ApprovalForm, FactorItemApprovalForm, FactorApprovalForm, TanbakhDocumentForm, FactorDocumentForm, FactorForm,
+    FactorItemFormSet, TanbakhForm, TanbakhStatusForm
+)
+from .models import (
+    Factor, ApprovalLog, FactorItem, TanbakhDocument, FactorDocument, Tanbakh)
+from .utils import restrict_to_user_organization
+
+# Logger configuration
+logger = logging.getLogger(__name__)
 
 
 # -------
@@ -69,6 +69,7 @@ class DashboardView(PermissionBaseView, TemplateView):
 
         return context
 
+
 # ثبت و ویرایش تنخواه
 # @method_decorator(has_permission('Tanbakh_add'), name='dispatch')
 class TanbakhManageView(PermissionBaseView, CreateView):
@@ -90,6 +91,7 @@ class TanbakhManageView(PermissionBaseView, CreateView):
         context = super().get_context_data(**kwargs)
         context['title'] = _('مدیریت تنخواه')
         return context
+
 
 # تأیید و ویرایش تنخواه
 # @method_decorator(has_permission('Tanbakh_part_approve'), name='dispatch')
@@ -121,6 +123,7 @@ class TanbakhUpdateView(PermissionBaseView, UpdateView):
         context = super().get_context_data(**kwargs)
         context['title'] = _('ویرایش و تأیید تنخواه') + f" - {self.object.number}"
         return context
+
 
 # -------
 class TanbakhCreateView(PermissionBaseView, CreateView):
@@ -193,7 +196,6 @@ class TanbakhCreateView(PermissionBaseView, CreateView):
         return super().handle_no_permission()
 
 
-
 class TanbakhListView1(PermissionBaseView, PermissionRequiredMixin, ListView):
     model = Tanbakh
     template_name = 'tanbakh/tanbakh_list.html'
@@ -203,13 +205,14 @@ class TanbakhListView1(PermissionBaseView, PermissionRequiredMixin, ListView):
 
     # لیست مجوزها
     permission_required = (
-        'tanbakh.Tanbakh_view','Tanbakh_update','Tanbakh_add',
+        'tanbakh.Tanbakh_view', 'Tanbakh_update', 'Tanbakh_add',
         'tanbakh.Tanbakh_approve',
         'tanbakh.Tanbakh_part_approve',
-        'tanbakh.FactorItem_approve','edit_full_tanbakh',
+        'tanbakh.FactorItem_approve', 'edit_full_tanbakh',
         'Tanbakh_hq_view',
-        'Tanbakh_hq_approve','Tanbakh_HQ_OPS_PENDING','Tanbakh_HQ_OPS_APPROVED',"FactorItem_approve"
+        'Tanbakh_hq_approve', 'Tanbakh_HQ_OPS_PENDING', 'Tanbakh_HQ_OPS_APPROVED', "FactorItem_approve"
     )
+
     def has_permission(self):
         # چک کردن اینکه کاربر حداقل یکی از مجوزها را دارد
         return any(self.request.user.has_perm(perm) for perm in self.get_permission_required())
@@ -255,7 +258,8 @@ class TanbakhListView1(PermissionBaseView, PermissionRequiredMixin, ListView):
         context['show_archived'] = self.request.GET.get('show_archived', 'false') == 'true'
         return context
 
-class TanbakhListView(PermissionBaseView,  ListView):
+
+class TanbakhListView(PermissionBaseView, ListView):
     model = Tanbakh
     template_name = 'tanbakh/tanbakh_list.html'
     context_object_name = 'tanbakhs'
@@ -274,7 +278,8 @@ class TanbakhListView(PermissionBaseView,  ListView):
         """فیلتر کردن تنخواه‌ها بر اساس سازمان کاربر"""
         qs = super().get_queryset()
         user = self.request.user
-        user_orgs = [up.post.organization for up in self.request.user.userpost_set.all()] if self.request.user.userpost_set.exists() else []
+        user_orgs = [up.post.organization for up in
+                     self.request.user.userpost_set.all()] if self.request.user.userpost_set.exists() else []
         is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
 
         # اگر کاربر HQ است، همه تنخواه‌ها را نشان بده، در غیر این صورت فقط تنخواه‌های سازمان کاربر
@@ -331,6 +336,7 @@ class TanbakhListView(PermissionBaseView,  ListView):
             context['org_display_name'] = _('بدون سازمان')
         return context
 
+
 class TanbakhDetailView(PermissionBaseView, PermissionRequiredMixin, DetailView):
     model = Tanbakh
     template_name = 'tanbakh/tanbakh_detail.html'
@@ -338,9 +344,10 @@ class TanbakhDetailView(PermissionBaseView, PermissionRequiredMixin, DetailView)
 
     # مجوزهای نمایشی (حداقل یکی لازم است)
     permission_required = (
-        'tanbakh.Tanbakh_view','Tanbakh_update',
-        'tanbakh.Tanbakh_hq_view','Tanbakh_HQ_OPS_APPROVED','edit_full_tanbakh'
+        'tanbakh.Tanbakh_view', 'Tanbakh_update',
+        'tanbakh.Tanbakh_hq_view', 'Tanbakh_HQ_OPS_APPROVED', 'edit_full_tanbakh'
     )
+
     def has_permission(self):
         # کاربر باید حداقل یکی از مجوزهای نمایشی را داشته باشد
         return any(self.request.user.has_perm(perm) for perm in self.get_permission_required())
@@ -355,7 +362,7 @@ class TanbakhDetailView(PermissionBaseView, PermissionRequiredMixin, DetailView)
         context['factors'] = self.object.factors.all()
         context['title'] = _('جزئیات تنخواه') + f" - {self.object.number}"
         context['approval_logs'] = ApprovalLog.objects.filter(tanbakh=self.object).order_by('timestamp')
-        context['current_date'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M') # تاریخ فعلی برای چاپ
+        context['current_date'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')  # تاریخ فعلی برای چاپ
         context['status_form'] = TanbakhStatusForm(instance=self.object)
         context['title'] = _('جزئیات تنخواه') + f" - {self.object.number}"
 
@@ -368,13 +375,14 @@ class TanbakhDetailView(PermissionBaseView, PermissionRequiredMixin, DetailView)
             approval.jalali_date = jdatetime.datetime.fromgregorian(datetime=approval.timestamp).strftime(
                 '%Y/%m/%d %H:%M')
 
- # دسته‌بندی برای دفتر مرکزی
+        # دسته‌بندی برای دفتر مرکزی
         user_orgs = [up.post.organization for up in self.request.user.userpost_set.all()]
         context['is_hq'] = any(org.org_type == 'HQ' for org in user_orgs)
         context['can_approve'] = self.request.user.has_perm('tanbakh.Tanbakh_approve') or \
                                  self.request.user.has_perm('tanbakh.Tanbakh_part_approve') or \
                                  self.request.user.has_perm('tanbakh.FactorItem_approve')
         return context
+
 
 # @method_decorator(has_permission('Tanbakh_delete'), name='dispatch')
 class TanbakhDeleteView(PermissionBaseView, DeleteView):
@@ -385,6 +393,7 @@ class TanbakhDeleteView(PermissionBaseView, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('تنخواه با موفقیت حذف شد.'))
         return super().delete(request, *args, **kwargs)
+
 
 # ویو تأیید:
 class TanbakhApproveView(PermissionBaseView, View):
@@ -406,7 +415,8 @@ class TanbakhApproveView(PermissionBaseView, View):
             # اعلان به تأییدکنندگان مرحله بعدی
             approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=next_stage)
             if approvers.exists():
-                notify.send(sender=request.user, recipient=approvers, verb='تنخواه برای تأیید آماده است', target=tanbakh)
+                notify.send(sender=request.user, recipient=approvers, verb='تنخواه برای تأیید آماده است',
+                            target=tanbakh)
         else:
             tanbakh.status = 'COMPLETED'
             tanbakh.save()
@@ -429,7 +439,6 @@ class TanbakhRejectView(PermissionBaseView, View):
         tanbakh.save()
         messages.error(request, _('تنخواه رد شد.'))
         return redirect('dashboard_flows')
-
 
 
 # ویو نهایی تنخواه تایید یا رد شده
@@ -474,7 +483,21 @@ class ApprovalLogListView(PermissionBaseView, ListView):
     def get_queryset(self):
         return ApprovalLog.objects.filter(tanbakh__number=self.kwargs['tanbakh_number']).order_by('-timestamp')
 
+
 # --- Factor Views ---
+from django.utils.translation import gettext_lazy as _
+from persiantools.jdatetime import JalaliDate  # ایمپورت درست
+from datetime import datetime
+
+# tanbakh/views.py
+from django.views.generic.list import ListView
+from django.db.models import Q
+from .models import Factor
+from core.views import PermissionBaseView
+from django.utils.translation import gettext_lazy as _
+from datetime import datetime
+from jalali_date import date2jalali  # برای نمایش، ولی برای پارس برعکسش رو دستی می‌کنیم
+
 class FactorListView(PermissionBaseView, ListView):
     model = Factor
     template_name = 'tanbakh/factor_list.html'
@@ -486,7 +509,7 @@ class FactorListView(PermissionBaseView, ListView):
         user = self.request.user
         user_posts = user.userpost_set.all()
         if not user_posts.exists():
-            return Factor.objects.none()  # اگر کاربر به پستی متصل نیست، چیزی نشان نده
+            return Factor.objects.none()
 
         user_orgs = [up.post.organization for up in user.userpost_set.all()]
         is_hq_user = any(up.post.organization.org_type == 'HQ' for up in user.userpost_set.all())
@@ -498,91 +521,76 @@ class FactorListView(PermissionBaseView, ListView):
 
         query = self.request.GET.get('q', '').strip()
         date_query = self.request.GET.get('date', '').strip()
-        if query or date_query:
+        status_query = self.request.GET.get('status', '').strip()
+
+        if query or date_query or status_query:
             filter_conditions = Q()
             if query:
                 filter_conditions |= (
-                        Q(number__icontains=query) |
-                        Q(tanbakh__number__icontains=query) |
-                        Q(amount__icontains=query) |
-                        Q(description__icontains=query) |
-                        Q(status__icontains=query)
+                    Q(number__icontains=query) |
+                    Q(tanbakh__number__icontains=query) |
+                    Q(amount__icontains=query) |
+                    Q(description__icontains=query)
                 )
             if date_query:
-                filter_conditions &= Q(date=date_query)
+                try:
+                    if len(date_query) == 4:  # فقط سال
+                        year = int(date_query)
+                        gregorian_year = year - 621
+                        filter_conditions &= Q(date__year=gregorian_year)
+                    else:  # تاریخ کامل
+                        year, month, day = map(int, date_query.split('-'))
+                        gregorian_date = JalaliDate(year, month, day).to_gregorian()
+                        filter_conditions &= Q(date=gregorian_date)
+                except (ValueError, Exception):
+                    filter_conditions &= Q(date__isnull=True)
+            if status_query:
+                filter_conditions &= Q(status=status_query)
             queryset = queryset.filter(filter_conditions).distinct()
+
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = _('لیست فاکتورها')
         context['query'] = self.request.GET.get('q', '')
+        context['date_query'] = self.request.GET.get('date', '')
+        context['status_query'] = self.request.GET.get('status', '')
         context['is_hq'] = any(up.post.organization.org_type == 'HQ' for up in self.request.user.userpost_set.all())
         return context
 
-class FactorDetailView(PermissionBaseView, UpdateView):
+
+class FactorDetailView(PermissionBaseView, DetailView):
     model = Factor
-    form_class = FactorForm
-    template_name = 'tanbakh/factor_detail.html'
+    template_name = 'tanbakh/factor_detail.html'  # تمپلیت نمایشی جدید
     context_object_name = 'factor'
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
-    permission_codename =  'tanbakh.a_factor_view'
-    check_organization = True  # فعال کردن چک سازمان
-    success_url = reverse_lazy('factor_list')
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user  # ارسال user به فرم
-        return kwargs
+    permission_codename = 'tanbakh.a_factor_view'
+    check_organization = True
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         factor = self.get_object()
+        tanbakh = factor.tanbakh
 
-        if self.request.POST:
-            context['item_formset'] = FactorItemFormSet(self.request.POST, self.request.FILES, instance=factor)
-            context['document_formset'] = FactorDocumentFormSet(self.request.POST, self.request.FILES, instance=factor)
-        else:
-            context['item_formset'] = FactorItemFormSet(instance=factor)
-            context['document_formset'] = FactorDocumentFormSet(instance=factor)
+        context['title'] = _('جزئیات فاکتور') + f" - {factor.number}"
+        context['tanbakh'] = tanbakh
+        context['tanbakh_documents'] = tanbakh.documents.all()
 
-        context['items'] = factor.items.all()
-        context['title'] = _('جزئیات و ویرایش فاکتور') + f" - {factor.number}"
-
-        factor = self.get_object()
         # محاسبه جمع کل و جمع هر آیتم
         items_with_total = [
             {'item': item, 'total': item.amount * item.quantity}
             for item in factor.items.all()
         ]
         context['items_with_total'] = items_with_total
-        context['total_amount'] = sum(item.amount * item.quantity for item in self.object.items.all())
+        context['total_amount'] = sum(item['total'] for item in items_with_total)
+        context['difference'] = factor.amount - context['total_amount'] if factor.amount else 0
+
         return context
-
-    def form_valid(self, form):
-        context = self.get_context_data()
-        item_formset = context['item_formset']
-        document_formset = context['document_formset']
-
-        with transaction.atomic():
-            if item_formset.is_valid() and document_formset.is_valid():
-                self.object = form.save()
-                item_formset.instance = self.object
-                item_formset.save()
-                document_formset.instance = self.object
-                document_formset.save()
-                messages.success(self.request, _('فاکتور با موفقیت به‌روزرسانی شد.'))
-                return super().form_valid(form)
-            else:
-                return self.form_invalid(form)
-
-    def form_invalid(self, form):
-        messages.error(self.request, _('لطفاً خطاهای فرم را بررسی کنید.'))
-        return self.render_to_response(self.get_context_data(form=form))
 
     def handle_no_permission(self):
         messages.error(self.request, self.permission_denied_message)
         return redirect('factor_list')
+
 
 class FactorCreateView(PermissionBaseView, CreateView):
     model = Factor
@@ -591,18 +599,24 @@ class FactorCreateView(PermissionBaseView, CreateView):
     success_url = reverse_lazy('factor_list')
     context_object_name = 'factor'
     permission_codenames = ['tanbakh.a_factor_add']
-    permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
+    permission_denied_message = 'متاسفانه دسترسی مجاز ندارید'
     check_organization = True
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        tanbakh = Tanbakh.objects.get(id=self.kwargs.get('tanbakh_id', None)) if 'tanbakh_id' in self.kwargs else None
         if self.request.POST:
             context['item_formset'] = FactorItemFormSet(self.request.POST, self.request.FILES)
-            context['document_formset'] = FactorDocumentFormSet(self.request.POST, self.request.FILES)
+            context['document_form'] = FactorDocumentForm(self.request.POST, self.request.FILES)
+            context['tanbakh_document_form'] = TanbakhDocumentForm(self.request.POST, self.request.FILES)
         else:
             context['item_formset'] = FactorItemFormSet()
-            context['document_formset'] = FactorDocumentFormSet()
-        context['title'] = _('ایجاد فاکتور جدید')
+            context['document_form'] = FactorDocumentForm()
+            context['tanbakh_document_form'] = TanbakhDocumentForm()
+        context['title'] = 'ایجاد فاکتور جدید'
+        context['tanbakh'] = tanbakh
+        if tanbakh:
+            context['tanbakh_documents'] = tanbakh.documents.all()
         return context
 
     def get_form_kwargs(self):
@@ -613,47 +627,49 @@ class FactorCreateView(PermissionBaseView, CreateView):
     def form_valid(self, form):
         context = self.get_context_data()
         item_formset = context['item_formset']
-        document_formset = context['document_formset']
+        document_form = context['document_form']
+        tanbakh_document_form = context['tanbakh_document_form']
         tanbakh = form.cleaned_data['tanbakh']
 
         if tanbakh.status not in ['DRAFT', 'PENDING']:
-            messages.error(self.request, _('فقط می‌توانید برای تنخواه‌های پیش‌نویس یا در انتظار فاکتور ثبت کنید.'))
+            messages.error(self.request, 'فقط می‌توانید برای تنخواه‌های پیش‌نویس یا در انتظار فاکتور ثبت کنید.')
             return self.form_invalid(form)
 
-        try:
-            initial_stage_order = WorkflowStage.objects.order_by('-order').first().order
-            if tanbakh.current_stage.order != initial_stage_order:
-                messages.error(self.request, _('فقط در مرحله اولیه می‌توانید فاکتور ثبت کنید.'))
-                return self.form_invalid(form)
-        except AttributeError:
-            logger.error("No workflow stages defined!")
-            messages.error(self.request, _('هیچ مرحله‌ای در سیستم تعریف نشده است.'))
+        initial_stage_order = WorkflowStage.objects.order_by('-order').first().order
+        if tanbakh.current_stage.order != initial_stage_order:
+            messages.error(self.request, 'فقط در مرحله اولیه می‌توانید فاکتور ثبت کنید.')
             return self.form_invalid(form)
 
         allowed_orgs = [tanbakh.organization]
         try:
-            restrict_to_user_organization(self.request.user, allowed_orgs)
+            restrict_to_user_organization(self.request.user, allowed_orgs)  # استفاده از تابع ایمپورت‌شده
         except PermissionDenied as e:
             messages.error(self.request, str(e))
             return self.form_invalid(form)
 
-        if item_formset.is_valid() and document_formset.is_valid():
+        if item_formset.is_valid() and document_form.is_valid() and tanbakh_document_form.is_valid():
             with transaction.atomic():
                 self.object = form.save()
                 item_formset.instance = self.object
                 item_formset.save()
-                document_formset.instance = self.object
-                document_formset.save()
 
-                # تغییر وضعیت و انتقال به مرحله بعدی
-                next_stage = WorkflowStage.objects.filter(order__lt=tanbakh.current_stage.order).order_by('-order').first()
+                # ذخیره اسناد فاکتور
+                factor_files = self.request.FILES.getlist('files')
+                for file in factor_files:
+                    FactorDocument.objects.create(factor=self.object, file=file)
+
+                # ذخیره اسناد تنخواه
+                tanbakh_files = self.request.FILES.getlist('documents')
+                for file in tanbakh_files:
+                    TanbakhDocument.objects.create(tanbakh=tanbakh, document=file)
+
+                next_stage = WorkflowStage.objects.filter(order__lt=tanbakh.current_stage.order).order_by(
+                    '-order').first()
                 if next_stage:
                     tanbakh.current_stage = next_stage
                     tanbakh.status = 'PENDING'
                     tanbakh.save()
                     logger.info(f"Tanbakh {tanbakh.number} moved to stage {next_stage.name} (order={next_stage.order})")
-
-                    # ارسال اعلان به تأییدکنندگان مرحله بعدی
                     approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=next_stage)
                     if approvers.exists():
                         notify.send(
@@ -666,7 +682,7 @@ class FactorCreateView(PermissionBaseView, CreateView):
                 else:
                     logger.warning(f"No next stage found for tanbakh {tanbakh.number}")
 
-            messages.success(self.request, _('فاکتور با موفقیت ثبت شد.'))
+            messages.success(self.request, 'فاکتور با موفقیت ثبت شد.')
             return super().form_valid(form)
         return self.form_invalid(form)
 
@@ -675,8 +691,8 @@ class FactorCreateView(PermissionBaseView, CreateView):
         return super().handle_no_permission()
 
 
-
-class FactorUpdateView(UpdateView):
+# tanbakh/views.py (ادامه)
+class FactorUpdateView(PermissionBaseView, UpdateView):
     model = Factor
     form_class = FactorForm
     template_name = 'tanbakh/factor_form.html'
@@ -684,26 +700,32 @@ class FactorUpdateView(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        tanbakh = self.object.tanbakh
         if self.request.POST:
             context['item_formset'] = FactorItemFormSet(self.request.POST, self.request.FILES, instance=self.object)
-            context['document_formset'] = FactorDocumentFormSet(self.request.POST, self.request.FILES, instance=self.object)
+            context['document_form'] = FactorDocumentForm(self.request.POST, self.request.FILES)
+            context['tanbakh_document_form'] = TanbakhDocumentForm(self.request.POST, self.request.FILES)
         else:
             context['item_formset'] = FactorItemFormSet(instance=self.object)
-            context['document_formset'] = FactorDocumentFormSet(instance=self.object)
+            context['document_form'] = FactorDocumentForm()
+            context['tanbakh_document_form'] = TanbakhDocumentForm()
         context['title'] = _('ویرایش فاکتور') + f" - {self.object.number}"
+        context['tanbakh'] = tanbakh
+        context['tanbakh_documents'] = tanbakh.documents.all()
         total_amount = sum(item.amount * item.quantity for item in self.object.items.all())
+        # context['difference'] = total_amount - context['total_amount'] if total_amount else 0
         context['total_amount'] = total_amount
         return context
 
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
-        if obj.locked:
+        if getattr(obj, 'locked', False):  # چک می‌کنیم که locked وجود داره یا نه
             raise PermissionDenied("این فاکتور قفل شده و قابل ویرایش نیست.")
         return obj
 
     def dispatch(self, request, *args, **kwargs):
         obj = self.get_object()
-        if not request.user.has_perm('tanbakh.Factor_full_edit') and obj.is_finalized:
+        if not request.user.has_perm('tanbakh.Factor_full_edit') and getattr(obj, 'is_finalized', False):
             raise PermissionDenied(_('شما اجازه ویرایش این فاکتور را ندارید.'))
         return super().dispatch(request, *args, **kwargs)
 
@@ -717,11 +739,12 @@ class FactorUpdateView(UpdateView):
         return kwargs
 
     def form_valid(self, form):
-        # پیدا کردن پایین‌ترین مرحله (بالاترین order)
         try:
             initial_stage_order = WorkflowStage.objects.order_by('-order').first().order
-            if self.object.tanbakh.current_stage.order != initial_stage_order or self.object.is_finalized:
-                messages.error(self.request, _('فقط در مرحله اولیه و قبل از نهایی شدن می‌توانید فاکتور را ویرایش کنید.'))
+            if self.object.tanbakh.current_stage.order != initial_stage_order or getattr(self.object, 'is_finalized',
+                                                                                         False):
+                messages.error(self.request,
+                               _('فقط در مرحله اولیه و قبل از نهایی شدن می‌توانید فاکتور را ویرایش کنید.'))
                 return self.form_invalid(form)
         except AttributeError:
             logger.error("No workflow stages defined in the system!")
@@ -730,21 +753,30 @@ class FactorUpdateView(UpdateView):
 
         context = self.get_context_data()
         item_formset = context['item_formset']
-        document_formset = context['document_formset']
-        if item_formset.is_valid() and document_formset.is_valid():
+        document_form = context['document_form']
+        tanbakh_document_form = context['tanbakh_document_form']
+
+        if item_formset.is_valid() and document_form.is_valid() and tanbakh_document_form.is_valid():
             with transaction.atomic():
                 self.object = form.save()
                 item_formset.instance = self.object
                 item_formset.save()
-                document_formset.instance = self.object
-                document_formset.save()
+
+                # ذخیره اسناد جدید فاکتور
+                factor_files = self.request.FILES.getlist('files')
+                for file in factor_files:
+                    FactorDocument.objects.create(factor=self.object, file=file)
+
+                # ذخیره اسناد جدید تنخواه
+                tanbakh_files = self.request.FILES.getlist('documents')
+                for file in tanbakh_files:
+                    TanbakhDocument.objects.create(tanbakh=self.object.tanbakh, document=file)
+
             messages.success(self.request, _('فاکتور با موفقیت به‌روزرسانی شد.'))
             return super().form_valid(form)
         return self.form_invalid(form)
 
 
-
-# @method_decorator(has_permission('Factor_delete'), name='dispatch')
 class FactorDeleteView(PermissionBaseView, DeleteView):
     model = Factor
     template_name = 'tanbakh/factor_confirm_delete.html'
@@ -776,11 +808,11 @@ class FactorDeleteView(PermissionBaseView, DeleteView):
         messages.success(self.request, _('فاکتور با موفقیت حذف شد.'))
         return super().delete(request, *args, **kwargs)
 
-# - جدید رد یا تایید مدیر شبعه برای فاکتور ها و ردیف ها
-# @method_decorator(has_permission('Factor_update'), name='dispatch')
-############################################################################################################
 
+############################################################################################################
 """  ویو برای تأیید فاکتور"""
+
+
 class FactorApproveView(UpdateView):
     model = Factor
     form_class = FactorApprovalForm  # فرض می‌کنیم این فرم وجود دارد
@@ -825,7 +857,8 @@ class FactorApproveView(UpdateView):
                 # چک همه فاکتورهای تنخواه
                 all_factors_approved = all(f.status == 'APPROVED' for f in tanbakh.factors.all())
                 if all_factors_approved:
-                    next_stage = WorkflowStage.objects.filter(order__lt=tanbakh.current_stage.order).order_by('-order').first()
+                    next_stage = WorkflowStage.objects.filter(order__lt=tanbakh.current_stage.order).order_by(
+                        '-order').first()
                     if next_stage:
                         tanbakh.current_stage = next_stage
                         tanbakh.status = 'PENDING'
@@ -857,11 +890,16 @@ class FactorApproveView(UpdateView):
     def handle_no_permission(self):
         messages.error(self.request, _('شما مجوز لازم برای تأیید این فاکتور را ندارید.'))
         return redirect('factor_list')
+
+
 """تأیید آیتم‌های فاکتور"""
+
+
 class FactorItemApproveView(PermissionBaseView, DetailView):
     model = Factor
     template_name = 'tanbakh/factor_item_approve.html'
-    permission_codenames = ['tanbakh.FactorItem_approve','tanbakh.Tanbakh_view','tanbakh.Tanbakh_hq_view','tanbakh.Tanbakh_hq_approve']
+    permission_codenames = ['tanbakh.FactorItem_approve', 'tanbakh.Tanbakh_view', 'tanbakh.Tanbakh_hq_view',
+                            'tanbakh.Tanbakh_hq_approve']
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -936,14 +974,16 @@ class FactorItemApproveView(PermissionBaseView, DetailView):
 
                     # اگر همه فاکتورها تأیید شدند
                     if all(f.status == 'APPROVED' and f.is_finalized for f in tanbakh.factors.all()):
-                        next_stage = WorkflowStage.objects.filter(order__lt=tanbakh.current_stage.order).order_by('-order').first()
+                        next_stage = WorkflowStage.objects.filter(order__lt=tanbakh.current_stage.order).order_by(
+                            '-order').first()
                         if next_stage:
                             tanbakh.current_stage = next_stage
                             tanbakh.status = 'PENDING'
                             tanbakh.save()
                             approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=next_stage)
                             if approvers.exists():
-                                notify.send(request.user, recipient=approvers, verb='تنخواه در انتظار تأیید شما', target=tanbakh)
+                                notify.send(request.user, recipient=approvers, verb='تنخواه در انتظار تأیید شما',
+                                            target=tanbakh)
                             messages.info(request, f"تنخواه به مرحله {next_stage.name} منتقل شد.")
                         else:
                             tanbakh.status = 'COMPLETED'
@@ -969,157 +1009,8 @@ class FactorItemApproveView(PermissionBaseView, DetailView):
     def handle_no_permission(self):
         messages.error(self.request, _('شما مجوز لازم برای تأیید این فاکتور را ندارید.'))
         return redirect('factor_list')
-############################################################################################################
-############################################################################################################
 
-"""  ویو برای تأیید فاکتور"""
-class FactorApprovalView_old(  UpdateView):
-    model = Factor
-    form_class = FactorApprovalForm  # استفاده از فرم پیشنهادی
-    template_name = 'tanbakh/factor_approval.html'
-    success_url = reverse_lazy('factor_list')
-    permission_required = ('a_factor_view', 'a_factor_update')
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = _('تأیید فاکتور') + f" - {self.object.number}"
-        # حذف فرم‌ست و ارسال مستقیم ردیف‌ها به تمپلیت
-        context['items'] = self.object.items.all()
-        return context
-
-    def form_valid(self, form):
-        tanbakh = self.object.tanbakh
-        if tanbakh.current_stage.order != 2:
-            messages.error(self.request, _('فقط در مرحله تأیید مدیر شعبه می‌توانید اقدام کنید.'))
-            return self.form_invalid(form)
-
-        user_orgs = [up.post.organization for up in self.request.user.userpost_set.all()]
-        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs)
-        if not is_hq_user and tanbakh.organization not in user_orgs:
-            messages.error(self.request, _('شما به این فاکتور دسترسی ندارید.'))
-            return self.form_invalid(form)
-
-        with transaction.atomic():
-            self.object = form.save()
-            all_approved = all(item.status == 'APPROVED' for item in self.object.items.all())
-            if all_approved:
-                tanbakh.current_stage = WorkflowStage.objects.get(order=3)
-                tanbakh.status = 'APPROVED'
-                tanbakh.save()
-                messages.success(self.request, _('فاکتور تأیید شد و به دفتر مرکزی ارسال شد.'))
-            else:
-                messages.warning(self.request, _('برخی ردیف‌ها رد شده‌اند.'))
-        return super().form_valid(form)
-"""تأیید آیتم‌های فاکتور"""
-class FactorItemApproveView_old(PermissionBaseView, PermissionRequiredMixin, DetailView):
-    """تأیید آیتم‌های فاکتور"""
-    model = Factor
-    template_name = 'tanbakh/factor_item_approve.html'
-    permission_required = ('tanbakh.FactorItem_approve', 'tanbakh.Tanbakh_approve',
-                           'tanbakh.Tanbakh_update', 'tanbakh.FactorItem_approve')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        factor = self.get_object()
-
-        # Create formset for all items
-        FactorItemApprovalFormSet = formset_factory(FactorItemApprovalForm, extra=0)
-        initial_data = [{'item_id': item.id} for item in factor.items.all()]
-
-        if self.request.POST:
-            formset = FactorItemApprovalFormSet(self.request.POST)
-        else:
-            formset = FactorItemApprovalFormSet(initial=initial_data)
-
-        context['item_form_pairs'] = zip(factor.items.all(), formset)
-        context['formset'] = formset
-        context['approval_logs'] = ApprovalLog.objects.filter(factor_item__factor=factor)
-        return context
-
-    def post(self, request, *args, **kwargs):
-        factor = self.get_object()
-        tanbakh = factor.tanbakh
-        user = request.user
-        stage = tanbakh.current_stage
-        user_post = user.userpost_set.first().post if user.userpost_set.exists() else None
-
-        if not StageApprover.objects.filter(stage=stage, post=user_post).exists():
-            messages.error(request, _('شما مجاز به تأیید در این مرحله نیستید.'))
-            return redirect('factor_item_approve', pk=factor.pk)
-        #
-        # if not StageApprover.objects.filter(stage=stage, post__userpost__user=user).exists():
-        #     messages.error(request, _('شما مجاز به تأیید در این مرحله نیستید.'))
-        #     return redirect('factor_item_approve', pk=factor.pk)
-
-        FactorItemApprovalFormSet = formset_factory(FactorItemApprovalForm, extra=0)
-        formset = FactorItemApprovalFormSet(request.POST)
-
-        with transaction.atomic():
-            if formset.is_valid():
-                all_approved = True
-                any_rejected = False
-
-                # Handle bulk approval if checkbox is selected
-                bulk_approve = request.POST.get('bulk_approve') == 'on'
-
-                for form, item in zip(formset, factor.items.all()):
-                    action = 'APPROVE' if bulk_approve else form.cleaned_data['action']
-
-                    if action in ['APPROVE', 'REJECT']:
-                        ApprovalLog.objects.create(
-                            factor_item=item,
-                            user=user,
-                            action=action,
-                            stage=stage,
-                            comment=form.cleaned_data['comment'],
-                            post=user.userpost_set.first().post if user.userpost_set.exists() else None
-                        )
-                        item.status = action
-                        item.save()
-                        if action == 'REJECT':
-                            all_approved = False
-                            any_rejected = True
-                        elif action != 'APPROVE':
-                            all_approved = False
-
-                # Rest of your existing logic remains the same
-                if all_approved and factor.items.exists():
-                    factor.status = 'APPROVED'
-                    factor.is_finalized = True
-                elif any_rejected:
-                    factor.status = 'REJECTED'
-                    factor.is_finalized = True
-                    tanbakh.current_stage = WorkflowStage.objects.get(order=1)  # بازگشت به مرحله اولیه
-                    tanbakh.save()
-                else:
-                    factor.status = 'PENDING'
-                factor.save()
-
-                # Workflow progression logic remains the same
-                # منطق پیشرفت جریان کار
-                if all(f.is_finalized and f.status == 'APPROVED' for f in tanbakh.factors.all()):
-                    next_stage = WorkflowStage.objects.filter(order__gt=stage.order).order_by('order').first()
-                    if next_stage:
-                        tanbakh.current_stage = next_stage
-                        tanbakh.save()
-                        approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=next_stage)
-                        notify.send(request.user, recipient=approvers, verb='تنخواه در انتظار تأیید شما',
-                                    target=tanbakh)
-                        messages.info(request, f"تنخواه به مرحله {next_stage.name} منتقل شد.")
-                    else:
-                        tanbakh.status = 'APPROVED'
-                        tanbakh.is_archived = True
-                        tanbakh.save()
-                        messages.info(request, "تنخواه تأیید و آرشیو شد.")
-
-                messages.success(request, _('تغییرات با موفقیت ثبت شدند.'))
-                return redirect('factor_item_approve', pk=factor.pk)
-            else:
-                messages.error(request, _('فرم نامعتبر است. لطفاً ورودی‌ها را بررسی کنید.'))
-                return self.get(request, *args, **kwargs)  # نمایش دوباره فرم با خطاها
-    def handle_no_permission(self):
-        messages.error(self.request, _('شما مجوز لازم برای تأیید این فاکتور را ندارید.'))
-        return redirect('factor_list')
 ############################################################################################################
 class FactorItemRejectView(PermissionBaseView, View):
     permission_codenames = ['tanbakh.FactorItem_approve']
@@ -1149,8 +1040,9 @@ class FactorItemRejectView(PermissionBaseView, View):
         tanbakh.save()
         messages.error(request, _('ردیف فاکتور رد شد و فاکتور و تنخواه نیز رد شدند.'))
         return redirect('dashboard_flows')
+
+
 # ---######## Approval Views ---
-# @method_decorator(has_permission('Approval_view'), name='dispatch')
 class ApprovalListView(PermissionBaseView, ListView):
     model = ApprovalLog
     template_name = 'tanbakh/approval_list.html'
@@ -1158,14 +1050,14 @@ class ApprovalListView(PermissionBaseView, ListView):
     paginate_by = 10
     extra_context = {'title': _('لیست تأییدات')}
 
-# @method_decorator(has_permission('Approval_view'), name='dispatch')
+
 class ApprovalDetailView(PermissionBaseView, DetailView):
     model = ApprovalLog
     template_name = 'tanbakh/approval_detail.html'
     context_object_name = 'approval'
     extra_context = {'title': _('جزئیات تأیید')}
 
-# @method_decorator(has_permission('Approval_add'), name='dispatch')
+
 class ApprovalCreateView(PermissionRequiredMixin, CreateView):
     model = ApprovalLog
     form_class = ApprovalForm
@@ -1235,7 +1127,7 @@ class ApprovalCreateView(PermissionRequiredMixin, CreateView):
         initial['factor_item'] = self.request.GET.get('factor_item')
         return initial
 
-# @method_decorator(has_permission('Approval_update'), name='dispatch')
+
 class ApprovalUpdateView(PermissionRequiredMixin, UpdateView):
     model = ApprovalLog
     form_class = ApprovalForm
@@ -1247,7 +1139,7 @@ class ApprovalUpdateView(PermissionRequiredMixin, UpdateView):
         messages.success(self.request, _('تأیید با موفقیت به‌روزرسانی شد.'))
         return super().form_valid(form)
 
-# @method_decorator(has_permission('Approval_delete'), name='dispatch')
+
 class ApprovalDeleteView(PermissionRequiredMixin, DeleteView):
     model = ApprovalLog
     template_name = 'tanbakh/approval_confirm_delete.html'
@@ -1258,4 +1150,26 @@ class ApprovalDeleteView(PermissionRequiredMixin, DeleteView):
         messages.success(self.request, _('تأیید با موفقیت حذف شد.'))
         return super().delete(request, *args, **kwargs)
 
+
 # -- وضعیت تنخواه
+@login_required
+def upload_tanbakh_documents(request, tanbakh_id):
+    tanbakh = Tanbakh.objects.get(id=tanbakh_id)
+    if request.method == 'POST':
+        form = TanbakhDocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            files = request.FILES.getlist('documents')
+            for file in files:
+                TanbakhDocument.objects.create(tanbakh=tanbakh, document=file)
+            messages.success(request, 'اسناد با موفقیت آپلود شدند.')
+            return redirect('tanbakh_detail', pk=tanbakh.id)
+        else:
+            messages.error(request, 'خطایی در آپلود اسناد رخ داد.')
+    else:
+        form = TanbakhDocumentForm()
+
+    return render(request, 'tanbakh/upload_documents.html', {
+        'form': form,
+        'tanbakh': tanbakh,
+        'existing_documents': tanbakh.documents.all()
+    })

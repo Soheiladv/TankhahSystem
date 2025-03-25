@@ -10,7 +10,7 @@ from django.urls import path
 from accounts import views
 from accounts.views import (AdvancedProfileSearchView, user_management_view, dashboard_view,
                             ActiveUserListView, TimeLockCreateView, TimeLockListView,
-                            SetTimeLockView, lock_status, set_theme,  # AssignRoleToUserView,
+                            SetTimeLockView, lock_status, set_theme, terminate_session,  # AssignRoleToUserView,
                             )
 from .views import (
     RoleListView, RoleCreateView, RoleUpdateView, RoleDeleteView,
@@ -32,6 +32,7 @@ urlpatterns = [
                   # path('logout/', auth_views.logoutView.as_view(next_page='accounts:login'), name='logout'),
 
                   path('login/', auth_views.LoginView.as_view(template_name='accounts/login.html'), name='login'),
+
                   # path('Logout/', auth_views.LogoutView.as_view(), name='Logout'),
 
                   # path('signup/',   views.signup,   name='signup'),
@@ -193,3 +194,7 @@ urlpatterns = [
 
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns+=[
+    path('terminate-session/<int:session_id>/',  terminate_session, name='terminate_session'),
+
+]

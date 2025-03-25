@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import secrets
 import jdatetime
@@ -9,6 +10,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import Permission
+from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import PermissionDenied
@@ -932,8 +934,10 @@ class ActiveUserListView(SuperuserRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['max_active_users'] = ActiveUser.MAX_ACTIVE_USERS
+        context['max_active_users'] = ActiveUser.get_max_active_users()  # استفاده از متد به جای ویژگی
         return context
+
+
 
 @method_decorator(has_permission('ActiveUser_add'), name='dispatch')
 @method_decorator(staff_member_required, name='dispatch')
@@ -997,6 +1001,13 @@ class BaseTimeLockView(LoginRequiredMixin, View):
         expiry_date, max_users, _, organization_name = TimeLockModel.get_latest_lock()
         # active_users_count = ActiveUser.objects.count()
         active_users_count = ActiveUser.objects.values("user").distinct().count()
+        """اینجا تعداد کاربران منحصربه‌فرد (بر اساس user) رو می‌گیره، که درسته. ولی اگه بخوای فقط کاربران فعال رو بشمری، باید فیلتر is_active=True یا شرط last_activity رو اضافه کنی:"""
+        from django.utils.timezone import now
+        """فقط کاربرانی که واقعاً فعالن رو می‌شمره."""
+        active_users_count = ActiveUser.objects.filter(
+            is_active=True,
+            last_activity__gte=now() - datetime.timedelta(minutes=30)
+        ).values("user").distinct().count()
 
         is_locked = TimeLock.is_locked(self.request)
 
@@ -1143,3 +1154,24 @@ def set_theme(request):
                 request.user.profile.theme = theme
                 request.user.profile.save()
     return redirect(request.META.get('HTTP_REFERER', 'index'))
+
+
+
+@login_required
+def terminate_session(request, session_id):
+    """قطع سشن قبلی و اجازه ورود با سشن جدید"""
+    try:
+        old_session = ActiveUser.objects.get(id=session_id, user=request.user)
+        old_session.delete()
+        messages.success(request, "سشن قبلی با موفقیت قطع شد. حالا می‌تونید با دستگاه جدید وارد بشید.")
+        logger.info(f"سشن {old_session.session_key} برای کاربر {request.user.username} قطع شد.")
+    except ActiveUser.DoesNotExist:
+        messages.error(request, "سشن مورد نظر پیدا نشد.")
+    return redirect('accounts:login')
+# class CustomLoginView(LoginView):
+#     def get_success_url(self):
+#         return reverse_lazy('home')  # اطمینان از ریدایرکت صحیح
+#
+# class CustomLogoutView(LogoutView):
+#     next_page = 'account:login'  # ریدایرکت به صفحه لاگین پس از خروج
+

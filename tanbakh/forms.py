@@ -5,19 +5,19 @@ from .utils import restrict_to_user_organization
 logger = logging.getLogger(__name__)
 import jdatetime
 from django.utils import timezone
-from Tanbakhsystem.utils import convert_to_farsi_numbers, convert_jalali_to_gregorian, convert_gregorian_to_jalali
+from Tanbakhsystem.utils import convert_to_farsi_numbers
 from core.models import WorkflowStage
 from .models import Factor, ApprovalLog, FactorDocument, FactorItem, Tanbakh
-from django.forms import inlineformset_factory
 from django import forms
 from django.utils.translation import gettext_lazy as _
-
-FactorItemFormSet = inlineformset_factory(Factor, FactorItem, fields=['description', 'amount', 'quantity'], extra=1)
+from django.forms import inlineformset_factory
 
 class FactorItemApprovalForm(forms.Form):
     action = forms.ChoiceField(choices=[('', '-----'), ('APPROVE', 'تأیید'), ('REJECT', 'رد')], required=False)
     comment = forms.CharField(widget=forms.Textarea, required=False)
-#------------ New
+
+
+# ------------ New
 class FactorApprovalForm(forms.ModelForm):
     """فرم تأیید یا رد فاکتور و ردیف‌های آن"""
 
@@ -66,7 +66,7 @@ class FactorApprovalForm(forms.ModelForm):
         return instance
 
 
-#------------
+# ------------
 class TanbakhForm(forms.ModelForm):
     # description = forms.CharField(widget=forms.Textarea, required=False, label=_("توضیحات"))
 
@@ -89,8 +89,8 @@ class TanbakhForm(forms.ModelForm):
 
     class Meta:
         model = Tanbakh
-        fields = ['date', 'organization', 'project',   'letter_number',
-                  'due_date',  'amount', 'description']#  'current_stage','last_stopped_post', 'status','hq_status',
+        fields = ['date', 'organization', 'project', 'letter_number',
+                  'due_date', 'amount', 'description']  # 'current_stage','last_stopped_post', 'status','hq_status',
         widgets = {
             'organization': forms.Select(attrs={'class': 'form-control'}),
             'project': forms.Select(attrs={'class': 'form-control'}),
@@ -100,7 +100,7 @@ class TanbakhForm(forms.ModelForm):
             # 'last_stopped_post': forms.Select(attrs={'class': 'form-control'}),
             # 'current_stage': forms.Select(attrs={'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows':2}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
         labels = {
             'date': _('تاریخ'),
@@ -119,7 +119,6 @@ class TanbakhForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # for field in ['current_stage',]: #   'last_stopped_post''status', 'hq_status',
         #     self.fields[field].widget = forms.HiddenInput()
-
 
         if self.user:
             user_posts = self.user.userpost_set.all()
@@ -186,6 +185,7 @@ class TanbakhForm(forms.ModelForm):
             instance.save()
         return instance
 
+
 class TanbakhApprovalForm(forms.ModelForm):
     comment = forms.CharField(
         widget=forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
@@ -196,6 +196,7 @@ class TanbakhApprovalForm(forms.ModelForm):
     class Meta:
         model = Tanbakh
         fields = []  # هیچ فیلد دیگری از مدل نیاز نیست
+
 
 class FactorForm(forms.ModelForm):
     date = forms.CharField(
@@ -213,7 +214,8 @@ class FactorForm(forms.ModelForm):
         widgets = {
             'tanbakh': forms.Select(attrs={'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('مبلغ را وارد کنید')}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': _('توضیحات فاکتور')}),
+            'description': forms.Textarea(
+                attrs={'class': 'form-control', 'rows': 3, 'placeholder': _('توضیحات فاکتور')}),
         }
         labels = {
             'tanbakh': _('تنخواه'),
@@ -226,7 +228,8 @@ class FactorForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         self.tanbakh = kwargs.pop('tanbakh', None)
         super().__init__(*args, **kwargs)
-        initial_stage_order = WorkflowStage.objects.order_by('-order').first().order if WorkflowStage.objects.exists() else None
+        initial_stage_order = WorkflowStage.objects.order_by(
+            '-order').first().order if WorkflowStage.objects.exists() else None
 
         if self.user:
             user_orgs = restrict_to_user_organization(self.user)
@@ -310,6 +313,11 @@ class FactorItemForm(forms.ModelForm):
         if quantity < 1:
             raise forms.ValidationError(_('تعداد باید حداقل ۱ باشد.'))
         return quantity
+
+# FactorItemFormSet = inlineformset_factory(Factor, FactorItem, fields=['description', 'amount', 'quantity'], extra=1)
+FactorItemFormSet = inlineformset_factory(Factor, FactorItem, form=FactorItemForm, fields=['description', 'amount', 'quantity'], extra=1,can_delete=True)
+
+
 class ApprovalForm(forms.ModelForm):
     """فرم ثبت تأیید یا رد"""
     action = forms.ChoiceField(choices=[
@@ -337,7 +345,9 @@ class ApprovalForm(forms.ModelForm):
             # 'is_approved': _('تأیید شده؟'),
         }
 
+
 """این فرم وضعیت و مرحله فعلی تنخواه را نمایش می‌دهد:"""
+
 class TanbakhStatusForm(forms.ModelForm):
     class Meta:
         model = Tanbakh
@@ -361,6 +371,7 @@ class TanbakhStatusForm(forms.ModelForm):
         for field in self.fields.values():
             field.disabled = True
 
+
 class FactorStatusForm(forms.ModelForm):
     class Meta:
         model = Factor
@@ -376,38 +387,68 @@ class FactorStatusForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['status'].disabled = True
 
+
 class FactorItemFormSet(forms.inlineformset_factory(Factor, FactorItem,
                                                     fields=('description', 'amount', 'quantity'),
                                                     extra=1, can_delete=True)):
     pass
 
-class FactorDocumentFormSet(forms.inlineformset_factory(Factor, FactorDocument, fields=('file',),
-                                                        extra=1, can_delete=True)):
-    pass
+
+# فرم برای اسناد فاکتور
+# class FactorDocumentForm(forms.ModelForm):
+#     class Meta:
+#         model = FactorDocument
+#         fields = ['file']
+#         widgets = {
+#             'file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+#         }
+#         labels = {'file': _('فایل پیوست')}
 
 
-# فرم‌ست برای اقلام فاکتور
+
+
+"""*** مهم ***"""
+"""چون در مدل TanbakhDocument فقط یک document ذخیره می‌شود، اما ما چندین فایل را آپلود می‌کنیم. بنابراین نیازی به ModelForm نیست."""
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True  # امکان انتخاب چندین فایل را فعال می‌کند
+
+class MultipleFileField(forms.FileField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput(attrs={'class': 'form-control'}))
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            result = [single_file_clean(d, initial) for d in data]
+        else:
+            result = single_file_clean(data, initial)
+        return result
+
+# فرم برای اقلام فاکتور
+class FactorItemForm(forms.ModelForm):
+    class Meta:
+        model = FactorItem
+        fields = ['description', 'amount', 'quantity']
+        widgets = {
+            'description': forms.TextInput(attrs={'class': 'form-control'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
 FactorItemFormSet = inlineformset_factory(
-    Factor,  # مدل والد (فاکتور)
-    FactorItem,  # مدل فرزند (اقلام فاکتور)
-    form=FactorItemForm,  # فرم تعریف‌شده بالا
+    Factor, FactorItem,
+    form=FactorItemForm,
     fields=['description', 'amount', 'quantity'],
-    extra=1,  # تعداد فرم‌های خالی پیش‌فرض
-    can_delete=True  # امکان حذف ردیف‌ها
+    extra=1,
+    can_delete=True
 )
 
-from django.forms import inlineformset_factory
+# فرم اسناد فاکتور (چندفایلی، بدون ModelForm)
+class FactorDocumentForm(forms.Form):
+    files = MultipleFileField(label=_("بارگذاری اسناد فاکتور"), required=False)
 
-FactorDocumentFormSet = inlineformset_factory(
-    Factor,
-    FactorDocument,
-    fields=['file'],
-    extra=1,  # تعداد فرم‌های خالی اولیه
-    can_delete=True,
-    widgets={
-        'file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
-    },
-    labels={
-        'file': _('فایل پیوست'),
-    }
-)
+# فرم اسناد تنخواه (چندفایلی، بدون ModelForm)
+class TanbakhDocumentForm(forms.Form):
+    documents = MultipleFileField(label=_("بارگذاری مدارک تنخواه"), required=False)
+

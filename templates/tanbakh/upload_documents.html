@@ -1,0 +1,34 @@
+<!-- tanbakh/upload_tanbakh_documents.html -->
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">{% trans "آپلود اسناد برای" %} {{ tanbakh.name }}</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-upload me-2"></i>{% trans "آپلود" %}
+                </button>
+            </form>
+
+            {% if existing_documents %}
+                <h3 class="mt-4">{% trans "اسناد موجود" %}</h3>
+                <ul class="list-group">
+                    {% for doc in existing_documents %}
+                        <li class="list-group-item">
+                            <a href="{{ doc.document.url }}" target="_blank">{{ doc.document.name }}</a>
+                            (آپلود شده در: {{ doc.uploaded_at|date:"Y-m-d H:i" }})
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

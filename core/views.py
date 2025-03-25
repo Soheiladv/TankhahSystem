@@ -1,6 +1,8 @@
 import json
 
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 from core.PermissionBase import  PermissionBaseView
 from django.db.models import Q, Sum, F
 from django.urls import reverse_lazy
@@ -83,7 +85,7 @@ class DashboardView_flows_1(PermissionBaseView, TemplateView):
         return context
 
 
-class DashboardView_flows(TemplateView):
+class DashboardView_flows(LoginRequiredMixin, TemplateView):
     template_name = 'core/dashboard1.html'  # Adjust this to your actual template path
 
     def get_context_data(self, **kwargs):
@@ -347,7 +349,7 @@ class ProjectDeleteView(PermissionBaseView, DeleteView):
 #-- داشبورد گزارشات مالی
 from django.views.generic import TemplateView
 from django.db.models import Sum, F
-from tanbakh.models import Tanbakh, Factor, FactorItem, StageApprover
+from tanbakh.models import Tanbakh, Factor, FactorItem, StageApprover, TanbakhDocument
 from core.models import WorkflowStage, Organization
 import json
 from django.utils.translation import gettext_lazy as _
@@ -355,36 +357,41 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# tanbakh/views.py
+from django.db.models import Sum
+from django.core.files.storage import default_storage
+import os
+
 class FinancialDashboardView(PermissionBaseView, TemplateView):
-    """داشبورد گزارشات تنخواه گردان"""
     template_name = 'tanbakh/Reports/calc_dashboard.html'
     login_url = '/accounts/login/'
-    # permission_codename = 'core.Project_delete'
-    # check_organization = True  # فعال کردن چک سازمان
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
-        # سازمان‌های مرتبط با کاربر
         user_orgs = [up.post.organization for up in user.userpost_set.all()]
         is_hq_user = any(org.org_type == 'HQ' for org in user_orgs)
 
-        # فیلتر تنخواه‌ها بر اساس دسترسی کاربر
         if is_hq_user:
-            tanbakhs = Tanbakh.objects.all()  # کاربران HQ همه تنخواه‌ها را می‌بینند
-            organizations = Organization.objects.exclude(org_type='HQ')  # مجتمع‌ها
+            tanbakhs = Tanbakh.objects.all()
+            organizations = Organization.objects.exclude(org_type='HQ')
         else:
-            tanbakhs = Tanbakh.objects.filter(organization__in=user_orgs)  # فقط تنخواه‌های سازمان کاربر
+            tanbakhs = Tanbakh.objects.filter(organization__in=user_orgs)
             organizations = user_orgs
 
-        # مجموع تنخواه‌ها
-        context['total_tanbakh_amount'] = tanbakhs.aggregate(total=Sum('amount'))['total'] or 0
+        # حجم کل تصاویر
+        total_image_size = 0
+        for tanbakh in tanbakhs:
+            for doc in tanbakh.documents.all():
+                file_path = doc.document.path
+                if default_storage.exists(file_path):
+                    total_image_size += default_storage.size(file_path)
 
-        # تنخواه‌های آرشیو شده
+        context['total_image_size_mb'] = total_image_size / (1024 * 1024)  # تبدیل به مگابایت
+        context['total_tanbakh_amount'] = tanbakhs.aggregate(total=Sum('amount'))['total'] or 0
         context['archived_tanbakhs'] = tanbakhs.filter(is_archived=True).count()
 
-        # وضعیت تنخواه‌ها در هر مرحله
         stages = WorkflowStage.objects.all()
         context['pending_by_stage'] = {
             stage.name: tanbakhs.filter(current_stage=stage, status='PENDING').count()
@@ -392,23 +399,27 @@ class FinancialDashboardView(PermissionBaseView, TemplateView):
         }
         context['stages'] = stages
 
-        # اطلاعات فاکتورها
         factors = Factor.objects.filter(tanbakh__in=tanbakhs)
         context['total_factor_amount'] = factors.aggregate(total=Sum('amount'))['total'] or 0
         context['approved_factors'] = factors.filter(status='APPROVED').count()
         context['rejected_factors'] = factors.filter(status='REJECTED').count()
         context['pending_factors'] = factors.filter(status='PENDING').count()
 
-        # داده‌ها برای هر مجتمع
         org_data = []
         chart_labels = []
         chart_tanbakh_amounts = []
         chart_factor_amounts = []
         chart_approved_items = []
+        chart_image_sizes = []  # حجم تصاویر برای چارت
 
         for org in organizations:
             org_tanbakhs = tanbakhs.filter(organization=org)
             org_factors = Factor.objects.filter(tanbakh__in=org_tanbakhs)
+            org_image_size = sum(
+                default_storage.size(doc.document.path)
+                for doc in TanbakhDocument.objects.filter(tanbakh__in=org_tanbakhs)
+                if default_storage.exists(doc.document.path)
+            ) / (1024 * 1024)  # مگابایت
 
             org_info = {
                 'name': org.name,
@@ -420,6 +431,7 @@ class FinancialDashboardView(PermissionBaseView, TemplateView):
                 'approved_items_amount': FactorItem.objects.filter(
                     factor__in=org_factors, status='APPROVED'
                 ).aggregate(total=Sum(F('amount') * F('quantity')))['total'] or 0,
+                'image_size_mb': org_image_size,
             }
             org_data.append(org_info)
 
@@ -427,20 +439,23 @@ class FinancialDashboardView(PermissionBaseView, TemplateView):
             chart_tanbakh_amounts.append(org_info['total_tanbakh_amount'])
             chart_factor_amounts.append(org_info['total_factor_amount'])
             chart_approved_items.append(org_info['approved_items_amount'])
+            chart_image_sizes.append(org_info['image_size_mb'])
 
         context['org_data'] = org_data
 
-        # داده‌ها برای چارت
-        context['chart_data'] = json.dumps({
-            'labels': chart_labels,
-            'datasets': [
-                {'label': str(_('مبلغ تنخواه‌ها')), 'data': chart_tanbakh_amounts, 'backgroundColor': 'rgba(54, 162, 235, 0.5)'},
-                {'label': str(_('مبلغ فاکتورها')), 'data': chart_factor_amounts, 'backgroundColor': 'rgba(255, 99, 132, 0.5)'},
-                {'label': str(_('جمع ردیف‌های تأییدشده')), 'data': chart_approved_items, 'backgroundColor': 'rgba(75, 192, 192, 0.5)'}
-            ]
-        })
+        # context['chart_data'] = json.dumps({
+        #     'labels': chart_labels,
+        #     'datasets': [
+        #         {'label': str(_('مبلغ تنخواه‌ها')), 'data': chart_tanbakh_amounts, 'backgroundColor': '#4299e1'},
+        #         {'label': str(_('مبلغ فاکتورها')), 'data': chart_factor_amounts, 'backgroundColor': '#f56565'},
+        #         {'label': str(_('جمع ردیف‌های تأییدشده')), 'data': chart_approved_items, 'backgroundColor': '#48bb78'},
+        #         {'label': str(_('حجم تصاویر (مگابایت)')), 'data': chart_image_sizes, 'backgroundColor': '#ed8936'}
+        #     ]
+        # })
 
         return context
+
+
 
 class AllLinksView(PermissionBaseView, TemplateView):
     template_name = 'core/core_index.html'  # تمپلیت Index
