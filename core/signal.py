@@ -1,7 +1,7 @@
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from core.models import Post, PostHistory
-from tanbakh.models import Factor, ApprovalLog, Tanbakh
+from tankhah.models import Factor, ApprovalLog, Tanbakh
 import logging
 logger = logging.getLogger(__name__)
 

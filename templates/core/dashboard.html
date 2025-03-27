@@ -10,9 +10,7 @@
                 <h1 class="card-title mb-0 animate__animated animate__bounceInLeft">
                     <i class="fas fa-tachometer-alt me-3"></i>{{ title }}
                 </h1>
-                <span class="badge bg-dark text-light fs-5 animate__animated animate__pulse animate__infinite">
-                    {% trans "نسخه:" %} {% get_final_version %}
-                </span>
+
             </div>
             <!-- بدنه کارت -->
             <div class="card-body p-5">
@@ -63,7 +61,11 @@
                     </div>
                 {% endif %}
             </div>
+            <span class="badge bg-dark text-light fs-5 animate__animated animate__pulse animate__infinite">
+                    {% trans "نسخه:" %} {% get_final_version %}
+                </span>
         </div>
+
     </div>
 
     <!-- استایل‌های سفارشی -->

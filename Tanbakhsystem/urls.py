@@ -17,10 +17,11 @@ urlpatterns = [
                   path('', DashboardView.as_view(), name='index'),
 
                   path('accounts/', include('accounts.urls')),
-                  path('core/', include('core.urls')),
+                  # path('core/', include('core.urls')),
+                  path('', include('core.urls')),
                   path('reports/', include('reports.urls')),
-                  path('tanbakh/', include('tanbakh.urls')),  # اضافه کردن اپلیکیشن tanbakh
-                  path('version_tracker/', include('version_tracker.urls')),  # اضافه کردن اپلیکیشن tanbakh
+                  path('tankhah/', include('tankhah.urls')),  # اضافه کردن اپلیکیشن tanbakh
+                  path('version_tracker/', include('version_tracker.urls')),  # اضافه کردن اپلیکیشن tankhah
                   path('workflow/', TanbakhWorkflowView.as_view(), name='workflow'),  # help workflow
 
                   path('about/', views.about, name='about'),

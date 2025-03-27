@@ -1,7 +1,7 @@
 # settings.py
+import logging.config
 import os
 from pathlib import Path
-import logging.config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,7 +25,7 @@ INSTALLED_APPS = [
     'jalali_date',
     'version_tracker',
     'accounts',
-    'tanbakh',
+    'tankhah.apps.TankhahConfig',  # به جای tanbakh.apps.TanbakhConfig
     'Tanbakhsystem',
     'notifications',
 ]
@@ -78,6 +78,11 @@ DATABASES = {'default': {
             'use_unicode': True,
             'charset': 'utf8mb4',
         },
+    'TEST': {
+        'NAME': 'test_tankhasystem',
+        'CHARSET': 'utf8mb4',
+        'COLLATION': 'utf8mb4_unicode_ci',
+    }
     }
 }
 

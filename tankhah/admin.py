@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
 
-from .models import Tanbakh, Factor, ApprovalLog
+from .models import Tankhah, Factor, ApprovalLog
 
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -13,8 +13,8 @@ def register_permissions(apps, schema_editor):
     Permission.objects.get_or_create(codename='Factor_update', name='Can update factor', content_type=ct)
 
 # ادمین تنخواه
-@admin.register(Tanbakh)
-class TanbakhAdmin(admin.ModelAdmin):
+@admin.register(Tankhah)
+class TankhahAdmin(admin.ModelAdmin):
     list_display = (
     'number', 'date', 'organization', 'project', 'status', 'hq_status', 'created_by_short', 'approved_by_short')
     list_filter = (
@@ -54,7 +54,7 @@ class TanbakhAdmin(admin.ModelAdmin):
         extra = 1
         fields = ('number', 'date', 'amount', 'status', 'file')
         readonly_fields = ('number',)
-        autocomplete_fields = ('tanbakh',)
+        autocomplete_fields = ('tankhah',)
 
     inlines = [FactorInline]
 
@@ -68,19 +68,19 @@ class TanbakhAdmin(admin.ModelAdmin):
 # ادمین فاکتور
 @admin.register(Factor)
 class FactorAdmin(admin.ModelAdmin):
-    list_display = ('number', 'tanbakh_number', 'date', 'amount', 'status', 'file_link')
+    list_display = ('number', 'tankhah_number', 'date', 'amount', 'status', 'file_link')
     list_filter = (
         ('date', JDateFieldListFilter),
         'status',
-        'tanbakh__organization',
+        'tankhah__organization',
     )
-    search_fields = ('number', 'tanbakh__number', 'description')
-    list_select_related = ('tanbakh',)
-    autocomplete_fields = ('tanbakh',)
+    search_fields = ('number', 'tankhah__number', 'description')
+    list_select_related = ('tankhah',)
+    autocomplete_fields = ('tankhah',)
     ordering = ('-date', 'number')
     fieldsets = (
         (None, {
-            'fields': ('number', 'tanbakh', 'date', 'amount', 'status')
+            'fields': ('number', 'tankhah', 'date', 'amount', 'status')
         }),
         (_('جزئیات'), {
             'fields': ('description',),
@@ -89,10 +89,10 @@ class FactorAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('number' ,)  # شماره و حجم فایل خودکار ست می‌شن
 
-    def tanbakh_number(self, obj):
-        return obj.tanbakh.number
+    def tankhah_number(self, obj):
+        return obj.Tankhah.number
 
-    tanbakh_number.short_description = _('شماره تنخواه')
+    tankhah_number.short_description = _('شماره تنخواه')
 
     def file_link(self, obj):
         if obj.file:
@@ -101,33 +101,32 @@ class FactorAdmin(admin.ModelAdmin):
 
     file_link.short_description = _('فایل')
 
-    # نمایش تأییدات مرتبط به صورت اینلاین
-    class ApprovalInline(admin.TabularInline):
-        model = ApprovalLog
-        extra = 1
-        fields = ('user', 'date', 'action', 'comment')
-        autocomplete_fields = ('user',)
+# نمایش تأییدات مرتبط به صورت اینلاین
+class ApprovalInline(admin.TabularInline):
+    model = ApprovalLog
+    extra = 1
+    fields = ('user', 'date', 'action', 'comment')
+    autocomplete_fields = ('user',)
 
-    inlines = [ApprovalInline]
+inlines = [ApprovalInline]
 
 
 # ادمین تأیید
 @admin.register(ApprovalLog)
 class ApprovalAdmin(admin.ModelAdmin):
-    list_display = ('tanbakh_number', 'factor_number', 'user', 'date', 'action', 'comment_short')
+    list_display = ('tankhah', 'factor_number', 'user', 'date', 'action', 'comment_short')
     list_filter = (
         ('date', JDateFieldListFilter),
         'action',
-
-        'tanbakh__organization',
+        'tankhah__organization',
     )
-    search_fields = ('tanbakh__number', 'factor__number', 'user__username', 'comment')
-    list_select_related = ('tanbakh', 'factor', 'user')
-    autocomplete_fields = ('tanbakh', 'factor', 'user')
+    search_fields = ('tankhah', 'factor__number', 'user__username', 'comment')
+    list_select_related = ('tankhah', 'factor', 'user')
+    autocomplete_fields = ('tankhah', 'factor', 'user')
     ordering = ('-date',)
     fieldsets = (
         (None, {
-            'fields': ('tanbakh', 'factor', 'user', 'date',)
+            'fields': ('tankhah', 'factor', 'user', 'date',)
         }),
         (_('توضیحات'), {
             'fields': ('comment',),
@@ -136,10 +135,10 @@ class ApprovalAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('date',)  # تاریخ به صورت خودکار ست می‌شه
 
-    def tanbakh_number(self, obj):
-        return obj.tanbakh.number if obj.tanbakh else '-'
+    def tankhah_number(self, obj):
+        return obj.Tankhah.number if obj.Tankhah else '-'
 
-    tanbakh_number.short_description = _('شماره تنخواه')
+    tankhah_number.short_description = _('شماره تنخواه')
 
     def factor_number(self, obj):
         return obj.factor.number if obj.factor else '-'

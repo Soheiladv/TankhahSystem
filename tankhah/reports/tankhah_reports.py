@@ -4,7 +4,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
 from accounts.has_role_permission import has_permission
-from tanbakh.models import Tanbakh
+from tankhah.models import Tanbakh
 from django.utils.translation import gettext_lazy as _
 
 

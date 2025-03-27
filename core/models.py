@@ -4,10 +4,11 @@ import secrets
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-
 from accounts.models import CustomUser
+
 
 class Organization(models.Model):
     """مدل سازمان برای تعریف مجتمع‌ها و دفتر مرکزی"""
@@ -24,7 +25,7 @@ class Organization(models.Model):
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
 
     def __str__(self):
-        return f"{self.code} - {self.name}"
+        return f"{self.code} - {self.name} ({self.org_type})"
 
     class Meta:
         verbose_name = _("سازمان")
@@ -36,6 +37,9 @@ class Organization(models.Model):
             ('Organization_update','بروزرسانی سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
             ('Organization_delete','حــذف سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
             ('Organization_view','نمایش سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
+        ]
+        indexes = [
+            models.Index(fields=['code', 'org_type']),
         ]
 
 class Project(models.Model):
@@ -49,11 +53,18 @@ class Project(models.Model):
     start_date = models.DateField(verbose_name=_("تاریخ شروع"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
-    budget = models.IntegerField(blank=True, null=True, verbose_name= _("بودجه (ريال)"))
+    budget = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True, verbose_name=_("بودجه (ریال)"))
     is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
     priority = models.CharField(max_length=10, choices=priority_CHOICES, null=True, blank=True, verbose_name=_("اولویت"))
+
     def __str__(self):
-        return f"{self.code} - {self.name}"
+        status = "فعال" if self.is_active else "غیرفعال"
+        return f"{self.code} - {self.name} ({status})"
+
+    def save(self, *args, **kwargs):
+        if self.end_date and self.end_date < self.start_date:
+            raise ValueError("تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد")
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = _("پروژه")
@@ -79,9 +90,18 @@ class Post(models.Model):
     level = models.IntegerField(default=1, verbose_name=_("سطح"))
     branch = models.CharField(max_length=3, choices=BRANCH_CHOICES, null=True, blank=True, verbose_name=_("شاخه"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
+    is_active = models.BooleanField(default=True, verbose_name=_("وضعیت فعال"))
 
     def __str__(self):
-        return f"{self.name} ({self.organization.code})"
+        branch = self.branch or "بدون شاخه"
+        return f"{self.name} ({self.organization.code}) - {branch}"
+
+    def save(self, *args, **kwargs):
+        if self.parent:
+            self.level = self.parent.level + 1
+        else:
+            self.level = 1
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = _("پست سازمانی")
@@ -98,6 +118,9 @@ class UserPost(models.Model):
     """مدل اتصال کاربر به پست"""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name=_("کاربر"))
     post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name=_("پست"))
+    # ردیابی تاریخ
+    start_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ شروع"))
+    end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))
 
     class Meta:
         unique_together = ('user', 'post')
@@ -113,7 +136,7 @@ class UserPost(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.user.username} - {self.post.name}"
+        return f"{self.user.username} - {self.post.name} (از {self.start_date})"
 
 class PostHistory(models.Model):
     """
@@ -174,6 +197,13 @@ class PostHistory(models.Model):
         # مرتب‌سازی بر اساس زمان تغییر (جدیدترین اول)
         ordering = ['-changed_at']
         # ایندکس برای بهینه‌سازی جستجو
+        permissions = [
+            ("posthistory_view", _("می‌تواند تاریخچه پست‌ها را مشاهده کند")),
+            ("posthistory_add", _("می‌تواند تاریخچه پست‌ها را اضافه کند")),
+            ("posthistory_update", _("می‌تواند تاریخچه پست‌ها را ویرایش کند")),
+            ("posthistory_delete", _("می‌تواند تاریخچه پست‌ها را حذف کند")),
+        ]
+
         indexes = [
             models.Index(fields=['post', 'changed_at']),
         ]
@@ -184,9 +214,15 @@ class WorkflowStage(models.Model):
     name = models.CharField(max_length=100, verbose_name=_('نام مرحله'))
     order = models.IntegerField(verbose_name=_('ترتیب'))
     description = models.TextField(blank=True, verbose_name=_('توضیحات'))
+    is_active = models.BooleanField(default=True, verbose_name=_("وضعیت فعال"))
+
+    def save(self, *args, **kwargs):
+        if WorkflowStage.objects.exclude(pk=self.pk).filter(order=self.order).exists():
+            raise ValueError("ترتیب مرحله نمی‌تواند تکراری باشد")
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} (مرحله {self.order})"
 
     class Meta:
         verbose_name = _('مرحله گردش کار')
@@ -201,6 +237,9 @@ class WorkflowStage(models.Model):
         ]
 
 # lock -------
+import logging
+logger = logging.getLogger(__name__)
+
 from cryptography.fernet import Fernet, InvalidToken
 cipher = Fernet(settings.RCMS_SECRET_KEY.encode())
 class TimeLockModel(models.Model):
@@ -209,7 +248,7 @@ class TimeLockModel(models.Model):
     salt = models.CharField(max_length=32, verbose_name="مقدار تصادفی", unique=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="زمان ایجاد")
     is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
-    organization_name = models.CharField(max_length=255, verbose_name="نام مجموعه", blank=True, null=True)
+    organization_name = models.CharField(max_length=255, verbose_name="نام مجموعه",  default=_("پیش‌فرض") )
 
     def save(self, *args, **kwargs):
         if not self.salt:
@@ -243,17 +282,16 @@ class TimeLockModel(models.Model):
         if decrypted:
             try:
                 parts = decrypted.split("-")
-                # print(f"Debug - Split parts: {parts}")
                 if len(parts) < 4:
                     raise ValueError("فرمت مقدار رمزگشایی‌شده نادرست است")
-                expiry_str = "-".join(parts[:3])  # YYYY-MM-DD
+                expiry_str = "-".join(parts[:3])
                 max_users_str = parts[3]
                 organization_name = "-".join(parts[4:]) if len(parts) > 4 else ""
                 expiry_date = datetime.date.fromisoformat(expiry_str)
                 max_users = int(max_users_str)
                 return expiry_date, max_users, organization_name
             except (ValueError, TypeError) as e:
-                # print(f"🔴 خطا در رمزگشایی کلید ID {self.id}: {e}, Decrypted value: {decrypted}")
+                logger.error(f"🔴 خطا در رمزگشایی کلید ID {self.id}: {e}")
                 return None, None, None
         return None, None, None
 
@@ -289,6 +327,8 @@ class TimeLockModel(models.Model):
         permissions = [
             ("TimeLockModel_view", "نمایش قفل سیستم"),
             ("TimeLockModel_add", "افزودن قفل سیستم"),
+            ("TimeLockModel_update", "ویرایش قفل سیستم"),
+            ("TimeLockModel_delete", "حذف قفل سیستم"),
         ]
 
 class Dashboard_Core(models.Model):

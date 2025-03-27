@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
-
-class TanbakhConfig(AppConfig):
+class TankhahConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'tanbakh'
+    name = 'tankhah'
+
     verbose_name = 'مدیریت نرم افزار تنخواه '

@@ -6,7 +6,7 @@ from django.views.generic import View
 from django.shortcuts import redirect
 from django.contrib import messages
 
-from tanbakh.models import Factor
+from tankhah.models import Factor
 
 logger = logging.getLogger(__name__)
 
@@ -105,8 +105,8 @@ class PermissionBaseView(LoginRequiredMixin, View):
                             obj = self.get_object()
                             user_orgs = [up.post.organization for up in request.user.userpost_set.all()] if request.user.userpost_set.exists() else []
                             is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
-                            if not is_hq_user and getattr(obj, 'tanbakh', None) and getattr(obj.tanbakh, 'project', None) and getattr(obj.tanbakh.project, 'organization', None):
-                                if obj.tanbakh.project.organization not in user_orgs:
+                            if not is_hq_user and getattr(obj, 'tankhah', None) and getattr(obj.tanbakh, 'project', None) and getattr(obj.tanbakh.project, 'organization', None):
+                                if obj.tankhah.project.organization not in user_orgs:
                                     logger.warning(f"User {request.user} has no access to organization {obj.tanbakh.project.organization}")
                                     messages.warning(request, "شما به این سازمان دسترسی ندارید.")
                                     raise PermissionDenied("شما به این سازمان دسترسی ندارید.")
@@ -122,7 +122,7 @@ class PermissionBaseView(LoginRequiredMixin, View):
             user_orgs = [up.post.organization for up in request.user.userpost_set.all()] if request.user.userpost_set.exists() else []
             is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
             if not is_hq_user and not request.user.is_superuser:
-                logger.warning(f"User {request.user} is not HQ and cannot create tanbakh")
+                logger.warning(f"User {request.user} is not HQ and cannot create tankhah")
                 messages.warning(request, "فقط کاربران دفتر مرکزی می‌توانند تنخواه ایجاد کنند.")
                 raise PermissionDenied("فقط کاربران دفتر مرکزی می‌توانند تنخواه ایجاد کنند.")
 
