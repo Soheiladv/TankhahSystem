@@ -1,26 +1,26 @@
 from core.views import   FinancialDashboardView
-from tanbakh.reports.FinancialReportView import FinancialReportView, PerformanceReportView
+from tankhah.reports.FinancialReportView import FinancialReportView, PerformanceReportView
 from django.urls import path
 
-from tanbakh.views import TanbakhDetailView, TanbakhCreateView, TanbakhDeleteView, \
+from tankhah.views import TankhahDetailView, TankhahCreateView, TankhahDeleteView, \
     FactorListView, FactorDetailView, FactorUpdateView, FactorCreateView, ApprovalListView, FactorDeleteView, \
-    ApprovalCreateView, ApprovalDetailView, ApprovalUpdateView, ApprovalDeleteView, DashboardView, TanbakhListView, \
-    TanbakhApproveView, TanbakhRejectView, FactorItemApproveView, FactorApproveView, FactorItemRejectView, \
-    upload_tanbakh_documents
+    ApprovalCreateView, ApprovalDetailView, ApprovalUpdateView, ApprovalDeleteView, DashboardView, TankhahListView, \
+    TankhahApproveView, TankhahRejectView, FactorItemApproveView, FactorApproveView, FactorItemRejectView, \
+    upload_tankhah_documents
 
 urlpatterns = [
     # path('IndexView_dashboard/', IndexView.as_view(), name='IndexView_dashboard'),  # مسیر اصلی داشبورد
     path('', DashboardView.as_view(), name='dashboard'),  # مسیر اصلی داشبورد
 
-    path('tanbakh_list/', TanbakhListView.as_view(), name='tanbakh_list'),
-    path('<int:pk>/', TanbakhDetailView.as_view(), name='tanbakh_detail'),
-    path('create/', TanbakhCreateView.as_view(), name='tanbakh_create'),
-    path('<int:pk>/delete/', TanbakhDeleteView.as_view(), name='tanbakh_delete'),
+    path('tankhah_list/', TankhahListView.as_view(), name='tankhah_list'),
+    path('<int:pk>/', TankhahDetailView.as_view(), name='tankhah_detail'),
+    path('create/', TankhahCreateView.as_view(), name='tankhah_create'),
+    path('<int:pk>/delete/', TankhahDeleteView.as_view(), name='tankhah_delete'),
     # Rehect Approve
-    path('<int:pk>/approve/', TanbakhApproveView.as_view(), name='tanbakh_approve'),
-    path('<int:pk>/reject/', TanbakhRejectView.as_view(), name='tanbakh_reject'),
+    path('<int:pk>/approve/', TankhahApproveView.as_view(), name='tankhah_approve'),
+    path('<int:pk>/reject/', TankhahRejectView.as_view(), name='tankhah_reject'),
     # Approve Factor Row
-    path('tanbakh/factor/<int:pk>/approve/', FactorItemApproveView.as_view(), name='factor_item_approve'),
+    path('Tankhah/factor/<int:pk>/approve/', FactorItemApproveView.as_view(), name='factor_item_approve'),
 
     path('factors/', FactorListView.as_view(), name='factor_list'),
     path('factor/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'), # جزئیات فاکتور
@@ -52,7 +52,7 @@ urlpatterns += [
 
 ]
 urlpatterns += [
-    # path('upload/<int:tanbakh_id>/', upload_documents, name='upload_documents'),
-    path('<int:tanbakh_id>/upload/', upload_tanbakh_documents, name='upload_tanbakh_documents'),
+    # path('upload/<int:tankhah_id>/', upload_documents, name='upload_documents'),
+    path('<int:tankhah_id>/upload/', upload_tankhah_documents, name='upload_tankhah_documents'),
 
 ] # آپلود تصویر

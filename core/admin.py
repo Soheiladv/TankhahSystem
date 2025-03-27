@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
 from .RCMS_Lock.security import TimeLock
 from .models import Organization, Project, Post, UserPost, PostHistory, TimeLockModel
-from tanbakh.models import WorkflowStage
+from tankhah.models import WorkflowStage
 
 
 # تابع کمکی برای کوتاه کردن متن

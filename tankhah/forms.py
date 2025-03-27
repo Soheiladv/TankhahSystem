@@ -7,7 +7,7 @@ import jdatetime
 from django.utils import timezone
 from Tanbakhsystem.utils import convert_to_farsi_numbers
 from core.models import WorkflowStage
-from .models import Factor, ApprovalLog, FactorDocument, FactorItem, Tanbakh
+from .models import Factor, ApprovalLog, FactorDocument, FactorItem, Tankhah
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from django.forms import inlineformset_factory
@@ -67,7 +67,7 @@ class FactorApprovalForm(forms.ModelForm):
 
 
 # ------------
-class TanbakhForm(forms.ModelForm):
+class TankhahForm(forms.ModelForm):
     # description = forms.CharField(widget=forms.Textarea, required=False, label=_("توضیحات"))
 
     date = forms.CharField(
@@ -88,7 +88,7 @@ class TanbakhForm(forms.ModelForm):
     )
 
     class Meta:
-        model = Tanbakh
+        model = Tankhah
         fields = ['date', 'organization', 'project', 'letter_number',
                   'due_date', 'amount', 'description']  # 'current_stage','last_stopped_post', 'status','hq_status',
         widgets = {
@@ -166,12 +166,12 @@ class TanbakhForm(forms.ModelForm):
                 instance.created_by = self.user
                 instance.last_stopped_post = user_post.post if user_post else None
             if self.has_changed() and 'status' in self.changed_data:
-                old_status = Tanbakh.objects.get(pk=instance.pk).status if instance.pk else 'DRAFT'
+                old_status = Tankhah.objects.get(pk=instance.pk).status if instance.pk else 'DRAFT'
                 new_status = self.cleaned_data['status']
                 action = 'APPROVE' if new_status != 'REJECTED' else 'REJECT'
                 from .models import ApprovalLog
                 ApprovalLog.objects.create(
-                    tanbakh=instance,
+                    tankhah=instance,
                     action=action,
                     user=self.user,
                     comment=self.cleaned_data['comment'],
@@ -194,7 +194,7 @@ class TanbakhApprovalForm(forms.ModelForm):
     )
 
     class Meta:
-        model = Tanbakh
+        model = Tankhah
         fields = []  # هیچ فیلد دیگری از مدل نیاز نیست
 
 
@@ -210,15 +210,15 @@ class FactorForm(forms.ModelForm):
 
     class Meta:
         model = Factor
-        fields = ['tanbakh', 'date', 'amount', 'description']
+        fields = ['tankhah', 'date', 'amount', 'description']
         widgets = {
-            'tanbakh': forms.Select(attrs={'class': 'form-control'}),
+            'tankhah': forms.Select(attrs={'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('مبلغ را وارد کنید')}),
             'description': forms.Textarea(
                 attrs={'class': 'form-control', 'rows': 3, 'placeholder': _('توضیحات فاکتور')}),
         }
         labels = {
-            'tanbakh': _('تنخواه'),
+            'tankhah': _('تنخواه'),
             'date': _('تاریخ'),
             'amount': _('مبلغ'),
             'description': _('توضیحات'),
@@ -226,7 +226,7 @@ class FactorForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
-        self.tanbakh = kwargs.pop('tanbakh', None)
+        self.tankhah = kwargs.pop('tankhah', None)
         super().__init__(*args, **kwargs)
         initial_stage_order = WorkflowStage.objects.order_by(
             '-order').first().order if WorkflowStage.objects.exists() else None
@@ -234,12 +234,12 @@ class FactorForm(forms.ModelForm):
         if self.user:
             user_orgs = restrict_to_user_organization(self.user)
             if user_orgs is None:  # HQ یا Superuser
-                self.fields['tanbakh'].queryset = Tanbakh.objects.filter(
+                self.fields['tankhah'].queryset = Tankhah.objects.filter(
                     status__in=['DRAFT', 'PENDING'],
                     current_stage__order=initial_stage_order
                 )
             else:  # شعبات
-                self.fields['tanbakh'].queryset = Tanbakh.objects.filter(
+                self.fields['tankhah'].queryset = Tankhah.objects.filter(
                     organization__in=user_orgs,
                     status__in=['DRAFT', 'PENDING'],
                     current_stage__order=initial_stage_order
@@ -247,19 +247,19 @@ class FactorForm(forms.ModelForm):
 
         # تنظیمات برای ویرایش
         if self.instance.pk:
-            self.fields['tanbakh'].queryset = Tanbakh.objects.filter(id=self.instance.tanbakh.id)
-            self.fields['tanbakh'].initial = self.instance.tanbakh
+            self.fields['tankhah'].queryset = Tankhah.objects.filter(id=self.instance.tankhah.id)
+            self.fields['tankhah'].initial = self.instance.tankhah
             if self.instance.date:
                 j_date = jdatetime.date.fromgregorian(date=self.instance.date)
                 jalali_date_str = j_date.strftime('%Y/%m/%d')
                 self.fields['date'].initial = jalali_date_str
                 self.initial['date'] = jalali_date_str
             self.fields['amount'].initial = convert_to_farsi_numbers(self.instance.amount)
-        elif self.tanbakh:
-            self.fields['tanbakh'].initial = self.tanbakh
+        elif self.tankhah:
+            self.fields['tankhah'].initial = self.tankhah
 
         # غیرفعال کردن فیلدها در صورت عدم دسترسی
-        if self.instance.pk and self.user and not self.user.has_perm('tanbakh.Factor_full_edit'):
+        if self.instance.pk and self.user and not self.user.has_perm('tankhah.Factor_full_edit'):
             for field_name in self.fields:
                 self.fields[field_name].disabled = True
 
@@ -329,16 +329,16 @@ class ApprovalForm(forms.ModelForm):
 
     class Meta:
         model = ApprovalLog
-        fields = ['tanbakh', 'factor', 'comment', 'action']  # user و date توسط سیستم پر می‌شوند
+        fields = ['tankhah', 'factor', 'comment', 'action']  # user و date توسط سیستم پر می‌شوند
         widgets = {
-            'tanbakh': forms.Select(attrs={'class': 'form-control'}),
+            'tankhah': forms.Select(attrs={'class': 'form-control'}),
             'factor': forms.Select(attrs={'class': 'form-control'}),
             'comment': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': _('توضیحات اختیاری')}),
             'action': forms.Select(attrs={'class': 'form-control'}),
             # 'is_approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
-            'tanbakh': _('تنخواه'),
+            'tankhah': _('تنخواه'),
             'factor': _('فاکتور'),
             'comment': _('توضیحات'),
             'action': _('شاخه'),
@@ -348,9 +348,9 @@ class ApprovalForm(forms.ModelForm):
 
 """این فرم وضعیت و مرحله فعلی تنخواه را نمایش می‌دهد:"""
 
-class TanbakhStatusForm(forms.ModelForm):
+class TankhahStatusForm(forms.ModelForm):
     class Meta:
-        model = Tanbakh
+        model = Tankhah
         fields = ['status', 'current_stage', 'due_date', 'approved_by']
         widgets = {
             'status': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
@@ -449,6 +449,6 @@ class FactorDocumentForm(forms.Form):
     files = MultipleFileField(label=_("بارگذاری اسناد فاکتور"), required=False)
 
 # فرم اسناد تنخواه (چندفایلی، بدون ModelForm)
-class TanbakhDocumentForm(forms.Form):
+class TankhahDocumentForm(forms.Form):
     documents = MultipleFileField(label=_("بارگذاری مدارک تنخواه"), required=False)
 

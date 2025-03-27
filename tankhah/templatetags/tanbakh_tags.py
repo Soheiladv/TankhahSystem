@@ -1,4 +1,4 @@
-# tanbakh/templatetags/tanbakh_tags.py
+# tankhah/templatetags/tankhah_tags.py
 from django import template
 
 register = template.Library()

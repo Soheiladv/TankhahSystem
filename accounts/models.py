@@ -428,6 +428,3 @@ class ActiveUser(models.Model):
             from core.models import TimeLockModel
             expiry_date, max_users, _, _ = TimeLockModel.get_latest_lock()
             return max_users if max_users is not None else getattr(settings, 'MAX_ACTIVE_USERS', 2)
-
-
-############# Security Lock

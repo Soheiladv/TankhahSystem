@@ -158,7 +158,7 @@ class OrganizationForm(forms.ModelForm):
 
 # -- new
 # tanbakh/forms.py
-from tanbakh.models import StageApprover
+from tankhah.models import StageApprover
 
 class PostForm(forms.ModelForm):
     class Meta:
