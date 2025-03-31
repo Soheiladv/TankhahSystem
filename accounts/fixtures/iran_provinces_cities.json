@@ -1,0 +1,1654 @@
+[
+    {
+        "model": "accounts.province",
+        "pk": 1,
+        "fields": {
+            "name": "آذربایجان شرقی",
+            "code": "01"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 1,
+        "fields": {
+            "name": "تبریز",
+            "province": 1,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 2,
+        "fields": {
+            "name": "مراغه",
+            "province": 1,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 3,
+        "fields": {
+            "name": "مرند",
+            "province": 1,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 4,
+        "fields": {
+            "name": "میانه",
+            "province": 1,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 5,
+        "fields": {
+            "name": "اهر",
+            "province": 1,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 6,
+        "fields": {
+            "name": "سراب",
+            "province": 1,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 7,
+        "fields": {
+            "name": "جلفا",
+            "province": 1,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 2,
+        "fields": {
+            "name": "آذربایجان غربی",
+            "code": "02"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 8,
+        "fields": {
+            "name": "ارومیه",
+            "province": 2,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 9,
+        "fields": {
+            "name": "خوی",
+            "province": 2,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 10,
+        "fields": {
+            "name": "مهاباد",
+            "province": 2,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 11,
+        "fields": {
+            "name": "میاندوآب",
+            "province": 2,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 12,
+        "fields": {
+            "name": "بوکان",
+            "province": 2,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 13,
+        "fields": {
+            "name": "سلماس",
+            "province": 2,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 3,
+        "fields": {
+            "name": "اردبیل",
+            "code": "03"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 14,
+        "fields": {
+            "name": "اردبیل",
+            "province": 3,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 15,
+        "fields": {
+            "name": "پارس‌آباد",
+            "province": 3,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 16,
+        "fields": {
+            "name": "مشگین‌شهر",
+            "province": 3,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 17,
+        "fields": {
+            "name": "خلخال",
+            "province": 3,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 18,
+        "fields": {
+            "name": "نمین",
+            "province": 3,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 4,
+        "fields": {
+            "name": "اصفهان",
+            "code": "04"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 19,
+        "fields": {
+            "name": "اصفهان",
+            "province": 4,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 20,
+        "fields": {
+            "name": "کاشان",
+            "province": 4,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 21,
+        "fields": {
+            "name": "نجف‌آباد",
+            "province": 4,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 22,
+        "fields": {
+            "name": "خمینی‌شهر",
+            "province": 4,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 23,
+        "fields": {
+            "name": "فلاورجان",
+            "province": 4,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 24,
+        "fields": {
+            "name": "شهرضا",
+            "province": 4,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 25,
+        "fields": {
+            "name": "شاهین‌شهر",
+            "province": 4,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 5,
+        "fields": {
+            "name": "البرز",
+            "code": "05"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 26,
+        "fields": {
+            "name": "کرج",
+            "province": 5,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 27,
+        "fields": {
+            "name": "هشتگرد",
+            "province": 5,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 28,
+        "fields": {
+            "name": "نظرآباد",
+            "province": 5,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 29,
+        "fields": {
+            "name": "فردیس",
+            "province": 5,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 30,
+        "fields": {
+            "name": "ماهدشت",
+            "province": 5,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 6,
+        "fields": {
+            "name": "ایلام",
+            "code": "06"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 31,
+        "fields": {
+            "name": "ایلام",
+            "province": 6,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 32,
+        "fields": {
+            "name": "دهلران",
+            "province": 6,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 33,
+        "fields": {
+            "name": "ایوان",
+            "province": 6,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 34,
+        "fields": {
+            "name": "مهران",
+            "province": 6,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 7,
+        "fields": {
+            "name": "بوشهر",
+            "code": "07"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 35,
+        "fields": {
+            "name": "بوشهر",
+            "province": 7,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 36,
+        "fields": {
+            "name": "بندر گناوه",
+            "province": 7,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 37,
+        "fields": {
+            "name": "بندر کنگان",
+            "province": 7,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 38,
+        "fields": {
+            "name": "جم",
+            "province": 7,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 39,
+        "fields": {
+            "name": "دشتستان",
+            "province": 7,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 8,
+        "fields": {
+            "name": "تهران",
+            "code": "08"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 40,
+        "fields": {
+            "name": "تهران",
+            "province": 8,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 41,
+        "fields": {
+            "name": "ورامین",
+            "province": 8,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 42,
+        "fields": {
+            "name": "ری",
+            "province": 8,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 43,
+        "fields": {
+            "name": "اسلامشهر",
+            "province": 8,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 44,
+        "fields": {
+            "name": "پاکدشت",
+            "province": 8,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 45,
+        "fields": {
+            "name": "شهریار",
+            "province": 8,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 9,
+        "fields": {
+            "name": "چهارمحال و بختیاری",
+            "code": "09"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 46,
+        "fields": {
+            "name": "شهرکرد",
+            "province": 9,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 47,
+        "fields": {
+            "name": "فارسان",
+            "province": 9,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 48,
+        "fields": {
+            "name": "بروجن",
+            "province": 9,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 49,
+        "fields": {
+            "name": "لردگان",
+            "province": 9,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 10,
+        "fields": {
+            "name": "خراسان جنوبی",
+            "code": "10"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 50,
+        "fields": {
+            "name": "بیرجند",
+            "province": 10,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 51,
+        "fields": {
+            "name": "قائن",
+            "province": 10,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 52,
+        "fields": {
+            "name": "طبس",
+            "province": 10,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 53,
+        "fields": {
+            "name": "نهبندان",
+            "province": 10,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 11,
+        "fields": {
+            "name": "خراسان رضوی",
+            "code": "11"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 54,
+        "fields": {
+            "name": "مشهد",
+            "province": 11,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 55,
+        "fields": {
+            "name": "نیشابور",
+            "province": 11,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 56,
+        "fields": {
+            "name": "سبزوار",
+            "province": 11,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 57,
+        "fields": {
+            "name": "تربت حیدریه",
+            "province": 11,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 58,
+        "fields": {
+            "name": "قوچان",
+            "province": 11,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 59,
+        "fields": {
+            "name": "تربت جام",
+            "province": 11,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 12,
+        "fields": {
+            "name": "خراسان شمالی",
+            "code": "12"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 60,
+        "fields": {
+            "name": "بجنورد",
+            "province": 12,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 61,
+        "fields": {
+            "name": "شیروان",
+            "province": 12,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 62,
+        "fields": {
+            "name": "اسفراین",
+            "province": 12,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 63,
+        "fields": {
+            "name": "مانه و سملقان",
+            "province": 12,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 13,
+        "fields": {
+            "name": "خوزستان",
+            "code": "13"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 64,
+        "fields": {
+            "name": "اهواز",
+            "province": 13,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 65,
+        "fields": {
+            "name": "دزفول",
+            "province": 13,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 66,
+        "fields": {
+            "name": "شوشتر",
+            "province": 13,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 67,
+        "fields": {
+            "name": "آبادان",
+            "province": 13,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 68,
+        "fields": {
+            "name": "خرمشهر",
+            "province": 13,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 69,
+        "fields": {
+            "name": "اندیمشک",
+            "province": 13,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 14,
+        "fields": {
+            "name": "زنجان",
+            "code": "14"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 70,
+        "fields": {
+            "name": "زنجان",
+            "province": 14,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 71,
+        "fields": {
+            "name": "ابهر",
+            "province": 14,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 72,
+        "fields": {
+            "name": "خدابنده",
+            "province": 14,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 73,
+        "fields": {
+            "name": "طارم",
+            "province": 14,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 15,
+        "fields": {
+            "name": "سمنان",
+            "code": "15"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 74,
+        "fields": {
+            "name": "سمنان",
+            "province": 15,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 75,
+        "fields": {
+            "name": "شاهرود",
+            "province": 15,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 76,
+        "fields": {
+            "name": "دامغان",
+            "province": 15,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 77,
+        "fields": {
+            "name": "گرمسار",
+            "province": 15,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 16,
+        "fields": {
+            "name": "سیستان و بلوچستان",
+            "code": "16"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 78,
+        "fields": {
+            "name": "زاهدان",
+            "province": 16,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 79,
+        "fields": {
+            "name": "زابل",
+            "province": 16,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 80,
+        "fields": {
+            "name": "چابهار",
+            "province": 16,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 81,
+        "fields": {
+            "name": "ایرانشهر",
+            "province": 16,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 82,
+        "fields": {
+            "name": "سراوان",
+            "province": 16,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 17,
+        "fields": {
+            "name": "فارس",
+            "code": "17"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 83,
+        "fields": {
+            "name": "شیراز",
+            "province": 17,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 84,
+        "fields": {
+            "name": "مرودشت",
+            "province": 17,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 85,
+        "fields": {
+            "name": "جهرم",
+            "province": 17,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 86,
+        "fields": {
+            "name": "لار",
+            "province": 17,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 87,
+        "fields": {
+            "name": "فسا",
+            "province": 17,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 88,
+        "fields": {
+            "name": "کازرون",
+            "province": 17,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 18,
+        "fields": {
+            "name": "قزوین",
+            "code": "18"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 89,
+        "fields": {
+            "name": "قزوین",
+            "province": 18,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 90,
+        "fields": {
+            "name": "تاکستان",
+            "province": 18,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 91,
+        "fields": {
+            "name": "الوند",
+            "province": 18,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 92,
+        "fields": {
+            "name": "بوئین‌زهرا",
+            "province": 18,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 19,
+        "fields": {
+            "name": "قم",
+            "code": "19"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 93,
+        "fields": {
+            "name": "قم",
+            "province": 19,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 94,
+        "fields": {
+            "name": "کهک",
+            "province": 19,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 95,
+        "fields": {
+            "name": "جعفریه",
+            "province": 19,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 20,
+        "fields": {
+            "name": "کردستان",
+            "code": "20"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 96,
+        "fields": {
+            "name": "سنندج",
+            "province": 20,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 97,
+        "fields": {
+            "name": "سقز",
+            "province": 20,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 98,
+        "fields": {
+            "name": "مریوان",
+            "province": 20,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 99,
+        "fields": {
+            "name": "بانه",
+            "province": 20,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 100,
+        "fields": {
+            "name": "قروه",
+            "province": 20,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 21,
+        "fields": {
+            "name": "کرمان",
+            "code": "21"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 101,
+        "fields": {
+            "name": "کرمان",
+            "province": 21,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 102,
+        "fields": {
+            "name": "رفسنجان",
+            "province": 21,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 103,
+        "fields": {
+            "name": "سیرجان",
+            "province": 21,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 104,
+        "fields": {
+            "name": "بم",
+            "province": 21,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 105,
+        "fields": {
+            "name": "جیرفت",
+            "province": 21,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 22,
+        "fields": {
+            "name": "کرمانشاه",
+            "code": "22"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 106,
+        "fields": {
+            "name": "کرمانشاه",
+            "province": 22,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 107,
+        "fields": {
+            "name": "اسلام‌آباد غرب",
+            "province": 22,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 108,
+        "fields": {
+            "name": "کنگاور",
+            "province": 22,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 109,
+        "fields": {
+            "name": "سرپل ذهاب",
+            "province": 22,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 110,
+        "fields": {
+            "name": "سنقر",
+            "province": 22,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 23,
+        "fields": {
+            "name": "کهگیلویه و بویراحمد",
+            "code": "23"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 111,
+        "fields": {
+            "name": "یاسوج",
+            "province": 23,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 112,
+        "fields": {
+            "name": "گچساران",
+            "province": 23,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 113,
+        "fields": {
+            "name": "دنا",
+            "province": 23,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 114,
+        "fields": {
+            "name": "بهمئی",
+            "province": 23,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 24,
+        "fields": {
+            "name": "گلستان",
+            "code": "24"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 115,
+        "fields": {
+            "name": "گرگان",
+            "province": 24,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 116,
+        "fields": {
+            "name": "گنبد کاووس",
+            "province": 24,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 117,
+        "fields": {
+            "name": "علی‌آباد کتول",
+            "province": 24,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 118,
+        "fields": {
+            "name": "آق‌قلا",
+            "province": 24,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 119,
+        "fields": {
+            "name": "ترکمن",
+            "province": 24,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 25,
+        "fields": {
+            "name": "گیلان",
+            "code": "25"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 120,
+        "fields": {
+            "name": "رشت",
+            "province": 25,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 121,
+        "fields": {
+            "name": "لاهیجان",
+            "province": 25,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 122,
+        "fields": {
+            "name": "انزلی",
+            "province": 25,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 123,
+        "fields": {
+            "name": "رودسر",
+            "province": 25,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 124,
+        "fields": {
+            "name": "لنگرود",
+            "province": 25,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 125,
+        "fields": {
+            "name": "آستارا",
+            "province": 25,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 26,
+        "fields": {
+            "name": "لرستان",
+            "code": "26"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 126,
+        "fields": {
+            "name": "خرم‌آباد",
+            "province": 26,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 127,
+        "fields": {
+            "name": "بروجرد",
+            "province": 26,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 128,
+        "fields": {
+            "name": "دورود",
+            "province": 26,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 129,
+        "fields": {
+            "name": "کوهدشت",
+            "province": 26,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 130,
+        "fields": {
+            "name": "الیگودرز",
+            "province": 26,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 27,
+        "fields": {
+            "name": "مازندران",
+            "code": "27"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 131,
+        "fields": {
+            "name": "ساری",
+            "province": 27,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 132,
+        "fields": {
+            "name": "بابل",
+            "province": 27,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 133,
+        "fields": {
+            "name": "آمل",
+            "province": 27,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 134,
+        "fields": {
+            "name": "قائم‌شهر",
+            "province": 27,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 135,
+        "fields": {
+            "name": "تنکابن",
+            "province": 27,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 136,
+        "fields": {
+            "name": "نوشهر",
+            "province": 27,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 28,
+        "fields": {
+            "name": "مرکزی",
+            "code": "28"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 137,
+        "fields": {
+            "name": "اراک",
+            "province": 28,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 138,
+        "fields": {
+            "name": "ساوه",
+            "province": 28,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 139,
+        "fields": {
+            "name": "خمین",
+            "province": 28,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 140,
+        "fields": {
+            "name": "محلات",
+            "province": 28,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 141,
+        "fields": {
+            "name": "دلیجان",
+            "province": 28,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 29,
+        "fields": {
+            "name": "هرمزگان",
+            "code": "29"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 142,
+        "fields": {
+            "name": "بندرعباس",
+            "province": 29,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 143,
+        "fields": {
+            "name": "قشم",
+            "province": 29,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 144,
+        "fields": {
+            "name": "میناب",
+            "province": 29,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 145,
+        "fields": {
+            "name": "بندر لنگه",
+            "province": 29,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 146,
+        "fields": {
+            "name": "کیش",
+            "province": 29,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 30,
+        "fields": {
+            "name": "همدان",
+            "code": "30"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 147,
+        "fields": {
+            "name": "همدان",
+            "province": 30,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 148,
+        "fields": {
+            "name": "ملایر",
+            "province": 30,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 149,
+        "fields": {
+            "name": "نهاوند",
+            "province": 30,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 150,
+        "fields": {
+            "name": "تویسرکان",
+            "province": 30,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 151,
+        "fields": {
+            "name": "کبودرآهنگ",
+            "province": 30,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.province",
+        "pk": 31,
+        "fields": {
+            "name": "یزد",
+            "code": "31"
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 152,
+        "fields": {
+            "name": "یزد",
+            "province": 31,
+            "is_capital": true
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 153,
+        "fields": {
+            "name": "میبد",
+            "province": 31,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 154,
+        "fields": {
+            "name": "اردکان",
+            "province": 31,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 155,
+        "fields": {
+            "name": "بافق",
+            "province": 31,
+            "is_capital": false
+        }
+    },
+    {
+        "model": "accounts.city",
+        "pk": 156,
+        "fields": {
+            "name": "مهریز",
+            "province": 31,
+            "is_capital": false
+        }
+    }
+]

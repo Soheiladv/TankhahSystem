@@ -9,7 +9,7 @@ from django.views.i18n import JavaScriptCatalog
 from Tanbakhsystem import views
 from Tanbakhsystem.views import TanbakhWorkflowView, DashboardView, GuideView
 from accounts.views import SetTimeLockView, TimeLockListView, LockStatusView
-from core.RCMS_Lock.views import lock_status
+from accounts.RCMS_Lock.views import lock_status
 
 urlpatterns = [
                   path('admin/', admin.site.urls),
@@ -20,7 +20,7 @@ urlpatterns = [
                   # path('core/', include('core.urls')),
                   path('', include('core.urls')),
                   path('reports/', include('reports.urls')),
-                  path('tankhah/', include('tankhah.urls')),  # اضافه کردن اپلیکیشن tanbakh
+                  path('tankhah/', include('tankhah.urls')),  # اضافه کردن اپلیکیشن tankhah
                   path('version_tracker/', include('version_tracker.urls')),  # اضافه کردن اپلیکیشن tankhah
                   path('workflow/', TanbakhWorkflowView.as_view(), name='workflow'),  # help workflow
 

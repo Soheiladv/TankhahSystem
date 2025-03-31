@@ -2,7 +2,8 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 from Tanbakhsystem.utils import convert_jalali_to_gregorian, convert_gregorian_to_jalali, convert_to_farsi_numbers
-from .models import Project, Organization, TimeLockModel, UserPost, Post, PostHistory, WorkflowStage
+from accounts.models import TimeLockModel
+from .models import Project, Organization,  UserPost, Post, PostHistory, WorkflowStage
 from django.utils.translation import gettext_lazy as _
 
 from django import forms

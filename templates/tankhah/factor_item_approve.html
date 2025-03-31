@@ -3,12 +3,12 @@
 
 {% block content %}
 <div class="container my-4">
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
+    <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 d-flex align-items-center">
                 <i class="fas fa-file-invoice me-2"></i>
                 {% trans "بررسی فاکتور" %} #{{ factor.number }}
-                <span class="badge bg-{{ factor.status|lower }} ms-2">
+                <span class="badge bg-{{ factor.status|lower }} ms-3">
                     {{ factor.get_status_display }}
                 </span>
             </h5>
@@ -18,6 +18,7 @@
         </div>
 
         <div class="card-body p-4">
+            <!-- تب‌ها -->
             <ul class="nav nav-tabs mb-4">
                 <li class="nav-item">
                     <a class="nav-link active" data-bs-toggle="tab" href="#items">
@@ -31,6 +32,7 @@
                 </li>
             </ul>
 
+            <!-- محتوای تب‌ها -->
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="items">
                     <form method="post" class="needs-validation" novalidate>
@@ -39,14 +41,14 @@
 
                         <div class="form-check mb-4">
                             <input type="checkbox" class="form-check-input" id="bulkApprove" name="bulk_approve">
-                            <label class="form-check-label" for="bulkApprove">
+                            <label class="form-check-label fw-bold text-primary" for="bulkApprove">
                                 {% trans "تأیید همه ردیف‌ها" %}
                             </label>
                         </div>
 
                         <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="bg-light">
+                            <table class="table table-bordered table-hover align-middle">
+                                <thead class="table-primary">
                                     <tr>
                                         <th scope="col">#</th>
                                         <th scope="col">{% trans "توضیحات" %}</th>
@@ -83,7 +85,7 @@
                         </div>
 
                         <div class="mt-4 text-end">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="fas fa-save me-2"></i>{% trans "ذخیره" %}
                             </button>
                         </div>
@@ -118,9 +120,28 @@
 
 {% block extra_css %}
 <style>
-    .badge.bg-approved { background-color: #28a745; }
-    .badge.bg-rejected { background-color: #dc3545; }
-    .badge.bg-pending { background-color: #ffc107; }
+    .badge.bg-approved { background-color: #28a745 !important; }
+    .badge.bg-rejected { background-color: #dc3545 !important; }
+    .badge.bg-pending { background-color: #ffc107 !important; }
     .table td { vertical-align: middle; }
+    .table thead th { background-color: #e9ecef; color: #212529; }
+</style>
+
+<style>
+    textarea {
+        resize: none;
+    }
+    .form-control {
+        border-radius: 0.5rem;
+        box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    .form-select {
+        background-color: #f8f9fa;
+        border: 1px solid #ced4da;
+        border-radius: 0.5rem;
+    }
+    button[type="submit"] {
+        border-radius: 0.5rem;
+    }
 </style>
 {% endblock %}

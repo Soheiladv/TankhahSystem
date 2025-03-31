@@ -7,15 +7,17 @@ import jdatetime
 from django.utils import timezone
 from Tanbakhsystem.utils import convert_to_farsi_numbers
 from core.models import WorkflowStage
-from .models import Factor, ApprovalLog, FactorDocument, FactorItem, Tankhah
+from .models import Factor, ApprovalLog, FactorItem, Tankhah, get_default_workflow_stage
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from django.forms import inlineformset_factory
 
 class FactorItemApprovalForm(forms.Form):
-    action = forms.ChoiceField(choices=[('', '-----'), ('APPROVE', 'تأیید'), ('REJECT', 'رد')], required=False)
-    comment = forms.CharField(widget=forms.Textarea, required=False)
-
+    action = forms.ChoiceField(
+        choices=[('', _('لطفاً انتخاب کنید')), ('APPROVE', _('تأیید')), ('REJECT', _('رد')), ], required=False,
+        widget=forms.Select(attrs={'class': 'form-control form-select','style': 'max-width: 200px;',}),label=_("اقدام"),)
+    comment = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2,'placeholder': _('توضیحات خود را اینجا وارد کنید...'),'style': 'max-width: 500px;',}
+        ),required=False,label=_("توضیحات"),)
 
 # ------------ New
 class FactorApprovalForm(forms.ModelForm):
@@ -64,18 +66,18 @@ class FactorApprovalForm(forms.ModelForm):
                     item.comment = self.cleaned_data[comment_field]
                     item.save()
         return instance
-
-
 # ------------
-class TankhahForm(forms.ModelForm):
-    # description = forms.CharField(widget=forms.Textarea, required=False, label=_("توضیحات"))
 
+from Tanbakhsystem.base import JalaliDateForm
+
+
+class TankhahForm(JalaliDateForm):
     date = forms.CharField(
         label=_('تاریخ'),
         widget=forms.TextInput(attrs={
             'data-jdp': '',
             'class': 'form-control',
-            'placeholder': convert_to_farsi_numbers(_('تاریخ را انتخاب کنید (1404/01/17)'))
+            'placeholder': _('تاریخ را انتخاب کنید (1404/01/17)'),
         })
     )
     due_date = forms.CharField(
@@ -83,42 +85,25 @@ class TankhahForm(forms.ModelForm):
         widget=forms.TextInput(attrs={
             'data-jdp': '',
             'class': 'form-control',
-            'placeholder': convert_to_farsi_numbers(_('تاریخ را انتخاب کنید (1404/01/17)'))
-        })
+            'placeholder': _('تاریخ را انتخاب کنید (1404/01/17)'),
+        }),
+        required=False
     )
 
     class Meta:
         model = Tankhah
-        fields = ['date', 'organization', 'project', 'letter_number',
-                  'due_date', 'amount', 'description']  # 'current_stage','last_stopped_post', 'status','hq_status',
+        fields = ['date', 'organization', 'project', 'letter_number', 'due_date', 'amount', 'description']
         widgets = {
             'organization': forms.Select(attrs={'class': 'form-control'}),
             'project': forms.Select(attrs={'class': 'form-control'}),
             'letter_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('اختیاری')}),
-            # 'status': forms.Select(attrs={'class': 'form-control'}),
-            # 'hq_status': forms.Select(attrs={'class': 'form-control'}),
-            # 'last_stopped_post': forms.Select(attrs={'class': 'form-control'}),
-            # 'current_stage': forms.Select(attrs={'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
-        }
-        labels = {
-            'date': _('تاریخ'),
-            'organization': _('مجتمع'),
-            'project': _('پروژه'),
-            # 'status': _('وضعیت'),
-            # 'hq_status': _('وضعیت در HQ'),
-            # 'last_stopped_post': _('آخرین پست متوقف‌شده'),
-            'letter_number': _('شماره نامه درصورت الصاق نامه در اتوماسیون اداری'),
-            'amount': _('مبلغ'),
-            'description': _('توضیحات'),
         }
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        # for field in ['current_stage',]: #   'last_stopped_post''status', 'hq_status',
-        #     self.fields[field].widget = forms.HiddenInput()
 
         if self.user:
             user_posts = self.user.userpost_set.all()
@@ -127,36 +112,19 @@ class TankhahForm(forms.ModelForm):
                     for field_name in self.fields:
                         if field_name != 'status' and field_name != 'description':
                             self.fields[field_name].disabled = True
-        if self.instance.pk:
-            self.fields['date'].initial = jdatetime.date.fromgregorian(date=self.instance.date).strftime('%Y/%m/%d')
-            self.fields['due_date'].initial = (
-                jdatetime.date.fromgregorian(date=self.instance.due_date).strftime('%Y/%m/%d')
-                if self.instance.due_date else ''
-            )
+
+        self.set_jalali_initial('date', 'date')
+        self.set_jalali_initial('due_date', 'due_date')
+
+        if not self.instance.current_stage:
+            self.initial['current_stage'] = get_default_workflow_stage()
 
     def clean_date(self):
-        date_str = self.cleaned_data.get('date')
-        if date_str:
-            try:
-                j_date = jdatetime.datetime.strptime(date_str, '%Y/%m/%d')
-                gregorian_date = j_date.togregorian()
-                # تبدیل به datetime آگاه از منطقه زمانی
-                return timezone.make_aware(gregorian_date)
-            except ValueError:
-                raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
-        return timezone.now()  # مقدار پیش‌فرض در صورت خالی بودن
+        date = self.clean_jalali_date('date')
+        return date if date else timezone.now()
 
     def clean_due_date(self):
-        due_date_str = self.cleaned_data.get('due_date')
-        if due_date_str:
-            try:
-                j_date = jdatetime.datetime.strptime(due_date_str, '%Y/%m/%d')
-                gregorian_date = j_date.togregorian()
-                # تبدیل به datetime آگاه از منطقه زمانی
-                return timezone.make_aware(gregorian_date)
-            except ValueError:
-                raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
-        return None  # اختیاری بودن due_date
+        return self.clean_jalali_date('due_date')
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -165,26 +133,9 @@ class TankhahForm(forms.ModelForm):
             if not instance.pk:
                 instance.created_by = self.user
                 instance.last_stopped_post = user_post.post if user_post else None
-            if self.has_changed() and 'status' in self.changed_data:
-                old_status = Tankhah.objects.get(pk=instance.pk).status if instance.pk else 'DRAFT'
-                new_status = self.cleaned_data['status']
-                action = 'APPROVE' if new_status != 'REJECTED' else 'REJECT'
-                from .models import ApprovalLog
-                ApprovalLog.objects.create(
-                    tankhah=instance,
-                    action=action,
-                    user=self.user,
-                    comment=self.cleaned_data['comment'],
-                    post=user_post.post if user_post else None
-                )
-                if new_status == 'SENT_TO_HQ':
-                    instance.current_stage = WorkflowStage.objects.get(name='OPS')
-                elif new_status == 'HQ_OPS_APPROVED':
-                    instance.current_stage = WorkflowStage.objects.get(name='FIN')
         if commit:
             instance.save()
         return instance
-
 
 class TanbakhApprovalForm(forms.ModelForm):
     comment = forms.CharField(
@@ -196,8 +147,6 @@ class TanbakhApprovalForm(forms.ModelForm):
     class Meta:
         model = Tankhah
         fields = []  # هیچ فیلد دیگری از مدل نیاز نیست
-
-
 class FactorForm(forms.ModelForm):
     date = forms.CharField(
         label=_('تاریخ'),

@@ -10,7 +10,7 @@
             <form method="post">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger"><i class="fas fa-trash me-2"></i>{% trans "بله، حذف کن" %}</button>
-                <a href="{% url 'tanbakh_list' %}" class="btn btn-secondary"><i class="fas fa-times me-2"></i>{% trans "خیر، لغو" %}</a>
+                <a href="{% url 'tankhah_list' %}" class="btn btn-secondary"><i class="fas fa-times me-2"></i>{% trans "خیر، لغو" %}</a>
             </form>
         </div>
     </div>

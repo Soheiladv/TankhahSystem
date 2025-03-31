@@ -10,7 +10,8 @@ from django.urls import path
 from accounts import views
 from accounts.views import (AdvancedProfileSearchView, user_management_view, dashboard_view,
                             ActiveUserListView, TimeLockCreateView, TimeLockListView,
-                            SetTimeLockView, lock_status, set_theme, terminate_session,  # AssignRoleToUserView,
+                            SetTimeLockView, lock_status, set_theme, terminate_session,
+                            ProfileUpdateView, active_users_view,  # AssignRoleToUserView,
                             )
 from .views import (
     RoleListView, RoleCreateView, RoleUpdateView, RoleDeleteView,
@@ -116,7 +117,8 @@ urlpatterns = [
                        name='reset_password_to_default'),
 
                   # Profile URLs
-                  path('profile/update/', profile_update_view, name='profile_update'),
+                  # path('profile/update/', profile_update_view, name='profile_update'),
+                  path('profile/update/', ProfileUpdateView.as_view(), name='profile_update'),
                   path('profile/update/success/', profile_update_success, name='profile_update_success'),
                   # path('profile/update/success/', profile_update_success_view, name='profile_update_success'),
                   # مسیر جدید
@@ -191,6 +193,8 @@ urlpatterns = [
 
                   path('set_theme/', set_theme, name='set_theme'),# User Color
 
+path('get_cities/', views.get_cities, name='get_cities'),#گرفتن شهر
+
 
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
@@ -198,3 +202,6 @@ urlpatterns+=[
     path('terminate-session/<int:session_id>/',  terminate_session, name='terminate_session'),
 
 ]
+urlpatterns+=[
+    path('active-users/', active_users_view, name='active_users'),
+]#تعداد کاربر فعال سیستم

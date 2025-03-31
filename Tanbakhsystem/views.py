@@ -1,14 +1,13 @@
 from django.shortcuts import render
-from django.views.generic import TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.translation import gettext_lazy as _
-
-from core.models import WorkflowStage
 ############################################Main
 # core/views.py
 from django.views.generic.base import TemplateView
-from django.utils.translation import gettext_lazy as _
+
 from core.PermissionBase import PermissionBaseView
+from core.models import WorkflowStage
+
+
 class DashboardView( PermissionBaseView , TemplateView):
     template_name = 'core/dashboard.html'
     permission_codename = 'core.Dashboard_view'
@@ -22,40 +21,48 @@ class DashboardView( PermissionBaseView , TemplateView):
                 {'name': _('روند تنخواه'), 'url': 'dashboard_flows', 'permission': 'Dashboard__view', 'icon': 'fas fa-link'},
                 {'name': _('BI گزارشات'), 'url': 'financialDashboardView', 'icon': 'fas fa-chart-bar'},
             ],
-            'سازمـان': [
-                {'name': _('فهرست سازمان‌ها'), 'url': 'organization_list', 'permission': 'organization_view', 'icon': 'fas fa-building'},
-                {'name': _('ایجاد سازمان'), 'url': 'organization_create', 'permission': 'organization_add', 'icon': 'fas fa-plus'},
-            ],
-            'عنوان پروژه': [
-                {'name': _('فهرست پروژه‌ها'), 'url': 'project_list', 'permission': 'project_view', 'icon': 'fas fa-project-diagram'},
-                {'name': _('ایجاد پروژه'), 'url': 'project_create', 'permission': 'project_add', 'icon': 'fas fa-plus'},
-            ],
+
             'تنخواه': [
-                {'name': _('فهرست تنخواه'), 'url': 'tanbakh_list', 'permission': 'project_view', 'icon': 'fas fa-project-diagram'},
-                {'name': _('ایجاد تنخواه'), 'url': 'tanbakh_create', 'permission': 'project_add', 'icon': 'fas fa-plus'},
+                {'name': _('فهرست تنخواه'), 'url': 'tankhah_list', 'permission': 'Tankhah_view', 'icon': 'fas fa-project-diagram'},
+                {'name': _('ایجاد تنخواه'), 'url': 'tankhah_create', 'permission': 'Tankhah_add', 'icon': 'fas fa-plus'},
             ],
             'فاکتورها': [
-                {'name': _('فهرست فاکتورها'), 'url': 'factor_list', 'permission': 'project_view', 'icon': 'fas fa-file-invoice'},
-                {'name': _('ایجاد فاکتور'), 'url': 'factor_create', 'permission': 'project_add', 'icon': 'fas fa-plus'},
+                {'name': _('فهرست فاکتورها'), 'url': 'factor_list', 'permission': 'a_factor_view', 'icon': 'fas fa-file-invoice'},
+                {'name': _('ایجاد فاکتور'), 'url': 'factor_create', 'permission': 'a_factor_add', 'icon': 'fas fa-plus'},
             ],
-            'پست و سلسله مراتب': [
-                {'name': _('فهرست پست‌ها'), 'url': 'post_list', 'permission': 'post_view', 'icon': 'fas fa-sitemap'},
-                {'name': _('ایجاد پست'), 'url': 'post_create', 'permission': 'post_add', 'icon': 'fas fa-plus'},
-            ],
-            'پست همکار در سازمان': [
-                {'name': _('فهرست اتصالات کاربر به پست'), 'url': 'userpost_list', 'permission': 'userpost_view', 'icon': 'fas fa-users'},
-                {'name': _('ایجاد اتصال'), 'url': 'userpost_create', 'permission': 'userpost_add', 'icon': 'fas fa-plus'},
-            ],
-            'تاریخچه پست‌ها': [
-                {'name': _('فهرست تاریخچه پست‌ها'), 'url': 'posthistory_list', 'permission': 'posthistory_view', 'icon': 'fas fa-history'},
-                {'name': _('ثبت تاریخچه'), 'url': 'posthistory_create', 'permission': 'posthistory_add', 'icon': 'fas fa-plus'},
+            'عنوان پروژه': [
+                {'name': _('فهرست پروژه‌ها'), 'url': 'project_list', 'permission': 'Project_view',
+                 'icon': 'fas fa-project-diagram'},
+                {'name': _('ایجاد پروژه'), 'url': 'project_create', 'permission': 'Project_add', 'icon': 'fas fa-plus'},
             ],
             'گردش کار': [
-                {'name': _('فهرست گردش کار'), 'url': 'workflow_stage_list', 'permission': 'workflow_stage_create', 'icon': 'fas fa-exchange-alt'},
-                {'name': _('ثبت گردش کار'), 'url': 'workflow_stage_create', 'permission': 'workflow_stage_create', 'icon': 'fas fa-plus'},
+                {'name': _('فهرست گردش کار'), 'url': 'workflow_stage_list', 'permission': 'WorkflowStage_view',
+                 'icon': 'fas fa-exchange-alt'},
+                {'name': _('ثبت گردش کار'), 'url': 'workflow_stage_create', 'permission': 'WorkflowStage_add',
+                 'icon': 'fas fa-plus'},
             ],
+            'پست و سلسله مراتب': [
+                {'name': _('فهرست پست‌ها'), 'url': 'post_list', 'permission': 'Post_view', 'icon': 'fas fa-sitemap'},
+                {'name': _('ایجاد پست'), 'url': 'post_create', 'permission': 'Post_add', 'icon': 'fas fa-plus'},
+            ],
+            'سازمـان': [
+                {'name': _('فهرست سازمان‌ها'), 'url': 'organization_list', 'permission': 'Organization_view',
+                 'icon': 'fas fa-building'},
+                {'name': _('ایجاد سازمان'), 'url': 'organization_create', 'permission': 'Organization_add',
+                 'icon': 'fas fa-plus'},
+            ],
+            'پست همکار در سازمان': [
+                {'name': _('فهرست اتصالات کاربر به پست'), 'url': 'userpost_list', 'permission': 'UserPost_view', 'icon': 'fas fa-users'},
+                {'name': _('ایجاد اتصال'), 'url': 'userpost_create', 'permission': 'UserPost_add', 'icon': 'fas fa-plus'},
+            ],
+            'تاریخچه پست‌ها': [
+                {'name': _('فهرست تاریخچه پست‌ها'), 'url': 'posthistory_list', 'permission': 'view_posthistory', 'icon': 'fas fa-history'},
+                # {'name': _('ثبت تاریخچه'), 'url': 'posthistory_create', 'permission': 'add_posthistory', 'icon': 'fas fa-plus'},
+            ],
+
             'دیگر لینک‌ها': [
                 {'name': _('همه لینک‌ها'), 'url': 'all_links', 'icon': 'fas fa-link'},
+                {'name': _('مدیریت کاربران'), 'url': 'accounts:admin_dashboard', 'icon': 'fas fa-link'},
                 {'name': _('نسخه ها'), 'url': 'version_index_view', 'icon': 'fas fa-link'},
             ],
         }
@@ -209,11 +216,6 @@ class DashboardView( PermissionBaseView , TemplateView):
 #
 #         context["cards"] = filtered_cards
 #         return context
-
-class TanbakhWorkflowView1(TemplateView):#help
-    template_name = 'help/run_tankhahSystem.html'
-    extra_context = {'title': _('جریان کار تنخواه‌گردانی')}
-
 
 class TanbakhWorkflowView(TemplateView): #help
     template_name =  'help/run_tankhahSystem.html'
