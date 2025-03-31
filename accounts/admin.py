@@ -1,6 +1,4 @@
-
-
-from .models import  CustomProfile
+from .models import CustomProfile, TimeLockModel
 
 ###############################################################
 from django.contrib.auth.forms import AdminPasswordChangeForm
@@ -12,7 +10,13 @@ from django.shortcuts import redirect, render
 
 from .models import CustomUser, Role, MyGroup, CustomUserGroup
 from .forms import   CustomUserCreationForm, CustomUserForm,MyGroupForm
+from django.utils.translation import gettext_lazy as _
 
+# ادمین پایه با تنظیمات مشترک
+class BaseAdmin(admin.ModelAdmin):
+    list_per_page = 20  # تعداد آیتم‌ها در هر صفحه
+    ordering = ('-id',)  # ترتیب پیش‌فرض
+    search_fields = ('name',)  # فیلد جستجوی پیش‌فرض
 
 @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):
@@ -36,9 +40,6 @@ class CustomUserGroupInline(admin.TabularInline):
         if db_field.name == "customuser":
             kwargs["queryset"] = CustomUser.objects.filter(is_active=True)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-
-
 
 @admin.register(MyGroup)
 class GroupAdmin(admin.ModelAdmin):
@@ -66,8 +67,6 @@ class GroupAdmin(admin.ModelAdmin):
         queryset = super().get_queryset(request)
         queryset = queryset.prefetch_related('roles', 'accounts_groups_set')
         return queryset
-
-
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
@@ -136,7 +135,6 @@ class CustomUserAdmin(UserAdmin):
         context = {'form': form, 'title': 'تغییر رمز عبور'}
         return render(request, 'admin/auth/user/change_password.html', context)
 
-
 @admin.register(CustomProfile)
 class CustomProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'first_name', 'last_name', 'city', 'phone_number')
@@ -152,11 +150,7 @@ class CustomProfileAdmin(admin.ModelAdmin):
 
 
 from django.contrib.auth.models import Group
-
 admin.site.unregister(Group)
-
-
-
 ##########################  Auth Permission
 import django_filters
 from django.contrib import admin
@@ -195,7 +189,6 @@ class PermissionAdmin(admin.ModelAdmin):
 
 admin.site.register(Permission, PermissionAdmin)
 
-
 # admin.py
 from django.contrib import admin
 from .models import AuditLog
@@ -206,4 +199,31 @@ class AuditLogAdmin(admin.ModelAdmin):
     list_filter = ('action', 'model_name', 'timestamp')
     search_fields = ('user__username', 'model_name', 'object_id')
     readonly_fields = ('user', 'action', 'model_name', 'object_id', 'timestamp', 'details', 'ip_address', 'browser', 'status_code')
+
+from django_jalali.admin.filters import JDateFieldListFilter
+
+# ادمین قفل سیستم
+@admin.register(TimeLockModel)
+class TimeLockModelAdmin(BaseAdmin):
+    list_display = ('hash_value', 'created_at', 'is_active', 'decrypted_expiry', 'decrypted_max_users', 'decrypted_org')
+    list_filter = (('created_at', JDateFieldListFilter), 'is_active')
+    search_fields = ('hash_value', 'organization_name')
+    ordering = ('-created_at',)
+    readonly_fields = ('created_at', 'lock_key', 'hash_value', 'salt', 'decrypted_expiry', 'decrypted_max_users', 'decrypted_org')
+    fieldsets = (
+        (None, {'fields': ('lock_key', 'hash_value', 'salt', 'is_active', 'organization_name')}),
+        (_('اطلاعات رمزگشایی‌شده'), {'fields': ('decrypted_expiry', 'decrypted_max_users', 'decrypted_org'), 'classes': ('collapse',)}),
+    )
+
+    def decrypted_expiry(self, obj):
+        return obj.get_decrypted_expiry_date()
+    decrypted_expiry.short_description = _('تاریخ انقضا')
+
+    def decrypted_max_users(self, obj):
+        return obj.get_decrypted_max_users()
+    decrypted_max_users.short_description = _('حداکثر کاربران')
+
+    def decrypted_org(self, obj):
+        return obj.get_decrypted_organization_name()
+    decrypted_org.short_description = _('نام سازمان')
 

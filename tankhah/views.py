@@ -7,43 +7,36 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q
 from django.forms import formset_factory
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View, TemplateView
 from jalali_date.fields import JalaliDateField
 from notifications.signals import notify
-
 from accounts.models import CustomUser
 # Local imports
-from core.PermissionBase import PermissionBaseView
 from core.models import UserPost, Post, WorkflowStage
 from .forms import (
     ApprovalForm, FactorItemApprovalForm, FactorApprovalForm, TankhahDocumentForm, FactorDocumentForm, FactorForm,
     FactorItemFormSet, TankhahForm, TankhahStatusForm
 )
 from .models import (
-    Factor, ApprovalLog, FactorItem, TankhahDocument, FactorDocument, Tankhah)
+    Factor, ApprovalLog, FactorItem, TankhahDocument, FactorDocument, Tankhah, StageApprover)
 from .utils import restrict_to_user_organization
 
 # Logger configuration
 logger = logging.getLogger(__name__)
-
-
 # --- Factor Views ---
 from django.utils.translation import gettext_lazy as _
 from persiantools.jdatetime import JalaliDate  # ایمپورت درست
 from datetime import datetime
-
 # tankhah/views.py
 from django.views.generic.list import ListView
 from django.db.models import Q
 from .models import Factor
 from core.views import PermissionBaseView
 from django.utils.translation import gettext_lazy as _
-from datetime import datetime
-from jalali_date import date2jalali  # برای نمایش، ولی برای پارس برعکسش رو دستی می‌کنیم
-
 # -------
 ###########################################
 class DashboardView(PermissionBaseView, TemplateView):
@@ -57,22 +50,22 @@ class DashboardView(PermissionBaseView, TemplateView):
         # لینک‌ها بر اساس پرمیشن‌ها
         context['links'] = {
             'Tankhah': [
-                {'url': 'Tankhah_list', 'label': _('لیست تنخواه‌ها'), 'icon': 'fas fa-list',
-                 'perm': 'Tankhah.Tankhah_view'},
-                {'url': 'Tankhah_create', 'label': _('ایجاد تنخواه'), 'icon': 'fas fa-plus',
-                 'perm': 'Tankhah.Tankhah_add'},
+                {'url': 'tankhah_list', 'label': _('لیست تنخواه‌ها'), 'icon': 'fas fa-list',
+                 'perm': 'Tankhah.tankhah_view'},
+                {'url': 'tankhah_create', 'label': _('ایجاد تنخواه'), 'icon': 'fas fa-plus',
+                 'perm': 'tankhah.tankhah_add'},
             ],
             'factor': [
                 {'url': 'factor_list', 'label': _('لیست فاکتورها'), 'icon': 'fas fa-file-invoice',
-                 'perm': 'Tankhah.a_factor_view'},
+                 'perm': 'tankhah.a_factor_view'},
                 {'url': 'factor_create', 'label': _('ایجاد فاکتور'), 'icon': 'fas fa-plus',
-                 'perm': 'Tankhah.a_factor_add'},
+                 'perm': 'tankhah.a_factor_add'},
             ],
             'approval': [
                 {'url': 'approval_list', 'label': _('لیست تأییدات'), 'icon': 'fas fa-check-circle',
-                 'perm': 'Tankhah.Approval_view'},
+                 'perm': 'tankhah.Approval_view'},
                 {'url': 'approval_create', 'label': _('ثبت تأیید'), 'icon': 'fas fa-plus',
-                 'perm': 'Tankhah.Approval_add'},
+                 'perm': 'tankhah.Approval_add'},
             ],
         }
 
@@ -86,8 +79,8 @@ class DashboardView(PermissionBaseView, TemplateView):
 class TankhahManageView(PermissionBaseView, CreateView):
     model = Tankhah
     form_class = TankhahForm
-    template_name = 'tankhah/Tankhah_manage.html'
-    success_url = reverse_lazy('Tankhah_list')
+    template_name = 'tankhah/tankhah_manage.html'
+    success_url = reverse_lazy('tankhah_list')
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -102,43 +95,14 @@ class TankhahManageView(PermissionBaseView, CreateView):
         context = super().get_context_data(**kwargs)
         context['title'] = _('مدیریت تنخواه')
         return context
-# تأیید و ویرایش تنخواه
-class TankhahUpdateView(PermissionBaseView, UpdateView):
-    model = Tankhah
-    form_class = TankhahForm
-    template_name = 'tankhah/Tankhah_manage.html'
-    success_url = reverse_lazy('Tankhah_list')
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
-
-    def form_valid(self, form):
-        user_post = self.request.user.userpost_set.filter(post__organization=self.object.organization).first()
-        if not user_post or user_post.post.branch != self.object.current_stage:
-            messages.error(self.request, _('شما اجازه تأیید در این مرحله را ندارید.'))
-            return self.form_invalid(form)
-        next_post = Post.objects.filter(parent=user_post.post, organization=self.object.organization).first() or \
-                    Post.objects.filter(organization__org_type='HQ', branch=self.object.current_stage, level=1).first()
-        if next_post:
-            self.object.last_stopped_post = next_post
-        self.object.save()
-        messages.success(self.request, _('تنخواه با موفقیت به‌روزرسانی شد.'))
-        return super().form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = _('ویرایش و تأیید تنخواه') + f" - {self.object.number}"
-        return context
-# -------
 class TankhahCreateView(PermissionBaseView, CreateView):
     model = Tankhah
     form_class = TankhahForm
     template_name = 'tankhah/Tankhah_form.html'
-    success_url = reverse_lazy('Tankhah_list')
+    success_url = reverse_lazy('tankhah_list')
     context_object_name = 'Tankhah'
-    permission_codenames = ['Tankhah.Tankhah_add']
+    permission_codenames = ['tankhah.Tankhah_add']  # فرمت درست
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
     check_organization = True  # فعال کردن چک سازمان
 
@@ -150,9 +114,9 @@ class TankhahCreateView(PermissionBaseView, CreateView):
 
     def form_valid(self, form):
         """ثبت تنخواه با پایین‌ترین مرحله و ارسال اعلان"""
-        Tankhah = form.instance
-        Tankhah.created_by = self.request.user
-        Tankhah.status = 'DRAFT'
+        tankhah = form.instance
+        tankhah.created_by = self.request.user
+        tankhah.status = 'DRAFT'
 
         # تنظیم پایین‌ترین مرحله
         try:
@@ -162,10 +126,23 @@ class TankhahCreateView(PermissionBaseView, CreateView):
                 logger.error("No workflow stages defined!")
                 messages.error(self.request, _('هیچ مرحله‌ای در سیستم تعریف نشده است.'))
                 return self.form_invalid(form)
-            if first_stage.order != 1:  # اطمینان از اینکه پایین‌ترین مرحله order=1 است
-                logger.warning(f"First stage {first_stage.name} has order {first_stage.order}, expected 1")
-            Tankhah.current_stage = first_stage
-            logger.info(f"Setting Tankhah {Tankhah.number} to stage: {first_stage.name} (order={first_stage.order})")
+            # if first_stage.order != 1:  # اطمینان از اینکه پایین‌ترین مرحله order=1 است
+            #     logger.warning(f"First stage {first_stage.name} has order {first_stage.order}, expected 1")
+            # Tankhah.current_stage = first_stage
+            # logger.info(f"Setting Tankhah {Tankhah.number} to stage: {first_stage.name} (order={first_stage.order})")
+
+            tankhah.current_stage = first_stage
+
+            # چک سازمان
+            if self.check_organization:
+                user_orgs = [up.post.organization for up in
+                             self.request.user.userpost_set.all()] if self.request.user.userpost_set.exists() else []
+                is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
+                if not is_hq_user and tankhah.organization not in user_orgs:
+                    logger.warning(f"User {self.request.user} has no access to organization {tankhah.organization}")
+                    messages.error(self.request, "شما به این سازمان دسترسی ندارید.")
+                    return self.form_invalid(form)
+
         except Exception as e:
             logger.error(f"Error setting stage: {str(e)}")
             messages.error(self.request, _('خطا در تنظیم مرحله تنخواه.'))
@@ -181,7 +158,7 @@ class TankhahCreateView(PermissionBaseView, CreateView):
                 sender=self.request.user,
                 recipient=approvers,
                 verb='تنخواه جدیدی ایجاد شد',
-                target=Tankhah
+                target=tankhah
             )
             logger.info(f"Notification sent to {approvers.count()} approvers for stage {first_stage.name}")
         else:
@@ -200,10 +177,88 @@ class TankhahCreateView(PermissionBaseView, CreateView):
         """مدیریت خطای عدم دسترسی"""
         messages.error(self.request, self.permission_denied_message)
         return super().handle_no_permission()
+# تأیید و ویرایش تنخواه
+from django.contrib.auth.mixins import UserPassesTestMixin
+class TankhahUpdateView(UserPassesTestMixin, UpdateView):
+    model = Tankhah
+    form_class = TankhahForm
+    template_name = 'tankhah/Tankhah_manage.html'
+    success_url = reverse_lazy('tankhah_list')
 
+    def test_func(self):
+        # فقط سوپر‌یوزرها یا استف‌ها دسترسی دارن
+        return self.request.user.is_superuser or self.request.user.is_staff
+
+    def handle_no_permission(self):
+        messages.error(self.request, _('شما اجازه دسترسی به این صفحه را ندارید.'))
+        return super().handle_no_permission()
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tankhah = self.get_object()
+        context['title'] = _('ویرایش و تأیید تنخواه') + f" - {tankhah.number}"
+        context['can_edit'] = self.request.user.has_perm('tankhah.Tankhah_update') or self.request.user.is_staff
+
+        # وضعیت‌های قفل‌کننده تنخواه
+        locked_statuses = ['REJECTED', 'APPROVED', 'PAID', 'HQ_OPS_APPROVED', 'SENT_TO_HQ']
+        has_factors = tankhah.factors.exists()  # چک کردن وجود فاکتور
+        is_locked = has_factors or tankhah.status in locked_statuses
+
+        context['is_locked'] = is_locked
+        # دلیل قفل شدن
+        if is_locked:
+            if has_factors:
+                context['lock_reason'] = _('این تنخواه قابل ویرایش نیست چون فاکتور ثبت‌شده دارد.')
+            else:
+                context['lock_reason'] = _('این تنخواه قابل ویرایش نیست چون در وضعیت "{}" است.').format(
+                    tankhah.get_status_display())
+        else:
+            context['lock_reason'] = ''
+
+        return context
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        tankhah = self.get_object()
+        # اگه قفل شده، همه فیلدها رو غیرفعال کن
+        locked_statuses = ['REJECTED', 'APPROVED', 'PAID', 'HQ_OPS_APPROVED', 'SENT_TO_HQ']
+        if tankhah.factors.exists() or tankhah.status in locked_statuses:
+            for field in form.fields.values():
+                field.disabled = True
+        return form
+
+    def form_valid(self, form):
+        tankhah = self.get_object()
+        # اگه فاکتور داره یا رد/تأیید شده، نذار تغییر کنه
+        locked_statuses = ['REJECTED', 'APPROVED', 'PAID', 'HQ_OPS_APPROVED', 'SENT_TO_HQ']
+        if tankhah.factors.exists() or tankhah.status in locked_statuses:
+            reason = _('فاکتور ثبت‌شده دارد') if tankhah.factors.exists() else _('در وضعیت "{}" است').format(
+                tankhah.get_status_display())
+            messages.error(self.request, _('این تنخواه قابل ویرایش نیست چون {}').format(reason))
+            return self.form_invalid(form)
+
+        user_post = self.request.user.userpost_set.filter(post__organization=tankhah.organization).first()
+        if not user_post or user_post.post.branch != tankhah.current_stage:
+            messages.error(self.request, _('شما اجازه تأیید در این مرحله را ندارید.'))
+            return self.form_invalid(form)
+
+        next_post = Post.objects.filter(parent=user_post.post, organization=tankhah.organization).first() or \
+                    Post.objects.filter(organization__org_type='HQ', branch=tankhah.current_stage, level=1).first()
+        if next_post:
+            tankhah.last_stopped_post = next_post
+        tankhah.save()
+        messages.success(self.request, _('تنخواه با موفقیت به‌روزرسانی شد.'))
+        return super().form_valid(form)
+
+# -------
 class TankhahListView1(PermissionBaseView, PermissionRequiredMixin, ListView):
     model = Tankhah
-    template_name = 'tankhah/Tankhah_list.html'
+    template_name = 'tankhah/tankhah_list.html'
     context_object_name = 'Tankhahs'
     paginate_by = 10
     extra_context = {'title': _('لیست تنخواه‌ها')}
@@ -262,112 +317,84 @@ class TankhahListView1(PermissionBaseView, PermissionRequiredMixin, ListView):
         context['Tankhahs'] = context['object_list']
         context['show_archived'] = self.request.GET.get('show_archived', 'false') == 'true'
         return context
-
 class TankhahListView(PermissionBaseView, ListView):
     model = Tankhah
     template_name = 'tankhah/tankhah_list.html'
     context_object_name = 'Tankhahs'
     paginate_by = 10
-    permission_required = (
-        'Tankhah.Tankhah_view', 'Tankhah_update', 'Tankhah_add', 'Tankhah.Tankhah_approve',
-        'Tankhah.Tankhah_part_approve', 'Tankhah.FactorItem_approve', 'edit_full_Tankhah',
-        'Tankhah_hq_view', 'Tankhah_hq_approve', 'Tankhah_HQ_OPS_PENDING', 'Tankhah_HQ_OPS_APPROVED',
-        'Tankhah.FactorItem_approve'
-    )
-
-    def has_permission(self):
-        return any(self.request.user.has_perm(perm) for perm in self.get_permission_required())
+    permission_codenames = ['tankhah.Tankhah_view']  # فرمت درست
 
     def get_queryset(self):
-        """فیلتر کردن تنخواه‌ها بر اساس سازمان کاربر"""
-        qs = super().get_queryset()
         user = self.request.user
-        user_orgs = [up.post.organization for up in
-                     self.request.user.userpost_set.all()] if self.request.user.userpost_set.exists() else []
-        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
+        logger.info(f"User: {user}, is_superuser: {user.is_superuser}")
 
-        # اگر کاربر HQ است، همه تنخواه‌ها را نشان بده، در غیر این صورت فقط تنخواه‌های سازمان کاربر
-        queryset = Tankhah.objects.all() if is_hq_user else Tankhah.objects.filter(organization__in=user_orgs)
+        # اگه تابع دیگه دسترسی رو چک کرده، فقط تنخواه‌ها رو برگردون
+        queryset = Tankhah.objects.all()
+        logger.info(f"Initial queryset count: {queryset.count()}")
 
-        if not is_hq_user and not self.request.user.is_superuser:
-            qs = qs.filter(organization__in=user_orgs)
-            # فیلتر بر اساس stage اگر در URL باشد
-        stage_id = self.request.GET.get('stage')
-        if stage_id:
-            qs = qs.filter(current_stage_id=stage_id)
-
-        # فیلتر آرشیو
         if not self.request.GET.get('show_archived'):
             queryset = queryset.filter(is_archived=False)
+            logger.info(f"Filtered by archived count: {queryset.count()}")
 
-        # فیلتر جستجو
         query = self.request.GET.get('q')
         if query:
-            queryset = queryset.filter(number__icontains=query) | queryset.filter(organization__name__icontains=query)
+            queryset = queryset.filter(number__icontains=query) | queryset.filter(organization__name__icontains=query, organization__isnull=False)
+            logger.info(f"Filtered by query '{query}' count: {queryset.count()}")
 
-        # فیلتر مرحله
         stage = self.request.GET.get('stage')
         if stage:
             queryset = queryset.filter(current_stage__order=stage)
+            logger.info(f"Filtered by stage order {stage} count: {queryset.count()}")
 
-        # بررسی وجود تنخواه‌ها برای دیباگ
-        if not queryset.exists() and not is_hq_user and not user_orgs:
-            messages.warning(self.request, _('شما به هیچ سازمانی متصل نیستید و تنخواهی نمایش داده نمی‌شود.'))
-        elif not queryset.exists():
+        if not queryset.exists():
             messages.info(self.request, _('هیچ تنخواهی با این شرایط یافت نشد.'))
 
-        return queryset.order_by('-date')  # مرتب‌سازی بر اساس تاریخ
+        final_queryset = queryset.order_by('-date')
+        logger.info(f"Final queryset count: {final_queryset.count()}")
+        return final_queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user_orgs = [up.post.organization for up in
-                     self.request.user.userpost_set.all()] if self.request.user.userpost_set.exists() else []
+        user_orgs = [up.post.organization for up in self.request.user.userpost_set.all()] if self.request.user.userpost_set.exists() else []
         is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
 
         context['is_hq_user'] = is_hq_user
         context['user_orgs'] = user_orgs
-        # context['is_hq_user'] = any(org.org_type == 'HQ' for org in user_orgs)
         context['query'] = self.request.GET.get('q', '')
         context['stage'] = self.request.GET.get('stage', '')
         context['show_archived'] = self.request.GET.get('show_archived', 'false') == 'true'
 
-        # انتخاب نام سازمان برای نمایش
         if is_hq_user:
             context['org_display_name'] = _('دفتر مرکزی')
         elif user_orgs:
-            context['org_display_name'] = user_orgs[0].name  # نام اولین سازمان کاربر
+            context['org_display_name'] = user_orgs[0].name
         else:
             context['org_display_name'] = _('بدون سازمان')
         return context
-
 class TankhahDetailView(PermissionBaseView, PermissionRequiredMixin, DetailView):
     model = Tankhah
     template_name = 'tankhah/Tankhah_detail.html'
     context_object_name = 'Tankhah'
-
-    # مجوزهای نمایشی (حداقل یکی لازم است)
     permission_required = (
-        'Tankhah.Tankhah_view', 'Tankhah_update',
-        'Tankhah.Tankhah_hq_view', 'Tankhah_HQ_OPS_APPROVED', 'edit_full_Tankhah'
+        'tankhah.Tankhah_view', 'tankhah.tankhah_update',
+        'tankhah.Tankhah_hq_view', 'tankhah.Tankhah_HQ_OPS_APPROVED', 'tankhah.edit_full_tankhah'
     )
 
     def has_permission(self):
-        # کاربر باید حداقل یکی از مجوزهای نمایشی را داشته باشد
         return any(self.request.user.has_perm(perm) for perm in self.get_permission_required())
 
     def get_object(self, queryset=None):
         tankhah = get_object_or_404(Tankhah, pk=self.kwargs['pk'])
-        restrict_to_user_organization(self.request.user, Tankhah.organization)
-        return Tankhah
+        restrict_to_user_organization(self.request.user, tankhah.organization)
+        return tankhah
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['factors'] = self.object.factors.all()
+        context['factors'] = self.object.factors.all()  # اصلاح: اضافه کردن .all()
         context['title'] = _('جزئیات تنخواه') + f" - {self.object.number}"
-        context['approval_logs'] = ApprovalLog.objects.filter(Tankhah=self.object).order_by('timestamp')
-        context['current_date'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')  # تاریخ فعلی برای چاپ
+        context['approval_logs'] = ApprovalLog.objects.filter(tankhah=self.object).order_by('timestamp')
+        context['current_date'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')
         context['status_form'] = TankhahStatusForm(instance=self.object)
-        context['title'] = _('جزئیات تنخواه') + f" - {self.object.number}"
 
         # تبدیل تاریخ‌ها به شمسی
         if self.object.date:
@@ -375,21 +402,19 @@ class TankhahDetailView(PermissionBaseView, PermissionRequiredMixin, DetailView)
         for factor in context['factors']:
             factor.jalali_date = jdatetime.date.fromgregorian(date=factor.date).strftime('%Y/%m/%d %H:%M')
         for approval in context['approval_logs']:
-            approval.jalali_date = jdatetime.datetime.fromgregorian(datetime=approval.timestamp).strftime(
-                '%Y/%m/%d %H:%M')
+            approval.jalali_date = jdatetime.datetime.fromgregorian(datetime=approval.timestamp).strftime('%Y/%m/%d %H:%M')
 
         # دسته‌بندی برای دفتر مرکزی
         user_orgs = [up.post.organization for up in self.request.user.userpost_set.all()]
         context['is_hq'] = any(org.org_type == 'HQ' for org in user_orgs)
-        context['can_approve'] = self.request.user.has_perm('Tankhah.Tankhah_approve') or \
-                                 self.request.user.has_perm('Tankhah.Tankhah_part_approve') or \
-                                 self.request.user.has_perm('Tankhah.FactorItem_approve')
+        context['can_approve'] = self.request.user.has_perm('tankhah.Tankhah_approve') or \
+                                 self.request.user.has_perm('tankhah.Tankhah_part_approve') or \
+                                 self.request.user.has_perm('tankhah.FactorItem_approve')
         return context
-
 class TankhahDeleteView(PermissionBaseView, DeleteView):
     model = Tankhah
     template_name = 'tankhah/Tankhah_confirm_delete.html'
-    success_url = reverse_lazy('Tankhah_list')
+    success_url = reverse_lazy('tankhah_list')
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('تنخواه با موفقیت حذف شد.'))
@@ -436,14 +461,13 @@ class TankhahRejectView(PermissionBaseView, View):
         Tankhah.save()
         messages.error(request, _('تنخواه رد شد.'))
         return redirect('dashboard_flows')
-
 # ویو نهایی تنخواه تایید یا رد شده
 class TankhahFinalApprovalView(UpdateView):
     """ویو نهایی تنخواه تایید یا رد شده """
     model = Tankhah
     fields = ['status']
     template_name = 'tankhah/Tankhah_final_approval.html'
-    success_url = reverse_lazy('Tankhah_list')
+    success_url = reverse_lazy('tankhah_list')
 
     def form_valid(self, form):
         user_orgs = [up.post.organization for up in self.request.user.userpost_set.all()]
@@ -487,7 +511,7 @@ class FactorListView(PermissionBaseView, ListView):
         if is_hq_user:
             queryset = Factor.objects.all()
         else:
-            queryset = Factor.objects.filter(Tankhah__organization__in=user_orgs)
+            queryset = Factor.objects.filter(tankhah__organization__in=user_orgs)
 
         query = self.request.GET.get('q', '').strip()
         date_query = self.request.GET.get('date', '').strip()
@@ -527,23 +551,22 @@ class FactorListView(PermissionBaseView, ListView):
         context['status_query'] = self.request.GET.get('status', '')
         context['is_hq'] = any(up.post.organization.org_type == 'HQ' for up in self.request.user.userpost_set.all())
         return context
-
 class FactorDetailView(PermissionBaseView, DetailView):
     model = Factor
     template_name = 'tankhah/factor_detail.html'  # تمپلیت نمایشی جدید
     context_object_name = 'factor'
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
-    permission_codename = 'Tankhah.a_factor_view'
+    permission_codename = 'tankhah.a_factor_view'
     check_organization = True
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         factor = self.get_object()
-        Tankhah = factor.Tankhah
+        tankhah = factor.tankhah
 
         context['title'] = _('جزئیات فاکتور') + f" - {factor.number}"
-        context['Tankhah'] = Tankhah
-        context['Tankhah_documents'] = Tankhah.documents.all()
+        context['tankhah'] = tankhah
+        context['tankhah_documents'] = tankhah.documents.all()
 
         # محاسبه جمع کل و جمع هر آیتم
         items_with_total = [
@@ -559,7 +582,6 @@ class FactorDetailView(PermissionBaseView, DetailView):
     def handle_no_permission(self):
         messages.error(self.request, self.permission_denied_message)
         return redirect('factor_list')
-
 class FactorCreateView(PermissionBaseView, CreateView):
     model = Factor
     form_class = FactorForm
@@ -572,7 +594,7 @@ class FactorCreateView(PermissionBaseView, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        tankhah = Tankhah.objects.get(id=self.kwargs.get('Tankhah_id', None)) if 'Tankhah_id' in self.kwargs else None
+        tankhah = Tankhah.objects.get(id=self.kwargs.get('tankhah_id', None)) if 'tankhah_id' in self.kwargs else None
         if self.request.POST:
             context['item_formset'] = FactorItemFormSet(self.request.POST, self.request.FILES)
             context['document_form'] = FactorDocumentForm(self.request.POST, self.request.FILES)
@@ -582,9 +604,11 @@ class FactorCreateView(PermissionBaseView, CreateView):
             context['document_form'] = FactorDocumentForm()
             context['Tankhah_document_form'] = TankhahDocumentForm()
         context['title'] = 'ایجاد فاکتور جدید'
-        context['Tankhah'] = Tankhah
-        if Tankhah:
-            context['Tankhah_documents'] = Tankhah.documents.all()
+        context['Tankhah'] = tankhah
+        if tankhah:  # فقط اگه tankhah مقدار داشته باشه
+            context['Tankhah_documents'] = tankhah.documents.all()
+        else:
+            context['Tankhah_documents'] = []  # اگه None باشه، لیست خالی برگردون
         return context
 
     def get_form_kwargs(self):
@@ -597,7 +621,7 @@ class FactorCreateView(PermissionBaseView, CreateView):
         item_formset = context['item_formset']
         document_form = context['document_form']
         Tankhah_document_form = context['Tankhah_document_form']
-        Tankhah = form.cleaned_data['Tankhah']
+        Tankhah = form.cleaned_data['tankhah']
 
         if Tankhah.status not in ['DRAFT', 'PENDING']:
             messages.error(self.request, 'فقط می‌توانید برای تنخواه‌های پیش‌نویس یا در انتظار فاکتور ثبت کنید.')
@@ -657,8 +681,6 @@ class FactorCreateView(PermissionBaseView, CreateView):
     def handle_no_permission(self):
         messages.error(self.request, self.permission_denied_message)
         return super().handle_no_permission()
-
-# tankhah/views.py (ادامه)
 class FactorUpdateView(PermissionBaseView, UpdateView):
     model = Factor
     form_class = FactorForm
@@ -667,18 +689,18 @@ class FactorUpdateView(PermissionBaseView, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        Tankhah = self.object.Tankhah
+        tankhah = self.object.tankhah
         if self.request.POST:
             context['item_formset'] = FactorItemFormSet(self.request.POST, self.request.FILES, instance=self.object)
             context['document_form'] = FactorDocumentForm(self.request.POST, self.request.FILES)
-            context['Tankhah_document_form'] = TankhahDocumentForm(self.request.POST, self.request.FILES)
+            context['tankhah_document_form'] = TankhahDocumentForm(self.request.POST, self.request.FILES)
         else:
             context['item_formset'] = FactorItemFormSet(instance=self.object)
             context['document_form'] = FactorDocumentForm()
             context['Tankhah_document_form'] = TankhahDocumentForm()
         context['title'] = _('ویرایش فاکتور') + f" - {self.object.number}"
-        context['Tankhah'] = Tankhah
-        context['Tankhah_documents'] = Tankhah.documents.all()
+        context['tankhah'] = tankhah
+        context['tankhah_documents'] = tankhah.documents.all()
         total_amount = sum(item.amount * item.quantity for item in self.object.items.all())
         # context['difference'] = total_amount - context['total_amount'] if total_amount else 0
         context['total_amount'] = total_amount
@@ -692,7 +714,7 @@ class FactorUpdateView(PermissionBaseView, UpdateView):
 
     def dispatch(self, request, *args, **kwargs):
         obj = self.get_object()
-        if not request.user.has_perm('Tankhah.Factor_full_edit') and getattr(obj, 'is_finalized', False):
+        if not request.user.has_perm('tankhah.Factor_full_edit') and getattr(obj, 'is_finalized', False):
             raise PermissionDenied(_('شما اجازه ویرایش این فاکتور را ندارید.'))
         return super().dispatch(request, *args, **kwargs)
 
@@ -700,9 +722,9 @@ class FactorUpdateView(PermissionBaseView, UpdateView):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         if self.object:
-            Tankhah = self.object.Tankhah
-            restrict_to_user_organization(self.request.user, Tankhah.organization)
-            kwargs['Tankhah'] = Tankhah
+            tankhah = self.object.tankhah
+            restrict_to_user_organization(self.request.user, tankhah.organization)
+            kwargs['tankhah'] = tankhah
         return kwargs
 
     def form_valid(self, form):
@@ -742,7 +764,6 @@ class FactorUpdateView(PermissionBaseView, UpdateView):
             messages.success(self.request, _('فاکتور با موفقیت به‌روزرسانی شد.'))
             return super().form_valid(form)
         return self.form_invalid(form)
-
 class FactorDeleteView(PermissionBaseView, DeleteView):
     model = Factor
     template_name = 'tankhah/factor_confirm_delete.html'
@@ -851,7 +872,6 @@ class FactorApproveView(UpdateView):
     def handle_no_permission(self):
         messages.error(self.request, _('شما مجوز لازم برای تأیید این فاکتور را ندارید.'))
         return redirect('factor_list')
-
 """تأیید آیتم‌های فاکتور"""
 class FactorItemApproveView(PermissionBaseView, DetailView):
     model = Factor
@@ -879,7 +899,7 @@ class FactorItemApproveView(PermissionBaseView, DetailView):
 
     def post(self, request, *args, **kwargs):
         factor = self.get_object()
-        Tankhah = factor.Tankhah
+        Tankhah = factor.tankhah
         user = request.user
         user_posts = user.userpost_set.all()
 
@@ -995,8 +1015,6 @@ class FactorItemRejectView(PermissionBaseView, View):
         Tankhah.save()
         messages.error(request, _('ردیف فاکتور رد شد و فاکتور و تنخواه نیز رد شدند.'))
         return redirect('dashboard_flows')
-
-############################################################################################################
 # ---######## Approval Views ---
 class ApprovalListView(PermissionBaseView, ListView):
     model = ApprovalLog
@@ -1004,7 +1022,6 @@ class ApprovalListView(PermissionBaseView, ListView):
     context_object_name = 'approvals'
     paginate_by = 10
     extra_context = {'title': _('لیست تأییدات')}
-
 class ApprovalLogListView(PermissionBaseView, ListView):
     model = ApprovalLog
     template_name = 'tankhah/approval_log_list.html'
@@ -1013,13 +1030,11 @@ class ApprovalLogListView(PermissionBaseView, ListView):
 
     def get_queryset(self):
         return ApprovalLog.objects.filter(Tankhah__number=self.kwargs['Tankhah_number']).order_by('-timestamp')
-
 class ApprovalDetailView(PermissionBaseView, DetailView):
     model = ApprovalLog
     template_name = 'tankhah/approval_detail.html'
     context_object_name = 'approval'
     extra_context = {'title': _('جزئیات تأیید')}
-
 class ApprovalCreateView(PermissionRequiredMixin, CreateView):
     model = ApprovalLog
     form_class = ApprovalForm
@@ -1082,6 +1097,12 @@ class ApprovalCreateView(PermissionRequiredMixin, CreateView):
         messages.success(self.request, _('تأیید با موفقیت ثبت شد.'))
         return super().form_valid(form)
 
+    def can_approve_user(user, tankhah):
+        current_stage = tankhah.current_stage
+        approver_posts = StageApprover.objects.filter(stage=current_stage).values_list('post', flat=True)
+        user_posts = user.userpost_set.values_list('post', flat=True)
+        return bool(set(user_posts) & set(approver_posts))
+
     def get_initial(self):
         initial = super().get_initial()
         initial['Tankhah'] = self.request.GET.get('Tankhah')
@@ -1089,6 +1110,12 @@ class ApprovalCreateView(PermissionRequiredMixin, CreateView):
         initial['factor_item'] = self.request.GET.get('factor_item')
         return initial
 
+    def dispatch(self, request, *args, **kwargs):
+            self.object = self.get_object()
+            tankhah = self.object.factor.tankhah
+            if not self.can_approve_user(request.user, tankhah):
+                raise PermissionDenied("شما مجاز به تأیید در این مرحله نیستید.")
+            return super().dispatch(request, *args, **kwargs)
 class ApprovalUpdateView(PermissionRequiredMixin, UpdateView):
     model = ApprovalLog
     form_class = ApprovalForm
@@ -1099,7 +1126,6 @@ class ApprovalUpdateView(PermissionRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, _('تأیید با موفقیت به‌روزرسانی شد.'))
         return super().form_valid(form)
-
 class ApprovalDeleteView(PermissionRequiredMixin, DeleteView):
     model = ApprovalLog
     template_name = 'tankhah/approval_confirm_delete.html'

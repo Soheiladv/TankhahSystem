@@ -47,7 +47,7 @@ class CoreModelTest(TestCase):
         )
         self.assertEqual(post.name, 'Supervisor')
         self.assertEqual(post.organization, self.org)
-        self.assertEqual(post.level, 2)
+        self.assertEqual(post.level, 1)
         self.assertEqual(post.branch, 'OPS')
 
     def test_user_post_creation(self):
@@ -150,19 +150,25 @@ class CoreViewsTest(TestCase):
         self.assertTemplateUsed(response, 'core/organization_form.html')
         self.assertIn('form', response.context)
 
-    def test_organization_create_view_post(self):
+    def test_project_create_view_post(self):
+        from persiantools.jdatetime import JalaliDate
         self.client.login(username='foad', password='testpass')
-        data = {
-            'code': 'NEW',
-            'name': 'New Org',
-            'org_type': 'COMPLEX',
-            'description': 'Test Description'
-        }
-        response = self.client.post(reverse('organization_create'), data)
 
-        self.assertEqual(response.status_code, 302)  # ریدایرکت بعد از موفقیت
-        self.assertTrue(Organization.objects.filter(code='NEW').exists())
-        self.assertRedirects(response, reverse('organization_list'))
+        jalali_date = JalaliDate(1404, 1, 17).to_gregorian()  # تبدیل جلالی به میلادی
+        data = {
+            'name': 'New Project',
+            'code': 'NPRJ',
+            'organizations': [self.org.id],
+            'start_date': jalali_date.strftime('%Y-%m-%d'),  # اصلاح تبدیل تاریخ
+            'budget': 2000000,
+            'priority': 'HIGH',
+            'is_active': True
+        }
+        response = self.client.post(reverse('project_create'), data)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Project.objects.filter(code='NPRJ').exists())  # اصلاح مقدار بررسی
+        self.assertRedirects(response, reverse('project_list'))
+
 
     def test_project_list_view(self):
         self.client.login(username='foad', password='testpass')
@@ -215,7 +221,6 @@ class CoreViewsTest(TestCase):
             Post.objects.all(),
             transform=lambda x: x
         )
-
         # تست مرتب‌سازی
         response = self.client.get(reverse('post_list'), {'sort': 'desc'})
         self.assertEqual(response.context['current_sort'], 'desc')

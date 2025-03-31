@@ -1,10 +1,16 @@
 {% extends 'base.html' %}
 {% load i18n static %}
 
-
 {% block content %}
     <div class="container my-4">
         <h1 class="mb-4 text-primary"><i class="fas fa-edit me-2"></i>{% trans "ایجاد تنخواه جدید" %}</h1>
+        {% if messages %}
+            <div class="alert alert-danger">
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        {% endif %}
         <div class="card shadow-sm">
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data">
@@ -23,7 +29,8 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save me-2"></i>{% trans "ثبت" %}
                     </button>
-                    <a href="{% url 'tanbakh_list' %}" class="btn btn-secondary">
+
+                    <a href="{% url 'tankhah_list' %}" class="btn btn-secondary">
                         <i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت" %}
                     </a>
                 </form>

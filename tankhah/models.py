@@ -13,16 +13,21 @@ from django.views.generic import TemplateView
 NUMBER_SEPARATOR = getattr(settings, 'NUMBER_SEPARATOR', '-')
 
 def get_default_workflow_stage():
-    return WorkflowStage.objects.get(name='HQ_INITIAL').id  # نام را با 'HQ_ITDC' جایگزین کنید اگر متفاوت است
+    try:
+        return WorkflowStage.objects.get(name='HQ_INITIAL').id
+    except WorkflowStage.DoesNotExist:
+        # اگه پیدا نشد، اولین مرحله رو برگردون یا None
+        stage = WorkflowStage.objects.order_by('order').first()
+        return stage.id if stage else None
 
-def tanbakh_document_path(instance, filename):
+def tankhah_document_path(instance, filename):
     # مسیر آپلود: documents/شماره_تنخواه/نام_فایل
     extension = os.path.splitext(filename)[1]  # مثل .pdf
-    return f'documents/{instance.tanbakh.number}/document{extension}'
+    return f'documents/{instance.tankhah.number}/document{extension}'
 
 class TankhahDocument(models.Model):
     tankhah  = models.ForeignKey('Tankhah', on_delete=models.CASCADE,verbose_name=_("تنخواه"), related_name='documents')
-    document = models.FileField(upload_to=tanbakh_document_path,  verbose_name=_("سند"))
+    document = models.FileField(upload_to=tankhah_document_path,  verbose_name=_("سند"))
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ آپلود")
     file_size = models.IntegerField(null=True, blank=True, verbose_name=_("حجم فایل (بایت)"))
 
@@ -32,8 +37,15 @@ class TankhahDocument(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"سند {self.tanbakh.number} - {self.uploaded_at}-{self.document.name}"
-
+        return f"سند {self.tankhah.number} - {self.uploaded_at}-{self.document.name}"
+    class Meta:
+        default_permissions = ()
+        permissions = [
+            ('TankhahDocument_view','نمایش اسناد فاکتور منتهی به تنخواه'),
+            ('TankhahDocument_add','افزودن اسناد فاکتور منتهی به تنخواه'),
+            ('TankhahDocument_update','بروزرسانی اسناد فاکتور منتهی به تنخواه'),
+            ('TankhahDocument_delete','حــذف اسناد فاکتور منتهی به تنخواه'),
+        ]
 
 class Tankhah(models.Model):
     """مدل تنخواه برای ثبت و مدیریت درخواست‌های مالی"""
@@ -57,7 +69,7 @@ class Tankhah(models.Model):
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_('مجموعه/شعبه'))
     project = models.ForeignKey('core.Project', on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('پروژه'))
     letter_number = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("شماره نامه"))
-    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='tanbakh_created', verbose_name=_("ایجادکننده"))
+    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='tankhah_created', verbose_name=_("ایجادکننده"))
     approved_by = models.ManyToManyField(CustomUser, blank=True, verbose_name=_('تأییدکنندگان'))
     description = models.TextField(verbose_name=_("توضیحات"))
     current_stage = models.ForeignKey(WorkflowStage, on_delete=models.SET_NULL, null=True,
@@ -92,7 +104,7 @@ class Tankhah(models.Model):
 
         # پیدا کردن بالاترین شماره سریال برای این تاریخ و سازمان
         with transaction.atomic():
-            max_serial = Tanbakh.objects.filter(
+            max_serial = Tankhah.objects.filter(
                 organization=self.organization,
                 date__date=self.date.date()  # همچنان از تاریخ میلادی برای فیلتر استفاده می‌کنیم
             ).aggregate(Max('number'))['number__max']
@@ -106,7 +118,7 @@ class Tankhah(models.Model):
 
             new_number = f"TNKH{sep}{date_str}{sep}{org_code}{sep}{project_code}{sep}{serial:03d}"
             # چک کردن یکتایی و افزایش سریال در صورت نیاز
-            while Tanbakh.objects.filter(number=new_number).exists():
+            while Tankhah.objects.filter(number=new_number).exists():
                 serial += 1
                 new_number = f"TNKH{sep}{date_str}{sep}{org_code}{sep}{project_code}{sep}{serial:03d}"
             return new_number
@@ -128,23 +140,23 @@ class Tankhah(models.Model):
         default_permissions =()
         permissions = [
 
-            ('Tanbakh_add', 'ثبت تنخواه'),
-            ('Tanbakh_update', 'بروزرسانی تنخواه'),
-            ('Tanbakh_view', 'نمایش تنخواه'),
-            ('Tanbakh_delete', 'حذف تنخواه'),
+            ('Tankhah_add', 'ثبت تنخواه'),
+            ('Tankhah_update', 'بروزرسانی تنخواه'),
+            ('Tankhah_view', 'نمایش تنخواه'),
+            ('Tankhah_delete', 'حذف تنخواه'),
 
-            ('Tanbakh_part_approve', '👍تأیید رئیس قسمت'),
-            ('Tanbakh_approve', '👍تأیید مدیر مجموعه'),
-            ('Tanbakh_hq_view', 'رصد دفتر مرکزی'),
-            ('Tanbakh_hq_approve', '👍تأیید رده بالا در دفتر مرکزی'),
+            ('Tankhah_part_approve', '👍تأیید رئیس قسمت'),
+            ('Tankhah_approve', '👍تأیید مدیر مجموعه'),
+            ('Tankhah_hq_view', 'رصد دفتر مرکزی'),
+            ('Tankhah_hq_approve', '👍تأیید رده بالا در دفتر مرکزی'),
 
-            ('Tanbakh_HQ_OPS_PENDING', _('در حال بررسی - بهره‌برداری')),
-            ('Tanbakh_HQ_OPS_APPROVED', _('👍تأییدشده - بهره‌برداری')),
-            ('Tanbakh_HQ_FIN_PENDING', _('در حال بررسی - مالی')),
-            ('Tanbakh_PAID', _('پرداخت‌شده')),
-            ('Tanbakh_REJECTED', _('ردشده')),
+            ('Tankhah_HQ_OPS_PENDING', _('در حال بررسی - بهره‌برداری')),
+            ('Tankhah_HQ_OPS_APPROVED', _('👍تأییدشده - بهره‌برداری')),
+            ('Tankhah_HQ_FIN_PENDING', _('در حال بررسی - مالی')),
+            ('Tankhah_PAID', _('پرداخت‌شده')),
+            ('Tankhah_REJECTED', _('ردشده')),
             ("FactorItem_approve", "👍تایید/رد ردیف فاکتور دفتر مرکزی "),
-            ('edit_full_tanbakh','👍😊تغییرات کاربری در فاکتور /تایید یا رد ردیف ها '),
+            ('edit_full_tankhah','👍😊تغییرات کاربری در فاکتور /تایید یا رد ردیف ها '),
 
             ('Dashboard_Core_view', 'دسترسی به داشبورد Core پایه'),
             ('DashboardView_flows_view', 'دسترسی به روند تنخواه گردانی'),
@@ -202,20 +214,20 @@ class Factor(models.Model):
     def generate_number(self):
         """تولید شماره فاکتور با جداکننده قابل تنظیم"""
         sep = NUMBER_SEPARATOR
-        serial = self.tanbakh.factors.count() + 1
-        return f"{self.tanbakh.number}{sep}F{serial}"
+        serial = self.tankhah.factors.count() + 1
+        return f"{self.tankhah.number}{sep}F{serial}"
 
     def save(self, *args, **kwargs):
         if not self.number:
             sep = "-"
-            serial = self.tanbakh.factors.count() + 1
+            serial = self.tankhah.factors.count() + 1
             # self.number = f"{self.tanbakh.number}{sep}F{serial}"
             self.number = self.generate_number()
         super().save(*args, **kwargs)
 
 
     def __str__(self):
-        return f"{self.number} ({self.tanbakh.number})"
+        return f"{self.number} ({self.tankhah.number})"
 
     class Meta:
         verbose_name = _("فاکتور")
@@ -240,15 +252,17 @@ class FactorItem(models.Model):
     )
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE, related_name='items', verbose_name=_("فاکتور"))
     description = models.CharField(max_length=255, verbose_name=_("شرح ردیف"))
-    amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_("مبلغ") )
+    amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ") )
     # amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_("مبلغ"))
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name=_("وضعیت"))
-    quantity = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("تعداد"))
+    quantity = models.DecimalField(max_digits=25, default=1,decimal_places=2, verbose_name=_("تعداد"))
     # quantity = models.IntegerField(default=1, verbose_name=_("تعداد"))
     unit_price = models.DecimalField(max_digits=25,default=1, decimal_places=1, verbose_name=_("قیمت واحد"))
 
     def save(self, *args, **kwargs):
-        self.amount = self.unit_price * self.quantity
+        if not self.amount:  # اگه amount وارد نشده باشه، محاسبه کن
+            self.amount = self.unit_price * self.quantity
+        # self.amount = self.unit_price * self.quantity
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -318,8 +332,15 @@ class StageApprover(models.Model):
             ('stageapprover__delete','حــذف تأییدکننده مرحله'),
         ]
 
+class TankhahFinalApproval(models.Model):
+    class Meta:
+        default_permissions = ()
+        permissions = [
+            ('TankhahFinalApproval_view','دسترسی تایید یا رد تنخواه گردان ')
+        ]
+
 class DashboardView(TemplateView):
-    template_name = 'tanbakh/calc_dashboard.html'
+    template_name = 'tankhah/calc_dashboard.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -328,19 +349,19 @@ class DashboardView(TemplateView):
         # تنخواه‌های در انتظار در هر مرحله
         stages = WorkflowStage.objects.all()
         for stage in stages:
-            context[f'tanbakh_pending_{stage.name}'] = Tanbakh.objects.filter(
+            context[f'tankhah_pending_{stage.name}'] = Tankhah.objects.filter(
                 current_stage=stage, status='PENDING'
             ).count()
 
         # تنخواه‌های نزدیک به مهلت
-        context['tanbakh_due_soon'] = Tanbakh.objects.filter(
+        context['tankhah_due_soon'] = Tankhah.objects.filter(
             due_date__lte=timezone.now() + timezone.timedelta(days=7),
             status='PENDING'
         ).count()
 
         # مجموع مبلغ تأییدشده در ماه جاری
         current_month = timezone.now().month
-        context['total_approved_this_month'] = Tanbakh.objects.filter(
+        context['total_approved_this_month'] = Tankhah.objects.filter(
             status='APPROVED', date__month=current_month
         ).aggregate(total=Sum('amount'))['total'] or 0
 
@@ -355,16 +376,3 @@ class Dashboard_Tankhah(models.Model):
         permissions = [
             ('Dashboard_Tankhah_view','دسترسی به داشبورد تنخواه گردان ')
         ]
-
-class TanbakhFinalApproval(models.Model):
-    class Meta:
-        default_permissions = ()
-        permissions = [
-            ('TanbakhFinalApproval_view','دسترسی تایید یا رد تنخواه گردان ')
-        ]
-# class IndexView(models.Model):
-#     class Meta:
-#         default_permissions = ()
-#         permissions = [
-#             ('IndexView_dashboard_view','دسترسی به داشبورد تنخواه گردان IndexView_dashboard')
-#         ]

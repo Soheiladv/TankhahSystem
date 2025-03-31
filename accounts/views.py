@@ -21,14 +21,16 @@ from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
+from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from django.views import View
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.views.generic import FormView, ListView
 
 from accounts.forms import TimeLockForm
-from core.RCMS_Lock.security import TimeLock
-from core.models import TimeLockModel
+from accounts.RCMS_Lock.security import TimeLock
+from accounts.models import TimeLockModel, City
+from core.PermissionBase import PermissionBaseView, check_permission_and_organization
 from .forms import (CustomUserCreationForm, CustomUserForm, RoleForm, MyGroupForm,
                     ProfileUpdateForm, CustomPasswordChangeForm, ProfileForm, AdvancedProfileSearchForm, UserGroupForm,
                     RoleTransferForm)
@@ -151,7 +153,6 @@ class GroupListView(LoginRequiredMixin, ListView):
         context['filter_form'] = self.form_class(self.request.GET or None)
         return context
 
-
 @method_decorator(has_permission('add_mygroup'), name='dispatch')
 class GroupCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = MyGroup
@@ -182,7 +183,6 @@ class GroupCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
         messages.error(self.request, "لطفاً خطاهای فرم را برطرف کنید.")
         return self.render_to_response(self.get_context_data(form=form))
 
-
 @method_decorator(has_permission('change_mygroup'), name='dispatch')
 class GroupUpdateView(LoginRequiredMixin, UpdateView):
     model = MyGroup
@@ -212,7 +212,6 @@ class GroupUpdateView(LoginRequiredMixin, UpdateView):
         messages.error(self.request, "لطفاً خطاهای فرم را برطرف کنید.")
         return self.render_to_response(self.get_context_data(form=form))
 
-
 @method_decorator(has_permission('delete_mygroup'), name='dispatch')
 class GroupDeleteView(LoginRequiredMixin, DeleteView):
     model = MyGroup
@@ -222,9 +221,7 @@ class GroupDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, 'گروه با موفقیت حذف شد.')
         return super().delete(request, *args, **kwargs)
-
 ###############################################################################
-
 # Role Views
 class RoleCRUDMixin(LoginRequiredMixin, UserPassesTestMixin):
     raise_exception = True
@@ -232,7 +229,6 @@ class RoleCRUDMixin(LoginRequiredMixin, UserPassesTestMixin):
     form_class = RoleForm
     template_name = 'accounts/users/rols/role_form.html'
     success_url = reverse_lazy('role_list')
-
 
 @method_decorator(has_permission('see_role'), name='dispatch')
 class RoleListView(LoginRequiredMixin, View):
@@ -251,7 +247,6 @@ class RoleListView(LoginRequiredMixin, View):
         else:
             roles = Role.objects.filter(is_active=True)
         return render(request, self.template_name, {'roles': roles, 'show_inactive': show_inactive})
-
 
 @method_decorator(has_permission('create_role'), name='dispatch')
 class RoleCreateView(CreateView):
@@ -415,7 +410,6 @@ class UserCreateView(LoginRequiredMixin, CreateView):
             return self.form_invalid(form)
         return super().form_valid(form)
 
-
 @method_decorator(has_permission('change_customuser'), name='dispatch')
 class UserEditView(UserCRUDMixin, UpdateView):
     form_class = CustomUserForm
@@ -443,7 +437,6 @@ class UserEditView(UserCRUDMixin, UpdateView):
             messages.error(self.request, f'خطا در به روز رسانی: {str(e)}')
         return super().form_valid(form)
 
-
 @method_decorator(has_permission('delete_customuser'), name='dispatch')
 class UserDeleteView(UserCRUDMixin, DeleteView):
     template_name = 'accounts?users/user_confirm_delete.html'
@@ -454,7 +447,6 @@ class UserDeleteView(UserCRUDMixin, DeleteView):
             raise PermissionDenied("شما مجوز حذف این کاربر را ندارید.")
         return obj
 
-# @method_decorator(has_permission('delete_customuser'), name='dispatch')
 class AssignUsersToGroupView(LoginRequiredMixin, UpdateView):
     model = MyGroup
     form_class = UserGroupForm
@@ -475,7 +467,6 @@ class AssignUsersToGroupView(LoginRequiredMixin, UpdateView):
         context['group'] = self.get_object()
         return context
 
-
 # view برای نمایش لیست کاربران یک گروه
 class GroupUserListView(LoginRequiredMixin, ListView):
     model = CustomUserGroup
@@ -495,13 +486,6 @@ class GroupUserListView(LoginRequiredMixin, ListView):
 '''
 از get_or_create در ProfileView استفاده شده است تا هم برای ایجاد و هم برای ویرایش پروفایل کار کند.
 '''
-
-
-# @method_decorator(has_permission('Expense_Add'), name='dispatch')
-# class ExpenseCreateView(UserAccessMixin, CreateView):
-
-
-
 User = get_user_model()
 @method_decorator(has_permission('users_view_userprofile'), name='dispatch')
 class ProfileView(LoginRequiredMixin , View):
@@ -623,10 +607,6 @@ class ProfileCreateView(BaseProfileView, CreateView):
             form.add_error(None, "این کاربر قبلاً پروفایل دارد.")
             return self.form_invalid(form)
 
-## برای به‌روزرسانی پروفایل
-@method_decorator(has_permission('users_update_userprofile'), name='dispatch')
-class ProfileUpdateView( BaseProfileView, UpdateView):
-    pass
 ################################
 # ویو برای نمایش پروفایل یک کاربر خاص (خواندن)
 def profile_detail(request, user_id):
@@ -643,19 +623,73 @@ def profile_delete(request):
         return redirect('home')  # یا هر آدرس دیگری
     return render(request, 'accounts/users/profile_delete.html', {'profile': profile})
 
-@login_required
+# ویوی به‌روز شده
+@check_permission_and_organization(permissions='accounts.change_profile', check_org=False)
 def profile_update_view(request):
+    """
+    ویو برای به‌روزرسانی پروفایل کاربر.
+    فقط خود کاربر می‌تونه پروفایلش رو ویرایش کنه چون instance=request.user هست.
+    """
+    logger.info(f"کاربر {request.user} در حال ویرایش پروفایل")
     if request.method == 'POST':
         form = ProfileUpdateForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'پروفایل شما با موفقیت به‌روزرسانی شد.')
-            return redirect('index')  # بازگشت به همان صفحه
+            logger.info(f"پروفایل کاربر {request.user} با موفقیت ذخیره شد")
+            return redirect('index')
+        else:
+            logger.warning(f"فرم پروفایل کاربر {request.user} معتبر نیست: {form.errors}")
     else:
         form = ProfileUpdateForm(instance=request.user)
+
     return render(request, 'accounts/users/profile_update.html', {'form': form})
 
+def get_cities(request):
+    province_id = request.GET.get('province')
+    if province_id:
+        try:
+            cities = City.objects.filter(province_id=province_id).values('id', 'name')
+            print(f"Province ID: {province_id}, Cities found: {cities.count()}")
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({'error': str(e)}, status=400)
+    else:
+        cities = City.objects.all().values('id', 'name')
+    return JsonResponse(list(cities), safe=False)
 
+class ProfileUpdateView(PermissionBaseView):
+    permission_codenames = ['users_update_userprofile']
+    check_organization = False
+    form_class = ProfileUpdateForm
+    template_name = 'accounts/users/profile_update.html'
+    def get_profile(self, request):
+        try:
+            return request.user.profile
+        except CustomProfile.DoesNotExist:
+            logger.info(f"پروفایل برای کاربر {request.user} وجود نداره. در حال ساخت...")
+            profile = CustomProfile.objects.create(user=request.user)
+            return profile
+
+    def get(self, request, *args, **kwargs):
+        profile = self.get_profile(request)
+        form = ProfileUpdateForm(instance=profile, user=request.user)
+        print(f"Birth date in form: {form['birth_date'].value()}")
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        profile = self.get_profile(request)
+        form = ProfileUpdateForm(request.POST, instance=profile, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'پروفایل شما با موفقیت به‌روزرسانی شد.')
+            return redirect('index')
+        return render(request, self.template_name, {'form': form})
+
+# ## برای به‌روزرسانی پروفایل
+# @method_decorator(has_permission('users_update_userprofile'), name='dispatch')
+# class ProfileUpdateView( BaseProfileView, UpdateView):
+#     pass
 @login_required
 def profile_update_success(request):
     return render(request, 'accounts/users/profile_update_success.html')
@@ -815,19 +849,7 @@ class DeactivateRoleView(LoginRequiredMixin, View):
             messages.warning(request, _("این نقش قبلاً غیرفعال شده است."))
 
         return redirect('accounts:role_list')  # یا هر URL که مناسب است
-# class DeactivateRoleView(View):
-#     def post(self, request, *args, **kwargs):
-#         role = Role.objects.get(id=self.kwargs['pk'])
-#         if not role.is_active:
-#             messages.error(request, _("این نقش قبلاً غیرفعال شده است."))
-#         else:
-#             role.is_active = False
-#             role.save()
-#             messages.success(request, _("نقش با موفقیت غیرفعال شد."))
-#         return redirect('accounts:role_list')
-######
 # Auditlog.py
-
 def audit_log_list(request):
     # دریافت تمام لاگ‌ها
     logs = AuditLog.objects.all().order_by('-timestamp')
@@ -886,7 +908,6 @@ def audit_log_list(request):
         'show_empty': show_empty,  # برای مدیریت نمایش ردیف‌های بدون تغییر
     }
     return render(request, 'accounts/AuditLog/log_list.html', context)
-
 # ویو داشبوردی منو ها
 def user_management_view(request):
     user_menu = [
@@ -912,7 +933,6 @@ def user_management_view(request):
 
     return render(request, "accounts/accounts_index.html", {"user_menu": user_menu})
 ###############################################################################
-
 # @method_decorator(has_permission('delete_customuser'), name='dispatch')
 class SuperuserRequiredMixin(UserPassesTestMixin):
     """میکسین برای محدود کردن دسترسی فقط به سوپریوزرها"""
@@ -932,12 +952,16 @@ class ActiveUserListView(SuperuserRequiredMixin, ListView):
     context_object_name = 'active_users'
     ordering = ['-login_time']
 
+    def get_queryset(self):
+        return ActiveUser.objects.filter(
+            is_active=True,
+            last_activity__gte=now() - datetime.timedelta(minutes=30)
+        ).select_related('user').order_by('-last_activity')
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['max_active_users'] = ActiveUser.get_max_active_users()  # استفاده از متد به جای ویژگی
         return context
-
-
 
 @method_decorator(has_permission('ActiveUser_add'), name='dispatch')
 @method_decorator(staff_member_required, name='dispatch')
@@ -990,9 +1014,7 @@ class ActiveUserDeleteView(SuperuserRequiredMixin, DeleteView):
         logger.info(f"Superuser {request.user.username} deleted ActiveUser {username}")
         return response
 
-
 ################# Security Lock Time  #########################
-
 @method_decorator(staff_member_required, name='dispatch')
 class BaseTimeLockView(LoginRequiredMixin, View):
     template_name = None
@@ -1088,7 +1110,6 @@ class SetTimeLockView(BaseTimeLockView):
         messages.error(request, f"ورودی‌ها نامعتبر است: {'; '.join([f'{field}: {', '.join(errors)}' for field, errors in form.errors.items()])}")
         return render(request, self.template_name, self.get_context_data(form=form))
 
-
 @method_decorator(staff_member_required, name='dispatch')
 class TimeLockCreateView(FormView):
     """ایجاد یک تنظیم جدید برای قفل"""
@@ -1099,7 +1120,6 @@ class TimeLockCreateView(FormView):
     def form_valid(self, form):
         instance = form.save()
         return self.render_to_response(self.get_context_data(form=form, generated_hash=instance.hash_value))
-
 
 @method_decorator(staff_member_required, name='dispatch')
 @staff_member_required
@@ -1126,8 +1146,6 @@ class TimeLockListView(BaseTimeLockView, ListView):
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context_data())
 
-
-# core/views.py
 @method_decorator(staff_member_required, name='dispatch')
 class LockStatusView(BaseTimeLockView):
     """برگرداندن وضعیت قفل به‌صورت JSON"""
@@ -1140,7 +1158,6 @@ class LockStatusView(BaseTimeLockView):
             "active_users": context["active_users_count"],
             "max_active_users": context["max_active_users"],
         })
-
 
 @login_required
 def set_theme(request):
@@ -1155,8 +1172,6 @@ def set_theme(request):
                 request.user.profile.save()
     return redirect(request.META.get('HTTP_REFERER', 'index'))
 
-
-
 @login_required
 def terminate_session(request, session_id):
     """قطع سشن قبلی و اجازه ورود با سشن جدید"""
@@ -1168,10 +1183,26 @@ def terminate_session(request, session_id):
     except ActiveUser.DoesNotExist:
         messages.error(request, "سشن مورد نظر پیدا نشد.")
     return redirect('accounts:login')
-# class CustomLoginView(LoginView):
-#     def get_success_url(self):
-#         return reverse_lazy('home')  # اطمینان از ریدایرکت صحیح
-#
-# class CustomLogoutView(LogoutView):
-#     next_page = 'account:login'  # ریدایرکت به صفحه لاگین پس از خروج
+
+#################################################################################
+def active_users_view(request):
+    # محاسبه تعداد کاربران فعال
+    active_count = ActiveUser.objects.filter(
+        last_activity__gte=now() - datetime.timedelta(minutes=30),
+        is_active=True
+    ).count()
+
+    # دریافت حداکثر تعداد کاربران مجاز
+    max_users = ActiveUser.get_max_active_users()
+
+    context = {
+        'active_users_count': active_count,
+        'max_active_users': max_users,
+        'refresh_interval': 60000,  # رفرش هر 60 ثانیه (برحسب میلی‌ثانیه)
+    }
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse(context)
+
+    return render(request, 'accounts/active_users.html', context)
 

@@ -1,8 +1,7 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
-from .RCMS_Lock.security import TimeLock
-from .models import Organization, Project, Post, UserPost, PostHistory, TimeLockModel
+from .models import Organization, Project, Post, UserPost, PostHistory
 from tankhah.models import WorkflowStage
 
 
@@ -99,32 +98,6 @@ class PostHistoryAdmin(BaseAdmin):
     def new_value_short(self, obj):
         return truncate_text(obj.new_value)
     new_value_short.short_description = _('مقدار جدید (کوتاه)')
-
-
-# ادمین قفل سیستم
-@admin.register(TimeLockModel)
-class TimeLockModelAdmin(BaseAdmin):
-    list_display = ('hash_value', 'created_at', 'is_active', 'decrypted_expiry', 'decrypted_max_users', 'decrypted_org')
-    list_filter = (('created_at', JDateFieldListFilter), 'is_active')
-    search_fields = ('hash_value', 'organization_name')
-    ordering = ('-created_at',)
-    readonly_fields = ('created_at', 'lock_key', 'hash_value', 'salt', 'decrypted_expiry', 'decrypted_max_users', 'decrypted_org')
-    fieldsets = (
-        (None, {'fields': ('lock_key', 'hash_value', 'salt', 'is_active', 'organization_name')}),
-        (_('اطلاعات رمزگشایی‌شده'), {'fields': ('decrypted_expiry', 'decrypted_max_users', 'decrypted_org'), 'classes': ('collapse',)}),
-    )
-
-    def decrypted_expiry(self, obj):
-        return obj.get_decrypted_expiry_date()
-    decrypted_expiry.short_description = _('تاریخ انقضا')
-
-    def decrypted_max_users(self, obj):
-        return obj.get_decrypted_max_users()
-    decrypted_max_users.short_description = _('حداکثر کاربران')
-
-    def decrypted_org(self, obj):
-        return obj.get_decrypted_organization_name()
-    decrypted_org.short_description = _('نام سازمان')
 
 
 # ادمین مراحل گردش کار

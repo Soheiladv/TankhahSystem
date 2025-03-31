@@ -262,8 +262,8 @@ class AllLinksView(PermissionBaseView, TemplateView):
             {'name': _('ایجاد سازمان'), 'url': 'organization_create', 'icon': 'fas fa-plus'},
             {'name': _('لیست پروژه‌ها'), 'url': 'project_list', 'icon': 'fas fa-project-diagram'},
             {'name': _('ایجاد پروژه'), 'url': 'project_create', 'icon': 'fas fa-plus'},
-            {'name': _('لیست تنخواه‌ها'), 'url': 'Tankhah_list', 'icon': 'fas fa-file-invoice'},
-            {'name': _('ایجاد تنخواه'), 'url': 'Tankhah_create', 'icon': 'fas fa-plus'},
+            {'name': _('لیست تنخواه‌ها'), 'url': 'tankhah_list', 'icon': 'fas fa-file-invoice'},
+            {'name': _('ایجاد تنخواه'), 'url': 'tankhah_create', 'icon': 'fas fa-plus'},
             {'name': _(' فهرست فاکتور'), 'url': 'factor_list', 'icon': 'fas fa-plus'},
             {'name': _('مدیریت کاربر و سیستم'), 'url': 'accounts:admin_dashboard', 'icon': 'fas fa-user'},
         ]
