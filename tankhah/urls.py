@@ -1,4 +1,5 @@
 from core.views import   FinancialDashboardView
+from tankhah.TankhahTrackingView import TankhahTrackingView
 from tankhah.reports.FinancialReportView import FinancialReportView, PerformanceReportView
 from django.urls import path
 
@@ -44,6 +45,8 @@ urlpatterns = [
     path('reports/financial/', FinancialReportView.as_view(), name='financial_report'),
     path('reports/performance/', PerformanceReportView.as_view(), name='performance_report'),
     path('financialDashboardView/', FinancialDashboardView.as_view(), name='financialDashboardView'),
+    path('tankhah/<int:pk>/tracking/', TankhahTrackingView.as_view(), name='tankhah_tracking'),
+
 
 ]
 urlpatterns += [

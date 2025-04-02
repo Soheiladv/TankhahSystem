@@ -1,4 +1,8 @@
+import json
 import logging
+from decimal import Decimal
+
+from django.utils.encoding import force_str
 
 from tankhah.models import Tankhah, Factor, FactorItem, StageApprover, TankhahDocument
 
@@ -11,7 +15,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from core.PermissionBase import  PermissionBaseView
-from django.db.models import Q, Sum, F
+from django.db.models import Q, Sum, F, Count
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
@@ -156,9 +160,18 @@ class DashboardView_flows(LoginRequiredMixin, TemplateView):
 
 #-- داشبورد گزارشات مالی
 """داشبورد مالی با گزارشات آماری و چارت"""
+
+# یه انکودر سفارشی برای تبدیل Decimal به float
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        return super().default(obj)
+
 class FinancialDashboardView(PermissionBaseView, TemplateView):
     template_name = 'Tankhah/Reports/calc_dashboard.html'
     login_url = '/accounts/login/'
+    permission_required = 'tankhah.Dashboard__view'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -166,7 +179,7 @@ class FinancialDashboardView(PermissionBaseView, TemplateView):
 
         user_orgs = [up.post.organization for up in user.userpost_set.all()]
         is_hq_user = any(org.org_type == 'HQ' for org in user_orgs)
-        from tankhah.models import Tankhah
+
         if is_hq_user:
             tankhahs = Tankhah.objects.all()
             organizations = Organization.objects.exclude(org_type='HQ')
@@ -176,15 +189,20 @@ class FinancialDashboardView(PermissionBaseView, TemplateView):
 
         # حجم کل تصاویر
         total_image_size = 0
-        for Tankhah in tankhahs:
-            for doc in Tankhah.documents.all():
+        for tankhah in tankhahs:
+            for doc in tankhah.documents.all():
                 file_path = doc.document.path
                 if default_storage.exists(file_path):
                     total_image_size += default_storage.size(file_path)
 
-        context['total_image_size_mb'] = total_image_size / (1024 * 1024)  # تبدیل به مگابایت
-        context['total_Tankhah_amount'] = tankhahs.aggregate(total=Sum('amount'))['total'] or 0
-        context['archived_Tankhahs'] = tankhahs.filter(is_archived=True).count()
+        context['total_image_size_mb'] = total_image_size / (1024 * 1024)
+        context['total_tanbakh_amount'] = float(tankhahs.aggregate(total=Sum('amount'))['total'] or 0)
+        context['archived_tanbakhs'] = tankhahs.filter(is_archived=True).count()
+        context['total_tankhahs'] = tankhahs.count()
+
+        # آمار وضعیت تنخواه‌ها
+        status_counts = tankhahs.values('status').annotate(count=Count('id'))
+        context['status_counts'] = {item['status']: item['count'] for item in status_counts}
 
         stages = WorkflowStage.objects.all()
         context['pending_by_stage'] = {
@@ -193,60 +211,77 @@ class FinancialDashboardView(PermissionBaseView, TemplateView):
         }
         context['stages'] = stages
 
-        factors = Factor.objects.filter(Tankhah__in=tankhahs)
-        context['total_factor_amount'] = factors.aggregate(total=Sum('amount'))['total'] or 0
+        factors = Factor.objects.filter(tankhah__in=tankhahs)
+        context['total_factor_amount'] = float(factors.aggregate(total=Sum('amount'))['total'] or 0)
         context['approved_factors'] = factors.filter(status='APPROVED').count()
         context['rejected_factors'] = factors.filter(status='REJECTED').count()
         context['pending_factors'] = factors.filter(status='PENDING').count()
 
         org_data = []
         chart_labels = []
-        chart_Tankhah_amounts = []
+        chart_tankhah_amounts = []
         chart_factor_amounts = []
         chart_approved_items = []
-        chart_image_sizes = []  # حجم تصاویر برای چارت
+        chart_image_sizes = []
         for org in organizations:
-            org_Tankhahs = Tankhah.filter(organization=org)
-            org_factors = Factor.objects.filter(Tankhah__in=org_Tankhahs)
+            org_tankhahs = Tankhah.objects.filter(organization=org)
+            org_factors = Factor.objects.filter(tankhah__in=org_tankhahs)
             org_image_size = sum(
                 default_storage.size(doc.document.path)
-                for doc in TankhahDocument.objects.filter(Tankhah__in=org_Tankhahs)
+                for doc in TankhahDocument.objects.filter(tankhah__in=org_tankhahs)
                 if default_storage.exists(doc.document.path)
-            ) / (1024 * 1024)  # مگابایت
+            ) / (1024 * 1024)
 
             org_info = {
                 'name': org.name,
-                'total_Tankhah_amount': org_Tankhahs.aggregate(total=Sum('amount'))['total'] or 0,
-                'total_factor_amount': org_factors.aggregate(total=Sum('amount'))['total'] or 0,
+                'total_tanbakh_amount': float(org_tankhahs.aggregate(total=Sum('amount'))['total'] or 0),
+                'total_factor_amount': float(org_factors.aggregate(total=Sum('amount'))['total'] or 0),
                 'approved_factors': org_factors.filter(status='APPROVED').count(),
                 'rejected_factors': org_factors.filter(status='REJECTED').count(),
                 'pending_factors': org_factors.filter(status='PENDING').count(),
-                'approved_items_amount': FactorItem.objects.filter(
+                'approved_items_amount': float(FactorItem.objects.filter(
                     factor__in=org_factors, status='APPROVED'
-                ).aggregate(total=Sum(F('amount') * F('quantity')))['total'] or 0,
+                ).aggregate(total=Sum(F('amount') * F('quantity')))['total'] or 0),
                 'image_size_mb': org_image_size,
             }
             org_data.append(org_info)
 
             chart_labels.append(org.name)
-            chart_Tankhah_amounts.append(org_info['total_Tankhah_amount'])
+            chart_tankhah_amounts.append(org_info['total_tanbakh_amount'])
             chart_factor_amounts.append(org_info['total_factor_amount'])
             chart_approved_items.append(org_info['approved_items_amount'])
             chart_image_sizes.append(org_info['image_size_mb'])
 
         context['org_data'] = org_data
 
-        # context['chart_data'] = json.dumps({
-        #     'labels': chart_labels,
-        #     'datasets': [
-        #         {'label': str(_('مبلغ تنخواه‌ها')), 'data': chart_Tankhah_amounts, 'backgroundColor': '#4299e1'},
-        #         {'label': str(_('مبلغ فاکتورها')), 'data': chart_factor_amounts, 'backgroundColor': '#f56565'},
-        #         {'label': str(_('جمع ردیف‌های تأییدشده')), 'data': chart_approved_items, 'backgroundColor': '#48bb78'},
-        #         {'label': str(_('حجم تصاویر (مگابایت)')), 'data': chart_image_sizes, 'backgroundColor': '#ed8936'}
-        #     ]
-        # })
+        context['chart_data'] = json.dumps({
+            'labels': chart_labels,
+            'datasets': [
+                {'label': force_str(_('مبلغ تنخواه‌ها')), 'data': chart_tankhah_amounts, 'backgroundColor': '#4299e1'},
+                {'label': force_str(_('مبلغ فاکتورها')), 'data': chart_factor_amounts, 'backgroundColor': '#f56565'},
+                {'label': force_str(_('جمع ردیف‌های تأییدشده')), 'data': chart_approved_items,
+                 'backgroundColor': '#48bb78'},
+                {'label': force_str(_('حجم تصاویر (مگابایت)')), 'data': chart_image_sizes,
+                 'backgroundColor': '#ed8936'},
+            ]
+        }, cls=DecimalEncoder)
+
+        # دیکشنری STATUS_CHOICES
+        STATUS_CHOICES_DICT = dict(Tankhah.STATUS_CHOICES)
+        context['status_chart_data'] = json.dumps({
+            'labels': [force_str(STATUS_CHOICES_DICT.get(status, status)) for status in
+                       context['status_counts'].keys()],
+            'datasets': [{
+                'label': force_str(_('تعداد تنخواه‌ها')),
+                'data': list(context['status_counts'].values()),
+                'backgroundColor': ['#4299e1', '#f56565', '#48bb78', '#ed8936', '#9f7aea', '#ecc94b', '#f6ad55',
+                                    '#68d391', '#ed64a6']
+            }]
+        }, cls=DecimalEncoder)
 
         return context
+
+
 class AllLinksView(PermissionBaseView, TemplateView):
     template_name = 'core/core_index.html'  # تمپلیت Index
     extra_context = {'title': _('همه لینک‌ها')}
@@ -631,14 +666,23 @@ class WorkflowStageUpdateView(PermissionBaseView, UpdateView):
     form_class = WorkflowStageForm
     template_name = "core/workflow_stage/workflow_stage_form.html"
     success_url = reverse_lazy("workflow_stage_list")
-    # permission_required = "core.WorkflowStage_update"
-    permission_codename = 'core.WorkflowStage_update'
-    # check_organization = True  # فعال کردن چک سازمان
+    permission_codenames = ['core.WorkflowStage_update']  # اصلاح typo: permission_codename به permission_codenames
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["title"] = "ویرایش مرحله"
         return context
+
+    def form_valid(self, form):
+        try:
+            self.object = form.save()
+            messages.success(self.request, _('مرحله با موفقیت به‌روزرسانی شد.'))
+            return super().form_valid(form)
+        except ValueError as e:
+            messages.error(self.request, str(e))  # پیام خطا رو به کاربر نشون می‌ده
+            return self.form_invalid(form)
+
+
 
 class WorkflowStageDeleteView(PermissionBaseView, DeleteView):
     model = WorkflowStage

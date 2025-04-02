@@ -13,11 +13,34 @@ from django.utils.translation import gettext_lazy as _
 from django.forms import inlineformset_factory
 
 class FactorItemApprovalForm(forms.Form):
+    # action = forms.ChoiceField(
+    #     choices=[('', _('لطفاً انتخاب کنید')), ('APPROVE', _('تأیید')), ('REJECT', _('رد')), ], required=False,
+    #     widget=forms.Select(attrs={'class': 'form-control form-select','style': 'max-width: 200px;',}),label=_("اقدام"),)
+    # comment = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2,'placeholder': _('توضیحات خود را اینجا وارد کنید...'),'style': 'max-width: 500px;',}
+    #     ),required=False,label=_("توضیحات"),)
+
+    # item_id = forms.IntegerField(widget=forms.HiddenInput(), required=True)
     action = forms.ChoiceField(
-        choices=[('', _('لطفاً انتخاب کنید')), ('APPROVE', _('تأیید')), ('REJECT', _('رد')), ], required=False,
-        widget=forms.Select(attrs={'class': 'form-control form-select','style': 'max-width: 200px;',}),label=_("اقدام"),)
-    comment = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2,'placeholder': _('توضیحات خود را اینجا وارد کنید...'),'style': 'max-width: 500px;',}
-        ),required=False,label=_("توضیحات"),)
+        choices=[
+            ('PENDING', _('در انتظار')),
+            ('APPROVE', _('تأیید')),
+            ('REJECT', _('رد')),
+        ],
+        widget=forms.Select(attrs={'class': 'form-control form-select', 'style': 'max-width: 200px;'}),
+        label=_("اقدام"),
+        required=False,
+        initial='PENDING'
+    )
+    comment = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 2,
+            'placeholder': _('توضیحات خود را اینجا وارد کنید...'),
+            'style': 'max-width: 500px;'
+        }),
+        required=False,
+        label=_("توضیحات")
+    )
 
 # ------------ New
 class FactorApprovalForm(forms.ModelForm):
@@ -147,6 +170,7 @@ class TanbakhApprovalForm(forms.ModelForm):
     class Meta:
         model = Tankhah
         fields = []  # هیچ فیلد دیگری از مدل نیاز نیست
+
 class FactorForm(forms.ModelForm):
     date = forms.CharField(
         label=_('تاریخ'),
@@ -162,7 +186,7 @@ class FactorForm(forms.ModelForm):
         fields = ['tankhah', 'date', 'amount', 'description']
         widgets = {
             'tankhah': forms.Select(attrs={'class': 'form-control'}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('مبلغ را وارد کنید')}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control',  'placeholder': _('مبلغ را وارد کنید')}),
             'description': forms.Textarea(
                 attrs={'class': 'form-control', 'rows': 3, 'placeholder': _('توضیحات فاکتور')}),
         }
@@ -236,10 +260,9 @@ class FactorForm(forms.ModelForm):
             instance.save()
         return instance
 
-
+# فرم برای اقلام فاکتور
 class FactorItemForm(forms.ModelForm):
     """فرم ایجاد و ویرایش اقلام فاکتور"""
-
     class Meta:
         model = FactorItem
         fields = ['description', 'amount', 'quantity']
@@ -251,21 +274,24 @@ class FactorItemForm(forms.ModelForm):
                 attrs={'class': 'form-control quantity-field', 'placeholder': _('تعداد'), 'min': '1'}),
         }
 
-    def clean_amount(self):
-        amount = self.cleaned_data['amount']
-        if amount <= 0:
+    def clean(self):
+        cleaned_data = super().clean()
+        amount = cleaned_data.get('amount')
+        quantity = cleaned_data.get('quantity')
+        if amount is not None and amount <= 0:
             raise forms.ValidationError(_('مبلغ باید بزرگ‌تر از صفر باشد.'))
-        return amount
-
-    def clean_quantity(self):
-        quantity = self.cleaned_data['quantity']
-        if quantity < 1:
+        if quantity is not None and quantity < 1:
             raise forms.ValidationError(_('تعداد باید حداقل ۱ باشد.'))
-        return quantity
+        return cleaned_data
 
-# FactorItemFormSet = inlineformset_factory(Factor, FactorItem, fields=['description', 'amount', 'quantity'], extra=1)
-FactorItemFormSet = inlineformset_factory(Factor, FactorItem, form=FactorItemForm, fields=['description', 'amount', 'quantity'], extra=1,can_delete=True)
 
+FactorItemFormSet = inlineformset_factory(
+    Factor, FactorItem,
+    form=FactorItemForm,
+    fields=['description', 'amount', 'quantity'],
+    # extra=1,
+    can_delete=True
+)
 
 class ApprovalForm(forms.ModelForm):
     """فرم ثبت تأیید یا رد"""
@@ -294,9 +320,7 @@ class ApprovalForm(forms.ModelForm):
             # 'is_approved': _('تأیید شده؟'),
         }
 
-
 """این فرم وضعیت و مرحله فعلی تنخواه را نمایش می‌دهد:"""
-
 class TankhahStatusForm(forms.ModelForm):
     class Meta:
         model = Tankhah
@@ -320,7 +344,6 @@ class TankhahStatusForm(forms.ModelForm):
         for field in self.fields.values():
             field.disabled = True
 
-
 class FactorStatusForm(forms.ModelForm):
     class Meta:
         model = Factor
@@ -335,26 +358,6 @@ class FactorStatusForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['status'].disabled = True
-
-
-class FactorItemFormSet(forms.inlineformset_factory(Factor, FactorItem,
-                                                    fields=('description', 'amount', 'quantity'),
-                                                    extra=1, can_delete=True)):
-    pass
-
-
-# فرم برای اسناد فاکتور
-# class FactorDocumentForm(forms.ModelForm):
-#     class Meta:
-#         model = FactorDocument
-#         fields = ['file']
-#         widgets = {
-#             'file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
-#         }
-#         labels = {'file': _('فایل پیوست')}
-
-
-
 
 """*** مهم ***"""
 """چون در مدل TanbakhDocument فقط یک document ذخیره می‌شود، اما ما چندین فایل را آپلود می‌کنیم. بنابراین نیازی به ModelForm نیست."""
@@ -374,24 +377,6 @@ class MultipleFileField(forms.FileField):
             result = single_file_clean(data, initial)
         return result
 
-# فرم برای اقلام فاکتور
-class FactorItemForm(forms.ModelForm):
-    class Meta:
-        model = FactorItem
-        fields = ['description', 'amount', 'quantity']
-        widgets = {
-            'description': forms.TextInput(attrs={'class': 'form-control'}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
-        }
-
-FactorItemFormSet = inlineformset_factory(
-    Factor, FactorItem,
-    form=FactorItemForm,
-    fields=['description', 'amount', 'quantity'],
-    extra=1,
-    can_delete=True
-)
 
 # فرم اسناد فاکتور (چندفایلی، بدون ModelForm)
 class FactorDocumentForm(forms.Form):

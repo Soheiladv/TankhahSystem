@@ -53,6 +53,7 @@
                             <th>{% trans "پروژه" %}</th>
                             <th>{% trans "وضعیت" %}</th>
                             <th>{% trans "اقدامات" %}</th>
+                            <th>گزارش مالی</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -69,14 +70,20 @@
                                         <a href="{% url 'tankhah_detail' tankhah.pk %}" class="btn btn-outline-info btn-sm">
                                             <i class="fas fa-eye"></i> {% trans "جزئیات" %}
                                         </a>
-                                        {% if request.user.is_supervisor or request.user.is_staff %}
+                                        <a href="{% url 'tankhah_tracking' tankhah.pk %}" class="btn btn-info btn-sm">
+                                            <i class="fas fa-tree me-1"></i>{% trans "درخت پیگیری تنخواه" %}
+                                        </a>
+                                        {% if request.user.is_supervisor or request.user.is_staff and perms.tankhah.tankhah_update %}
                                             <a href="{% url 'tankhah_update' tankhah.pk %}" class="btn btn-outline-secondary btn-sm">
                                                 <i class="fas fa-edit"></i> {% trans "ویرایش" %}
                                             </a>
                                         {% endif %}
+                                        {% if request.user.is_supervisor or request.user.is_staff and perms.tankhah.tankhah_delete %}
                                         <a href="{% url 'tankhah_delete' tankhah.pk %}" class="btn btn-outline-danger btn-sm">
                                             <i class="fas fa-trash"></i> {% trans "حذف" %}
                                         </a>
+                                        {% endif %}
+
                                         {% if perms.tankhah.Tankhah_approve and tankhah.status == 'PENDING' %}
                                             <a href="{% url 'tankhah_approve' tankhah.pk %}" class="btn btn-outline-primary btn-sm">
                                                 {% trans "تأیید تنخواه" %}
@@ -101,6 +108,14 @@
                                             </ul>
                                         </div>
                                     {% endif %}
+                                </td>
+                                <td>
+{#                                    {% if tankhah.is_locked or tankhah.is_archived %}#}
+                                        <a href="{% url 'tankhah_financial_report' tankhah.pk %}"
+                                           class="btn btn-info btn-sm">مشاهده گزارش</a>
+{#                                    {% else %}#}
+{#                                        <span>-</span>#}
+{#                                    {% endif %}#}
                                 </td>
                             </tr>
                         {% empty %}

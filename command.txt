@@ -1,6 +1,6 @@
 D@d123
 
-from tanbakh.models import Tanbakh, Factor, ApprovalLog
+from tankhah.models import Tankhah, Factor, ApprovalLog
 
 # پاک کردن تمام فاکتورها
 Factor.objects.all().delete()
@@ -11,8 +11,8 @@ ApprovalLog.objects.all().delete()
 print("All ApprovalLogs deleted.")
 
 # پاک کردن تمام تنخواه‌ها
-Tanbakh.objects.all().delete()
-print("All Tanbakhs deleted.")
+Tankhah.objects.all().delete()
+print("All Tankhah deleted.")
 
 <strong>{% trans "تفاوت:" %}</strong>
                             <span class="badge fs-5 {{ difference|floatformat:0| yesno:'bg-success,bg-danger,bg-warning' }} text-white">

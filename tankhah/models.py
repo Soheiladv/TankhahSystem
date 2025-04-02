@@ -74,11 +74,6 @@ class Tankhah(models.Model):
     description = models.TextField(verbose_name=_("توضیحات"))
     current_stage = models.ForeignKey(WorkflowStage, on_delete=models.SET_NULL, null=True,
                                       default=get_default_workflow_stage, verbose_name="مرحله فعلی")
-
-    # current_stage = models.ForeignKey(WorkflowStage,
-    #           on_delete=models.SET_NULL,null=True,default=1,#get_default_workflow_stage,  # پیش‌فرض: ثبت در دفتر مرکزی
-    #     verbose_name="مرحله فعلی")
-
     status = models.CharField(max_length=20, choices=STATUS_CHOICES,  default='DRAFT', verbose_name=_("وضعیت"))
     hq_status = models.CharField(max_length=20, default='PENDING',
                                  choices=STATUS_CHOICES, null=True, blank=True,
@@ -86,6 +81,10 @@ class Tankhah(models.Model):
     last_stopped_post = models.ForeignKey(Post, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("آخرین پست متوقف‌شده"))
 
     is_archived = models.BooleanField(default=False, verbose_name=_("آرشیو شده"))
+
+    payment_number = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("شماره پرداخت"))
+    is_locked = models.BooleanField(default=False, verbose_name=_("قفل شده"))
+
 
     archived_at = models.DateTimeField(null=True, blank=True, verbose_name="زمان آرشیو")
     canceled = models.BooleanField(default=False, verbose_name="لغو شده")
@@ -126,6 +125,9 @@ class Tankhah(models.Model):
     def save(self, *args, **kwargs):
         if not self.number:
             self.number = self.generate_number()
+            # اگه وضعیت COMPLETED یا PAID باشه، قفل کن
+        if self.status in ['COMPLETED', 'PAID'] and not self.is_locked:
+            self.is_locked = True
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -155,7 +157,7 @@ class Tankhah(models.Model):
             ('Tankhah_HQ_FIN_PENDING', _('در حال بررسی - مالی')),
             ('Tankhah_PAID', _('پرداخت‌شده')),
             ('Tankhah_REJECTED', _('ردشده')),
-            ("FactorItem_approve", "👍تایید/رد ردیف فاکتور دفتر مرکزی "),
+            ("FactorItem_approve", "👍تایید/رد ردیف فاکتور (تایید ردیف فاکتور)"),
             ('edit_full_tankhah','👍😊تغییرات کاربری در فاکتور /تایید یا رد ردیف ها '),
 
             ('Dashboard_Core_view', 'دسترسی به داشبورد Core پایه'),
@@ -197,7 +199,7 @@ class Factor(models.Model):
         ('REJECTED', _('ردشده')),
     )
     number = models.CharField(max_length=60, blank=True, verbose_name=_("شماره فاکتور"))
-    tankhah = models.ForeignKey(Tankhah, on_delete=models.CASCADE, related_name='factors', verbose_name=_("تنخواه"))
+    tankhah = models.ForeignKey(Tankhah, on_delete=models.PROTECT, related_name='factors', verbose_name=_("تنخواه"))
     date = models.DateField(default=timezone.now, verbose_name=_("تاریخ"))
     amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('مبلغ'), default=0)  # فرض بر وجود فیلد مبلغ
     description = models.TextField(verbose_name=_("توضیحات"))
@@ -210,6 +212,8 @@ class Factor(models.Model):
     is_finalized = models.BooleanField(default=False, verbose_name=_("نهایی شده"))
 
     locked = models.BooleanField(default=False, verbose_name="قفل شده")
+    locked_by_stage = models.ForeignKey(WorkflowStage, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("قفل شده توسط مرحله"))
+
 
     def generate_number(self):
         """تولید شماره فاکتور با جداکننده قابل تنظیم"""
