@@ -1,3 +1,4 @@
+<!-- Tankhah/Reports/calc_dashboard.html -->
 {% extends 'base.html' %}
 {% load i18n static rcms_custom_filters tanbakh_tags %}
 
@@ -43,13 +44,23 @@
         </div>
     </div>
 
-    <!-- چارت -->
+    <!-- چارت مقایسه مالی -->
     <div class="card mb-4 shadow-lg">
         <div class="card-header bg-gradient bg-primary text-white">
             <h5 class="mb-0">{% trans "مقایسه مالی و تصاویر مجتمع‌ها" %}</h5>
         </div>
         <div class="card-body">
             <canvas id="financialChart" height="120"></canvas>
+        </div>
+    </div>
+
+    <!-- چارت وضعیت تنخواه‌ها -->
+    <div class="card mb-4 shadow-lg">
+        <div class="card-header bg-gradient bg-primary text-white">
+            <h5 class="mb-0">{% trans "وضعیت تنخواه‌ها" %}</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="statusChart" height="120"></canvas>
         </div>
     </div>
 
@@ -94,20 +105,27 @@
     .shadow-lg { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); }
 </style>
 
+<!-- لود فونت فارسی -->
+{#<link href="https://cdn.jsdelivr.net/npm/vazir-font@27.0.0/dist/font-face.css" rel="stylesheet" type="text/css" />#}
+
 <script src="{% static 'admin/js/chart.js' %}"></script>
 <script>
+    // تنظیم فونت پیش‌فرض برای Chart.js
+    Chart.defaults.font.family = 'Parastoo, sans-serif';
+
     document.addEventListener('DOMContentLoaded', function () {
-        var ctx = document.getElementById('financialChart').getContext('2d');
-        var chartData = {{ chart_data|safe }};
-        new Chart(ctx, {
+        // چارت مالی
+        var financialCtx = document.getElementById('financialChart').getContext('2d');
+        var financialChartData = {{ chart_data|safe }};
+        new Chart(financialCtx, {
             type: 'bar',
-            data: chartData,
+            data: financialChartData,
             options: {
                 responsive: true,
                 animation: { duration: 1500, easing: 'easeInOutQuart' },
                 scales: {
-                    y: { beginAtZero: true, title: { display: true, text: 'مقدار' } },
-                    x: { title: { display: true, text: 'مجتمع‌ها' } }
+                    y: { beginAtZero: true, title: { display: true, text: 'مقدار', font: { size: 14 } } },
+                    x: { title: { display: true, text: 'مجتمع‌ها', font: { size: 14 } } }
                 },
                 plugins: {
                     legend: { position: 'top', labels: { font: { size: 14 } } },
@@ -116,7 +134,29 @@
                         callbacks: {
                             label: function(context) {
                                 let unit = context.dataset.label.includes('حجم') ? 'مگابایت' : 'تومان';
-                                return `${context.dataset.label}: ${context.raw.toLocaleString()} ${unit}`;
+                                return `${context.dataset.label}: ${context.raw.toLocaleString('fa-IR')} ${unit}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // چارت وضعیت
+        var statusCtx = document.getElementById('statusChart').getContext('2d');
+        var statusChartData = {{ status_chart_data|safe }};
+        new Chart(statusCtx, {
+            type: 'pie',
+            data: statusChartData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top', labels: { font: { size: 14 } } },
+                    title: { display: true, text: 'وضعیت تنخواه‌ها', font: { size: 18 } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: ${context.raw.toLocaleString('fa-IR')}`;
                             }
                         }
                     }
@@ -125,4 +165,29 @@
         });
     });
 </script>
+    <!-- اضافه کردن جدول وضعیت -->
+<div class="card mb-4 shadow-lg">
+    <div class="card-header bg-gradient bg-info text-white">
+        <h5 class="mb-0">{% trans "جزئیات وضعیت تنخواه‌ها" %}</h5>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>{% trans "وضعیت" %}</th>
+                    <th>{% trans "تعداد" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for status, count in status_counts.items %}
+                <tr>
+                    <td>{{ status  }}</td>
+                    <td>{{ count|to_persian_number }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
 {% endblock %}

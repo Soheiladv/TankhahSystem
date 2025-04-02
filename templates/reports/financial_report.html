@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ title }}</h2>
+    <p>شماره تنخواه: {{ report.tankhah.number }}</p>
+    <p>مبلغ کل: {{ report.total_amount }}</p>
+    <p>مبلغ تأییدشده: {{ report.approved_amount }}</p>
+    <p>مبلغ ردشده: {{ report.rejected_amount }}</p>
+    <p>شماره پرداخت: {{ report.payment_number|default:'پرداخت نشده' }}</p>
+    <p>تاریخ گزارش: {{ report.report_date }}</p>
+    <a href="{% url 'dashboard_flows' %}" class="btn btn-secondary">بازگشت</a>
+</div>
+{% endblock %}

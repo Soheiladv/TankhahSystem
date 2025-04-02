@@ -15,6 +15,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from jalali_date.fields import JalaliDateField
 from notifications.signals import notify
 from accounts.models import CustomUser
+from core.PermissionBase import get_lowest_access_level, get_initial_stage_order
 # Local imports
 from core.models import UserPost, Post, WorkflowStage
 from .forms import (
@@ -113,59 +114,26 @@ class TankhahCreateView(PermissionBaseView, CreateView):
         return kwargs
 
     def form_valid(self, form):
-        """ثبت تنخواه با پایین‌ترین مرحله و ارسال اعلان"""
-        tankhah = form.instance
-        tankhah.created_by = self.request.user
-        tankhah.status = 'DRAFT'
+        with transaction.atomic():
+            self.object = form.save(commit=False)
+            initial_stage = WorkflowStage.objects.order_by('-order').first()  # پایین‌ترین order
+            self.object.current_stage = initial_stage
+            self.object.status = 'DRAFT'
+            self.object.created_by = self.request.user
+            self.object.save()
 
-        # تنظیم پایین‌ترین مرحله
-        try:
-            first_stage = WorkflowStage.objects.order_by('-order').first()  # بالاترین order = پایین‌ترین مرحله
-            print(f'first_stage : {first_stage}')
-            if not first_stage:
-                logger.error("No workflow stages defined!")
-                messages.error(self.request, _('هیچ مرحله‌ای در سیستم تعریف نشده است.'))
-                return self.form_invalid(form)
-            # if first_stage.order != 1:  # اطمینان از اینکه پایین‌ترین مرحله order=1 است
-            #     logger.warning(f"First stage {first_stage.name} has order {first_stage.order}, expected 1")
-            # Tankhah.current_stage = first_stage
-            # logger.info(f"Setting Tankhah {Tankhah.number} to stage: {first_stage.name} (order={first_stage.order})")
-
-            tankhah.current_stage = first_stage
-
-            # چک سازمان
-            if self.check_organization:
-                user_orgs = [up.post.organization for up in
-                             self.request.user.userpost_set.all()] if self.request.user.userpost_set.exists() else []
-                is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
-                if not is_hq_user and tankhah.organization not in user_orgs:
-                    logger.warning(f"User {self.request.user} has no access to organization {tankhah.organization}")
-                    messages.error(self.request, "شما به این سازمان دسترسی ندارید.")
-                    return self.form_invalid(form)
-
-        except Exception as e:
-            logger.error(f"Error setting stage: {str(e)}")
-            messages.error(self.request, _('خطا در تنظیم مرحله تنخواه.'))
-            return self.form_invalid(form)
-
-        # ذخیره تنخواه
-        response = super().form_valid(form)
-
-        # ارسال اعلان به تأییدکنندگان مرحله اول
-        approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=first_stage)
-        if approvers.exists():
-            notify.send(
-                sender=self.request.user,
-                recipient=approvers,
-                verb='تنخواه جدیدی ایجاد شد',
-                target=tankhah
-            )
-            logger.info(f"Notification sent to {approvers.count()} approvers for stage {first_stage.name}")
-        else:
-            logger.warning(f"No approvers found for stage {first_stage.name}")
-
-        messages.success(self.request, _('تنخواه با موفقیت ثبت شد.'))
-        return response
+            # نوتیفیکیشن برای تأییدکنندگان مرحله اولیه
+            approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=initial_stage)
+            if approvers.exists():
+                notify.send(
+                    sender=self.request.user,
+                    recipient=approvers,
+                    verb='تنخواه برای تأیید آماده است',
+                    target=self.object
+                )
+                logger.info(f"Notification sent to {approvers.count()} approvers for stage {initial_stage.name}")
+        messages.success(self.request, 'تنخواه با موفقیت ثبت شد.')
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         """اضافه کردن عنوان به کنتکست"""
@@ -317,28 +285,48 @@ class TankhahListView1(PermissionBaseView, PermissionRequiredMixin, ListView):
         context['Tankhahs'] = context['object_list']
         context['show_archived'] = self.request.GET.get('show_archived', 'false') == 'true'
         return context
+from django.db import models
+
+
 class TankhahListView(PermissionBaseView, ListView):
     model = Tankhah
     template_name = 'tankhah/tankhah_list.html'
     context_object_name = 'Tankhahs'
     paginate_by = 10
-    permission_codenames = ['tankhah.Tankhah_view']  # فرمت درست
+    extra_context = {'title': _('لیست تنخواه‌ها')}
+    check_organization = True
+    permission_codenames = ['tankhah.Tankhah_view']
 
     def get_queryset(self):
         user = self.request.user
         logger.info(f"User: {user}, is_superuser: {user.is_superuser}")
 
-        # اگه تابع دیگه دسترسی رو چک کرده، فقط تنخواه‌ها رو برگردون
-        queryset = Tankhah.objects.all()
-        logger.info(f"Initial queryset count: {queryset.count()}")
+        # سازمان‌های کاربر
+        user_orgs = [up.post.organization for up in user.userpost_set.all()] if user.userpost_set.exists() else []
+        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
 
+        # شروع با تنخواه‌های مجاز
+        if is_hq_user:
+            queryset = Tankhah.objects.all()  # HQ همه تنخواه‌ها رو می‌بینه
+            logger.info("کاربر HQ هست، همه تنخواه‌ها رو می‌بینه")
+        elif user_orgs:
+            queryset = Tankhah.objects.filter(organization__in=user_orgs)  # فقط تنخواه‌های سازمان کاربر
+            logger.info(f"فیلتر تنخواه‌ها برای سازمان‌های کاربر: {user_orgs}")
+        else:
+            queryset = Tankhah.objects.none()  # اگه سازمانی نداشت، هیچی نشون نده
+            logger.info("کاربر هیچ سازمانی نداره، queryset خالی برمی‌گردونه")
+
+        # فیلترهای اضافی
         if not self.request.GET.get('show_archived'):
             queryset = queryset.filter(is_archived=False)
             logger.info(f"Filtered by archived count: {queryset.count()}")
 
         query = self.request.GET.get('q')
         if query:
-            queryset = queryset.filter(number__icontains=query) | queryset.filter(organization__name__icontains=query, organization__isnull=False)
+            queryset = queryset.filter(
+                models.Q(number__icontains=query) |
+                models.Q(organization__name__icontains=query)
+            )
             logger.info(f"Filtered by query '{query}' count: {queryset.count()}")
 
         stage = self.request.GET.get('stage')
@@ -371,6 +359,7 @@ class TankhahListView(PermissionBaseView, ListView):
         else:
             context['org_display_name'] = _('بدون سازمان')
         return context
+
 class TankhahDetailView(PermissionBaseView, PermissionRequiredMixin, DetailView):
     model = Tankhah
     template_name = 'tankhah/Tankhah_detail.html'
@@ -421,34 +410,63 @@ class TankhahDeleteView(PermissionBaseView, DeleteView):
         return super().delete(request, *args, **kwargs)
 # ویو تأیید:
 class TankhahApproveView(PermissionBaseView, View):
-    permission_codenames = ['Tankhah.Tankhah_approve']
+    permission_codenames = ['tankhah.Tankhah_approve']
 
-    def get(self, request, pk):
+    def post(self, request, pk):
         tankhah = Tankhah.objects.get(pk=pk)
         user_posts = request.user.userpost_set.all()
-        if not any(p.post.stageapprover_set.filter(stage=Tankhah.current_stage).exists() for p in user_posts):
+
+        # چک دسترسی
+        is_hq_user = any(p.post.organization.org_type == 'HQ' for p in user_posts)
+        can_approve = is_hq_user and any(p.post.name in ['کارشناس بهره‌برداری', 'مدیر', 'معاونت بهره‌برداری', 'معاونت مالی و اداری'] for p in user_posts)
+        if not can_approve or not any(p.post.stageapprover_set.filter(stage=tankhah.current_stage).exists() for p in user_posts):
             messages.error(request, _('شما اجازه تأیید این مرحله را ندارید.'))
             return redirect('dashboard_flows')
 
-        next_stage = WorkflowStage.objects.filter(order__lt=Tankhah.current_stage.order).order_by('-order').first()
-        if next_stage:
-            Tankhah.current_stage = next_stage
-            Tankhah.status = 'PENDING'
-            Tankhah.save()
-            messages.success(request, _('تنخواه با موفقیت تأیید شد و به مرحله بعدی منتقل شد.'))
-            # اعلان به تأییدکنندگان مرحله بعدی
-            approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=next_stage)
-            if approvers.exists():
-                notify.send(sender=request.user, recipient=approvers, verb='تنخواه برای تأیید آماده است',
-                            target=Tankhah)
-        else:
-            Tankhah.status = 'COMPLETED'
-            Tankhah.save()
-            messages.success(request, _('تنخواه با موفقیت تکمیل شد.'))
+        # اگه قفل یا آرشیو شده، اجازه تغییر نده
+        if tankhah.is_locked or tankhah.is_archived:
+            messages.error(request, _('این تنخواه قفل یا آرشیو شده و قابل تغییر نیست.'))
+            return redirect('dashboard_flows')
+
+        # پیدا کردن مرحله بعدی
+        next_stage = WorkflowStage.objects.filter(order__gt=tankhah.current_stage.order).order_by('order').first()
+        with transaction.atomic():
+            if next_stage:
+                tankhah.current_stage = next_stage
+                tankhah.status = 'PENDING'
+                tankhah.save()
+                messages.success(request, _('تنخواه با موفقیت تأیید شد و به مرحله بعدی منتقل شد.'))
+                approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=next_stage)
+                if approvers.exists():
+                    notify.send(sender=request.user, recipient=approvers, verb='تنخواه برای تأیید آماده است', target=tankhah)
+            else:
+                # مرحله آخر: پرداخت
+                if any(p.post.name == 'معاونت مالی و اداری' for p in user_posts):
+                    payment_number = request.POST.get('payment_number', '')
+                    if payment_number:
+                        tankhah.status = 'PAID'
+                        tankhah.hq_status = 'PAID'
+                        tankhah.payment_number = payment_number
+                        tankhah.is_locked = True
+                        tankhah.is_archived = True  # آرشیو کردن
+                        tankhah.save()
+                        messages.success(request, _('تنخواه پرداخت شد، قفل و آرشیو شد.'))
+                    else:
+                        messages.error(request, _('لطفاً شماره پرداخت را وارد کنید.'))
+                        return redirect('dashboard_flows')
+                else:
+                    tankhah.status = 'COMPLETED'
+                    tankhah.hq_status = 'COMPLETED'
+                    tankhah.is_locked = True
+                    tankhah.is_archived = True  # آرشیو کردن
+                    tankhah.save()
+                    messages.success(request, _('تنخواه تکمیل شد، قفل و آرشیو شد.'))
+
         return redirect('dashboard_flows')
+
 # ویو رد:
 class TankhahRejectView(PermissionBaseView, View):
-    permission_codenames = ['Tankhah.Tankhah_approve']
+    permission_codenames = ['tankhah.Tankhah_approve']
 
     def get(self, request, pk):
         tankhah = Tankhah.objects.get(pk=pk)
@@ -498,6 +516,13 @@ class FactorListView(PermissionBaseView, ListView):
     context_object_name = 'factors'
     paginate_by = 10
     extra_context = {'title': _('لیست فاکتورها')}
+    permission_codenames = [
+    'tankhah.a_factor_view'
+    #     'Tankhah.Tankhah_view', 'Tankhah.Tankhah_update', 'Tankhah.Tankhah_add',
+    #     'Tankhah.Tankhah_approve', 'Tankhah.Tankhah_part_approve', 'Tankhah.FactorItem_approve',
+    #     'Tankhah.edit_full_Tankhah', 'Tankhah.Tankhah_hq_view', 'Tankhah.Tankhah_hq_approve',
+    #     'Tankhah.Tankhah_HQ_OPS_PENDING', 'Tankhah.Tankhah_HQ_OPS_APPROVED', 'Tankhah.FactorItem_approve'
+    ]
 
     def get_queryset(self):
         user = self.request.user
@@ -541,7 +566,6 @@ class FactorListView(PermissionBaseView, ListView):
             if status_query:
                 filter_conditions &= Q(status=status_query)
             queryset = queryset.filter(filter_conditions).distinct()
-
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -550,6 +574,19 @@ class FactorListView(PermissionBaseView, ListView):
         context['date_query'] = self.request.GET.get('date', '')
         context['status_query'] = self.request.GET.get('status', '')
         context['is_hq'] = any(up.post.organization.org_type == 'HQ' for up in self.request.user.userpost_set.all())
+        # نمایش رکورد های قفل شده
+        for factor in context['factors']:
+            tankhah = factor.tankhah
+            current_stage_order = tankhah.current_stage.order
+            user = self.request.user
+            user_posts = user.userpost_set.all()
+            user_can_approve = any(
+                p.post.stageapprover_set.filter(stage=tankhah.current_stage).exists()
+                for p in user_posts
+            ) and tankhah.status in ['DRAFT', 'PENDING']
+            factor.can_approve = user_can_approve
+            # قفل شدن: اگه مرحله تأییدکننده پایین‌تر (order کمتر) از مرحله فعلی باشه
+            factor.is_locked = factor.locked_by_stage is not None and factor.locked_by_stage.order < current_stage_order
         return context
 class FactorDetailView(PermissionBaseView, DetailView):
     model = Factor
@@ -582,110 +619,215 @@ class FactorDetailView(PermissionBaseView, DetailView):
     def handle_no_permission(self):
         messages.error(self.request, self.permission_denied_message)
         return redirect('factor_list')
-class FactorCreateView(PermissionBaseView, CreateView):
+
+class FactorCreateView1(PermissionBaseView, CreateView):
     model = Factor
     form_class = FactorForm
     template_name = 'tankhah/factor_form.html'
     success_url = reverse_lazy('factor_list')
     context_object_name = 'factor'
-    permission_codenames = ['Tankhah.a_factor_add']
     permission_denied_message = 'متاسفانه دسترسی مجاز ندارید'
+    permission_codenames = ['tankhah.a_factor_add']
     check_organization = True
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         tankhah = Tankhah.objects.get(id=self.kwargs.get('tankhah_id', None)) if 'tankhah_id' in self.kwargs else None
         if self.request.POST:
-            context['item_formset'] = FactorItemFormSet(self.request.POST, self.request.FILES)
+            factor = self.form_class(self.request.POST, user=self.request.user, tankhah=tankhah).save(commit=False)
+            context['item_formset'] = FactorItemFormSet(self.request.POST, self.request.FILES, instance=factor)
             context['document_form'] = FactorDocumentForm(self.request.POST, self.request.FILES)
-            context['Tankhah_document_form'] = TankhahDocumentForm(self.request.POST, self.request.FILES)
+            context['tankhah_document_form'] = TankhahDocumentForm(self.request.POST, self.request.FILES)
         else:
             context['item_formset'] = FactorItemFormSet()
             context['document_form'] = FactorDocumentForm()
-            context['Tankhah_document_form'] = TankhahDocumentForm()
+            context['tankhah_document_form'] = TankhahDocumentForm()
         context['title'] = 'ایجاد فاکتور جدید'
-        context['Tankhah'] = tankhah
-        if tankhah:  # فقط اگه tankhah مقدار داشته باشه
-            context['Tankhah_documents'] = tankhah.documents.all()
-        else:
-            context['Tankhah_documents'] = []  # اگه None باشه، لیست خالی برگردون
+        context['tankhah'] = tankhah
+        context['tankhah_documents'] = tankhah.documents.all() if tankhah else []
+
+        for factor in context['factors']:
+            tankhah = factor.tankhah
+            current_stage_order = tankhah.current_stage.order
+            user = self.request.user
+            user_posts = user.userpost_set.all()
+            user_can_approve = any(
+                p.post.stageapprover_set.filter(stage=tankhah.current_stage).exists()
+                for p in user_posts
+            ) and tankhah.status in ['DRAFT', 'PENDING']
+            factor.can_approve = user_can_approve
+
+            # چک قفل بودن برای مراحل پایین‌تر
+            factor.is_locked = factor.locked_by_stage is not None and factor.locked_by_stage.order > current_stage_order
+
         return context
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
+        if 'tankhah_id' in self.kwargs:
+            kwargs['tankhah'] = Tankhah.objects.get(id=self.kwargs['tankhah_id'])
         return kwargs
 
     def form_valid(self, form):
         context = self.get_context_data()
         item_formset = context['item_formset']
         document_form = context['document_form']
-        Tankhah_document_form = context['Tankhah_document_form']
-        Tankhah = form.cleaned_data['tankhah']
+        tankhah_document_form = context['tankhah_document_form']
+        tankhah = form.cleaned_data['tankhah']
 
-        if Tankhah.status not in ['DRAFT', 'PENDING']:
-            messages.error(self.request, 'فقط می‌توانید برای تنخواه‌های پیش‌نویس یا در انتظار فاکتور ثبت کنید.')
-            return self.form_invalid(form)
-
-        initial_stage_order = WorkflowStage.objects.order_by('-order').first().order
-        if Tankhah.current_stage.order != initial_stage_order:
+        # فقط در مرحله اولیه (بالاترین order) اجازه ثبت
+        initial_stage_order = WorkflowStage.objects.order_by('-order').first().order  # بالاترین order
+        if tankhah.current_stage.order != initial_stage_order:
             messages.error(self.request, 'فقط در مرحله اولیه می‌توانید فاکتور ثبت کنید.')
             return self.form_invalid(form)
 
-        allowed_orgs = [Tankhah.organization]
-        try:
-            restrict_to_user_organization(self.request.user, allowed_orgs)  # استفاده از تابع ایمپورت‌شده
-        except PermissionDenied as e:
-            messages.error(self.request, str(e))
+        if tankhah.status not in ['DRAFT', 'PENDING']:
+            messages.error(self.request, 'فقط برای تنخواه‌های پیش‌نویس یا در انتظار می‌توانید فاکتور ثبت کنید.')
             return self.form_invalid(form)
 
-        if item_formset.is_valid() and document_form.is_valid() and Tankhah_document_form.is_valid():
+        if item_formset.is_valid() and document_form.is_valid() and tankhah_document_form.is_valid():
             with transaction.atomic():
                 self.object = form.save()
                 item_formset.instance = self.object
                 item_formset.save()
 
-                # ذخیره اسناد فاکتور
+                # آپلود اسناد فاکتور
                 factor_files = self.request.FILES.getlist('files')
                 for file in factor_files:
                     FactorDocument.objects.create(factor=self.object, file=file)
 
-                # ذخیره اسناد تنخواه
-                Tankhah_files = self.request.FILES.getlist('documents')
-                for file in Tankhah_files:
-                    TankhahDocument.objects.create(Tankhah=Tankhah, document=file)
+                # آپلود اسناد تنخواه
+                tankhah_files = self.request.FILES.getlist('documents')
+                for file in tankhah_files:
+                    TankhahDocument.objects.create(tankhah=tankhah, document=file)
 
-                next_stage = WorkflowStage.objects.filter(order__lt=Tankhah.current_stage.order).order_by(
-                    '-order').first()
-                if next_stage:
-                    Tankhah.current_stage = next_stage
-                    Tankhah.status = 'PENDING'
-                    Tankhah.save()
-                    logger.info(f"Tankhah {Tankhah.number} moved to stage {next_stage.name} (order={next_stage.order})")
-                    approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=next_stage)
-                    if approvers.exists():
-                        notify.send(
-                            sender=self.request.user,
-                            recipient=approvers,
-                            verb='تنخواه برای تأیید آماده است',
-                            target=Tankhah
+                # تأیید خودکار توسط کارشناس
+                user_posts = self.request.user.userpost_set.all()
+                if any(p.post.stageapprover_set.filter(stage=tankhah.current_stage).exists() for p in user_posts):
+                    for item in self.object.items.all():
+                        item.status = 'APPROVED'
+                        item.save()
+                        ApprovalLog.objects.create(
+                            factor_item=item,
+                            user=self.request.user,
+                            action='APPROVE',
+                            stage=tankhah.current_stage,
+                            post=user_posts.first().post if user_posts.exists() else None
                         )
-                        logger.info(f"Notification sent to {approvers.count()} approvers for stage {next_stage.name}")
-                else:
-                    logger.warning(f"No next stage found for Tankhah {Tankhah.number}")
+                    self.object.status = 'APPROVED'
+                    self.object.approved_by.add(self.request.user)
+                    self.object.save()
 
-            messages.success(self.request, 'فاکتور با موفقیت ثبت شد.')
+                    # انتقال به مرحله بعدی (order پایین‌تر)
+                    next_stage = WorkflowStage.objects.filter(order__lt=tankhah.current_stage.order).order_by(
+                        '-order').first()
+                    if next_stage:
+                        tankhah.current_stage = next_stage
+                        tankhah.status = 'PENDING'
+                        tankhah.save()
+                        self.object.locked_by_stage = next_stage  # قفل برای مراحل بالاتر
+                        self.object.save()
+                        approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=next_stage)
+                        if approvers.exists():
+                            notify.send(self.request.user, recipient=approvers, verb='تنخواه برای تأیید آماده است',
+                                        target=tankhah)
+                            logger.info(
+                                f"Notification sent to {approvers.count()} approvers for stage {next_stage.name}")
+
+            messages.success(self.request, 'فاکتور با موفقیت ثبت و تأیید شد.')
             return super().form_valid(form)
-        return self.form_invalid(form)
+        else:
+            logger.info(f"Errors: {item_formset.errors}, {document_form.errors}, {tankhah_document_form.errors}")
+            return self.form_invalid(form)
 
     def handle_no_permission(self):
         messages.error(self.request, self.permission_denied_message)
         return super().handle_no_permission()
-class FactorUpdateView(PermissionBaseView, UpdateView):
+
+
+class FactorCreateView(PermissionBaseView, CreateView):
     model = Factor
     form_class = FactorForm
     template_name = 'tankhah/factor_form.html'
     success_url = reverse_lazy('factor_list')
+    permission_codenames = ['tankhah.a_factor_add']
+    check_organization = True
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tankhah = Tankhah.objects.get(id=self.kwargs.get('tankhah_id')) if 'tankhah_id' in self.kwargs else None
+        if self.request.POST:
+            factor = self.form_class(self.request.POST, user=self.request.user, tankhah=tankhah).save(commit=False)
+            context['item_formset'] = FactorItemFormSet(self.request.POST, self.request.FILES, instance=factor)
+            context['document_form'] = FactorDocumentForm(self.request.POST, self.request.FILES)
+            context['tankhah_document_form'] = TankhahDocumentForm(self.request.POST, self.request.FILES)
+        else:
+            context['item_formset'] = FactorItemFormSet()
+            context['document_form'] = FactorDocumentForm()
+            context['tankhah_document_form'] = TankhahDocumentForm()
+        context['title'] = 'ایجاد فاکتور جدید'
+        context['tankhah'] = tankhah
+        context['tankhah_documents'] = tankhah.documents.all() if tankhah else []
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        if 'tankhah_id' in self.kwargs:
+            kwargs['tankhah'] = Tankhah.objects.get(id=self.kwargs['tankhah_id'])
+        return kwargs
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        item_formset = context['item_formset']
+        document_form = context['document_form']
+        tankhah_document_form = context['tankhah_document_form']
+        tankhah = form.cleaned_data['tankhah']
+
+        # فقط توی مرحله اولیه (بالاترین order) اجازه ثبت
+        initial_stage_order = WorkflowStage.objects.order_by('-order').first().order
+        if tankhah.current_stage.order != initial_stage_order:
+            messages.error(self.request, 'فقط در مرحله اولیه می‌توانید فاکتور ثبت کنید.')
+            return self.form_invalid(form)
+
+        if tankhah.status not in ['DRAFT', 'PENDING']:
+            messages.error(self.request, 'فقط برای تنخواه‌های پیش‌نویس یا در انتظار می‌توانید فاکتور ثبت کنید.')
+            return self.form_invalid(form)
+
+        if item_formset.is_valid() and document_form.is_valid() and tankhah_document_form.is_valid():
+            with transaction.atomic():
+                self.object = form.save()
+                item_formset.instance = self.object
+                item_formset.save()
+
+                # آپلود اسناد فاکتور
+                factor_files = self.request.FILES.getlist('files')
+                for file in factor_files:
+                    FactorDocument.objects.create(factor=self.object, file=file)
+
+                # آپلود اسناد تنخواه
+                tankhah_files = self.request.FILES.getlist('documents')
+                for file in tankhah_files:
+                    TankhahDocument.objects.create(tankhah=tankhah, document=file)
+
+                # بدون تغییر مرحله یا تأیید خودکار
+                self.object.status = 'PENDING'  # فاکتور در انتظار تأیید
+                self.object.save()
+
+            messages.success(self.request, 'فاکتور با موفقیت ثبت شد.')
+            return super().form_valid(form)
+        else:
+            logger.info(f"Errors: {item_formset.errors}, {document_form.errors}, {tankhah_document_form.errors}")
+            return self.form_invalid(form)
+
+class FactorUpdateView1(PermissionBaseView, UpdateView):
+    model = Factor
+    form_class = FactorForm
+    template_name = 'tankhah/factor_form.html'
+    success_url = reverse_lazy('factor_list')
+    permission_codenames = ['tankhah.a_factor_update']
+    check_organization = True
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -697,25 +839,50 @@ class FactorUpdateView(PermissionBaseView, UpdateView):
         else:
             context['item_formset'] = FactorItemFormSet(instance=self.object)
             context['document_form'] = FactorDocumentForm()
-            context['Tankhah_document_form'] = TankhahDocumentForm()
+            context['tankhah_document_form'] = TankhahDocumentForm()
         context['title'] = _('ویرایش فاکتور') + f" - {self.object.number}"
         context['tankhah'] = tankhah
         context['tankhah_documents'] = tankhah.documents.all()
-        total_amount = sum(item.amount * item.quantity for item in self.object.items.all())
-        # context['difference'] = total_amount - context['total_amount'] if total_amount else 0
-        context['total_amount'] = total_amount
+        context['total_amount'] = sum(item.amount * item.quantity for item in self.object.items.all())
         return context
 
+
     def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if getattr(obj, 'locked', False):  # چک می‌کنیم که locked وجود داره یا نه
-            raise PermissionDenied("این فاکتور قفل شده و قابل ویرایش نیست.")
-        return obj
+            obj = super().get_object(queryset)
+            if getattr(obj, 'locked', False):
+                raise PermissionDenied("این فاکتور قفل شده و قابل ویرایش نیست.")
+            return obj
 
     def dispatch(self, request, *args, **kwargs):
         obj = self.get_object()
-        if not request.user.has_perm('tankhah.Factor_full_edit') and getattr(obj, 'is_finalized', False):
-            raise PermissionDenied(_('شما اجازه ویرایش این فاکتور را ندارید.'))
+        lowest_level = get_lowest_access_level()  # بالاترین order (پایین‌ترین رتبه)
+        initial_stage_order = get_initial_stage_order()  # پایین‌ترین order (مرحله اولیه)
+        user_post = request.user.userpost_set.first().post if request.user.userpost_set.exists() else None
+
+        initial_stage_order = WorkflowStage.objects.order_by('order').first().order  # بالاترین order
+        if obj.locked_by_stage and obj.locked_by_stage.order < obj.tankhah.current_stage.order:
+            raise PermissionDenied(_('این فاکتور توسط مرحله بالاتر قفل شده و قابل ویرایش نیست.'))
+        if obj.tankhah.current_stage.order != initial_stage_order:
+            raise PermissionDenied(_('فقط در مرحله اولیه می‌توانید فاکتور را ویرایش کنید.'))
+        if obj.tankhah.status in ['APPROVED', 'SENT_TO_HQ', 'HQ_OPS_APPROVED', 'PAID']:
+            raise PermissionDenied(_('فاکتور تأییدشده یا پرداخت‌شده قابل ویرایش نیست.'))
+        if obj.is_finalized and not request.user.has_perm('tankhah.Factor_full_edit'):
+            raise PermissionDenied(_('شما اجازه ویرایش این فاکتور نهایی‌شده را ندارید.'))
+
+        if not request.user.is_superuser:
+            # چک مرحله اولیه
+            if obj.tankhah.current_stage.order != initial_stage_order:
+                logger.info(f"مرحله فعلی: {obj.tankhah.current_stage.order}, مرحله اولیه: {initial_stage_order}")
+                raise PermissionDenied(_('فقط در مرحله اولیه می‌توانید فاکتور را ویرایش کنید.'))
+            # چک وضعیت تأییدشده
+            if obj.tankhah.status in ['APPROVED', 'SENT_TO_HQ', 'HQ_OPS_APPROVED', 'PAID']:
+                raise PermissionDenied(_('فاکتور تأییدشده یا پرداخت‌شده قابل ویرایش نیست.'))
+            # اگه نهایی‌شده باشه و کاربر مجوز کامل نداشته باشه
+            if getattr(obj, 'is_finalized', False) and not request.user.has_perm('tankhah.Factor_full_edit'):
+                raise PermissionDenied(_('شما اجازه ویرایش این فاکتور نهایی‌شده را ندارید.'))
+            # کاربر سطح پایین باید بتونه ویرایش کنه
+            if user_post and user_post.level != lowest_level and not request.user.has_perm('tankhah.Factor_full_edit'):
+                raise PermissionDenied(_('فقط کاربران سطح پایین یا دارای مجوز کامل می‌توانند ویرایش کنند.'))
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -728,79 +895,180 @@ class FactorUpdateView(PermissionBaseView, UpdateView):
         return kwargs
 
     def form_valid(self, form):
-        try:
-            initial_stage_order = WorkflowStage.objects.order_by('-order').first().order
-            if self.object.Tankhah.current_stage.order != initial_stage_order or getattr(self.object, 'is_finalized',
-                                                                                         False):
-                messages.error(self.request,
-                               _('فقط در مرحله اولیه و قبل از نهایی شدن می‌توانید فاکتور را ویرایش کنید.'))
-                return self.form_invalid(form)
-        except AttributeError:
-            logger.error("No workflow stages defined in the system!")
-            messages.error(self.request, _('هیچ مرحله‌ای در سیستم تعریف نشده است.'))
-            return self.form_invalid(form)
-
         context = self.get_context_data()
         item_formset = context['item_formset']
         document_form = context['document_form']
-        Tankhah_document_form = context['Tankhah_document_form']
+        tankhah_document_form = context['tankhah_document_form']
 
-        if item_formset.is_valid() and document_form.is_valid() and Tankhah_document_form.is_valid():
+        if item_formset.is_valid() and document_form.is_valid() and tankhah_document_form.is_valid():
+            with transaction.atomic():
+                self.object = form.save()
+                item_formset.instance = self.object
+                item_formset.save()  # ذخیره ردیف‌های جدید و ویرایش‌شده
+
+                factor_files = self.request.FILES.getlist('files')
+                for file in factor_files:
+                    FactorDocument.objects.create(factor=self.object, file=file)
+
+                tankhah_files = self.request.FILES.getlist('documents')
+                for file in tankhah_files:
+                    TankhahDocument.objects.create(tankhah=self.object.tankhah, document=file)
+
+            messages.success(self.request, _('فاکتور با موفقیت به‌روزرسانی شد.'))
+            return super().form_valid(form)
+        else:
+            logger.info(f"Formset errors: {item_formset.errors}")
+            return self.form_invalid(form)
+
+class FactorUpdateView(PermissionBaseView, UpdateView):
+    model = Factor
+    form_class = FactorForm
+    template_name = 'tankhah/factor_form.html'
+    success_url = reverse_lazy('factor_list')
+    permission_codenames = ['tankhah.a_factor_update']
+    check_organization = True
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tankhah = self.object.tankhah
+        if self.request.POST:
+            context['item_formset'] = FactorItemFormSet(self.request.POST, self.request.FILES, instance=self.object)
+            context['document_form'] = FactorDocumentForm(self.request.POST, self.request.FILES)
+            context['tankhah_document_form'] = TankhahDocumentForm(self.request.POST, self.request.FILES)
+        else:
+            context['item_formset'] = FactorItemFormSet(instance=self.object)
+            context['document_form'] = FactorDocumentForm()
+            context['tankhah_document_form'] = TankhahDocumentForm()
+        context['title'] = _('ویرایش فاکتور') + f" - {self.object.number}"
+        context['tankhah'] = tankhah
+        context['tankhah_documents'] = tankhah.documents.all()
+        return context
+
+    def dispatch(self, request, *args, **kwargs):
+        obj = self.get_object()
+        initial_stage_order = WorkflowStage.objects.order_by('-order').first().order
+        # اجازه ویرایش فقط توی مرحله اولیه یا اگه هنوز تأیید نشده باشه
+        if obj.status != 'PENDING' and not request.user.has_perm('tankhah.Factor_full_edit'):
+            raise PermissionDenied(_('فاکتور تأییدشده یا ردشده قابل ویرایش نیست.'))
+        if obj.tankhah.current_stage.order != initial_stage_order:
+            raise PermissionDenied(_('فقط در مرحله اولیه می‌توانید فاکتور را ویرایش کنید.'))
+        if obj.locked_by_stage and obj.locked_by_stage.order < obj.tankhah.current_stage.order:
+            raise PermissionDenied(_('این فاکتور توسط مرحله بالاتر قفل شده و قابل ویرایش نیست.'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        item_formset = context['item_formset']
+        document_form = context['document_form']
+        tankhah_document_form = context['tankhah_document_form']
+
+        if item_formset.is_valid() and document_form.is_valid() and tankhah_document_form.is_valid():
             with transaction.atomic():
                 self.object = form.save()
                 item_formset.instance = self.object
                 item_formset.save()
 
-                # ذخیره اسناد جدید فاکتور
                 factor_files = self.request.FILES.getlist('files')
                 for file in factor_files:
                     FactorDocument.objects.create(factor=self.object, file=file)
 
-                # ذخیره اسناد جدید تنخواه
-                Tankhah_files = self.request.FILES.getlist('documents')
-                for file in Tankhah_files:
-                    TankhahDocument.objects.create(Tankhah=self.object.Tankhah, document=file)
+                tankhah_files = self.request.FILES.getlist('documents')
+                for file in tankhah_files:
+                    TankhahDocument.objects.create(tankhah=self.object.tankhah, document=file)
 
             messages.success(self.request, _('فاکتور با موفقیت به‌روزرسانی شد.'))
             return super().form_valid(form)
-        return self.form_invalid(form)
+        else:
+            logger.info(f"Errors: {item_formset.errors}")
+            return self.form_invalid(form)
+
+class FactorDeleteView1(PermissionBaseView, DeleteView):
+
+    model = Factor
+    template_name = 'tankhah/factor_confirm_delete.html'
+    success_url = reverse_lazy('factor_list')
+    permission_codenames = ['tankhah.a_factor_delete']
+    check_organization = True
+
+    def dispatch(self, request, *args, **kwargs):
+        logger.info(f"شروع dispatch برای حذف فاکتور با pk={kwargs.get('pk')}, کاربر: {request.user}")
+        factor = self.get_object()
+        logger.info(
+            f"فاکتور: {factor.number}, وضعیت: {factor.status}, مرحله تنخواه: {factor.tankhah.current_stage.order}")
+
+        lowest_level = get_lowest_access_level()
+        initial_stage_order = get_initial_stage_order()
+        logger.info(f"پایین‌ترین سطح دسترسی: {lowest_level}, مرحله اولیه: {initial_stage_order}")
+
+        if not request.user.is_superuser:
+            logger.info(f"کاربر {request.user} سوپروایزر نیست، چک شرایط شروع شد")
+            if factor.tankhah.current_stage.order != initial_stage_order:
+                logger.info("شرط مرحله اولیه رد شد")
+                messages.error(request, _('حذف فاکتور فقط در مرحله اولیه امکان‌پذیر است.'))
+                return redirect('factor_list')
+            if factor.tankhah.status in ['APPROVED', 'SENT_TO_HQ', 'HQ_OPS_APPROVED', 'PAID']:
+                logger.info("شرط وضعیت تأییدشده رد شد")
+                messages.error(request, _('فاکتور تأییدشده یا پرداخت‌شده قابل حذف نیست.'))
+                return redirect('factor_list')
+            user_post = request.user.userpost_set.first().post if request.user.userpost_set.exists() else None
+            logger.info(
+                f"پست کاربر: {user_post.name if user_post else 'هیچ پستی نیست'}, سطح: {user_post.level if user_post else 'نامشخص'}")
+            # if factor.status != 'REJECTED' or (user_post and user_post.level != lowest_level):
+            if factor.status != 'REJECTED' or (user_post and user_post.level < lowest_level):
+                logger.info("شرط کاربر سطح پایین و فاکتور ردشده رد شد")
+                messages.error(request, _('فقط کاربران سطح پایین می‌توانند فاکتور ردشده را حذف کنند.'))
+                return redirect('factor_list')
+        else:
+            logger.info(f"کاربر {request.user} سوپروایزر است، همه محدودیت‌ها نادیده گرفته شد")
+
+        logger.info("همه شرط‌ها تأیید شد، ادامه dispatch")
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        logger.info("درخواست POST برای حذف فاکتور دریافت شد")
+        return super().post(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        response = super().delete(request, *args, **kwargs)
+        logger.info("حذف فاکتور با موفقیت انجام شد")
+        messages.success(self.request, _('فاکتور با موفقیت حذف شد.'))
+        return super().delete(request, *args, **kwargs)
+
+    def handle_no_permission(self):
+        logger.info("دسترسی رد شد در handle_no_permission")
+        messages.error(self.request, _('شما مجوز لازم برای حذف این فاکتور را ندارید.'))
+        return redirect('factor_list')
 class FactorDeleteView(PermissionBaseView, DeleteView):
     model = Factor
     template_name = 'tankhah/factor_confirm_delete.html'
     success_url = reverse_lazy('factor_list')
-    permission_required = 'Tankhah.Factor_delete'
-
-    def post(self, request, *args, **kwargs):
-        factor = self.get_object()
-        user_post = self.request.user.userpost_set.first().post if self.request.user.userpost_set.exists() else None
-
-        if factor.Tankhah.current_stage.order != 1 or factor.status != 'REJECTED' or user_post.level != 1:
-            messages.error(self.request, _('فقط کاربران سطح پایین می‌توانند فاکتور ردشده در مرحله اولیه را حذف کنند.'))
-            return redirect('factor_list')
-
-        return super().post(request, *args, **kwargs)
-
-    def handle_no_permission(self):
-        messages.error(self.request, _('شما مجوز لازم برای حذف این فاکتور را ندارید.'))
-        return redirect('factor_list')
+    permission_codenames = ['tankhah.a_factor_delete']
+    check_organization = True
 
     def dispatch(self, request, *args, **kwargs):
-        factor = self.get_object()
-        if factor.Tankhah.current_stage.order != 1:
-            messages.error(request, _('حذف فاکتور فقط در مرحله اولیه امکان‌پذیر است.'))
-            return redirect('factor_list')
+        obj = self.get_object()
+        initial_stage_order = WorkflowStage.objects.order_by('-order').first().order
+        if obj.status != 'PENDING' and not request.user.has_perm('tankhah.Factor_full_edit'):
+            raise PermissionDenied(_('فاکتور تأییدشده یا ردشده قابل حذف نیست.'))
+        if obj.tankhah.current_stage.order != initial_stage_order:
+            raise PermissionDenied(_('فقط در مرحله اولیه می‌توانید فاکتور را حذف کنید.'))
+        if obj.locked_by_stage and obj.locked_by_stage.order < obj.tankhah.current_stage.order:
+            raise PermissionDenied(_('این فاکتور توسط مرحله بالاتر قفل شده و قابل حذف نیست.'))
         return super().dispatch(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
         messages.success(self.request, _('فاکتور با موفقیت حذف شد.'))
-        return super().delete(request, *args, **kwargs)
+        return redirect(self.success_url)
+
 """  ویو برای تأیید فاکتور"""
 class FactorApproveView(UpdateView):
     model = Factor
-    form_class = FactorApprovalForm  # فرض می‌کنیم این فرم وجود دارد
+    form_class = FactorApprovalForm  # فرض بر وجود این فرم
     template_name = 'tankhah/factor_approval.html'
     success_url = reverse_lazy('factor_list')
-    permission_codenames = ['Tankhah.a_factor_view', 'Tankhah.a_factor_update']
+    permission_codenames = ['tankhah.a_factor_view', 'tankhah.a_factor_update']
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -810,15 +1078,68 @@ class FactorApproveView(UpdateView):
 
     def form_valid(self, form):
         factor = self.object
-        Tankhah = factor.Tankhah
+        tankhah = factor.tankhah
         user_posts = self.request.user.userpost_set.all()
 
-        # چک دسترسی به سازمان
-        try:
-            restrict_to_user_organization(self.request.user, [Tankhah.organization])
-        except PermissionDenied as e:
-            messages.error(self.request, str(e))
+        if not any(p.post.stageapprover_set.filter(stage=tankhah.current_stage).exists() for p in user_posts):
+            messages.error(self.request, _('شما مجاز به تأیید در این مرحله نیستید.'))
             return self.form_invalid(form)
+
+        with transaction.atomic():
+            self.object = form.save()
+            all_items_approved = all(item.status == 'APPROVED' for item in self.object.items.all())
+            if all_items_approved:
+                factor.status = 'APPROVED'
+                factor.approved_by.add(self.request.user)
+                factor.locked_by_stage = tankhah.current_stage  # قفل برای مراحل بالاتر
+                factor.save()
+
+                all_factors_approved = all(f.status == 'APPROVED' for f in tankhah.factors.all())
+                if all_factors_approved:
+                    next_stage = WorkflowStage.objects.filter(order__lt=tankhah.current_stage.order).order_by('-order').first()
+                    if next_stage:
+                        tankhah.current_stage = next_stage
+                        tankhah.status = 'PENDING'
+                        tankhah.save()
+                        approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=next_stage)
+                        if approvers.exists():
+                            notify.send(self.request.user, recipient=approvers, verb='تنخواه برای تأیید آماده است', target=tankhah)
+                            messages.info(self.request, f"تنخواه به مرحله {next_stage.name} منتقل شد.")
+                    else:
+                        tankhah.status = 'COMPLETED'
+                        tankhah.save()
+                        messages.success(self.request, _('تنخواه تکمیل شد.'))
+                else:
+                    messages.success(self.request, _('فاکتور تأیید شد اما فاکتورهای دیگر در انتظارند.'))
+            else:
+                messages.warning(self.request, _('برخی ردیف‌ها هنوز تأیید نشده‌اند.'))
+
+        return super().form_valid(form)
+
+class FactorApproveView1(PermissionBaseView,UpdateView):
+    model = Factor
+    form_class = FactorApprovalForm  # فرض می‌کنیم این فرم وجود دارد
+    template_name = 'tankhah/factor_approval.html'
+    success_url = reverse_lazy('factor_list')
+    permission_codenames = ['tankhah.a_factor_view', 'tankhah.a_factor_update']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('تأیید فاکتور') + f" - {self.object.number}"
+        context['items'] = self.object.items.all()
+        return context
+
+    def form_valid(self, form):
+        factor = self.object
+        tankhah = factor.tankhah
+        user_posts = self.request.user.userpost_set.all()
+
+        # # چک دسترسی به سازمان
+        # try:
+        #     restrict_to_user_organization(self.request.user, [Tankhah.organization])
+        # except PermissionDenied as e:
+        #     messages.error(self.request, str(e))
+        #     return self.form_invalid(form)
 
         # چک اینکه کاربر تأییدکننده این مرحله است
         if not any(p.post.stageapprover_set.filter(stage=Tankhah.current_stage).exists() for p in user_posts):
@@ -826,44 +1147,31 @@ class FactorApproveView(UpdateView):
             return self.form_invalid(form)
 
         with transaction.atomic():
-            # ذخیره فرم (مثلاً توضیحات)
             self.object = form.save()
-
-            # اگر همه ردیف‌ها تأیید شده باشند
             all_items_approved = all(item.status == 'APPROVED' for item in self.object.items.all())
             if all_items_approved:
                 factor.status = 'APPROVED'
+                factor.approved_by.add(self.request.user)
+                factor.locked_by_stage = tankhah.current_stage  # قفل برای مراحل بالاتر
                 factor.save()
-                logger.info(f"Factor {factor.number} approved by {self.request.user}")
 
-                # چک همه فاکتورهای تنخواه
-                all_factors_approved = all(f.status == 'APPROVED' for f in Tankhah.factors.all())
+                all_factors_approved = all(f.status == 'APPROVED' for f in tankhah.factors.all())
                 if all_factors_approved:
-                    next_stage = WorkflowStage.objects.filter(order__lt=Tankhah.current_stage.order).order_by(
-                        '-order').first()
+                    next_stage = WorkflowStage.objects.filter(order__lt=tankhah.current_stage.order).order_by('-order').first()
                     if next_stage:
-                        Tankhah.current_stage = next_stage
-                        Tankhah.status = 'PENDING'
-                        Tankhah.save()
-                        logger.info(f"Tankhah {Tankhah.number} moved to stage {next_stage.name}")
-
-                        # ارسال اعلان به تأییدکنندگان مرحله بعدی
+                        tankhah.current_stage = next_stage
+                        tankhah.status = 'PENDING'
+                        tankhah.save()
                         approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=next_stage)
                         if approvers.exists():
-                            notify.send(
-                                sender=self.request.user,
-                                recipient=approvers,
-                                verb='تنخواه برای تأیید آماده است',
-                                target=Tankhah
-                            )
+                            notify.send(self.request.user, recipient=approvers, verb='تنخواه برای تأیید آماده است', target=tankhah)
                             messages.info(self.request, f"تنخواه به مرحله {next_stage.name} منتقل شد.")
                     else:
-                        Tankhah.status = 'COMPLETED'
-                        Tankhah.save()
-                        logger.info(f"Tankhah {Tankhah.number} completed")
+                        tankhah.status = 'COMPLETED'
+                        tankhah.save()
                         messages.success(self.request, _('تنخواه تکمیل شد.'))
                 else:
-                    messages.success(self.request, _('فاکتور تأیید شد اما هنوز فاکتورهای دیگری در انتظار تأیید هستند.'))
+                    messages.success(self.request, _('فاکتور تأیید شد اما فاکتورهای دیگر در انتظارند.'))
             else:
                 messages.warning(self.request, _('برخی ردیف‌ها هنوز تأیید نشده‌اند.'))
 
@@ -873,71 +1181,67 @@ class FactorApproveView(UpdateView):
         messages.error(self.request, _('شما مجوز لازم برای تأیید این فاکتور را ندارید.'))
         return redirect('factor_list')
 """تأیید آیتم‌های فاکتور"""
-class FactorItemApproveView(PermissionBaseView, DetailView):
+class FactorItemApproveView1(PermissionBaseView, DetailView):
     model = Factor
     template_name = 'tankhah/factor_item_approve.html'
-    permission_codenames = ['Tankhah.FactorItem_approve', 'Tankhah.Tankhah_view', 'Tankhah.Tankhah_hq_view',
-                            'Tankhah.Tankhah_hq_approve']
+    permission_codenames = ['tankhah.FactorItem_approve']
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        factor = self.get_object()
-
-        # ایجاد فرم‌ست برای ردیف‌ها
+        factor = self.object
         FactorItemApprovalFormSet = formset_factory(FactorItemApprovalForm, extra=0)
         initial_data = [{'item_id': item.id, 'action': item.status} for item in factor.items.all()]
 
-        if self.request.POST:
-            formset = FactorItemApprovalFormSet(self.request.POST)
-        else:
-            formset = FactorItemApprovalFormSet(initial=initial_data)
-
-        context['item_form_pairs'] = zip(factor.items.all(), formset)
-        context['formset'] = formset
+        context['formset'] = FactorItemApprovalFormSet(self.request.POST or None, initial=initial_data)
+        context['item_form_pairs'] = zip(factor.items.all(), context['formset'])
         context['approval_logs'] = ApprovalLog.objects.filter(factor_item__factor=factor)
+        context['title'] = _('تأیید ردیف‌های فاکتور') + f" - {factor.number}"
         return context
 
     def post(self, request, *args, **kwargs):
         factor = self.get_object()
-        Tankhah = factor.tankhah
-        user = request.user
-        user_posts = user.userpost_set.all()
+        tankhah = factor.tankhah
+        user_posts = request.user.userpost_set.all()
 
-        # چک دسترسی به سازمان
-        try:
-            restrict_to_user_organization(user, [Tankhah.organization])
-        except PermissionDenied as e:
-            messages.error(request, str(e))
-            return redirect('dashboard_flows')
+        logger.info(f"Processing POST for factor {factor.number}, tankhah {tankhah.number}, current_stage: {tankhah.current_stage.name} (order: {tankhah.current_stage.order})")
+        logger.info(f"User posts: {[p.post.name for p in user_posts]}")
+        # چک دسترسی و قفل/آرشیو
+        if tankhah.is_locked or tankhah.is_archived:
+            messages.error(request, _('این تنخواه قفل یا آرشیو شده و قابل تغییر نیست.'))
+            return redirect('factor_item_approve', pk=factor.pk)
 
-        # چک تأییدکننده مرحله
-        if not any(p.post.stageapprover_set.filter(stage=Tankhah.current_stage).exists() for p in user_posts):
+        # چک مجوز تأیید توی این مرحله
+        can_approve = any(p.post.stageapprover_set.filter(stage=tankhah.current_stage).exists() for p in user_posts)
+        if not can_approve:
+            logger.warning(f"User {request.user.username} not authorized to approve stage {tankhah.current_stage.name}")
             messages.error(request, _('شما مجاز به تأیید در این مرحله نیستید.'))
             return redirect('factor_item_approve', pk=factor.pk)
 
+        # ساخت فرم‌ست
         FactorItemApprovalFormSet = formset_factory(FactorItemApprovalForm, extra=0)
-        formset = FactorItemApprovalFormSet(request.POST)
+        initial_data = [{'item_id': item.id, 'action': item.status} for item in factor.items.all()]
+        formset = FactorItemApprovalFormSet(request.POST, initial=initial_data)
 
-        with transaction.atomic():
-            if formset.is_valid():
+        if formset.is_valid():
+            with transaction.atomic():
                 all_approved = True
                 any_rejected = False
                 bulk_approve = request.POST.get('bulk_approve') == 'on'
 
                 for form, item in zip(formset, factor.items.all()):
                     action = 'APPROVE' if bulk_approve else form.cleaned_data['action']
-
                     if action in ['APPROVE', 'REJECT']:
                         ApprovalLog.objects.create(
                             factor_item=item,
-                            user=user,
+                            user=request.user,
                             action=action,
-                            stage=Tankhah.current_stage,
-                            comment=form.cleaned_data['comment'],
+                            stage=tankhah.current_stage,
+                            comment=form.cleaned_data.get('comment', ''),
                             post=user_posts.first().post if user_posts.exists() else None
                         )
                         item.status = action
                         item.save()
+                        logger.info(f"Item {item.id} status updated to {action}")
                         if action == 'REJECT':
                             all_approved = False
                             any_rejected = True
@@ -946,49 +1250,177 @@ class FactorItemApproveView(PermissionBaseView, DetailView):
 
                 if all_approved and factor.items.exists():
                     factor.status = 'APPROVED'
-                    factor.is_finalized = True
+                    factor.locked_by_stage = tankhah.current_stage
                     factor.save()
                     logger.info(f"Factor {factor.number} approved")
 
-                    # اگر همه فاکتورها تأیید شدند
-                    if all(f.status == 'APPROVED' and f.is_finalized for f in Tankhah.factors.all()):
-                        next_stage = WorkflowStage.objects.filter(order__lt=Tankhah.current_stage.order).order_by(
-                            '-order').first()
+                    if all(f.status == 'APPROVED' for f in tankhah.factors.all()):
+                        next_stage = WorkflowStage.objects.filter(order__lt=tankhah.current_stage.order).order_by('-order').first()
                         if next_stage:
-                            Tankhah.current_stage = next_stage
-                            Tankhah.status = 'PENDING'
-                            Tankhah.save()
+                            tankhah.current_stage = next_stage
+                            tankhah.status = 'PENDING'
+                            tankhah.save()
+                            logger.info(f"Tankhah {tankhah.number} moved to stage {next_stage.name} (order: {next_stage.order})")
                             approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=next_stage)
                             if approvers.exists():
-                                notify.send(request.user, recipient=approvers, verb='تنخواه در انتظار تأیید شما',
-                                            target=Tankhah)
-                            messages.info(request, f"تنخواه به مرحله {next_stage.name} منتقل شد.")
+                                notify.send(request.user, recipient=approvers, verb='تنخواه در انتظار تأیید', target=tankhah)
+                                messages.info(request, f"تنخواه به مرحله {next_stage.name} منتقل شد.")
                         else:
-                            Tankhah.status = 'COMPLETED'
-                            Tankhah.save()
-                            messages.info(request, "تنخواه تأیید و تکمیل شد.")
+                            tankhah.status = 'COMPLETED'
+                            tankhah.save()
+                            logger.info(f"Tankhah {tankhah.number} completed")
+                            messages.success(request, _('تنخواه تکمیل شد.'))
                 elif any_rejected:
                     factor.status = 'REJECTED'
-                    factor.is_finalized = True
+                    tankhah.status = 'REJECTED'
                     factor.save()
-                    Tankhah.status = 'REJECTED'
-                    Tankhah.save()
+                    tankhah.save()
+                    logger.info(f"Factor {factor.number} and tankhah {tankhah.number} rejected")
                     messages.error(request, _('فاکتور و تنخواه رد شدند.'))
                 else:
                     factor.status = 'PENDING'
                     factor.save()
+                    logger.info(f"Factor {factor.number} still pending")
+                    messages.warning(request, _('برخی ردیف‌ها هنوز تأیید نشده‌اند.'))
 
-                messages.success(request, _('تغییرات با موفقیت ثبت شدند.'))
-                return redirect('factor_item_approve', pk=factor.pk)
-            else:
-                messages.error(request, _('فرم نامعتبر است. لطفاً ورودی‌ها را بررسی کنید.'))
-                return self.get(request, *args, **kwargs)
+            messages.success(request, _('تغییرات با موفقیت ثبت شدند.'))
+            return redirect('factor_item_approve', pk=factor.pk)
+        else:
+            logger.warning(f"Formset invalid: {formset.errors}")
+            messages.error(request, _('فرم نامعتبر است. لطفاً ورودی‌ها را بررسی کنید.'))
+            self.object = factor
+            return self.render_to_response(self.get_context_data(formset=formset))
 
     def handle_no_permission(self):
         messages.error(self.request, _('شما مجوز لازم برای تأیید این فاکتور را ندارید.'))
         return redirect('factor_list')
+class FactorItemApproveView(PermissionBaseView, DetailView):
+    model = Factor
+    template_name = 'tankhah/factor_item_approve.html'
+    permission_codenames = ['tankhah.FactorItem_approve']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        factor = self.object
+        FactorItemApprovalFormSet = formset_factory(FactorItemApprovalForm, extra=0)
+        initial_data = [{'item_id': item.id, 'action': item.status} for item in factor.items.all()]
+
+        context['formset'] = FactorItemApprovalFormSet(self.request.POST or None, initial=initial_data)
+        context['item_form_pairs'] = zip(factor.items.all(), context['formset'])
+        context['approval_logs'] = ApprovalLog.objects.filter(factor_item__factor=factor)
+        context['title'] = _('تأیید ردیف‌های فاکتور') + f" - {factor.number}"
+        return context
+
+    def post(self, request, *args, **kwargs):
+        factor = self.get_object()
+        tankhah = factor.tankhah
+        user_posts = request.user.userpost_set.all()
+
+        logger.info(f"Processing POST for factor {factor.number}, tankhah {tankhah.number}, current_stage: {tankhah.current_stage.name} (order: {tankhah.current_stage.order})")
+        logger.info(f"User posts: {[p.post.name for p in user_posts]}")
+        # چک دسترسی و قفل/آرشیو
+        if tankhah.is_locked or tankhah.is_archived:
+            messages.error(request, _('این تنخواه قفل یا آرشیو شده و قابل تغییر نیست.'))
+            return redirect('factor_item_approve', pk=factor.pk)
+
+        # چک مجوز تأیید توی این مرحله
+        can_approve = any(p.post.stageapprover_set.filter(stage=tankhah.current_stage).exists() for p in user_posts)
+        if not can_approve:
+            logger.warning(f"User {request.user.username} not authorized to approve stage {tankhah.current_stage.name}")
+            messages.error(request, _('شما مجاز به تأیید در این مرحله نیستید.'))
+            return redirect('factor_item_approve', pk=factor.pk)
+
+        # ساخت فرم‌ست
+        FactorItemApprovalFormSet = formset_factory(FactorItemApprovalForm, extra=0)
+        initial_data = [{'item_id': item.id, 'action': item.status} for item in factor.items.all()]
+        formset = FactorItemApprovalFormSet(request.POST, initial=initial_data)
+
+        if formset.is_valid():
+            with transaction.atomic():
+                all_approved = True
+                any_rejected = False
+                bulk_approve = request.POST.get('bulk_approve') == 'on'
+
+                for form, item in zip(formset, factor.items.all()):
+                    action = 'APPROVE' if bulk_approve else form.cleaned_data['action']
+                    if action in ['APPROVE', 'REJECT']:
+                        ApprovalLog.objects.create(
+                            factor_item=item,
+                            user=request.user,
+                            action=action,
+                            stage=tankhah.current_stage,
+                            comment=form.cleaned_data.get('comment', ''),
+                            post=user_posts.first().post if user_posts.exists() else None
+                        )
+                        item.status = action
+                        item.save()
+                        if action == 'REJECT':
+                            all_approved = False
+                            any_rejected = True
+                            tankhah.last_stopped_post = user_posts.first().post if user_posts.exists() else None  # ثبت پست ردکننده
+                            tankhah.save()
+
+                if any_rejected:
+                    factor.tankhah = None
+                    factor.status = 'REJECTED'
+                    factor.save()
+                    messages.warning(request, _('فاکتور رد شد و از تنخواه جدا شد.'))
+                    return redirect('factor_item_approve', pk=factor.pk)
+
+                if all_approved and factor.items.exists():
+                    factor.status = 'APPROVED'
+                    factor.locked_by_stage = tankhah.current_stage
+                    factor.save()
+                    if all(f.status == 'APPROVED' for f in tankhah.factors.all()):
+                        next_stage = WorkflowStage.objects.filter(order__gt=tankhah.current_stage.order).order_by(
+                            'order').first()
+                        if next_stage:
+                            tankhah.current_stage = next_stage
+                            tankhah.status = 'PENDING'
+                            tankhah.last_stopped_post = None  # پاک کردن پست متوقف‌شده
+                            tankhah.save()
+                        else:
+                            # مرحله آخر
+                            if any(p.post.name == 'معاونت مالی و اداری' for p in user_posts):
+                                payment_number = request.POST.get('payment_number', '')
+                                if payment_number:
+                                    tankhah.status = 'PAID'
+                                    tankhah.payment_number = payment_number
+                                    tankhah.is_locked = True
+                                    tankhah.is_archived = True
+                                    tankhah.last_stopped_post = None  # پاک کردن پست متوقف‌شده
+                                    tankhah.save()
+
+                                    logger.info(f"Tankhah {tankhah.number} completed")
+                                    messages.success(request, _('تنخواه تکمیل شد.'))
+                elif any_rejected:
+                    factor.status = 'REJECTED'
+                    tankhah.status = 'REJECTED'
+                    factor.save()
+                    tankhah.save()
+                    logger.info(f"Factor {factor.number} and tankhah {tankhah.number} rejected")
+                    messages.error(request, _('فاکتور و تنخواه رد شدند.'))
+                else:
+                    factor.status = 'PENDING'
+                    factor.save()
+                    logger.info(f"Factor {factor.number} still pending")
+                    messages.warning(request, _('برخی ردیف‌ها هنوز تأیید نشده‌اند.'))
+
+            messages.success(request, _('تغییرات با موفقیت ثبت شدند.'))
+            return redirect('factor_item_approve', pk=factor.pk)
+        else:
+            logger.warning(f"Formset invalid: {formset.errors}")
+            messages.error(request, _('فرم نامعتبر است. لطفاً ورودی‌ها را بررسی کنید.'))
+            self.object = factor
+            return self.render_to_response(self.get_context_data(formset=formset))
+
+
+    def handle_no_permission(self):
+        messages.error(self.request, _('شما مجوز لازم برای تأیید این فاکتور را ندارید.'))
+        return redirect('factor_list')
+
 class FactorItemRejectView(PermissionBaseView, View):
-    permission_codenames = ['Tankhah.FactorItem_approve']
+    permission_codenames = ['tankhah.FactorItem_approve']
 
     def get(self, request, pk):
         item = get_object_or_404(FactorItem, pk=pk)

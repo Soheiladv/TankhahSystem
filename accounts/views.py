@@ -1,57 +1,56 @@
 import datetime
 import hashlib
+import logging
 import secrets
+
 import jdatetime
+from django.apps import apps
+from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import get_user_model
 ################## Accounts New Code
 # Create user Account
 from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.auth.models import Permission
-from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError
 from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
+from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from django.views import View
-from django.views.generic import CreateView, UpdateView, DeleteView
-from django.views.generic import FormView, ListView
+from django.views.generic import FormView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
-from accounts.forms import TimeLockForm
 from accounts.RCMS_Lock.security import TimeLock
+from accounts.forms import TimeLockForm
 from accounts.models import TimeLockModel, City
 from core.PermissionBase import PermissionBaseView, check_permission_and_organization
+from .forms import ActiveUserForm
 from .forms import (CustomUserCreationForm, CustomUserForm, RoleForm, MyGroupForm,
                     ProfileUpdateForm, CustomPasswordChangeForm, ProfileForm, AdvancedProfileSearchForm, UserGroupForm,
                     RoleTransferForm)
 from .forms import GroupFilterForm
 from .forms import TransferRoleDependenciesForm
 from .has_role_permission import has_permission
-from .mixins import UserAccessMixin
+from .models import ActiveUser
 from .models import AuditLog
 from .models import CustomProfile, CustomUser, Role, MyGroup, CustomUserGroup
-from django.contrib.auth.mixins import UserPassesTestMixin
-from django.contrib import messages
-from django.shortcuts import get_object_or_404
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from .models import ActiveUser
-from .forms import ActiveUserForm
-from django.contrib.auth.decorators import login_required
 
-from django.urls import reverse_lazy
-from django.utils.decorators import method_decorator
-from django.contrib.admin.views.decorators import staff_member_required
-import logging
 logger = logging.getLogger(__name__)
 
 # Helper Functions
@@ -234,22 +233,41 @@ class RoleCRUDMixin(LoginRequiredMixin, UserPassesTestMixin):
 class RoleListView(LoginRequiredMixin, View):
     template_name = 'accounts/users/rols/role_list.html'
 
-    # def get(self, request):
-    #     roles = Role.objects.all()
-    #     return render(request, self.template_name, {'roles': roles})
     def get(self, request):
-        # فیلتر برای نقش‌های فعال
-        roles = Role.objects.filter(is_active=True)
-        # یا اگر می‌خواهید گزینه‌ای برای نمایش نقش‌های غیرفعال اضافه کنید:
         show_inactive = request.GET.get('show_inactive', 'false') == 'true'
-        if show_inactive:
-            roles = Role.objects.all()
-        else:
-            roles = Role.objects.filter(is_active=True)
+        roles = Role.objects.all() if show_inactive else Role.objects.filter(is_active=True)
         return render(request, self.template_name, {'roles': roles, 'show_inactive': show_inactive})
+
+    # template_name = 'accounts/users/rols/role_list.html'
+    #
+    # # def get(self, request):
+    # #     roles = Role.objects.all()
+    # #     return render(request, self.template_name, {'roles': roles})
+    # def get(self, request):
+    #     # فیلتر برای نقش‌های فعال
+    #     roles = Role.objects.filter(is_active=True)
+    #     # یا اگر می‌خواهید گزینه‌ای برای نمایش نقش‌های غیرفعال اضافه کنید:
+    #     show_inactive = request.GET.get('show_inactive', 'false') == 'true'
+    #     if show_inactive:
+    #         roles = Role.objects.all()
+    #     else:
+    #         roles = Role.objects.filter(is_active=True)
+    #     return render(request, self.template_name, {'roles': roles, 'show_inactive': show_inactive})
+
+
+# لیست اپ‌هایی که نمی‌خوای نشون داده بشن
+EXCLUDED_APPS = [
+    'admin_interface',
+    'notifications',
+    'contenttypes',
+    'sessions',
+    # هر اپ دیگه‌ای که نمی‌خوای رو اضافه کن
+]
+
 
 @method_decorator(has_permission('create_role'), name='dispatch')
 class RoleCreateView(CreateView):
+    raise_exception = True
     model = Role
     form_class = RoleForm
     template_name = 'accounts/role/role_form.html'
@@ -257,9 +275,17 @@ class RoleCreateView(CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['permissions_tree'] = self.get_permissions_tree()
+        permissions = Permission.objects.select_related('content_type').all()
+        tree = {}
+        for perm in permissions:
+            app_config = apps.get_app_config(perm.content_type.app_label)
+            if app_config.name not in EXCLUDED_APPS:  # فقط اپ‌های غیراستثنا
+                app_label_farsi = app_config.verbose_name
+                # print(f"App: {app_config.name}, Verbose: {app_label_farsi}")
+                tree.setdefault(app_label_farsi, []).append(perm)
+        # print("permissions_tree keys:", list(tree.keys()))
+        context['permissions_tree'] = tree
         return context
-
     def get_permissions_tree(self):
         permissions = Permission.objects.select_related('content_type').all()
         tree = {}
@@ -279,18 +305,27 @@ class RoleUpdateView(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['permissions_tree'] = self.get_permissions_tree()
-        return context
-
-    def get_permissions_tree(self):
-        # مشابه RoleCreateView
         permissions = Permission.objects.select_related('content_type').all()
         tree = {}
         for perm in permissions:
-            app_label = perm.content_type.app_label
-            if app_label not in tree:
-                tree[app_label] = []
-            tree[app_label].append(perm)
+            app_config = apps.get_app_config(perm.content_type.app_label)
+            if app_config.name not in EXCLUDED_APPS:  # همینجا هم اعمال کن
+                app_label_farsi = app_config.verbose_name
+                # print(f"App: {app_config.name}, Verbose: {app_label_farsi}")
+                tree.setdefault(app_label_farsi, []).append(perm)
+        # print("permissions_tree keys:", list(tree.keys()))
+        context['permissions_tree'] = tree
+        return context
+
+    def get_permissions_tree(self):
+        permissions = Permission.objects.select_related('content_type').all()
+        tree = {}
+        for perm in permissions:
+            app_config = apps.get_app_config(perm.content_type.app_label)
+            app_label_farsi = app_config.verbose_name  # اینجا هم فارسی رو بگیر
+            print(f"App: {app_config.name}, Verbose: {app_config.verbose_name}")  # برای دیباگ
+            tree.setdefault(app_label_farsi, []).append(perm)
+        print("permissions_tree keys:", list(tree.keys()))  # برای دیباگ
         return tree
 
 @method_decorator(has_permission('remove_role'), name='dispatch')

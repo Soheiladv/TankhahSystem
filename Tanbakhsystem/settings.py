@@ -9,14 +9,19 @@ SECRET_KEY = 'django-insecure-*zron+$_y8zn14z7a7r(wgllx%8n0vii^(6uar=_r)94(v!khc
 DEBUG = True
 ALLOWED_HOSTS = ['*']#'127.0.0.1', 'localhost'  # اضافه کردم برای لوکال
 
+
 INSTALLED_APPS = [
-    'admin_interface',
+    'Tanbakhsystem.apps_overrides.AdminInterfaceConfig',  # اگه از notifications استفاده می‌کنی
     'django.contrib.humanize',
     'colorfield',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
+    'Tanbakhsystem.apps_overrides.AdminConfig',  # به جای 'django.contrib.admin'
+    'Tanbakhsystem.apps_overrides.AuthConfig',  # به جای 'django.contrib.auth'
+    'Tanbakhsystem.apps_overrides.ContentTypesConfig',  # به جای 'django.contrib.contenttypes'
+    'Tanbakhsystem.apps_overrides.SessionsConfig',  # به جای 'django.contrib.sessions'
+    # 'django.contrib.admin',
+    # 'django.contrib.auth',
+    # 'django.contrib.contenttypes',
+    # 'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
@@ -24,12 +29,11 @@ INSTALLED_APPS = [
     'django_jalali',
     'jalali_date',
     'version_tracker',
-    'accounts',
-    'tankhah.apps.TankhahConfig',  # به جای tanbakh.apps.TanbakhConfig
-    'Tanbakhsystem',
-    'notifications',
-]
+    'tankhah.apps.TankhahConfig',
+    'accounts.apps.AccountsConfig',
+    'Tanbakhsystem.apps_overrides.NotificationsConfig',  # اگه از notifications استفاده می‌کنی
 
+]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

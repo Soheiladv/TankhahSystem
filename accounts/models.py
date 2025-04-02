@@ -122,18 +122,21 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def has_perm(self, perm, obj=None):
         if self.is_active and self.is_superuser:
             return True
+        # بررسی فرمت کامل مجوزها
+        all_perms = self.get_all_permissions(obj)
+        return perm in all_perms
+        #
+        # # بررسی مجوزها از طریق نقش‌های گروه‌های سفارشی
+        # for group in self.groups.all():
+        #     for role in group.roles.all():
+        #         if perm in role.permissions.values_list('codename', flat=True):
+        #             return True
+        #
+        # # بررسی مجوزهای مستقیم کاربر
+        # if perm in self.user_permissions.values_list('codename', flat=True):
+        #     return True
 
-        # بررسی مجوزها از طریق نقش‌های گروه‌های سفارشی
-        for group in self.groups.all():
-            for role in group.roles.all():
-                if perm in role.permissions.values_list('codename', flat=True):
-                    return True
-
-        # بررسی مجوزهای مستقیم کاربر
-        if perm in self.user_permissions.values_list('codename', flat=True):
-            return True
-
-        return False
+        # return False
 
     def get_all_permissions(self, obj=None):
         if not self.is_active or self.is_superuser:
@@ -142,9 +145,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         perms = set()
         for group in self.groups.all():
             for role in group.roles.all():
-                perms.update(role.permissions.values_list('codename', flat=True))
-        perms.update(self.user_permissions.values_list('codename', flat=True))
+                perms.update(f"{p.content_type.app_label}.{p.codename}" for p in role.permissions.all())
+        perms.update(
+            f"{p.content_type.app_label}.{p.codename}"
+            for p in self.user_permissions.all()
+        )
         return perms
+
+
 User = get_user_model()
 
 class CustomProfile(models.Model):

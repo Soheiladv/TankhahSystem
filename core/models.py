@@ -40,7 +40,6 @@ class Organization(models.Model):
         indexes = [
             models.Index(fields=['code', 'org_type']),
         ]
-
 class Project(models.Model):
     """مدل پروژه برای مدیریت پروژه‌های چندمجتمعی"""
     priority_CHOICES = (
@@ -75,7 +74,6 @@ class Project(models.Model):
             ('Project_view','نمایش  پروژه برای مدیریت پروژه‌های چندمجتمعی'),
             ('Project_delete','حــذف  پروژه برای مدیریت پروژه‌های چندمجتمعی'),
             ]
-
 class Post(models.Model):
     """مدل پست سازمانی برای تعریف سلسله مراتب"""
     BRANCH_CHOICES = (
@@ -112,7 +110,6 @@ class Post(models.Model):
             ('Post_view','نمایش  پست سازمانی برای تعریف سلسله مراتب'),
             ('Post_delete','حــذف  پست سازمانی برای تعریف سلسله مراتب'),
             ]
-
 class UserPost(models.Model):
     """مدل اتصال کاربر به پست"""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name=_("کاربر"))
@@ -136,7 +133,6 @@ class UserPost(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.post.name} (از {self.start_date})"
-
 class PostHistory(models.Model):
     """
     مدل تاریخچه تغییرات پست‌های سازمانی
@@ -206,9 +202,7 @@ class PostHistory(models.Model):
         indexes = [
             models.Index(fields=['post', 'changed_at']),
         ]
-
 #--
-
 class WorkflowStage(models.Model):
     name = models.CharField(max_length=100, verbose_name=_('نام مرحله'))
     order = models.IntegerField(verbose_name=_('ترتیب'))
@@ -238,7 +232,7 @@ class WorkflowStage(models.Model):
 # lock -------
 import logging
 logger = logging.getLogger(__name__)
-
+############################################################# End Off models
 class Dashboard_Core(models.Model):
     class Meta:
         default_permissions = ()
