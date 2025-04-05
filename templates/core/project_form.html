@@ -1,171 +1,199 @@
 {% extends 'base.html' %}
-{% load i18n %}
-{% load static %}
-{% load jformat rcms_custom_filters jalali_tags %}
+{% load i18n static jformat rcms_custom_filters jalali_tags %}
 
 {% block content %}
-    <div class="container mt-4">
-        <!-- عنوان -->
-        <h1 class="mb-4 text-center animate__animated animate__fadeInDown">
-            <i class="fas fa-project-diagram me-2 text-primary"></i>{{ title|to_persian_number }}
-        </h1>
+<div class="container mt-4">
+    <!-- عنوان -->
+    <h1 class="mb-4 text-center animate__animated animate__fadeInDown">
+        <i class="fas fa-project-diagram me-2 text-primary"></i>{{ title|default:'فرم پروژه'|to_persian_number }}
+    </h1>
 
-        <!-- پیام‌ها -->
-        {% if messages %}
-            <div class="alert-container mb-4 animate__animated animate__fadeInDown">
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show animate__animated animate__pulse"
-                         role="alert">
-                        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %} me-2"></i>
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
+    <!-- پیام‌ها -->
+    {% if messages %}
+    <div class="alert-container mb-4 animate__animated animate__fadeInDown">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show animate__animated animate__pulse" role="alert">
+            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %} me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
-        <!-- کارت فرم -->
-        <div class="card shadow-lg animate__animated animate__zoomIn">
-            <div class="card-header bg-primary text-white d-flex align-items-center">
-                <i class="fas fa-plus-circle me-2"></i>
-                <span>{% trans "فرم پروژه" %}</span>
-            </div>
-            <div class="card-body">
-                <form method="post" class="row g-3" novalidate>
-                    {% csrf_token %}
-                    <!-- نام پروژه -->
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="{{ form.name.id_for_label }}" class="form-label">
-                                <i class="fas fa-signature me-2"></i>{% trans "نام پروژه" %}
-                            </label>
-                            {{ form.name }}
+    <!-- کارت فرم -->
+    <div class="card shadow-lg animate__animated animate__zoomIn">
+        <div class="card-header bg-primary text-white d-flex align-items-center">
+            <i class="fas fa-plus-circle me-2"></i>
+            <span>{% trans "فرم پروژه" %}</span>
+        </div>
+        <div class="card-body">
+            <form method="post" class="row g-3" novalidate>
+                {% csrf_token %}
+                <!-- نام پروژه -->
+                <div class="col-md-6">
+                    <label for="{{ form.name.id_for_label }}" class="form-label">
+                        <i class="fas fa-signature me-2"></i>{% trans "نام پروژه" %}
+                    </label>
+                    {{ form.name }}
+                    {{ form.name.errors }}
+                </div>
+                <!-- کد پروژه -->
+                <div class="col-md-6">
+                    <label for="{{ form.code.id_for_label }}" class="form-label">
+                        <i class="fas fa-barcode me-2"></i>{% trans "کد پروژه" %}
+                    </label>
+                    {{ form.code }}
+                    {{ form.code.errors }}
+                </div>
+                <!-- تاریخ شروع -->
+                <div class="col-md-6">
+                    <label for="{{ form.start_date.id_for_label }}" class="form-label">
+                        <i class="fas fa-calendar-alt me-2"></i>{% trans "تاریخ شروع" %}
+                    </label>
+                    <input type="text" name="start_date" value="{{ form.start_date.value|default:''|to_jalali:'%Y/%m/%d'|to_persian_number }}"
+                           id="{{ form.start_date.id_for_label }}" class="form-control" data-jdp>
+                    {{ form.start_date.errors }}
+                </div>
+                <!-- تاریخ پایان -->
+                <div class="col-md-6">
+                    <label for="{{ form.end_date.id_for_label }}" class="form-label">
+                        <i class="fas fa-calendar-check me-2"></i>{% trans "تاریخ پایان" %}
+                    </label>
+                    <input type="text" name="end_date" value="{{ form.end_date.value|default:''|to_jalali:'%Y/%m/%d'|to_persian_number }}"
+                           id="{{ form.end_date.id_for_label }}" class="form-control" data-jdp>
+                    {{ form.end_date.errors }}
+                </div>
+                <!-- بودجه -->
+                <div class="col-md-6">
+                    <label for="{{ form.budget.id_for_label }}" class="form-label">
+                        <i class="fas fa-money-bill-wave me-2"></i>{% trans "بودجه (ريال)" %}
+                    </label>
+                    {{ form.budget }}
+                    {{ form.budget.errors }}
+                </div>
+                <!-- اولویت -->
+                <div class="col-md-6">
+                    <label for="{{ form.priority.id_for_label }}" class="form-label">
+                        <i class="fas fa-sort-amount-up me-2"></i>{% trans "اولویت" %}
+                    </label>
+                    {{ form.priority }}
+                    {{ form.priority.errors }}
+                </div>
+                <!-- مجتمع‌های مرتبط -->
+                <div class="col-md-6">
+                    <label class="form-label">
+                        <i class="fas fa-building me-2"></i>{% trans "مجتمع‌های مرتبط" %}
+                    </label>
+                    <div class="form-check-list">
+                        {% for checkbox in form.organizations %}
+                        <div class="form-check">
+                            {{ checkbox.tag }}
+                            <label class="form-check-label" for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
                         </div>
+                        {% endfor %}
                     </div>
-                    <!-- کد پروژه -->
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="{{ form.code.id_for_label }}" class="form-label">
-                                <i class="fas fa-barcode me-2"></i>{% trans "کد پروژه" %}
-                            </label>
-                            {{ form.code }}
-                        </div>
+                    {{ form.organizations.errors }}
+                </div>
+                <!-- فعال بودن -->
+                <div class="col-md-6 d-flex align-items-center">
+                    <div class="form-check form-switch">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                            <i class="fas fa-toggle-on me-2"></i>{% trans "فعال" %}
+                        </label>
                     </div>
-                    <!-- تاریخ شروع -->
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="{{ form.start_date.id_for_label }}" class="form-label">
-                                <i class="fas fa-calendar-alt me-2"></i>{% trans "تاریخ شروع" %}
-                            </label>
-                            <input type="text" name="start_date"
-                                   value="{{ form.start_date.initial|to_jalali:'%Y/%m/%d'|to_persian_number }}"
-                                   id="{{ form.start_date.id_for_label }}" class="form-control" data-jdp>
-                            {{ form.start_date.errors }}
-                        </div>
-                    </div>
-                    <!-- تاریخ پایان -->
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="{{ form.end_date.id_for_label }}" class="form-label">
-                                <i class="fas fa-calendar-check me-2"></i>{% trans "تاریخ پایان" %}
-                            </label>
-                            <input type="text" name="end_date" value="{{ form.end_date.initial|to_jalali:'%Y/%m/%d'|to_persian_number }}"
-                                   id="{{ form.end_date.id_for_label }}" class="form-control" data-jdp>
-                            {{ form.end_date.errors }}
-                        </div>
-                    </div>
-                    <!-- بودجه -->
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="{{ form.budget.id_for_label }}" class="form-label">
-                                <i class="fas fa-money-bill-wave me-2"></i>{% trans "بودجه (ريال)" %}
-                            </label>
-                            {{ form.budget }}
-                        </div>
-                    </div>
-                    <!-- اولویت -->
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="{{ form.priority.id_for_label }}" class="form-label">
-                                <i class="fas fa-sort-amount-up me-2"></i>{% trans "اولویت" %}
-                            </label>
-                            {{ form.priority }}
-                        </div>
-                    </div>
-                    <!-- مجتمع‌های مرتبط -->
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="fas fa-building me-2"></i>{% trans "مجتمع‌های مرتبط" %}
-                            </label>
-                            <div class="form-check-list">
-                                {% for checkbox in form.organizations %}
-                                    <div class="form-check">
-                                        {{ checkbox.tag }}
-                                        <label class="form-check-label" for="{{ checkbox.id_for_label }}">
-                                            {{ checkbox.choice_label }}
-                                        </label>
-                                    </div>
-                                {% endfor %}
+                    {{ form.is_active.errors }}
+                </div>
+                <!-- توضیحات -->
+                <div class="col-12">
+                    <label for="{{ form.description.id_for_label }}" class="form-label">
+                        <i class="fas fa-comment-dots me-2"></i>{% trans "توضیحات" %}
+                    </label>
+                    {{ form.description }}
+                    {{ form.description.errors }}
+                </div>
+
+                <!-- بخش مجموعه زیر پروژه -->
+                <div class="col-12 mt-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <div class="form-check form-switch">
+                                {{ form.has_subproject }}
+                                <label class="form-check-label" for="{{ form.has_subproject.id_for_label }}">
+                                    <i class="fas fa-folder-plus me-2"></i>{% trans "آیا مجموعه زیر پروژه دارد؟" %}
+                                </label>
                             </div>
                         </div>
-                    </div>
-                    <!-- فعال بودن -->
-                    <div class="col-md-6 d-flex align-items-center">
-                        <div class="form-check form-switch">
-                            {{ form.is_active }}
-                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                <i class="fas fa-toggle-on me-2"></i>{% trans "فعال" %}
-                            </label>
-                        </div>
-                    </div>
-                    <!-- توضیحات -->
-                    <div class="col-12">
-                        <div class="form-group">
-                            <label for="{{ form.description.id_for_label }}" class="form-label">
-                                <i class="fas fa-comment-dots me-2"></i>{% trans "توضیحات" %}
-                            </label>
-                            {{ form.description }}
-                        </div>
-                    </div>
-                    <!-- خطاها -->
-                    {% for field in form %}
-                        {% if field.errors %}
-                            <div class="col-12">
-                                <div class="text-danger animate__animated animate__shakeX">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>{{ field.errors }}
+                        <div class="card-body subproject-fields" {% if not form.has_subproject.value %}style="display: none;"{% endif %}>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.subproject_name.id_for_label }}" class="form-label">
+                                        <i class="fas fa-signature me-2"></i>{% trans "نام مجموعه زیر پروژه" %}
+                                    </label>
+                                    {{ form.subproject_name }}
+                                    {{ form.subproject_name.errors }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ form.subproject_description.id_for_label }}" class="form-label">
+                                        <i class="fas fa-comment-dots me-2"></i>{% trans "توضیحات مجموعه زیر پروژه" %}
+                                    </label>
+                                    {{ form.subproject_description|default:'' }}
+                                    {{ form.subproject_description.errors }}
                                 </div>
                             </div>
-                        {% endif %}
-                    {% endfor %}
-                    <!-- دکمه‌ها -->
-                    <div class="col-12 text-end mt-3">
-                        <button type="submit" class="btn btn-primary btn-animate me-2">
-                            <i class="fas fa-save me-2"></i>{% trans "ذخیره" %}
-                        </button>
-                        <a href="{% url 'project_list' %}" class="btn btn-secondary btn-animate">
-                            <i class="fas fa-times me-2"></i>{% trans "لغو" %}
-                        </a>
+                        </div>
                     </div>
-                </form>
-            </div>
+                </div>
+
+                <!-- دکمه‌ها -->
+                <div class="col-12 text-end mt-4">
+                    <button type="submit" class="btn btn-primary btn-animate me-2">
+                        <i class="fas fa-save me-2"></i>{% trans "ذخیره" %}
+                    </button>
+                    <a href="{% url 'project_list' %}" class="btn btn-secondary btn-animate">
+                        <i class="fas fa-times me-2"></i>{% trans "لغو" %}
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'admin/css/project_style.css' %}">
+<style>
+    .form-group { margin-bottom: 1.5rem; }
+    .form-label { font-weight: 500; color: #333; }
+    .form-check-list { max-height: 150px; overflow-y: auto; padding: 0.5rem; border: 1px solid #ddd; border-radius: 5px; }
+    .form-check { margin-bottom: 0.5rem; }
+    .btn-animate { transition: all 0.3s ease; }
+    .btn-animate:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .subproject-fields { transition: all 0.3s ease; }
+</style>
 {% endblock %}
 
 {% block extra_js %}
-    <link rel="stylesheet" href="{% static 'admin/css/project_style.css' %}">
-    <!-- اعتبارسنجی فرم -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const form = document.querySelector('form');
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                form.classList.add('was-validated');
-            }, false);
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('form');
+        const hasSubprojectCheckbox = document.getElementById('{{ form.has_subproject.id_for_label }}');
+        const subprojectFields = document.querySelector('.subproject-fields');
+
+        // نمایش/مخفی کردن فیلدهای مجموعه زیر پروژه
+        hasSubprojectCheckbox.addEventListener('change', function () {
+            subprojectFields.style.display = this.checked ? 'block' : 'none';
         });
-    </script>
+
+        // اعتبارسنجی فرم
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+</script>
 {% endblock %}

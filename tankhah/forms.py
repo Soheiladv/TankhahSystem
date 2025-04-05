@@ -1,16 +1,19 @@
 import logging
 
+from core.tests import CustomUser
 from .utils import restrict_to_user_organization
 
 logger = logging.getLogger(__name__)
 import jdatetime
 from django.utils import timezone
 from Tanbakhsystem.utils import convert_to_farsi_numbers
-from core.models import WorkflowStage
+from core.models import WorkflowStage, Project, Organization
 from .models import Factor, ApprovalLog, FactorItem, Tankhah, get_default_workflow_stage
+from core.models import SubProject
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from django.forms import inlineformset_factory
+from Tanbakhsystem.base import JalaliDateForm
 
 class FactorItemApprovalForm(forms.Form):
     # action = forms.ChoiceField(
@@ -19,7 +22,7 @@ class FactorItemApprovalForm(forms.Form):
     # comment = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2,'placeholder': _('توضیحات خود را اینجا وارد کنید...'),'style': 'max-width: 500px;',}
     #     ),required=False,label=_("توضیحات"),)
 
-    # item_id = forms.IntegerField(widget=forms.HiddenInput(), required=True)
+    item_id = forms.IntegerField(widget=forms.HiddenInput())
     action = forms.ChoiceField(
         choices=[
             ('PENDING', _('در انتظار')),
@@ -91,9 +94,6 @@ class FactorApprovalForm(forms.ModelForm):
         return instance
 # ------------
 
-from Tanbakhsystem.base import JalaliDateForm
-
-
 class TankhahForm(JalaliDateForm):
     date = forms.CharField(
         label=_('تاریخ'),
@@ -115,10 +115,11 @@ class TankhahForm(JalaliDateForm):
 
     class Meta:
         model = Tankhah
-        fields = ['date', 'organization', 'project', 'letter_number', 'due_date', 'amount', 'description']
+        fields = ['date', 'organization', 'project','subproject', 'letter_number', 'due_date', 'amount', 'description']
         widgets = {
             'organization': forms.Select(attrs={'class': 'form-control'}),
             'project': forms.Select(attrs={'class': 'form-control'}),
+            'subproject': forms.Select(attrs={'class': 'form-control'}),
             'letter_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('اختیاری')}),
             'amount': forms.NumberInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
@@ -127,13 +128,30 @@ class TankhahForm(JalaliDateForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        if self.user:
+            # گرفتن سازمان‌های کاربر
+            user_orgs = set(up.post.organization for up in self.user.userpost_set.all())
+            user_org_ids = [org.id for org in user_orgs]  # تبدیل به لیست id‌ها
+            logger.info(f"سازمان‌های کاربر: {user_org_ids}")
+
+        # فیلتر ساب‌پروژه‌ها بر اساس پروژه انتخاب‌شده
+        if 'project' in self.data:
+            try:
+                project_id = int(self.data.get('project'))
+                self.fields['subproject'].queryset = SubProject.objects.filter(project_id=project_id)
+            except (ValueError, TypeError):
+                self.fields['subproject'].queryset = SubProject.objects.none()
+        elif self.instance.pk and self.instance.project:
+            self.fields['subproject'].queryset = SubProject.objects.filter(project=self.instance.project)
+        else:
+            self.fields['subproject'].queryset = SubProject.objects.none()
 
         if self.user:
             user_posts = self.user.userpost_set.all()
             if self.instance.pk and self.instance.organization:
                 if not any(post.post.organization == self.instance.organization for post in user_posts):
                     for field_name in self.fields:
-                        if field_name != 'status' and field_name != 'description':
+                        if field_name not in ['status', 'description']:
                             self.fields[field_name].disabled = True
 
         self.set_jalali_initial('date', 'date')
@@ -141,6 +159,14 @@ class TankhahForm(JalaliDateForm):
 
         if not self.instance.current_stage:
             self.initial['current_stage'] = get_default_workflow_stage()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        project = cleaned_data.get('project')
+        subproject = cleaned_data.get('subproject')
+        if subproject and subproject.project != project:
+            raise forms.ValidationError(_("ساب‌پروژه باید متعلق به پروژه انتخاب‌شده باشد."))
+        return cleaned_data
 
     def clean_date(self):
         date = self.clean_jalali_date('date')
@@ -159,6 +185,7 @@ class TankhahForm(JalaliDateForm):
         if commit:
             instance.save()
         return instance
+
 
 class TanbakhApprovalForm(forms.ModelForm):
     comment = forms.CharField(
@@ -304,12 +331,18 @@ class ApprovalForm(forms.ModelForm):
 
     class Meta:
         model = ApprovalLog
-        fields = ['tankhah', 'factor', 'comment', 'action']  # user و date توسط سیستم پر می‌شوند
+        # fields = ['tankhah', 'factor', 'comment', 'action']  # user و date توسط سیستم پر می‌شوند
+        fields = ['action', 'comment', 'tankhah', 'factor', 'factor_item']
         widgets = {
             'tankhah': forms.Select(attrs={'class': 'form-control'}),
             'factor': forms.Select(attrs={'class': 'form-control'}),
             'comment': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': _('توضیحات اختیاری')}),
             'action': forms.Select(attrs={'class': 'form-control'}),
+
+            # 'tankhah': forms.HiddenInput(),
+            # 'factor': forms.HiddenInput(),
+            'factor_item': forms.HiddenInput(),
+
             # 'is_approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {

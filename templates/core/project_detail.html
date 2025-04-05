@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n rcms_custom_filters jformat %}
 
 {% block content %}
     <h1 class="mb-4"><i class="fas fa-info-circle me-2"></i>{{ title }}</h1>
@@ -9,8 +9,8 @@
             <table class="table table-bordered">
                 <tr><th>{% trans "کد" %}</th><td>{{ project.code }}</td></tr>
                 <tr><th>{% trans "نام" %}</th><td>{{ project.name }}</td></tr>
-                <tr><th>{% trans "تاریخ شروع" %}</th><td>{{ project.start_date|date:"Y/m/d" }}</td></tr>
-                <tr><th>{% trans "تاریخ پایان" %}</th><td>{{ project.end_date|date:"Y/m/d"|default:'-' }}</td></tr>
+                <tr><th>{% trans "تاریخ شروع" %}</th><td>{{ project.start_date|jformat:"%Y/%m/%d" }}</td></tr>
+                <tr><th>{% trans "تاریخ پایان" %}</th><td>{{ project.end_date|jformat:"%Y/%m/%d"|default:'-' }}</td></tr>
                 <tr><th>{% trans "توضیحات" %}</th><td>{{ project.description|default:'-' }}</td></tr>
             </table>
         </div>

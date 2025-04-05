@@ -1,7 +1,7 @@
 from django.urls import path
 from core.views import (
     # داشبوردها
-    DashboardView_flows_1, DashboardView_flows, FinancialDashboardView, AllLinksView,
+    DashboardView_flows_1, DashboardView_flows,  AllLinksView,
     # سازمان‌ها
     OrganizationListView, OrganizationDetailView, OrganizationCreateView,
     OrganizationUpdateView, OrganizationDeleteView,
@@ -16,6 +16,7 @@ from core.views import (
     # مراحل گردش کار
     WorkflowStageListView, WorkflowStageCreateView, WorkflowStageUpdateView, WorkflowStageDeleteView,
 )
+from reports.views import FinancialDashboardView
 
 # app_name = 'core'
 
@@ -66,7 +67,16 @@ urlpatterns = [
     path('workflow-stages/<int:pk>/delete/', WorkflowStageDeleteView.as_view(), name='workflow_stage_delete'),
 ]
 
+from .views import (
+    SubProjectListView, SubProjectCreateView, SubProjectUpdateView, SubProjectDeleteView
+)
 
+urlpatterns += [
+    path('subprojects/', SubProjectListView.as_view(), name='subproject_list'),
+    path('subproject/add/', SubProjectCreateView.as_view(), name='subproject_create'),
+    path('subproject/<int:pk>/edit/', SubProjectUpdateView.as_view(), name='subproject_update'),
+    path('subproject/<int:pk>/delete/', SubProjectDeleteView.as_view(), name='subproject_delete'),
+]
 # urlpatterns += [
 #     path('organizations/', OrganizationListView.as_view(), name='organization_list'),
 #     path('organization/<int:pk>/', OrganizationDetailView.as_view(), name='organization_detail'),

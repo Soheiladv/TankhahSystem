@@ -1,0 +1,350 @@
+/* DJANGO Admin Styles - Modernized with Animations and RTL Support */
+
+/* متغیرهای پایه */
+:root {
+    --primary: #1abc9c;
+    --primary-hover: #16a085;
+    --secondary: #2c3e50;
+    --accent: #e74c3c;
+    --light: #ecf0f1;
+    --dark: #34495e;
+    --success: #2ecc71;
+    --warning: #f39c12;
+    --danger: #e74c3c;
+    --body-fg: #333;
+    --body-bg: #f5f7fa;
+    --border-radius: 8px;
+    --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+    --hairline-color: #e0e0e0;
+    --border-color: #ddd;
+
+    --font-family-primary: 'Parastoo', sans-serif;
+    --font-family-monospace: 'Parastoo', monospace;
+
+    color-scheme: light;
+}
+
+/* تم تاریک */
+html[data-theme="dark"] {
+    --primary: #667eea;
+    --primary-hover: #5a67d8;
+    --secondary: #4a5568;
+    --accent: #e53e3e;
+    --light: #e2e8f0;
+    --dark: #2d3748;
+    --success: #38a169;
+    --warning: #ed8936;
+    --danger: #e53e3e;
+    --body-fg: #e2e8f0;
+    --body-bg: #212529;
+    --hairline-color: #353535;
+    --border-color: #4a5568;
+
+    color-scheme: dark;
+}
+
+/* تنظیمات پیش‌فرض سیستم در حالت تاریک */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --primary: #667eea;
+        --primary-hover: #5a67d8;
+        --secondary: #4a5568;
+        --accent: #e53e3e;
+        --light: #e2e8f0;
+        --dark: #2d3748;
+        --success: #38a169;
+        --warning: #ed8936;
+        --danger: #e53e3e;
+        --body-fg: #e2e8f0;
+        --body-bg: #212529;
+        --hairline-color: #353535;
+        --border-color: #4a5568;
+
+        color-scheme: dark;
+    }
+}
+
+/* پایه‌ها */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family-primary);
+    color: var(--body-fg);
+    background: var(--body-bg);
+    direction: rtl;
+    text-align: right;
+}
+
+body {
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+/* لینک‌ها */
+a:link, a:visited {
+    color: var(--primary);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+a:hover, a:focus {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+/* سرصفحه‌ها */
+h1, h2, h3, h4, h5 {
+    font-weight: 500;
+}
+
+h1 { font-size: 1.6rem; margin-bottom: 1.5rem; }
+h2 { font-size: 1.3rem; margin: 1em 0 0.5em 0; }
+h3 { font-size: 1.1rem; color: var(--dark); }
+h4 { font-size: 1rem; color: var(--dark); }
+h5 { font-size: 0.9rem; color: var(--body-fg); }
+
+/* ساختار صفحه */
+#container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+}
+
+.main {
+    display: flex;
+    flex: 1 0 auto;
+}
+
+#content {
+    padding: 2rem;
+    flex: 1;
+    background: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* هدر */
+#header {
+    background: var(--secondary);
+    color: var(--light);
+    padding: 1rem 2rem;
+    box-shadow: var(--box-shadow);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: slideDown 0.5s ease-out;
+}
+
+#site-name {
+    font-size: 1.8rem;
+    color: var(--primary);
+}
+
+#user-tools {
+    font-size: 0.9rem;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#user-tools a, #logout-form button {
+    color: var(--light);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+#user-tools a:hover, #logout-form button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#logout-form { display: inline; }
+
+#logout-form button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+}
+
+/* نوار مسیر */
+div.breadcrumbs {
+    background: var(--dark);
+    padding: 1rem 2rem;
+    color: var(--light);
+    border-radius: var(--border-radius);
+    margin: 1rem 0;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+div.breadcrumbs a {
+    color: var(--primary);
+}
+
+/* نوار کناری */
+#nav-sidebar {
+    flex: 0 0 275px;
+    background: #fff;
+    border-left: 1px solid var(--hairline-color);
+    padding: 1rem;
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+    transform: translateX(276px);
+}
+
+.main.shifted > #nav-sidebar {
+    transform: translateX(0);
+}
+
+.toggle-nav-sidebar {
+    background: var(--body-bg);
+    border-left: 1px solid var(--hairline-color);
+    width: 25px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--primary);
+    font-size: 1.5rem;
+    transition: var(--transition);
+}
+
+.toggle-nav-sidebar:hover {
+    background: var(--darkened-bg);
+}
+
+.toggle-nav-sidebar::before {
+    content: '\00BB';
+}
+
+.main.shifted .toggle-nav-sidebar::before {
+    content: '\00AB';
+}
+
+/* پیام‌ها */
+ul.messagelist {
+    padding: 0;
+    margin: 0 0 1rem 0;
+    list-style: none;
+}
+
+ul.messagelist li {
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: var(--box-shadow);
+    animation: slideIn 0.5s ease-out;
+}
+
+ul.messagelist li.success { background: rgba(46, 204, 113, 0.1); border-right: 4px solid var(--success); color: var(--success); }
+ul.messagelist li.warning { background: rgba(243, 156, 18, 0.1); border-right: 4px solid var(--warning); color: var(--warning); }
+ul.messagelist li.error { background: rgba(231, 76, 60, 0.1); border-right: 4px solid var(--danger); color: var(--danger); }
+
+/* دکمه‌ها */
+.button, input[type=submit], input[type=button], .submit-row input, a.button {
+    background: var(--primary);
+    color: #fff;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.button:hover, input[type=submit]:hover, input[type=button]:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* جداول */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+th, td {
+    padding: 1rem;
+    border: 1px solid var(--hairline-color);
+    text-align: right;
+}
+
+thead th {
+    background: var(--secondary);
+    color: var(--light);
+    font-weight: 600;
+}
+
+/* فرم‌ها */
+input, textarea, select {
+    padding: 0.6rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-family: var(--font-family-primary);
+    transition: var(--transition);
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 5px rgba(26, 188, 156, 0.3);
+}
+
+/* سوئیچ تم */
+.theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: var(--transition);
+}
+
+.theme-toggle svg {
+    width: 1.2rem;
+    height: 1.2rem;
+    fill: var(--light);
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+}
+
+/* انیمیشن‌ها */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* رسپانسیو */
+@media (max-width: 767px) {
+    #nav-sidebar, .toggle-nav-sidebar { display: none; }
+    .main > #nav-sidebar + .content { max-width: 100%; }
+    #content { padding: 1rem; }
+    #header { padding: 1rem; flex-direction: column; gap: 10px; }
+}

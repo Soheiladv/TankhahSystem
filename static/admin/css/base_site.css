@@ -1,0 +1,412 @@
+/* ============================================ */
+/* === static/admin/css/custom.css === */
+/* هدف: Override کردن استایل‌های پایه ادمین جنگو */
+/* ============================================ */
+
+/* --- تعریف فونت Parastoo --- */
+@font-face {
+    font-family: 'Parastoo';
+    src: url('../fonts/Parastoo.ttf') format('truetype'); /* مسیر نسبت به فایل CSS */
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap; /* نمایش سریع متن با فونت جایگزین */
+}
+
+/* --- متغیرهای پایه (مشابه قبل) --- */
+:root {
+    --font-family-sans-serif: 'Parastoo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+    /* پالت رنگی روشن */
+    --primary-color: #1abc9c; /* سبزآبی */
+    --secondary-color: #e67e22; /* نارنجی */
+    --accent-color: #3498db; /* آبی */
+    --body-bg: #f8f9fa;
+    --content-bg: #ffffff;
+    --text-color: #212529;
+    --text-muted: #6c757d;
+    --border-color: #dee2e6;
+    --header-bg: #ffffff;
+    --header-border: #dee2e6;
+    --header-text: #495057;
+    --module-header-bg: #e9ecef; /* پس‌زمینه هدر ماژول‌ها */
+    --link-color: var(--primary-color);
+    --link-hover-color: color-mix(in srgb, var(--primary-color) 80%, black);
+
+    /* رنگ‌های پیام‌ها */
+    --success-bg: #d1e7dd; --success-border: #a3cfbb; --success-text: #0a3622;
+    --warning-bg: #fff3cd; --warning-border: #ffecb5; --warning-text: #664d03;
+    --error-bg: #f8d7da; --error-border: #f1aeb5; --error-text: #58151c;
+    --info-bg: #cfe2ff; --info-border: #b6d4fe; --info-text: #052c65;
+
+    /* اندازه‌ها و فواصل */
+    --border-radius: 0.3rem;
+    --spacing-unit: 1rem;
+    --header-height: 55px; /* کمی کوتاه‌تر */
+
+    /* سایه‌ها */
+    --box-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07);
+
+    /* ترانزیشن */
+    --transition-base: all 0.2s ease-in-out;
+}
+
+/* --- استایل‌های کلی بدنه و فونت --- */
+body {
+    font-family: var(--font-family-sans-serif) !important; /* Override مهم */
+    background-color: var(--body-bg);
+    color: var(--text-color);
+    font-size: 14px; /* یا 15px */
+    line-height: 1.6;
+}
+
+/* --- هدر --- */
+#header {
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--header-border);
+    color: var(--header-text);
+    height: var(--header-height);
+    box-shadow: var(--box-shadow-sm);
+    position: sticky; /* حفظ هدر در بالا */
+    top: 0;
+    z-index: 1030;
+}
+
+#branding {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+#branding #site-name {
+    margin: 0; /* حذف مارجین پیش‌فرض */
+}
+
+#branding #site-name a {
+    color: var(--primary-color);
+    font-weight: 700;
+    font-size: 1.3rem;
+    text-decoration: none;
+    transition: var(--transition-base);
+    display: flex;
+    align-items: center;
+}
+#branding #site-name a:hover {
+    opacity: 0.8;
+}
+#branding #site-name a i { /* استایل آیکون اختیاری */
+    margin-left: 8px; /* RTL: margin-right */
+    font-size: 1.1rem;
+}
+
+
+/* --- لینک‌های کاربر (User Tools) --- */
+#user-tools {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+#user-tools a {
+    color: var(--text-muted);
+    transition: var(--transition-base);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
+}
+#user-tools a:hover {
+    color: var(--primary-color);
+    background-color: #eee;
+    text-decoration: none;
+}
+#logout-form button { /* دکمه خروج */
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
+    transition: var(--transition-base);
+}
+#logout-form button:hover {
+    color: var(--error-text);
+    background-color: #eee;
+}
+
+
+/* --- محتوای اصلی و ماژول‌ها --- */
+.main, #main { /* اطمینان از گرفتن هر دو ID/class */
+    background-color: transparent; /* حذف پس زمینه پیش‌فرض main */
+}
+
+.module {
+    background: var(--content-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    margin-bottom: calc(var(--spacing-unit) * 1.5);
+    box-shadow: var(--box-shadow);
+    overflow: hidden; /* برای border-radius هدر ماژول */
+}
+
+/* هدر ماژول‌ها (مثلا در صفحه اصلی ادمین) */
+.module h2, .module caption, .inline-group h2 {
+    background: var(--module-header-bg);
+    color: var(--text-color);
+    padding: 0.8rem 1.2rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    border-bottom: 1px solid var(--border-color);
+    margin: 0; /* حذف مارجین */
+}
+
+.module table {
+    border: none; /* حذف بوردر پیش‌فرض جدول */
+}
+
+/* --- جداول (مانند Changelist) --- */
+#changelist-form table { /* دقت در انتخابگر */
+     border: 1px solid var(--border-color);
+     border-radius: var(--border-radius);
+     border-collapse: separate; /* برای border-radius */
+     border-spacing: 0;
+     overflow: hidden; /* کلیپ کردن گوشه‌ها */
+     margin-top: var(--spacing-unit);
+}
+#changelist-form thead th {
+    background-color: var(--module-header-bg);
+    color: var(--text-color);
+    font-weight: 700;
+    border-bottom: 2px solid var(--border-color);
+}
+#changelist-form tbody tr:hover {
+    background-color: color-mix(in srgb, var(--primary-color) 10%, var(--content-bg));
+}
+#changelist-form td, #changelist-form th {
+     padding: 0.8rem 1rem;
+     border-top: none; /* حذف بوردر بالا */
+     border-left: 1px solid var(--border-color); /* RTL: border-right */
+}
+#changelist-form th:first-child, #changelist-form td:first-child {
+     border-left: none; /* RTL: border-right: none */
+}
+#changelist-form tbody tr td {
+    border-top: 1px solid var(--border-color);
+}
+
+
+/* --- فرم‌ها (مانند Changeform) --- */
+.change-form .form-row {
+    padding: 1rem 0;
+    border-bottom: 1px dashed var(--border-color);
+}
+.change-form .form-row:last-child {
+     border-bottom: none;
+}
+.change-form label {
+    font-weight: 500;
+    color: var(--text-color);
+}
+.change-form .help, .change-form .readonly {
+     font-size: 0.85rem;
+     color: var(--text-muted);
+}
+
+input[type="text"], input[type="email"], input[type="url"], input[type="password"],
+input[type="number"], input[type="search"], select, textarea, .vDateField, .vTimeField {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-family: inherit;
+    font-size: 0.95rem;
+    background-color: var(--content-bg);
+    color: var(--text-color);
+    transition: var(--transition-base);
+    width: auto; /* اجازه به جنگو برای تعیین عرض */
+    max-width: 100%; /* جلوگیری از سرریز */
+}
+input:focus, select:focus, textarea:focus {
+    border-color: var(--primary-color);
+    outline: 0;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
+}
+.aligned label + div > select, /* بهبود نمایش سلکت در فرم */
+.aligned label + div > input {
+     width: 100%; /* تمام عرض کردن فیلدها در فرم aligned */
+     max-width: 400px; /* یا عرض دلخواه */
+}
+
+
+/* --- دکمه‌ها --- */
+.button, input[type=submit], input[type=button], button {
+    background: var(--primary-color);
+    color: #fff;
+    border: 1px solid var(--primary-color);
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 500;
+    transition: var(--transition-base);
+    font-family: inherit;
+    font-size: 0.95rem;
+    text-transform: none; /* حذف حروف بزرگ پیش‌فرض */
+}
+.button:hover, input[type=submit]:hover, input[type=button]:hover, button:hover {
+    background: color-mix(in srgb, var(--primary-color) 85%, black);
+    border-color: color-mix(in srgb, var(--primary-color) 80%, black);
+    color: #fff;
+}
+.button.default, input[type=submit].default { /* دکمه اصلی فرم */
+    background: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+.button.default:hover, input[type=submit].default:hover {
+     background: color-mix(in srgb, var(--secondary-color) 85%, black);
+     border-color: color-mix(in srgb, var(--secondary-color) 80%, black);
+}
+.button.cancel-link { /* لینک کنسل */
+    background: #eee;
+    color: var(--text-muted);
+    border-color: #ddd;
+}
+.button.cancel-link:hover {
+    background: #ddd;
+    color: var(--text-color);
+    border-color: #ccc;
+}
+.object-tools a:link, .object-tools a:visited { /* دکمه‌های بالای فرم (افزودن، تاریخچه) */
+     background-color: var(--accent-color); /* آبی */
+}
+.object-tools a:hover {
+     background-color: color-mix(in srgb, var(--accent-color) 85%, black);
+}
+
+/* --- لیست پیام‌ها --- */
+.messagelist {
+    margin: 0 0 var(--spacing-unit) 0;
+    padding: 0;
+    list-style: none;
+}
+.messagelist li {
+    padding: 0.8rem 1.2rem;
+    margin-bottom: var(--spacing-unit);
+    border: 1px solid transparent;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    color: var(--text-color); /* رنگ متن پایه */
+}
+.messagelist li.success { color: var(--success-text); background-color: var(--success-bg); border-color: var(--success-border); }
+.messagelist li.warning { color: var(--warning-text); background-color: var(--warning-bg); border-color: var(--warning-border); }
+.messagelist li.error   { color: var(--error-text);   background-color: var(--error-bg);   border-color: var(--error-border); }
+.messagelist li.info    { color: var(--info-text);    background-color: var(--info-bg);    border-color: var(--info-border); }
+
+
+/* --- فوتر --- */
+#footer {
+    background: var(--body-bg);
+    color: var(--text-muted);
+    padding: 1.5rem 0;
+    text-align: center;
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: calc(var(--spacing-unit) * 2);
+}
+#footer a {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+#footer a:hover {
+    color: var(--primary-color);
+}
+
+
+/* ============================================ */
+/* =============== DARK MODE ================ */
+/* ============================================ */
+/* از :root[data-theme='dark'] استفاده می‌کنیم تا بر :root اولویت داشته باشد */
+:root[data-theme='dark'] {
+    --primary-color: #20c997;
+    --secondary-color: #fd7e14;
+    --accent-color: #6ea8fe;
+    --body-bg: #1a1a1a;
+    --content-bg: #2a2a2a;
+    --text-color: #e9ecef;
+    --text-muted: #adb5bd;
+    --border-color: #444;
+    --header-bg: #2a2a2a;
+    --header-border: #444;
+    --header-text: #e9ecef;
+    --module-header-bg: #3a3a3a;
+    --link-color: var(--primary-color);
+    --link-hover-color: color-mix(in srgb, var(--primary-color) 80%, white);
+
+    --success-bg: #0a3622; --success-border: #146c43; --success-text: #a3cfbb;
+    --warning-bg: #664d03; --warning-border: #997404; --warning-text: #ffecb5;
+    --error-bg:   #58151c; --error-border:   #842029; --error-text:   #f1aeb5;
+    --info-bg:    #052c65; --info-border:    #104a8e; --info-text:    #cfe2ff;
+}
+
+[data-theme='dark'] body {
+    color-scheme: dark; /* به مرورگر در مورد تم تاریک اطلاع می‌دهد */
+}
+
+/* Overrideهای لازم برای دارک مود روی کامپوننت‌های جنگو */
+[data-theme='dark'] #user-tools a:hover,
+[data-theme='dark'] #logout-form button:hover {
+    background-color: #444;
+    color: var(--text-color);
+}
+[data-theme='dark'] #logout-form button:hover {
+    color: var(--error-text);
+}
+[data-theme='dark'] .module { border-color: var(--border-color); }
+[data-theme='dark'] .module h2,
+[data-theme='dark'] .module caption,
+[data-theme='dark'] .inline-group h2,
+[data-theme='dark'] #changelist-form thead th {
+    background: var(--module-header-bg);
+    color: var(--text-color);
+    border-bottom-color: var(--border-color);
+}
+[data-theme='dark'] #changelist-form table { border-color: var(--border-color); }
+[data-theme='dark'] #changelist-form td,
+[data-theme='dark'] #changelist-form th { border-left-color: var(--border-color); }
+[data-theme='dark'] #changelist-form tbody tr td { border-top-color: var(--border-color); }
+[data-theme='dark'] #changelist-form tbody tr:hover {
+     background-color: color-mix(in srgb, var(--primary-color) 15%, var(--content-bg));
+}
+[data-theme='dark'] .change-form .form-row { border-bottom-color: var(--border-color); }
+[data-theme='dark'] .change-form label { color: var(--text-color); }
+[data-theme='dark'] input, [data-theme='dark'] select, [data-theme='dark'] textarea,
+[data-theme='dark'] .vDateField, [data-theme='dark'] .vTimeField {
+    background-color: #3a3a3a;
+    border-color: #555;
+    color: var(--text-color);
+}
+[data-theme='dark'] input:focus, [data-theme='dark'] select:focus, [data-theme='dark'] textarea:focus {
+    border-color: var(--primary-color);
+    background-color: #444;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
+}
+[data-theme='dark'] .button.cancel-link { background: #444; color: var(--text-muted); border-color: #555; }
+[data-theme='dark'] .button.cancel-link:hover { background: #555; color: var(--text-color); border-color: #666;}
+
+/* ============================================ */
+/* =============== RTL Styles =============== */
+/* ============================================ */
+/* اگر فایل admin_rtl.css جداگانه ندارید، این‌ها را اضافه کنید */
+/* در غیر این صورت، این بخش را حذف کرده و از فایل خودتان استفاده کنید */
+html[dir="rtl"] body { text-align: right; }
+html[dir="rtl"] #branding #site-name a i { margin-left: 0; margin-right: 8px; }
+html[dir="rtl"] #user-tools .welcome-msg { margin-right: 0; margin-left: var(--spacing-unit); }
+html[dir="rtl"] #user-tools a { margin-right: 0; margin-left: calc(var(--spacing-unit) * 0.8); }
+html[dir="rtl"] #logout-form button { margin-right: 0; margin-left: calc(var(--spacing-unit) * 0.8); }
+html[dir="rtl"] .module caption { text-align: right; }
+html[dir="rtl"] th, html[dir="rtl"] td { text-align: right; }
+html[dir="rtl"] #changelist-form th:first-child,
+html[dir="rtl"] #changelist-form td:first-child { border-left: 1px solid var(--border-color); border-right: none; }
+html[dir="rtl"] #changelist-form th:last-child,
+html[dir="rtl"] #changelist-form td:last-child { border-left: none; }
+html[dir="rtl"] .aligned label { float: right; text-align: left; } /* تنظیم لیبل در فرم aligned */
+html[dir="rtl"] .aligned label + div { margin-right: 110px; margin-left: 0; float: right;} /* تنظیم فیلد */
+html[dir="rtl"] .aligned label::after { content: ":"; } /* اضافه کردن : بعد از لیبل */
+/* سایر تنظیمات RTL مورد نیاز ... */

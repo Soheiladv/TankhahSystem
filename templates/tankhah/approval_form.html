@@ -15,6 +15,16 @@
                             {% if field.errors %}<div class="text-danger">{{ field.errors }}</div>{% endif %}
                         </div>
                     {% endfor %}
+
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "اقدام" %}</label>
+                        {{ form.action }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "توضیحات" %}</label>
+                        {{ form.comment }}
+                    </div>
+
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>{% trans "ذخیره" %}</button>
                     <a href="{% url 'approval_list' %}" class="btn btn-secondary"><i class="fas fa-times me-2"></i>{% trans "لغو" %}</a>
                 </form>

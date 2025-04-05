@@ -3,13 +3,13 @@ import logging
 from decimal import Decimal
 
 from django.utils.encoding import force_str
+from django.core.files.storage import default_storage
 
 from tankhah.models import Tankhah, Factor, FactorItem, StageApprover, TankhahDocument
 
 logger = logging.getLogger(__name__)
 
 # Tankhah/views.py
-from django.core.files.storage import default_storage
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -21,8 +21,10 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.views.generic import TemplateView
 
-from .forms import OrganizationForm, ProjectForm, PostForm, UserPostForm, PostHistoryForm, WorkflowStageForm
-from .models import Organization, Project, Post, UserPost, PostHistory, WorkflowStage
+from .forms import OrganizationForm, ProjectForm, PostForm, UserPostForm, PostHistoryForm, WorkflowStageForm, \
+    SubProjectForm
+from .models import Organization, Project, Post, UserPost, PostHistory, WorkflowStage, SubProject
+
 #######################################################################################
 # داشبورد آماری تنخواه گردان
 """داشبورد روند تنخواه‌گردانی با رنگ‌بندی و وضعیت مراحل"""
@@ -168,120 +170,6 @@ class DecimalEncoder(json.JSONEncoder):
             return float(obj)
         return super().default(obj)
 
-class FinancialDashboardView(PermissionBaseView, TemplateView):
-    template_name = 'Tankhah/Reports/calc_dashboard.html'
-    login_url = '/accounts/login/'
-    permission_required = 'tankhah.Dashboard__view'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-
-        user_orgs = [up.post.organization for up in user.userpost_set.all()]
-        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs)
-
-        if is_hq_user:
-            tankhahs = Tankhah.objects.all()
-            organizations = Organization.objects.exclude(org_type='HQ')
-        else:
-            tankhahs = Tankhah.objects.filter(organization__in=user_orgs)
-            organizations = user_orgs
-
-        # حجم کل تصاویر
-        total_image_size = 0
-        for tankhah in tankhahs:
-            for doc in tankhah.documents.all():
-                file_path = doc.document.path
-                if default_storage.exists(file_path):
-                    total_image_size += default_storage.size(file_path)
-
-        context['total_image_size_mb'] = total_image_size / (1024 * 1024)
-        context['total_tanbakh_amount'] = float(tankhahs.aggregate(total=Sum('amount'))['total'] or 0)
-        context['archived_tanbakhs'] = tankhahs.filter(is_archived=True).count()
-        context['total_tankhahs'] = tankhahs.count()
-
-        # آمار وضعیت تنخواه‌ها
-        status_counts = tankhahs.values('status').annotate(count=Count('id'))
-        context['status_counts'] = {item['status']: item['count'] for item in status_counts}
-
-        stages = WorkflowStage.objects.all()
-        context['pending_by_stage'] = {
-            stage.name: tankhahs.filter(current_stage=stage, status='PENDING').count()
-            for stage in stages
-        }
-        context['stages'] = stages
-
-        factors = Factor.objects.filter(tankhah__in=tankhahs)
-        context['total_factor_amount'] = float(factors.aggregate(total=Sum('amount'))['total'] or 0)
-        context['approved_factors'] = factors.filter(status='APPROVED').count()
-        context['rejected_factors'] = factors.filter(status='REJECTED').count()
-        context['pending_factors'] = factors.filter(status='PENDING').count()
-
-        org_data = []
-        chart_labels = []
-        chart_tankhah_amounts = []
-        chart_factor_amounts = []
-        chart_approved_items = []
-        chart_image_sizes = []
-        for org in organizations:
-            org_tankhahs = Tankhah.objects.filter(organization=org)
-            org_factors = Factor.objects.filter(tankhah__in=org_tankhahs)
-            org_image_size = sum(
-                default_storage.size(doc.document.path)
-                for doc in TankhahDocument.objects.filter(tankhah__in=org_tankhahs)
-                if default_storage.exists(doc.document.path)
-            ) / (1024 * 1024)
-
-            org_info = {
-                'name': org.name,
-                'total_tanbakh_amount': float(org_tankhahs.aggregate(total=Sum('amount'))['total'] or 0),
-                'total_factor_amount': float(org_factors.aggregate(total=Sum('amount'))['total'] or 0),
-                'approved_factors': org_factors.filter(status='APPROVED').count(),
-                'rejected_factors': org_factors.filter(status='REJECTED').count(),
-                'pending_factors': org_factors.filter(status='PENDING').count(),
-                'approved_items_amount': float(FactorItem.objects.filter(
-                    factor__in=org_factors, status='APPROVED'
-                ).aggregate(total=Sum(F('amount') * F('quantity')))['total'] or 0),
-                'image_size_mb': org_image_size,
-            }
-            org_data.append(org_info)
-
-            chart_labels.append(org.name)
-            chart_tankhah_amounts.append(org_info['total_tanbakh_amount'])
-            chart_factor_amounts.append(org_info['total_factor_amount'])
-            chart_approved_items.append(org_info['approved_items_amount'])
-            chart_image_sizes.append(org_info['image_size_mb'])
-
-        context['org_data'] = org_data
-
-        context['chart_data'] = json.dumps({
-            'labels': chart_labels,
-            'datasets': [
-                {'label': force_str(_('مبلغ تنخواه‌ها')), 'data': chart_tankhah_amounts, 'backgroundColor': '#4299e1'},
-                {'label': force_str(_('مبلغ فاکتورها')), 'data': chart_factor_amounts, 'backgroundColor': '#f56565'},
-                {'label': force_str(_('جمع ردیف‌های تأییدشده')), 'data': chart_approved_items,
-                 'backgroundColor': '#48bb78'},
-                {'label': force_str(_('حجم تصاویر (مگابایت)')), 'data': chart_image_sizes,
-                 'backgroundColor': '#ed8936'},
-            ]
-        }, cls=DecimalEncoder)
-
-        # دیکشنری STATUS_CHOICES
-        STATUS_CHOICES_DICT = dict(Tankhah.STATUS_CHOICES)
-        context['status_chart_data'] = json.dumps({
-            'labels': [force_str(STATUS_CHOICES_DICT.get(status, status)) for status in
-                       context['status_counts'].keys()],
-            'datasets': [{
-                'label': force_str(_('تعداد تنخواه‌ها')),
-                'data': list(context['status_counts'].values()),
-                'backgroundColor': ['#4299e1', '#f56565', '#48bb78', '#ed8936', '#9f7aea', '#ecc94b', '#f6ad55',
-                                    '#68d391', '#ed64a6']
-            }]
-        }, cls=DecimalEncoder)
-
-        return context
-
-
 class AllLinksView(PermissionBaseView, TemplateView):
     template_name = 'core/core_index.html'  # تمپلیت Index
     extra_context = {'title': _('همه لینک‌ها')}
@@ -401,17 +289,27 @@ class ProjectListView(PermissionBaseView, ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        query = self.request.GET.get('q', '')
+        query = self.request.GET.get('q')
+        status = self.request.GET.get('status')
+
         if query:
             queryset = queryset.filter(
-                Q(code__icontains=query) |
                 Q(name__icontains=query) |
-                Q(description__icontains=query)
-            )
-        return queryset
+                Q(code__icontains=query) |
+                Q(description__icontains=query) |
+                Q(subprojects__name__icontains=query)
+            ).distinct()
+
+        if status == 'active':
+            queryset = queryset.filter(is_active=True)
+        elif status == 'inactive':
+            queryset = queryset.filter(is_active=False)
+
+        return queryset.order_by('-start_date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['title'] = _('مدیریت پروژه‌ها')
         context['query'] = self.request.GET.get('q', '')
         return context
 
@@ -682,8 +580,6 @@ class WorkflowStageUpdateView(PermissionBaseView, UpdateView):
             messages.error(self.request, str(e))  # پیام خطا رو به کاربر نشون می‌ده
             return self.form_invalid(form)
 
-
-
 class WorkflowStageDeleteView(PermissionBaseView, DeleteView):
     model = WorkflowStage
     template_name = "core/workflow_stage/workflow_stage_confirm_delete.html"
@@ -696,3 +592,70 @@ class WorkflowStageDeleteView(PermissionBaseView, DeleteView):
         context = super().get_context_data(**kwargs)
         context["stage"] = self.get_object()
         return context
+# ---- Sub Project CRUD
+class SubProjectListView(PermissionBaseView, ListView):
+    model = SubProject
+    template_name = 'core/subproject/subproject_list.html'
+    context_object_name = 'subprojects'
+    paginate_by = 10
+    permission_required = 'core.SubProject_view'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(
+                Q(name__icontains=query) |
+                Q(project__name__icontains=query) |
+                Q(description__icontains=query)
+            )
+        return queryset.order_by('project__name', 'name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('لیست ساب‌پروژه‌ها')
+        context['query'] = self.request.GET.get('q', '')
+        return context
+
+class SubProjectCreateView(PermissionBaseView, CreateView):
+    model = SubProject
+    form_class = SubProjectForm
+    template_name = 'core/subproject/subproject_form.html'
+    success_url = reverse_lazy('subproject_list')
+    permission_required = 'core.SubProject_add'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        project_id = self.request.GET.get('project')
+        if project_id:
+            initial['project'] = project_id
+        return initial
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, _('ساب‌پروژه با موفقیت ایجاد شد.'))
+        return response
+
+class SubProjectUpdateView(PermissionBaseView, UpdateView):
+    model = SubProject
+    form_class = SubProjectForm
+    template_name = 'core/subproject/subproject_form.html'
+    success_url = reverse_lazy('subproject_list')
+    permission_required = 'core.SubProject_update'
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, _('ساب‌پروژه با موفقیت به‌روزرسانی شد.'))
+        return response
+
+class SubProjectDeleteView(PermissionBaseView, DeleteView):
+    model = SubProject
+    template_name = 'core/subproject/subproject_confirm_delete.html'
+    success_url = reverse_lazy('subproject_list')
+    permission_required = 'core.SubProject_delete'
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        messages.success(request, _('ساب‌پروژه با موفقیت حذف شد.'))
+        return response
+

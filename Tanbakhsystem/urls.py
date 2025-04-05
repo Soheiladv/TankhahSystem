@@ -15,11 +15,12 @@ urlpatterns = [
                   path('admin/', admin.site.urls),
 
                   path('', DashboardView.as_view(), name='index'),
-
+                  #
                   path('accounts/', include('accounts.urls')),
                   # path('core/', include('core.urls')),
                   path('', include('core.urls')),
                   path('reports/', include('reports.urls')),
+
                   path('tankhah/', include('tankhah.urls')),  # اضافه کردن اپلیکیشن tankhah
                   path('version_tracker/', include('version_tracker.urls')),  # اضافه کردن اپلیکیشن tankhah
                   path('workflow/', TanbakhWorkflowView.as_view(), name='workflow'),  # help workflow

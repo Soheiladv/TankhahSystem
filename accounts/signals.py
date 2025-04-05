@@ -7,7 +7,6 @@ from .models import CustomProfile, CustomUser, City
 
 User = get_user_model()
 # signals.py
-# signals.py
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
@@ -104,25 +103,49 @@ def create_active_user(sender, user, request, **kwargs):
     """
     # گرفتن کلید سشن از درخواست
     session_key = request.session.session_key
+    if not session_key:  # اگه session_key تولید نشده باشه
+        request.session.create()
+        session_key = request.session.session_key
+
     # گرفتن آی‌پی کاربر
     user_ip = request.META.get('REMOTE_ADDR', None)
     # گرفتن اطلاعات مرورگر
     user_agent = request.META.get('HTTP_USER_AGENT', '')
 
-    # ایجاد یا به‌روزرسانی رکورد ActiveUser
-    ActiveUser.objects.update_or_create(
-        user=user,
-        session_key=session_key,
-        defaults={
-            'login_time': now(),
-            'last_activity': now(),
-            'user_ip': user_ip,
-            'user_agent': user_agent,
-            'is_active': True,
-            'logout_time': None,
-        }
-    )
-    logger.info(f"کاربر فعال ثبت شد: {user.username} با سشن {session_key}")
+    # لاگ ورود
+    logger.info(f"تلاش برای ثبت کاربر فعال: {user.username} با سشن {session_key}")
+
+    # پیدا کردن یا آپدیت ردیف موجود برای این کاربر
+    try:
+        active_user = ActiveUser.objects.get(user=user)
+        # آپدیت ردیف موجود
+        active_user.session_key = session_key
+        active_user.login_time = now()
+        active_user.last_activity = now()
+        active_user.user_ip = user_ip
+        active_user.user_agent = user_agent
+        active_user.is_active = True
+        active_user.logout_time = None
+        active_user.save()
+        logger.info(f"رکورد ActiveUser برای {user.username} به‌روزرسانی شد.")
+    except ActiveUser.DoesNotExist:
+        # اگه ردیفی وجود نداشت، یه ردیف جدید بساز
+        ActiveUser.objects.create(
+            user=user,
+            session_key=session_key,
+            login_time=now(),
+            last_activity=now(),
+            user_ip=user_ip,
+            user_agent=user_agent,
+            is_active=True,
+            logout_time=None
+        )
+        logger.info(f"رکورد ActiveUser برای {user.username} ایجاد شد.")
+
+    # پاک کردن سشن‌های قدیمی (اختیاری)
+    from django.contrib.sessions.models import Session
+    Session.objects.filter(expire_date__lt=now()).delete()
+
 #############################################
 from django import template
 import jdatetime

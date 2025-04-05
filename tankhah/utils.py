@@ -1,6 +1,9 @@
 # tanbakh/utils.py
 from django.core.exceptions import PermissionDenied
 import logging
+
+from core.tests import CustomUser
+
 logger = logging.getLogger(__name__)
 def restrict_to_user_organization(user, allowed_orgs=None):
     """
@@ -23,6 +26,5 @@ def restrict_to_user_organization(user, allowed_orgs=None):
         if not any(org in user_orgs for org in allowed_orgs):
             logger.warning(f"User {user} has no access to organizations: {allowed_orgs}")
             raise PermissionDenied("شما به این سازمان دسترسی ندارید.")
-
     return user_orgs
 

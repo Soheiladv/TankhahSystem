@@ -1,13 +1,12 @@
-from core.views import   FinancialDashboardView
 from tankhah.TankhahTrackingView import TankhahTrackingView
-from tankhah.reports.FinancialReportView import FinancialReportView, PerformanceReportView
 from django.urls import path
 
 from tankhah.views import TankhahDetailView, TankhahCreateView, TankhahDeleteView, \
     FactorListView, FactorDetailView, FactorUpdateView, FactorCreateView, ApprovalListView, FactorDeleteView, \
     ApprovalCreateView, ApprovalDetailView, ApprovalUpdateView, ApprovalDeleteView, DashboardView, TankhahListView, \
     TankhahApproveView, TankhahRejectView, FactorItemApproveView, FactorApproveView, FactorItemRejectView, \
-    upload_tankhah_documents, TankhahUpdateView
+    upload_tankhah_documents, TankhahUpdateView, ApprovalLogListView, FactorStatusUpdateView, mark_notification_as_read, \
+    get_subprojects
 
 urlpatterns = [
     # path('IndexView_dashboard/', IndexView.as_view(), name='IndexView_dashboard'),  # مسیر اصلی داشبورد
@@ -23,6 +22,8 @@ urlpatterns = [
     path('<int:pk>/reject/', TankhahRejectView.as_view(), name='tankhah_reject'),
     # Approve Factor Row
     path('Tankhah/factor/<int:pk>/approve/', FactorItemApproveView.as_view(), name='factor_item_approve'),
+path('factor/<int:pk>/status-update/', FactorStatusUpdateView.as_view(), name='factor_status_update'),
+
 
     path('factors/', FactorListView.as_view(), name='factor_list'),
     path('factor/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'), # جزئیات فاکتور
@@ -38,15 +39,14 @@ urlpatterns = [
     path('approval/<int:pk>/update/', ApprovalUpdateView.as_view(), name='approval_update'),
     path('approval/<int:pk>/delete/', ApprovalDeleteView.as_view(), name='approval_delete'),
 
+    # path('approvalLog_list/', ApprovalLogListView.as_view(), name='approvalLog_list'),
+    path('approvalLog_list/<str:tankhah_number>/', ApprovalLogListView.as_view(),
+         name='approval_log_list'),
 
     # تایید ها برای فکتور
 
     # گزارش‌ها
-    path('reports/financial/', FinancialReportView.as_view(), name='financial_report'),
-    path('reports/performance/', PerformanceReportView.as_view(), name='performance_report'),
-    path('financialDashboardView/', FinancialDashboardView.as_view(), name='financialDashboardView'),
-    path('tankhah/<int:pk>/tracking/', TankhahTrackingView.as_view(), name='tankhah_tracking'),
-
+     path('tankhah/<int:pk>/tracking/', TankhahTrackingView.as_view(), name='tankhah_tracking'),
 
 ]
 urlpatterns += [
@@ -58,4 +58,27 @@ urlpatterns += [
 urlpatterns += [
    path('<int:tankhah_id>/upload/', upload_tankhah_documents, name='upload_tankhah_documents'),
 ] # آپلود تصویر
+urlpatterns += [
+    path('notifications/mark-as-read/<int:notif_id>/',  mark_notification_as_read,
+         name='mark_notification_as_read'),
 
+] # نوت به کاربر
+
+urlpatterns += [
+    # لیست همه تأییدات
+    path('approvals/', ApprovalListView.as_view(), name='approval_list'),
+    # لیست تأییدات یه تنخواه خاص
+    path('tankhah/<str:tankhah_number>/approvals/', ApprovalLogListView.as_view(), name='approval_log_list'),
+    # جزئیات یه تأیید
+    path('approval/<int:pk>/', ApprovalDetailView.as_view(), name='approval_detail'),
+    # ثبت تأیید جدید
+    path('approval/create/', ApprovalCreateView.as_view(), name='approval_create'),
+    # ویرایش تأیید
+    path('approval/<int:pk>/update/', ApprovalUpdateView.as_view(), name='approval_update'),
+    # حذف تأیید
+    path('approval/<int:pk>/delete/', ApprovalDeleteView.as_view(), name='approval_delete'),
+]
+urlpatterns +=[
+    path('get_subprojects/',  get_subprojects, name='get_subprojects'),
+
+]

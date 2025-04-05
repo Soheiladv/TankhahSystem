@@ -151,10 +151,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             for p in self.user_permissions.all()
         )
         return perms
-
-
 User = get_user_model()
-
 class CustomProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile",
                                 verbose_name=_("کاربر"))
@@ -193,7 +190,6 @@ class CustomProfile(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.user.username}"
-
 class Role(models.Model):
     name = models.CharField(max_length=150, unique=True, verbose_name=_("عنوان نقش"))
     permissions = models.ManyToManyField(Permission, blank=True, verbose_name=_("مجوزها"), related_name='roles')
@@ -288,99 +284,6 @@ class AuditLog(models.Model):
             ('AuditLog_update', _('می‌تواند لاگ‌ها را بروزرسانی کند')),
             ('AuditLog_delete', _('می‌تواند لاگ‌ها را حذف کند')),
         ]
-####
-from cryptography.fernet import Fernet, InvalidToken
-cipher = Fernet(settings.RCMS_SECRET_KEY.encode())
-class TimeLockModel(models.Model):
-    lock_key = models.TextField(verbose_name="کلید قفل (رمزنگاری‌شده)")
-    hash_value = models.CharField(max_length=64, verbose_name="هش مقدار تنظیم‌شده", unique=True)
-    salt = models.CharField(max_length=32, verbose_name="مقدار تصادفی", unique=True)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="زمان ایجاد")
-    is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
-    organization_name = models.CharField(max_length=255, verbose_name="نام مجموعه",  default=_("پیش‌فرض") )
-
-    def save(self, *args, **kwargs):
-        import secrets
-        if not self.salt:
-            self.salt = secrets.token_hex(16)
-        super().save(*args, **kwargs)
-
-    @staticmethod
-    def encrypt_value(value):
-        # print(f"Debug - Encrypting: {value}")
-        return cipher.encrypt(str(value).encode()).decode()
-
-    @staticmethod
-    def decrypt_value(encrypted_value):
-        try:
-            if isinstance(encrypted_value, str):
-                encrypted_value = encrypted_value.encode()
-            decrypted = cipher.decrypt(encrypted_value).decode()
-            # print(f"Debug - Decrypted: {decrypted}")
-            return decrypted
-        except InvalidToken:
-            # print(f"🔴 خطا: نمی‌تونم {encrypted_value} رو رمزگشایی کنم")
-            return None
-
-    @staticmethod
-    def create_lock_key(expiry_date: datetime.date, max_users: int, salt: str, organization_name: str = "") -> str:
-        combined = f"{expiry_date.isoformat()}-{max_users}-{salt}-{organization_name}"
-        return TimeLockModel.encrypt_value(combined)
-
-    def get_decrypted_data(self):
-        decrypted = self.decrypt_value(self.lock_key)
-        if decrypted:
-            try:
-                parts = decrypted.split("-")
-                if len(parts) < 4:
-                    raise ValueError("فرمت مقدار رمزگشایی‌شده نادرست است")
-                expiry_str = "-".join(parts[:3])
-                max_users_str = parts[3]
-                organization_name = "-".join(parts[4:]) if len(parts) > 4 else ""
-                expiry_date = datetime.date.fromisoformat(expiry_str)
-                max_users = int(max_users_str)
-                return expiry_date, max_users, organization_name
-            except (ValueError, TypeError) as e:
-                logger.error(f"🔴 خطا در رمزگشایی کلید ID {self.id}: {e}")
-                return None, None, None
-        return None, None, None
-
-    def get_decrypted_expiry_date(self):
-        expiry_date, _, _ = self.get_decrypted_data()
-        return expiry_date
-
-    def get_decrypted_max_users(self):
-        _, max_users, _ = self.get_decrypted_data()
-        return max_users
-
-    def get_decrypted_organization_name(self):
-        _, _, organization_name = self.get_decrypted_data()
-        return organization_name
-
-    @staticmethod
-    def get_latest_lock():
-        latest_instance = TimeLockModel.objects.filter(is_active=True).order_by('-created_at').first()
-        if not latest_instance:
-            # print("Debug - No active lock found")
-            return None, None, None, None
-        expiry_date, max_users, organization_name = latest_instance.get_decrypted_data()
-        # if expiry_date is None or max_users is None:
-        #     print(f"Debug - Invalid data for latest lock ID {latest_instance.id}")
-        # else:
-        #     print(f"Debug - Latest Lock: Expiry={expiry_date}, Max Users={max_users}, Org={organization_name}")
-        return expiry_date, max_users, latest_instance.hash_value, organization_name
-
-    class Meta:
-        verbose_name = "قفل سیستم"
-        verbose_name_plural = "قفل سیستم"
-        default_permissions = []
-        permissions = [
-            ("TimeLockModel_view", "نمایش قفل سیستم"),
-            ("TimeLockModel_add", "افزودن قفل سیستم"),
-            ("TimeLockModel_update", "ویرایش قفل سیستم"),
-            ("TimeLockModel_delete", "حذف قفل سیستم"),
-        ]
-
 ####
 class ActiveUser(models.Model):
     MAX_ACTIVE_USERS = None
@@ -526,4 +429,98 @@ class ActiveUser(models.Model):
             """گرفتن حداکثر تعداد کاربران از TimeLockModel"""
             expiry_date, max_users, _, _ = TimeLockModel.get_latest_lock()
             return max_users if max_users is not None else getattr(settings, 'MAX_ACTIVE_USERS', 2)
+####
+from cryptography.fernet import Fernet, InvalidToken
+cipher = Fernet(settings.RCMS_SECRET_KEY.encode())
+class TimeLockModel(models.Model):
+    lock_key = models.TextField(verbose_name="کلید قفل (رمزنگاری‌شده)")
+    hash_value = models.CharField(max_length=64, verbose_name="هش مقدار تنظیم‌شده", unique=True)
+    salt = models.CharField(max_length=32, verbose_name="مقدار تصادفی", unique=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="زمان ایجاد")
+    is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
+    organization_name = models.CharField(max_length=255, verbose_name="نام مجموعه",  default=_("پیش‌فرض") )
+
+    def save(self, *args, **kwargs):
+        import secrets
+        if not self.salt:
+            self.salt = secrets.token_hex(16)
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def encrypt_value(value):
+        # print(f"Debug - Encrypting: {value}")
+        return cipher.encrypt(str(value).encode()).decode()
+
+    @staticmethod
+    def decrypt_value(encrypted_value):
+        try:
+            if isinstance(encrypted_value, str):
+                encrypted_value = encrypted_value.encode()
+            decrypted = cipher.decrypt(encrypted_value).decode()
+            # print(f"Debug - Decrypted: {decrypted}")
+            return decrypted
+        except InvalidToken:
+            # print(f"🔴 خطا: نمی‌تونم {encrypted_value} رو رمزگشایی کنم")
+            return None
+
+    @staticmethod
+    def create_lock_key(expiry_date: datetime.date, max_users: int, salt: str, organization_name: str = "") -> str:
+        combined = f"{expiry_date.isoformat()}-{max_users}-{salt}-{organization_name}"
+        return TimeLockModel.encrypt_value(combined)
+
+    def get_decrypted_data(self):
+        decrypted = self.decrypt_value(self.lock_key)
+        if decrypted:
+            try:
+                parts = decrypted.split("-")
+                if len(parts) < 4:
+                    raise ValueError("فرمت مقدار رمزگشایی‌شده نادرست است")
+                expiry_str = "-".join(parts[:3])
+                max_users_str = parts[3]
+                organization_name = "-".join(parts[4:]) if len(parts) > 4 else ""
+                expiry_date = datetime.date.fromisoformat(expiry_str)
+                max_users = int(max_users_str)
+                return expiry_date, max_users, organization_name
+            except (ValueError, TypeError) as e:
+                logger.error(f"🔴 خطا در رمزگشایی کلید ID {self.id}: {e}")
+                return None, None, None
+        return None, None, None
+
+    def get_decrypted_expiry_date(self):
+        expiry_date, _, _ = self.get_decrypted_data()
+        return expiry_date
+
+    def get_decrypted_max_users(self):
+        _, max_users, _ = self.get_decrypted_data()
+        return max_users
+
+    def get_decrypted_organization_name(self):
+        _, _, organization_name = self.get_decrypted_data()
+        return organization_name
+
+    @staticmethod
+    def get_latest_lock():
+        latest_instance = TimeLockModel.objects.filter(is_active=True).order_by('-created_at').first()
+        if not latest_instance:
+            # print("Debug - No active lock found")
+            return None, None, None, None
+        expiry_date, max_users, organization_name = latest_instance.get_decrypted_data()
+        # if expiry_date is None or max_users is None:
+        #     print(f"Debug - Invalid data for latest lock ID {latest_instance.id}")
+        # else:
+        #     print(f"Debug - Latest Lock: Expiry={expiry_date}, Max Users={max_users}, Org={organization_name}")
+        return expiry_date, max_users, latest_instance.hash_value, organization_name
+
+    class Meta:
+        verbose_name = "قفل سیستم"
+        verbose_name_plural = "قفل سیستم"
+        default_permissions = []
+        permissions = [
+            ("TimeLockModel_view", "نمایش قفل سیستم"),
+            ("TimeLockModel_add", "افزودن قفل سیستم"),
+            ("TimeLockModel_update", "ویرایش قفل سیستم"),
+            ("TimeLockModel_delete", "حذف قفل سیستم"),
+        ]
+
+
 

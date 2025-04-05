@@ -16,6 +16,15 @@
             {{ form.description.label_tag }}
             {{ form.description }}
         </div>
+        <div class="mb-3">
+            {{ form.is_active.label_tag }}
+            {{ form.is_active }}
+        </div>
+        <div class="mb-3">
+            {{ form.is_final_stage.label_tag }}
+            {{ form.is_final_stage }}
+        </div>
+
         <button type="submit" class="btn btn-success">ذخیره</button>
         <a href="{% url 'workflow_stage_list' %}" class="btn btn-secondary">لغو</a>
     </form>

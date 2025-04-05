@@ -2,15 +2,22 @@ from .models import CustomProfile, TimeLockModel
 
 ###############################################################
 from django.contrib.auth.forms import AdminPasswordChangeForm
+from django_jalali.admin.filters import JDateFieldListFilter
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.http import Http404
 from django.shortcuts import redirect, render
+from django.contrib import admin
+from .models import AuditLog
 
 from .models import CustomUser, Role, MyGroup, CustomUserGroup
 from .forms import   CustomUserCreationForm, CustomUserForm,MyGroupForm
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import Group
+import django_filters
+from django.contrib import admin
+from django.contrib.auth.models import Permission
 
 # ادمین پایه با تنظیمات مشترک
 class BaseAdmin(admin.ModelAdmin):
@@ -28,7 +35,6 @@ class RoleAdmin(admin.ModelAdmin):
         return ", ".join([perm.name for perm in obj.permissions.all()])
 
     permissions_list.short_description = 'مجوزها'
-
 
 class CustomUserGroupInline(admin.TabularInline):
     model = CustomUserGroup
@@ -148,14 +154,8 @@ class CustomProfileAdmin(admin.ModelAdmin):
     )
     raw_id_fields = ('user', 'city')
 
-
-from django.contrib.auth.models import Group
 admin.site.unregister(Group)
 ##########################  Auth Permission
-import django_filters
-from django.contrib import admin
-from django.contrib.auth.models import Permission
-
 class PermissionFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(lookup_expr='icontains')
     codename = django_filters.CharFilter(lookup_expr='icontains')
@@ -189,18 +189,12 @@ class PermissionAdmin(admin.ModelAdmin):
 
 admin.site.register(Permission, PermissionAdmin)
 
-# admin.py
-from django.contrib import admin
-from .models import AuditLog
-
 @admin.register(AuditLog)
 class AuditLogAdmin(admin.ModelAdmin):
     list_display = ('user', 'action', 'model_name', 'object_id', 'timestamp', 'ip_address', 'browser', 'status_code')
     list_filter = ('action', 'model_name', 'timestamp')
     search_fields = ('user__username', 'model_name', 'object_id')
     readonly_fields = ('user', 'action', 'model_name', 'object_id', 'timestamp', 'details', 'ip_address', 'browser', 'status_code')
-
-from django_jalali.admin.filters import JDateFieldListFilter
 
 # ادمین قفل سیستم
 @admin.register(TimeLockModel)

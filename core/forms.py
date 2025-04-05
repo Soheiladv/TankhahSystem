@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 from Tanbakhsystem.utils import convert_jalali_to_gregorian, convert_gregorian_to_jalali, convert_to_farsi_numbers
 from accounts.models import TimeLockModel
-from .models import Project, Organization,  UserPost, Post, PostHistory, WorkflowStage
+from .models import Project, Organization, UserPost, Post, PostHistory, WorkflowStage, SubProject
 from django.utils.translation import gettext_lazy as _
 
 from django import forms
@@ -33,57 +33,41 @@ class TimeLockModelForm(forms.ModelForm):
 
 from django.core.exceptions import ValidationError
 from jdatetime import datetime as jdatetime
+from core.models import WorkflowStage
+from tankhah.models import StageApprover
 
 class ProjectForm(forms.ModelForm):
     budget = forms.IntegerField(  # تغییر به IntegerField برای هماهنگی با مدل
-        label=_("بودجه (ريال)"),
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'مبلغ بودجه'}),
-        required=False
+        label=_("بودجه (ريال)"),widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'مبلغ بودجه'}),required=False)
+    priority = forms.ChoiceField(choices=[('LOW', _('کم')), ('MEDIUM', _('متوسط')), ('HIGH', _('زیاد'))],
+        label=_("اولویت"),widget=forms.Select(attrs={'class': 'form-control'}),initial='MEDIUM')
+    is_active = forms.BooleanField(label=_("فعال"),widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        required=False,initial=True)
+
+    start_date = forms.CharField(label=_('تاریخ شروع'),widget=forms.TextInput(attrs={
+            'data-jdp': '','class': 'form-control','placeholder': convert_to_farsi_numbers(_('تاریخ را انتخاب کنید (1404/01/17)'))}))
+    end_date = forms.CharField(label=_('تاریخ پایان'),widget=forms.TextInput(attrs={
+            'data-jdp': '','class': 'form-control','placeholder': convert_to_farsi_numbers(_('تاریخ را انتخاب کنید (1404/01/17)'))}),required=False)
+    workflow_stages = forms.ModelMultipleChoiceField(queryset=WorkflowStage.objects.all(),
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),required=False,label=_('مراحل گردش کار مرتبط')    )
+    has_subproject = forms.BooleanField(
+        label=_("آیا زیرمجموعه پروژه دارد؟"), widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), required=False
     )
-    priority = forms.ChoiceField(
-        choices=[('LOW', _('کم')), ('MEDIUM', _('متوسط')), ('HIGH', _('زیاد'))],
-        label=_("اولویت"),
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        initial='MEDIUM'
+    subproject_name = forms.CharField(
+        label=_("نام زیرمجموعه پروژه"), widget=forms.TextInput(attrs={'class': 'form-control'}), required=False
     )
-    is_active = forms.BooleanField(
-        label=_("فعال"),
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        required=False,
-        initial=True
+    subproject_description = forms.CharField(
+        label=_("توضیحات زیرمجموعه پروژه"), widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}), required=False
     )
 
-    start_date = forms.CharField(
-        label=_('تاریخ شروع'),
-        widget=forms.TextInput(attrs={
-            'data-jdp': '',
-            'class': 'form-control',
-            'placeholder': convert_to_farsi_numbers(_('تاریخ را انتخاب کنید (1404/01/17)'))
-        })
-    )
-    end_date = forms.CharField(
-        label=_('تاریخ پایان'),
-        widget=forms.TextInput(attrs={
-            'data-jdp': '',
-            'class': 'form-control',
-            'placeholder': convert_to_farsi_numbers(_('تاریخ را انتخاب کنید (1404/01/17)'))
-        }),
-        required=False
-    )
-    workflow_stages = forms.ModelMultipleChoiceField(
-        queryset=WorkflowStage.objects.all(),
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-        required=False,
-        label=_('مراحل گردش کار مرتبط')
-    )
     class Meta:
         model = Project
         fields = ['name', 'code', 'organizations', 'start_date', 'end_date', 'description', 'budget', 'priority', 'is_active', 'workflow_stages']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام پروژه را وارد کنید'}),
-            'code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'کد پروژه'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام پروژه (مثل پروژه توسعه نرم‌افزار)'}),
+            'code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'کد پروژه (مثل 04-S-001)'}),
             'organizations': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-            'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'توضیحات پروژه'}),
+            'description': forms.Textarea(attrs={'rows': 1, 'class': 'form-control', 'placeholder': 'توضیحات پروژه (اختیاری)'})
         }
         labels = {
             'name': _('نام پروژه'),
@@ -99,17 +83,23 @@ class ProjectForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['organizations'].queryset = Organization.objects.filter(org_type='COMPLEX')
+        # همه سازمان‌ها رو لود کن
+        self.fields['organizations'].queryset = Organization.objects.all()
         if self.instance.pk:
             jalali_start = jdatetime.fromgregorian(date=self.instance.start_date).strftime('%Y/%m/%d')
             jalali_end = (
                 jdatetime.fromgregorian(date=self.instance.end_date).strftime('%Y/%m/%d')
                 if self.instance.end_date else ''
             )
-            print(f"Gregorian Start: {self.instance.start_date}, Jalali Start: {jalali_start}")
-            print(f"Gregorian End: {self.instance.end_date}, Jalali End: {jalali_end}")
             self.fields['start_date'].initial = jalali_start
             self.fields['end_date'].initial = jalali_end
+
+            # چک کن اگه ساب‌پروژه داره
+            if self.instance.subprojects.exists():
+                subproject = self.instance.subprojects.first()
+                self.fields['has_subproject'].initial = True
+                self.fields['subproject_name'].initial = subproject.name
+                self.fields['subproject_description'].initial = subproject.description
 
     def clean_start_date(self):
         start_date_str = self.cleaned_data['start_date']
@@ -135,9 +125,29 @@ class ProjectForm(forms.ModelForm):
         cleaned_data = super().clean()
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
+        has_subproject = cleaned_data.get('has_subproject')
+        subproject_name = cleaned_data.get('subproject_name')
         if start_date and end_date and start_date > end_date:
             raise ValidationError(_("تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد."))
+        if has_subproject and not subproject_name:
+            raise ValidationError(_("لطفاً نام ساب‌پروژه را وارد کنید."))
         return cleaned_data
+
+    def save(self, commit=True):
+        project = super().save(commit=False)
+        if commit:
+            project.save()
+            self.save_m2m()  # ذخیره روابط ManyToMany مثل organizations
+            # ایجاد ساب‌پروژه اگه تیک زده شده باشه
+            if self.cleaned_data.get('has_subproject') and self.cleaned_data.get('subproject_name'):
+                SubProject.objects.get_or_create(
+                    project=project,
+                    name=self.cleaned_data['subproject_name'],
+                    defaults={'description': self.cleaned_data.get('subproject_description', ''), 'is_active': True},
+                )
+        return project
+
+
 
 class OrganizationForm(forms.ModelForm):
     class Meta:
@@ -155,11 +165,8 @@ class OrganizationForm(forms.ModelForm):
             'org_type': _('نوع سازمان'),
             'description': _('توضیحات'),
         }
-
-
 # -- new
 # tanbakh/forms.py
-from tankhah.models import StageApprover
 
 class PostForm(forms.ModelForm):
     class Meta:
@@ -221,17 +228,50 @@ class PostHistoryForm(forms.ModelForm):
             'changed_by': forms.Select(attrs={'class': 'form-control'}),
         }
 
-
-from django import forms
-from core.models import WorkflowStage
-
 class WorkflowStageForm(forms.ModelForm):
+    # is_active = forms.BooleanField(
+    #     label=_("فعال"),
+    #     widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+    #     required=False,
+    #     initial=True
+    # )
+    # is_final_stage = forms.BooleanField(
+    #     label=_("مرحله نهایی تایید تنخواه"),
+    #     widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+    #     required=False,
+    #     initial=True
+    # )
     class Meta:
         model = WorkflowStage
-        fields = ['name', 'order', 'description']
+        fields = ['name', 'order', 'description','is_active','is_final_stage']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام مرحله'}),
             'order': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'ترتیب'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'توضیحات'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input',  'placeholder': 'فعال'}),
+            'is_final_stage': forms.CheckboxInput(attrs={'class': 'form-check-input', 'rows': 3, 'placeholder': 'مرحله نهایی تایید تنخواه'}),
         }
+
+class SubProjectForm(forms.ModelForm):
+    class Meta:
+        model = SubProject
+        fields = ['project', 'name', 'description', 'is_active']
+        widgets = {
+            'project': forms.Select(attrs={'class': 'form-control'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('نام ساب‌پروژه را وارد کنید')}),
+            'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': _('توضیحات ساب‌پروژه')}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        labels = {
+            'project': _('پروژه اصلی'),
+            'name': _('نام ساب‌پروژه'),
+            'description': _('توضیحات'),
+            'is_active': _('فعال'),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # فقط پروژه‌های فعال رو نشون بده
+        self.fields['project'].queryset = Project.objects.filter(is_active=True)
+
 

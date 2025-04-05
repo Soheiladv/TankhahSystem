@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load rcms_custom_filters static %}
 {% block content %}
 <div class="container mt-4">
     <h2 class="mb-3">مراحل گردش کار</h2>
@@ -6,21 +7,42 @@
     <table class="table table-bordered">
         <thead class="table-dark">
             <tr>
+                <th>ردیف</th>
                 <th>نام</th>
-                <th>ترتیب</th>
+                <th>ترتیب اجرا</th>
+                <th>فعال</th>
                 <th>توضیحات</th>
                 <th>عملیات</th>
             </tr>
         </thead>
         <tbody>
-            {% for stage in stages %}
-            <tr>
-                <td>{{ stage.name }}</td>
-                <td>{{ stage.order }}</td>
+
+
+        {% for stage in stages %}
+            {% if stage.is_final_stage %}
+                <tr class="bg-info">
+                    <td>{{ forloop.counter | to_persian_number }}</td>
+                    <td>👍 تایید کننده نهایی 👍:{{ stage.name }} </td>
+                    <td>{{ stage.order | to_persian_number }}</td>
+                    <td>  {% if stage.is_active %}👍😎{% else %}  👎😒{% endif %}</td>
                 <td>{{ stage.description }}</td>
-                <td>
-                    <a href="{% url 'workflow_stage_update' stage.pk %}" class="btn btn-primary btn-sm">ویرایش</a>
-                    <a href="{% url 'workflow_stage_delete' stage.pk %}" class="btn btn-danger btn-sm">حذف</a>
+
+                    {% else %}
+                <tr>
+                <td>{{ forloop.counter| to_persian_number }}</td>
+                <td>{{ stage.name }}</td>
+                <td>{{ stage.order| to_persian_number }}</td>
+                    <td>  {% if stage.is_active %}👍😎{% else %}  👎😒{% endif %}</td>
+                <td>{{ stage.description }}</td>
+
+            {% endif %}
+             <td>
+{#                    {% if perms.WorkflowStage_update %}#}
+                        <a href="{% url 'workflow_stage_update' stage.pk %}" class="btn btn-primary btn-sm">ویرایش</a>
+{#                    {% endif %}#}
+{#                    {% if perms.WorkflowStage_delete %}#}
+                        <a href="{% url 'workflow_stage_delete' stage.pk %}" class="btn btn-danger btn-sm">حذف</a>
+{#                    {% endif %}#}
                 </td>
             </tr>
             {% empty %}

@@ -4,7 +4,7 @@ from django.db import models, transaction
 from django.db.models import Sum, Max
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from core.models import Post  # بررسی کنید که مسیر درست است
+from core.models import Post, SubProject  # بررسی کنید که مسیر درست است
 from core.models import WorkflowStage  # اگر در همان اپلیکیشن است
 from accounts.models import CustomUser
 from core.models import Organization, Post, UserPost, Project, WorkflowStage
@@ -68,6 +68,7 @@ class Tankhah(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد")) # اجبار در توقف
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_('مجموعه/شعبه'))
     project = models.ForeignKey('core.Project', on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('پروژه'))
+    subproject = models.ForeignKey(SubProject, on_delete=models.CASCADE, null=True, blank=True, verbose_name=_("زیر مجموعه پروژه"))
     letter_number = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("شماره نامه"))
     created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='tankhah_created', verbose_name=_("ایجادکننده"))
     approved_by = models.ManyToManyField(CustomUser, blank=True, verbose_name=_('تأییدکنندگان'))
@@ -131,14 +132,17 @@ class Tankhah(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.number
+        if self.subproject:
+            return f"{self.number} - {self.project} - ({self.subproject})"
+        return f"{self.number} ({self.project})"
+
 
     class Meta:
         verbose_name = _("تنخواه")
         verbose_name_plural = _("تنخواه‌ها")
         indexes = [
-            models.Index(fields=['number', 'date', 'status']),
-        ]
+            models.Index(fields=['number', 'date', 'status' ,'organization'])]
+
         default_permissions =()
         permissions = [
 
@@ -203,10 +207,7 @@ class Factor(models.Model):
     date = models.DateField(default=timezone.now, verbose_name=_("تاریخ"))
     amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('مبلغ'), default=0)  # فرض بر وجود فیلد مبلغ
     description = models.TextField(verbose_name=_("توضیحات"))
-    # file = models.FileField(upload_to='factors/%Y/%m/%d/', blank=True, null=True, verbose_name=_("فایل پیوست"))
-    # file_size = models.IntegerField(null=True, blank=True, verbose_name=_("حجم فایل (بایت)"))
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name=_("وضعیت"))
-    # approved_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("تأییدکننده"))
     approved_by = models.ManyToManyField(CustomUser, blank=True, verbose_name=_("تأییدکنندگان"))
 
     is_finalized = models.BooleanField(default=False, verbose_name=_("نهایی شده"))
@@ -249,10 +250,12 @@ class Factor(models.Model):
 
 class FactorItem(models.Model):
     """  اقلام فاکتور """
+
     STATUS_CHOICES = (
         ('PENDING', _('در حال بررسی')),
         ('APPROVED', _('تأیید شده')),
         ('REJECTED', _('رد شده')),
+        ('PAID', 'پرداخت شده'),
     )
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE, related_name='items', verbose_name=_("فاکتور"))
     description = models.CharField(max_length=255, verbose_name=_("شرح ردیف"))
@@ -262,6 +265,8 @@ class FactorItem(models.Model):
     quantity = models.DecimalField(max_digits=25, default=1,decimal_places=2, verbose_name=_("تعداد"))
     # quantity = models.IntegerField(default=1, verbose_name=_("تعداد"))
     unit_price = models.DecimalField(max_digits=25,default=1, decimal_places=1, verbose_name=_("قیمت واحد"))
+    category = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("دسته‌بندی"))
+
 
     def save(self, *args, **kwargs):
         if not self.amount:  # اگه amount وارد نشده باشه، محاسبه کن
@@ -301,6 +306,11 @@ class ApprovalLog(models.Model):
     date = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
     post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True, verbose_name=_("پست تأییدکننده"))
     changed_field = models.CharField(max_length=50, blank=True, null=True, verbose_name="فیلد تغییر یافته")
+
+    seen_by_higher = models.BooleanField(default=False, verbose_name=_("دیده‌شده توسط رده بالاتر"))
+    seen_at = models.DateTimeField(null=True, blank=True, verbose_name=_("زمان دیده شدن"))
+
+
     def __str__(self):
         return f"{self.user.username} - {self.action} ({self.date})"
 
@@ -380,3 +390,17 @@ class Dashboard_Tankhah(models.Model):
         permissions = [
             ('Dashboard_Tankhah_view','دسترسی به داشبورد تنخواه گردان ')
         ]
+
+class Notification(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name="کاربر")
+    message = models.TextField(verbose_name="پیام")
+    tankhah = models.ForeignKey('Tankhah', on_delete=models.CASCADE, null=True, verbose_name="تنخواه")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    is_read = models.BooleanField(default=False, verbose_name="خوانده شده")
+
+    class Meta:
+        verbose_name = "اعلان"
+        verbose_name_plural = "اعلان‌ها"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.message[:50]}"

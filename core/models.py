@@ -46,7 +46,7 @@ class Project(models.Model):
         ('LOW', _('کم')), ('MEDIUM', _('متوسط')), ('HIGH', _('زیاد')),
     )
     name = models.CharField(max_length=100, verbose_name=_("نام پروژه"))
-    code = models.CharField(max_length=20, unique=True, verbose_name=_("کد پروژه"))
+    code = models.CharField(max_length=80, unique=True, verbose_name=_("کد پروژه"))
     organizations = models.ManyToManyField(Organization, limit_choices_to={'org_type': 'COMPLEX'}, verbose_name=_("مجتمع‌های مرتبط"))
     start_date = models.DateField(verbose_name=_("تاریخ شروع"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))
@@ -74,6 +74,26 @@ class Project(models.Model):
             ('Project_view','نمایش  پروژه برای مدیریت پروژه‌های چندمجتمعی'),
             ('Project_delete','حــذف  پروژه برای مدیریت پروژه‌های چندمجتمعی'),
             ]
+
+class SubProject(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='subprojects', verbose_name=_("پروژه اصلی"))
+    name = models.CharField(max_length=200, verbose_name=_("نام ساب‌پروژه"))
+    description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+
+    class Meta:
+        verbose_name = _("ساب‌پروژه")
+        verbose_name_plural = _("ساب‌پروژه‌ها")
+        default_permissions =()
+        permissions = [
+            ('SubProject_add','افزودن زیر مجموعه پروژه'),
+            ('SubProject_update','ویرایش زیر مجموعه پروژه'),
+            ('SubProject_view','نمایش زیر مجموعه پروژه'),
+            ('SubProject_delete','حــذف زیر مجموعه پروژه'),
+        ]
+    def __str__(self):
+        return f"{self.project.name} - {self.name}"
+
 class Post(models.Model):
     """مدل پست سازمانی برای تعریف سلسله مراتب"""
     BRANCH_CHOICES = (
@@ -110,6 +130,7 @@ class Post(models.Model):
             ('Post_view','نمایش  پست سازمانی برای تعریف سلسله مراتب'),
             ('Post_delete','حــذف  پست سازمانی برای تعریف سلسله مراتب'),
             ]
+
 class UserPost(models.Model):
     """مدل اتصال کاربر به پست"""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name=_("کاربر"))
@@ -208,6 +229,7 @@ class WorkflowStage(models.Model):
     order = models.IntegerField(verbose_name=_('ترتیب'))
     description = models.TextField(blank=True, verbose_name=_('توضیحات'))
     is_active = models.BooleanField(default=True, verbose_name=_("وضعیت فعال"))
+    is_final_stage = models.BooleanField(default=False, help_text="آیا این مرحله نهایی برای تکمیل تنخواه است؟", verbose_name=_("تعیین مرحله آخر"))
 
     def save(self, *args, **kwargs):
         if WorkflowStage.objects.exclude(pk=self.pk).filter(order=self.order).exists():

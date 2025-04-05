@@ -20,6 +20,7 @@ class DashboardView( PermissionBaseView , TemplateView):
             'روند تنخواه': [
                 {'name': _('روند تنخواه'), 'url': 'dashboard_flows',  'icon': 'fas fa-link'}, #'permission': 'Dashboard__view',
                 {'name': _('BI گزارشات'), 'url': 'financialDashboardView', 'icon': 'fas fa-chart-bar'},
+                {'name': _('گزارش جزئیات تنخواه'), 'url': 'tankhah_detail', 'icon': 'fas fa-chart-bar'},
             ],
 
             'تنخواه': [
@@ -34,6 +35,7 @@ class DashboardView( PermissionBaseView , TemplateView):
                 {'name': _('فهرست پروژه‌ها'), 'url': 'project_list', 'permission': 'core.Project_view',
                  'icon': 'fas fa-project-diagram'},
                 {'name': _('ایجاد پروژه'), 'url': 'project_create', 'permission': 'core.Project_add', 'icon': 'fas fa-plus'},
+                {'name': _('ایجاد زیرپروژه'), 'url': 'subproject_create', 'permission': 'core.Project_add', 'icon': 'fas fa-plus'},
             ],
             'گردش کار': [
                 {'name': _('فهرست گردش کار'), 'url': 'workflow_stage_list', 'permission': 'core.WorkflowStage_view',
