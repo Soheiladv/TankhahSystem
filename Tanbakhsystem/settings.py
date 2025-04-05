@@ -9,31 +9,74 @@ SECRET_KEY = 'django-insecure-*zron+$_y8zn14z7a7r(wgllx%8n0vii^(6uar=_r)94(v!khc
 DEBUG = True
 ALLOWED_HOSTS = ['*']#'127.0.0.1', 'localhost'  # اضافه کردم برای لوکال
 
-
+# INSTALLED_APPS = [
+#     'Tanbakhsystem.apps_overrides.AdminInterfaceConfig',  # رابط مدیریت
+#     'django.contrib.humanize',
+#     'colorfield',
+#     'django.contrib.admin',  # 'Tanbakhsystem.apps_overrides.AdminConfig',  # به جای 'django.contrib.admin'
+#     # 'Tanbakhsystem.apps_overrides.AuthConfig',  # به جای 'django.contrib.auth'
+#     'django.contrib.auth',  # به جای Tanbakhsystem.apps_overrides.AuthConfig
+#     # 'Tanbakhsystem.apps_overrides.ContentTypesConfig',  #
+#     'django.contrib.contenttypes'
+#     # 'Tanbakhsystem.apps_overrides.SessionsConfig',
+#     'django.contrib.sessions'
+#     'django.contrib.messages',
+#     'django.contrib.staticfiles',
+#     'core.apps.CoreConfig',
+#     'reports.apps.ReportsConfig',
+#     'django_jalali',
+#     'jalali_date',
+#     'version_tracker.apps.VersionTrackerConfig',
+#     'tankhah.apps.TankhahConfig',
+#     'Tanbakhsystem.apps_overrides.NotificationsConfig',  # اعلانات
+#     'accounts.apps.AccountsConfig',
+# ]
+# clean
 INSTALLED_APPS = [
-    'Tanbakhsystem.apps_overrides.AdminInterfaceConfig',  # اگه از notifications استفاده می‌کنی
     'django.contrib.humanize',
+    'admin_interface',
     'colorfield',
-    'Tanbakhsystem.apps_overrides.AdminConfig',  # به جای 'django.contrib.admin'
-    'Tanbakhsystem.apps_overrides.AuthConfig',  # به جای 'django.contrib.auth'
-    'Tanbakhsystem.apps_overrides.ContentTypesConfig',  # به جای 'django.contrib.contenttypes'
-    'Tanbakhsystem.apps_overrides.SessionsConfig',  # به جای 'django.contrib.sessions'
-    # 'django.contrib.admin',
-    # 'django.contrib.auth',
-    # 'django.contrib.contenttypes',
-    # 'django.contrib.sessions',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'core',
-    'reports',
+    'core.apps.CoreConfig',
+    'reports.apps.ReportsConfig',
     'django_jalali',
     'jalali_date',
-    'version_tracker',
+    'version_tracker.apps.VersionTrackerConfig',
     'tankhah.apps.TankhahConfig',
     'accounts.apps.AccountsConfig',
-    'Tanbakhsystem.apps_overrides.NotificationsConfig',  # اگه از notifications استفاده می‌کنی
-
+    'notifications',
 ]
+
+# INSTALLED_APPS = [
+#     # 'Tanbakhsystem.apps_overrides.AdminInterfaceConfig',  # اگه از notifications استفاده می‌کنی
+#     'django.contrib.humanize',
+#     'admin_interface',
+#     'colorfield',
+#     # 'Tanbakhsystem.apps_overrides.AdminConfig',  # به جای 'django.contrib.admin'
+#     # 'Tanbakhsystem.apps_overrides.AuthConfig',  # به جای 'django.contrib.auth'
+#     # 'Tanbakhsystem.apps_overrides.ContentTypesConfig',  # به جای 'django.contrib.contenttypes'
+#     # 'Tanbakhsystem.apps_overrides.SessionsConfig',  # به جای 'django.contrib.sessions'
+#     'django.contrib.admin',
+#     'django.contrib.auth',
+#     'django.contrib.contenttypes',
+#     'django.contrib.sessions',
+#     'django.contrib.messages',
+#     'django.contrib.staticfiles',
+#     'core.apps.CoreConfig',
+#     'reports.apps.ReportsConfig',
+#     'django_jalali',
+#     'jalali_date',
+#     'version_tracker.apps.VersionTrackerConfig',
+#     'tankhah.apps.TankhahConfig',
+#     'accounts.apps.AccountsConfig',
+#     'Tanbakhsystem.apps_overrides.NotificationsConfig',  # اگه از notifications استفاده می‌کنی
+#
+# ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -48,6 +91,9 @@ MIDDLEWARE = [
     'accounts.middleware.ActiveUserMiddleware',
     'accounts.middleware.RequestMiddleware',  # اضافه کردم
 ]
+# Template
+X_FRAME_OPTIONS = "SAMEORIGIN"
+SILENCED_SYSTEM_CHECKS = ["security.W019"]
 
 ROOT_URLCONF = 'Tanbakhsystem.urls'
 
@@ -63,6 +109,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.version_info',  # باید تعریف بشه
+                'core.context_processors.notifications',  # Note User
+
             ],
         },
     },

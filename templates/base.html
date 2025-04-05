@@ -126,8 +126,9 @@
         {% endif %}
     </div>
 </div>
+<div class="notifications container mt-3">
 
-<main class="content" id="mainContent">
+    <main class="content" id="mainContent">
     <div class="container-fluid mt-5 pt-3">
         {% if messages %}
             {% for message in messages %}
@@ -138,6 +139,21 @@
                 </div>
             {% endfor %}
         {% endif %}
+
+        <div class="notifications container mt-3">
+            {% if request.user.is_authenticated %}
+                {% for notif in unread_notifications %}
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        {{ notif.message }}
+                        <a href="{% url 'tankhah_tracking' notif.tankhah.pk %}"
+                           class="alert-link">{% trans "مشاهده" %}</a>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+                                onclick="markAsRead({{ notif.id }})"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
         {% block content %}{% endblock %}
     </div>
 </main>
@@ -197,6 +213,20 @@
         jalaliDatepicker.startWatch();
     });
 </script>
+
+
+<script>
+function markAsRead(notifId) {
+    fetch(`/notifications/mark-as-read/${notifId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    }).then(() => console.log('Notification marked as read'));
+}
+</script>
+
 {% block extra_js %}{% endblock %}
 </body>
 </html>

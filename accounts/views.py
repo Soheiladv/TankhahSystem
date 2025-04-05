@@ -229,30 +229,48 @@ class RoleCRUDMixin(LoginRequiredMixin, UserPassesTestMixin):
     template_name = 'accounts/users/rols/role_form.html'
     success_url = reverse_lazy('role_list')
 
-@method_decorator(has_permission('see_role'), name='dispatch')
-class RoleListView(LoginRequiredMixin, View):
-    template_name = 'accounts/users/rols/role_list.html'
 
+class RoleListView(PermissionBaseView,ListView):
+    model = Role
+    template_name = 'accounts/users/rols/role_list.html'
+    # template_name = 'accounts/role/role_list.html'
+    context_object_name = 'roles'
+    permission_codenames = 'see_role'
+    paginate_by = 10  # صفحه‌بندی با 10 آیتم در هر صفحه
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # فیلتر جستجو
+        query = self.request.GET.get('q', '').strip()
+        if query:
+            queryset = queryset.filter(
+                Q(name__icontains=query) |
+                Q(description__icontains=query)
+            )
+            if not queryset.exists():
+                messages.info(self.request, _("نقشی با این مشخصات یافت نشد."))
+
+        # فقط نقش‌های فعال (اختیاری، اگه بخوای همه رو نشون بده این خط رو حذف کن)
+        # queryset = queryset.filter(is_active=True)
+
+        return queryset.order_by('name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _("لیست نقش‌ها")
+        context['query'] = self.request.GET.get('q', '')
+        return context
+
+
+# @method_decorator(has_permission('see_role'), name='dispatch')
+# class RoleListView1(LoginRequiredMixin, View):
+class RoleListView1(PermissionBaseView, View):
+    template_name = 'accounts/users/rols/role_list.html'
+    permission_codenames = 'see_role'
     def get(self, request):
         show_inactive = request.GET.get('show_inactive', 'false') == 'true'
         roles = Role.objects.all() if show_inactive else Role.objects.filter(is_active=True)
         return render(request, self.template_name, {'roles': roles, 'show_inactive': show_inactive})
-
-    # template_name = 'accounts/users/rols/role_list.html'
-    #
-    # # def get(self, request):
-    # #     roles = Role.objects.all()
-    # #     return render(request, self.template_name, {'roles': roles})
-    # def get(self, request):
-    #     # فیلتر برای نقش‌های فعال
-    #     roles = Role.objects.filter(is_active=True)
-    #     # یا اگر می‌خواهید گزینه‌ای برای نمایش نقش‌های غیرفعال اضافه کنید:
-    #     show_inactive = request.GET.get('show_inactive', 'false') == 'true'
-    #     if show_inactive:
-    #         roles = Role.objects.all()
-    #     else:
-    #         roles = Role.objects.filter(is_active=True)
-    #     return render(request, self.template_name, {'roles': roles, 'show_inactive': show_inactive})
 
 
 # لیست اپ‌هایی که نمی‌خوای نشون داده بشن
@@ -265,14 +283,14 @@ EXCLUDED_APPS = [
 ]
 
 
-@method_decorator(has_permission('create_role'), name='dispatch')
-class RoleCreateView(CreateView):
+# @method_decorator(has_permission('create_role'), name='dispatch')
+class RoleCreateView(PermissionBaseView,CreateView):
     raise_exception = True
     model = Role
     form_class = RoleForm
     template_name = 'accounts/role/role_form.html'
     success_url = reverse_lazy('accounts:role_list')
-
+    permission_codenames = 'create_role'
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         permissions = Permission.objects.select_related('content_type').all()
@@ -296,13 +314,13 @@ class RoleCreateView(CreateView):
             tree[app_label].append(perm)
         return tree
 
-@method_decorator(has_permission('modify_role'), name='dispatch')
-class RoleUpdateView(UpdateView):
+# @method_decorator(has_permission('modify_role'), name='dispatch')
+class RoleUpdateView(PermissionBaseView,  UpdateView):
     model = Role
     form_class = RoleForm
     template_name = 'accounts/role/role_form.html'
     success_url = reverse_lazy('accounts:role_list')
-
+    permission_codenames = 'modify_role'
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         permissions = Permission.objects.select_related('content_type').all()
@@ -315,6 +333,7 @@ class RoleUpdateView(UpdateView):
                 tree.setdefault(app_label_farsi, []).append(perm)
         # print("permissions_tree keys:", list(tree.keys()))
         context['permissions_tree'] = tree
+        print("Loaded apps:", [app.verbose_name for app in apps.get_app_configs()])
         return context
 
     def get_permissions_tree(self):

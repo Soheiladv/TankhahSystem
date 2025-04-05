@@ -12,6 +12,3 @@ class VersionTrackerConfig(AppConfig):
         from django.db.models.signals import post_migrate
         from .signals import update_versions
         post_migrate.connect(update_versions, sender=self)
-
-
-

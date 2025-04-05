@@ -4,10 +4,10 @@
 {% block content %}
     <div class="container mt-4">
         <div class="card shadow-sm border-0">
-            <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center">
+            <div class="card-header bg-paid text-body d-flex justify-content-between align-items-center">
                 <h1 class="card-title mb-0"><i class="fas fa-list me-2"></i>{{ title|default:'لیست تنخواه‌ها' }}</h1>
                 <div>
-                    {% if perms.tankhah.Tankhah_add and is_hq_user %}
+                    {% if perms.tankhah.Tankhah_add and is_hq_user and not show_archived %}
                         <a href="{% url 'tankhah_create' %}" class="btn btn-outline-light btn-sm">
                             <i class="fas fa-plus me-1"></i>{% trans "ایجاد تنخواه" %}
                         </a>
@@ -18,15 +18,15 @@
                 </div>
             </div>
             <div class="card-body">
-                <!-- فرم جستجو -->
+                <!-- فرم جستجو و فیلتر -->
                 <form method="get" class="mb-3">
                     <div class="row gy-3">
                         <div class="col-md-6">
                             <div class="form-check">
                                 <input type="checkbox" class="form-check-input" name="show_archived" id="showArchived"
-                                       value="true" {% if show_archived %}checked{% endif %}>
+                                       value="true" {% if show_archived %}checked{% endif %}
+                                       onchange="this.form.submit()">
                                 <label class="form-check-label" for="showArchived">{% trans "نمایش آرشیو" %}</label>
-                                <button type="submit" class="btn btn-secondary btn-sm ms-2">{% trans "فیلتر" %}</button>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -46,104 +46,130 @@
                     <table class="table table-striped table-hover">
                         <thead class="bg-primary text-white">
                         <tr>
+                            <th class="no-print">{% trans "#" %}</th>
                             <th>{% trans "شماره" %}</th>
                             <th>{% trans "تاریخ" %}</th>
                             <th>{% trans "میزان هزینه" %}</th>
                             <th>{% trans "سازمان" %}</th>
                             <th>{% trans "پروژه" %}</th>
+                            <th>{% trans "زیرمجموعه پروژه" %}</th>
                             <th>{% trans "وضعیت" %}</th>
                             <th>{% trans "اقدامات" %}</th>
-                            <th>گزارش مالی</th>
+                            {% if perms.reports.FinancialReport_view %}
+                                <th>{% trans "گزارش مالی" %}</th>
+                            {% endif %}
                         </tr>
                         </thead>
                         <tbody>
-                        {% for tankhah in Tankhahs %}
+                        {% for tankhah in page_obj %}
                             <tr>
+                                <td> {% if not tankhah.is_archived %}
+                                    <strong style="color: black">{{ forloop.counter|to_persian_number }}</strong>
+                                {% else %}
+                                    <strong style="color: red">{{ forloop.counter |to_persian_number }}</strong>
+                                {% endif %}
+                                </td>
                                 <td>{{ tankhah.number|to_persian_number }}</td>
                                 <td>{{ tankhah.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
                                 <td>{{ tankhah.amount|format_negative }}</td>
                                 <td>{{ tankhah.organization.name|default:'بدون سازمان' }}</td>
                                 <td>{{ tankhah.project.name|default:'-' }}</td>
-                                <td>{{ tankhah.get_status_display }}</td>
+                                <td>{{ tankhah.subproject.name|default:'-' }}</td>
+                                <td><span
+                                        class="badge bg-{{ tankhah.status|lower }}">{{ tankhah.get_status_display }}</span>
+                                </td>
                                 <td>
                                     <div class="btn-group" role="group">
-                                        <a href="{% url 'tankhah_detail' tankhah.pk %}" class="btn btn-outline-info btn-sm">
+                                        <a href="{% url 'tankhah_detail' tankhah.pk %}"
+                                           class="btn btn-outline-info btn-sm">
                                             <i class="fas fa-eye"></i> {% trans "جزئیات" %}
                                         </a>
                                         <a href="{% url 'tankhah_tracking' tankhah.pk %}" class="btn btn-info btn-sm">
-                                            <i class="fas fa-tree me-1"></i>{% trans "درخت پیگیری تنخواه" %}
+                                            <i class="fas fa-tree me-1"></i>{% trans "درخت پیگیری" %}
                                         </a>
-                                        {% if request.user.is_supervisor or request.user.is_staff and perms.tankhah.tankhah_update %}
-                                            <a href="{% url 'tankhah_update' tankhah.pk %}" class="btn btn-outline-secondary btn-sm">
-                                                <i class="fas fa-edit"></i> {% trans "ویرایش" %}
-                                            </a>
-                                        {% endif %}
-                                        {% if request.user.is_supervisor or request.user.is_staff and perms.tankhah.tankhah_delete %}
-                                        <a href="{% url 'tankhah_delete' tankhah.pk %}" class="btn btn-outline-danger btn-sm">
-                                            <i class="fas fa-trash"></i> {% trans "حذف" %}
-                                        </a>
-                                        {% endif %}
-
-                                        {% if perms.tankhah.Tankhah_approve and tankhah.status == 'PENDING' %}
-                                            <a href="{% url 'tankhah_approve' tankhah.pk %}" class="btn btn-outline-primary btn-sm">
-                                                {% trans "تأیید تنخواه" %}
-                                            </a>
-                                            <a href="{% url 'tankhah_reject' tankhah.pk %}" class="btn btn-outline-danger btn-sm">
-                                                <i class="fas fa-times"></i>
-                                            </a>
+                                        {% if not tankhah.is_archived %}
+                                            {% if perms.tankhah.Tankhah_update %}
+                                                <a href="{% url 'tankhah_update' tankhah.pk %}"
+                                                   class="btn btn-outline-secondary btn-sm">
+                                                    <i class="fas fa-edit"></i> {% trans "ویرایش" %}
+                                                </a>
+                                            {% endif %}
+                                            {% if perms.tankhah.Tankhah_delete %}
+                                                <a href="{% url 'tankhah_delete' tankhah.pk %}"
+                                                   class="btn btn-outline-danger btn-sm">
+                                                    <i class="fas fa-trash"></i> {% trans "حذف" %}
+                                                </a>
+                                            {% endif %}
+                                            {% if perms.tankhah.Tankhah_approve and tankhah.status == 'PENDING' %}
+                                                <a href="{% url 'tankhah_approve' tankhah.pk %}"
+                                                   class="btn btn-outline-primary btn-sm">
+                                                    {% trans "تأیید" %}
+                                                </a>
+                                                <a href="{% url 'tankhah_reject' tankhah.pk %}"
+                                                   class="btn btn-outline-danger btn-sm">
+                                                    <i class="fas fa-times"></i>
+                                                </a>
+                                            {% endif %}
                                         {% endif %}
                                     </div>
-                                    {% if tankhah.factors.exists %}
-                                        <div class="mt-2">
-                                            <strong>{% trans "فاکتورها:" %}</strong>
-                                            <ul>
-                                                {% for factor in tankhah.factors.all %}
-                                                    <li>
-                                                        {{ factor.number }}
-                                                        - {{ factor.amount|default:0|format_negative }}
-                                                        <a href="{% url 'factor_item_approve' factor.pk %}"
-                                                           class="btn btn-sm btn-info">{% trans "تأیید ردیف‌ها" %}</a>
-                                                    </li>
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
-                                    {% endif %}
                                 </td>
-                                <td>
-{#                                    {% if tankhah.is_locked or tankhah.is_archived %}#}
-                                        <a href="{% url 'tankhah_financial_report' tankhah.pk %}"
-                                           class="btn btn-info btn-sm">مشاهده گزارش</a>
-{#                                    {% else %}#}
-{#                                        <span>-</span>#}
-{#                                    {% endif %}#}
-                                </td>
+                                {% if perms.reports.FinancialReport_view %}
+                                    <td>
+                                        {% if tankhah.current_stage.name == 'HQ_FIN_PENDING' or tankhah.is_archived %}
+                                            <a href="{% url 'tankhah_financial_report' tankhah.pk %}"
+                                               class="btn btn-info btn-sm">
+                                                {% trans "گزارش مالی" %}
+                                            </a>
+                                        {% else %}
+                                            <button class="btn btn-info btn-sm"
+                                                    disabled>{% trans "گزارش مالی" %}</button>
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
+
+                                {% if tankhah.factors.exists and not tankhah.is_archived %}
+                                    <div class="mt-2">
+                                        <strong>{% trans "فاکتورها:" %}</strong>
+                                        <ul>
+                                            {% for factor in tankhah.factors.all %}
+                                                <li>
+                                                    {{ factor.number }} - {{ factor.amount|default:0|format_negative }}
+                                                    <a href="{% url 'factor_item_approve' factor.pk %}"
+                                                       class="btn btn-sm btn-info">
+                                                        {% trans "تأیید ردیف‌ها" %}
+                                                    </a>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="7" class="text-center text-muted">{% trans "تنخواهی یافت نشد." %}</td>
+                                <td colspan="{% if perms.reports.FinancialReport_view %}8{% else %}7{% endif %}"
+                                    class="text-center text-muted">
+                                    {% trans "تنخواهی یافت نشد." %}
+                                </td>
                             </tr>
                         {% endfor %}
                         </tbody>
                     </table>
                 </div>
 
-                {% if is_hq_user %}
-                    <div class="alert alert-info">
-                        <strong>{% trans "دفتر مرکزی:" %}</strong> {% trans "نمایش تمام تنخواه‌ها و فاکتورها" %}
-                    </div>
-                {% else %}
-                    <div class="alert alert-warning">
-                        <strong>{% trans "مجموعه:" %}</strong>
-                        {% if is_hq_user %}
-                            {% trans "دفتر مرکزی - تمام تنخواه‌ها" %}
-                        {% else %}
-                            {% trans "فقط تنخواه‌های سازمان" %} {{ org_display_name }}
-                        {% endif %}
-                    </div>
-                {% endif %}
+                <!-- پیام وضعیت -->
+                <div class="alert {% if show_archived %}alert-success{% else %}alert-info{% endif %} mt-3">
+                    <strong>{% trans "وضعیت نمایش:" %}</strong>
+                    {% if show_archived %}
+                        {% trans "فقط تنخواه‌های آرشیو شده" %}
+                    {% else %}
+                        {% trans "تنخواه‌های فعال" %}
+                    {% endif %}
+                    - {% trans "سازمان:" %} {{ org_display_name }}
+                </div>
 
                 <!-- صفحه‌بندی -->
-                {% if is_paginated %}
+                {% if page_obj.paginator.num_pages > 1 %}
                     <nav aria-label="Page navigation">
                         <ul class="pagination justify-content-center mt-3">
                             {% if page_obj.has_previous %}
@@ -155,14 +181,12 @@
                                 </li>
                             {% endif %}
                             {% for num in page_obj.paginator.page_range %}
-                                {% if page_obj.number == num %}
-                                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                                {% else %}
-                                    <li class="page-item">
-                                        <a class="page-link"
-                                           href="?page={{ num }}&q={{ query }}&show_archived={{ show_archived|default:'' }}">{{ num }}</a>
-                                    </li>
-                                {% endif %}
+                                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                    <a class="page-link"
+                                       href="?page={{ num }}&q={{ query }}&show_archived={{ show_archived|default:'' }}">
+                                        {{ num|to_persian_number }}
+                                    </a>
+                                </li>
                             {% endfor %}
                             {% if page_obj.has_next %}
                                 <li class="page-item">
@@ -176,6 +200,29 @@
                     </nav>
                 {% endif %}
             </div>
+            </div>
         </div>
-    </div>
+
+    <!-- استایل و اسکریپت -->
+    {% block extra_css %}
+
+        <style>
+            .bg-gradient {
+                background: linear-gradient(90deg, #007bff, #0056b3);
+            }
+
+            .badge.bg-draft {
+                background-color: #6c757d;
+            }
+
+            .badge.bg-pending {
+                background-color: #ffc107;
+            }
+
+            .badge.bg-paid {
+                background-color: #28a745;
+            }
+        </style>
+    {% endblock %}
+
 {% endblock %}

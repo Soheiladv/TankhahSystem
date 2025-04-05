@@ -10,7 +10,7 @@ def has_permission(permission_codename):
         def _wrapped_view(request, *args, **kwargs):
             # logger.info(f"Checking permissions for user: {request.user}")
             if request.user.is_superuser:
-                # logger.info("User is superuser. Access granted.")
+                logger.info("کاربر سوپریوزر است، دسترسی کامل 👍")
                 return view_func(request, *args, **kwargs)
                 # بررسی گروه‌های کاربر
             user_groups = request.user.groups.all()
@@ -25,6 +25,7 @@ def has_permission(permission_codename):
                     logger.info(f"Checking role😎: {role.name}")
                     if role.permissions.filter(codename=permission_codename).exists():
                         logger.warning(f"Permission {permission_codename} found👍in role {role.name} of group {group.name}. Access granted.👍")
+                        logger.info(f"مجوز {permission_codename} توی نقش {role.name} پیدا شد")
                         return view_func(request, *args, **kwargs)
 
                         # فقط WARNING و هدایت

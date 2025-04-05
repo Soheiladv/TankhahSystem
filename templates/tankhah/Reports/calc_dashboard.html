@@ -1,193 +1,235 @@
-<!-- Tankhah/Reports/calc_dashboard.html -->
 {% extends 'base.html' %}
 {% load i18n static rcms_custom_filters tanbakh_tags %}
 
 {% block content %}
 <div class="container mt-5">
-    <h1 class="text-center mb-4 animate__animated animate__fadeInDown">
-        <i class="fas fa-chart-line me-2"></i>{% trans "داشبورد مالی" %}
-    </h1>
+    <h1 class="text-center mb-4">{% trans "داشبورد مالی" %}</h1>
 
     <!-- کارت‌های اصلی -->
     <div class="row mb-4 g-4">
         <div class="col-md-3">
             <div class="card text-center bg-primary text-white shadow-lg">
                 <div class="card-body">
-                    <h5 class="card-title">{% trans "مبلغ کل تنخواه‌ها" %}</h5>
-                    <p class="card-text fs-3">{{ total_tanbakh_amount|floatformat:0|format_negative }} {% trans "تومان" %}</p>
+                    <h5>{% trans "مبلغ کل تنخواه‌ها" %}</h5>
+                    <p class="fs-3">{{ total_tanbakh_amount|floatformat:0|to_persian_number }} {% trans "تومان" %}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card text-center bg-warning text-dark shadow-lg">
                 <div class="card-body">
-                    <h5 class="card-title">{% trans "تنخواه‌های آرشیو شده" %}</h5>
-                    <p class="card-text fs-3">{{ archived_tanbakhs|to_persian_number }}</p>
+                    <h5>{% trans "تنخواه‌های آرشیو شده" %}</h5>
+                    <p class="fs-3">{{ archived_tanbakhs|to_persian_number }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card text-center bg-success text-white shadow-lg">
                 <div class="card-body">
-                    <h5 class="card-title">{% trans "حجم کل تصاویر" %}</h5>
-                    <p class="card-text fs-3">{{ total_image_size_mb|floatformat:2|to_persian_number }} {% trans "مگابایت" %}</p>
+                    <h5>{% trans "حجم کل تصاویر" %}</h5>
+                    <p class="fs-3">{{ total_image_size_mb|floatformat:2|to_persian_number }} {% trans "مگابایت" %}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card text-center bg-info text-white shadow-lg">
                 <div class="card-body">
-                    <h5 class="card-title">{% trans "فاکتورهای تأیید شده" %}</h5>
-                    <p class="card-text fs-3">{{ approved_factors|format_negative }}</p>
+                    <h5>{% trans "میانگین زمان پردازش" %}</h5>
+                    <p class="fs-3">{{ avg_processing_time.days|to_persian_number }} {% trans "روز" %}</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- چارت مقایسه مالی -->
-    <div class="card mb-4 shadow-lg">
-        <div class="card-header bg-gradient bg-primary text-white">
-            <h5 class="mb-0">{% trans "مقایسه مالی و تصاویر مجتمع‌ها" %}</h5>
+    <!-- چارت‌ها -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white"><h5>{% trans "مقایسه مالی و تصاویر" %}</h5></div>
+                <div class="card-body"><canvas id="financialChart" height="120"></canvas></div>
+            </div>
         </div>
-        <div class="card-body">
-            <canvas id="financialChart" height="120"></canvas>
-        </div>
-    </div>
-
-    <!-- چارت وضعیت تنخواه‌ها -->
-    <div class="card mb-4 shadow-lg">
-        <div class="card-header bg-gradient bg-primary text-white">
-            <h5 class="mb-0">{% trans "وضعیت تنخواه‌ها" %}</h5>
-        </div>
-        <div class="card-body">
-            <canvas id="statusChart" height="120"></canvas>
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white"><h5>{% trans "وضعیت تنخواه‌ها" %}</h5></div>
+                <div class="card-body"><canvas id="statusChart" height="120"></canvas></div>
+            </div>
         </div>
     </div>
 
-    <!-- داده‌های مجتمع‌ها -->
+    <!-- عملکرد کاربران -->
+    <div class="card mb-4 shadow-lg">
+        <div class="card-header bg-info text-white"><h5>{% trans "عملکرد کاربران" %}</h5></div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>{% trans "کاربر" %}</th>
+                        <th>{% trans "تأییدها" %}</th>
+                        <th>{% trans "رد شده‌ها" %}</th>
+                        <th>{% trans "میانگین زمان (روز)" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in user_performance %}
+                    <tr>
+                        <td>{{ user.user__username }}</td>
+                        <td>{{ user.total_approvals|to_persian_number }}</td>
+                        <td>{{ user.total_rejections|to_persian_number }}</td>
+                        <td>{{ user.avg_time.days|default:0|to_persian_number }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center">{% trans "داده‌ای موجود نیست" %}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">{% trans "عملکرد کاربران (چارت)" %}</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="userChart" height="120"></canvas>
+        </div>
+    </div>
+
+    <!-- داده‌های سازمان‌ها -->
     <div class="row g-4">
         {% for org in org_data %}
         <div class="col-md-6">
             <div class="card shadow-lg">
-                <div class="card-header bg-gradient bg-secondary text-white">
-                    <h5 class="mb-0">{{ org.name }}</h5>
-                </div>
+                <div class="card-header bg-secondary text-white"><h5>{{ org.name }}</h5></div>
                 <div class="card-body">
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item">{% trans "مبلغ تنخواه‌ها" %}: <strong>{{ org.total_tanbakh_amount|floatformat:0|format_negative }} {% trans "تومان" %}</strong></li>
-                        <li class="list-group-item">{% trans "مبلغ فاکتورها" %}: <strong>{{ org.total_factor_amount|floatformat:0|format_negative }} {% trans "تومان" %}</strong></li>
-                        <li class="list-group-item">{% trans "جمع ردیف‌های تأییدشده" %}: <strong>{{ org.approved_items_amount|floatformat:0|format_negative }} {% trans "تومان" %}</strong></li>
-                        <li class="list-group-item">{% trans "حجم تصاویر" %}: <strong>{{ org.image_size_mb|floatformat:2|format_negative }} {% trans "مگابایت" %}</strong></li>
-                        <li class="list-group-item">
-                            {% trans "وضعیت فاکتورها" %}:
-                            <ul class="list-unstyled">
-                                <li><i class="fas fa-check-circle text-success me-1"></i> {% trans "تأیید شده" %}: {{ org.approved_factors|format_negative }}</li>
-                                <li><i class="fas fa-times-circle text-danger me-1"></i> {% trans "رد شده" %}: {{ org.rejected_factors|format_negative }}</li>
-                                <li><i class="fas fa-hourglass-half text-warning me-1"></i> {% trans "در انتظار" %}: {{ org.pending_factors|format_negative }}</li>
-                            </ul>
-                        </li>
+                        <li class="list-group-item">{% trans "مبلغ تنخواه‌ها" %}: <strong>{{ org.total_tanbakh_amount|floatformat:0|to_persian_number }} {% trans "تومان" %}</strong></li>
+                        <li class="list-group-item">{% trans "مبلغ فاکتورها" %}: <strong>{{ org.total_factor_amount|floatformat:0|to_persian_number }} {% trans "تومان" %}</strong></li>
+                        <li class="list-group-item">{% trans "جمع ردیف‌های تأییدشده" %}: <strong>{{ org.approved_items_amount|floatformat:0|to_persian_number }} {% trans "تومان" %}</strong></li>
+                        <li class="list-group-item">{% trans "حجم تصاویر" %}: <strong>{{ org.image_size_mb|floatformat:2|to_persian_number }} {% trans "مگابایت" %}</strong></li>
                     </ul>
                 </div>
             </div>
         </div>
         {% empty %}
-        <div class="col-12"><div class="alert alert-info text-center">{% trans "هیچ مجتمعی برای نمایش وجود ندارد." %}</div></div>
+        <div class="col-12"><p class="text-center">{% trans "سازمانی یافت نشد" %}</p></div>
         {% endfor %}
     </div>
+
+    <!-- میانگین زمان مراحل -->
+    <div class="card mb-4 shadow-lg">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">{% trans "میانگین زمان مراحل" %}</h5>
+        </div>
+        <div class="card-body">
+            <ul class="list-group">
+                {% for stage, time in stage_times.items %}
+                <li class="list-group-item">{{ stage }}: {{ time|to_persian_number }} {% trans "روز" %}</li>
+                {% empty %}
+                <li class="list-group-item">{% trans "داده‌ای موجود نیست" %}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- جمع آیتم‌های تأییدشده -->
+    <div class="card mb-4 shadow-lg">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">{% trans "جمع آیتم‌های تأییدشده به تفکیک دسته‌بندی" %}</h5>
+        </div>
+        <div class="card-body">
+            <ul class="list-group">
+                {% for cat in item_categories %}
+                <li class="list-group-item">
+                    {{ cat.category|default:"بدون دسته" }}: {{ cat.total|floatformat:0|to_persian_number }} {% trans "تومان" %}
+                </li>
+                {% empty %}
+                <li class="list-group-item">{% trans "داده‌ای موجود نیست" %}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- صفحه‌بندی (در صورت نیاز به نمایش تنخواه‌ها) -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="pagination mt-4">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}">{% trans "قبلی" %}</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">{% trans "قبلی" %}</span></li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}">{{ num|to_persian_number }}</a>
+                </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.project %}&project={{ request.GET.project }}{% endif %}">{% trans "بعدی" %}</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">{% trans "بعدی" %}</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
 </div>
 
-<style>
-    .card { border-radius: 15px; transition: transform 0.3s ease; }
-    .card:hover { transform: translateY(-5px); }
-    .card-header { font-weight: bold; padding: 15px; }
-    .fs-3 { font-size: 2rem; font-weight: bold; }
-    .bg-gradient { background: linear-gradient(135deg, var(--primary), var(--sidebar-bg)); }
-    .shadow-lg { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); }
-</style>
-
-<!-- لود فونت فارسی -->
-{#<link href="https://cdn.jsdelivr.net/npm/vazir-font@27.0.0/dist/font-face.css" rel="stylesheet" type="text/css" />#}
-
+<!-- اسکریپت‌ها -->
 <script src="{% static 'admin/js/chart.js' %}"></script>
 <script>
-    // تنظیم فونت پیش‌فرض برای Chart.js
-    Chart.defaults.font.family = 'Parastoo, sans-serif';
-
+    Chart.defaults.font.family = 'Vazir, sans-serif';
     document.addEventListener('DOMContentLoaded', function () {
         // چارت مالی
         var financialCtx = document.getElementById('financialChart').getContext('2d');
-        var financialChartData = {{ chart_data|safe }};
         new Chart(financialCtx, {
             type: 'bar',
-            data: financialChartData,
+            data: {{ chart_data|safe }},
             options: {
-                responsive: true,
-                animation: { duration: 1500, easing: 'easeInOutQuart' },
                 scales: {
-                    y: { beginAtZero: true, title: { display: true, text: 'مقدار', font: { size: 14 } } },
-                    x: { title: { display: true, text: 'مجتمع‌ها', font: { size: 14 } } }
+                    y: { beginAtZero: true, title: { display: true, text: 'مقدار' } },
+                    x: { title: { display: true, text: 'سازمان‌ها' } }
                 },
                 plugins: {
-                    legend: { position: 'top', labels: { font: { size: 14 } } },
-                    title: { display: true, text: 'گزارش جامع مالی و تصاویر', font: { size: 18 } },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let unit = context.dataset.label.includes('حجم') ? 'مگابایت' : 'تومان';
-                                return `${context.dataset.label}: ${context.raw.toLocaleString('fa-IR')} ${unit}`;
-                            }
-                        }
-                    }
+                    legend: { position: 'top' },
+                    title: { display: true, text: 'مقایسه مالی و تصاویر' }
                 }
             }
         });
 
         // چارت وضعیت
         var statusCtx = document.getElementById('statusChart').getContext('2d');
-        var statusChartData = {{ status_chart_data|safe }};
         new Chart(statusCtx, {
             type: 'pie',
-            data: statusChartData,
+            data: {{ status_chart_data|safe }},
             options: {
-                responsive: true,
                 plugins: {
-                    legend: { position: 'top', labels: { font: { size: 14 } } },
-                    title: { display: true, text: 'وضعیت تنخواه‌ها', font: { size: 18 } },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.label}: ${context.raw.toLocaleString('fa-IR')}`;
-                            }
-                        }
-                    }
+                    legend: { position: 'top' },
+                    title: { display: true, text: 'وضعیت تنخواه‌ها' }
+                }
+            }
+        });
+
+        // چارت کاربران
+        var userCtx = document.getElementById('userChart').getContext('2d');
+        new Chart(userCtx, {
+            type: 'bar',
+            data: {{ user_chart_data|safe }},
+            options: {
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'تعداد' } }
+                },
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: 'عملکرد کاربران' }
                 }
             }
         });
     });
 </script>
-    <!-- اضافه کردن جدول وضعیت -->
-<div class="card mb-4 shadow-lg">
-    <div class="card-header bg-gradient bg-info text-white">
-        <h5 class="mb-0">{% trans "جزئیات وضعیت تنخواه‌ها" %}</h5>
-    </div>
-    <div class="card-body">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>{% trans "وضعیت" %}</th>
-                    <th>{% trans "تعداد" %}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for status, count in status_counts.items %}
-                <tr>
-                    <td>{{ status  }}</td>
-                    <td>{{ count|to_persian_number }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
 {% endblock %}

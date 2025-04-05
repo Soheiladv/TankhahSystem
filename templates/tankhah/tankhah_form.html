@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load i18n static %}
 
+{% block extra_head %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{% endblock %}
+
 {% block content %}
     <div class="container my-4">
         <h1 class="mb-4 text-primary"><i class="fas fa-edit me-2"></i>{% trans "ایجاد تنخواه جدید" %}</h1>
@@ -29,7 +33,6 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save me-2"></i>{% trans "ثبت" %}
                     </button>
-
                     <a href="{% url 'tankhah_list' %}" class="btn btn-secondary">
                         <i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت" %}
                     </a>
@@ -37,4 +40,40 @@
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        $(document).ready(function() {
+            console.log('jQuery لود شد');
+            $('#id_project').change(function() {
+                var projectId = $(this).val();
+                console.log('پروژه انتخاب شد: ' + projectId);
+                if (projectId) {
+                    $.ajax({
+                        url: '{% url "get_subprojects" %}',
+                        type: 'GET',
+                        data: {'project_id': projectId},
+                        success: function(data) {
+                            console.log('پاسخ دریافت شد: ', data);
+                            var $subproject = $('#id_subproject');
+                            $subproject.empty();
+                            $subproject.append('<option value="">---------</option>');
+                            $.each(data.subprojects, function(index, subproject) {
+                                $subproject.append(
+                                    $('<option>').val(subproject.id).text(subproject.name)
+                                );
+                            });
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('خطای AJAX: ', status, error, xhr.responseText);
+                            $('#id_subproject').empty().append('<option value="">خطا در بارگذاری</option>');
+                        }
+                    });
+                } else {
+                    $('#id_subproject').empty().append('<option value="">---------</option>');
+                }
+            });
+        });
+    </script>
 {% endblock %}

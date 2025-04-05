@@ -21,7 +21,10 @@
                 <td>{{ log.action }}</td>
                 <td>{{ log.stage }}</td>
                 <td>{{ log.comment }}</td>
-                <td>{{ log.timestamp }}</td>
+                <td>{{ log.get_action_display }}</td>
+                <td>{{ log.user.get_full_name }}</td>
+
+                <td>{{ log.timestamp|date:"Y/m/d H:i" }}</td>
             </tr>
             {% endfor %}
         </tbody>

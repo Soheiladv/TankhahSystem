@@ -1,6 +1,7 @@
 # accounts/middleware.py
 import logging
 
+from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -16,6 +17,10 @@ class ActiveUserMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        if request.user.is_authenticated and not request.user.is_active and not request.user.is_superuser:
+            # اگه این شرط باشه و is_active=False باشه، سوپریوزر هم رد می‌شه
+            raise PermissionDenied("کاربر غیرفعاله")
+
         if request.path.startswith('/static/') or request.path.startswith('/media/'):
             return self.get_response(request)
 
@@ -112,8 +117,6 @@ class ActiveUserMiddleware:
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         return x_forwarded_for.split(',')[0] if x_forwarded_for else request.META.get('REMOTE_ADDR', '')
 
-
-
 class AuditLogMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -130,61 +133,6 @@ class AuditLogMiddleware:
 
         response = self.get_response(request)
 
-        if not hasattr(request, '_audit_log_info') or self._should_skip_logging(request):
-            return response
-        action = self._get_action_from_method(request.method)
-        log = AuditLog(
-            user=request._audit_log_info['user'],
-            action=action,
-            model_name='HTTP Request',
-            details=f"{request.method} {request.path}",
-            ip_address=request._audit_log_info['ip_address'],
-            browser=request._audit_log_info['browser'],
-            status_code=response.status_code,
-        )
-        self.logs_to_create.append(log)
-        if len(self.logs_to_create) >= 100:
-            AuditLog.objects.bulk_create(self.logs_to_create)
-            self.logs_to_create = []
-        return response
-
-    def _should_skip_logging(self, request):
-        return request.path.startswith('/static/') or request.path.startswith('/media/')
-
-    def _get_action_from_method(self, method):
-        return {'GET': 'read', 'POST': 'create', 'PUT': 'update', 'PATCH': 'update', 'DELETE': 'delete'}.get(method, 'read')
-
-    def get_client_ip(self, request):
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        return x_forwarded_for.split(',')[0] if x_forwarded_for else request.META.get('REMOTE_ADDR', '')
-
-class RequestMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        from threading import current_thread
-        current_thread()._request = request
-        return self.get_response(request)
-
-class AuditLogMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
-        self.logs_to_create = []
-
-    def __call__(self, request):
-        # process_request رو توی __call__ ادغام کردم
-        request._audit_log_info = {
-            'user': request.user if request.user.is_authenticated else None,
-            'method': request.method,
-            'path': request.path,
-            'ip_address': self.get_client_ip(request),
-            'browser': request.META.get('HTTP_USER_AGENT', ''),
-        }
-
-        response = self.get_response(request)
-
-        # process_response
         if not hasattr(request, '_audit_log_info') or self._should_skip_logging(request):
             return response
         action = self._get_action_from_method(request.method)

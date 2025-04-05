@@ -45,6 +45,14 @@
                                 {% trans "تأیید همه ردیف‌ها" %}
                             </label>
                         </div>
+                        {% if show_payment_number %}
+                            <div class="form-group mt-3">
+                                <label for="payment_number">{% trans "شماره پرداخت" %}</label>
+                                <input type="text" class="form-control" id="payment_number" name="payment_number"
+                                       required>
+                                <small class="form-text text-muted">{% trans "لطفاً شماره پرداخت را برای تکمیل تنخواه وارد کنید." %}</small>
+                            </div>
+                        {% endif %}
 
                         <div class="table-responsive">
                             <table class="table table-bordered table-hover align-middle">
@@ -63,12 +71,13 @@
                                     <tr>
                                         <td>{{ forloop.counter }}</td>
                                         <td>{{ item.description|truncatechars:50 }}</td>
-                                        <td>{{ item.amount|format_negative }}</td>
+                                        <td>{{ item.amount|format_negative|to_persian_number }}</td>
                                         <td>
                                             <span class="badge bg-{{ item.status|lower }}">
                                                 {{ item.get_status_display }}
                                             </span>
                                         </td>
+
                                         <td>{{ form.action }}</td>
                                         <td>{{ form.comment }}</td>
                                         {{ form.item_id }}
@@ -125,8 +134,11 @@
     .badge.bg-pending { background-color: #ffc107 !important; }
     .table td { vertical-align: middle; }
     .table thead th { background-color: #e9ecef; color: #212529; }
+    .bg-pending { background-color: #ffc107; color: #000; } /* زرد برای در انتظار */
+    .bg-approved { background-color: #28a745; color: #fff; } /* سبز برای تأیید شده */
+    .bg-rejected { background-color: #dc3545; color: #fff; } /* قرمز برای رد شده */
+    .bg-paid { background-color: #007bff; color: #fff; } /* آبی برای پرداخت شده */
 </style>
-
 <style>
     textarea {
         resize: none;

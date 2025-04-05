@@ -1,0 +1,21 @@
+<!-- tankhah/templates/tankhah/subproject_confirm_delete.html -->
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-danger text-white">
+            <h1 class="card-title mb-0">{% trans "حذف ساب‌پروژه" %}</h1>
+        </div>
+        <div class="card-body">
+            <p>{% trans "آیا مطمئن هستید که می‌خواهید ساب‌پروژه" %} <strong>{{ object.name }}</strong> {% trans "را حذف کنید؟" %}</p>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">{% trans "بله، حذف کن" %}</button>
+                <a href="{% url 'subproject_list' %}" class="btn btn-secondary">{% trans "خیر، لغو" %}</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

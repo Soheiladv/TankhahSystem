@@ -14,4 +14,18 @@
             </div>
         </div>
     </div>
+
+<div class="container mt-5">
+    <h1>{{ title }}</h1>
+    <div class="card">
+        <div class="card-body">
+            <p><strong>{% trans "تنخواه:" %}</strong> {{ approval.tankhah.number }}</p>
+            <p><strong>{% trans "اقدام:" %}</strong> {{ approval.get_action_display }}</p>
+            <p><strong>{% trans "کاربر:" %}</strong> {{ approval.user.get_full_name }}</p>
+            <p><strong>{% trans "زمان:" %}</strong> {{ approval.timestamp|date:"Y/m/d H:i" }}</p>
+            <p><strong>{% trans "توضیحات:" %}</strong> {{ approval.comment|default:"بدون توضیح" }}</p>
+            <a href="{% url 'approval_list' %}" class="btn btn-secondary">{% trans "بازگشت" %}</a>
+        </div>
+    </div>
+</div>
 {% endblock %}
