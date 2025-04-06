@@ -1,485 +1,490 @@
-{% extends 'base.html' %}
-{% load i18n static rcms_custom_filters jformat version_tags %}
-{% load active_users_tags %}
+{% extends "base.html" %}
+{% load i18n static rcms_custom_filters jformat %}
+
+{% block title %}{% trans "داشبورد مدیریت تنخواه" %} | {{ block.super }}{% endblock %}
 
 {% block content %}
-    <div class="dashboard-container">
-        <!-- هدر شیشه‌ای -->
-        <div class="glass-header animate__animated animate__fadeInDown">
-            <div class="header-content">
-                <h1 class="title animate__animated animate__fadeInRight">
-                    <i class="fas fa-chart-network"></i>
-                    <i class="fas fa-tachometer-alt me-3"></i> {{ title }}
-                </h1>
-                <div class="user-info animate__animated animate__fadeInLeft">
-                    <span class="welcome-msg">{% trans "خوش آمدید" %}</span>
-                    <div class="user-avatar">
-                        <i class="fas fa-user-circle"></i>
-                        <span>{{ user.first_name }} {{ user.last_name }}</span>
+    <div class="container-fluid dashboard-creative-page py-4 px-md-4">
+        <!-- هدر -->
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-6">
+                <div class="d-flex align-items-center">
+                    <div class="avatar me-3">
+                        <img src="{% static 'admin/img/user.png' %}" alt="{{ user.get_full_name }}"
+                             class="rounded-circle" width="60">
+                    </div>
+                    <div>
+                        <h1 class="dashboard-greeting h3 fw-light mb-1">
+                            {% blocktrans with user_name=user.get_full_name|default:user.username %}سلام {{ user_name }}
+                                !{% endblocktrans %}
+                        </h1>
+                        <p class="text-muted mb-0 small">
+                            <i class="fas fa-user-shield me-1"></i>
+                            {% for group in user.groups.all %}{{ group.name }}{% if not forloop.last %},
+                            {% endif %}{% endfor %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div class="d-flex flex-column align-items-end">
+                    <div class="notifications-bell mb-2 position-relative">
+                        <i class="fas fa-bell text-primary" style="font-size: 1.5rem; cursor: pointer;"></i>
+                        {% if notifications %}
+                            <span class="badge bg-danger position-absolute"
+                                  style="top: -5px; right: -5px;">{{ notifications|length }}</span>
+                            <div class="dropdown-menu dropdown-menu-end p-2" style="display: none;">
+                                {% for notification in notifications %}
+                                    <div class="notification-item p-2 border-bottom">{{ notification.message }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <span class="badge bg-light text-dark shadow-sm p-2 px-3 mb-2">
+                    <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                    <span id="dashboard-datetime">{% now "l، j F Y" %}</span>
+                </span>
+                    <span class="badge bg-primary text-white shadow-sm p-2 px-3">
+                    <i class="fas fa-code-branch me-2"></i>
+                    نسخه {{ version }}
+                </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت‌های آماری -->
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi-card kpi-card-primary h-100">
+                    <div class="kpi-card-body">
+                        <div class="kpi-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                        <div class="kpi-content">
+                            <span class="kpi-value display-6 fw-bold"
+                                  id="active-tankhah-counter">{{ active_tankhah_count }}</span>
+                            <span class="kpi-label">{% trans "تنخواه فعال" %}</span>
+
+                    </div>
+                    <a href="{% url 'tankhah_list' %}" class="kpi-card-footer">{% trans "مشاهده" %} <i
+                            class="fas fa-arrow-left small"></i></a>
+                </div>
+                      <div class="kpi-content">
+                            <span class="kpi-value display-6 fw-bold"
+                                  id="pending-approval-counter">  {{ rejected_factors }} </span>
+                                <span class="kpi-label">{% trans "  تعداد فاکتورهای ردشده:" %}</span>
+                            </div>
+                        </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi-card kpi-card-danger h-100">
+                    <div class="kpi-card-body">
+                        <div class="kpi-icon"><i class="fas fa-coins"></i></div>
+                        <div class="kpi-content">
+                            <span class="kpi-value display-6 fw-bold"
+                                  id="monthly-expense-counter">{{ current_month_total_amount }}</span>
+                            <span class="kpi-label">{% trans "هزینه ماه (ریال)" %}</span>
+                        </div>
+                    </div>
+                    <a href="#" class="kpi-card-footer">{% trans "گزارش" %} <i class="fas fa-arrow-left small"></i></a>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi-card kpi-card-warning h-100">
+                    <div class="kpi-card-body">
+                        <div class="kpi-icon"><i class="fas fa-clock"></i></div>
+                        <div class="kpi-content">
+                            <span class="kpi-value display-6 fw-bold"
+                                  id="pending-approval-counter">{{ pending_approval_count }}</span>
+                            <span class="kpi-label">{% trans "منتظر تأیید" %}</span>
+                        </div>
+                    </div>
+                    <a href="#" class="kpi-card-footer">{% trans "بررسی" %} <i class="fas fa-arrow-left small"></i></a>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi-card kpi-card-success h-100">
+                    <div class="kpi-card-body">
+                        <div class="kpi-icon"><i class="fas fa-project-diagram"></i></div>
+                        <div class="kpi-content">
+                            <span class="kpi-value display-6 fw-bold"
+                                  id="active-projects-counter">{{ active_projects_count }}</span>
+                            <span class="kpi-label">{% trans "پروژه فعال" %}</span>
+                        </div>
+                    </div>
+                    <a href="{% url 'project_list' %}" class="kpi-card-footer">{% trans "جزئیات" %} <i
+                            class="fas fa-arrow-left small"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- چارت و فعالیت‌ها -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-7">
+                <div class="card chart-widget border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent border-bottom-0 pt-3 px-3 d-flex justify-content-between align-items-center">
+                        <h3 class="h6 text-heading fw-bold"><i
+                                class="fas fa-chart-bar me-2 text-primary"></i>{% trans "هزینه‌ها" %}</h3>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary active"
+                                    data-period="monthly">{% trans "ماهانه" %}</button>
+                            <button class="btn btn-outline-secondary"
+                                    data-period="quarterly">{% trans "فصلی" %}</button>
+                        </div>
+                    </div>
+                    <div class="card-body pt-0">
+                        <div class="chart-container" style="position: relative; height: 280px; width:100%;">
+                            <canvas id="monthlyExpensesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="card activity-widget border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent border-bottom-0 pt-3 px-3 d-flex justify-content-between align-items-center">
+                        <h3 class="h6 text-heading fw-bold"><i
+                                class="fas fa-list-check me-2 text-success"></i>{% trans "فعالیت‌ها" %}</h3>
+                        <a href="#" class="btn btn-sm btn-outline-primary">{% trans "همه" %}</a>
+                    </div>
+                    <div class="card-body pt-0">
+                        <ul class="list-group list-group-flush activity-list">
+                            {% for activity in recent_activities %}
+                                <li class="list-group-item px-0">
+                                    <a href="{{ activity.get_absolute_url }}"
+                                       class="d-flex align-items-center text-decoration-none activity-link">
+                                        <div class="activity-icon me-3">
+                                            {% if activity.action == 'APPROVE' %}
+                                                <i class="fas fa-check text-success"></i>
+                                            {% elif activity.action == 'REJECT' %}
+                                                <i class="fas fa-times text-danger"></i>
+                                            {% else %}<i class="fas fa-info-circle text-secondary"></i>{% endif %}
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <p class="mb-0 small">
+                                                {% if activity.tankhah %}{{ activity.tankhah.number }} -
+                                                    {{ activity.action }}
+                                                    {% elif activity.factor %}{{ activity.factor.number }} -
+                                                    {{ activity.action }}{% endif %}
+                                            </p>
+                                            <small class="text-muted">{{ activity.timestamp|jformat:"%d %b %Y، %H:%M" }}</small>
+                                        </div>
+                                        <i class="fas fa-chevron-left text-muted small ms-2"></i>
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li class="list-group-item px-0 text-center text-muted py-4">{% trans "فعالیتی ثبت نشده" %}</li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- محتوای اصلی -->
-        <div class="dashboard-content">
-            {% if user.is_authenticated %}
-                <!-- کارت‌های دسته‌بندی -->
-                <div class="category-grid">
+        <!-- لینک‌های داشبورد (زیبا و شیک) -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm dashboard-links animate__animated animate__fadeIn"
+                     style="animation-delay: 0.3s;">
+                    <div class="card-header bg-gradient-primary text-white pt-3 px-4 d-flex justify-content-between align-items-center">
+                        <h3 class="h5 fw-bold mb-0"><i class="fas fa-compass me-2"></i>{% trans "دسترسی سریع" %}</h3>
+                        <span class="badge bg-light text-primary px-3 py-1">{% trans "لینک‌های کاربردی" %}</span>
+                    </div>
+                    <div class="card-body p-4">
                     {% for category, links in dashboard_links.items %}
-                        <div class="category-card animate__animated animate__zoomIn"
-                             style="--delay: {{ forloop.counter }}">
-                            <div class="category-header">
-                                <i class="fas fa-{{ category|slice:':1'|lower }}"></i>
-                                <h3>{{ category }}</h3>
-                            </div>
-                            <div class="category-links">
+                        <div class="mb-4">
+                            <h5 class="dashboard-category-title text-uppercase text-muted mb-3 pb-2 border-bottom">
+                                <i class="fas fa-folder-open me-2"></i>{{ category }}
+                            </h5>
+                            <div class="row g-3">
                                 {% for link in links %}
-                                    <a href="{% url link.url %}"
-                                       class="dashboard-link animate__animated animate__fadeInUp"
-                                       style="--link-delay: {{ forloop.counter }}">
-                                        <div class="link-icon">
-                                            <i class="{{ link.icon }}"></i>
-                                        </div>
-                                        <span>{{ link.name }}</span>
-                                        <i class="fas fa-chevron-left link-arrow"></i>
-                                    </a>
+                                    <div class="col-lg-3 col-md-4 col-sm-6">
+                                        <a href="{% url link.url %}"
+                                           class="dashboard-link-card d-block text-decoration-none">
+                                            <div class="d-flex align-items-center p-3">
+                                                <div class="link-icon-circle me-3">
+                                                    <i class="{{ link.icon }} text-primary"></i>
+                                                </div>
+                                                <span class="link-text fw-medium">{{ link.name }}</span>
+                                            </div>
+                                        </a>
+                                    </div>
                                 {% endfor %}
                             </div>
                         </div>
+                    {% empty %}
+                        <p class="text-muted text-center">{% trans "لینکی برای نمایش وجود ندارد." %}</p>
                     {% endfor %}
                 </div>
+                </div>
+            </div>
+        </div>
 
-                <!-- ویجت‌های پایینی -->
-                <div class="dashboard-widgets">
-                    <div class="widget quick-access animate__animated animate__fadeInLeft">
-                        <h3><i class="fas fa-bolt"></i> دسترسی سریع</h3>
-                        <div class="quick-links">
-                            <a href="#" class="quick-link">
-                                <i class="fas fa-file-invoice"></i>
-                                <span>گزارش جدید</span>
-                            </a>
-                            <a href="#" class="quick-link">
-                                <i class="fas fa-chart-pie"></i>
-                                <span>آمار سیستم</span>
-                            </a>
-                            <a href="#" class="quick-link">
-                                <i class="fas fa-cog"></i>
-                                <span>تنظیمات</span>
-                            </a>
-                        </div>
+        <!-- آمار کلی -->
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light pt-3 px-3">
+                        <h3 class="h6 text-heading fw-bold"><i
+                                class="fas fa-wallet me-2 text-secondary"></i>{% trans "آمار کلی" %}</h3>
                     </div>
-
-                    <div class="widget version-info animate__animated animate__fadeInRight">
-                        <div class="version-badge">
-                            <i class="fas fa-code-branch"></i>
-                            <span>نسخه: {% get_final_version %}</span>
-                        </div>
-                        <div class="system-status">
-                            <div class="status-item online">
-                                <i class="fas fa-server"></i>
-                                <span>سیستم آنلاین</span>
-                            </div>
-                            <div class="status-item users">
-                                <i class="fas fa-users"></i>
-                                <span>کاربران فعال:  </span>
-                                <div class="user-status-badge">
-    <span class="badge bg-info">
-        <i class="fas fa-users"></i>
-        {% get_active_users_count %} / {% get_max_active_users %}
-    </span>
+                    <div class="card-body">
+                        {% if stats_permission_denied %}
+                            <p class="text-danger">{% trans "شما دسترسی به مشاهده آمار کلی ندارید." %}</p>
+                        {% else %}
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p>تنخواه تخصیص‌یافته: {{ total_allocated|floatformat:0 }} ریال</p>
+                                    <p>هزینه شده: {{ total_spent|floatformat:0 }} ریال</p>
+                                    <p>باقیمانده: {{ total_unspent|floatformat:0 }} ریال</p>
+                                    <p>جمع فاکتورها: {{ total_factors_amount|floatformat:0 }} ریال</p>
                                 </div>
-
+                                <div class="col-md-4">
+                                    <p>پروژه‌های آرشیو شده: {{ archived_projects_count }}</p>
+                                    <p>تنخواه‌های آرشیو شده: {{ archived_tankhah_count }}</p>
                             </div>
-                        </div>
-                    </div>
+                                <div class="col-md-4">
+                                    <h5>آمار شعبه‌ها:</h5>
+                                    <ul>
+                                        {% for branch, data in branch_stats.items %}
+                                            <li>{{ branch }}: تخصیص {{ data.allocated|floatformat:0 }} -
+                                                هزینه {{ data.spent|floatformat:0 }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                            <h5 class="mt-3">جمع فاکتورها برای هر تنخواه:</h5>
+                            <ul>
+                                {% for tankhah_number, factors_total in tankhah_factors.items %}
+                                    <li>{{ tankhah_number }}: {{ factors_total|floatformat:0 }} ریال</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
                 </div>
-            {% else %}
-                <!-- حالت عدم احراز هویت -->
-                <div class="auth-required animate__animated animate__shakeX">
-                    <div class="lock-icon">
-                        <i class="fas fa-lock"></i>
-                    </div>
-                    <h3>{% trans "دسترسی محدود" %}</h3>
-                    <p>{% trans "برای مشاهده داشبورد باید وارد سیستم شوید" %}</p>
-                    <a href="{% url 'accounts:login' %}" class="login-btn animate__animated animate__pulse">
-                        <i class="fas fa-sign-in-alt"></i>
-                        {% trans "ورود به سیستم" %}
-                    </a>
                 </div>
-            {% endif %}
+            </div>
         </div>
     </div>
+{% endblock %}
 
+{% block extra_css %}
     <style>
-        :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3a0ca3;
-            --accent-color: #7209b7;
-            --text-color: #2b2d42;
-            --light-bg: #f8f9fa;
-            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            --glass-effect: rgba(255, 255, 255, 0.15);
+        .dashboard-creative-page {
+            background-color: #f8f9fa;
         }
 
-        .dashboard-container {
-            background-color: var(--light-bg);
-            min-height: 100vh;
-            padding: 0;
-        }
-
-        /* هدر شیشه‌ای */
-        .glass-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 1.5rem 2rem;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .glass-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
-            z-index: 0;
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-            z-index: 1;
-        }
-
-        .title {
-            color: white;
-            font-weight: 700;
-            margin: 0;
-            font-size: 1.8rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .title i {
-            font-size: 1.5rem;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .welcome-msg {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 1rem;
-        }
-
-        .user-avatar {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            color: white;
-        }
-
-        .user-avatar i {
-            font-size: 1.5rem;
-        }
-
-        /* محتوای اصلی */
-        .dashboard-content {
-            padding: 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .category-card {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: var(--card-shadow);
+        .kpi-card {
+            background-color: white;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
-            animation-delay: calc(var(--delay) * 0.1s);
         }
 
-        .category-card:hover {
+        .kpi-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
-        .category-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-            color: white;
-            padding: 1.2rem 1.5rem;
+        .kpi-card-body {
+            padding: 1.5rem;
             display: flex;
             align-items: center;
-            gap: 1rem;
-        }
-
-        .category-header i {
-            font-size: 1.5rem;
-        }
-
-        .category-header h3 {
-            margin: 0;
-            font-size: 1.2rem;
-        }
-
-        .category-links {
-            padding: 1rem;
-        }
-
-        .dashboard-link {
-            display: flex;
-            align-items: center;
-            padding: 0.8rem 1rem;
-            margin-bottom: 0.5rem;
-            border-radius: 10px;
-            color: var(--text-color);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            background: rgba(0, 0, 0, 0.02);
-            animation-delay: calc(var(--link-delay) * 0.1s);
-        }
-
-        .dashboard-link:hover {
-            background: rgba(67, 97, 238, 0.1);
-            transform: translateX(-5px);
-        }
-
-        .link-icon {
-            width: 35px;
-            height: 35px;
-            background: rgba(67, 97, 238, 0.1);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: 1rem;
-            color: var(--primary-color);
-        }
-
-        .link-arrow {
-            margin-right: auto;
-            color: #adb5bd;
-            transition: all 0.3s ease;
-        }
-
-        .dashboard-link:hover .link-arrow {
-            color: var(--primary-color);
-            transform: translateX(-5px);
-        }
-
-        /* ویجت‌ها */
-        .dashboard-widgets {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
             gap: 1.5rem;
         }
 
-        .widget {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: var(--card-shadow);
+        .kpi-icon {
+            font-size: 2.5rem;
+            opacity: 0.2;
         }
 
-        .widget h3 {
-            margin-top: 0;
-            margin-bottom: 1.5rem;
-            color: var(--text-color);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        .kpi-content {
+            flex-grow: 1;
+            text-align: right;
         }
 
-        .quick-links {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
+        .kpi-value {
+            color: #333;
         }
 
-        .quick-link {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            border-radius: 10px;
-            background: rgba(0, 0, 0, 0.02);
-            color: var(--text-color);
-            text-decoration: none;
-            transition: all 0.3s ease;
+        .kpi-label {
+            font-size: 0.9rem;
+            color: #666;
         }
 
-        .quick-link:hover {
-            background: rgba(67, 97, 238, 0.1);
-            transform: translateY(-3px);
-        }
-
-        .quick-link i {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-            color: var(--primary-color);
-        }
-
-        .version-info {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .version-badge {
-            background: rgba(67, 97, 238, 0.1);
-            color: var(--primary-color);
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            width: fit-content;
-        }
-
-        .system-status {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .status-item {
-            padding: 1rem;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .status-item i {
-            font-size: 1.2rem;
-        }
-
-        .online {
-            background: rgba(40, 167, 69, 0.1);
-            color: #28a745;
-        }
-
-        .users {
-            background: rgba(13, 110, 253, 0.1);
-            color: #0d6efd;
-        }
-
-        /* حالت عدم احراز هویت */
-        .auth-required {
-            background: white;
-            border-radius: 15px;
-            padding: 3rem 2rem;
+        .kpi-card-footer {
+            padding: 0.6rem;
             text-align: center;
-            box-shadow: var(--card-shadow);
-            max-width: 500px;
-            margin: 2rem auto;
+            color: #666;
+            text-decoration: none;
         }
 
-        .lock-icon {
-            width: 80px;
-            height: 80px;
-            background: rgba(220, 53, 69, 0.1);
+        .kpi-card-footer:hover {
+            color: #007bff;
+            background-color: #f0f8ff;
+        }
+
+        .chart-widget, .activity-widget, .dashboard-links {
+            background-color: white;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .activity-link:hover {
+            background-color: #f8f9fa;
+        }
+
+        .activity-icon {
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1.5rem;
+            background-color: #e9ecef;
         }
 
-        .lock-icon i {
-            font-size: 2.5rem;
-            color: #dc3545;
+        /* استایل جدید برای لینک‌ها */
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
         }
 
-        .auth-required h3 {
-            color: var(--text-color);
-            margin-bottom: 0.5rem;
+        .dashboard-category-title {
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            color: #555;
         }
 
-        .auth-required p {
-            color: #6c757d;
-            margin-bottom: 1.5rem;
-        }
-
-        .login-btn {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border: none;
-            padding: 0.8rem 2rem;
-            border-radius: 50px;
-            font-weight: 500;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+        .dashboard-link-card {
+            background-color: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+            overflow: hidden;
+            position: relative;
         }
 
-        .login-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4);
-            color: white;
+        .dashboard-link-card:hover {
+            background-color: #f8f9fa;
+            border-color: #007bff;
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
         }
 
-        /* انیمیشن‌ها */
-        .animate__animated {
-            --animate-duration: 0.5s;
+        .dashboard-link-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #007bff;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        /* رسپانسیو */
-        @media (max-width: 992px) {
-            .dashboard-widgets {
-                grid-template-columns: 1fr;
-            }
-
-            .quick-links {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .dashboard-link-card:hover::before {
+            opacity: 1;
         }
 
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-            }
+        .link-icon-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(0, 123, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
 
-            .user-info {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
+        .dashboard-link-card:hover .link-icon-circle {
+            background-color: #007bff;
+            color: #fff;
+            transform: scale(1.1);
+        }
 
-            .category-grid {
-                grid-template-columns: 1fr;
-            }
+        .link-text {
+            color: #333;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+        }
 
-            .quick-links {
-                grid-template-columns: 1fr;
-            }
+        .dashboard-link-card:hover .link-text {
+            color: #007bff;
         }
     </style>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/countup.js@2.6.0/dist/countUp.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // شمارنده‌ها
+            const animateCounters = () => {
+                const counters = [
+                    ['active-tankhah-counter', {{ active_tankhah_count|default:0 }}],
+                    ['monthly-expense-counter', {{ current_month_total_amount|default:0 }}],
+                    ['pending-approval-counter', {{ pending_approval_count|default:0 }}],
+                    ['active-projects-counter', {{ active_projects_count|default:0 }}]
+                ];
+                counters.forEach(([id, value]) => {
+                    new CountUp(id, value, {duration: 2, separator: ','}).start();
+                });
+            };
+            setTimeout(animateCounters, 500);
+
+            // چارت
+            const ctx = document.getElementById('monthlyExpensesChart');
+            if (ctx) {
+                const monthlyLabels = {{ monthly_report_data.labels|safe }};
+                const monthlyValues = {{ monthly_report_data.values|safe }};
+                const quarterlyLabels = {{ quarterly_report_data.labels|safe }};
+                const quarterlyValues = {{ quarterly_report_data.values|safe }};
+
+                const chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: monthlyLabels,
+                        datasets: [{
+                            label: 'هزینه‌ها (ریال)',
+                            data: monthlyValues,
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {y: {beginAtZero: true}, x: {grid: {display: false}}},
+                        plugins: {
+                            legend: {display: false},
+                            tooltip: {callbacks: {label: context => context.parsed.y.toLocaleString('fa-IR') + ' ریال'}}
+                        }
+                    }
+                });
+
+                document.querySelectorAll('[data-period]').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        const period = this.dataset.period;
+                        chart.data.labels = period === 'monthly' ? monthlyLabels : quarterlyLabels;
+                        chart.data.datasets[0].data = period === 'monthly' ? monthlyValues : quarterlyValues;
+                        chart.update();
+                    });
+                });
+            }
+
+            // نمایش اعلان‌ها
+            const bell = document.querySelector('.notifications-bell .fa-bell');
+            const dropdown = document.querySelector('.notifications-bell .dropdown-menu');
+            if (bell && dropdown) {
+                bell.addEventListener('click', () => {
+                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                });
+            }
+        });
+    </script>
 {% endblock %}

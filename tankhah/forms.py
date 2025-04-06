@@ -1,5 +1,7 @@
 import logging
 
+from django.db import models
+
 from core.tests import CustomUser
 from .utils import restrict_to_user_organization
 
@@ -198,7 +200,7 @@ class TanbakhApprovalForm(forms.ModelForm):
         model = Tankhah
         fields = []  # هیچ فیلد دیگری از مدل نیاز نیست
 
-class FactorForm(forms.ModelForm):
+class FactorForm1(forms.ModelForm):
     date = forms.CharField(
         label=_('تاریخ'),
         widget=forms.TextInput(attrs={
@@ -283,6 +285,97 @@ class FactorForm(forms.ModelForm):
                 new_value = getattr(instance, field)
                 logger.info(
                     f"تغییر در فاکتور {instance.number}: {field} از {old_value} به {new_value} توسط {self.user}")
+        if commit:
+            instance.save()
+        return instance
+class FactorForm(forms.ModelForm):
+    date = forms.CharField(
+        label=_('تاریخ'),
+        widget=forms.TextInput(attrs={
+            'data-jdp': '',
+            'class': 'form-control',
+            'placeholder': convert_to_farsi_numbers(_('تاریخ را انتخاب کنید (1404/01/17)'))
+        })
+    )
+
+    class Meta:
+        model = Factor
+        fields = ['tankhah', 'date', 'amount', 'description']
+        widgets = {
+            'tankhah': forms.Select(attrs={'class': 'form-control'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('مبلغ را وارد کنید')}),
+            'description': forms.Textarea(
+                attrs={'class': 'form-control', 'rows': 3, 'placeholder': _('توضیحات فاکتور')}),
+        }
+        labels = {
+            'tankhah': _('تنخواه'),
+            'date': _('تاریخ'),
+            'amount': _('مبلغ'),
+            'description': _('توضیحات'),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        self.tankhah = kwargs.pop('tankhah', None)
+        super().__init__(*args, **kwargs)
+        initial_stage_order = WorkflowStage.objects.order_by('order').first().order if WorkflowStage.objects.exists() else None
+
+        if self.user:
+            user_orgs = restrict_to_user_organization(self.user)
+            if user_orgs is None:  # HQ یا Superuser
+                self.fields['tankhah'].queryset = Tankhah.objects.filter(
+                    status__in=['DRAFT', 'PENDING'],
+                    current_stage__order=initial_stage_order
+                )
+            else:  # شعبات
+                projects = Project.objects.filter(organizations__in=user_orgs)
+                subprojects = SubProject.objects.filter(project__in=projects)
+                queryset = Tankhah.objects.filter(
+                    status__in=['DRAFT', 'PENDING'],
+                    current_stage__order=initial_stage_order
+                ).filter(
+                    models.Q(organization__in=user_orgs) |
+                    models.Q(project__in=projects) |
+                    models.Q(subproject__in=subprojects)
+                ).distinct()
+                self.fields['tankhah'].queryset = queryset
+                logger.info(f"Tankhah queryset: {list(queryset.values('number', 'project__name', 'subproject__name'))}")
+
+        if self.instance.pk:
+            self.fields['tankhah'].queryset = Tankhah.objects.filter(id=self.instance.tankhah.id)
+            self.fields['tankhah'].initial = self.instance.tankhah
+            if self.instance.date:
+                j_date = jdatetime.date.fromgregorian(date=self.instance.date)
+                jalali_date_str = j_date.strftime('%Y/%m/%d')
+                self.fields['date'].initial = jalali_date_str
+                self.initial['date'] = jalali_date_str
+            self.fields['amount'].initial = convert_to_farsi_numbers(self.instance.amount)
+        elif self.tankhah:
+            self.fields['tankhah'].initial = self.tankhah
+
+        if self.instance.pk and self.user and not self.user.has_perm('tankhah.Factor_full_edit'):
+            for field_name in self.fields:
+                self.fields[field_name].disabled = True
+
+    def clean_date(self):
+        date_str = self.cleaned_data.get('date')
+        if not date_str:
+            raise forms.ValidationError(_('تاریخ فاکتور اجباری است.'))
+        try:
+            j_date = jdatetime.datetime.strptime(date_str, '%Y/%m/%d')
+            gregorian_date = j_date.togregorian()
+            return timezone.make_aware(gregorian_date)
+        except ValueError:
+            raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.user and self.instance.pk and self.has_changed():
+            old_instance = Factor.objects.get(pk=self.instance.pk)
+            for field in self.changed_data:
+                old_value = getattr(old_instance, field)
+                new_value = getattr(instance, field)
+                logger.info(f"تغییر در فاکتور {instance.number}: {field} از {old_value} به {new_value} توسط {self.user}")
         if commit:
             instance.save()
         return instance

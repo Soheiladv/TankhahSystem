@@ -1,3 +1,8 @@
+import json
+from datetime import timedelta
+from django.utils import timezone
+
+from django.db.models import Sum, Q
 from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
 ############################################Main
@@ -5,7 +10,8 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic.base import TemplateView
 
 from core.PermissionBase import PermissionBaseView
-from core.models import WorkflowStage
+from core.models import WorkflowStage, Project, Organization
+from tankhah.models import Tankhah, ApprovalLog, Notification, Factor
 
 
 class DashboardView( PermissionBaseView , TemplateView):
@@ -86,7 +92,128 @@ class DashboardView( PermissionBaseView , TemplateView):
                 filtered_links[category] = permitted_links
         context['dashboard_links'] = filtered_links
 
+        # اطلاعات پایه
+        context['user'] = user
+        context['title'] = _('داشبورد مدیریت تنخواه')
+        context['version'] = '1.2.3'
+
+        # تعداد تنخواه فعال
+        context['active_tankhah_count'] = Tankhah.objects.filter(
+            status__in=['PENDING', 'APPROVED', 'SENT_TO_HQ', 'HQ_OPS_PENDING', 'HQ_OPS_APPROVED', 'HQ_FIN_PENDING'],
+            is_archived=False
+        ).count()
+
+        # هزینه ماه جاری
+        current_month = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        context['current_month_total_amount'] = Tankhah.objects.filter(
+            created_at__gte=current_month,
+            status='PAID'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+
+        # درخواست‌های منتظر تأیید
+        context['pending_approval_count'] = Tankhah.objects.filter(
+            status='PENDING',
+            approved_by=user
+        ).count()
+
+        # پروژه‌های در دست اقدام و آرشیو شده
+        context['active_projects_count'] = Project.objects.filter(is_active=True).count()
+        context['archived_projects_count'] = Project.objects.filter(is_active=False).count()
+
+        # تنخواه‌های آرشیو شده
+        context['archived_tankhah_count'] = Tankhah.objects.filter(is_archived=True).count()
+
+        # گزارش‌های ماهانه (12 ماه)
+        monthly_data = self.get_monthly_report_data()
+        context['monthly_report_data'] = {'labels': json.dumps(monthly_data['labels']),
+                                          'values': json.dumps(monthly_data['values'])}
+
+        # گزارش‌های فصلی
+        quarterly_data = self.get_quarterly_report_data()
+        context['quarterly_report_data'] = {'labels': json.dumps(quarterly_data['labels']),
+                                            'values': json.dumps(quarterly_data['values'])}
+
+        #تعداد فاکتورهای ردشده
+        context['rejected_factors']  = Factor.objects.filter(status='REJECTED').count()
+
+        # فعالیت‌های اخیر (از ApprovalLog)
+        context['recent_activities'] = ApprovalLog.objects.filter(
+            Q(tankhah__isnull=False) | Q(factor__isnull=False)
+        ).order_by('-timestamp')[:5]
+
+        # اعلان‌ها
+        context['notifications'] = Notification.objects.filter(user=user, is_read=False).order_by('-created_at')[:5]
+
+        # آمار کلی تنخواه و فاکتورها (با دسترسی)
+        if user.has_perm('core.Dashboard_Stats_view'):
+            tankhah_stats = self.get_tankhah_statistics()
+            context.update(tankhah_stats)
+        else:
+            context['stats_permission_denied'] = True
+
         return context
+
+
+
+    def get_monthly_report_data(self):
+        now = timezone.now()
+        data = {'labels': [], 'values': []}
+        for i in range(11, -1, -1):
+            month_start = (now - timedelta(days=30 * i)).replace(day=1)
+            month_end = month_start + timedelta(days=30)
+            total = Tankhah.objects.filter(
+                created_at__gte=month_start,
+                created_at__lt=month_end,
+                status='PAID'
+            ).aggregate(total=Sum('amount'))['total'] or 0
+            data['labels'].append(month_start.strftime('%B'))
+            data['values'].append(float(total))
+        return data
+
+    def get_quarterly_report_data(self):
+        now = timezone.now()
+        data = {'labels': [], 'values': []}
+        for i in range(3, -1, -1):
+            quarter_start = now - timedelta(days=90 * i)
+            quarter_end = quarter_start + timedelta(days=90)
+            total = Tankhah.objects.filter(
+                created_at__gte=quarter_start,
+                created_at__lt=quarter_end,
+                status='PAID'
+            ).aggregate(total=Sum('amount'))['total'] or 0
+            data['labels'].append(f"فصل {i + 1} {quarter_start.year}")
+            data['values'].append(float(total))
+        return data
+
+    def get_tankhah_statistics(self):
+        stats = {
+            'total_allocated': Tankhah.objects.aggregate(total=Sum('amount'))['total'] or 0,
+            'total_spent': Factor.objects.filter(status='APPROVED').aggregate(total=Sum('amount'))['total'] or 0,
+            'total_factors_amount': Factor.objects.aggregate(total=Sum('amount'))['total'] or 0,
+            'tankhah_factors': {},
+            'branch_stats': {}
+        }
+        stats['total_unspent'] = stats['total_allocated'] - stats['total_spent']
+
+        # جمع فاکتورها برای هر تنخواه
+        tankhahs = Tankhah.objects.all()
+        for tankhah in tankhahs:
+            factors_total = tankhah.factors.aggregate(total=Sum('amount'))['total'] or 0
+            stats['tankhah_factors'][tankhah.number] = factors_total
+
+        # آمار بر اساس شعبه
+        branches = Organization.objects.filter(org_type__in=['COMPLEX', 'HOTEL', 'PROVINCE', 'RENTAL'])
+        for branch in branches:
+            branch_tankhahs = Tankhah.objects.filter(organization=branch)
+            stats['branch_stats'][branch.name] = {
+                'allocated': branch_tankhahs.aggregate(total=Sum('amount'))['total'] or 0,
+                'spent': Factor.objects.filter(tankhah__organization=branch, status='APPROVED').aggregate(
+                    total=Sum('amount'))['total'] or 0
+            }
+
+        return stats
+
+
 ############################################
 
 # class Tanbakhsystem_DashboardView(LoginRequiredMixin, TemplateView):
