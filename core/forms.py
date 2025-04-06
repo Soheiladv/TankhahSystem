@@ -146,9 +146,6 @@ class ProjectForm(forms.ModelForm):
                     defaults={'description': self.cleaned_data.get('subproject_description', ''), 'is_active': True},
                 )
         return project
-
-
-
 class OrganizationForm(forms.ModelForm):
     class Meta:
         model = Organization
@@ -171,7 +168,7 @@ class OrganizationForm(forms.ModelForm):
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['name', 'organization', 'parent', 'level', 'branch', 'description']
+        fields = ['name', 'organization', 'parent', 'level', 'branch', 'description','max_change_level','is_active']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام پست'}),
             'organization': forms.Select(attrs={'class': 'form-control'}),
@@ -179,6 +176,8 @@ class PostForm(forms.ModelForm):
             'level': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'branch': forms.Select(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'max_change_level': forms.NumberInput(attrs={'class': 'form-control', 'min': 1,'max': 1, 'placeholder': 'حداکثر سطح تغییر(ارجاع به مرحله قبل تر)'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input' , 'placeholder': 'فعال'}),
         }
 
     def __init__(self, *args, **kwargs):

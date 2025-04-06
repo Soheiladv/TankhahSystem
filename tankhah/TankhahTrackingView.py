@@ -8,12 +8,13 @@ from django.views.generic import DetailView
 from notifications.signals import notify
 from accounts.models import CustomUser
 from core.models import UserPost
+from .fun_can_edit_approval import can_edit_approval
 from .models import Tankhah, ApprovalLog, WorkflowStage
 from core.views import PermissionBaseView
 from .utils import restrict_to_user_organization
 
 
-class TankhahTrackingView(PermissionBaseView, DetailView):
+class TankhahTrackingView1(PermissionBaseView, DetailView):
     model = Tankhah
     template_name = 'tankhah/Reports/tankhah_tracking.html'
     context_object_name = 'tankhah'
@@ -30,18 +31,44 @@ class TankhahTrackingView(PermissionBaseView, DetailView):
 
     def post(self, request, *args, **kwargs):
         tankhah = self.get_object()
+        user = request.user
+        user_post = UserPost.objects.filter(user=user, end_date__isnull=True).first()
+        user_level = user_post.post.level if user_post else 0
+
         if 'archive' in request.POST and not tankhah.is_archived:
             tankhah.is_archived = True
             tankhah.archived_at = timezone.now()
             tankhah.save()
             messages.success(request, _('تنخواه با موفقیت آرشیو شد.'))
+
+        elif 'change_stage' in request.POST and can_edit_approval(user, tankhah, tankhah.current_stage):
+            new_stage_order = int(request.POST.get('new_stage_order'))
+            new_stage = WorkflowStage.objects.filter(order=new_stage_order).first()
+            if new_stage:
+                tankhah.current_stage = new_stage
+                tankhah.status = 'PENDING' if new_stage.order < tankhah.current_stage.order else tankhah.status
+                tankhah.save()
+                ApprovalLog.objects.create(
+                    tankhah=tankhah,
+                    user=user,
+                    action='STAGE_CHANGE',
+                    stage=new_stage,
+                    comment=f"تغییر مرحله به {new_stage.name} توسط {user.get_full_name()}",
+                    post=user_post.post if user_post else None
+                )
+                messages.success(request, _(f"مرحله تنخواه به {new_stage.name} تغییر یافت."))
+
         return redirect('tankhah_tracking', pk=tankhah.pk)
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         tankhah = self.object
-        user_post = UserPost.objects.filter(user=self.request.user, end_date__isnull=True).first()
+        user = self.request.user
+        user_post = UserPost.objects.filter(user=user, end_date__isnull=True).first()
+        # user_post = UserPost.objects.filter(user=self.request.user, end_date__isnull=True).first()
         user_level = user_post.post.level if user_post else 0
+        # user_level = user_post.post.level if user_post else 0
 
         # اطلاعات تنخواه
         context['title'] = _('پیگیری تنخواه') + f" - {tankhah.number}"
@@ -70,17 +97,17 @@ class TankhahTrackingView(PermissionBaseView, DetailView):
             ).select_related('user', 'post')
 
             is_completed = approvals.filter(action='APPROVE').exists() and stage.order < tankhah.current_stage.order
-            if not is_completed and approvals.filter(action='APPROVE').exists() and stage == tankhah.current_stage:
-                # انتقال به مرحله بعدی
-                # next_stage = workflow_stages.filter(order__gt=stage.order).first()
-                # next_stage = workflow_stages.filter(order__lt=stage.order).order_by('-order').first()
-                next_stage = workflow_stages.filter(order__gt=stage.order).order_by('order').first()  # از 1 به 2 به 3
-                if next_stage:
-                    tankhah.current_stage = next_stage
-                    tankhah.save()
-                elif all(f.status == 'APPROVED' for f in tankhah.factors.all()):
-                    tankhah.status = 'APPROVED'
-                    tankhah.save()
+            # if not is_completed and approvals.filter(action='APPROVE').exists() and stage == tankhah.current_stage:
+            #     # انتقال به مرحله بعدی
+            #     # next_stage = workflow_stages.filter(order__gt=stage.order).first()
+            #     # next_stage = workflow_stages.filter(order__lt=stage.order).order_by('-order').first()
+            #     next_stage = workflow_stages.filter(order__gt=stage.order).order_by('order').first()  # از 1 به 2 به 3
+            #     if next_stage:
+            #         tankhah.current_stage = next_stage
+            #         tankhah.save()
+            #     elif all(f.status == 'APPROVED' for f in tankhah.factors.all()):
+            #         tankhah.status = 'APPROVED'
+            #         tankhah.save()
 
             stages_data.append({
                 'name': stage.name,
@@ -95,6 +122,8 @@ class TankhahTrackingView(PermissionBaseView, DetailView):
                 ],
             })
         context['stages'] = stages_data
+        context['can_change_stage'] = can_edit_approval(user, tankhah, tankhah.current_stage) and user_level >= 5  # فقط سطح 5 به بالا
+        context['workflow_stages'] = workflow_stages
 
         # چک مجوز تغییر وضعیت فاکتور
         context['can_approve_factor'] = self.request.user.has_perm('tankhah.FactorItem_approve')
@@ -130,3 +159,101 @@ class TankhahTrackingView(PermissionBaseView, DetailView):
     def handle_no_permission(self):
         messages.error(self.request, _('شما مجوز لازم برای مشاهده این تنخواه را ندارید.'))
         return redirect('factor_list')
+
+
+class TankhahTrackingView(PermissionBaseView, DetailView):
+    model = Tankhah
+    template_name = 'tankhah/Reports/tankhah_tracking.html'
+    context_object_name = 'tankhah'
+    permission_required = 'tankhah.Tankhah_view'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        user = self.request.user
+        if not user.is_superuser:
+            user_orgs = restrict_to_user_organization(user)
+            if user_orgs and obj.organization not in user_orgs:
+                raise PermissionDenied(_('شما به این تنخواه دسترسی ندارید.'))
+        return obj
+
+    def post(self, request, *args, **kwargs):
+        tankhah = self.get_object()
+        user = request.user
+        user_post = UserPost.objects.filter(user=user, end_date__isnull=True).first()
+        user_level = user_post.post.level if user_post else 0
+        max_change_level = user_post.post.max_change_level if user_post else 0
+
+        if 'archive' in request.POST and not tankhah.is_archived:
+            tankhah.is_archived = True
+            tankhah.archived_at = timezone.now()
+            tankhah.save()
+            messages.success(request, _('تنخواه با موفقیت آرشیو شد.'))
+
+        elif 'change_stage' in request.POST and can_edit_approval(user, tankhah, tankhah.current_stage):
+            new_stage_order = int(request.POST.get('new_stage_order'))
+            if new_stage_order <= max_change_level:
+                new_stage = WorkflowStage.objects.filter(order=new_stage_order).first()
+                if new_stage:
+                    tankhah.current_stage = new_stage
+                    tankhah.status = 'PENDING' if new_stage.order < tankhah.current_stage.order else tankhah.status
+                    tankhah.save()
+                    ApprovalLog.objects.create(
+                        tankhah=tankhah,
+                        user=user,
+                        action='STAGE_CHANGE',
+                        stage=new_stage,
+                        comment=f"تغییر مرحله به {new_stage.name} توسط {user.get_full_name()}",
+                        post=user_post.post if user_post else None
+                    )
+                    messages.success(request, _(f"مرحله تنخواه به {new_stage.name} تغییر یافت."))
+
+        return redirect('tankhah_tracking', pk=tankhah.pk)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tankhah = self.object
+        user = self.request.user
+        user_post = UserPost.objects.filter(user=user, end_date__isnull=True).first()
+        user_level = user_post.post.level if user_post else 0
+        max_change_level = user_post.post.max_change_level if user_post else 0
+
+        context['title'] = _('پیگیری تنخواه') + f" - {tankhah.number}"
+        context['factors'] = tankhah.factors.all().prefetch_related('items__approval_logs', 'documents', 'approval_logs')
+        context['documents'] = tankhah.documents.all()
+
+        workflow_stages = WorkflowStage.objects.filter(order__lte=max_change_level).order_by('order')
+        current_stage = tankhah.current_stage
+        if not current_stage:
+            tankhah.current_stage = workflow_stages.first()
+            tankhah.save()
+
+        stages_data = []
+        from django.db.models import Q
+        for stage in WorkflowStage.objects.order_by('order'):
+            approvals = ApprovalLog.objects.filter(
+                Q(tankhah=tankhah) |
+                Q(factor__tankhah=tankhah) |
+                Q(factor_item__factor__tankhah=tankhah),
+                stage=stage
+            ).select_related('user', 'post').filter(post__level__lte=max_change_level)
+
+            is_completed = approvals.filter(action='APPROVE').exists() and stage.order < tankhah.current_stage.order
+            stages_data.append({
+                'name': stage.name,
+                'order': stage.order,
+                'is_current': stage == tankhah.current_stage,
+                'is_completed': is_completed,
+                'approvals': approvals,
+                'approvers': [
+                    f"{approver.post.name} ({userpost.user.get_full_name()})"
+                    for approver in stage.stageapprover_set.prefetch_related('post__userpost_set__user').all()
+                    for userpost in approver.post.userpost_set.filter(end_date__isnull=True)
+                    if approver.post.level <= max_change_level
+                ],
+            })
+        context['stages'] = stages_data
+        context['can_change_stage'] = can_edit_approval(user, tankhah, tankhah.current_stage)
+        context['workflow_stages'] = workflow_stages
+        context['can_approve_factor'] = self.request.user.has_perm('tankhah.FactorItem_approve') and can_edit_approval(user, tankhah, tankhah.current_stage)
+        context['can_archive'] = not tankhah.is_archived and self.request.user.has_perm('tankhah.Tankhah_change')
+        return context

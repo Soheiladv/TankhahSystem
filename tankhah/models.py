@@ -1,3 +1,4 @@
+import logging
 import os
 from django.conf import settings
 from django.db import models, transaction
@@ -132,10 +133,9 @@ class Tankhah(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        if self.subproject:
-            return f"{self.number} - {self.project} - ({self.subproject})"
-        return f"{self.number} ({self.project})"
-
+        project_str = self.project.name if self.project else 'بدون پروژه'
+        subproject_str = f" ({self.subproject.name})" if self.subproject else ''
+        return f"{self.number} - {project_str}{subproject_str}"
 
     class Meta:
         verbose_name = _("تنخواه")
@@ -161,12 +161,14 @@ class Tankhah(models.Model):
             ('Tankhah_HQ_FIN_PENDING', _('در حال بررسی - مالی')),
             ('Tankhah_PAID', _('پرداخت‌شده')),
             ('Tankhah_REJECTED', _('ردشده')),
-            ("FactorItem_approve", "👍تایید/رد ردیف فاکتور (تایید ردیف فاکتور)"),
+            ("FactorItem_approve", "👍تایید/رد ردیف فاکتور (تایید ردیف فاکتور*استفاده در مراحل تایید*)"),
             ('edit_full_tankhah','👍😊تغییرات کاربری در فاکتور /تایید یا رد ردیف ها '),
 
             ('Dashboard_Core_view', 'دسترسی به داشبورد Core پایه'),
             ('DashboardView_flows_view', 'دسترسی به روند تنخواه گردانی'),
             ('Dashboard__view', 'دسترسی به داشبورد اصلی 💻'),
+
+            ('Dashboard_Stats_view', 'دسترسی به آمار کلی داشبورد💲'),
 
         ]
 
@@ -230,6 +232,10 @@ class Factor(models.Model):
             self.number = self.generate_number()
         super().save(*args, **kwargs)
 
+    def total_amount(self):
+        sum_Factor=sum(item.amount for item in self.items.all()) if self.items.exists() else 0
+        logging.info(f'sum_factor is {sum_Factor}')
+        return sum_Factor
 
     def __str__(self):
         return f"{self.number} ({self.tankhah.number})"
@@ -338,6 +344,7 @@ class StageApprover(models.Model):
     class Meta:
         verbose_name = _('تأییدکننده مرحله')
         verbose_name_plural = _('تأییدکنندگان مرحله')
+        unique_together = ('post', 'stage')
         default_permissions=()
         permissions = [
             ('stageapprover__view','نمایش تأییدکننده مرحله'),

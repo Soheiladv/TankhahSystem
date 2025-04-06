@@ -1,6 +1,5 @@
 # Create your models here.
 import datetime
-
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -108,6 +107,7 @@ class Post(models.Model):
     branch = models.CharField(max_length=3, choices=BRANCH_CHOICES, null=True, blank=True, verbose_name=_("شاخه"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
     is_active = models.BooleanField(default=True, verbose_name=_("وضعیت فعال"))
+    max_change_level = models.IntegerField(default=1, verbose_name=_("حداکثر سطح تغییر(ارجاع به مرحله قبل تر)"), help_text=_("حداکثر مرحله‌ای که این پست می‌تواند تغییر دهد"))
 
     def __str__(self):
         branch = self.branch or "بدون شاخه"
@@ -118,6 +118,9 @@ class Post(models.Model):
             self.level = self.parent.level + 1
         else:
             self.level = 1
+        # مطمئن می‌شیم max_change_level از level کمتر نباشه
+        if self.max_change_level < self.level:
+            self.max_change_level = self.level
         super().save(*args, **kwargs)
 
     class Meta:
