@@ -131,9 +131,8 @@
                                         <th scope="col">{% trans "توضیحات" %}</th>
                                         <th scope="col">{% trans "مبلغ" %}</th>
                                         <th scope="col">{% trans "وضعیت فعلی" %}</th>
-                                        <th scope="col" class="text-center">{% trans "اقدام شما" %}</th>
-                                        <th scope="col" class="text-center">{% trans "اقدام شما" %}</th>
                                         <th scope="col">{% trans "توضیحات شما (اختیاری)" %}</th>
+                                        <th scope="col" class="text-center">{% trans "اقدام شما" %}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -148,41 +147,79 @@
                                         <td data-label="مبلغ"
                                             class="text-nowrap fw-bold">{{ item.amount|format_negative|to_persian_number|default:"0" }}</td>
                                         <td data-label="وضعیت فعلی">
-                                            {% with item_status_lower=item.status|lower %}
-                                                <span class="badge status-badge status-{{ item_status_lower }} shadow-sm">
-                                                <i class="fas {% if item_status_lower == 'approved' %}fa-check{% elif item_status_lower == 'rejected' %}fa-times{% else %}fa-clock{% endif %} me-1"></i>
-                                                {{ item.get_status_display }}
-                                            </span>
-                                            {% endwith %}
+                                            {% if item.status == 'APPROVE' %}
+                                                <strong>تایید <i class="fas fa-thumbs-up"></i></strong>
+                                            {% else %}
+                                                <strong> 👎 رد شد <i class="fas fa-thumbs-down"></i></strong>
+                                            {% endif %}
+
                                         </td>
-                                        <td data-label="اقدام شما" class="action-cell">
-                                            {{ form.action }}
-                                        </td>
-                                        <td data-label="اقدام شما" class="action-cell">
-                                            <div class="btn-group btn-group-sm" role="group"
-                                                 aria-label="اقدامات ردیف فاکتور">
-                                                {% for radio in form.action %}
-                                                    <input type="radio" class="btn-check"
-                                                           name="{{ radio.name }}"
-                                                           id="{{ radio.id_for_label }}"
-                                                           value="{{ radio.choice_value }}"
-                                                            {#                   {% if radio.choice_value == form.initial.action %}checked{% endif %}#}
-                                                           {% if radio.choice_value == item.status %}checked{% endif %}
-                                                           autocomplete="off">
-                                                    <label class="btn
-                   {% if radio.choice_value == 'APPROVE' %}btn-outline-success
-                   {% else %}btn-outline-danger{% endif %}"
-                                                           for="{{ radio.id_for_label }}">
-                                                        <i class="fas
-                   {% if radio.choice_value == 'APPROVE' %}fa-check
-                   {% else %}fa-times{% endif %}"></i>
-                                                        {{ radio.choice_label }}
-                                                    </label>
-                                                {% endfor %}
-                                            </div>
-                                        </td>
+
                                         <td data-label="توضیحات شما">
                                             {{ form.comment }}
+                                        </td>
+
+                                        <td data-label="اقدام شما" class="action-cell">
+                                            {# فیلد اصلی فرم اکشن رو مخفی می‌کنیم ولی لازمش داریم #}
+                                            {{ form.action}}
+                                            {# دراپ داون برای انتخاب اقدام #}
+                                            <div class="dropdown action-dropdown">
+                                                {# آیدی دکمه باید یکتا باشه #}
+                                                <button class="btn btn-sm dropdown-toggle action-dropdown-toggle
+                                                       {% if form.action.value == 'APPROVE' %}btn-outline-success
+                                                       {% elif form.action.value == 'REJECT' %}btn-outline-danger
+                                                       {% else %}btn-outline-secondary{% endif %}"
+                                                        type="button"
+                                                        id="actionDropdown_{{ form.prefix }}" {# آیدی یکتا #}
+                                                        data-bs-toggle="dropdown"
+                                                        {# data-bs-display="static" #}
+                                                        {# ! این لازم نیست چون با JS strategy رو fixed می‌کنیم #}
+                                                        aria-expanded="false">
+                                                    {# نمایش وضعیت فعلی یا متن پیش‌فرض #}
+                                                    <span class="dropdown-label">
+                                                         {% if form.action.value == 'APPROVE' %}
+                                                             <i class="fas fa-check me-1"></i>{% trans "تایید شده" %}
+                                                         {% elif form.action.value == 'REJECT' %}
+                                                             <i class="fas fa-times me-1"></i>{% trans "رد شده" %}
+                                                         {% else %}
+                                                             <i class="fas fa-edit me-1"></i>{% trans "انتخاب اقدام" %}
+                                                         {% endif %}
+                                                     </span>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end"
+                                                    aria-labelledby="actionDropdown_{{ form.prefix }}">
+                                                    <li>
+                                                        <a class="dropdown-item action-select-item {% if form.action.value == 'APPROVE' %}active{% endif %}"
+                                                           href="#" data-action="APPROVE"
+                                                           data-target-name="{{ form.action.name }}">
+                                                            <i class="fas fa-check fa-fw me-2 text-success"></i>{% trans "تایید" %}
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item action-select-item {% if form.action.value == 'REJECT' %}active{% endif %}"
+                                                           href="#" data-action="REJECT"
+                                                           data-target-name="{{ form.action.name }}">
+                                                            <i class="fas fa-times fa-fw me-2 text-danger"></i>{% trans "رد" %}
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <hr class="dropdown-divider">
+                                                    </li>
+                                                    <li>
+                                                        {# ! مطمئن شوید value="NONE" در فرم شما تعریف شده #}
+                                                        <a class="dropdown-item action-select-item {% if not form.action.value or form.action.value == 'NONE' %}active{% endif %}"
+                                                           href="#" data-action="NONE"
+                                                           data-target-name="{{ form.action.name }}">
+                                                            <i class="fas fa-minus-circle fa-fw me-2 text-muted"></i>{% trans "هیچکدام/بازنشانی" %}
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+
+
+                                            {% if form.action.errors %}
+                                                <div class="text-danger small mt-1">{{ form.action.errors }}</div>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                 {% empty %}
@@ -199,18 +236,39 @@
                             </table>
                         </div>
 
-                            <div class="mt-4 text-end border-top pt-4">
-                                <a href="{% url 'dashboard_flows' %}" class="btn btn-secondary">
-                                    <i class="fas fa-times me-2"></i>{% trans "انصراف" %}
-                                </a>
-                                {% if can_edit %}
-                                    <button type="submit" class="btn btn-primary btn-lg px-4">
-                                        <i class="fas fa-save me-2"></i>{% trans "ذخیره اقدامات" %}
-                            </button>
-                                {% else %}
-                                    <p class="text-muted">{% trans "تأیید توسط سطح بالاتر انجام شده یا خارج از دسترسی شماست." %}</p>
-                                {% endif %}
-                        </div>
+<div class="mt-4 text-end border-top pt-4">
+    <a href="{% url 'dashboard_flows' %}" class="btn btn-secondary">
+        <i class="fas fa-times me-2"></i>{% trans "نمایش داشبورد وضعیت" %}
+    </a>
+
+    {% if can_edit and not is_final_approved %}
+        <button type="submit" class="btn btn-primary btn-lg px-4">
+            <i class="fas fa-save me-2"></i>{% trans "ذخیره اقدامات" %}
+        </button>
+        {% if can_final_approve and not higher_approval_changed %}
+            <button type="submit" name="final_approve" value="true" class="btn btn-success btn-lg px-4">
+                <i class="fas fa-check-double me-2"></i>{% trans "تأیید نهایی" %}
+            </button>
+        {% endif %}
+    {% else %}
+        <p class="text-muted">
+            {% if is_final_approved %}
+                {% trans "تأیید نهایی انجام شده و تغییرات بسته شده‌اند." %}
+            {% elif higher_approval_changed %}
+                {% trans "سطح بالاتری تغییراتی اعمال کرده و دسترسی شما بسته شده است." %}
+            {% else %}
+                {% trans "تأیید توسط سطح بالاتر انجام شده یا خارج از دسترسی شماست." %}
+            {% endif %}
+        </p>
+    {% endif %}
+    <a href="{% url 'factor_list' %}" class="btn btn-secondary animate__animated animate__flipInX">
+        <i class="fas fa-arrow-right"></i> {% trans "فهرست فاکتورها" %}
+    </a>
+</div>
+
+
+
+
                     </form>
                 </div>
 
@@ -279,492 +337,635 @@
                                 <strong>{% trans "توضیحات فاکتور:" %}</strong>
                                 <p class="text-muted mt-1">{{ factor.description|default:"ندارد" }}</p>
                             </div>
+
                         </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const input = document.querySelector(".persian-number-input");
+      const outputSpan = document.querySelector("#number-to-words-output span");
+
+      if (input && outputSpan) {
+        input.addEventListener("input", function() {
+          let value = this.value;
+          let rawNumber = NumberFormatter.getRawNumber(value); // تبدیل به عدد خام
+          let words = NumberFormatter.toPersianWords(rawNumber); // تبدیل به حروف
+          outputSpan.textContent = words || ""; // نمایش توی لیبل
+        });
+      }
+    });
+  </script>
+
 {% endblock %}
 
 {% block extra_css %}
-<style>
-    .rounded-lg-custom {
-        border-radius: var(--rcms-border-radius-lg, 0.8rem) !important;
-    }
+    <style>
+        .rounded-lg-custom {
+            border-radius: var(--rcms-border-radius-lg, 0.8rem) !important;
+        }
 
-    .factor-card-header {
-        background: linear-gradient(135deg, var(--rcms-primary), color-mix(in srgb, var(--rcms-primary), black 20%));
-    }
+        .factor-card-header {
+            background: linear-gradient(135deg, var(--rcms-primary), color-mix(in srgb, var(--rcms-primary), black 20%));
+        }
 
-    .factor-nav-tabs {
-        border-bottom: none;
-        margin-bottom: 0 !important;
-        background-color: var(--rcms-body-bg);
-        padding-top: 1rem !important;
-        border-top-left-radius: var(--rcms-border-radius-lg);
-        border-top-right-radius: var(--rcms-border-radius-lg);
-    }
+        .factor-nav-tabs {
+            border-bottom: none;
+            margin-bottom: 0 !important;
+            background-color: var(--rcms-body-bg);
+            padding-top: 1rem !important;
+            border-top-left-radius: var(--rcms-border-radius-lg);
+            border-top-right-radius: var(--rcms-border-radius-lg);
+        }
 
-    .factor-nav-tabs .nav-item {
-        margin-bottom: -1px;
-    }
+        .factor-nav-tabs .nav-item {
+            margin-bottom: -1px;
+        }
 
-    .factor-nav-tabs .nav-link {
-        border: 1px solid transparent;
-        border-top-left-radius: var(--rcms-border-radius);
-        border-top-right-radius: var(--rcms-border-radius);
-        color: var(--rcms-muted-color);
-        font-weight: 500;
-        padding: 0.8rem 1.5rem;
-        transition: var(--rcms-transition);
-    }
+        .factor-nav-tabs .nav-link {
+            border: 1px solid transparent;
+            border-top-left-radius: var(--rcms-border-radius);
+            border-top-right-radius: var(--rcms-border-radius);
+            color: var(--rcms-muted-color);
+            font-weight: 500;
+            padding: 0.8rem 1.5rem;
+            transition: var(--rcms-transition);
+        }
 
-    .factor-nav-tabs .nav-link:hover {
-        color: var(--rcms-primary);
-        border-color: transparent;
-        background-color: rgba(var(--bs-primary-rgb), 0.05);
-    }
+        .factor-nav-tabs .nav-link:hover {
+            color: var(--rcms-primary);
+            border-color: transparent;
+            background-color: rgba(var(--bs-primary-rgb), 0.05);
+        }
 
-    .factor-nav-tabs .nav-link.active {
-        color: var(--rcms-primary);
-        background-color: var(--rcms-content-bg);
-        border-color: var(--rcms-border-color) var(--rcms-border-color) var(--rcms-content-bg);
-        font-weight: 600;
-        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.03);
-    }
+        .factor-nav-tabs .nav-link.active {
+            color: var(--rcms-primary);
+            background-color: var(--rcms-content-bg);
+            border-color: var(--rcms-border-color) var(--rcms-border-color) var(--rcms-content-bg);
+            font-weight: 600;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.03);
+        }
 
-    .factor-items-table thead {
-        background-color: var(--rcms-table-head-bg) !important;
-        color: var(--rcms-table-head-color);
-        border-bottom: 2px solid var(--rcms-border-color);
-    }
+        .factor-items-table thead {
+            background-color: var(--rcms-table-head-bg) !important;
+            color: var(--rcms-table-head-color);
+            border-bottom: 2px solid var(--rcms-border-color);
+        }
 
-    .factor-items-table tbody tr:hover {
-        background-color: var(--rcms-table-hover-bg);
-    }
+        .factor-items-table tbody tr:hover {
+            background-color: var(--rcms-table-hover-bg);
+        }
 
-    .factor-items-table td {
-        padding: 0.8rem 1rem;
-    }
+        .factor-items-table td {
+            padding: 0.8rem 1rem;
+        }
 
-    .action-radio-group .btn {
-        padding: 0.3rem 0.7rem;
-        font-size: 0.8rem;
-    }
+        .action-radio-group .btn {
+            padding: 0.3rem 0.7rem;
+            font-size: 0.8rem;
+        }
 
-    .action-radio-group .btn i {
-        font-size: 0.9em;
-    }
+        .action-radio-group .btn i {
+            font-size: 0.9em;
+        }
 
-    .action-radio-group .btn-check {
-        display: none;
-    }
+        .action-radio-group .btn-check {
+            display: none;
+        }
 
-    .comment-field {
-        font-size: 0.85rem;
-        padding: 0.4rem 0.6rem;
-        min-height: calc(1.5em + 0.8rem + 2px);
-    }
+        .comment-field {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.6rem;
+            min-height: calc(1.5em + 0.8rem + 2px);
+        }
 
-    .bulk-actions-section {
-        background-color: var(--rcms-body-bg);
-    }
+        .bulk-actions-section {
+            background-color: var(--rcms-body-bg);
+        }
 
-    .bulk-actions-section .form-switch .form-check-input {
-        border-color: rgba(var(--bs-body-color-rgb), 0.25);
-    }
+        .bulk-actions-section .form-switch .form-check-input {
+            border-color: rgba(var(--bs-body-color-rgb), 0.25);
+        }
 
-    .bulk-actions-section .form-switch .form-check-input:checked {
-        background-color: var(--rcms-primary);
-        border-color: var(--rcms-primary);
-    }
+        .bulk-actions-section .form-switch .form-check-input:checked {
+            background-color: var(--rcms-primary);
+            border-color: var(--rcms-primary);
+        }
 
-    #bulkApprove:checked {
-        background-color: var(--rcms-success);
-        border-color: var(--rcms-success);
-    }
+        #bulkApprove:checked {
+            background-color: var(--rcms-success);
+            border-color: var(--rcms-success);
+        }
 
-    #bulkReject:checked {
-        background-color: var(--rcms-danger);
-        border-color: var(--rcms-danger);
-    }
+        #bulkReject:checked {
+            background-color: var(--rcms-danger);
+            border-color: var(--rcms-danger);
+        }
 
-    #reject_factor:checked {
-        background-color: var(--rcms-danger);
-        border-color: var(--rcms-danger);
-    }
+        #reject_factor:checked {
+            background-color: var(--rcms-danger);
+            border-color: var(--rcms-danger);
+        }
 
-    .timeline-container {
-        position: relative;
-        padding: 1rem 0;
-    }
+        .timeline-container {
+            position: relative;
+            padding: 1rem 0;
+        }
 
-    .timeline-container::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        right: 19px;
-        left: auto;
-        width: 2px;
-        background-color: var(--rcms-border-color);
-        z-index: 0;
-    }
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 19px;
+            left: auto;
+            width: 2px;
+            background-color: var(--rcms-border-color);
+            z-index: 0;
+        }
 
-    html[dir="ltr"] .timeline-container::before {
-        right: auto;
-        left: 19px;
-    }
+        html[dir="ltr"] .timeline-container::before {
+            right: auto;
+            left: 19px;
+        }
 
-    .timeline-item {
-        position: relative;
-        margin-bottom: 1.5rem;
-        padding-right: 50px;
-        padding-left: 0;
-    }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1.5rem;
+            padding-right: 50px;
+            padding-left: 0;
+        }
 
-    html[dir="ltr"] .timeline-item {
-        padding-right: 0;
-        padding-left: 50px;
-    }
+        html[dir="ltr"] .timeline-item {
+            padding-right: 0;
+            padding-left: 50px;
+        }
 
-    .timeline-item:last-child {
-        margin-bottom: 0;
-    }
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
 
-    .timeline-icon {
-        position: absolute;
-        top: 0;
-        right: 0;
-        left: auto;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        z-index: 1;
-        box-shadow: 0 0 0 4px var(--rcms-content-bg);
-    }
+        .timeline-icon {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: auto;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            z-index: 1;
+            box-shadow: 0 0 0 4px var(--rcms-content-bg);
+        }
 
-    html[dir="ltr"] .timeline-icon {
-        right: auto;
-        left: 0;
-    }
+        html[dir="ltr"] .timeline-icon {
+            right: auto;
+            left: 0;
+        }
 
-    .timeline-icon i {
-        font-size: 1.1rem;
-    }
+        .timeline-icon i {
+            font-size: 1.1rem;
+        }
 
-    .timeline-content {
-        background-color: var(--rcms-body-bg);
-        padding: 1rem 1.2rem;
-        border-radius: var(--rcms-border-radius);
-        border: 1px solid var(--rcms-border-color);
-    }
+        .timeline-content {
+            background-color: var(--rcms-body-bg);
+            padding: 1rem 1.2rem;
+            border-radius: var(--rcms-border-radius);
+            border: 1px solid var(--rcms-border-color);
+        }
 
-    .timeline-timestamp {
-        font-size: 0.8rem;
-    }
+        .timeline-timestamp {
+            font-size: 0.8rem;
+        }
 
-    .timeline-comment {
-        background-color: color-mix(in srgb, var(--rcms-border-color) 50%, transparent);
-        padding: 0.5rem 0.8rem;
-        border-radius: var(--rcms-border-radius);
-    }
+        .timeline-comment {
+            background-color: color-mix(in srgb, var(--rcms-border-color) 50%, transparent);
+            padding: 0.5rem 0.8rem;
+            border-radius: var(--rcms-border-radius);
+        }
 
-    #details-tab strong {
-        color: var(--rcms-heading-color);
-    }
+        #details-tab strong {
+            color: var(--rcms-heading-color);
+        }
 
-    body.theme-dark .factor-nav-tabs {
-        background-color: var(--rcms-body-bg);
-    }
+        body.theme-dark .factor-nav-tabs {
+            background-color: var(--rcms-body-bg);
+        }
 
-    body.theme-dark .factor-nav-tabs .nav-link {
-        color: var(--rcms-muted-color);
-    }
+        body.theme-dark .factor-nav-tabs .nav-link {
+            color: var(--rcms-muted-color);
+        }
 
-    body.theme-dark .factor-nav-tabs .nav-link:hover {
-        color: var(--rcms-primary);
-        background-color: rgba(var(--bs-primary-rgb), 0.05);
-    }
+        body.theme-dark .factor-nav-tabs .nav-link:hover {
+            color: var(--rcms-primary);
+            background-color: rgba(var(--bs-primary-rgb), 0.05);
+        }
 
-    body.theme-dark .factor-nav-tabs .nav-link.active {
-        color: var(--rcms-primary);
-        background-color: var(--rcms-content-bg);
-        border-color: var(--rcms-border-color) var(--rcms-border-color) var(--rcms-content-bg);
-    }
+        body.theme-dark .factor-nav-tabs .nav-link.active {
+            color: var(--rcms-primary);
+            background-color: var(--rcms-content-bg);
+            border-color: var(--rcms-border-color) var(--rcms-border-color) var(--rcms-content-bg);
+        }
 
-    body.theme-dark .bulk-actions-section {
-        background-color: var(--rcms-content-bg);
-    }
+        body.theme-dark .bulk-actions-section {
+            background-color: var(--rcms-content-bg);
+        }
 
-    body.theme-dark .timeline-container::before {
-        background-color: var(--rcms-border-color);
-    }
+        body.theme-dark .timeline-container::before {
+            background-color: var(--rcms-border-color);
+        }
 
-    body.theme-dark .timeline-icon {
-        box-shadow: 0 0 0 4px var(--rcms-content-bg);
-    }
+        body.theme-dark .timeline-icon {
+            box-shadow: 0 0 0 4px var(--rcms-content-bg);
+        }
 
-    body.theme-dark .timeline-content {
-        background-color: var(--rcms-body-bg);
-        border-color: var(--rcms-border-color);
-    }
+        body.theme-dark .timeline-content {
+            background-color: var(--rcms-body-bg);
+            border-color: var(--rcms-border-color);
+        }
 
-    body.theme-dark .timeline-comment {
-        background-color: color-mix(in srgb, var(--rcms-border-color) 50%, transparent);
-    }
-</style>
+        body.theme-dark .timeline-comment {
+            background-color: color-mix(in srgb, var(--rcms-border-color) 50%, transparent);
+        }
+
+        /* === رفع مشکل نمایش دراپ‌داون زیر هدر چسبان === */
+        .factor-items-table .dropdown-menu {
+            z-index: 1060; /* بالاتر از z-index هدر چسبان */
+        }
+
+    </style>
 {% endblock %}
-
-{% block extra_js %}
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // فعال‌سازی تب‌ها
-            var triggerTabList = [].slice.call(document.querySelectorAll('.factor-nav-tabs a'));
-            triggerTabList.forEach(function (triggerEl) {
-                try {
-                    // Check if Bootstrap and its Tab component are available
-                    if (typeof bootstrap !== 'undefined' && bootstrap.Tab) {
-                        var tabTrigger = new bootstrap.Tab(triggerEl);
+        // اطمینان از لود jQuery
+        if (typeof $ !== 'undefined') {
+            $(document).ready(function () {
+                console.log("jQuery Ready - Initializing Factor Approval Logic (Dropdown Mode)...");
+
+                // --- Tab Activation ---
+                $('.factor-nav-tabs a').each(function () {
+                    if (bootstrap && bootstrap.Tab) {
+                        new bootstrap.Tab(this);
                     } else {
-                        console.warn("Bootstrap Tab component not found or Bootstrap not loaded.");
+                        console.error("Bootstrap Tab component not found.");
                     }
-                } catch (e) {
-                    console.error("Error initializing Bootstrap Tab:", e);
-                }
-            });
+                });
 
-            // -----------------------------------------------------
-            // --- منطق چک‌باکس‌های اقدام دسته‌جمعی و رادیوها ---
-            // -----------------------------------------------------
-            const factorItemsForm = document.getElementById('factorItemsForm');
-            if (factorItemsForm) { // فقط اگر فرم وجود داشت ادامه بده
-                console.log("Factor items form found. Initializing logic...");
+                // --- Factor Item Actions using Event Delegation (for Dropdowns) ---
+                const $form = $('#factorItemsForm');
+                if ($form.length) {
 
-                const bulkApproveCheckbox = document.getElementById('bulkApprove');
-                const bulkRejectCheckbox = document.getElementById('bulkReject');
-                const rejectFactorCheckbox = document.getElementById('reject_factor');
-                const resetBtn = document.getElementById('resetActions');
+                    // 1. Listen for clicks on dropdown items
+                    $form.on('click', '.action-select-item', function (event) {
+                        event.preventDefault(); // جلوگیری از تغییر URL توسط لینک
+                        console.log("Dropdown item clicked");
 
-                // --- Helper function to update comment visibility ---
-                function updateCommentVisibility(rejectRadio, commentField) {
-                    if (!commentField) return; // اگر فیلد کامنت وجود نداشت، کاری نکن
+                        const $clickedItem = $(this);
+                        const actionValue = $clickedItem.data('action'); // APPROVE, REJECT, NONE
+                        const targetInputName = $clickedItem.data('target-name'); // e.g., form-0-action
 
-                    if (rejectRadio && rejectRadio.checked) {
-                        commentField.style.display = 'block';
-                        commentField.required = true;
-                        // console.log(`Comment field ${commentField.name} is now VISIBLE and REQUIRED`);
-                    } else {
-                        commentField.style.display = 'none';
-                        commentField.required = false;
-                        // Optional: Clear comment value when hiding?
-                        // commentField.value = '';
-                        // console.log(`Comment field ${commentField.name} is now HIDDEN and NOT REQUIRED`);
-                    }
-                }
+                        // Find the hidden input and the dropdown button in the same row
+                        const $currentRow = $clickedItem.closest('.formset-row');
+                        const $hiddenInput = $currentRow.find('input[type="hidden"][name="' + targetInputName + '"]');
+                        const $dropdownButton = $currentRow.find('.action-dropdown-toggle');
+                        const $dropdownLabel = $dropdownButton.find('.dropdown-label');
 
+                        if ($hiddenInput.length && $dropdownButton.length) {
+                            // Update hidden input value
+                            $hiddenInput.val(actionValue).trigger('change'); // Trigger change for other potential listeners
+                            console.log(`Set ${targetInputName} value to: ${actionValue}`);
 
-                // --- کنترل چک‌باکس‌های Bulk ---
-                if (bulkApproveCheckbox) {
-                    bulkApproveCheckbox.addEventListener('change', function () {
-                        if (this.checked) {
-                            console.log("Bulk Approve checked.");
-                            if (bulkRejectCheckbox) bulkRejectCheckbox.checked = false;
-                            factorItemsForm.querySelectorAll('input[type="radio"][value="APPROVE"]').forEach(radio => {
-                                if (!radio.checked) {
-                                    radio.checked = true;
-                                    // Trigger change event for comment visibility
-                                    radio.dispatchEvent(new Event('change', {bubbles: true}));
+                            // Update dropdown button appearance and text
+                            $dropdownButton.removeClass('btn-outline-success btn-outline-danger btn-outline-secondary');
+                            let iconClass = 'fas fa-edit'; // Default icon
+                            let buttonClass = 'btn-outline-secondary';
+                            let buttonText = '{% trans "انتخاب اقدام" %}'; // Default text
+
+                            if (actionValue === 'APPROVE') {
+                                iconClass = 'fas fa-check';
+                                buttonClass = 'btn-outline-success';
+                                buttonText = '{% trans "تایید شده" %}';
+                            } else if (actionValue === 'REJECT') {
+                                iconClass = 'fas fa-times';
+                                buttonClass = 'btn-outline-danger';
+                                buttonText = '{% trans "رد شده" %}';
+                            } else { // For NONE or other values
+                                iconClass = 'fas fa-minus-circle';
+                                buttonText = '{% trans "هیچکدام" %}';
+                            }
+                            $dropdownButton.addClass(buttonClass);
+                            $dropdownLabel.html(`<i class="${iconClass} me-1"></i>${buttonText}`);
+
+                            // Update active state in dropdown menu
+                            $currentRow.find('.action-select-item').removeClass('active');
+                            $clickedItem.addClass('active');
+
+                            // Handle comment visibility (based on hidden input value)
+                            const $commentField = $currentRow.find('.comment-field');
+                            if ($commentField.length) {
+                                if (actionValue === 'REJECT') {
+                                    $commentField.slideDown(200).prop('required', true);
+                                    console.log("Showing comment for row:", $currentRow.attr('id'));
+                                } else {
+                                    $commentField.slideUp(150, function () {
+                                        $(this).val('');
+                                    });
+                                    $commentField.prop('required', false);
+                                    console.log("Hiding comment for row:", $currentRow.attr('id'));
                                 }
-                            });
+                            }
+
+                            // Uncheck bulk checkboxes
+                            $('#bulkApprove, #bulkReject').prop('checked', false);
+
                         } else {
-                            console.log("Bulk Approve unchecked.");
+                            console.error("Could not find hidden input or dropdown button for:", targetInputName);
                         }
                     });
-                }
 
-                if (bulkRejectCheckbox) {
-                    bulkRejectCheckbox.addEventListener('change', function () {
-                        if (this.checked) {
-                            console.log("Bulk Reject checked.");
-                            if (bulkApproveCheckbox) bulkApproveCheckbox.checked = false;
-                            factorItemsForm.querySelectorAll('input[type="radio"][value="REJECT"]').forEach(radio => {
-                                if (!radio.checked) {
-                                    radio.checked = true;
-                                    // Trigger change event for comment visibility
-                                    radio.dispatchEvent(new Event('change', {bubbles: true}));
-                                }
-                            });
-                        } else {
-                            console.log("Bulk Reject unchecked.");
-                        }
-                    });
-                }
-
-                // --- کنترل رادیوهای هر ردیف ---
-                const formsetRows = factorItemsForm.querySelectorAll('.formset-row');
-                console.log(`Found ${formsetRows.length} formset rows.`);
-
-                formsetRows.forEach((row) => {
-                    // --- Get the prefix for THIS row (e.g., 'form-0') ---
-                    // Find the hidden ID field or any input with the name pattern
-                    const idInput = row.querySelector('input[name$="-id"]'); // Look for hidden ID field first
-                    let prefix = null;
-                    if (idInput && idInput.name.includes('-')) {
-                        prefix = idInput.name.split('-')[0] + '-' + idInput.name.split('-')[1]; // e.g., "form-0"
-                    } else {
-                        // Fallback: find any input in the row and extract prefix
-                        const anyInput = row.querySelector('input[name^="form-"]');
-                        if (anyInput && anyInput.name.includes('-')) {
-                            prefix = anyInput.name.split('-')[0] + '-' + anyInput.name.split('-')[1];
-                        }
-                    }
-
-                    if (!prefix) {
-                        console.error("Could not determine prefix for row:", row);
-                        return; // Skip this row if prefix cannot be determined
-                    }
-                    // console.log(`Processing row with prefix: ${prefix}`);
-
-                    // انتخاب رادیوهای "داخل همین ردیف" با استفاده از prefix
-                    const actionRadiosInRow = row.querySelectorAll(`input[type="radio"][name="${prefix}-action"]`);
-                    const rejectRadioInRow = row.querySelector(`input[type="radio"][value="REJECT"][name="${prefix}-action"]`);
-                    const commentField = row.querySelector(`textarea[name="${prefix}-comment"]`); // Assuming it's a textarea
-
-                    if (!rejectRadioInRow) {
-                        console.warn(`REJECT radio not found for prefix ${prefix}`);
-                    }
-                    if (!commentField) {
-                        console.warn(`Comment field not found for prefix ${prefix}`);
-                    }
-                    // console.log(`Row ${prefix}: Found ${actionRadiosInRow.length} action radios.`);
-
-
-                    actionRadiosInRow.forEach(radio => {
-                        radio.addEventListener('change', function () {
-                            // console.log(`Radio changed in row ${prefix}: ${this.value}`);
-                            // با تغییر هر رادیو، تیک‌های کلی را بردار
-                            if (bulkApproveCheckbox) bulkApproveCheckbox.checked = false;
-                            if (bulkRejectCheckbox) bulkRejectCheckbox.checked = false;
-
-                            // کنترل نمایش/الزامی بودن کامنت برای این ردیف
-                            updateCommentVisibility(rejectRadioInRow, commentField);
-                        });
-                    });
-
-                    // --- مقداردهی اولیه نمایش کامنت در زمان لود صفحه برای این ردیف ---
-                    // console.log(`Initial check for row ${prefix}: Reject radio checked?`, rejectRadioInRow ? rejectRadioInRow.checked : 'N/A');
-                    updateCommentVisibility(rejectRadioInRow, commentField);
-
-                }); // پایان حلقه formsetRows
-
-
-                // --- دکمه بازنشانی ---
-                if (resetBtn) {
-                    resetBtn.addEventListener('click', function () {
-                        console.log("Resetting actions...");
-                        if (bulkApproveCheckbox) bulkApproveCheckbox.checked = false;
-                        if (bulkRejectCheckbox) bulkRejectCheckbox.checked = false;
-                        if (rejectFactorCheckbox) rejectFactorCheckbox.checked = false;
-
-                        formsetRows.forEach((row) => {
-                            // Find prefix again (could be stored in a data attribute on the row for efficiency)
-                            const idInput = row.querySelector('input[name$="-id"]');
-                            let prefix = null;
-                            if (idInput && idInput.name.includes('-')) {
-                                prefix = idInput.name.split('-')[0] + '-' + idInput.name.split('-')[1];
+                    // --- Initialize Comment Visibility on page load ---
+                    $('.formset-row').each(function () {
+                        const $row = $(this);
+                        const $hiddenInput = $row.find('.action-hidden-input'); // Find by class
+                        const $commentField = $row.find('.comment-field');
+                        if ($hiddenInput.length && $commentField.length) {
+                            if ($hiddenInput.val() !== 'REJECT') {
+                                $commentField.hide().prop('required', false);
                             } else {
-                                const anyInput = row.querySelector('input[name^="form-"]');
-                                if (anyInput && anyInput.name.includes('-')) {
-                                    prefix = anyInput.name.split('-')[0] + '-' + anyInput.name.split('-')[1];
-                                }
+                                $commentField.show().prop('required', true);
                             }
-                            if (!prefix) return; // Skip
+                        }
+                    });
 
-                            // انتخاب رادیوی پیش‌فرض (اولین رادیو در گروه این ردیف)
-                            let defaultRadio = row.querySelector(`input[type="radio"][name="${prefix}-action"]`);
+                    // --- Bulk Actions ---
+                    $('#bulkApprove').on('change', function () {
+                        if (this.checked) {
+                            $('#bulkReject').prop('checked', false);
+                            // Find all APPROVE dropdown *items* and simulate a click
+                            $form.find('.action-select-item[data-action="APPROVE"]').each(function () {
+                                $(this).trigger('click');
+                            });
+                            console.log("Bulk Approve Applied via Dropdown");
+                        }
+                    });
 
-                            if (defaultRadio && !defaultRadio.checked) {
-                                // console.log(`Resetting row ${prefix} to default (value: ${defaultRadio.value})`);
-                                defaultRadio.checked = true;
-                                // Trigger change event for comment visibility
-                                defaultRadio.dispatchEvent(new Event('change', {bubbles: true}));
-                            }
+                    $('#bulkReject').on('change', function () {
+                        if (this.checked) {
+                            $('#bulkApprove').prop('checked', false);
+                            // Find all REJECT dropdown *items* and simulate a click
+                            $form.find('.action-select-item[data-action="REJECT"]').each(function () {
+                                $(this).trigger('click');
+                            });
+                            console.log("Bulk Reject Applied via Dropdown");
+                        }
+                    });
+
+                    // --- Reset Button ---
+                    $('#resetActions').on('click', function () {
+                        console.log("Resetting actions via Dropdown...");
+                        $('#bulkApprove, #bulkReject, #reject_factor').prop('checked', false);
+                        // Find all NONE (or default) dropdown *items* and simulate a click
+                        $form.find('.action-select-item[data-action="NONE"]').each(function () {
+                            $(this).trigger('click');
                         });
+                    });
+
+                    // --- Initialize Popper for dropdowns inside table (Prevent Clipping) ---
+                    var tableDropdownToggles = document.querySelectorAll('.factor-items-table .dropdown-toggle');
+                    tableDropdownToggles.forEach(function (toggle) {
+                        if (bootstrap && bootstrap.Dropdown) {
+                            const customPopperConfig = {strategy: 'fixed'};
+                            new bootstrap.Dropdown(toggle, {
+                                popperConfig: function (defaultConfig) {
+                                    return customPopperConfig;
+                                }
+                            });
+                        }
+                    });
+                    console.log('Dropdown Popper strategy configured for table actions.');
+
+
+                } else {
+                    console.warn("Factor items form (#factorItemsForm) not found.");
+                }
+
+                // ... (Keep Datepicker, Number Formatter, Tooltips initialization) ...
+                try {
+                    jalaliDatepicker.startWatch({
+                        selector: '.datepicker, [data-jdp]',
+                        showEmptyButton: true,
+                        emptyButtonText: "پاک کردن"
+                    });
+                } catch (e) {
+                    console.warn("jalaliDatepicker initialization failed:", e);
+                }
+                if (typeof numberFormatter !== 'undefined') {
+                    document.querySelectorAll('input.number-format').forEach(inp => {
+                        new numberFormatter(inp);
                     });
                 } else {
-                    console.warn("Reset button not found.");
+                    console.warn("numberFormatter not found.");
+                }
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    if (bootstrap && bootstrap.Tooltip) {
+                        return new bootstrap.Tooltip(tooltipTriggerEl);
+                    }
+                    return null;
+                });
+
+            }); // End document ready
+        } else {
+            console.error("jQuery not loaded!");
+        }
+
+        // --- markAsRead Function (Keep existing logic) ---
+        window.markAsRead = function (notifId) { /* ... same as before ... */
+        };
+    </script>
+{% block extra_js %}
+    <script>
+        if (typeof $ !== 'undefined') {
+            $(document).ready(function () {
+                console.log("jQuery Ready - Initializing Factor Approval Logic...");
+
+                // فعال‌سازی تب‌ها
+                $('.factor-nav-tabs a[data-bs-toggle="tab"]').each(function () {
+                    if (bootstrap && bootstrap.Tab) {
+                        new bootstrap.Tab(this);
+                    } else {
+                        console.error("Bootstrap Tab component not found.");
+                    }
+                });
+
+                const $form = $('#factorItemsForm');
+                if ($form.length) {
+                    // کلیک روی آیتم‌های دراپ‌داون
+                    $form.on('click', '.action-select-item', function (event) {
+                        event.preventDefault();
+                        const $item = $(this);
+                        const actionValue = $item.data('action');
+                        const targetInputName = $item.data('target-name');
+                        const $row = $item.closest('.formset-row');
+                        const $hiddenInput = $row.find(`input[name="${targetInputName}"]`);
+                        const $dropdownButton = $row.find('.action-dropdown-toggle');
+                        const $dropdownLabel = $dropdownButton.find('.dropdown-label');
+                        const $commentField = $row.find('.comment-field');
+
+                        if ($hiddenInput.length && $dropdownButton.length) {
+                            $hiddenInput.val(actionValue).trigger('change');
+                            console.log(`Set ${targetInputName} to ${actionValue}`);
+
+                            $dropdownButton.removeClass('btn-outline-success btn-outline-danger btn-outline-secondary');
+                            let btnClass, iconClass, btnText;
+                            if (actionValue === 'APPROVE') {
+                                btnClass = 'btn-outline-success';
+                                iconClass = 'fas fa-check';
+                                btnText = '{% trans "تایید شده" %}';
+                            } else if (actionValue === 'REJECT') {
+                                btnClass = 'btn-outline-danger';
+                                iconClass = 'fas fa-times';
+                                btnText = '{% trans "رد شده" %}';
+                            } else {
+                                btnClass = 'btn-outline-secondary';
+                                iconClass = 'fas fa-edit';
+                                btnText = '{% trans "انتخاب اقدام" %}';
+                            }
+                            $dropdownButton.addClass(btnClass);
+                            $dropdownLabel.html(`<i class="${iconClass} me-1"></i>${btnText}`);
+
+                            $row.find('.action-select-item').removeClass('active');
+                            $item.addClass('active');
+
+                            if ($commentField.length) {
+                                if (actionValue === 'REJECT') {
+                                    $commentField.slideDown(150).prop('required', true);
+                                } else {
+                                    $commentField.slideUp(100).prop('required', false).val('');
+                                }
+                            }
+
+                            $('#bulkApprove, #bulkReject').prop('checked', false);
+                        } else {
+                            console.error(`Cannot find input or button for ${targetInputName}`);
+                        }
+                    });
+
+                    // مقداردهی اولیه فیلد توضیحات
+                    $('.formset-row').each(function () {
+                        const $row = $(this);
+                        const $hiddenInput = $row.find('input[name$="-action"]');
+                        const $commentField = $row.find('.comment-field');
+                        if ($hiddenInput.length && $commentField.length) {
+                            if ($hiddenInput.val() === 'REJECT') {
+                                $commentField.show().prop('required', true);
+                            } else {
+                                $commentField.hide().prop('required', false);
+                            }
+                        }
+                    });
+
+                    // اقدامات دسته‌جمعی
+                    $('#bulkApprove').on('change', function () {
+                        if (this.checked) {
+                            $('#bulkReject').prop('checked', false);
+                            $form.find('.action-select-item[data-action="APPROVE"]').trigger('click');
+                            console.log("Bulk Approve triggered");
+                        }
+                    });
+
+                    $('#bulkReject').on('change', function () {
+                        if (this.checked) {
+                            $('#bulkApprove').prop('checked', false);
+                            $form.find('.action-select-item[data-action="REJECT"]').trigger('click');
+                            console.log("Bulk Reject triggered");
+                        }
+                    });
+
+                    // بازنشانی
+                    $('#resetActions').on('click', function () {
+                        $('#bulkApprove, #bulkReject, #reject_factor').prop('checked', false);
+                        $form.find('.action-select-item[data-action="NONE"]').trigger('click');
+                        console.log("Actions reset");
+                    });
+
+                    // تنظیم Popper برای دراپ‌داون‌ها
+                    $('.factor-items-table .dropdown-toggle').each(function () {
+                        if (bootstrap && bootstrap.Dropdown) {
+                            new bootstrap.Dropdown(this, {
+                                popperConfig: { strategy: 'fixed' }
+                            });
+                        }
+                    });
+                } else {
+                    console.warn("Form #factorItemsForm not found.");
                 }
 
-            } else {
-                console.warn("Factor items form not found on this page.");
-            } // پایان if (factorItemsForm)
+                // سایر تنظیمات
+                try {
+                    jalaliDatepicker.startWatch({
+                        selector: '.datepicker, [data-jdp]',
+                        showEmptyButton: true,
+                        emptyButtonText: "پاک کردن"
+                    });
+                } catch (e) {
+                    console.warn("jalaliDatepicker failed:", e);
+                }
+                if (typeof numberFormatter !== 'undefined') {
+                    $('.number-format').each(function () { new numberFormatter(this); });
+                }
+                $('[data-bs-toggle="tooltip"]').each(function () {
+                    if (bootstrap && bootstrap.Tooltip) { new bootstrap.Tooltip(this); }
+                });
+            });
+        } else {
+            console.error("jQuery not loaded!");
+        }
 
-            // ... بقیه کدهای JS شما مثل markAsRead ...
-
-        }); // پایان DOMContentLoaded
-
-        // تابع markAsRead (از پاسخ قبلی - بدون تغییر)
         window.markAsRead = function (notifId) {
-            const csrfTokenInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
-            const csrfToken = csrfTokenInput ? csrfTokenInput.value : null; // Get value or null
+            const csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
             if (!csrfToken) {
-                console.error('CSRF token not found in hidden input!');
-                // As a fallback, try getting it from a meta tag if you have one
-                // const metaToken = document.querySelector('meta[name="csrf-token"]');
-                // if (metaToken) csrfToken = metaToken.getAttribute('content');
-                // if (!csrfToken) return; // Still not found, exit
-                return; // Exit if no token
+                console.error('CSRF token not found!');
+                return;
             }
             fetch(`/notifications/mark-as-read/${notifId}/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': csrfToken,
                     'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest' // Important for Django to recognize AJAX
-                },
-                // No body needed for this specific request usually
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             })
-                .then(response => {
-                    if (response.ok) {
-                        console.log(`Notification ${notifId} marked as read`);
-                        // Try to find the alert related to this notification
-                        const alertTriggerLink = document.querySelector(`[onclick="markAsRead(${notifId})"]`);
-                        const alertElement = alertTriggerLink ? alertTriggerLink.closest('.alert') : null;
-
-                        if (alertElement) {
-                            try {
-                                if (typeof bootstrap !== 'undefined' && bootstrap.Alert) {
-                                    // Use Bootstrap's dismiss method if available
-                                    const bsAlert = bootstrap.Alert.getInstance(alertElement) || new bootstrap.Alert(alertElement);
-                                    bsAlert.close(); // Use close() which triggers dismiss events
-                                    console.log("Bootstrap alert closed.");
-                                } else {
-                                    // Fallback: just remove the element
-                                    alertElement.remove();
-                                    console.log("Alert element removed (Bootstrap method not found).");
-                                }
-                            } catch (e) {
-                                console.error("Error closing alert:", e);
-                                alertElement.remove(); // Fallback removal on error
-                            }
+            .then(response => {
+                if (response.ok) {
+                    console.log(`Notification ${notifId} marked as read`);
+                    const $alert = $(`[onclick="markAsRead(${notifId})"]`).closest('.alert');
+                    if ($alert.length) {
+                        if (bootstrap && bootstrap.Alert) {
+                            const alert = bootstrap.Alert.getOrCreateInstance($alert[0]);
+                            alert.close();
                         } else {
-                            console.warn("Could not find the alert element to remove for notification", notifId);
+                            $alert.remove();
                         }
-                    } else {
-                        console.error(`Failed to mark notification ${notifId} as read. Status: ${response.status}`);
-                        // Optionally display an error message to the user
                     }
-                })
-                .catch(error => {
-                    console.error('Error during fetch for marking notification as read:', error);
-                    // Optionally display an error message to the user
-                });
+                } else {
+                    console.error(`Failed to mark notification ${notifId} as read: ${response.status}`);
+                }
+            })
+            .catch(error => console.error('Fetch error:', error));
         };
     </script>
+
+    {# کد تابع markAsRead شما #}
+    <script>
+        window.markAsRead = function (notifId) { /* ... کد markAsRead ... */
+        };
+    </script>
+
+
 {% endblock %}

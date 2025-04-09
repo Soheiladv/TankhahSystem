@@ -73,7 +73,6 @@ class Project(models.Model):
             ('Project_view','نمایش  پروژه برای مدیریت پروژه‌های چندمجتمعی'),
             ('Project_delete','حــذف  پروژه برای مدیریت پروژه‌های چندمجتمعی'),
             ]
-
 class SubProject(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='subprojects', verbose_name=_("پروژه اصلی"))
     name = models.CharField(max_length=200, verbose_name=_("نام ساب‌پروژه"))
@@ -92,7 +91,6 @@ class SubProject(models.Model):
         ]
     def __str__(self):
         return f"{self.project.name} - {self.name}"
-
 class Post(models.Model):
     """مدل پست سازمانی برای تعریف سلسله مراتب"""
     BRANCH_CHOICES = (
@@ -133,7 +131,6 @@ class Post(models.Model):
             ('Post_view','نمایش  پست سازمانی برای تعریف سلسله مراتب'),
             ('Post_delete','حــذف  پست سازمانی برای تعریف سلسله مراتب'),
             ]
-
 class UserPost(models.Model):
     """مدل اتصال کاربر به پست"""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name=_("کاربر"))

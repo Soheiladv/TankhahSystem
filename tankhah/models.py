@@ -1,15 +1,17 @@
 import logging
 import os
+
 from django.conf import settings
 from django.db import models, transaction
 from django.db.models import Sum, Max
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from core.models import Post, SubProject  # بررسی کنید که مسیر درست است
-from core.models import WorkflowStage  # اگر در همان اپلیکیشن است
+from django.views.generic import TemplateView
+
 from accounts.models import CustomUser
 from core.models import Organization, Post, UserPost, Project, WorkflowStage
-from django.views.generic import TemplateView
+from core.models import Post, SubProject  # بررسی کنید که مسیر درست است
+from core.models import WorkflowStage  # اگر در همان اپلیکیشن است
 
 NUMBER_SEPARATOR = getattr(settings, 'NUMBER_SEPARATOR', '-')
 
@@ -24,7 +26,7 @@ def get_default_workflow_stage():
 def tankhah_document_path(instance, filename):
     # مسیر آپلود: documents/شماره_تنخواه/نام_فایل
     extension = os.path.splitext(filename)[1]  # مثل .pdf
-    return f'documents/{instance.tankhah.number}/document{extension}'
+    return f'documents/{instance.tankhah.number}/document{extension}/%Y/%m/%d/'
 
 class TankhahDocument(models.Model):
     tankhah  = models.ForeignKey('Tankhah', on_delete=models.CASCADE,verbose_name=_("تنخواه"), related_name='documents')
@@ -65,7 +67,6 @@ class Tankhah(models.Model):
     amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ"))
     date = models.DateTimeField(default=timezone.now, verbose_name=_("تاریخ"))
     due_date = models.DateTimeField(null=True, blank=True, verbose_name=_('مهلت زمانی'))
-    # due_date = models.DateTimeField(verbose_name=_('مهلت زمانی'))  # پشنهاد به کاربر
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد")) # اجبار در توقف
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_('مجموعه/شعبه'))
     project = models.ForeignKey('core.Project', on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('پروژه'))
@@ -86,10 +87,10 @@ class Tankhah(models.Model):
 
     payment_number = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("شماره پرداخت"))
     is_locked = models.BooleanField(default=False, verbose_name=_("قفل شده"))
-
-
     archived_at = models.DateTimeField(null=True, blank=True, verbose_name="زمان آرشیو")
     canceled = models.BooleanField(default=False, verbose_name="لغو شده")
+    budget = models.DecimalField(budgets, decimal_places=2, verbose_name=_("بودجه تخصیصی"))
+    remaining_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("بودجه باقیمانده"))
 
     def generate_number(self):
         """تولید شماره یکتا برای تنخواه با تاریخ شمسی"""
@@ -130,6 +131,11 @@ class Tankhah(models.Model):
             # اگه وضعیت COMPLETED یا PAID باشه، قفل کن
         if self.status in ['COMPLETED', 'PAID'] and not self.is_locked:
             self.is_locked = True
+
+            self.remaining_budget = self.budget
+        if self.amount > self.budget:
+            raise ValueError("مبلغ تنخواه نمی‌تواند بیشتر از بودجه تخصیصی باشد")
+
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -142,7 +148,6 @@ class Tankhah(models.Model):
         verbose_name_plural = _("تنخواه‌ها")
         indexes = [
             models.Index(fields=['number', 'date', 'status' ,'organization'])]
-
         default_permissions =()
         permissions = [
 
@@ -172,9 +177,29 @@ class Tankhah(models.Model):
 
         ]
 
+def factor_document_upload_path(instance, filename):
+    """
+    مسیر آپلود فایل برای FactorDocument را بر اساس شماره تنخواه و ID فاکتور تعیین می‌کند.
+    مسیر نهایی: factors/[شماره_تنخواه]/[ID_فاکتور]/[نام_فایل_اصلی]
+    """
+    # instance در اینجا یک شیء FactorDocument است
+    factor = instance.factor
+    if factor and factor.tankhah:
+        tankhah_number = factor.tankhah.number
+        factor_id = factor.id
+        # برای جلوگیری از ذخیره شدن همه فایل‌ها با نام یکسان اگر چند فایل همزمان آپلود شوند،
+        # بهتر است نام فایل اصلی را نگه داریم یا یک نام یکتا بسازیم.
+        # filename = f"{uuid.uuid4()}{os.path.splitext(filename)[1]}" # مثال: ساخت نام یکتا
+        return f'factors/{tankhah_number}/{factor_id}/{filename}'
+    else:
+        # یک مسیر پیش‌فرض در صورتی که فاکتور یا تنخواه هنوز ذخیره نشده باشند (که نباید اتفاق بیفتد)
+        # یا فاکتور به تنخواه لینک نباشد
+        return f'factors/orphaned/{filename}'
+
 class FactorDocument(models.Model):
     factor = models.ForeignKey('Factor', on_delete=models.CASCADE, related_name='documents', verbose_name=_("فاکتور"))
-    file = models.FileField(upload_to='factors/documents/%Y/%m/%d/', verbose_name=_("فایل پیوست"))
+    # file = models.FileField(upload_to='factors/documents/%Y/%m/%d/', verbose_name=_("فایل پیوست"))
+    file = models.FileField(upload_to=factor_document_upload_path, verbose_name=_("فایل پیوست"))
     file_size = models.IntegerField(null=True, blank=True, verbose_name=_("حجم فایل (بایت)"))
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ بارگذاری"))
 
@@ -207,13 +232,12 @@ class Factor(models.Model):
     number = models.CharField(max_length=60, blank=True, verbose_name=_("شماره فاکتور"))
     tankhah = models.ForeignKey(Tankhah, on_delete=models.PROTECT, related_name='factors', verbose_name=_("تنخواه"))
     date = models.DateField(default=timezone.now, verbose_name=_("تاریخ"))
-    amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('مبلغ'), default=0)  # فرض بر وجود فیلد مبلغ
+    amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name=_('مبلغ فاکتور'), default=0)  # فرض بر وجود فیلد مبلغ
     description = models.TextField(verbose_name=_("توضیحات"))
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name=_("وضعیت"))
     approved_by = models.ManyToManyField(CustomUser, blank=True, verbose_name=_("تأییدکنندگان"))
 
     is_finalized = models.BooleanField(default=False, verbose_name=_("نهایی شده"))
-
     locked = models.BooleanField(default=False, verbose_name="قفل شده")
     locked_by_stage = models.ForeignKey(WorkflowStage, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("قفل شده توسط مرحله"))
 
@@ -266,7 +290,6 @@ class FactorItem(models.Model):
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE, related_name='items', verbose_name=_("فاکتور"))
     description = models.CharField(max_length=255, verbose_name=_("شرح ردیف"))
     amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ") )
-    # amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_("مبلغ"))
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name=_("وضعیت"))
     quantity = models.DecimalField(max_digits=25, default=1,decimal_places=2, verbose_name=_("تعداد"))
     # quantity = models.IntegerField(default=1, verbose_name=_("تعداد"))
@@ -295,16 +318,16 @@ class FactorItem(models.Model):
         ]
 
 class ApprovalLog(models.Model):
-    ACTION_CHOICES = (
-        ('APPROVE', _('تأیید')),
-        ('REJECT', _('رد')),
-        ('RETURN', _('بازگشت')),
-        ('CANCEL', _('لغو'))
-    )
+    ACTION_CHOICES = [
+        ('APPROVE', 'تأیید'),
+        ('REJECT', 'رد'),
+        ('STAGE_CHANGE', 'تغییر مرحله'),
+        ('NONE', 'هیچکدام'),
+    ]
     tankhah  = models.ForeignKey(Tankhah, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_logs', verbose_name=_("تنخواه"))
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_logs', verbose_name=_("فاکتور"))
     factor_item = models.ForeignKey(FactorItem, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_logs', verbose_name=_("ردیف فاکتور"))
-    action = models.CharField(max_length=10, choices=ACTION_CHOICES, verbose_name=_("اقدام"))
+    action = models.CharField(max_length=25, choices=ACTION_CHOICES, verbose_name=_("اقدام"))
     stage = models.ForeignKey(WorkflowStage, on_delete=models.PROTECT, verbose_name=_('مرحله'))
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, verbose_name=_("کاربر"))
     comment = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))

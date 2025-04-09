@@ -28,3 +28,11 @@ def convert_to_farsi_numbers(value):
     translation_table = str.maketrans(english_digits, farsi_digits)
     return str(value).translate(translation_table)
 
+
+
+# Tanbakhsystem/tankhah/utils.py
+def to_english_digits(value):
+    persian_digits = '۰۱۲۳۴۵۶۷۸۹'
+    english_digits = '0123456789'
+    translation_table = str.maketrans(persian_digits, english_digits)
+    return value.translate(translation_table)

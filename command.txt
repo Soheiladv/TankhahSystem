@@ -14,6 +14,18 @@ print("All ApprovalLogs deleted.")
 Tankhah.objects.all().delete()
 print("All Tankhah deleted.")
 
+
+
+
+
+    # amount = forms.DecimalField(
+    #     widget=NumberToWordsWidget(attrs={'placeholder': 'مجموع ارقام فاکتور را وارد کنید'}),
+    #     label='مبلغ'
+    # )
+
+
+
+
 <strong>{% trans "تفاوت:" %}</strong>
                             <span class="badge fs-5 {{ difference|floatformat:0| yesno:'bg-success,bg-danger,bg-warning' }} text-white">
                                 {{ difference|format_negative}}

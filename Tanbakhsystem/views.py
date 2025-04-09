@@ -13,7 +13,6 @@ from core.PermissionBase import PermissionBaseView
 from core.models import WorkflowStage, Project, Organization
 from tankhah.models import Tankhah, ApprovalLog, Notification, Factor
 
-
 class DashboardView( PermissionBaseView , TemplateView):
     template_name = 'core/dashboard.html'
     permission_codename = 'core.Dashboard_view'

@@ -215,7 +215,7 @@ class FinancialDashboardView(PermissionBaseView, TemplateView):
                 for doc in TankhahDocument.objects.filter(tankhah__in=org_tankhahs)
                 if default_storage.exists(doc.document.path)
             ) / (1024 * 1024)
-            projects = Project.objects.filter(organization=org)
+            projects = Project.objects.filter(organizations=org)
             org_info = {
                 'name': org.name,
                 'total_tanbakh_amount': float(org_tankhahs.aggregate(total=Sum('amount'))['total'] or 0),

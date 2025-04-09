@@ -25,7 +25,26 @@
     body {
         font-family: 'Parastoo', 'Yekan', 'IRANSans', sans-serif;
     }</style>
+    <style>
+        /* استایل ویجت */
+    .number-to-words-output {
+        display: block;
+        margin-top: 5px;
+        color: #666;
+        font-style: italic;
+
+        .number-to-words-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* فاصله بین ورودی و لیبل */
+}
+.persian-number-input {
+    flex: 1; /* عرض ورودی انعطاف‌پذیر */
+}
+  }
+    </style>
     <style>{% static 'admin/css/custom.css' %}</style>
+
 </head>
 <body class="theme-{{ user.profile.theme|default:'light' }}">
 
@@ -213,20 +232,23 @@
         jalaliDatepicker.startWatch();
     });
 </script>
-
-
 <script>
-function markAsRead(notifId) {
-    fetch(`/notifications/mark-as-read/${notifId}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json'
-        }
-    }).then(() => console.log('Notification marked as read'));
-}
+    function markAsRead(notifId) {
+        fetch(`/notifications/mark-as-read/${notifId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        }).then(() => console.log('Notification marked as read'));
+    }
 </script>
 
-{% block extra_js %}{% endblock %}
+     <script src="{% static 'admin/js/persian_number_utils.js' %}" defer></script> {# defer is recommended #}
+     <script src="{% static 'admin/js/number_to_words_connect.js' %}"></script>
+
+{% block extra_js %}{% endblock %} {# For page-specific JS #}
+
+
 </body>
 </html>

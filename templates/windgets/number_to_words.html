@@ -1,0 +1,155 @@
+{% comment %} number_to_words.html {% endcomment %}
+<div class="form-group">
+    <label for="{{ widget.attrs.id }}">{{ widget.label }}</label>
+    <input type="{{ widget.type }}" name="{{ widget.name }}"
+           {% include "django/forms/widgets/attrs.html" %}
+           value="{{ widget.value|default_if_none:'' }}">
+    <small class="form-text text-muted mt-1">
+        {{ widget.word_label }}
+        <span id="{{ widget.output_id }}" class="text-success"></span>
+        {{ widget.unit }}
+    </small>
+</div>
+
+{#{% comment %}#}
+{#تمپلیت برای ویجت NumberToWordsWidget#}
+{#این تمپلیت input اصلی و span نمایش حروف و JS لازم را رندر می‌کند.#}
+{#متغیرهای context مورد انتظار: widget (شامل attrs, output_id, word_label, unit)#}
+{#{% endcomment %}#}
+{#{% extends 'base.html' %}#}
+{#{% load i18n %} {# برای ترجمه در JS #}
+{##}
+{#{% block content %}#}
+{# 1. رندر کردن تگ <input> اصلی با استفاده از تمپلیت داخلی جنگو #}
+{#{% include "django/forms/widgets/input.html" %}#}
+{##}
+{# 2. نمایش لیبل و span برای حروف فارسی #}
+{#<div class="mt-2 number-to-words-display"> {# یک کانتینر برای استایل‌دهی احتمالی #}
+{#    <label class="form-label small text-muted" for="{{ widget.output_id }}">#}
+{#        {{ widget.word_label }}#}
+{#    </label>#}
+{#    <span id="{{ widget.output_id }}"#}
+{#          class="d-block p-2 bg-light border rounded text-primary fw-bold number-to-words-output"#}
+{#          style="min-height: 40px; direction: rtl; text-align: right; font-size: 0.95rem; line-height: 1.5;">#}
+{#        {% comment %}مقدار اولیه توسط جاوااسکریپت زیر مقداردهی می‌شود{% endcomment %}#}
+{#        ...#}
+{#    </span>#}
+{#</div>#}
+{##}
+{# 3. کد JavaScript اختصاصی این ویجت #}
+{# از آنجایی که این تمپلیت توسط جنگو رندر می‌شود، می‌توانیم از تگ trans استفاده کنیم #}
+{#<script nonce="{{ request.csp_nonce }}"> {# اضافه کردن nonce اگر از CSP استفاده می‌کنید #}
+{#(function() { // IIFE برای ایزوله کردن اسکوپ#}
+{#    "use strict";#}
+{##}
+{#    // تعریف آرایه‌های کلمات فارسی#}
+{#    const yekan = ["", "{% trans 'یک' %}", "{% trans 'دو' %}", "{% trans 'سه' %}", "{% trans 'چهار' %}", "{% trans 'پنج' %}", "{% trans 'شش' %}", "{% trans 'هفت' %}", "{% trans 'هشت' %}", "{% trans 'نه' %}"];#}
+{#    const dahyek = ["{% trans 'ده' %}", "{% trans 'یازده' %}", "{% trans 'دوازده' %}", "{% trans 'سیزده' %}", "{% trans 'چهارده' %}", "{% trans 'پانزده' %}", "{% trans 'شانزده' %}", "{% trans 'هفده' %}", "{% trans 'هجده' %}", "{% trans 'نوزده' %}"];#}
+{#    const dahgan = ["", "", "{% trans 'بیست' %}", "{% trans 'سی' %}", "{% trans 'چهل' %}", "{% trans 'پنجاه' %}", "{% trans 'شصت' %}", "{% trans 'هفتاد' %}", "{% trans 'هشتاد' %}", "{% trans 'نود' %}"];#}
+{#    const sadgan = ["", "{% trans 'صد' %}", "{% trans 'دویست' %}", "{% trans 'سیصد' %}", "{% trans 'چهارصد' %}", "{% trans 'پانصد' %}", "{% trans 'ششصد' %}", "{% trans 'هفتصد' %}", "{% trans 'هشتصد' %}", "{% trans 'نهصد' %}"];#}
+{#    const baselog = ["", "{% trans 'هزار' %}", "{% trans 'میلیون' %}", "{% trans 'میلیارد' %}", "{% trans 'بیلیون' %}"];#}
+{#    const va = "{% trans 'و' %}"; // کلمه "و"#}
+{##}
+{#    // تابع اصلی تبدیل عدد به حروف#}
+{#    function numToWords(numStr) {#}
+{#        // تمیز کردن و تبدیل اعداد فارسی ورودی احتمالی#}
+{#        let num = numStr.toString().replace(/,/g, '').replace(/[۰-۹]/g, d => d.charCodeAt(0) - 1776);#}
+{#        if (num === "" || num === null || num === undefined) return "";#}
+{#        if (isNaN(num) || num.trim() === "") return "{% trans 'عدد نامعتبر' %}";#}
+{#        let number = parseInt(num);#}
+{#        if (!isFinite(number)) return "{% trans 'عدد بسیار بزرگ' %}"; // بررسی اعداد خیلی بزرگ#}
+{#        if (number === 0) return "{% trans 'صفر' %}";#}
+{##}
+{#        let sign = "";#}
+{#        if (num.startsWith('-')) {#}
+{#            sign = "{% trans 'منفی' %} ";#}
+{#            num = num.substring(1);#}
+{#        }#}
+{##}
+{#        let parts = [];#}
+{#        while (num.length > 0) { parts.push(num.slice(-3)); num = num.slice(0, -3); }#}
+{#        if(parts.length === 0) return ""; // اگر ورودی فقط '-' بود#}
+{##}
+{#        let result = [];#}
+{#        for (let i = 0; i < parts.length; i++) {#}
+{#            let partInt = parseInt(parts[i]);#}
+{#            if(partInt === 0) continue;#}
+{#            let partStr = threeDigitsToWords(partInt);#}
+{#            if (partStr) {#}
+{#                 if (i > 0) { partStr += " " + baselog[i]; }#}
+{#                 result.push(partStr.trim());#}
+{#            }#}
+{#        }#}
+{#        return sign + result.reverse().join(` ${va} `).trim();#}
+{#    }#}
+{##}
+{#    // تابع کمکی تبدیل ۰ تا ۹۹۹#}
+{#    function threeDigitsToWords(num) {#}
+{#         if (num === 0) return "";#}
+{#         let result = ""; let sad = Math.floor(num / 100); let dahyekSad = num % 100;#}
+{#         if (sad > 0) { result += sadgan[sad]; if (dahyekSad > 0) result += ` ${va} `; }#}
+{#         if (dahyekSad > 0) {#}
+{#             if (dahyekSad < 10) result += yekan[dahyekSad];#}
+{#             else if (dahyekSad < 20) result += dahyek[dahyekSad - 10];#}
+{#             else { let dah = Math.floor(dahyekSad / 10); let yek = dahyekSad % 10; result += dahgan[dah]; if (yek > 0) result += ` ${va} ` + yekan[yek]; }#}
+{#         }#}
+{#         return result;#}
+{#    }#}
+{##}
+{#    // --- اتصال رویداد با استفاده از ID های یکتا ---#}
+{#    const inputId = "{{ widget.attrs.id|escapejs }}"; // گرفتن ID اینپوت#}
+{#    const outputId = "{{ widget.output_id|escapejs }}"; // گرفتن ID خروجی#}
+{#    const unit = "{{ widget.unit|escapejs }}"; // گرفتن واحد پول#}
+{##}
+{#    // منتظر ماندن برای لود کامل DOM (روش امن‌تر)#}
+{#    if (document.readyState === "loading") {#}
+{#        document.addEventListener("DOMContentLoaded", runWidgetLogic);#}
+{#    } else {#}
+{#        runWidgetLogic(); // اگر DOM لود شده، بلافاصله اجرا کن#}
+{#    }#}
+{##}
+{#    function runWidgetLogic() {#}
+{#        const inputElement = document.getElementById(inputId);#}
+{#        const outputElement = document.getElementById(outputId);#}
+{##}
+{#        if (inputElement && outputElement) {#}
+{#            const updateWords = function() {#}
+{#                const numberValue = inputElement.value;#}
+{#                const words = numToWords(numberValue);#}
+{#                const invalidMsg = "{% trans 'عدد نامعتبر' %}";#}
+{#                const tooLargeMsg = "{% trans 'عدد بسیار بزرگ' %}";#}
+{##}
+{#                outputElement.classList.remove('text-danger', 'text-primary', 'text-muted'); // Reset classes#}
+{##}
+{#                if (words && words !== invalidMsg && words !== tooLargeMsg) {#}
+{#                     outputElement.textContent = words + (unit ? " " + unit : "");#}
+{#                     outputElement.classList.add('text-primary');#}
+{#                } else if (numberValue.trim() === "") {#}
+{#                     outputElement.textContent = "...";#}
+{#                     outputElement.classList.add('text-muted');#}
+{#                } else {#}
+{#                     outputElement.textContent = words; // نمایش "عدد نامعتبر" یا "بسیار بزرگ"#}
+{#                     outputElement.classList.add('text-danger');#}
+{#                }#}
+{#            };#}
+{##}
+{#            inputElement.addEventListener('input', updateWords);#}
+{#            // فراخوانی اولیه برای نمایش مقدار اولیه (اگر وجود دارد)#}
+{#            updateWords();#}
+{##}
+{#            // فعال‌سازی numberFormatter اگر کلاسش وجود دارد#}
+{#            if (typeof numberFormatter !== 'undefined' && inputElement.classList.contains('number-format')) {#}
+{#                 try { new numberFormatter(inputElement); } catch(e) { console.warn(`numberFormatter init failed for ${inputId}:`, e); }#}
+{#            }#}
+{##}
+{#        } else {#}
+{#             console.warn(`NumberToWordsWidget elements not found for ID: ${inputId}`);#}
+{#        }#}
+{#    }#}
+{##}
+{#})(); // پایان IIFE#}
+{#</script>#}
+{##}
+{##}
+{##}
+{#{% endblock %}#}

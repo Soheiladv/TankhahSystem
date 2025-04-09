@@ -1,8 +1,10 @@
 from tankhah.TankhahTrackingView import TankhahTrackingView
 from django.urls import path
 
+from tankhah.view.views_factor import  FactorListView, FactorDetailView,FactorUpdateView, FactorCreateView,  FactorDeleteView
+
 from tankhah.views import TankhahDetailView, TankhahCreateView, TankhahDeleteView, \
-    FactorListView, FactorDetailView, FactorUpdateView, FactorCreateView, ApprovalListView, FactorDeleteView, \
+     ApprovalListView, \
     ApprovalCreateView, ApprovalDetailView, ApprovalUpdateView, ApprovalDeleteView, DashboardView, TankhahListView, \
     TankhahApproveView, TankhahRejectView, FactorItemApproveView, FactorApproveView, FactorItemRejectView, \
     upload_tankhah_documents, TankhahUpdateView, ApprovalLogListView, FactorStatusUpdateView, mark_notification_as_read, \
@@ -11,7 +13,6 @@ from tankhah.views import TankhahDetailView, TankhahCreateView, TankhahDeleteVie
 urlpatterns = [
     # path('IndexView_dashboard/', IndexView.as_view(), name='IndexView_dashboard'),  # مسیر اصلی داشبورد
     path('', DashboardView.as_view(), name='dashboard'),  # مسیر اصلی داشبورد
-
     path('tankhah_list/', TankhahListView.as_view(), name='tankhah_list'),
     path('<int:pk>/', TankhahDetailView.as_view(), name='tankhah_detail'),
     path('create/', TankhahCreateView.as_view(), name='tankhah_create'),
@@ -22,8 +23,7 @@ urlpatterns = [
     path('<int:pk>/reject/', TankhahRejectView.as_view(), name='tankhah_reject'),
     # Approve Factor Row
     path('Tankhah/factor/<int:pk>/approve/', FactorItemApproveView.as_view(), name='factor_item_approve'),
-path('factor/<int:pk>/status-update/', FactorStatusUpdateView.as_view(), name='factor_status_update'),
-
+    path('factor/<int:pk>/status-update/', FactorStatusUpdateView.as_view(), name='factor_status_update'),
 
     path('factors/', FactorListView.as_view(), name='factor_list'),
     path('factor/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'), # جزئیات فاکتور

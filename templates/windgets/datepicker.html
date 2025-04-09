@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+<body>
+    <input type="text" name="{{ widget.name }}" id="{{ widget.attrs.id }}" value="{{ widget.value|default_if_none:'' }}" {% include "django/forms/widgets/attrs.html" %}>
+</body>
+</html>
