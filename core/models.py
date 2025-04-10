@@ -2,6 +2,7 @@
 import datetime
 from django.conf import settings
 from django.db import models
+from django.db.models import Sum
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -21,11 +22,8 @@ class Organization(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("نام سازمان"))
     org_type = models.CharField(max_length=25, choices=ORG_TYPES, verbose_name=_("نوع سازمان"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
-
-    budget = models.DecimalField(max_digits=25, decimal_places=2, blank=True, null=True, verbose_name=_("بودجه سالانه"))
     parent_organization = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
                                             verbose_name=_("سازمان والد"))
-    """توضیح: اضافه شدن parent_organization برای سلسله‌مراتب (مثل معاونت‌ها)."""
 
     def __str__(self):
         return f"{self.code} - {self.name} ({self.org_type})"
@@ -33,18 +31,16 @@ class Organization(models.Model):
     class Meta:
         verbose_name = _("سازمان")
         verbose_name_plural = _("سازمان‌ها")
-
-        default_permissions =()
+        default_permissions = ()
         permissions = [
-            ('Organization_add','افزودن سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
-            ('Organization_update','بروزرسانی سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
-            ('Organization_delete','حــذف سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
-            ('Organization_view','نمایش سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
+            ('Organization_add', 'افزودن سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
+            ('Organization_update', 'بروزرسانی سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
+            ('Organization_delete', 'حــذف سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
+            ('Organization_view', 'نمایش سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
         ]
         indexes = [
             models.Index(fields=['code', 'org_type']),
         ]
-
 class Project(models.Model):
     """مدل پروژه برای مدیریت پروژه‌های چندمجتمعی"""
     priority_CHOICES = (
@@ -53,12 +49,17 @@ class Project(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("نام پروژه"))
     code = models.CharField(max_length=80, unique=True, verbose_name=_("کد پروژه"))
     organizations = models.ManyToManyField(Organization, limit_choices_to={'org_type': 'COMPLEX'}, verbose_name=_("مجتمع‌های مرتبط"))
+    allocations = models.ManyToManyField('budgets.BudgetAllocation', blank=True, verbose_name=_("تخصیص‌های بودجه مرتبط"))
     start_date = models.DateField(verbose_name=_("تاریخ شروع"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
     budget = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True, verbose_name=_("بودجه (ریال)"))
     is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
     priority = models.CharField(max_length=10, choices=priority_CHOICES, null=True, blank=True, verbose_name=_("اولویت"))
+
+    def get_total_budget(self):
+        """محاسبه بودجه کل پروژه از تخصیص‌ها"""
+        return self.allocations.aggregate(total=Sum('allocated_amount'))['total'] or 0
 
     def __str__(self):
         status = "فعال" if self.is_active else "غیرفعال"
@@ -72,13 +73,15 @@ class Project(models.Model):
     class Meta:
         verbose_name = _("پروژه")
         verbose_name_plural = _("پروژه‌ها")
-        default_permissions =()
+        default_permissions = ()
         permissions = [
-            ('Project_add','افزودن  پروژه برای مدیریت پروژه‌های چندمجتمعی'),
-            ('Project_update','بروزرسانی  پروژه برای مدیریت پروژه‌های چندمجتمعی'),
-            ('Project_view','نمایش  پروژه برای مدیریت پروژه‌های چندمجتمعی'),
-            ('Project_delete','حــذف  پروژه برای مدیریت پروژه‌های چندمجتمعی'),
-            ]
+            ('Project_add', 'افزودن پروژه برای مدیریت پروژه‌های چندمجتمعی'),
+            ('Project_update', 'بروزرسانی پروژه برای مدیریت پروژه‌های چندمجتمعی'),
+            ('Project_view', 'نمایش پروژه برای مدیریت پروژه‌های چندمجتمعی'),
+            ('Project_delete', 'حــذف پروژه برای مدیریت پروژه‌های چندمجتمعی'),
+        ]
+
+
 class SubProject(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='subprojects', verbose_name=_("پروژه اصلی"))
     name = models.CharField(max_length=200, verbose_name=_("نام ساب‌پروژه"))

@@ -10,16 +10,16 @@ from .models import (
 # ادمین BudgetPeriod
 @admin.register(BudgetPeriod)
 class BudgetPeriodAdmin(admin.ModelAdmin):
-    list_display = ('name', 'organization', 'total_amount', 'remaining_amount',
+    list_display = ('name', 'organization', 'total_amount',
                     'start_date', 'end_date', 'is_active', 'is_archived')
     list_filter = ('organization', 'is_active', 'is_archived', 'start_date', 'end_date')
     search_fields = ('name', 'organization__name', 'organization__code')
     date_hierarchy = 'start_date'
     ordering = ('-start_date',)
-    readonly_fields = ('remaining_amount',)
+    readonly_fields = ('get_remaining_amount',)
     fieldsets = (
         (None, {
-            'fields': ('organization', 'name', 'total_amount', 'remaining_amount')
+            'fields': ('organization', 'name', 'total_amount', 'get_remaining_amount')
         }),
         (_('دوره زمانی'), {
             'fields': ('start_date', 'end_date')

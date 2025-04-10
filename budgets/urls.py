@@ -7,7 +7,7 @@ from .views import BudgetPeriodListView, BudgetPeriodDetailView, BudgetPeriodCre
     PaymentOrderListView, PaymentOrderDetailView, PaymentOrderCreateView, PaymentOrderUpdateView, \
     PaymentOrderDeleteView, PayeeListView, PayeeDetailView, PayeeCreateView, PayeeUpdateView, PayeeDeleteView, \
     TransactionTypeListView, TransactionTypeDetailView, TransactionTypeCreateView, TransactionTypeUpdateView, \
-    TransactionTypeDeleteView
+    TransactionTypeDeleteView ,OrganizationBudgetAllocationListView
 
 urlpatterns = [
     path('budgetperiods/', BudgetPeriodListView.as_view(), name='budgetperiod_list'),
@@ -22,6 +22,9 @@ urlpatterns += [
     path('budgetallocations/create/', BudgetAllocationCreateView.as_view(), name='budgetallocation_create'),
     path('budgetallocations/<int:pk>/update/', BudgetAllocationUpdateView.as_view(), name='budgetallocation_update'),
     path('budgetallocations/<int:pk>/delete/', BudgetAllocationDeleteView.as_view(), name='budgetallocation_delete'),
+
+    path('organization/<int:org_id>/allocations/', OrganizationBudgetAllocationListView.as_view(), name='organization_budgetallocation_list'),
+
 ]#تخصیص بودجه به هر سطح از Organization
 urlpatterns += [
     path('budgettransactions/', BudgetTransactionListView.as_view(), name='budgettransaction_list'),

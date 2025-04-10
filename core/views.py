@@ -194,15 +194,74 @@ class AllLinksView(PermissionBaseView, TemplateView):
 #######################################################################################
 # سازمان‌ها
 # @method_decorator(has_permission('Organization_view'), name='dispatch')
+from django.db.models import Sum, Q
+from budgets.models import BudgetAllocation  # فرض بر این که BudgetAllocation در budgets است
+
+# core/views.py
+from django.db.models import Q
+from budgets.budget_calculations import get_budget_details
+from core.models import Organization
+from django.views.generic import ListView
+from django.http import HttpResponse
+from django.template import loader
+
+
 class OrganizationListView(PermissionBaseView, ListView):
     model = Organization
     template_name = 'core/organization_list.html'
     context_object_name = 'organizations'
     paginate_by = 10
+    permission_codename = 'core.Organization_view'
+    check_organization = True
     extra_context = {'title': _('لیست سازمان‌ها')}
-    permission_codename =  'core.Organization_view'
-    check_organization = True  # فعال کردن چک سازمان
 
+    def get_queryset(self):
+        queryset = super().get_queryset().order_by('id')  # ترتیب برای رفع هشدار
+        query = self.request.GET.get('q', '')
+        if query:
+            queryset = queryset.filter(
+                Q(code__icontains=query) |
+                Q(name__icontains=query) |
+                Q(description__icontains=query)
+            )
+        logger.info(f"Queryset count: {queryset.count()}")
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queryset = self.get_queryset()
+
+        filters = {}
+        if 'date_from' in self.request.GET:
+            filters['date_from'] = self.request.GET['date_from']
+        if 'date_to' in self.request.GET:
+            filters['date_to'] = self.request.GET['date_to']
+        if 'is_active' in self.request.GET:
+            filters['is_active'] = self.request.GET.get('is_active') == 'true'
+
+        # به‌جای تغییر queryset، مستقیماً context['organizations'] را پر می‌کنیم
+        organizations = queryset
+        for org in organizations:
+            budget_details = get_budget_details(entity=org, filters=filters)
+            org.budget_details = budget_details
+            logger.info(f"Org {org.name}: budget_details={budget_details}")
+
+        context['organizations'] = organizations  # صراحتاً تنظیم می‌کنیم
+        context['query'] = self.request.GET.get('q', '')
+        context['date_from'] = self.request.GET.get('date_from', '')
+        context['date_to'] = self.request.GET.get('date_to', '')
+        context['is_active'] = self.request.GET.get('is_active', '')
+
+        logger.info(f"Final context organizations count: {len(context['organizations'])}")
+        return context
+class OrganizationListView1(PermissionBaseView, ListView):
+    model = Organization
+    template_name = 'core/organization_list.html'
+    context_object_name = 'organizations'
+    paginate_by = 10
+    extra_context = {'title': _('لیست سازمان‌ها')}
+    permission_codename = 'core.Organization_view'
+    check_organization = True
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -213,11 +272,36 @@ class OrganizationListView(PermissionBaseView, ListView):
                 Q(name__icontains=query) |
                 Q(description__icontains=query)
             )
+        logger.debug(f"get_queryset: query={query}, count={queryset.count()}")
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        queryset = self.get_queryset()
+
+        # اعمال فیلترهای درخواست کاربر
+        filters = {}
+        if 'date_from' in self.request.GET:
+            filters['date_from'] = self.request.GET['date_from']
+        if 'date_to' in self.request.GET:
+            filters['date_to'] = self.request.GET['date_to']
+        if 'is_active' in self.request.GET:
+            filters['is_active'] = self.request.GET.get('is_active') == 'true'
+
+        logger.debug(f"Filters applied: {filters}")
+
+        # اضافه کردن جزئیات بودجه به هر سازمان
+        for org in queryset:
+            budget_details = get_budget_details(entity=org, filters=filters)
+            org.budget_details = budget_details
+            logger.info(f"Organization {org.name}: budget_details={budget_details}")
+
         context['query'] = self.request.GET.get('q', '')
+        context['date_from'] = self.request.GET.get('date_from', '')
+        context['date_to'] = self.request.GET.get('date_to', '')
+        context['is_active'] = self.request.GET.get('is_active', '')
+
+        logger.info(f"Final context: {context}")
         return context
 
 class OrganizationDetailView(PermissionBaseView, DetailView):
@@ -304,7 +388,10 @@ class ProjectListView(PermissionBaseView, ListView):
             queryset = queryset.filter(is_active=True)
         elif status == 'inactive':
             queryset = queryset.filter(is_active=False)
-
+        # استفاده از annotate برای محاسبه مجموع بودجه تخصیص‌یافته
+        # queryset = queryset.annotate(
+        #     total_allocated=Sum('budgetallocation__allocated_amount')
+        # )
         return queryset.order_by('-start_date')
 
     def get_context_data(self, **kwargs):

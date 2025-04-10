@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.shortcuts import render
 
 # Create your views here.
@@ -9,6 +9,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy
 
 from core.PermissionBase import PermissionBaseView
+from core.models import Organization
 from .models import BudgetPeriod, BudgetAllocation, BudgetTransaction, PaymentOrder, Payee, TransactionType
 from .forms import (BudgetPeriodForm, BudgetAllocationForm, BudgetTransactionForm,
                    PaymentOrderForm, PayeeForm, TransactionTypeForm)
@@ -35,10 +36,14 @@ class BudgetPeriodListView(PermissionBaseView, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        budget_periods = context['budget_periods']
+        # اضافه کردن باقی‌مانده و وضعیت برای هر دوره بودجه
+        for period in budget_periods:
+            period.remaining_amount = period.get_remaining_amount()
+            period.status, period.status_message = period.check_budget_status()
         context['query'] = self.request.GET.get('q', '')
         context['status'] = self.request.GET.get('status', '')
         return context
-
 
 class BudgetPeriodDetailView(PermissionBaseView, DetailView):
     model = BudgetPeriod
@@ -64,8 +69,19 @@ class BudgetPeriodCreateView(PermissionBaseView, CreateView):
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         messages.success(self.request, f'دوره بودجه {form.instance.name} با موفقیت ایجاد شد.')
-        return super().form_valid(form)
 
+        # بررسی بودجه‌های موجود در همان سال و سازمان
+        existing = BudgetPeriod.objects.filter(
+            organization=form.instance.organization,
+            start_date__year=form.instance.start_date.year
+        )
+        if existing.exists():
+            messages.warning(
+                self.request,
+                f"هشدار: {existing.count()} بودجه دیگر برای این سازمان در سال {form.instance.start_date.year} وجود دارد."
+            )
+        form.instance.created_by = self.request.user
+        return super().form_valid(form)
 
 class BudgetPeriodUpdateView(PermissionBaseView, UpdateView):
     model = BudgetPeriod
@@ -88,8 +104,22 @@ class BudgetPeriodDeleteView(PermissionBaseView, DeleteView):
         messages.success(request, f'دوره بودجه {budget_period.name} با موفقیت حذف شد.')
         return super().post(request, *args, **kwargs)
 
-# BudgetAllocation CRUD
-# BudgetAllocation CRUD
+ # BudgetAllocation CRUD
+from django.db.models import Q
+from budgets.budget_calculations import get_budget_details, calculate_total_allocated, calculate_remaining_budget
+from budgets.models import BudgetAllocation, BudgetPeriod
+from core.views import PermissionBaseView
+from django.views.generic import ListView
+
+from django.db.models import Q
+from budgets.budget_calculations import get_budget_details, calculate_allocation_percentages
+from budgets.models import BudgetAllocation
+from core.views import PermissionBaseView
+from django.views.generic import ListView
+import logging
+
+logger = logging.getLogger(__name__)
+
 class BudgetAllocationListView(PermissionBaseView, ListView):
     model = BudgetAllocation
     template_name = 'budgets/budget/budgetallocation_list.html'
@@ -114,18 +144,43 @@ class BudgetAllocationListView(PermissionBaseView, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        queryset = self.get_queryset()
+
+        # فیلترهای کاربر
+        filters = {}
+        if 'date_from' in self.request.GET:
+            filters['date_from'] = self.request.GET['date_from']
+        if 'date_to' in self.request.GET:
+            filters['date_to'] = self.request.GET['date_to']
+
+        # جزئیات بودجه کل
+        budget_details = get_budget_details(filters=filters)
+        context['total_budget'] = budget_details['total_budget']
+        context['total_allocated'] = budget_details['total_allocated']
+        context['total_remaining'] = budget_details['remaining_budget']
+
+        # محاسبه درصد تخصیص‌ها
+        budget_allocations = context['budget_allocations']
+        context['total_percentage'] = calculate_allocation_percentages(budget_allocations)
+
+        # اختلاف‌ها
+        context['allocated_diff'] = context['total_budget'] - context['total_allocated']
+        context['remaining_diff'] = context['total_budget'] - context['total_remaining']
+
+        # پارامترهای فیلتر
         context['query'] = self.request.GET.get('q', '')
         context['date_from'] = self.request.GET.get('date_from', '')
         context['date_to'] = self.request.GET.get('date_to', '')
-        return context
 
+        # لاگ‌نویسی context
+        logger.info(f"BudgetAllocationListView context: {context}")
+        return context
 
 class BudgetAllocationDetailView(PermissionBaseView, DetailView):
     model = BudgetAllocation
     template_name = 'budgets/budget/budgetallocation_detail.html'
     permission_codenames = ['budgets.BudgetAllocation_view']
     context_object_name = 'budget_allocation'
-
 
 class BudgetAllocationCreateView(PermissionBaseView, CreateView):
     model = BudgetAllocation
@@ -148,11 +203,12 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
         """Calculate various budget metrics for context"""
         if not budget_period:
             return {}
+        remaining_amount = budget_period.get_remaining_amount()
         return {
             'budget_period': budget_period,
-            'remaining_amount': budget_period.remaining_amount,
+            'remaining_amount': remaining_amount,
             'total_amount': budget_period.total_amount,
-            'remaining_percent': (budget_period.remaining_amount / budget_period.total_amount * 100
+            'remaining_percent': (remaining_amount / budget_period.total_amount * 100
                                   if budget_period.total_amount > 0 else 0),
             'locked_amount': budget_period.get_locked_amount(),
             'warning_amount': budget_period.get_warning_amount(),
@@ -172,7 +228,7 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
     def _validate_allocation(self, form):
         """Validate budget allocation against period constraints"""
         budget_period = form.instance.budget_period
-        new_remaining = budget_period.remaining_amount - form.instance.allocated_amount
+        new_remaining = budget_period.get_remaining_amount() - form.instance.allocated_amount
         locked_amount = budget_period.get_locked_amount()
 
         if new_remaining < locked_amount:
@@ -190,19 +246,19 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
             allocation=allocation,
             transaction_type='ALLOCATION',
             amount=allocation.allocated_amount,
-            user=self.request.user,
+            created_by = self.request.user,
             description=f'تخصیص بودجه به {allocation.organization.name}'
         )
-
-    def _update_budget_period(self, budget_period, allocated_amount):
-        """Update budget period remaining amount"""
-        budget_period.remaining_amount -= allocated_amount
-        budget_period.save()
-        return budget_period.check_budget_status()
 
     @transaction.atomic
     def form_valid(self, form):
         """Handle valid form submission"""
+        budget_period = self._get_budget_period()
+        if not budget_period:
+            messages.error(self.request, 'دوره بودجه مشخص نشده است.')
+            return self.form_invalid(form)
+
+        form.instance.budget_period = budget_period
         if not self._validate_allocation(form):
             return self.form_invalid(form)
 
@@ -211,11 +267,7 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
 
         self._create_budget_transaction(allocation)
 
-        status, message = self._update_budget_period(
-            form.instance.budget_period,
-            form.instance.allocated_amount
-        )
-
+        status, message = budget_period.check_budget_status()
         if status == 'warning':
             messages.warning(self.request, message)
         elif status == 'locked':
@@ -225,14 +277,7 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
             self.request,
             f'تخصیص بودجه به {form.instance.organization.name} با موفقیت ثبت شد.'
         )
-        budget_period = self._get_budget_period()
-        if not budget_period:
-            messages.error(self.request, 'دوره بودجه مشخص نشده است.')
-            return self.form_invalid(form)
-        form.instance.budget_period = budget_period
-
         return super().form_valid(form)
-
 
 class BudgetAllocationUpdateView(PermissionBaseView, UpdateView):
     model = BudgetAllocation
@@ -244,22 +289,19 @@ class BudgetAllocationUpdateView(PermissionBaseView, UpdateView):
     def form_valid(self, form):
         old_amount = self.get_object().allocated_amount
         new_amount = form.instance.allocated_amount
-        budget_period = form.instance.budget_period
         difference = new_amount - old_amount
 
         if difference != 0:
-            budget_period.remaining_amount -= difference
-            budget_period.save()
+            transaction_type = 'ADJUSTMENT_INCREASE' if difference > 0 else 'ADJUSTMENT_DECREASE'
             BudgetTransaction.objects.create(
                 allocation=form.instance,
-                transaction_type='ADJUSTMENT_INCREASE' if difference > 0 else 'ADJUSTMENT_DECREASE',
+                transaction_type=transaction_type,
                 amount=abs(difference),
-                user=self.request.user,
+                created_by=self.request.user,
                 description=f'تغییر تخصیص بودجه به {form.instance.organization.name}'
             )
         messages.success(self.request, f'تخصیص بودجه به {form.instance.organization.name} با موفقیت به‌روزرسانی شد.')
         return super().form_valid(form)
-
 
 class BudgetAllocationDeleteView(PermissionBaseView, DeleteView):
     model = BudgetAllocation
@@ -270,10 +312,31 @@ class BudgetAllocationDeleteView(PermissionBaseView, DeleteView):
     def post(self, request, *args, **kwargs):
         allocation = self.get_object()
         budget_period = allocation.budget_period
-        budget_period.remaining_amount += allocation.allocated_amount
+        # budget_period.get_remaining_amount += allocation.allocated_amount
         budget_period.save()
         messages.success(request, f'تخصیص بودجه به {allocation.organization.name} با موفقیت حذف شد.')
         return super().post(request, *args, **kwargs)
+
+# Budget Organizition
+class OrganizationBudgetAllocationListView(PermissionBaseView, ListView):
+    model = BudgetAllocation
+    template_name = 'budgets/budget/organization_budgetallocation_list.html'
+    context_object_name = 'budget_allocations'
+    paginate_by = 10
+    permission_codenames = ['budgets.BudgetAllocation_view']
+
+    def get_queryset(self):
+        org_id = self.kwargs.get('org_id')  # گرفتن ID سازمان از URL
+        queryset = BudgetAllocation.objects.filter(organization_id=org_id).order_by('-allocation_date')
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        org_id = self.kwargs.get('org_id')
+        organization = Organization.objects.get(id=org_id)
+        context['organization'] = organization
+        context['total_allocated'] = self.get_queryset().aggregate(total=Sum('allocated_amount'))['total'] or 0
+        return context
 
 
 # BudgetTransaction CRUD
@@ -305,13 +368,11 @@ class BudgetTransactionListView(PermissionBaseView, ListView):
         context['transaction_types'] = BudgetTransaction.TRANSACTION_TYPES
         return context
 
-
 class BudgetTransactionDetailView(PermissionBaseView, DetailView):
     model = BudgetTransaction
     template_name = 'budgets/budget/budgettransaction_detail.html'
     permission_codenames = ['budgets.BudgetTransaction_view']
     context_object_name = 'budget_transaction'
-
 
 # PaymentOrder CRUD
 class PaymentOrderListView(PermissionBaseView, ListView):
@@ -342,13 +403,11 @@ class PaymentOrderListView(PermissionBaseView, ListView):
         context['status_choices'] = PaymentOrder.STATUS_CHOICES
         return context
 
-
 class PaymentOrderDetailView(PermissionBaseView, DetailView):
     model = PaymentOrder
     template_name = 'budgets/paymentorder/paymentorder_detail.html'
     permission_codenames = ['budgets.PaymentOrder_view']
     context_object_name = 'payment_order'
-
 
 class PaymentOrderCreateView(PermissionBaseView, CreateView):
     model = PaymentOrder
@@ -362,7 +421,6 @@ class PaymentOrderCreateView(PermissionBaseView, CreateView):
         messages.success(self.request, f'دستور پرداخت {form.instance.order_number} با موفقیت ایجاد شد.')
         return super().form_valid(form)
 
-
 class PaymentOrderUpdateView(PermissionBaseView, UpdateView):
     model = PaymentOrder
     form_class = PaymentOrderForm
@@ -374,7 +432,6 @@ class PaymentOrderUpdateView(PermissionBaseView, UpdateView):
         messages.success(self.request, f'دستور پرداخت {form.instance.order_number} با موفقیت به‌روزرسانی شد.')
         return super().form_valid(form)
 
-
 class PaymentOrderDeleteView(PermissionBaseView, DeleteView):
     model = PaymentOrder
     template_name = 'budgets/paymentorder/paymentorder_confirm_delete.html'
@@ -385,7 +442,6 @@ class PaymentOrderDeleteView(PermissionBaseView, DeleteView):
         payment_order = self.get_object()
         messages.success(request, f'دستور پرداخت {payment_order.order_number} با موفقیت حذف شد.')
         return super().post(request, *args, **kwargs)
-
 
 # Payee CRUD
 class PayeeListView(PermissionBaseView, ListView):
@@ -415,7 +471,6 @@ class PayeeListView(PermissionBaseView, ListView):
         context['payee_type'] = self.request.GET.get('payee_type', '')
         context['payee_types'] = Payee.PAYEE_TYPES
         return context
-
 
 class PayeeDetailView(PermissionBaseView, DetailView):
     model = Payee

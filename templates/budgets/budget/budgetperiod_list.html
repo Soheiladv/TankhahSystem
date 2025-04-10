@@ -1,151 +1,266 @@
 {% extends "base.html" %}
-{% load i18n static rcms_custom_filters jformat %}
+{% load i18n rcms_custom_filters jformat %} {# Removed 'static' as it's not used directly here #}
+
+{% block title %}{% trans "فهرست بودجه کلان" %}{% endblock %}
 
 {% block extra_css %}
+{# --- Font Awesome --- #}
+{# Ensure Font Awesome is loaded, preferably in base.html, or uncomment below #}
+{# <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"> #}
 
 <style>
-    .budget-list-container {
-        max-width: 1200px;
-        margin: 40px auto;
-        padding: 20px;
-        font-family: 'Vazir', sans-serif;
+    /* Optional: Ensure Vazir font is loaded globally */
+    /* body { font-family: 'Vazirmatn', sans-serif !important; } */
+
+    .budget-list-page {
+        padding-top: 2rem;
+        padding-bottom: 3rem;
     }
+
     .card {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        overflow: hidden;
+        border: none; /* Remove default border */
+        border-radius: var(--bs-border-radius-lg, 0.8rem); /* Smoother radius */
+        overflow: hidden; /* Ensure child elements conform to radius */
+        /* Subtle animation */
+        animation: fadeInScaleUp 0.6s ease-out forwards;
     }
+
     .card-header {
-        background: linear-gradient(135deg, #4caf50, #45a049);
-        color: white;
-        padding: 15px 20px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
+        /* Use Bootstrap classes primarily, keep colors */
+        background: var(--bs-primary); /* Use Bootstrap primary color */
+        border-bottom: none;
+        padding: 1rem 1.5rem;
     }
+     .card-header h4 {
+        margin-bottom: 0;
+        font-weight: 600; /* Slightly bolder header */
+        font-size: 1.25rem; /* Adjust size */
+     }
+     .card-header .btn-light {
+         /* Style the create button */
+         font-weight: 500;
+         border: none;
+         transition: all 0.3s ease;
+     }
+      .card-header .btn-light:hover {
+          background-color: #f8f9fa; /* Slightly darker hover */
+          transform: translateY(-1px);
+      }
+
+    /* Table styling */
     .table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 0;
+        margin-bottom: 0; /* Remove default bottom margin when inside card */
+        /* Use Bootstrap defaults, potentially override specific styles */
+        --bs-table-striped-bg: rgba(var(--bs-primary-rgb), 0.03); /* Subtle primary stripe */
     }
-    .table th, .table td {
-        padding: 12px 15px;
-        text-align: right;
+
+     .table th {
+        font-weight: 600; /* Bolder headers */
+        font-size: 0.9rem;
+        text-transform: uppercase; /* Optional: Uppercase headers */
+        letter-spacing: 0.5px;
+        background-color: var(--bs-light-bg-subtle); /* Use a subtle light background */
+        vertical-align: middle;
+     }
+     .table td {
+         vertical-align: middle; /* Align content vertically */
+         font-size: 0.95rem;
+         padding: 0.75rem; /* Adjust padding */
+     }
+
+     /* Action buttons styling */
+     .action-buttons .btn {
+         padding: 0.3rem 0.6rem; /* Smaller padding */
+         font-size: 0.85rem; /* Smaller font */
+     }
+      .action-buttons .btn i {
+         /* margin-right: 0.3rem; */ /* Space before text */
+         /* font-size: 0.9em; */ /* Slightly smaller icon */
+      }
+
+    /* Status badge styling */
+    .status-badge {
+        font-weight: 500;
+        padding: 0.3em 0.6em;
+        font-size: 0.85em;
+        border-radius: var(--bs-border-radius-sm);
     }
-    .table th {
-        background: #f5f5f5;
-        font-weight: bold;
-        color: #333;
+    .status-badge.active { background-color: var(--bs-success-bg-subtle); color: var(--bs-success-text-emphasis); border: 1px solid var(--bs-success-border-subtle); }
+    .status-badge.inactive { background-color: var(--bs-secondary-bg-subtle); color: var(--bs-secondary-text-emphasis); border: 1px solid var(--bs-secondary-border-subtle); }
+    .status-badge.archived { background-color: var(--bs-warning-bg-subtle); color: var(--bs-warning-text-emphasis); border: 1px solid var(--bs-warning-border-subtle); margin-right: 5px;}
+
+    /* Text Alignment Helpers */
+     .text-numeric { /* For right-aligning numbers */
+         text-align: end;
+         font-family: monospace; /* Optional: Monospace for numbers */
+     }
+
+    /* Animation */
+    @keyframes fadeInScaleUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.98);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
     }
-    .table-striped tbody tr:nth-child(odd) {
-        background: #fafafa;
+    tbody tr {
+         /* Optional: Staggered animation for rows */
+         /* opacity: 0; */
+         /* animation: fadeInRow 0.5s ease-out forwards; */
+         /* animation-delay: calc(var(--row-index, 0) * 0.05s); */
     }
-    .table-hover tbody tr:hover {
-        background: #f0f0f0;
-        transition: background 0.3s ease;
-    }
-    .btn {
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-size: 14px;
-        transition: all 0.3s ease;
-    }
-    .btn-info {
-        background: #2196f3;
-        color: white;
-        border: none;
-    }
-    .btn-info:hover {
-        background: #1976d2;
-    }
-    .btn-warning {
-        background: #ff9800;
-        color: white;
-        border: none;
-    }
-    .btn-warning:hover {
-        background: #f57c00;
-    }
-    .btn-danger {
-        background: #f44336;
-        color: white;
-        border: none;
-    }
-    .btn-danger:hover {
-        background: #d32f2f;
-    }
-    .btn-success {
-        background: #4caf50;
-        color: white;
-        border: none;
-    }
-    .btn-success:hover {
-        background: #45a049;
-    }
-    .text-center {
-        text-align: center;
-    }
+     @keyframes fadeInRow { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Print styles (optional but good practice) */
+     @media print {
+        body { font-size: 10pt; }
+        .no-print, .card-header .btn, .action-buttons { display: none !important; }
+        .card { box-shadow: none !important; border: 1px solid #ccc !important; border-radius: 0 !important;}
+        .table, .table th, .table td { border: 1px solid #ccc !important; }
+        .table-striped tbody tr:nth-child(odd) { background: #fff !important; } /* Remove stripe for print */
+        .container-lg, .budget-list-page { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+        a { text-decoration: none; color: inherit; } /* Avoid underlined links */
+     }
+
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="budget-list-container">
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-calendar-alt"></i>
-            <h2>{% trans "فهرست بودجه‌های کلان" %}</h2>
+<div class="container-lg budget-list-page"> {# Use Bootstrap container #}
+    <div class="card shadow-sm"> {# Add subtle shadow #}
+
+        <div class="card-header text-white d-flex justify-content-between align-items-center no-print"> {# Use theme colors #}
+            <h4 class="mb-0 d-flex align-items-center gap-2">
+                <i class="fas fa-landmark fa-fw"></i> {# Added icon #}
+                {% trans "فهرست بودجه کلان" %}
+            </h4>
+            <div class="no-print">
+                <a href="{% url 'budgetperiod_create' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-plus me-1"></i> {% trans "ثبت بودجه کلان جدید" %}
+                </a>
+            </div>
         </div>
-        <table class="table table-striped table-hover">
-            <thead class="bg-light">
-                <tr>
-                    <th>{% trans "ردیف" %}</th>
-                    <th>{% trans "نام" %}</th>
-                    <th>{% trans "دفتر مرکزی" %}</th>
-                    <th>{% trans "مبلغ کل" %}</th>
-                    <th>{% trans "باقی‌مانده" %}</th>
-                    <th>{% trans "تاریخ شروع" %}</th>
-                    <th>{% trans "تاریخ پایان" %}</th>
-                    <th>{% trans "وضعیت" %}</th>
-                    <th>{% trans "اقدام" %}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for budget_period in budget_periods %}
-                <tr>
-                    <td>{{ forloop.counter|format_negative }}</td>
-                    <td>{{ budget_period.name|to_persian_number_with_comma }}</td>
-                    <td>{{ budget_period.organization.name|to_persian_number_with_comma }}</td>
-                    <td>{{ budget_period.total_amount|format_negative }}</td>
-                    <td>{{ budget_period.remaining_amount|format_negative }}</td>
-                    <td>{{ budget_period.start_date|jformat:'%Y/%m/%d'|to_persian_number }}</td>
-                    <td>{{ budget_period.end_date|jformat:'%Y/%m/%d'|to_persian_number }}</td>
-                    <td>
-                        {% if budget_period.is_active %}{% trans "فعال" %}{% else %}{% trans "غیرفعال" %}{% endif %}
-                        {% if budget_period.is_archived %} ({% trans "بایگانی" %}){% endif %}
-                    </td>
-                    <td>
-                        <a href="{% url 'budgetperiod_detail' budget_period.pk %}" class="btn btn-info btn-sm">
-                            <i class="fas fa-eye"></i> {% trans "جزئیات" %}
-                        </a>
-                        <a href="{% url 'budgetperiod_update' budget_period.pk %}" class="btn btn-warning btn-sm">
-                            <i class="fas fa-edit"></i> {% trans "ویرایش" %}
-                        </a>
-                        <a href="{% url 'budgetperiod_delete' budget_period.pk %}" class="btn btn-danger btn-sm">
-                            <i class="fas fa-trash"></i> {% trans "حذف" %}
-                        </a>
-                        <a href="{% url 'budgetallocation_create' %}?budget_period={{ budget_period.pk }}" class="btn btn-success btn-sm">
-                            <i class="fas fa-plus"></i> {% trans "تخصیص" %}
-                        </a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="9" class="text-center">{% trans "هیچ بودجه‌ای یافت نشد." %}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
+
+        {# Use table-responsive to make table scroll horizontally on small screens #}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover table-bordered table-sm align-middle mb-0"> {# Added bordered, sm, align-middle #}
+                <thead class="text-center table-light"> {# Centered headers, light background #}
+                    <tr>
+                        <th style="width: 5%;">{% trans "ردیف" %}</th>
+                        <th>{% trans "نام دوره" %}</th>
+                        <th>{% trans "دفتر مرکزی" %}</th>
+                        <th class="text-end">{% trans "مبلغ کل" %} <small>({% trans "ریال" %})</small></th>
+                        <th class="text-end">{% trans "باقی‌مانده" %} <small>({% trans "ریال" %})</small></th>
+                        <th>{% trans "تاریخ شروع" %}</th>
+                        <th>{% trans "تاریخ پایان" %}</th>
+                        <th>{% trans "وضعیت" %}</th>
+                        <th style="width: 25%;" class="no-print">{% trans "اقدامات" %}</th> {# Wider actions column, hide on print #}
+                    </tr>
+                </thead>
+                <tbody class="text-center"> {# Centered body content by default #}
+                    {% for budget_period in budget_periods %}
+                    <tr style="--row-index: {{ forloop.counter0 }};"> {# For staggered animation if enabled #}
+                        <td>{{ forloop.counter|to_persian_number }}</td>
+                        <td class="text-start">{{ budget_period.name|to_persian_number_with_comma }}</td> {# Align name left #}
+                        <td class="text-start">{{ budget_period.organization.name|to_persian_number_with_comma }}</td> {# Align org left #}
+                        <td class="text-numeric">{{ budget_period.total_amount|format_negative }}</td> {# Align numbers right #}
+                        <td class="text-numeric {% if budget_period.remaining_amount < 0 %}text-danger fw-bold{% endif %}"> {# Highlight negative remaining #}
+                            {{ budget_period.remaining_amount|format_negative }}
+                        </td>
+                        <td class="font-monospace">{{ budget_period.start_date|jformat:'%Y/%m/%d'|to_persian_number }}</td>
+                        <td class="font-monospace">{{ budget_period.end_date|jformat:'%Y/%m/%d'|to_persian_number }}</td>
+                        <td>
+                             {# Use badges for status #}
+                            {% if budget_period.is_active %}
+                                <span class="status-badge active">{% trans "فعال" %}</span>
+                            {% else %}
+                                <span class="status-badge inactive">{% trans "غیرفعال" %}</span>
+                            {% endif %}
+                            {% if budget_period.is_archived %}
+                                <span class="status-badge archived">{% trans "بایگانی" %}</span>
+                            {% endif %}
+                        </td>
+                         <td class="action-buttons no-print"> {# Hide on print #}
+                             {# Group buttons for better alignment #}
+                             <div class="btn-group btn-group-sm" role="group" aria-label="Budget Period Actions">
+                                <a href="{% url 'budgetperiod_detail' budget_period.pk %}" class="btn btn-outline-primary" title="{% trans 'جزئیات' %}">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'budgetperiod_update' budget_period.pk %}" class="btn btn-outline-secondary" title="{% trans 'ویرایش' %}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                 {# Add confirmation for delete #}
+                                <a href="{% url 'budgetperiod_delete' budget_period.pk %}" class="btn btn-outline-danger" title="{% trans 'حذف' %}" onclick="return confirm('{% trans 'آیا از حذف این دوره بودجه و تمام تخصیص‌های مرتبط با آن مطمئن هستید؟' %}');">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                             </div>
+                              {# Separate buttons for allocation actions #}
+                             <div class="btn-group btn-group-sm mt-1" role="group">
+                                 <a href="{% url 'budgetallocation_create' %}?budget_period={{ budget_period.pk }}" class="btn btn-success" title="{% trans 'تخصیص جدید به شعب' %}">
+                                    <i class="fas fa-plus"></i> {% trans "تخصیص" %}
+                                </a>
+                                <a href="{% url 'budgetallocation_list' %}?q={{ budget_period.name }}" class="btn btn-info" title="{% trans 'مشاهده تخصیص‌های این دوره' %}">
+                                    <i class="fas fa-list-ul"></i> {% trans "لیست تخصیص‌ها" %}
+                                </a>
+                             </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-4"> {# Adjusted colspan #}
+                             <i class="fas fa-info-circle fa-lg text-muted me-2"></i>
+                             {% trans "هیچ بودجه کلانی یافت نشد." %}
+                             <a href="{% url 'budgetperiod_create' %}" class="btn btn-sm btn-primary ms-2 no-print">{% trans "ثبت بودجه جدید" %}</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div> {# End table-responsive #}
+
+        {# Add Pagination if needed - Assuming pagination logic is handled by the view #}
+         {% if is_paginated %}
+            <div class="card-footer bg-light no-print"> {# Footer for pagination #}
+                 <nav aria-label="Page navigation">
+                     <ul class="pagination justify-content-center mb-0">
+                         {# --- Pagination links similar to previous example --- #}
+                         {% if page_obj.has_previous %}
+                             <li class="page-item">
+                                 <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&amp;{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="{% trans 'Previous' %}">
+                                      &laquo;
+                                 </a>
+                             </li>
+                         {% else %}
+                             <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                         {% endif %}
+
+                          {% for num in paginator.page_range %}
+                             {% if page_obj.number == num %}
+                                 <li class="page-item active" aria-current="page"><span class="page-link">{{ num|to_persian_number }}</span></li>
+                             {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                  <li class="page-item"><a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&amp;{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num|to_persian_number }}</a></li>
+                             {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+                                  <li class="page-item disabled"><span class="page-link">...</span></li>
+                             {% endif %}
+                          {% endfor %}
+
+                         {% if page_obj.has_next %}
+                              <li class="page-item">
+                                  <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&amp;{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="{% trans 'Next' %}">
+                                       &raquo;
+                                  </a>
+                              </li>
+                         {% else %}
+                              <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                         {% endif %}
+                     </ul>
+                 </nav>
+            </div>
+         {% endif %}
+
+    </div> {# End card #}
+</div> {# End container #}
 {% endblock %}

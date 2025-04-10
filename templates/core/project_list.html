@@ -83,6 +83,11 @@
                             <i class="fas fa-align-left me-2"></i>
                             <strong>{% trans "توضیحات:" %}</strong> {{ project.description|truncatechars:80|default:"-" }}
                         </li>
+                            <li>
+                            <i class="fas fa-align-left me-2"></i>
+                            <strong>{% trans "بودجه کل:" %}</strong> {{ organization.total_allocated|default:0|floatformat:0|format_negative|to_persian_number }}
+                        </li>
+
                         <li>
                             <i class="fas fa-folder me-2"></i>
                             <strong>{% trans "ساب‌پروژه‌ها:" %}</strong>

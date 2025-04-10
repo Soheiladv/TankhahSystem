@@ -147,14 +147,15 @@ class ProjectForm(forms.ModelForm):
                     defaults={'description': self.cleaned_data.get('subproject_description', ''), 'is_active': True},
                 )
         return project
+
 class OrganizationForm(forms.ModelForm):
     class Meta:
         model = Organization
-        fields = ['code', 'name', 'org_type', 'description','budget','parent_organization']
-        budget = forms.DecimalField(
-            widget=NumberToWordsWidget(attrs={'placeholder': '  ارقام بودجه سالانه را وارد کنید'}),
-            label='بودجه سالانه'
-        )
+        fields = ['code', 'name', 'org_type', 'description', 'parent_organization']
+        # budget = forms.DecimalField(
+        #     widget=NumberToWordsWidget(attrs={'placeholder': '  ارقام بودجه سالانه را وارد کنید'}),
+        #     label='بودجه سالانه'
+        # )
 
         widgets = {
             'code': forms.TextInput(attrs={'class': 'form-control'}),
@@ -168,7 +169,7 @@ class OrganizationForm(forms.ModelForm):
             'code': _('کد سازمان'),
             'name': _('نام سازمان'),
             'org_type': _('نوع سازمان'),
-            'budget': _('بودجه سالانه'),
+            # 'budget': _('بودجه سالانه'),
             'parent_organization': _('نوع سازمان'),
             'description': _('توضیحات'),
         }

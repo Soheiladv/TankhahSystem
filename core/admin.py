@@ -20,12 +20,12 @@ class BaseAdmin(admin.ModelAdmin):
 # ادمین سازمان
 @admin.register(Organization)
 class OrganizationAdmin(BaseAdmin):
-    list_display = ('code', 'name', 'org_type', 'description_short','budget','parent_organization')
+    list_display = ('code', 'name', 'org_type', 'description_short', 'parent_organization')
     list_filter = ('org_type',)
     search_fields = ('code', 'name', 'description')
     ordering = ('code',)
     fieldsets = (
-        (None, {'fields': ('code', 'name', 'org_type','budget','parent_organization')}),
+        (None, {'fields': ('code', 'name', 'org_type' ,'parent_organization')}),
         (_('توضیحات'), {'fields': ('description',), 'classes': ('collapse',)}),
     )
 
@@ -37,13 +37,13 @@ class OrganizationAdmin(BaseAdmin):
 # ادمین پروژه
 @admin.register(Project)
 class ProjectAdmin(BaseAdmin):
-    list_display = ('code', 'name', 'start_date', 'end_date', 'org_count')
+    list_display = ('code', 'name', 'start_date', 'end_date',  'org_count')
     list_filter = (('start_date', JDateFieldListFilter), ('end_date', JDateFieldListFilter))
     search_fields = ('code', 'name', 'description')
     filter_horizontal = ('organizations',)
     ordering = ('-start_date',)
     fieldsets = (
-        (None, {'fields': ('code', 'name', 'organizations', 'start_date', 'end_date')}),
+        (None, {'fields': ('code','allocations', 'name', 'organizations', 'start_date', 'end_date')}),
         (_('توضیحات'), {'fields': ('description',), 'classes': ('collapse',)}),
     )
 

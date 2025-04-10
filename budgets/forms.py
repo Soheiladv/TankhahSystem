@@ -1,7 +1,10 @@
+from pydoc import visiblename
+
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 
+from Tanbakhsystem.utils import convert_to_farsi_numbers
 from Tanbakhsystem.widgets import NumberToWordsWidget
 from core.models import Organization
 from .models import BudgetPeriod, BudgetAllocation, BudgetTransaction, PaymentOrder, Payee, TransactionType
@@ -20,6 +23,9 @@ def to_english_digits(text):
     return text.translate(translation_table)
 
 class BudgetPeriodForm(forms.ModelForm):
+    """BudgetPeriod (دوره بودجه کلان):
+    توضیح: این مدل بودجه کل رو جدا از Organization نگه می‌داره. remaining_amount موقع تخصیص آپدیت می‌شه و lock_condition مشخص می‌کنه کی قفل بشه.
+    """
     start_date = forms.CharField(
         label=_('تاریخ شروع'),
         widget=forms.TextInput(attrs={'data-jdp': '', 'class': 'form-control', 'placeholder': _('1404/01/17')})
@@ -111,93 +117,77 @@ class BudgetPeriodForm(forms.ModelForm):
         if start_date and end_date and end_date < start_date:
             raise forms.ValidationError(_('تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد.'))
         return cleaned_data
-class BudgetAllocationForm____(forms.ModelForm):
-    allocation_date = forms.CharField(
-        label=_('تاریخ تخصیص'),
-        widget=forms.TextInput(attrs={'data-jdp': '', 'class': 'form-control', 'placeholder': _('1404/01/17')})
-    )
+
+class BudgetAllocationForm(forms.ModelForm):
     allocation_type = forms.ChoiceField(
         label=_('نوع تخصیص'),
         choices=(('amount', _('مبلغ ثابت')), ('percent', _('درصد'))),
-        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_allocation_type'}),
+        widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
     )
-    # allocated_amount = forms.CharField(
-    #     label=_('مبلغ تخصیص / درصد'),
-    #     widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'id_allocated_amount'}),
-    # )
-
-    # استفاده از ویجت سفارشی برای مبلغ
-    allocated_amount = forms.CharField(  # CharField به خاطر numberFormatter و ویجت
+    allocated_amount = forms.CharField(
         label=_("مقدار/درصد تخصیص"),
         required=True,
         widget=NumberToWordsWidget(
             attrs={
                 'placeholder': _('مقدار یا درصد را وارد کنید'),
-                'class': 'form-control form-control-sm number-format ltr-input',  # ! کلاس‌های لازم
-                'id': 'id_allocated_amount'  # ! اضافه کردن ID برای JS
+                'class': 'form-control form-control-sm number-format ltr-input',
+                'id': 'id_allocated_amount',
+                'inputmode': 'numeric',
+                'pattern': '[۰-۹0-9,،.]*',
             },
             word_label=_("به حروف:"),
-            unit=""  # واحد توسط JS تعیین می‌شود
+            unit="",
         )
     )
     budget_period = forms.ModelChoiceField(
-        queryset=BudgetPeriod.objects.all(), # یا فیلتر کنید بر اساس نیاز
+        queryset=BudgetPeriod.objects.all(),
         label=_("دوره بودجه"),
-        widget=forms.HiddenInput() # چون از URL یا جای دیگر می‌آید و در فرم نمایش داده نمی‌شود
-                                   # اگر کاربر باید انتخاب کند، از forms.Select استفاده کنید
+        widget=forms.HiddenInput(),
     )
     organization = forms.ModelChoiceField(
-        queryset=Organization.objects.all(),  # یا فیلتر کنید بر اساس نیاز
+        queryset=Organization.objects.all(),
         label=_("شعبه دریافت‌کننده"),
-        widget=forms.Select(attrs={'class': 'form-select form-select-sm'})  # ! کلاس بوت‌استرپ
+        widget=forms.Select(attrs={'class': 'form-select form-select-sm'}),
     )
-
-
-    allocation_date = forms.CharField(  # CharField به خاطر دیتاپیکر جلالی
+    allocation_date = forms.CharField(
         label=_('تاریخ تخصیص'),
         required=True,
         widget=forms.TextInput(attrs={
-            'data-jdp': '',  # فعال کردن دیتاپیکر
-            'class': 'form-control form-control-sm datepicker',  # ! کلاس‌های لازم
+            'data-jdp': '',
+            'class': 'form-control form-control-sm datepicker',
             'placeholder': _('مثال: 1403/02/21'),
-            'autocomplete': 'off'  # جلوگیری از پیشنهاد مرورگر
+            'autocomplete': 'off',
         })
     )
+
     class Meta:
         model = BudgetAllocation
-        fields = ['budget_period', 'organization', 'allocated_amount', 'allocation_date']
+        fields = ['budget_period', 'organization', 'allocation_type', 'allocated_amount', 'allocation_date','description','status']
         widgets = {
-            'budget_period': forms.Select(attrs={'class': 'form-control'}),
-            'organization': forms.Select(attrs={'class': 'form-control'}),
+            'status': forms.CheckboxInput(attrs={'class': 'form-check-input' }),
+            'description': forms.TextInput(attrs={'class': 'form-control','rows':1, 'placeholder': _('شرح ردیف')}),
         }
 
     def __init__(self, *args, **kwargs):
-        # می‌توانید user یا budget_period اولیه را از kwargs بگیرید
-        # self.user = kwargs.pop('user', None)
-        initial_budget_period = kwargs.pop('budget_period_initial', None)
         super().__init__(*args, **kwargs)
-
-        # مقداردهی اولیه budget_period اگر از ویو پاس داده شده
-        if initial_budget_period:
-            self.fields['budget_period'].initial = initial_budget_period
-            # می‌توانید queryset سازمان را بر اساس دوره بودجه فیلتر کنید اگر لازم است
-            # self.fields['organization'].queryset = ...
-
-        # اگر فیلد budget_period توسط کاربر باید انتخاب شود و مخفی نیست:
-        # self.fields['budget_period'].queryset = BudgetPeriod.objects.filter(is_active=True) # مثال
-        # self.fields['budget_period'].widget.attrs.update({'class': 'form-select form-select-sm'})
-
-
+        # تنظیم مقدار اولیه تاریخ به فرمت جلالی در حالت ویرایش
+        if self.instance and self.instance.pk and self.instance.allocation_date:
+            j_date = jdatetime.date.fromgregorian(date=self.instance.allocation_date)
+            jalali_date_str = j_date.strftime('%Y/%m/%d')
+            self.fields['allocation_date'].initial = jalali_date_str
+            self.initial['allocation_date'] = jalali_date_str
 
     def clean_allocation_date(self):
         date_str = self.cleaned_data.get('allocation_date')
         if not date_str:
             raise forms.ValidationError(_('تاریخ تخصیص اجباری است.'))
         try:
-            j_date = jdatetime.datetime.strptime(date_str, '%Y/%m/%d')
-            return j_date.date()
+            j_date = jdatetime.datetime.strptime(date_str, '%Y/%m/%d').date()
+            # تبدیل به تاریخ میلادی برای ذخیره در مدل (اگر DateField باشد)
+            gregorian_date = j_date.togregorian()
+            return gregorian_date
         except ValueError:
-            raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
+            raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1403/02/21).'))
 
     def clean_allocated_amount(self):
         amount_str = self.cleaned_data.get('allocated_amount', '')
@@ -219,104 +209,8 @@ class BudgetAllocationForm____(forms.ModelForm):
                 if amount <= 0:
                     raise forms.ValidationError(_('مبلغ باید بزرگ‌تر از صفر باشد.'))
 
-            if amount > budget_period.remaining_amount:
-                raise forms.ValidationError(_('مبلغ تخصیص بیشتر از باقی‌مانده بودجه است: %s') % budget_period.remaining_amount)
-            return amount
-        except (ValueError, TypeError):
-            raise forms.ValidationError(_('لطفاً یک مقدار معتبر وارد کنید.'))
-
-class BudgetAllocationForm(forms.ModelForm):
-    allocation_date = forms.CharField(
-        label=_('تاریخ تخصیص'),
-        widget=forms.TextInput(attrs={'data-jdp': '', 'class': 'form-control', 'placeholder': _('1404/01/17')})
-    )
-    allocation_type = forms.ChoiceField(
-        label=_('نوع تخصیص'),
-        choices=(('amount', _('مبلغ ثابت')), ('percent', _('درصد'))),
-        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_allocation_type'}),
-    )
-    allocated_amount = forms.CharField(
-        label=_('مبلغ تخصیص / درصد'),
-        widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'id_allocated_amount'}),
-    )
-    budget_period = forms.ModelChoiceField(
-        queryset=BudgetPeriod.objects.all(), # یا فیلتر کنید بر اساس نیاز
-        label=_("دوره بودجه"),
-        widget=forms.HiddenInput() # چون از URL یا جای دیگر می‌آید و در فرم نمایش داده نمی‌شود
-                                   # اگر کاربر باید انتخاب کند، از forms.Select استفاده کنید
-    )
-    organization = forms.ModelChoiceField(
-        queryset=Organization.objects.all(),  # یا فیلتر کنید بر اساس نیاز
-        label=_("شعبه دریافت‌کننده"),
-        widget=forms.Select(attrs={'class': 'form-select form-select-sm'})  # ! کلاس بوت‌استرپ
-    )
-
-    # استفاده از ویجت سفارشی برای مبلغ
-    allocated_amount = forms.CharField(  # CharField به خاطر numberFormatter و ویجت
-        label=_("مقدار/درصد تخصیص"),
-        required=True,
-        widget=NumberToWordsWidget(
-            attrs={
-                'placeholder': _('مقدار یا درصد را وارد کنید'),
-                'class': 'form-control form-control-sm number-format ltr-input',  # ! کلاس‌های لازم
-                'id': 'id_allocated_amount'  # ! اضافه کردن ID برای JS
-            },
-            word_label=_("به حروف:"),
-            unit=""  # واحد توسط JS تعیین می‌شود
-        )
-    )
-
-    allocation_date = forms.CharField(  # CharField به خاطر دیتاپیکر جلالی
-        label=_('تاریخ تخصیص'),
-        required=True,
-        widget=forms.TextInput(attrs={
-            'data-jdp': '',  # فعال کردن دیتاپیکر
-            'class': 'form-control form-control-sm datepicker',  # ! کلاس‌های لازم
-            'placeholder': _('مثال: 1403/02/21'),
-            'autocomplete': 'off'  # جلوگیری از پیشنهاد مرورگر
-        })
-    )
-    class Meta:
-        model = BudgetAllocation
-        fields = ['budget_period', 'organization', 'allocated_amount', 'allocation_date']
-        widgets = {
-            'budget_period': forms.Select(attrs={'class': 'form-control'}),
-            'organization': forms.Select(attrs={'class': 'form-control'}),
-        }
-
-
-    def clean_allocation_date(self):
-        date_str = self.cleaned_data.get('allocation_date')
-        if not date_str:
-            raise forms.ValidationError(_('تاریخ تخصیص اجباری است.'))
-        try:
-            j_date = jdatetime.datetime.strptime(date_str, '%Y/%m/%d')
-            return j_date.date()
-        except ValueError:
-            raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
-
-    def clean_allocated_amount(self):
-        amount_str = self.cleaned_data.get('allocated_amount', '')
-        allocation_type = self.cleaned_data.get('allocation_type')
-        budget_period = self.cleaned_data.get('budget_period')
-
-        if not amount_str:
-            raise forms.ValidationError(_('وارد کردن مقدار تخصیص الزامی است.'))
-
-        english_amount_str = to_english_digits(str(amount_str)).replace(',', '')
-        try:
-            amount = Decimal(english_amount_str)
-            if allocation_type == 'percent':
-                if amount <= 0 or amount > 100:
-                    raise forms.ValidationError(_('درصد باید بین ۱ تا ۱۰۰ باشد.'))
-                total_amount = budget_period.total_amount
-                amount = (amount / 100) * total_amount
-            else:
-                if amount <= 0:
-                    raise forms.ValidationError(_('مبلغ باید بزرگ‌تر از صفر باشد.'))
-
-            if amount > budget_period.remaining_amount:
-                raise forms.ValidationError(_('مبلغ تخصیص بیشتر از باقی‌مانده بودجه است: %s') % budget_period.remaining_amount)
+            if amount > budget_period.get_remaining_amount():
+                raise forms.ValidationError(_('مبلغ تخصیص بیشتر از باقی‌مانده بودجه است: %s') % budget_period.get_remaining_amount)
             return amount
         except (ValueError, TypeError):
             raise forms.ValidationError(_('لطفاً یک مقدار معتبر وارد کنید.'))
