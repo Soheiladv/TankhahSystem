@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}جزئیات {{ budget_period.name }}{% endblock %}
+{%  load jformat rcms_custom_filters %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-info text-white">
+        <h3 class="mb-0">جزئیات دوره بودجه: {{ budget_period.name |to_persian_number_with_comma}}</h3>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">دفتر مرکزی:</dt><dd class="col-sm-9">{{ budget_period.organization.name }}</dd>
+            <dt class="col-sm-3">مبلغ کل:</dt><dd class="col-sm-9">{{ budget_period.total_amount |to_persian_number}}</dd>
+            <dt class="col-sm-3">باقی‌مانده:</dt><dd class="col-sm-9">{{ budget_period.remaining_amount|to_persian_number }}</dd>
+            <dt class="col-sm-3">تاریخ شروع:</dt><dd class="col-sm-9">{{ budget_period.start_date|jformat:'%Y/%m/%d' }}</dd>
+            <dt class="col-sm-3">تاریخ پایان:</dt><dd class="col-sm-9">{{ budget_period.end_date|jformat:'%Y/%m/%d' }}</dd>
+            <dt class="col-sm-3">وضعیت:</dt><dd class="col-sm-9">
+                {% if budget_period.is_active %}فعال{% else %}غیرفعال{% endif %}
+                {% if budget_period.is_archived %}(بایگانی){% endif %}
+            </dd>
+            <dt class="col-sm-3">شرط قفل:</dt><dd class="col-sm-9">{{ budget_period.get_lock_condition_display }}</dd>
+            <dt class="col-sm-3">ایجادکننده:</dt><dd class="col-sm-9">{{ budget_period.created_by }}</dd>
+        </dl>
+        <h4>تاریخچه تخصیص‌ها</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>نوع تراکنش</th>
+                    <th>مبلغ</th>
+                    <th>سازمان</th>
+                    <th>زمان</th>
+                    <th>کاربر</th>
+                    <th>توضیحات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <td>{{ transaction.get_transaction_type_display }}</td>
+                    <td>{{ transaction.amount }}</td>
+                    <td>{{ transaction.allocation.organization.name }}</td>
+                    <td>{{ transaction.timestamp|date:'Y/m/d H:i' }}</td>
+                    <td>{{ transaction.user }}</td>
+                    <td>{{ transaction.description }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center">تراکنشی ثبت نشده است.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{% url 'budgetperiod_update' budget_period.pk %}" class="btn btn-warning">ویرایش</a>
+        <a href="{% url 'budgetperiod_list' %}" class="btn btn-secondary">بازگشت</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}جزئیات {{ budget_transaction }}{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-info text-white">
+        <h3 class="mb-0">جزئیات تراکنش بودجه</h3>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">تخصیص:</dt><dd class="col-sm-9">{{ budget_transaction.allocation }}</dd>
+            <dt class="col-sm-3">نوع تراکنش:</dt><dd class="col-sm-9">{{ budget_transaction.get_transaction_type_display }}</dd>
+            <dt class="col-sm-3">مبلغ:</dt><dd class="col-sm-9">{{ budget_transaction.amount }}</dd>
+            <dt class="col-sm-3">تنخواه مرتبط:</dt><dd class="col-sm-9">{{ budget_transaction.related_tankhah|default:'-' }}</dd>
+            <dt class="col-sm-3">زمان:</dt><dd class="col-sm-9">{{ budget_transaction.timestamp|date:'Y/m/d H:i' }}</dd>
+            <dt class="col-sm-3">کاربر:</dt><dd class="col-sm-9">{{ budget_transaction.user }}</dd>
+            <dt class="col-sm-3">توضیحات:</dt><dd class="col-sm-9">{{ budget_transaction.description|default:'-' }}</dd>
+        </dl>
+        <a href="{% url 'budgettransaction_list' %}" class="btn btn-secondary">بازگشت</a>
+    </div>
+</div>
+{% endblock %}

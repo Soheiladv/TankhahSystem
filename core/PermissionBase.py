@@ -26,7 +26,7 @@ def get_initial_stage_order():
     logger.info(f'initial_stage 😎 {initial_stage}')
     return initial_stage.order if initial_stage else 1
 
-def check_permission_and_organization(permissions, check_org=False):
+def __check_permission_and_organization_(permissions, check_org=False):
     """
     دکوراتور برای چک کردن مجوزها و دسترسی به سازمان.
     `permissions` می‌تونه یه رشته یا لیست از کدهای مجوز باشه.
@@ -85,12 +85,74 @@ def check_permission_and_organization(permissions, check_org=False):
         return _wrapped_view
     return decorator
 
+
+def check_permission_and_organization(permissions, check_org=False):
+    """
+    دکوراتور برای چک کردن مجوزها و دسترسی به سازمان و ادارات داخلی.
+    """
+
+    def decorator(view_func):
+        @login_required
+        def _wrapped_view(request, *args, **kwargs):
+            logger.info(f"چک کردن مجوزها برای کاربر: {request.user}")
+            if request.user.is_superuser:
+                logger.info("کاربر سوپریوزر است. دسترسی داده شد.")
+                return view_func(request, *args, **kwargs)
+
+            perms_to_check = [permissions] if isinstance(permissions, str) else permissions
+            for perm in perms_to_check:
+                if not request.user.has_perm(perm):
+                    logger.warning(f"دسترسی برای کاربر {request.user} به مجوز {perm} رد شد")
+                    messages.warning(request, "شما اجازه دسترسی به این بخش را ندارید.")
+                    raise PermissionDenied("شما اجازه دسترسی به این صفحه را ندارید.")
+
+            if check_org and 'pk' in kwargs:
+                try:
+                    from tankhah.models import Factor
+                    factor = Factor.objects.get(pk=kwargs['pk'])
+                    target_org = factor.tankhah.project.organization  # سازمان پروژه
+                    # همه سازمان‌های کاربر (شامل ادارات داخلی)
+                    user_orgs = set()
+                    for up in request.user.userpost_set.all():
+                        org = up.post.organization
+                        user_orgs.add(org)
+                        # اضافه کردن همه والدین سازمان تا ریشه
+                        while org.parent_organization:
+                            org = org.parent_organization
+                            user_orgs.add(org)
+
+                    is_hq_user = any(org.org_type == 'HQ' for org in user_orgs)
+                    if not is_hq_user:
+                        # چک کردن دسترسی به سازمان هدف یا والدینش
+                        current_org = target_org
+                        has_access = False
+                        while current_org:
+                            if current_org in user_orgs:
+                                has_access = True
+                                break
+                            current_org = current_org.parent_organization
+                        if not has_access:
+                            logger.warning(f"کاربر {request.user} به سازمان {target_org} یا والدینش دسترسی ندارد")
+                            messages.warning(request, "شما به این سازمان دسترسی ندارید.")
+                            raise PermissionDenied("شما به این سازمان دسترسی ندارید.")
+                except Factor.DoesNotExist:
+                    logger.warning(f"فاکتور با pk {kwargs['pk']} پیدا نشد")
+                    messages.warning(request, "فاکتور یافت نشد.")
+                    raise PermissionDenied("فاکتور یافت نشد.")
+
+            return view_func(request, *args, **kwargs)
+
+        return _wrapped_view
+
+    return decorator
+
+
 """
 کلاس پایه برای ویوها با چک مجوز و سازمان.
 - permission_codenames: لیست مجوزهای موردنیاز (مثلاً ['app.view_factor'])
 - check_organization: آیا دسترسی به سازمان چک بشه یا نه
 """
-class PermissionBaseView(LoginRequiredMixin, View):
+class PermissionBaseView__(LoginRequiredMixin, View):
     permission_codenames = []
     check_organization = False
 
@@ -164,288 +226,102 @@ class PermissionBaseView(LoginRequiredMixin, View):
         messages.error(self.request, "شما اجازه دسترسی به این بخش را ندارید.")
         return redirect('factor_list')
 
-class PermissionBaseView_1(LoginRequiredMixin, View):
-    permission_codenames = []  # لیست مجوزهای مورد نیاز برای ویو (مثلاً ['tankhah.Tankhah_view'])
-    check_organization = False  # آیا نیاز به چک کردن دسترسی سازمانی هست یا نه
-
-    def dispatch(self, request, *args, **kwargs):
-        # خط 1: شروع لاگ کردن فرآیند برای این ویو و کاربر فعلی
-        logger.info(f"شروع dispatch در {self.__class__.__name__} برای کاربر: {request.user}")
-
-        # خط 2: چک کردن اینکه کاربر لاگین کرده یا نه (از LoginRequiredMixin میاد)
-        if not request.user.is_authenticated:
-            logger.warning("کاربر احراز هویت نشده 😭")
-            return self.handle_no_permission()
-
-        # خط 3: اگه کاربر سوپریوزر باشه، بدون چک کردن بقیه چیزا اجازه می‌دیم
-        if request.user.is_superuser:
-            logger.info("کاربر سوپریوزر 😎 است، دسترسی کامل")
-            return super().dispatch(request, *args, **kwargs)
-
-        # خط 4: اگه لیست مجوزها تعریف شده باشه، چک می‌کنیم
-        if self.permission_codenames:
-            logger.info(f"🕐 چک کردن مجوزها: {self.permission_codenames}")
-            if not self._has_permissions(request.user):
-                logger.warning(f"مجوزها رد شد 👎😭: {self.permission_codenames}")
-                return self.handle_no_permission()
-            logger.info("👍 همه مجوزها تأیید شد")
-
-        # خط 5: اگه نیاز به چک سازمان باشه، سازمان رو بررسی می‌کنیم
-        if self.check_organization:
-            logger.info("🕐 شروع چک سازمان")
-            if not self._has_organization_access(request, **kwargs):
-                logger.warning("چک سازمان رد شد 👎")
-                return self.handle_no_permission()
-            logger.info("چک سازمان تأیید شد 👍")
-
-        # خط 6: اگه همه‌چیز اوکی بود، ویو رو اجرا می‌کنیم
-        logger.info("👍 همه چک‌ها تأیید شد")
-        return super().dispatch(request, *args, **kwargs)
-
-    def _has_permissions(self, user):
-        # خط 7: شروع چک کردن مجوزهای کاربر
-        logger.info(f"چک کردن مجوزها برای کاربر: {user}")
-
-        # خط 8: گرفتن همه گروه‌های کاربر از مدل سفارشی MyGroup
-        user_groups = user.groups.all()
-        logger.info(f"گروه‌های کاربر: {[group.name for group in user_groups]}")
-
-        # خط 9: گرفتن همه نقش‌های مستقیم کاربر (اگه مستقیم به کاربر اختصاص داده شده باشه)
-        user_roles = user.roles.all()
-        logger.info(f"نقش‌های مستقیم کاربر: {[role.name for role in user_roles]}")
-
-        # خط 10: حلقه روی همه مجوزهای مورد نیاز ویو
-        for perm in self.permission_codenames:
-            has_perm = False  # پرچم برای اینکه ببینیم کاربر این مجوز رو داره یا نه
-            logger.info(f"چک کردن مجوز: {perm}")
-
-            # خط 11: چک کردن مجوزهای مستقیم کاربر (از user_permissions)
-            if perm in [f"{p.content_type.app_label}.{p.codename}" for p in user.user_permissions.all()]:
-                logger.info(f"مجوز {perm} به صورت مستقیم توی user_permissions پیدا شد")
-                has_perm = True
-            else:
-                # خط 12: چک کردن نقش‌های مستقیم کاربر
-                for role in user_roles:
-                    if perm in [f"{p.content_type.app_label}.{p.codename}" for p in role.permissions.all()]:
-                        logger.info(f"مجوز {perm} توی نقش مستقیم {role.name} پیدا شد")
-                        has_perm = True
-                        break
-
-                # خط 13: اگه هنوز مجوز پیدا نشده، گروه‌ها رو چک می‌کنیم
-                if not has_perm:
-                    for group in user_groups:
-                        group_roles = group.roles.all()
-                        logger.info(f"نقش‌های گروه {group.name}: {[role.name for role in group_roles]}")
-                        for role in group_roles:
-                            if perm in [f"{p.content_type.app_label}.{p.codename}" for p in role.permissions.all()]:
-                                logger.info(f"مجوز {perm} توی نقش {role.name} از گروه {group.name} پیدا شد")
-                                has_perm = True
-                                break
-                        if has_perm:
-                            break
-
-            # خط 14: اگه این مجوز پیدا نشد، یعنی کاربر دسترسی نداره
-            if not has_perm:
-                logger.warning(f"کاربر {user} مجوز {perm} رو نداره")
-                return False
-
-        # خط 15: اگه همه مجوزها پیدا شدن، True برمی‌گردونیم
-        logger.info(f"کاربر {user} همه مجوزهای لازم رو داره")
-        return True
-
-    def _get_organization_from_object(self, obj):
-        # خط 23: گرفتن سازمان از شیء (مثلاً تنخواه یا فاکتور)
-        try:
-            if hasattr(obj, 'tankhah') and obj.tankhah:
-                return obj.tankhah.organization
-            elif hasattr(obj, 'organization') and obj.organization:
-                return obj.organization
-            return None
-        except AttributeError:
-            return None
-    def _has_organization_access(self, request, **kwargs):
-        # خط 16: گرفتن سازمان‌هایی که کاربر بهشون دسترسی داره
-        user_orgs = [up.post.organization for up in request.user.userpost_set.all()] if request.user.userpost_set.exists() else []
-        logger.info(f"سازمان‌های کاربر: 🏠 {user_orgs}")
-
-        # خط 17: چک کردن اینکه کاربر HQ هست یا نه
-        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
-        logger.info(f"کاربر HQ 🏠 است؟ {is_hq_user}")
-
-        # خط 18: اگه کاربر HQ باشه، دسترسی کامل داره
-        if is_hq_user:
-            logger.info("کاربر HQ است، دسترسی کامل 👍👍👍")
-            return True
-
-        # خط 19: مدیریت ویوهای مختلف (DetailView, UpdateView, DeleteView)
-        if isinstance(self, (DetailView, UpdateView, DeleteView)):
-            try:
-                obj = self.get_object()
-                org = self._get_organization_from_object(obj)
-                logger.info(f"سازمان شیء: {org}")
-                if not org or org not in user_orgs:
-                    logger.info("سازمان شیء پیدا نشد یا کاربر دسترسی نداره 😭")
-                    return False
-                return True
-            except Exception as e:
-                logger.info(f"خطا در گرفتن سازمان از شیء 😭: {str(e)}")
-                return False
-
-        # خط 20: مدیریت ListView
-        if isinstance(self, ListView):
-            queryset = self.get_queryset()
-            # tankhah_orgs = set(tankhah.organization for tankhah in queryset if tankhah.organization)
-            tankhah_orgs = set()
-            for project in queryset:
-                tankhah_orgs.update(project.organizations.all())
-            logger.info(f"سازمان‌های queryset: {tankhah_orgs}")
-            if not tankhah_orgs or any(org in user_orgs for org in tankhah_orgs):
-                return True
-            return False
-
-        # خط 21: مدیریت CreateView
-        if isinstance(self, CreateView):
-            if 'tankhah_id' in kwargs:
-                try:
-                    tankhah = Tankhah.objects.get(id=kwargs['tankhah_id'])
-                    # org = tankhah.organization
-                    org = set(tankhah.project.organizations.all())
-                    project_orgs = set(tankhah.project.organizations.all())
-
-                    logger.info(f"سازمان تنخواه: {org}")
-                    if not org or org not in user_orgs:
-                        logger.info("سازمان تنخواه پیدا نشد یا کاربر دسترسی نداره")
-                        return False
-                    return True
-                except Tankhah.DoesNotExist:
-                    logger.info("تنخواه پیدا نشد")
-                    return False
-            # اگه tankhah_id نباشه، اجازه می‌دیم فرم باز شه و توی فرم سازمان چک بشه
-            logger.info("ایجاد فاکتور بدون tankhah_id، دسترسی موقت داده شد")
-            return True
-
-        # خط 22: اگه نوع ویو مشخص نباشه، فقط HQ اجازه داره
-        logger.info("ویو بدون شیء یا فرم، فقط HQ اجازه داره")
-        return False
-
-
-
-    def handle_no_permission(self):
-        # خط 24: مدیریت وقتی دسترسی رد می‌شه
-        logger.info("دسترسی رد شد در PermissionBaseView")
-        messages.error(self.request, "شما اجازه دسترسی به این بخش را ندارید.")
-        return redirect('factor_list')
-
-class PermissionBaseView1(LoginRequiredMixin, View):
+class PermissionBaseView(LoginRequiredMixin, View):
     permission_codenames = []
     check_organization = False
 
     def dispatch(self, request, *args, **kwargs):
         logger.info(f"شروع dispatch در {self.__class__.__name__} برای کاربر: {request.user}")
-
         if not request.user.is_authenticated:
-            logger.warning("کاربر احراز هویت نشده😭")
             return self.handle_no_permission()
 
         if request.user.is_superuser:
-            logger.info("کاربر سوپریوزر😎 است، دسترسی کامل")
             return super().dispatch(request, *args, **kwargs)
 
-        if self.permission_codenames:
-            logger.info(f"🕐چک کردن مجوزها: {self.permission_codenames}")
-            if not self._has_permissions(request.user):
-                logger.warning(f"مجوزها رد شد👎😭: {self.permission_codenames}")
-                return self.handle_no_permission()
-            logger.info("👍همه مجوزها تأیید شد")
+        if self.permission_codenames and not self._has_permissions(request.user):
+            return self.handle_no_permission()
 
-        if self.check_organization:
-            logger.info("🕐شروع چک سازمان")
-            if not self._has_organization_access(request, **kwargs):
-                logger.warning("چک سازمان رد شد👎")
-                return self.handle_no_permission()
-            logger.info("چک سازمان تأیید شد👍")
+        if self.check_organization and not self._has_organization_access(request, **kwargs):
+            return self.handle_no_permission()
 
-        logger.info("👍همه چک‌ها تأیید شد")
         return super().dispatch(request, *args, **kwargs)
 
     def _has_permissions(self, user):
         for perm in self.permission_codenames:
-            has_perm = user.has_perm(perm)
-            logger.info(f"چک مجوز {perm} برای {user}: {has_perm}")
-            if not has_perm:
+            if not user.has_perm(perm):
+                logger.warning(f"کاربر {user} مجوز {perm} را ندارد")
                 return False
         return True
 
-
-    def _has_organization_access(self, request, **kwargs):
-        user_orgs = [up.post.organization for up in
-                     request.user.userpost_set.all()] if request.user.userpost_set.exists() else []
-        logger.info(f"سازمان‌های کاربر: 🏠{user_orgs}")
-        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
-        logger.info(f"کاربر HQ🏠 است؟ {is_hq_user}")
-
-        if is_hq_user:
-            logger.info("کاربر HQ است، دسترسی کامل👍👍👍")
-            return True
-
-        # مدیریت DetailView, UpdateView و DeleteView
-        if isinstance(self, (DetailView, UpdateView, DeleteView)):
-            try:
-                obj = self.get_object()
-                org = self._get_organization_from_object(obj)
-                logger.info(f"سازمان شیء: {org}")
-                if not org or org not in user_orgs:
-                    logger.info("سازمان شیء پیدا نشد یا کاربر دسترسی نداره😭")
-                    return False
-                return True
-            except Exception as e:
-                logger.info(f"خطا در گرفتن سازمان از شیء😭: {str(e)}")
-                return False
-
-        # مدیریت ListView
-        if isinstance(self, ListView):
-            queryset = self.get_queryset()
-            tankhah_orgs = set(tankhah.organization for tankhah in queryset if tankhah.organization)
-            logger.info(f"سازمان‌های queryset: {tankhah_orgs}")
-            if not tankhah_orgs or any(org in user_orgs for org in tankhah_orgs):
-                return True
-            return False
-
-        # مدیریت CreateView
-        if isinstance(self, CreateView):
-            if 'tankhah_id' in kwargs:
-                try:
-                    tankhah = Tankhah.objects.get(id=kwargs['tankhah_id'])
-                    org = tankhah.organization
-                    logger.info(f"سازمان تنخواه: {org}")
-                    if not org or org not in user_orgs:
-                        logger.info("سازمان تنخواه پیدا نشد یا کاربر دسترسی نداره")
-                        return False
-                    return True
-                except Tankhah.DoesNotExist:
-                    logger.info("تنخواه پیدا نشد")
-                    return False
-            # اگه tankhah_id نباشه، اجازه می‌دیم فرم باز شه و توی فرم سازمان چک بشه
-            logger.info("ایجاد فاکتور بدون tankhah_id، دسترسی موقت داده شد")
-            return True
-
-        logger.info("ویو بدون شیء یا فرم، فقط HQ اجازه داره")
-        return False
-
     def _get_organization_from_object(self, obj):
+        # کامنت: گرفتن سازمان از شیء با توجه به نوع مدل
         try:
             if hasattr(obj, 'tankhah') and obj.tankhah:
-                return obj.tankhah.organization
+                return obj.tankhah.project.organization
             elif hasattr(obj, 'organization') and obj.organization:
                 return obj.organization
             return None
         except AttributeError:
             return None
 
+    def _has_organization_access(self, request, **kwargs):
+        # کامنت: گرفتن همه سازمان‌های کاربر با سلسله‌مراتب
+        user_orgs = set()
+        for up in request.user.userpost_set.all():
+            org = up.post.organization
+            user_orgs.add(org)
+            while org.parent_organization:
+                org = org.parent_organization
+                user_orgs.add(org)
+
+        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs)
+        if is_hq_user:
+            logger.info("کاربر HQ است، دسترسی کامل")
+            return True
+
+        # کامنت: مدیریت ویوهای مختلف با چک سلسله‌مراتب
+        if isinstance(self, (DetailView, UpdateView, DeleteView)):
+            obj = self.get_object()
+            target_org = self._get_organization_from_object(obj)
+            if not target_org:
+                return False
+            current_org = target_org
+            while current_org:
+                if current_org in user_orgs:
+                    return True
+                current_org = current_org.parent_organization
+            return False
+
+        if isinstance(self, ListView):
+            queryset = self.get_queryset()
+            tankhah_orgs = set()
+            for item in queryset:
+                org = self._get_organization_from_object(item)
+                if org:
+                    tankhah_orgs.add(org)
+            if not tankhah_orgs or any(org in user_orgs for org in tankhah_orgs):
+                return True
+            return False
+
+        if isinstance(self, CreateView):
+            if 'tankhah_id' in kwargs:
+                from tankhah.models import Tankhah
+                tankhah = Tankhah.objects.get(id=kwargs['tankhah_id'])
+                target_org = tankhah.project.organization
+                current_org = target_org
+                while current_org:
+                    if current_org in user_orgs:
+                        return True
+                    current_org = current_org.parent_organization
+                return False
+            return True  # موقت برای فرم
+
+        return False
+
     def handle_no_permission(self):
-        logger.info("دسترسی رد شد در PermissionBaseView")
         messages.error(self.request, "شما اجازه دسترسی به این بخش را ندارید.")
-        return redirect('factor_list')
+        return redirect('index')
+
 
 
 """

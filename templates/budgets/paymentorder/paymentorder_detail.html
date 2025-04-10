@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}جزئیات {{ payment_order.order_number }}{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-info text-white">
+        <h3 class="mb-0">جزئیات دستور پرداخت: {{ payment_order.order_number }}</h3>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">تنخواه:</dt><dd class="col-sm-9">{{ payment_order.tankhah }}</dd>
+            <dt class="col-sm-3">مبلغ:</dt><dd class="col-sm-9">{{ payment_order.amount }}</dd>
+            <dt class="col-sm-3">دریافت‌کننده:</dt><dd class="col-sm-9">{{ payment_order.payee }}</dd>
+            <dt class="col-sm-3">وضعیت:</dt><dd class="col-sm-9">{{ payment_order.get_status_display }}</dd>
+            <dt class="col-sm-3">تاریخ صدور:</dt><dd class="col-sm-9">{{ payment_order.issue_date|date:'Y/m/d' }}</dd>
+            <dt class="col-sm-3">حداقل امضا:</dt><dd class="col-sm-9">{{ payment_order.min_signatures }}</dd>
+            <dt class="col-sm-3">شرح:</dt><dd class="col-sm-9">{{ payment_order.description }}</dd>
+            <dt class="col-sm-3">فاکتورها:</dt><dd class="col-sm-9">
+                {% for factor in payment_order.related_factors.all %}{{ factor }}، {% empty %}-{% endfor %}
+            </dd>
+            <dt class="col-sm-3">ایجادکننده:</dt><dd class="col-sm-9">{{ payment_order.created_by }}</dd>
+        </dl>
+        <a href="{% url 'paymentorder_update' payment_order.pk %}" class="btn btn-warning">ویرایش</a>
+        <a href="{% url 'paymentorder_list' %}" class="btn btn-secondary">بازگشت</a>
+    </div>
+</div>
+{% endblock %}

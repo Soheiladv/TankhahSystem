@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}حذف {{ payee.name }}{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <h3 class="mb-0">حذف دریافت‌کننده</h3>
+    </div>
+    <div class="card-body">
+        <p>آیا مطمئن هستید که می‌خواهید دریافت‌کننده "<strong>{{ payee.name }}</strong>" را حذف کنید؟</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">بله، حذف کن</button>
+            <a href="{% url 'payee_list' %}" class="btn btn-secondary">خیر، بازگشت</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

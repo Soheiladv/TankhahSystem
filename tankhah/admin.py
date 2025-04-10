@@ -68,7 +68,7 @@ class TankhahAdmin(admin.ModelAdmin):
 # ادمین فاکتور
 @admin.register(Factor)
 class FactorAdmin(admin.ModelAdmin):
-    list_display = ('number', 'tankhah_number', 'date', 'amount', 'status', 'file_link')
+    list_display = ('number', 'number', 'date', 'amount', 'status' )
     list_filter = (
         ('date', JDateFieldListFilter),
         'status',
@@ -88,18 +88,18 @@ class FactorAdmin(admin.ModelAdmin):
         }),
     )
     readonly_fields = ('number' ,)  # شماره و حجم فایل خودکار ست می‌شن
+    #
+    # def tankhah_number(self, obj):
+    #     return obj.Tankhah.number
+    #
+    # tankhah_number.short_description = _('شماره تنخواه')
 
-    def tankhah_number(self, obj):
-        return obj.Tankhah.number
-
-    tankhah_number.short_description = _('شماره تنخواه')
-
-    def file_link(self, obj):
-        if obj.file:
-            return admin.utils.format_html('<a href="{}" target="_blank">{}</a>', obj.file.url, _('دانلود فایل'))
-        return '-'
-
-    file_link.short_description = _('فایل')
+    # def file_link(self, obj):
+    #     if obj.file:
+    #         return admin.utils.format_html('<a href="{}" target="_blank">{}</a>', obj.file.url, _('دانلود فایل'))
+    #     return '-'
+    #
+    # file_link.short_description = _('فایل')
 
 # نمایش تأییدات مرتبط به صورت اینلاین
 class ApprovalInline(admin.TabularInline):

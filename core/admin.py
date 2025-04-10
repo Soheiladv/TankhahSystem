@@ -20,12 +20,12 @@ class BaseAdmin(admin.ModelAdmin):
 # ادمین سازمان
 @admin.register(Organization)
 class OrganizationAdmin(BaseAdmin):
-    list_display = ('code', 'name', 'org_type', 'description_short')
+    list_display = ('code', 'name', 'org_type', 'description_short','budget','parent_organization')
     list_filter = ('org_type',)
     search_fields = ('code', 'name', 'description')
     ordering = ('code',)
     fieldsets = (
-        (None, {'fields': ('code', 'name', 'org_type')}),
+        (None, {'fields': ('code', 'name', 'org_type','budget','parent_organization')}),
         (_('توضیحات'), {'fields': ('description',), 'classes': ('collapse',)}),
     )
 

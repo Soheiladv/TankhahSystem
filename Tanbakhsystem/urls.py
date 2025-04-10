@@ -23,6 +23,7 @@ urlpatterns = [
 
                   path('tankhah/', include('tankhah.urls')),  # اضافه کردن اپلیکیشن tankhah
                   path('version_tracker/', include('version_tracker.urls')),  # اضافه کردن اپلیکیشن tankhah
+                  path('budgets/', include('budgets.urls')),  # اضافه کردن اپلیکیشن بودجه
                   path('workflow/', TanbakhWorkflowView.as_view(), name='workflow'),  # help workflow
 
                   path('about/', views.about, name='about'),

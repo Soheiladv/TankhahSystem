@@ -27,7 +27,31 @@ class DashboardView( PermissionBaseView , TemplateView):
                 {'name': _('BI گزارشات'), 'url': 'financialDashboardView', 'icon': 'fas fa-chart-bar'},
                 {'name': _('گزارش جزئیات تنخواه'), 'url': 'tankhah_detail', 'icon': 'fas fa-chart-bar'},
             ],
+            'بودجه سازمان': [
+                {'name': _('فهرست  بودجه کلان'), 'url': 'budgetperiod_list', 'permission': 'budgets.budgetperiod_view',
+                 'icon': 'fas fa-project-diagram'},
+                {'name': _('فهرست بودجه شعبات'), 'url': 'budgetallocation_list', 'permission': 'budgets.budgetallocation_view',
+                 'icon': 'fas fa-plus'},
+                {'name': _('تخصیص بودجه به شعبات'), 'url': 'budgetallocation_create',
+                 'permission': 'budgets.budgetallocation_add',
+                 'icon': 'fas fa-plus'},
 
+                {'name': _('فهرست تغییر در بودجه'), 'url': 'budgettransaction_list',
+                 'permission': 'BudgetTransaction_view',
+                 'icon': 'fas fa-plus'},
+
+                {'name': _('دستور پرداخت'), 'url': 'paymentorder_list',
+                 'permission': 'budgets.BudgetTransaction_view',
+                 'icon': 'fas fa-plus'},
+
+                {'name': _('فهرست دریافت‌کننده'), 'url': 'payee_list',
+                 'permission': 'budgets.BudgetTransaction_view',
+                 'icon': 'fas fa-plus'},
+
+                {'name': _('فهرست تعریف پویا نوع تراکنش‌ها'), 'url': 'transactiontype_list',
+                 'permission': 'budgets.BudgetTransaction_view',
+                 'icon': 'fas fa-plus'},
+            ],
             'تنخواه': [
                 {'name': _('فهرست تنخواه'), 'url': 'tankhah_list', 'permission': 'tankhah.Tankhah_view', 'icon': 'fas fa-project-diagram'},
                 {'name': _('ایجاد تنخواه'), 'url': 'tankhah_create', 'permission': 'tankhah.Tankhah_add', 'icon': 'fas fa-plus'},

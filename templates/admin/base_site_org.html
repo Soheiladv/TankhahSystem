@@ -15,11 +15,9 @@
 {% block extrastyle %}
     {{ block.super }}
 {#    <link href="{% static 'admin/css/custom.css' %}" rel="stylesheet">#}
-    <link rel="stylesheet" href="{% static 'admin/css/admin_custom.css' %}">
-
-
+    <link rel="stylesheet" href="{% static 'admin/css/base.css' %}">
     {% if LANGUAGE_BIDI %}
-{#        <link rel="stylesheet" href="{% static 'admin/css/rtl.css' %}">#}
+        <link rel="stylesheet" href="{% static 'admin/css/rtl.css' %}">
     {% endif %}
 {% endblock %}
 

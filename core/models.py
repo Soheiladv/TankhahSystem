@@ -22,6 +22,11 @@ class Organization(models.Model):
     org_type = models.CharField(max_length=25, choices=ORG_TYPES, verbose_name=_("نوع سازمان"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
 
+    budget = models.DecimalField(max_digits=25, decimal_places=2, blank=True, null=True, verbose_name=_("بودجه سالانه"))
+    parent_organization = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
+                                            verbose_name=_("سازمان والد"))
+    """توضیح: اضافه شدن parent_organization برای سلسله‌مراتب (مثل معاونت‌ها)."""
+
     def __str__(self):
         return f"{self.code} - {self.name} ({self.org_type})"
 
@@ -39,6 +44,7 @@ class Organization(models.Model):
         indexes = [
             models.Index(fields=['code', 'org_type']),
         ]
+
 class Project(models.Model):
     """مدل پروژه برای مدیریت پروژه‌های چندمجتمعی"""
     priority_CHOICES = (
@@ -106,6 +112,10 @@ class Post(models.Model):
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
     is_active = models.BooleanField(default=True, verbose_name=_("وضعیت فعال"))
     max_change_level = models.IntegerField(default=1, verbose_name=_("حداکثر سطح تغییر(ارجاع به مرحله قبل تر)"), help_text=_("حداکثر مرحله‌ای که این پست می‌تواند تغییر دهد"))
+
+    is_payment_order_signer = models.BooleanField(default=False,
+                                                  verbose_name=_("مجاز به امضای دستور پرداخت"))
+
 
     def __str__(self):
         branch = self.branch or "بدون شاخه"
@@ -250,7 +260,36 @@ class WorkflowStage(models.Model):
             ('WorkflowStage_update','بروزرسانی مرحله گردش کار'),
             ('WorkflowStage_delete','حــذف مرحله گردش کار'),
         ]
+#--- New Bugde
+class PostAction(models.Model):
+    ACTION_TYPES = (
+        ('APPROVE', _('تأیید')),
+        ('REJECT', _('رد')),
+        ('ISSUE_PAYMENT_ORDER', _('صدور دستور پرداخت')),
+        ('FINALIZE', _('اتمام')),
+        ('INSURANCE', _('ثبت بیمه')),
+        ('CUSTOM', _('سفارشی')),
+    )
 
+    post = models.ForeignKey('core.Post', on_delete=models.CASCADE, verbose_name=_("پست"))
+    stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_("مرحله"))
+    action_type = models.CharField(max_length=50, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+
+    def __str__(self):
+        return f"{self.post} - {self.action_type} در {self.stage}"
+
+    class Meta:
+        verbose_name = _("اقدام مجاز پست")
+        verbose_name_plural = _("اقدامات مجاز پست‌ها")
+        unique_together = ('post', 'stage', 'action_type')
+        permissions = [
+            ('PostAction_view', 'نمایش اقدامات مجاز پست'),
+            ('PostAction_add', 'افزودن اقدامات مجاز پست'),
+            ('PostAction_update', 'بروزرسانی اقدامات مجاز پست'),
+            ('PostAction_delete', 'حذف اقدامات مجاز پست'),
+        ]
+#---
 # lock -------
 import logging
 logger = logging.getLogger(__name__)

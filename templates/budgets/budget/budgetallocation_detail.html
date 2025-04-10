@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}جزئیات {{ budget_allocation }}{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-info text-white">
+        <h3 class="mb-0">جزئیات تخصیص بودجه</h3>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">دوره بودجه:</dt><dd class="col-sm-9">{{ budget_allocation.budget_period.name }}</dd>
+            <dt class="col-sm-3">سازمان:</dt><dd class="col-sm-9">{{ budget_allocation.organization.name }}</dd>
+            <dt class="col-sm-3">مبلغ تخصیص:</dt><dd class="col-sm-9">{{ budget_allocation.allocated_amount }}</dd>
+            <dt class="col-sm-3">باقی‌مانده:</dt><dd class="col-sm-9">{{ budget_allocation.remaining_amount }}</dd>
+            <dt class="col-sm-3">تاریخ تخصیص:</dt><dd class="col-sm-9">{{ budget_allocation.allocation_date|date:'Y/m/d' }}</dd>
+            <dt class="col-sm-3">ایجادکننده:</dt><dd class="col-sm-9">{{ budget_allocation.created_by }}</dd>
+        </dl>
+        <a href="{% url 'budgetallocation_update' budget_allocation.pk %}" class="btn btn-warning">ویرایش</a>
+        <a href="{% url 'budgetallocation_list' %}" class="btn btn-secondary">بازگشت</a>
+    </div>
+</div>
+{% endblock %}

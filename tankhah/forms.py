@@ -303,17 +303,6 @@ class FactorForm(forms.ModelForm):
         amount_str = self.cleaned_data.get('amount', '')  # چون CharField است، مقدار رشته‌ای است
         if amount_str is None or str(amount_str).strip() == '':
             raise forms.ValidationError(_("وارد کردن مبلغ الزامی است."))
-        # if amount_str:
-        #     try:
-        #         # تبدیل اعداد پارسی به انگلیسی و حذف کاما
-        #         amount_str = to_english_digits(str(amount_str)).replace(',', '')
-        #         amount_val = int(amount_str)  # یا Decimal(amount_str)
-        #         if amount_val <= 0:
-        #             raise forms.ValidationError(_("مبلغ باید بزرگتر از صفر باشد."))
-        #         return amount_val
-        #     except (ValueError, TypeError):
-        #         raise forms.ValidationError(_("لطفاً یک عدد معتبر برای مبلغ وارد کنید."))
-        # raise forms.ValidationError(_("وارد کردن مبلغ الزامی است."))
 
         from decimal import InvalidOperation
         try:

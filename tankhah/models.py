@@ -8,8 +8,10 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 
+import budgets
 from accounts.models import CustomUser
-from core.models import Organization, Post, UserPost, Project, WorkflowStage
+from budgets.models import BudgetAllocation, TransactionType
+from core.models import Organization, Post, UserPost, Project, WorkflowStage, PostAction
 from core.models import Post, SubProject  # بررسی کنید که مسیر درست است
 from core.models import WorkflowStage  # اگر در همان اپلیکیشن است
 
@@ -89,8 +91,12 @@ class Tankhah(models.Model):
     is_locked = models.BooleanField(default=False, verbose_name=_("قفل شده"))
     archived_at = models.DateTimeField(null=True, blank=True, verbose_name="زمان آرشیو")
     canceled = models.BooleanField(default=False, verbose_name="لغو شده")
-    budget = models.DecimalField(budgets, decimal_places=2, verbose_name=_("بودجه تخصیصی"))
     remaining_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("بودجه باقیمانده"))
+
+    budget_allocation = models.ForeignKey(BudgetAllocation, on_delete=models.SET_NULL, null=True,
+                                          verbose_name=_("تخصیص بودجه"))
+    is_emergency = models.BooleanField(default=False, verbose_name=_("اضطراری"))
+    """توضیح: لینک به BudgetAllocation برای مصرف بودجه و اضافه شدن is_emergency."""
 
     def generate_number(self):
         """تولید شماره یکتا برای تنخواه با تاریخ شمسی"""
@@ -177,6 +183,71 @@ class Tankhah(models.Model):
 
         ]
 
+class TankhActionType(models.Model):
+    action_type = models.CharField(max_length=25, verbose_name=_('انواع  اقدام'))
+    class Meta:
+        verbose_name=_('انواع اقدام')
+        verbose_name_plural =  _('انواع اقدام ')
+        default_permissions = ()
+        permissions = [
+            ('TankhActionType_add','افزودن نوع اقدام'),
+            ('TankhActionType_view','نمایش نوع اقدام'),
+            ('TankhActionType_update','ویرایش نوع اقدام'),
+            ('TankhActionType_delete','حذف نوع اقدام'),
+        ]
+    def __str__(self):
+        return self.action_type
+
+class TankhahAction(models.Model):
+    # ACTION_TYPES = (
+    #     ('ISSUE_PAYMENT_ORDER', _('صدور دستور پرداخت')),
+    #     ('FINALIZE', _('اتمام')),
+    #     ('INSURANCE', _('ثبت بیمه')),
+    #     ('CUSTOM', _('سفارشی')),
+    # )
+
+    tankhah = models.ForeignKey(Tankhah, on_delete=models.CASCADE, related_name='actions', verbose_name=_("تنخواه"))
+    action_type = models.CharField(max_length=50, choices=TankhActionType, verbose_name=_("نوع اقدام"))
+    amount = models.DecimalField(max_digits=25, decimal_places=2, null=True, blank=True, verbose_name=_("مبلغ (برای پرداخت)"))
+    stage = models.ForeignKey(WorkflowStage, on_delete=models.PROTECT, verbose_name=_("مرحله"))
+    post = models.ForeignKey('core.Post', on_delete=models.SET_NULL, null=True, verbose_name=_("پست انجام‌دهنده"))
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, verbose_name=_("کاربر"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+    reference_number = models.CharField(max_length=50, blank=True, verbose_name=_("شماره مرجع"))
+
+    action_type = models.ForeignKey(TransactionType, on_delete=models.SET_NULL, null=True,
+                                    verbose_name=_("نوع اقدام"))
+    # جایگزینی ACTION_TYPES با TransactionType
+
+
+    def save(self, *args, **kwargs):
+        # چک کن که پست مجاز به این اقدام باشه
+        if not PostAction.objects.filter(
+            post=self.post, stage=self.stage, action_type=self.action_type
+        ).exists():
+            raise ValueError(f"پست {self.post} مجاز به {self.action_type} در این مرحله نیست")
+        # برای دستور پرداخت، چک کن بودجه
+        if self.action_type == 'ISSUE_PAYMENT_ORDER' and self.amount:
+            if self.amount > self.tankhah.remaining_budget:
+                raise ValueError("مبلغ دستور پرداخت بیشتر از بودجه باقیمانده است")
+            self.tankhah.remaining_budget -= self.amount
+            self.tankhah.save()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.action_type} برای {self.tankhah} ({self.created_at})"
+
+    class Meta:
+        verbose_name = _("اقدام تنخواه")
+        verbose_name_plural = _("اقدامات تنخواه")
+        permissions = [
+            ('TankhahAction_view', 'نمایش اقدامات تنخواه'),
+            ('TankhahAction_add', 'افزودن اقدامات تنخواه'),
+            ('TankhahAction_update', 'بروزرسانی اقدامات تنخواه'),
+            ('TankhahAction_delete', 'حذف اقدامات تنخواه'),
+        ]
+
 def factor_document_upload_path(instance, filename):
     """
     مسیر آپلود فایل برای FactorDocument را بر اساس شماره تنخواه و ID فاکتور تعیین می‌کند.
@@ -241,6 +312,9 @@ class Factor(models.Model):
     locked = models.BooleanField(default=False, verbose_name="قفل شده")
     locked_by_stage = models.ForeignKey(WorkflowStage, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("قفل شده توسط مرحله"))
 
+    budget = models.DecimalField( max_digits=20, decimal_places=2, default=0, verbose_name=_("بودجه تخصیصی"))
+    remaining_budget = models.DecimalField(max_digits=20, decimal_places=2, default=0,
+                                           verbose_name=_("بودجه باقیمانده"))
 
     def generate_number(self):
         """تولید شماره فاکتور با جداکننده قابل تنظیم"""
@@ -254,6 +328,12 @@ class Factor(models.Model):
             serial = self.tankhah.factors.count() + 1
             # self.number = f"{self.tanbakh.number}{sep}F{serial}"
             self.number = self.generate_number()
+
+            if not self.pk:
+                self.remaining_budget = self.budget
+            if self.total_amount() > self.budget:
+                raise ValueError("مبلغ فاکتور نمی‌تواند بیشتر از بودجه تخصیصی باشد")
+
         super().save(*args, **kwargs)
 
     def total_amount(self):
@@ -296,11 +376,32 @@ class FactorItem(models.Model):
     unit_price = models.DecimalField(max_digits=25,default=1, decimal_places=1, verbose_name=_("قیمت واحد"))
     category = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("دسته‌بندی"))
 
+    transaction_type = models.ForeignKey(TransactionType, on_delete=models.SET_NULL, null=True,
+                                         verbose_name=_("نوع تراکنش"))
+
+    min_stage_order = models.IntegerField(default=1, verbose_name=_("حداقل ترتیب مرحله"),
+                                          help_text=_("این نوع تراکنش فقط در این مرحله یا بالاتر مجاز است"))
+    # حذف TRANSACTION_TYPES و استفاده از مدل TransactionType
+
+
 
     def save(self, *args, **kwargs):
         if not self.amount:  # اگه amount وارد نشده باشه، محاسبه کن
             self.amount = self.unit_price * self.quantity
         # self.amount = self.unit_price * self.quantity
+
+        # چک کن که مرحله فعلی تنخواه برای این نوع تراکنش مجاز باشه
+        if self.factor.tankhah.current_stage.order < self.min_stage_order:
+            raise ValueError(
+                f"تراکنش نوع {self.transaction_type} فقط در مرحله {self.min_stage_order} یا بالاتر مجاز است")
+        self.amount = self.unit_price * self.quantity
+        if self.amount > self.factor.remaining_budget:
+            raise ValueError("مبلغ ردیف بیشتر از بودجه باقیمانده فاکتور است")
+        super().save(*args, **kwargs)
+        self.factor.remaining_budget -= self.amount
+        self.factor.tankhah.remaining_budget -= self.amount
+        self.factor.save()
+        self.factor.tankhah.save()
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -338,6 +439,21 @@ class ApprovalLog(models.Model):
 
     seen_by_higher = models.BooleanField(default=False, verbose_name=_("دیده‌شده توسط رده بالاتر"))
     seen_at = models.DateTimeField(null=True, blank=True, verbose_name=_("زمان دیده شدن"))
+
+    action_type = models.CharField(max_length=50, blank=True, verbose_name=_("نوع اقدام"))
+
+
+    # -- برای بودجه
+    def save(self, *args, **kwargs):
+        # چک کن که پست کاربر مجاز به این اقدام تو این مرحله باشه
+        user_post = self.user.userpost_set.filter(end_date__isnull=True).first()
+        if user_post and self.action_type:
+            if not PostAction.objects.filter(
+                post=user_post.post, stage=self.stage, action_type=self.action_type
+            ).exists():
+                raise ValueError(f"پست {user_post.post} مجاز به {self.action_type} در این مرحله نیست")
+        super().save(*args, **kwargs)
+
 
 
     def __str__(self):
