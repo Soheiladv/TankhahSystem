@@ -46,15 +46,15 @@ class BudgetPeriodAdmin(admin.ModelAdmin):
 @admin.register(BudgetAllocation)
 class BudgetAllocationAdmin(admin.ModelAdmin):
     list_display = ('budget_period', 'organization', 'allocated_amount',
-                    'remaining_amount', 'allocation_date')
+                     'allocation_date')
     list_filter = ('budget_period', 'organization', 'allocation_date')
     search_fields = ('budget_period__name', 'organization__name')
     date_hierarchy = 'allocation_date'
     ordering = ('-allocation_date',)
-    readonly_fields = ('remaining_amount',)
+    readonly_fields = ('budget_period',)
     fieldsets = (
         (None, {
-            'fields': ('budget_period', 'organization', 'allocated_amount', 'remaining_amount')
+            'fields': ('budget_period', 'organization', 'allocated_amount',  )
         }),
         (_('تاریخ'), {
             'fields': ('allocation_date',)

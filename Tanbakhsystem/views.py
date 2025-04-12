@@ -31,14 +31,16 @@ class DashboardView( PermissionBaseView , TemplateView):
             'بودجه سازمان': [
                 {'name': _('فهرست  بودجه کلان'), 'url': 'budgetperiod_list', 'permission': 'budgets.budgetperiod_view',
                  'icon': 'fas fa-project-diagram'},
-                {'name': _('ثبت بودجه کلان'), 'url': 'budgetperiod_create', 'permission': 'budgets.budgetperiod_add',
-                 'icon': 'fas fa-project-diagram'},
+                # {'name': _('ثبت بودجه کلان'), 'url': 'budgetperiod_create', 'permission': 'budgets.budgetperiod_add',
+                #  'icon': 'fas fa-project-diagram'},
+
+                {'name': _('داشبورد مدریتی بودجه '), 'url': 'budgets_dashboard',       'icon': 'fas fa-project-diagram'},
                 {'name': _('فهرست بودجه شعبات'), 'url': 'budgetallocation_list', 'permission': 'budgets.budgetallocation_view',
                  'icon': 'fas fa-plus'},
 
-                {'name': _('تخصیص بودجه به پروژه ها و زیرپروژه'), 'url': 'budget_allocation_view',
-                 'permission': 'core.Project_Budget_allocation_Head_Office',
-                 'icon': 'fas fa-plus'},
+                # {'name': _('تخصیص بودجه به پروژه ها و زیرپروژه'), 'url': 'budget_allocation_view',
+                #  'permission': 'core.Project_Budget_allocation_Head_Office',
+                #  'icon': 'fas fa-plus'},
 
                 # {'name': _('تخصیص بودجه به شعبات'), 'url': 'budgetallocation_create',
                 #  'permission': 'budgets.budgetallocation_add',

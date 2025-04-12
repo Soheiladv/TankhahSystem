@@ -325,7 +325,7 @@ class ProjectListView(PermissionBaseView, ListView):
     template_name = 'core/project_list.html' # Path to your template
     context_object_name = 'projects' # This name is overridden by paginate_by context
     paginate_by = 12 # Increase items per page for card view? Adjust as needed.
-    # extra_context = {'title': _('لیست پروژه‌ها')} # Set in get_context_data instead
+    extra_context = {'title': _('لیست پروژه‌ها')} # Set in get_context_data instead
     permission_codename = 'core.Project_view' # Make sure this matches your actual permission
     check_organization = True # فعال کردن چک سازمان
 
@@ -337,29 +337,30 @@ class ProjectListView(PermissionBaseView, ListView):
         # Ensure 'allocations' is the correct related name/field and
         # 'allocated_amount' exists on BudgetAllocation model.
         queryset = queryset.annotate(
-           project_budget_allocated=Sum('allocations__allocated_amount', distinct=True)
-        )
-        queryset = queryset.annotate(
             total_budget=Sum('allocations__allocated_amount'),
             subproject_budget=Sum('subprojects__allocated_budget'),
             tankhah_total=Sum('tankhah_set__amount', filter=Q(tankhah_set__status='PAID'))
         )
+
+        query = self.request.GET.get('q')
+        status = self.request.GET.get('status')
+
         # # --- Apply Filters ---
         # query = self.request.GET.get('q')
         # status = self.request.GET.get('status')
         #
-        # if query:
-        #     queryset = queryset.filter(
-        #         Q(name__icontains=query) |
-        #         Q(code__icontains=query) |
-        #         Q(description__icontains=query) |
-        #         Q(subprojects__name__icontains=query) # Search in subproject names
-        #     ).distinct() # Use distinct because of potential duplicates from subproject join
-        #
-        # if status == 'active':
-        #     queryset = queryset.filter(is_active=True)
-        # elif status == 'inactive':
-        #     queryset = queryset.filter(is_active=False)
+        if query:
+            queryset = queryset.filter(
+                Q(name__icontains=query) |
+                Q(code__icontains=query) |
+                Q(description__icontains=query) |
+                Q(subprojects__name__icontains=query) # Search in subproject names
+            ).distinct() # Use distinct because of potential duplicates from subproject join
+
+        if status == 'active':
+            queryset = queryset.filter(is_active=True)
+        elif status == 'inactive':
+            queryset = queryset.filter(is_active=False)
 
         return queryset.order_by('-start_date', 'name') # Order by date then name
 
@@ -371,44 +372,6 @@ class ProjectListView(PermissionBaseView, ListView):
         # Note: 'projects' context variable is automatically set to page_obj.object_list by ListView
         return context
 
-class __ProjectListView(PermissionBaseView, ListView):
-    model = Project
-    template_name = 'core/project_list.html'
-    context_object_name = 'projects'
-    paginate_by = 10
-    extra_context = {'title': _('لیست پروژه‌ها')}
-    permission_codename =  'core.Project_view'
-    check_organization = True  # فعال کردن چک سازمان
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        query = self.request.GET.get('q')
-        status = self.request.GET.get('status')
-
-        if query:
-            queryset = queryset.filter(
-                Q(name__icontains=query) |
-                Q(code__icontains=query) |
-                Q(description__icontains=query) |
-                Q(subprojects__name__icontains=query)
-            ).distinct()
-
-        if status == 'active':
-            queryset = queryset.filter(is_active=True)
-        elif status == 'inactive':
-            queryset = queryset.filter(is_active=False)
-        # استفاده از annotate برای محاسبه مجموع بودجه تخصیص‌یافته
-        # queryset = queryset.annotate(
-        #     total_allocated=Sum('budgetallocation__allocated_amount')
-        # )
-        return queryset.order_by('-start_date')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = _('مدیریت پروژه‌ها')
-        context['query'] = self.request.GET.get('q', '')
-        return context
-
 class ProjectDetailView(PermissionBaseView, DetailView):
     model = Project
     template_name = 'core/project_detail.html'
@@ -418,12 +381,11 @@ class ProjectDetailView(PermissionBaseView, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        Tankhahs = Tankhah.objects.filter(project=self.object).select_related('current_stage')
-        context['Tankhahs'] = Tankhahs
+        context['tankhahs'] = Tankhah.objects.filter(project=self.object).select_related('current_stage')
         context['title'] = _('جزئیات پروژه') + f" - {self.object.code}"
         return context
 
-class ProjectCreateView(PermissionBaseView, CreateView):
+class ProjectCreateView____(PermissionBaseView, CreateView):
     model = Project
     form_class = ProjectForm
     template_name = 'core/project_form.html'
@@ -445,7 +407,7 @@ class ProjectCreateView(PermissionBaseView, CreateView):
         context['title'] = _('ایجاد پروژه جدید')
         return context
 
-class ProjectUpdateView(PermissionBaseView, UpdateView):
+class ProjectUpdateView____(PermissionBaseView, UpdateView):
     model = Project
     form_class = ProjectForm
     template_name = 'core/project_form.html'
@@ -461,6 +423,90 @@ class ProjectUpdateView(PermissionBaseView, UpdateView):
         context = super().get_context_data(**kwargs)
         context['title'] = _('ویرایش پروژه') + f" - {self.object.code}"
         return context
+
+class ProjectCreateView(PermissionBaseView, CreateView):
+    model = Project
+    form_class = ProjectForm
+    template_name = 'core/project_form.html'
+    success_url = reverse_lazy('project_list')
+    permission_codename = 'core.Project_add'
+    check_organization = True
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('ایجاد پروژه جدید')
+
+        # اطلاعات بودجه شعبه‌ها
+        budget_report = {}
+        for org in Organization.objects.filter(org_type__in=['COMPLEX', 'HQ']):
+            total_budget = get_organization_budget(org)
+            used_budget = BudgetAllocation.objects.filter(organization=org).aggregate(
+                total=Sum('allocated_amount')
+            )['total'] or Decimal('0')
+            remaining_budget = total_budget - used_budget
+            budget_report[org.id] = {
+                'name': org.name,
+                'total_budget': total_budget,
+                'used_budget': used_budget,
+                'remaining_budget': remaining_budget
+            }
+        context['budget_report'] = budget_report
+        return context
+
+    def form_valid(self, form):
+        form.request = self.request
+        messages.success(self.request, _('پروژه با موفقیت ایجاد شد.'))
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        logger.error(f"Form errors: {form.errors.as_json()}")
+        messages.error(self.request, _('خطایی در ثبت پروژه رخ داد. لطفاً اطلاعات را بررسی کنید.'))
+        return super().form_invalid(form)
+
+class ProjectUpdateView(PermissionBaseView, UpdateView):
+    model = Project
+    form_class = ProjectForm
+    template_name = 'core/project_form.html'
+    success_url = reverse_lazy('project_list')
+    permission_codename = 'core.Project_update'
+    check_organization = True
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('ویرایش پروژه') + f" - {self.object.code}"
+
+        # اطلاعات بودجه شعبه‌ها
+        budget_report = {}
+        for org in Organization.objects.filter(org_type__in=['COMPLEX', 'HQ']):
+            total_budget = get_organization_budget(org)
+            used_budget = BudgetAllocation.objects.filter(organization=org).aggregate(
+                total=Sum('allocated_amount')
+            )['total'] or Decimal('0')
+            # برای ویرایش، بودجه فعلی پروژه رو از used_budget کم می‌کنیم
+            if self.object.organizations.filter(id=org.id).exists():
+                current_allocation = BudgetAllocation.objects.filter(
+                    project=self.object, organization=org
+                ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+                used_budget -= current_allocation
+            remaining_budget = total_budget - used_budget
+            budget_report[org.id] = {
+                'name': org.name,
+                'total_budget': total_budget,
+                'used_budget': used_budget,
+                'remaining_budget': remaining_budget
+            }
+        context['budget_report'] = budget_report
+        return context
+
+    def form_valid(self, form):
+        form.request = self.request
+        messages.success(self.request, _('پروژه با موفقیت به‌روزرسانی شد.'))
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        logger.error(f"Form errors: {form.errors.as_json()}")
+        messages.error(self.request, _('خطایی در ویرایش پروژه رخ داد. لطفاً اطلاعات را بررسی کنید.'))
+        return super().form_invalid(form)
 
 class ProjectDeleteView(PermissionBaseView, DeleteView):
     model = Project

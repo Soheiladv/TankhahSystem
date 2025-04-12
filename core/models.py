@@ -1,13 +1,10 @@
 # Create your models here.
-import datetime
-from django.conf import settings
 from django.db import models
-from django.db.models import Sum
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from accounts.models import CustomUser
-from budgets.budget_utils import  get_project_total_budget, get_project_remaining_budget, get_subproject_remaining_budget
+from budgets.budget_utils import get_project_total_budget, get_project_remaining_budget, get_subproject_remaining_budget
 
 
 class Organization(models.Model):
@@ -51,7 +48,8 @@ class Project(models.Model):
     end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
     is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
-
+    PRIORITY_CHOICES = (('LOW', _('کم')), ('MEDIUM', _('متوسط')), ('HIGH', _('زیاد')),)
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='MEDIUM', verbose_name=_("اولویت"))
 
     def get_total_budget(self):
         return get_project_total_budget(self)
@@ -81,7 +79,8 @@ class SubProject(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='subprojects', verbose_name=_("پروژه اصلی"))
     name = models.CharField(max_length=200, verbose_name=_("نام ساب‌پروژه"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
-    # allocated_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("بودجه تخصیص‌یافته"))
+    allocated_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0,
+                                           verbose_name=_("بودجه تخصیص‌یافته"))
     allocations = models.ManyToManyField('budgets.ProjectBudgetAllocation',
                                         related_name='budget_allocations_set' ,blank=True, verbose_name=_("تخصیص‌های بودجه مرتبط"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
