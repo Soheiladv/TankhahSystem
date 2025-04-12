@@ -1,12 +1,13 @@
 import logging
+logger = logging.getLogger(__name__)
 
 import jdatetime
+
 from accounts.models import CustomUser
-from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget
+# from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget
+from budgets.temp import budget_utils
 from core.models import Organization, Project, SubProject, WorkflowStage
 
-logger = logging.getLogger(__name__)
-from decimal import Decimal
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum
@@ -35,14 +36,12 @@ class BudgetPeriod(models.Model):
     start_date = models.DateField(verbose_name=_("تاریخ شروع"))
     end_date = models.DateField(verbose_name=_("تاریخ پایان"))
     total_amount = models.DecimalField(max_digits=25, decimal_places=0, verbose_name=_("مبلغ کل"))
+    total_allocated = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("مجموع تخصیص‌ها"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
     is_archived = models.BooleanField(default=False, verbose_name=_("بایگانی شده"))
     is_completed = models.BooleanField(default=False, verbose_name=_("تمام‌شده"))
-
-    total_allocated = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("مجموع تخصیص‌ها"))
-
     created_by = models.ForeignKey(
-        CustomUser,
+        'accounts.CustomUser',
         on_delete=models.SET_NULL,
         null=True,
         related_name='budget_periods_created',
@@ -87,12 +86,8 @@ class BudgetPeriod(models.Model):
     class Meta:
         verbose_name = _("دوره بودجه")
         verbose_name_plural = _("دوره‌های بودجه")
-        default_permissions = ()
+        default_permissions = ('add', 'change', 'delete', 'view')
         permissions = [
-            ('budgetperiod_add', _("افزودن دوره بودجه")),
-            ('budgetperiod_update', _("بروزرسانی دوره بودجه")),
-            ('budgetperiod_view', _("نمایش دوره بودجه")),
-            ('budgetperiod_delete', _("حذف دوره بودجه")),
             ('budgetperiod_archive', _("بایگانی دوره بودجه")),
         ]
 
@@ -101,15 +96,20 @@ class BudgetPeriod(models.Model):
 
     def clean(self):
         """اعتبارسنجی تاریخ‌ها و درصد‌ها"""
+        if not self.start_date or not self.end_date:
+            raise ValidationError(_("تاریخ شروع و پایان نمی‌توانند خالی باشند."))
         if self.end_date <= self.start_date:
             raise ValidationError(_("تاریخ پایان باید بعد از تاریخ شروع باشد."))
         if not (0 <= self.locked_percentage <= 100):
             raise ValidationError(_("درصد قفل‌شده باید بین 0 تا 100 باشد."))
         if not (0 <= self.warning_threshold <= 100):
             raise ValidationError(_("آستانه هشدار باید بین 0 تا 100 باشد."))
+        if self.is_completed and self.is_active:
+            raise ValidationError(_("دوره تمام‌شده نمی‌تواند فعال باشد."))
 
     def get_remaining_amount(self):
         """محاسبه باقی‌مانده بودجه"""
+        from budgets.models import BudgetAllocation
         allocated = BudgetAllocation.objects.filter(budget_period=self).aggregate(
             total=Sum('allocated_amount')
         )['total'] or Decimal('0')
@@ -125,6 +125,7 @@ class BudgetPeriod(models.Model):
 
     def check_budget_status(self):
         """چک کردن وضعیت بودجه"""
+        from django.utils import timezone
         remaining = self.get_remaining_amount()
         locked = self.get_locked_amount()
         warning = self.get_warning_amount()
@@ -150,7 +151,8 @@ class BudgetPeriod(models.Model):
 
     def send_notification(self, status, message):
         """ارسال اعلان به کاربران مرتبط"""
-        from tankhah.models import Notification
+        from notifications.models import Notification
+        from accounts.models import CustomUser
         recipients = CustomUser.objects.filter(
             models.Q(organization=self.organization) |
             models.Q(organization__parent=self.organization)
@@ -171,11 +173,24 @@ class BudgetPeriod(models.Model):
 
     def save(self, *args, **kwargs):
         """مدیریت ذخیره و اعلانات"""
-        self.clean()
+        self.full_clean()  # اجرای اعتبارسنجی کامل
         super().save(*args, **kwargs)
         status, message = self.check_budget_status()
         if status in ('warning', 'locked', 'completed'):
             self.send_notification(status, message)
+
+    class Meta:
+        verbose_name = _("دوره بودجه")
+        verbose_name_plural = _("دوره‌های بودجه")
+        default_permissions = ()
+        permissions = [
+            ('budgetperiod_add', _("افزودن دوره بودجه")),
+            ('budgetperiod_update', _("بروزرسانی دوره بودجه")),
+            ('budgetperiod_view', _("نمایش دوره بودجه")),
+            ('budgetperiod_delete', _("حذف دوره بودجه")),
+            ('budgetperiod_archive', _("بایگانی دوره بودجه")),
+        ]
+
 
 # ------------------------------------
 """ BudgetAllocation (تخصیص بودجه):"""
@@ -554,8 +569,10 @@ class ProjectBudgetAllocation(models.Model):
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
 
     def get_remaining_amount(self):
+        from budgets.budget_calculations import get_subproject_remaining_budget
         if self.subproject:
             return get_subproject_remaining_budget(self.subproject)
+        from budgets.budget_calculations import get_project_remaining_budget
         return get_project_remaining_budget(self.project)
 
     def clean(self):

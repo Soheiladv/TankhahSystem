@@ -28,11 +28,44 @@ def convert_to_farsi_numbers(value):
     translation_table = str.maketrans(english_digits, farsi_digits)
     return str(value).translate(translation_table)
 
-
-
 # Tanbakhsystem/tankhah/utils.py
 def to_english_digits(value):
     persian_digits = '۰۱۲۳۴۵۶۷۸۹'
     english_digits = '0123456789'
     translation_table = str.maketrans(persian_digits, english_digits)
     return value.translate(translation_table)
+
+#  /utils.py
+from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError
+import jdatetime
+from django.utils import timezone
+
+def parse_jalali_date(date_str, field_name="تاریخ"):
+    """
+    تبدیل تاریخ شمسی (مثل '1404/01/17') به تاریخ میلادی (datetime.date).
+    اگر تاریخ نامعتبر یا خالی باشه، خطای مناسب تولید می‌کنه.
+    """
+    if not date_str:
+        raise ValidationError(_('لطفاً {field_name} را وارد کنید.').format(field_name=field_name))
+    try:
+        # تبدیل اعداد فارسی به انگلیسی
+        date_str = ''.join([chr(ord(c) - 1728) if '۰' <= c <= '۹' else c for c in str(date_str)])
+        j_date = jdatetime.datetime.strptime(date_str, '%Y/%m/%d')
+        g_date = timezone.make_aware(j_date.togregorian())
+        return g_date.date()
+    except ValueError:
+        raise ValidationError(_('لطفاً {field_name} معتبر وارد کنید (مثل ۱۴۰۴/۰۱/۱۷).').format(field_name=field_name))
+
+def format_jalali_date(date_obj):
+    """
+    تبدیل تاریخ میلادی به رشته شمسی (مثل '1404/01/17').
+    اگر تاریخ None باشه، رشته خالی برمی‌گردونه.
+    """
+    if not date_obj:
+        return ''
+    try:
+        j_date = jdatetime.date.fromgregorian(date=date_obj)
+        return j_date.strftime('%Y/%m/%d')
+    except (TypeError, ValueError):
+        return ''

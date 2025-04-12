@@ -10,8 +10,6 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView, CreateView, TemplateView
-
-from budgets.budget_utils import get_project_total_budget
 from budgets.forms import BudgetPeriodForm, ProjectBudgetAllocationForm, PaymentOrderForm, \
     PayeeForm, TransactionTypeForm
 from budgets.models import BudgetPeriod, BudgetAllocation, ProjectBudgetAllocation, BudgetTransaction, PaymentOrder, Payee, TransactionType
@@ -33,50 +31,7 @@ class BudgetDashboardView(PermissionBaseView, TemplateView):
         context['organizations'] = Organization.objects.all()
         return context
 
-# --- BudgetPeriod CRUD ---
-class BudgetPeriodListView(PermissionBaseView, ListView):
-    model = BudgetPeriod
-    template_name = 'budgets/budget/budgetperiod_list.html'
-    context_object_name = 'budget_periods'
-    paginate_by = 10
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        query = self.request.GET.get('q', '')
-        if query:
-            queryset = queryset.filter(Q(name__icontains=query) | Q(organization__name__icontains=query))
-        status = self.request.GET.get('status')
-        if status == 'active':
-            queryset = queryset.filter(is_active=True)
-        elif status == 'inactive':
-            queryset = queryset.filter(is_active=False)
-        return queryset.order_by('-start_date')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        for period in context['budget_periods']:
-            period.remaining_amount = period.get_remaining_amount()
-            period.status, period.status_message = period.check_budget_status()
-        context['query'] = self.request.GET.get('q', '')
-        context['status'] = self.request.GET.get('status', '')
-        logger.debug(f"BudgetPeriodListView context: {context}")
-        return context
-
-class BudgetPeriodDetailView(PermissionBaseView, DetailView):
-    model = BudgetPeriod
-    template_name = 'budgets/budget/budgetperiod_detail.html'
-    context_object_name = 'budget_period'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['transactions'] = BudgetTransaction.objects.filter(
-            allocation__budget_period=self.object
-        ).order_by('-timestamp')
-        context['budget_details'] = get_budget_details(self.object)
-        logger.debug(f"BudgetPeriodDetailView context: {context}")
-        return context
-
-class BudgetPeriodCreateView(PermissionBaseView, CreateView):
+class __BudgetPeriodCreateView(PermissionBaseView, CreateView):
     model = BudgetPeriod
     form_class = BudgetPeriodForm
     # form_class = BudgetPeriodForm
@@ -99,7 +54,7 @@ class BudgetPeriodCreateView(PermissionBaseView, CreateView):
             messages.success(self.request, f'دوره بودجه {form.instance.name} با موفقیت ایجاد شد.')
             return response
 
-class BudgetPeriodUpdateView(PermissionBaseView, UpdateView):
+class __BudgetPeriodUpdateView(PermissionBaseView, UpdateView):
     model = BudgetPeriod
     form_class = BudgetPeriodForm
     template_name = 'budgets/budget/budgetperiod_form.html'
@@ -111,17 +66,6 @@ class BudgetPeriodUpdateView(PermissionBaseView, UpdateView):
             messages.success(self.request, f'دوره بودجه {form.instance.name} با موفقیت به‌روزرسانی شد.')
             return response
 
-class BudgetPeriodDeleteView(PermissionBaseView, DeleteView):
-    model = BudgetPeriod
-    template_name = 'budgets/budget/budgetperiod_confirm_delete.html'
-    success_url = reverse_lazy('budgetperiod_list')
-
-    def post(self, request, *args, **kwargs):
-        budget_period = self.get_object()
-        with transaction.atomic():
-            budget_period.delete()
-            messages.success(request, f'دوره بودجه {budget_period.name} با موفقیت حذف شد.')
-        return redirect(self.success_url)
 
 # --- BudgetAllocation CRUD ---
 class BudgetAllocationListView(PermissionBaseView, ListView):

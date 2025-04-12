@@ -4,7 +4,6 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum
 
 from core.models import SubProject
-from .budget_utils import get_remaining_amount
 from .models import (
     BudgetPeriod, BudgetAllocation, BudgetTransaction,
     PaymentOrder, Payee, TransactionType, ProjectBudgetAllocation
@@ -249,7 +248,7 @@ class ProjectBudgetAllocationAdmin(admin.ModelAdmin):
     list_per_page = 20
     ordering = ('-allocation_date',)
     autocomplete_fields = ('project', 'subproject', 'budget_allocation', 'created_by')
-    readonly_fields = ('remaining_amount',)
+    # readonly_fields = ('remaining_amount',)
     fieldsets = (
         (None, {
             'fields': (
@@ -257,7 +256,7 @@ class ProjectBudgetAllocationAdmin(admin.ModelAdmin):
                 'project',
                 'subproject',
                 'allocated_amount',
-                'remaining_amount',
+                # 'remaining_amount',
                 'allocation_date',
                 'created_by',
                 'description',

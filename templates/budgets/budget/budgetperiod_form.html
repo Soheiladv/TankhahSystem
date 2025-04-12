@@ -1,30 +1,322 @@
 {% extends 'base.html' %}
-{% block title %}{% if form.instance.pk %}ویرایش{% else %}ایجاد{% endif %} دوره بودجه{% endblock %}
+{% load i18n jformat rcms_custom_filters static humanize %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .budget-period-page {
+        max-width: 900px;
+        margin: 2rem auto;
+    }
+    .card-header {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        padding: 0.75rem 1rem;
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    .budget-summary {
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 1rem;
+    }
+    .metric small {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+    .metric strong {
+        font-size: 1rem;
+        color: #343a40;
+    }
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 0.3rem;
+    }
+    .input-group-text {
+        font-size: 0.8rem;
+        background-color: #e9ecef;
+    }
+    .form-check {
+        margin-bottom: 0.5rem;
+    }
+    .form-actions {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        justify-content: end;
+        gap: 0.5rem;
+    }
+    .btn {
+        padding: 0.4rem 1rem;
+        font-size: 0.85rem;
+        border-radius: 5px;
+    }
+    .alert {
+        font-size: 0.85rem;
+    }
+    .invalid-feedback {
+        font-size: 0.75rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="card">
-    <div class="card-header bg-success text-white">
-        <h3 class="mb-0">{% if form.instance.pk %}ویرایش{% else %}ایجاد{% endif %} دوره بودجه</h3>
-    </div>
-    <div class="card-body">
-        <form method="post" novalidate>
-            {% csrf_token %}
-            <div class="row">
-                {% for field in form %}
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.errors %}
-                    <div class="text-danger">{{ field.errors }}</div>
-                    {% endif %}
-                    {% if field.help_text %}
-                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                    {% endif %}
+<div class="budget-period-page">
+    <div class="card shadow-sm border-0">
+        <div class="card-header d-flex align-items-center gap-2">
+            <i class="fas fa-folder-open fa-fw"></i>
+            <h5 class="mb-0">{{ title }}</h5>
+        </div>
+
+        <div class="card-body">
+            <!-- خلاصه بودجه (برای ویرایش) -->
+            {% if total_allocated is not None %}
+                <div class="budget-summary">
+                    <h6 class="mb-2 text-muted">{% trans "وضعیت دوره بودجه" %}: {{ form.instance.name }}</h6>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-4 col-6">
+                            <div class="metric">
+                                <small class="text-muted d-block">{% trans "کل بودجه" %}</small>
+                                <strong>{{ form.instance.total_amount|floatformat:0|intcomma|to_persian_number }}</strong>
+                                <span class="text-muted"> {% trans "ریال" %}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <div class="metric">
+                                <small class="text-muted d-block">{% trans "تخصیص‌شده" %}</small>
+                                <strong>{{ total_allocated|floatformat:0|intcomma|to_persian_number }}</strong>
+                                <span class="text-muted"> {% trans "ریال" %}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <div class="metric">
+                                <small class="text-muted d-block">{% trans "باقی‌مانده" %}</small>
+                                <strong>{{ remaining_amount|floatformat:0|intcomma|to_persian_number }}</strong>
+                                <span class="text-muted"> {% trans "ریال" %}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                {% endfor %}
-            </div>
-            <button type="submit" class="btn btn-primary">ذخیره</button>
-            <a href="{% url 'budgetperiod_list' %}" class="btn btn-secondary">انصراف</a>
-        </form>
+            {% endif %}
+
+            <!-- پیام‌ها -->
+            {% if messages %}
+                <div class="messages mb-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show d-flex align-items-center gap-1" role="alert">
+                            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-times-circle{% else %}fa-info-circle{% endif %} fa-fw"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- فرم -->
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="row g-3">
+                    <!-- دفتر مرکزی -->
+                    <div class="col-md-6">
+                        <label for="{{ form.organization.id_for_label }}" class="form-label">
+                            <i class="fas fa-building fa-fw me-1 text-muted"></i> {% trans "دفتر مرکزی" %}
+                        </label>
+                        {{ form.organization }}
+                        <div class="invalid-feedback">
+                            {% trans "لطفاً دفتر مرکزی را انتخاب کنید." %}
+                        </div>
+                        {% if form.organization.errors %}
+                            <div class="invalid-feedback d-block">{{ form.organization.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- نام دوره -->
+                    <div class="col-md-6">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                            <i class="fas fa-tag fa-fw me-1 text-muted"></i> {% trans "نام دوره" %}
+                        </label>
+                        {{ form.name }}
+                        <div class="invalid-feedback">
+                            {% trans "لطفاً نام دوره را وارد کنید." %}
+                        </div>
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.name.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- تاریخ شروع -->
+                    <div class="col-md-6">
+                        <label for="{{ form.start_date.id_for_label }}" class="form-label">
+                            <i class="fas fa-calendar-alt fa-fw me-1 text-muted"></i> {% trans "تاریخ شروع" %}
+                        </label>
+                        {{ form.start_date }}
+                        <div class="invalid-feedback">
+                            {% trans "لطفاً تاریخ معتبر وارد کنید." %}
+                        </div>
+                        {% if form.start_date.errors %}
+                            <div class="invalid-feedback d-block">{{ form.start_date.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- تاریخ پایان -->
+                    <div class="col-md-6">
+                        <label for="{{ form.end_date.id_for_label }}" class="form-label">
+                            <i class="fas fa-calendar-alt fa-fw me-1 text-muted"></i> {% trans "تاریخ پایان" %}
+                        </label>
+                        {{ form.end_date }}
+                        <div class="invalid-feedback">
+                            {% trans "لطفاً تاریخ معتبر وارد کنید." %}
+                        </div>
+                        {% if form.end_date.errors %}
+                            <div class="invalid-feedback d-block">{{ form.end_date.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- مبلغ کل -->
+                    <div class="col-md-6">
+                        <label for="{{ form.total_amount.id_for_label }}" class="form-label">
+                            <i class="fas fa-money-bill-wave fa-fw me-1 text-muted"></i> {% trans "مبلغ کل (ریال)" %}
+                        </label>
+                        <div class="input-group">
+                            {{ form.total_amount }}
+                            <span class="input-group-text">{% trans "ریال" %}</span>
+                        </div>
+                        <div class="invalid-feedback">
+                            {% trans "لطفاً مبلغ معتبر وارد کنید." %}
+                        </div>
+                        {% if form.total_amount.errors %}
+                            <div class="invalid-feedback d-block">{{ form.total_amount.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- درصد قفل‌شده -->
+                    <div class="col-md-6">
+                        <label for="{{ form.locked_percentage.id_for_label }}" class="form-label">
+                            <i class="fas fa-lock fa-fw me-1 text-muted"></i> {% trans "درصد قفل‌شده" %}
+                        </label>
+                        <div class="input-group">
+                            {{ form.locked_percentage }}
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <div class="invalid-feedback">
+                            {% trans "لطفاً درصد معتبر (۰-۱۰۰) وارد کنید." %}
+                        </div>
+                        {% if form.locked_percentage.errors %}
+                            <div class="invalid-feedback d-block">{{ form.locked_percentage.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- آستانه اخطار -->
+                    <div class="col-md-6">
+                        <label for="{{ form.warning_threshold.id_for_label }}" class="form-label">
+                            <i class="fas fa-exclamation-triangle fa-fw me-1 text-muted"></i> {% trans "آستانه اخطار" %}
+                        </label>
+                        <div class="input-group">
+                            {{ form.warning_threshold }}
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <div class="invalid-feedback">
+                            {% trans "لطفاً درصد معتبر (۰-۱۰۰) وارد کنید." %}
+                        </div>
+                        {% if form.warning_threshold.errors %}
+                            <div class="invalid-feedback d-block">{{ form.warning_threshold.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- شرط قفل -->
+                    <div class="col-md-6">
+                        <label for="{{ form.lock_condition.id_for_label }}" class="form-label">
+                            <i class="fas fa-cog fa-fw me-1 text-muted"></i> {% trans "شرط قفل" %}
+                        </label>
+                        {{ form.lock_condition }}
+                        <div class="invalid-feedback">
+                            {% trans "لطفاً شرط قفل را انتخاب کنید." %}
+                        </div>
+                        {% if form.lock_condition.errors %}
+                            <div class="invalid-feedback d-block">{{ form.lock_condition.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- اقدام هشدار -->
+                    <div class="col-md-6">
+                        <label for="{{ form.warning_action.id_for_label }}" class="form-label">
+                            <i class="fas fa-bell fa-fw me-1 text-muted"></i> {% trans "اقدام هشدار" %}
+                        </label>
+                        {{ form.warning_action }}
+                        <div class="invalid-feedback">
+                            {% trans "لطفاً اقدام هشدار را انتخاب کنید." %}
+                        </div>
+                        {% if form.warning_action.errors %}
+                            <div class="invalid-feedback d-block">{{ form.warning_action.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- وضعیت‌ها -->
+                    <div class="col-12">
+                        <div class="form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                {% trans "فعال" %}
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            {{ form.is_archived }}
+                            <label class="form-check-label" for="{{ form.is_archived.id_for_label }}">
+                                {% trans "بایگانی شده" %}
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            {{ form.is_completed }}
+                            <label class="form-check-label" for="{{ form.is_completed.id_for_label }}">
+                                {% trans "تمام‌شده" %}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- دکمه‌ها -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check me-1"></i> {% trans "ثبت" %}
+                    </button>
+                    <a href="{% url 'budgetperiod_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i> {% trans "انصراف" %}
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    "use strict";
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // انتخاب‌گر تاریخ شمسی
+        $('[data-jdp]').pDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            initialValue: false,
+            minDate: new persianDate().startOf('day')
+        });
+
+        // اعتبارسنجی فرم
+        const form = document.querySelector('.needs-validation');
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+})();
+</script>
 {% endblock %}

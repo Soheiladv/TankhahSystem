@@ -2,7 +2,6 @@ import json
 import logging
 from decimal import Decimal
 from django.shortcuts import render, redirect
-from budgets.budget_utils import get_project_remaining_budget, get_organization_budget, get_project_used_budget
 from tankhah.models import Tankhah,  StageApprover
 logger = logging.getLogger(__name__)
 from django.contrib import messages
@@ -209,7 +208,8 @@ from budgets.models import BudgetAllocation  # فرض بر این که BudgetAll
 
 # core/views.py
 from django.db.models import Q
-from budgets.budget_calculations import get_budget_details
+from budgets.budget_calculations import get_budget_details, get_organization_budget, get_project_remaining_budget, \
+    get_project_used_budget
 from core.models import Organization
 from django.views.generic import ListView
 

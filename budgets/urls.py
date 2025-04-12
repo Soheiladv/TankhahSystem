@@ -1,82 +1,77 @@
 # budgets/urls.py
 from django.urls import path
 from . import views
-# from .BudgetAllocation.BudgetAllocation import BudgetAllocationCreateView
+from budgets.views import BudgetDashboardView, BudgetAllocationListView, BudgetAllocationDetailView, \
+    BudgetAllocationUpdateView, BudgetAllocationDeleteView, BudgetAllocationCreateView, \
+    OrganizationBudgetAllocationListView, ProjectBudgetAllocationListView, ProjectBudgetAllocationCreateView, \
+    ProjectBudgetAllocationDetailView, ProjectBudgetAllocationEditView, ProjectBudgetAllocationDeleteView, \
+    BudgetTransactionListView, BudgetTransactionDetailView, PaymentOrderListView, PaymentOrderCreateView, \
+    PaymentOrderUpdateView, PaymentOrderDeleteView, PayeeListView, PayeeCreateView, PayeeUpdateView, PayeeDeleteView, \
+    TransactionTypeListView, TransactionTypeCreateView, TransactionTypeUpdateView, TransactionTypeDeleteView
 
+from budgets.BudgetPeriod.views_BudgetPeriod import BudgetPeriodListView, BudgetPeriodDetailView,BudgetPeriodCreateView,BudgetPeriodUpdateView,\
+    BudgetPeriodDeleteView
 
 urlpatterns = [
-    path('budgets-dashboard', views.BudgetDashboardView.as_view(), name='budgets_dashboard'),  # داشبورد
+    path('budgets-dashboard',BudgetDashboardView.as_view(), name='budgets_dashboard'),  # داشبورد
 
     # BudgetPeriod
-    path('budgetperiod/', views.BudgetPeriodListView.as_view(), name='budgetperiod_list'),
-    path('budgetperiod/<int:pk>/', views.BudgetPeriodDetailView.as_view(), name='budgetperiod_detail'),
-    path('budgetperiod/add/', views.BudgetPeriodCreateView.as_view(), name='budgetperiod_create'),
-    path('budgetperiod/<int:pk>/edit/', views.BudgetPeriodUpdateView.as_view(), name='budgetperiod_update'),
-    path('budgetperiod/<int:pk>/delete/', views.BudgetPeriodDeleteView.as_view(), name='budgetperiod_delete'),
+    path('budgetperiod/',BudgetPeriodListView.as_view(), name='budgetperiod_list'),
+    path('budgetperiod/<int:pk>/',BudgetPeriodDetailView.as_view(), name='budgetperiod_detail'),
+    path('budgetperiod/add/',BudgetPeriodCreateView.as_view(), name='budgetperiod_create'),
+    path('budgetperiod/<int:pk>/edit/',BudgetPeriodUpdateView.as_view(), name='budgetperiod_update'),
+    path('budgetperiod/<int:pk>/delete/',BudgetPeriodDeleteView.as_view(), name='budgetperiod_delete'),
 
     # BudgetAllocation
-    path('budgetallocation/', views.BudgetAllocationListView.as_view(), name='budgetallocation_list'),
-    path('budgetallocation/<int:pk>/', views.BudgetAllocationDetailView.as_view(), name='budgetallocation_detail'),
-    # path('budgetallocation/add/', views.BudgetAllocationCreateView.as_view(), name='budgetallocation_add'),
-    path('budgetallocation/<int:pk>/edit/', views.BudgetAllocationUpdateView.as_view(), name='budgetallocation_update'),
-    path('budgetallocation/<int:pk>/delete/', views.BudgetAllocationDeleteView.as_view(),
+    path('budgetallocation/',BudgetAllocationListView.as_view(), name='budgetallocation_list'),
+    path('budgetallocation/<int:pk>/',BudgetAllocationDetailView.as_view(), name='budgetallocation_detail'),
+    # path('budgetallocation/add/',BudgetAllocationCreateView.as_view(), name='budgetallocation_add'),
+    path('budgetallocation/<int:pk>/edit/',BudgetAllocationUpdateView.as_view(), name='budgetallocation_update'),
+    path('budgetallocation/<int:pk>/delete/',BudgetAllocationDeleteView.as_view(),
          name='budgetallocation_delete'),
-    path('budgetallocations/create/', views.BudgetAllocationCreateView.as_view(), name='budgetallocation_create'),
+    path('budgetallocations/create/',BudgetAllocationCreateView.as_view(), name='budgetallocation_create'),
 
     # Organization Budget
     path('organization/<int:org_id>/allocations/',
-         views.OrganizationBudgetAllocationListView.as_view(), name='organization_budgetallocation_list'),
+        OrganizationBudgetAllocationListView.as_view(), name='organization_budgetallocation_list'),
 
     # ProjectBudgetAllocation
     path('organization/<int:organization_id>/project-budget-allocations/',
-         views.ProjectBudgetAllocationListView.as_view(), name='project_budget_allocation_list'),
+        ProjectBudgetAllocationListView.as_view(), name='project_budget_allocation_list'),
     path('organization/<int:organization_id>/project-budget-allocation/',
-         views.ProjectBudgetAllocationCreateView.as_view(), name='project_budget_allocation'),
+        ProjectBudgetAllocationCreateView.as_view(), name='project_budget_allocation'),
     path('project-budget-allocation/<int:pk>/detail/',
-         views.ProjectBudgetAllocationDetailView.as_view(), name='project_budget_allocation_detail'),
+        ProjectBudgetAllocationDetailView.as_view(), name='project_budget_allocation_detail'),
     path('project-budget-allocation/<int:pk>/edit/',
-         views.ProjectBudgetAllocationEditView.as_view(), name='project_budget_allocation_edit'),
+        ProjectBudgetAllocationEditView.as_view(), name='project_budget_allocation_edit'),
     path('project-budget-allocation/<int:pk>/delete/',
-         views.ProjectBudgetAllocationDeleteView.as_view(), name='project_budget_allocation_delete'),
+        ProjectBudgetAllocationDeleteView.as_view(), name='project_budget_allocation_delete'),
 
     # BudgetTransaction
-    path('budgettransaction/', views.BudgetTransactionListView.as_view(), name='budgettransaction_list'),
-    path('budgettransaction/<int:pk>/', views.BudgetTransactionDetailView.as_view(), name='budgettransaction_detail'),
+    path('budgettransaction/',BudgetTransactionListView.as_view(), name='budgettransaction_list'),
+    path('budgettransaction/<int:pk>/',BudgetTransactionDetailView.as_view(), name='budgettransaction_detail'),
 
     # PaymentOrder
-    path('paymentorder/', views.PaymentOrderListView.as_view(), name='paymentorder_list'),
-    path('paymentorder/add/', views.PaymentOrderCreateView.as_view(), name='paymentorder_add'),
-    path('paymentorder/<int:pk>/edit/', views.PaymentOrderUpdateView.as_view(), name='paymentorder_edit'),
-    path('paymentorder/<int:pk>/delete/', views.PaymentOrderDeleteView.as_view(), name='paymentorder_delete'),
-
+    path('paymentorder/',PaymentOrderListView.as_view(), name='paymentorder_list'),
+    path('paymentorder/add/',PaymentOrderCreateView.as_view(), name='paymentorder_add'),
+    path('paymentorder/<int:pk>/edit/',PaymentOrderUpdateView.as_view(), name='paymentorder_edit'),
+    path('paymentorder/<int:pk>/delete/',PaymentOrderDeleteView.as_view(), name='paymentorder_delete'),
     # Payee
-    path('payee/', views.PayeeListView.as_view(), name='payee_list'),
-    path('payee/add/', views.PayeeCreateView.as_view(), name='payee_add'),
-    path('payee/<int:pk>/edit/', views.PayeeUpdateView.as_view(), name='payee_edit'),
-    path('payee/<int:pk>/delete/', views.PayeeDeleteView.as_view(), name='payee_delete'),
+    path('payee/',PayeeListView.as_view(), name='payee_list'),
+    path('payee/add/',PayeeCreateView.as_view(), name='payee_add'),
+    path('payee/<int:pk>/edit/',PayeeUpdateView.as_view(), name='payee_edit'),
+    path('payee/<int:pk>/delete/',PayeeDeleteView.as_view(), name='payee_delete'),
 
     # TransactionType
-    path('transactiontype/', views.TransactionTypeListView.as_view(), name='transactiontype_list'),
-    path('transactiontype/add/', views.TransactionTypeCreateView.as_view(), name='transactiontype_add'),
-    path('transactiontype/<int:pk>/edit/', views.TransactionTypeUpdateView.as_view(), name='transactiontype_edit'),
-    path('transactiontype/<int:pk>/delete/', views.TransactionTypeDeleteView.as_view(), name='transactiontype_delete'),
+    path('transactiontype/',TransactionTypeListView.as_view(), name='transactiontype_list'),
+    path('transactiontype/add/',TransactionTypeCreateView.as_view(), name='transactiontype_add'),
+    path('transactiontype/<int:pk>/edit/',TransactionTypeUpdateView.as_view(), name='transactiontype_edit'),
+    path('transactiontype/<int:pk>/delete/',TransactionTypeDeleteView.as_view(), name='transactiontype_delete'),
 
 
     # path('budgetallocations/<int:pk>/update/', BudgetAllocationUpdateView.as_view(), name='budgetallocation_update'),
 ]
-
-from django.urls import path
-from . import views
-from .view_ProjectBudgetAllocation import ProjectBudgetAllocationListView, ProjectBudgetAllocationDetailView, \
-    ProjectBudgetAllocationEditView, ProjectBudgetAllocationDeleteView
-from .views import BudgetPeriodListView, BudgetPeriodDetailView, BudgetPeriodCreateView, BudgetPeriodUpdateView, \
-    BudgetPeriodDeleteView, BudgetPeriodDeleteView, BudgetAllocationDetailView, \
-    BudgetAllocationListView, BudgetAllocationDetailView, \
-    BudgetAllocationUpdateView, BudgetAllocationDeleteView, BudgetTransactionListView, BudgetTransactionDetailView, \
-    PaymentOrderListView, PaymentOrderDetailView, PaymentOrderCreateView, PaymentOrderUpdateView, \
-    PaymentOrderDeleteView, PayeeListView, PayeeDetailView, PayeeCreateView, PayeeUpdateView, PayeeDeleteView, \
-    TransactionTypeListView, TransactionTypeDetailView, TransactionTypeCreateView, TransactionTypeUpdateView, \
-    TransactionTypeDeleteView, OrganizationBudgetAllocationListView, BudgetAllocationCreateView
+ 
 # #/
 # urlpatterns+  = [
 #     path('budgetperiods/', BudgetPeriodListView.as_view(), name='budgetperiod_list'),    # مسیر لیست دوره‌های بودجه (برای دکمه انصراف)

@@ -3,13 +3,12 @@ import logging
 from decimal import Decimal
 from django.db.models import Sum, Q
 
-
 logger = logging.getLogger(__name__)
 
 def calculate_total_allocated(entity=None, filters=None):
     """محاسبه مجموع بودجه تخصیص‌یافته"""
-    from budgets.models import ProjectBudgetAllocation,BudgetAllocation
-    from core.models import Organization , Project
+    from budgets.models import ProjectBudgetAllocation, BudgetAllocation
+    from core.models import Organization, Project
     queryset = BudgetAllocation.objects.all()
     if entity:
         if isinstance(entity, Organization):
@@ -24,9 +23,8 @@ def calculate_total_allocated(entity=None, filters=None):
 
 def _calculate_remaining_budget(obj):
     """محاسبه بودجه باقی‌مانده برای هر سطح"""
-    from budgets.models import BudgetPeriod, BudgetAllocation,ProjectBudgetAllocation
+    from budgets.models import BudgetPeriod, BudgetAllocation, ProjectBudgetAllocation
     from tankhah.models import Tankhah
-
     if isinstance(obj, BudgetPeriod):
         allocated = BudgetAllocation.objects.filter(budget_period=obj).aggregate(Sum('allocated_amount'))['allocated_amount__sum'] or Decimal('0')
         return max(obj.total_amount - allocated, Decimal('0'))
@@ -40,9 +38,8 @@ def _calculate_remaining_budget(obj):
 
 def calculate_remaining_budget(entity=None, filters=None):
     """محاسبه مانده بودجه"""
-    from budgets.models import ProjectBudgetAllocation,BudgetAllocation,BudgetPeriod
-    from core.models import Organization , Project,SubProject
-
+    from budgets.models import ProjectBudgetAllocation, BudgetAllocation, BudgetPeriod
+    from core.models import Organization, Project, SubProject
     if isinstance(entity, BudgetPeriod):
         total_allocated = calculate_total_allocated(filters={'budget_period': entity})
         remaining = entity.total_amount - total_allocated
@@ -66,8 +63,8 @@ def calculate_remaining_budget(entity=None, filters=None):
 
 def get_budget_status(entity, filters=None):
     """بررسی وضعیت بودجه"""
-    from budgets.models import ProjectBudgetAllocation,BudgetAllocation,BudgetPeriod
-    from core.models import Organization , Project,SubProject
+    from budgets.models import ProjectBudgetAllocation, BudgetAllocation, BudgetPeriod
+    from core.models import Organization, Project, SubProject
     if isinstance(entity, BudgetPeriod):
         status, message = entity.check_budget_status()
     elif isinstance(entity, Organization):
@@ -118,8 +115,8 @@ def _apply_filters(queryset, filters):
 
 def get_budget_details(entity=None, filters=None):
     """دریافت جزئیات بودجه"""
-    from budgets.models import ProjectBudgetAllocation,BudgetAllocation,BudgetPeriod
-    from core.models import Organization , Project,SubProject
+    from budgets.models import ProjectBudgetAllocation, BudgetAllocation, BudgetPeriod
+    from core.models import Organization, Project, SubProject
     if isinstance(entity, BudgetPeriod):
         total_budget = entity.total_amount
         total_allocated = calculate_total_allocated(filters={'budget_period': entity})
@@ -170,26 +167,15 @@ def calculate_allocation_percentages(allocations):
     return total_percentage
 
 def get_organization_budget(organization):
-    from budgets.models import BudgetPeriod
-    try:
-        budget = BudgetPeriod.objects.filter(organization=organization, is_active=True).aggregate(
-            total=Sum('amount')
-        )['total'] or Decimal('0')
-        return budget
-    except Exception as e:
-        print(f"Error calculating budget for {organization}: {str(e)}")
-        return Decimal('0')
-
-def __get_organization_budget(organization):
-    from budgets.models import BudgetAllocation
     """بودجه کل تخصیص‌یافته به سازمان"""
+    from budgets.models import BudgetAllocation
     total = BudgetAllocation.objects.filter(organization=organization).aggregate(total=Sum('allocated_amount'))['total'] or Decimal("0")
     logger.debug(f"get_organization_budget: org={organization}, total={total}")
     return total
 
 def get_project_total_budget(project):
-    from budgets.models import ProjectBudgetAllocation
     """بودجه کل تخصیص‌یافته به پروژه"""
+    from budgets.models import ProjectBudgetAllocation
     total = ProjectBudgetAllocation.objects.filter(project=project, subproject__isnull=True).aggregate(total=Sum('allocated_amount'))['total'] or Decimal("0")
     logger.debug(f"get_project_total_budget: project={project}, total={total}")
     return total
@@ -230,7 +216,7 @@ def get_subproject_remaining_budget(subproject):
 
 def can_delete_budget(entity):
     """چک می‌کنه که آیا بودجه پروژه یا زیرپروژه قابل حذف هست یا نه"""
-    from core.models import Project,SubProject
+    from core.models import Project, SubProject
     if isinstance(entity, Project):
         can_delete = not entity.tankhah_set.exists() and not entity.subprojects.exists()
     elif isinstance(entity, SubProject):
@@ -239,3 +225,17 @@ def can_delete_budget(entity):
         can_delete = False
     logger.debug(f"can_delete_budget: entity={entity}, can_delete={can_delete}")
     return can_delete
+
+def get_locked_amount(obj):
+    """محاسبه مقدار قفل‌شده"""
+    from budgets.models import BudgetPeriod
+    if isinstance(obj, BudgetPeriod):
+        return (obj.total_amount * obj.locked_percentage) / Decimal('100')
+    return Decimal('0')
+
+def get_warning_amount(obj):
+    """محاسبه مقدار آستانه هشدار"""
+    from budgets.models import BudgetPeriod
+    if isinstance(obj, BudgetPeriod):
+        return (obj.total_amount * obj.warning_threshold) / Decimal('100')
+    return Decimal('0')

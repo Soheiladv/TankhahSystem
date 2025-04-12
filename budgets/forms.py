@@ -4,7 +4,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 
-from Tanbakhsystem.utils import convert_to_farsi_numbers
+from Tanbakhsystem.utils import convert_to_farsi_numbers, parse_jalali_date, format_jalali_date
 from Tanbakhsystem.widgets import NumberToWordsWidget
 from core.models import Organization
 from .models import BudgetPeriod, BudgetAllocation, BudgetTransaction, PaymentOrder, Payee, TransactionType, \
@@ -23,91 +23,94 @@ def to_english_digits(text):
     translation_table = str.maketrans(persian_digits, english_digits)
     return text.translate(translation_table)
 
+# budgets/forms.py
+
 class BudgetPeriodForm(forms.ModelForm):
-    """BudgetPeriod (دوره بودجه کلان):
-    توضیح: این مدل بودجه کل رو جدا از Organization نگه می‌داره. remaining_amount موقع تخصیص آپدیت می‌شه و lock_condition مشخص می‌کنه کی قفل بشه.
-    """
+    """فرم دوره بودجه کلان با تاریخ شمسی و اعتبارسنجی‌های پیشرفته"""
     start_date = forms.CharField(
         label=_('تاریخ شروع'),
-        widget=forms.TextInput(attrs={'data-jdp': '', 'class': 'form-control', 'placeholder': _('1404/01/17')})
+        widget=forms.TextInput(attrs={
+            'data-jdp': '',
+            'class': 'form-control',
+            'placeholder': _('1404/01/17'),
+            'autocomplete': 'off'
+        })
     )
     end_date = forms.CharField(
         label=_('تاریخ پایان'),
-        widget=forms.TextInput(attrs={'data-jdp': '', 'class': 'form-control', 'placeholder': _('1404/01/17')})
+        widget=forms.TextInput(attrs={
+            'data-jdp': '',
+            'class': 'form-control',
+            'placeholder': _('1404/12/29'),
+            'autocomplete': 'off'
+        })
     )
 
     class Meta:
         model = BudgetPeriod
-        fields = ['organization', 'name', 'start_date', 'end_date', 'total_amount', 'is_active', 'is_archived', 'lock_condition', 'locked_percentage', 'warning_threshold']
+        fields = [
+            'organization', 'name', 'start_date', 'end_date', 'total_amount',
+            'is_active', 'is_archived', 'is_completed', 'lock_condition',
+            'locked_percentage', 'warning_threshold', 'warning_action'
+        ]
         widgets = {
-            'organization': forms.Select(attrs={'class': 'form-control'}),
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('نام دوره را وارد کنید')}),
-            'total_amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('مبلغ کل')}),
+            'organization': forms.Select(attrs={'class': 'form-control', 'required': True}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('نام دوره (مثل بودجه ۱۴۰۴)')}),
+            'total_amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('مبلغ کل'), 'min': 1}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_archived': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_completed': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'lock_condition': forms.Select(attrs={'class': 'form-control'}),
             'locked_percentage': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 100, 'step': 0.01}),
             'warning_threshold': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 100, 'step': 0.01}),
+            'warning_action': forms.Select(attrs={'class': 'form-control'}),
         }
         labels = {
             'organization': _('دفتر مرکزی'),
             'name': _('نام دوره بودجه'),
-            'total_amount': _('مبلغ کل'),
+            'total_amount': _('مبلغ کل (ریال)'),
             'is_active': _('فعال'),
             'is_archived': _('بایگانی شده'),
+            'is_completed': _('تمام‌شده'),
             'lock_condition': _('شرط قفل'),
             'locked_percentage': _('درصد قفل‌شده'),
             'warning_threshold': _('آستانه اخطار'),
+            'warning_action': _('اقدام هشدار'),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # تنظیم مقادیر اولیه تاریخ‌ها برای نمایش شمسی
+        if self.instance and self.instance.pk:
+            self.initial['start_date'] = format_jalali_date(self.instance.start_date)
+            self.initial['end_date'] = format_jalali_date(self.instance.end_date)
 
     def clean_start_date(self):
         date_str = self.cleaned_data.get('start_date')
-        if not date_str:
-            raise forms.ValidationError(_('تاریخ شروع اجباری است.'))
-        try:
-            j_date = jdatetime.datetime.strptime(date_str, '%Y/%m/%d')
-            return timezone.make_aware(j_date.togregorian())
-        except ValueError:
-            raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
+        return parse_jalali_date(date_str, field_name=_('تاریخ شروع'))
 
     def clean_end_date(self):
         date_str = self.cleaned_data.get('end_date')
-        if not date_str:
-            raise forms.ValidationError(_('تاریخ پایان اجباری است.'))
-        try:
-            j_date = jdatetime.datetime.strptime(date_str, '%Y/%m/%d')
-            return timezone.make_aware(j_date.togregorian())
-        except ValueError:
-            raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
+        return parse_jalali_date(date_str, field_name=_('تاریخ پایان'))
 
     def clean_total_amount(self):
-        amount_str = self.cleaned_data.get('total_amount', '')
-        if not amount_str:
-            raise forms.ValidationError(_('وارد کردن مبلغ کل الزامی است.'))
-        try:
-            amount = int(to_english_digits(str(amount_str)).replace(',', ''))
-            if amount <= 0:
-                raise forms.ValidationError(_('مبلغ کل باید بزرگ‌تر از صفر باشد.'))
-            return amount
-        except (ValueError, TypeError):
-            raise forms.ValidationError(_('لطفاً یک عدد معتبر برای مبلغ وارد کنید.'))
+        amount = self.cleaned_data.get('total_amount')
+        if amount is None or amount <= 0:
+            raise forms.ValidationError(_('مبلغ کل باید بزرگ‌تر از صفر باشد.'))
+        return amount
 
     def clean_locked_percentage(self):
         percentage = self.cleaned_data.get('locked_percentage')
-        if percentage is None:
-            raise forms.ValidationError(_('درصد قفل‌شده اجباری است.'))
-        if percentage < 0 or percentage > 100:
+        if percentage is None or not (0 <= percentage <= 100):
             raise forms.ValidationError(_('درصد قفل‌شده باید بین ۰ تا ۱۰۰ باشد.'))
         return percentage
 
     def clean_warning_threshold(self):
         threshold = self.cleaned_data.get('warning_threshold')
-        if threshold is None:
-            raise forms.ValidationError(_('آستانه اخطار اجباری است.'))
-        if threshold < 0 or threshold > 100:
+        if threshold is None or not (0 <= threshold <= 100):
             raise forms.ValidationError(_('آستانه اخطار باید بین ۰ تا ۱۰۰ باشد.'))
         locked_percentage = self.cleaned_data.get('locked_percentage')
-        if locked_percentage and threshold <= locked_percentage:
+        if locked_percentage is not None and threshold <= locked_percentage:
             raise forms.ValidationError(_('آستانه اخطار باید بزرگ‌تر از درصد قفل‌شده باشد.'))
         return threshold
 
@@ -115,106 +118,27 @@ class BudgetPeriodForm(forms.ModelForm):
         cleaned_data = super().clean()
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
-        if start_date and end_date and end_date < start_date:
-            raise forms.ValidationError(_('تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد.'))
+        is_completed = cleaned_data.get('is_completed')
+        is_active = cleaned_data.get('is_active')
+        if start_date and end_date:
+            if end_date <= start_date:
+                raise forms.ValidationError(_('تاریخ پایان باید بعد از تاریخ شروع باشد.'))
+            if start_date < timezone.now().date():
+                raise forms.ValidationError(_('تاریخ شروع نمی‌تواند در گذشته باشد.'))
+
+        if is_completed and is_active:
+            raise forms.ValidationError(_('دوره تمام‌شده نمی‌تواند فعال باشد.'))
+
+        logger.info(cleaned_data,start_date,end_date,is_completed,is_active)
         return cleaned_data
 
-class BudgetAllocationForm(forms.ModelForm):
-    allocation_type = forms.ChoiceField(
-        label=_('نوع تخصیص'),
-        choices=(('amount', _('مبلغ ثابت')), ('percent', _('درصد'))),
-        widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
-    )
-    allocated_amount = forms.CharField(
-        label=_("مقدار/درصد تخصیص"),
-        required=True,
-        widget=NumberToWordsWidget(
-            attrs={
-                'placeholder': _('مقدار یا درصد را وارد کنید'),
-                'class': 'form-control form-control-sm number-format ltr-input',
-                'id': 'id_allocated_amount',
-                'inputmode': 'numeric',
-                'pattern': '[۰-۹0-9,،.]*',
-            },
-            word_label=_("به حروف:"),
-            unit="",
-        )
-    )
-    budget_period = forms.ModelChoiceField(
-        queryset=BudgetPeriod.objects.all(),
-        label=_("دوره بودجه"),
-        widget=forms.HiddenInput(),
-    )
-    organization = forms.ModelChoiceField(
-        queryset=Organization.objects.all(),
-        label=_("شعبه دریافت‌کننده"),
-        widget=forms.Select(attrs={'class': 'form-select form-select-sm'}),
-    )
-    allocation_date = forms.CharField(
-        label=_('تاریخ تخصیص'),
-        required=True,
-        widget=forms.TextInput(attrs={
-            'data-jdp': '',
-            'class': 'form-control form-control-sm datepicker',
-            'placeholder': _('مثال: 1403/02/21'),
-            'autocomplete': 'off',
-        })
-    )
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.created_by = self.initial.get('created_by', None)
+        if commit:
+            instance.save()
+        return instance
 
-    class Meta:
-        model = BudgetAllocation
-        fields = ['budget_period', 'organization', 'allocation_type', 'allocated_amount', 'allocation_date','description','status']
-        widgets = {
-            'status': forms.CheckboxInput(attrs={'class': 'form-check-input' }),
-            'description': forms.TextInput(attrs={'class': 'form-control','rows':1, 'placeholder': _('شرح ردیف')}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # تنظیم مقدار اولیه تاریخ به فرمت جلالی در حالت ویرایش
-        if self.instance and self.instance.pk and self.instance.allocation_date:
-            j_date = jdatetime.date.fromgregorian(date=self.instance.allocation_date)
-            jalali_date_str = j_date.strftime('%Y/%m/%d')
-            self.fields['allocation_date'].initial = jalali_date_str
-            self.initial['allocation_date'] = jalali_date_str
-
-    def clean_allocation_date(self):
-        date_str = self.cleaned_data.get('allocation_date')
-        if not date_str:
-            raise forms.ValidationError(_('تاریخ تخصیص اجباری است.'))
-        try:
-            j_date = jdatetime.datetime.strptime(date_str, '%Y/%m/%d').date()
-            # تبدیل به تاریخ میلادی برای ذخیره در مدل (اگر DateField باشد)
-            gregorian_date = j_date.togregorian()
-            return gregorian_date
-        except ValueError:
-            raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1403/02/21).'))
-
-    def clean_allocated_amount(self):
-        amount_str = self.cleaned_data.get('allocated_amount', '')
-        allocation_type = self.cleaned_data.get('allocation_type')
-        budget_period = self.cleaned_data.get('budget_period')
-
-        if not amount_str:
-            raise forms.ValidationError(_('وارد کردن مقدار تخصیص الزامی است.'))
-
-        english_amount_str = to_english_digits(str(amount_str)).replace(',', '')
-        try:
-            amount = Decimal(english_amount_str)
-            if allocation_type == 'percent':
-                if amount <= 0 or amount > 100:
-                    raise forms.ValidationError(_('درصد باید بین ۱ تا ۱۰۰ باشد.'))
-                total_amount = budget_period.total_amount
-                amount = (amount / 100) * total_amount
-            else:
-                if amount <= 0:
-                    raise forms.ValidationError(_('مبلغ باید بزرگ‌تر از صفر باشد.'))
-
-            if amount > budget_period.get_remaining_amount():
-                raise forms.ValidationError(_('مبلغ تخصیص بیشتر از باقی‌مانده بودجه است: %s') % budget_period.get_remaining_amount)
-            return amount
-        except (ValueError, TypeError):
-            raise forms.ValidationError(_('لطفاً یک مقدار معتبر وارد کنید.'))
 
 class BudgetTransactionForm(forms.ModelForm):
     class Meta:
