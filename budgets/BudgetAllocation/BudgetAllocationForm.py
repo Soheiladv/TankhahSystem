@@ -7,6 +7,8 @@ import re
 
 from budgets.models import BudgetAllocation
 from core.models import Organization, Project
+import logging
+logger = logging.getLogger(__name__)
 
 class BudgetAllocationForm(forms.ModelForm):
     project = forms.ModelChoiceField(
@@ -20,17 +22,19 @@ class BudgetAllocationForm(forms.ModelForm):
         model = BudgetAllocation
         fields = ['organization', 'project', 'allocated_amount', 'allocation_date', 'description', 'is_active']
         widgets = {
-            'organization': forms.Select(attrs={'class': 'form-select'}),
+            'organization': forms.Select(attrs={'class': 'form-select', 'required': 'required'}),
             'allocated_amount': forms.NumberInput(attrs={
                 'class': 'form-control numeric-input',
                 'min': '0',
                 'step': '1',
-                'inputmode': 'numeric'
+                'inputmode': 'numeric',
+                'required': 'required'
             }),
             'allocation_date': forms.TextInput(attrs={
                 'data-jdp': '',
                 'class': 'form-control',
-                'placeholder': '1404/01/17'
+                'placeholder': '1404/01/17',
+                'required': 'required'
             }),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -38,11 +42,17 @@ class BudgetAllocationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.budget_period = kwargs.pop('budget_period', None)
-        self.request = kwargs.pop('request', None)
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         self.fields['organization'].queryset = Organization.objects.filter(
             org_type__in=['COMPLEX', 'HQ'], is_active=True
         )
+        if self.budget_period:
+            self.fields['organization'].queryset = self.fields['organization'].queryset.filter(
+                id__in=BudgetAllocation.objects.filter(
+                    budget_period=self.budget_period
+                ).values_list('organization_id', flat=True)
+            )
 
     def clean_allocation_date(self):
         date_str = self.cleaned_data.get('allocation_date')
@@ -62,19 +72,22 @@ class BudgetAllocationForm(forms.ModelForm):
         allocated_amount = cleaned_data.get('allocated_amount')
         allocation_date = cleaned_data.get('allocation_date')
 
+        if not organization:
+            self.add_error('organization', _('لطفاً یک سازمان انتخاب کنید.'))
+
         if not project:
             self.add_error('project', _('لطفاً یک پروژه انتخاب کنید.'))
 
         if allocated_amount is None or allocated_amount <= 0:
             self.add_error('allocated_amount', _('مبلغ تخصیص باید مثبت باشد.'))
 
-        if organization and project and not project.organizations.filter(id=organization.id).exists():
-            self.add_error('project', _('پروژه انتخاب‌شده متعلق به این سازمان نیست.'))
+        if organization and project:
+            if not project.organizations.filter(id=organization.id).exists():
+                self.add_error('project', _('پروژه انتخاب‌شده متعلق به این سازمان نیست.'))
 
         if self.budget_period and allocated_amount:
             used_budget = BudgetAllocation.objects.filter(
-                budget_period=self.budget_period,
-                organization=organization
+                budget_period=self.budget_period
             ).exclude(id=self.instance.id).aggregate(
                 total=Sum('allocated_amount')
             )['total'] or Decimal('0')
@@ -95,7 +108,7 @@ class BudgetAllocationForm(forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
         instance.budget_period = self.budget_period
-        instance.created_by = self.request.user
+        instance.created_by = self.user
         if commit:
             instance.save()
         return instance

@@ -1,7 +1,8 @@
 # budgets/urls.py
 from django.urls import path
 from . import views
-from .BudgetAllocation.BudgetAllocation import BudgetAllocationCreateView
+# from .BudgetAllocation.BudgetAllocation import BudgetAllocationCreateView
+
 
 urlpatterns = [
     path('budgets-dashboard', views.BudgetDashboardView.as_view(), name='budgets_dashboard'),  # داشبورد
@@ -20,7 +21,7 @@ urlpatterns = [
     path('budgetallocation/<int:pk>/edit/', views.BudgetAllocationUpdateView.as_view(), name='budgetallocation_update'),
     path('budgetallocation/<int:pk>/delete/', views.BudgetAllocationDeleteView.as_view(),
          name='budgetallocation_delete'),
-    path('budgetallocations/create/', BudgetAllocationCreateView.as_view(), name='budgetallocation_create'),
+    path('budgetallocations/create/', views.BudgetAllocationCreateView.as_view(), name='budgetallocation_create'),
 
     # Organization Budget
     path('organization/<int:org_id>/allocations/',
@@ -70,12 +71,12 @@ from .view_ProjectBudgetAllocation import ProjectBudgetAllocationListView, Proje
     ProjectBudgetAllocationEditView, ProjectBudgetAllocationDeleteView
 from .views import BudgetPeriodListView, BudgetPeriodDetailView, BudgetPeriodCreateView, BudgetPeriodUpdateView, \
     BudgetPeriodDeleteView, BudgetPeriodDeleteView, BudgetAllocationDetailView, \
-    BudgetAllocationListView, BudgetAllocationDetailView,   \
+    BudgetAllocationListView, BudgetAllocationDetailView, \
     BudgetAllocationUpdateView, BudgetAllocationDeleteView, BudgetTransactionListView, BudgetTransactionDetailView, \
     PaymentOrderListView, PaymentOrderDetailView, PaymentOrderCreateView, PaymentOrderUpdateView, \
     PaymentOrderDeleteView, PayeeListView, PayeeDetailView, PayeeCreateView, PayeeUpdateView, PayeeDeleteView, \
     TransactionTypeListView, TransactionTypeDetailView, TransactionTypeCreateView, TransactionTypeUpdateView, \
-    TransactionTypeDeleteView, OrganizationBudgetAllocationListView
+    TransactionTypeDeleteView, OrganizationBudgetAllocationListView, BudgetAllocationCreateView
 # #/
 # urlpatterns+  = [
 #     path('budgetperiods/', BudgetPeriodListView.as_view(), name='budgetperiod_list'),    # مسیر لیست دوره‌های بودجه (برای دکمه انصراف)

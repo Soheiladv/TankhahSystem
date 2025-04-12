@@ -7,9 +7,8 @@ from django.db import transaction
 from decimal import Decimal
 import logging
 
-from budgets import BudgetAllocation
 from budgets.BudgetAllocation.BudgetAllocationForm import BudgetAllocationForm
-from budgets.models import BudgetPeriod
+from budgets.models import BudgetPeriod, BudgetAllocation
 from core.models import Organization, Project
 
 logger = logging.getLogger(__name__)

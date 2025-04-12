@@ -243,7 +243,7 @@ class __A__BudgetAllocationCreateView(PermissionBaseView, CreateView):  # فرض
             messages.error(self.request, str(e))
             return self.form_invalid(form)
 
-class ______BudgetAllocationCreateView(CreateView):
+class BudgetAllocationCreateView(CreateView):
     model = BudgetAllocation
     form_class = ProjectBudgetAllocationForm
     template_name = 'budgets/budget/budgetallocation_form.html'
