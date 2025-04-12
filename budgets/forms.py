@@ -8,7 +8,7 @@ from Tanbakhsystem.utils import convert_to_farsi_numbers
 from Tanbakhsystem.widgets import NumberToWordsWidget
 from core.models import Organization
 from .models import BudgetPeriod, BudgetAllocation, BudgetTransaction, PaymentOrder, Payee, TransactionType, \
-    ProjectBudgetAllocation
+    ProjectBudgetAllocation, SystemSettings
 import jdatetime
 from django.utils import timezone
 from decimal import Decimal
@@ -353,8 +353,6 @@ class TransactionTypeForm(forms.ModelForm):
         }
 
 #--
-
-
 class ProjectBudgetAllocationForm1(forms.ModelForm):
     class Meta:
         model = ProjectBudgetAllocation
@@ -384,9 +382,9 @@ class ProjectBudgetAllocationForm1(forms.ModelForm):
             if remaining - amount < locked_amount:
                 raise forms.ValidationError(_("تخصیص این مبلغ باعث نقض مقدار قفل‌شده بودجه می‌شود"))
         return amount
-
-
 # budgets/forms.py
+from core.models import Project, SubProject
+
 class ProjectBudgetAllocationForm(forms.ModelForm):
     class Meta:
         model = ProjectBudgetAllocation
@@ -429,7 +427,6 @@ class ProjectBudgetAllocationForm(forms.ModelForm):
             'subproject': _('در صورتی که بودجه به زیرپروژه خاصی تعلق دارد انتخاب کنید'),
         }
 
-    from core.models import Project, SubProject
 
     def __init__(self, *args, organization_id=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -476,3 +473,8 @@ class ProjectBudgetAllocationForm(forms.ModelForm):
                                _("نقض مقدار قفل‌شده بودجه: %(locked)s") % {'locked': locked_amount})
 
         return cleaned_data
+
+class SystemSettingsForm(forms.ModelForm):
+    class Meta:
+        model = SystemSettings
+        fields = '__all__'

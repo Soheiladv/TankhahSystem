@@ -22,6 +22,22 @@ def calculate_total_allocated(entity=None, filters=None):
     logger.debug(f"calculate_total_allocated: entity={entity}, filters={filters}, total={total}")
     return total
 
+def _calculate_remaining_budget(obj):
+    """محاسبه بودجه باقی‌مانده برای هر سطح"""
+    from budgets.models import BudgetPeriod, BudgetAllocation,ProjectBudgetAllocation
+    from tankhah.models import Tankhah
+
+    if isinstance(obj, BudgetPeriod):
+        allocated = BudgetAllocation.objects.filter(budget_period=obj).aggregate(Sum('allocated_amount'))['allocated_amount__sum'] or Decimal('0')
+        return max(obj.total_amount - allocated, Decimal('0'))
+    elif isinstance(obj, BudgetAllocation):
+        used = ProjectBudgetAllocation.objects.filter(budget_allocation=obj).aggregate(Sum('allocated_amount'))['allocated_amount__sum'] or Decimal('0')
+        return max(obj.allocated_amount - used, Decimal('0'))
+    elif isinstance(obj, ProjectBudgetAllocation):
+        consumed = Tankhah.objects.filter(project_budget_allocation=obj).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+        return max(obj.allocated_amount - consumed, Decimal('0'))
+    return Decimal('0')
+
 def calculate_remaining_budget(entity=None, filters=None):
     """محاسبه مانده بودجه"""
     from budgets.models import ProjectBudgetAllocation,BudgetAllocation,BudgetPeriod

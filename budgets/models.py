@@ -1,12 +1,6 @@
 import logging
 
 import jdatetime
-from django.core.exceptions import ValidationError
-from django.db import models
-from django.db.models import Sum
-from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
-
 from accounts.models import CustomUser
 from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget
 from core.models import Organization, Project, SubProject, WorkflowStage
@@ -44,6 +38,8 @@ class BudgetPeriod(models.Model):
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
     is_archived = models.BooleanField(default=False, verbose_name=_("بایگانی شده"))
     is_completed = models.BooleanField(default=False, verbose_name=_("تمام‌شده"))
+
+    total_allocated = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("مجموع تخصیص‌ها"))
 
     created_by = models.ForeignKey(
         CustomUser,
@@ -269,6 +265,7 @@ class BudgetAllocation(models.Model):
         verbose_name=_("اقدام هشدار"),
         help_text=_("رفتار سیستم هنگام رسیدن به آستانه هشدار")
     )
+    allocation_number = models.IntegerField(default=1, verbose_name=_("شماره تخصیص")) #برای ردیابی تخصیص‌های چندباره:
 
     class Meta:
         verbose_name = _("تخصیص بودجه")
@@ -390,6 +387,8 @@ class BudgetTransaction(models.Model):
                              verbose_name=_("کاربر"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
 
+    transaction_id = models.CharField(max_length=50, unique=True, verbose_name=_("شناسه تراکنش"))#یک شناسه منحصربه‌فرد برای هر تراکنش:
+
     def save(self, *args, **kwargs):
         if self.transaction_type == 'CONSUMPTION' and self.amount > self.allocation.remaining_amount:
             raise ValueError("مبلغ مصرف بیشتر از باقی‌مانده تخصیص است")
@@ -447,6 +446,7 @@ class PaymentOrder(models.Model):
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
                                    related_name='payment_orders_created', verbose_name=_("ایجادکننده"))
 
+    payment_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پرداخت"))
     def generate_order_number(self):
         sep = "-"
         date_str = jdatetime.date.fromgregorian(date=self.issue_date).strftime('%Y%m%d')
@@ -473,9 +473,6 @@ class PaymentOrder(models.Model):
             ('PaymentOrder_sign', _('امضای دستور پرداخت')),
             ('PaymentOrder_issue', _('صدور دستور پرداخت')),
         ]
-class SignatureLog(models.Model):
-    """تکمیل برای log"""
-    pass
 
 """Payee (دریافت‌کننده):"""
 class Payee(models.Model):
@@ -537,7 +534,6 @@ class TransactionType(models.Model):
             ('TransactionType_delete', _('حذف نوع تراکنش')),
         ]
 
-
 """تخصیص بودجه به پروژه و زیر پروژه """
 class ProjectBudgetAllocation(models.Model):
     """
@@ -552,8 +548,6 @@ class ProjectBudgetAllocation(models.Model):
     subproject = models.ForeignKey('core.SubProject', on_delete=models.CASCADE, null=True, blank=True,
                                    related_name='budget_allocations', verbose_name=_("زیرپروژه"))
     allocated_amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ تخصیص"))
-    # remaining_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0,
-    #                                        verbose_name=_("باقی‌مانده تخصیص"))
     allocation_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ تخصیص"))
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
                                    related_name='project_budget_allocations_created', verbose_name=_("ایجادکننده"))
@@ -617,14 +611,56 @@ class BudgetSettings(models.Model):
     warning_threshold = models.DecimalField(max_digits=5, decimal_places=2)
     warning_action = models.CharField(max_length=50, choices=[('NOTIFY', 'اعلان'), ('LOCK', 'قفل'), ('RESTRICT', 'محدود')])
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, null=True)
+    budget_period = models.ForeignKey('BudgetPeriod', on_delete=models.CASCADE, null=True, verbose_name=_("دوره بودجه"))
 
 """مدل BudgetHistory برای لاگ کردن تغییرات بودجه و تخصیص‌ها:"""
 class BudgetHistory(models.Model):
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    # content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
+    # content_object = GenericForeignKey('content_type', 'object_id')
     action = models.CharField(max_length=50, choices=[('CREATE', 'ایجاد'), ('UPDATE', 'بروزرسانی'), ('STOP', 'توقف'), ('REALLOCATE', 'انتقال')])
     amount = models.DecimalField(max_digits=25, decimal_places=2, null=True)
     created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     details = models.TextField(blank=True)
+    transaction_type = models.CharField(max_length=20, choices=[('ALLOCATION', 'تخصیص'), ('CONSUMPTION', 'مصرف')],
+                                        verbose_name=_("نوع تراکنش"))
+
+""" مدل پیشنهادی برای هزینه‌های متعارف"""
+class CostCenter(models.Model):
+    """ مدل پیشنهادی برای هزینه‌های متعارف"""
+    name = models.CharField(max_length=200, verbose_name=_("نام مرکز هزینه"))
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("کد مرکز هزینه"))
+    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("سازمان"))
+    budget_allocation = models.ForeignKey(BudgetAllocation, on_delete=models.CASCADE, verbose_name=_("تخصیص بودجه"))
+    allocated_budget = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("بودجه تخصیص‌یافته"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+
+    def get_remaining_budget(self):
+        from tankhah.models import Tankhah
+        consumed = Tankhah.objects.filter(cost_center=self).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+        return max(self.allocated_budget - consumed, Decimal('0'))
+
+class SystemSettings(models.Model):
+    """تنظیمات سیستم بودجه"""
+    budget_locked_percentage_default = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده پیش‌فرض بودجه")
+    )
+    budget_warning_threshold_default = models.DecimalField(
+        max_digits=5, decimal_places=2, default=10, verbose_name=_("آستانه هشدار پیش‌فرض بودجه")
+    )
+    budget_warning_action_default = models.CharField(
+        max_length=50, choices=[('NOTIFY', 'اعلان'), ('LOCK', 'قفل'), ('RESTRICT', 'محدود')],
+        default='NOTIFY', verbose_name=_("اقدام هشدار پیش‌فرض بودجه")
+    )
+    allocation_locked_percentage_default = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده پیش‌فرض تخصیص")
+    )
+
+
+    class Meta:
+        verbose_name = _("تنظیمات سیستم")
+        verbose_name_plural = _("تنظیمات سیستم")
+
+    def __str__(self):
+        return "تنظیمات سیستم بودجه"
