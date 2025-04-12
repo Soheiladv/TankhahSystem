@@ -67,6 +67,8 @@ class ProjectBudgetAllocationCreateView(PermissionBaseView, CreateView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['organization_id'] = self.kwargs['organization_id']
+        kwargs['initial']['created_by'] = self.request.user
+        kwargs['user'] = self.request.user
         return kwargs
 
     @transaction.atomic

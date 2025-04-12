@@ -2,11 +2,12 @@
 from django.urls import path
 from . import views
 from budgets.views import BudgetDashboardView, BudgetAllocationListView, BudgetAllocationDetailView, \
-    BudgetAllocationUpdateView, BudgetAllocationDeleteView, BudgetAllocationCreateView, \
+    BudgetAllocationUpdateView, BudgetAllocationDeleteView, \
     OrganizationBudgetAllocationListView, \
     BudgetTransactionListView, BudgetTransactionDetailView, PaymentOrderListView, PaymentOrderCreateView, \
     PaymentOrderUpdateView, PaymentOrderDeleteView, PayeeListView, PayeeCreateView, PayeeUpdateView, PayeeDeleteView, \
-    TransactionTypeListView, TransactionTypeCreateView, TransactionTypeUpdateView, TransactionTypeDeleteView
+    TransactionTypeListView, TransactionTypeCreateView, TransactionTypeUpdateView, TransactionTypeDeleteView, \
+    BudgetAllocationCreateView
 
 from budgets.BudgetPeriod.views_BudgetPeriod import BudgetPeriodListView, BudgetPeriodDetailView,BudgetPeriodCreateView,BudgetPeriodUpdateView,\
     BudgetPeriodDeleteView

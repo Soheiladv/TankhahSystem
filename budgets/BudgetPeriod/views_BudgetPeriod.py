@@ -48,7 +48,7 @@ class BudgetPeriodCreateView(PermissionBaseView,CreateView):
 class BudgetPeriodUpdateView(PermissionBaseView,UpdateView):
     model = BudgetPeriod
     form_class = BudgetPeriodForm
-    template_name = 'budgets/budget_period_form.html'
+    template_name = 'budgets/budget/budgetperiod_form.html'
     success_url = reverse_lazy('budgetperiod_list')
 
     def get_context_data(self, **kwargs):

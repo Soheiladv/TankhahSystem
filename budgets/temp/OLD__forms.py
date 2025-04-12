@@ -216,7 +216,7 @@ class BudgetPeriodForm__1(forms.ModelForm):
             raise forms.ValidationError(_('تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد.'))
         return cleaned_data
 
-class BudgetAllocationForm(forms.ModelForm):
+class old____BudgetAllocationForm(forms.ModelForm):
     allocation_type = forms.ChoiceField(
         label=_('نوع تخصیص'),
         choices=(('amount', _('مبلغ ثابت')), ('percent', _('درصد'))),

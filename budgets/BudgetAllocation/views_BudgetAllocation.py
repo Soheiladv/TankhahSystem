@@ -7,13 +7,14 @@ from django.db import transaction
 from decimal import Decimal
 import logging
 
-from budgets.BudgetAllocation.BudgetAllocationForm import BudgetAllocationForm
+from budgets.BudgetAllocation.forms_BudgetAllocation import BudgetAllocationForm
 from budgets.models import BudgetPeriod, BudgetAllocation
+from core.PermissionBase import PermissionBaseView
 from core.models import Organization, Project
 
 logger = logging.getLogger(__name__)
 
-class BudgetAllocationCreateView(CreateView):
+class single_BudgetAllocationCreateView(PermissionBaseView, CreateView):
     model = BudgetAllocation
     form_class = BudgetAllocationForm
     template_name = 'budgets/budget/budgetallocation_form.html'
@@ -22,8 +23,11 @@ class BudgetAllocationCreateView(CreateView):
     def _get_budget_period(self):
         budget_period_id = self.request.GET.get('budget_period') or self.request.POST.get('budget_period')
         try:
-            return BudgetPeriod.objects.get(id=budget_period_id, is_active=True)
-        except (BudgetPeriod.DoesNotExist, ValueError):
+            budget_period = BudgetPeriod.objects.get(id=budget_period_id, is_active=True)
+            logger.debug(f"Retrieved budget_period: {budget_period}")
+            return budget_period
+        except (BudgetPeriod.DoesNotExist, ValueError) as e:
+            logger.warning(f"Invalid budget_period_id: {budget_period_id}, error: {str(e)}")
             return None
 
     def get_context_data(self, **kwargs):
@@ -44,21 +48,24 @@ class BudgetAllocationCreateView(CreateView):
                 (context['remaining_amount'] / context['total_amount'] * 100)
                 if context['total_amount'] else 0
             )
-            context['locked_percentage'] = 0
-            context['warning_threshold'] = 10
+            context['locked_percentage'] = budget_period.locked_percentage or 0
+            context['warning_threshold'] = budget_period.warning_threshold or 10
         else:
             context['total_amount'] = Decimal('0')
             context['remaining_amount'] = Decimal('0')
             context['remaining_percent'] = 0
             context['locked_percentage'] = 0
             context['warning_threshold'] = 10
+            messages.warning(self.request, _('دوره بودجه انتخاب‌شده نامعتبر است یا یافت نشد.'))
 
+        logger.debug(f"Context data: {context}")
         return context
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['budget_period'] = self._get_budget_period()
-        kwargs['request'] = self.request
+        kwargs['user'] = self.request.user  # تغییر از request به user
+        logger.debug(f"Form kwargs: {kwargs}")
         return kwargs
 
     @transaction.atomic
@@ -66,6 +73,7 @@ class BudgetAllocationCreateView(CreateView):
         try:
             response = super().form_valid(form)
             messages.success(self.request, _('تخصیص بودجه با موفقیت ثبت شد.'))
+            logger.info("BudgetAllocation created successfully")
             return response
         except Exception as e:
             logger.error(f"Error saving budget allocation: {str(e)}")
@@ -76,3 +84,4 @@ class BudgetAllocationCreateView(CreateView):
         logger.error(f"Form errors: {form.errors.as_json()}")
         messages.error(self.request, _('لطفاً خطاهای فرم را بررسی کنید.'))
         return self.render_to_response(self.get_context_data(form=form))
+
