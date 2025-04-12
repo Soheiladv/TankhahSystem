@@ -3,14 +3,17 @@ from django.urls import path
 from . import views
 from budgets.views import BudgetDashboardView, BudgetAllocationListView, BudgetAllocationDetailView, \
     BudgetAllocationUpdateView, BudgetAllocationDeleteView, BudgetAllocationCreateView, \
-    OrganizationBudgetAllocationListView, ProjectBudgetAllocationListView, ProjectBudgetAllocationCreateView, \
-    ProjectBudgetAllocationDetailView, ProjectBudgetAllocationEditView, ProjectBudgetAllocationDeleteView, \
+    OrganizationBudgetAllocationListView, \
     BudgetTransactionListView, BudgetTransactionDetailView, PaymentOrderListView, PaymentOrderCreateView, \
     PaymentOrderUpdateView, PaymentOrderDeleteView, PayeeListView, PayeeCreateView, PayeeUpdateView, PayeeDeleteView, \
     TransactionTypeListView, TransactionTypeCreateView, TransactionTypeUpdateView, TransactionTypeDeleteView
 
 from budgets.BudgetPeriod.views_BudgetPeriod import BudgetPeriodListView, BudgetPeriodDetailView,BudgetPeriodCreateView,BudgetPeriodUpdateView,\
     BudgetPeriodDeleteView
+from .ProjectBudgetAllocation.views_ProjectBudgetAllocation import ProjectBudgetAllocationListView, ProjectBudgetAllocationCreateView, \
+    ProjectBudgetAllocationDetailView, ProjectBudgetAllocationEditView, ProjectBudgetAllocationDeleteView
+
+
 
 urlpatterns = [
     path('budgets-dashboard',BudgetDashboardView.as_view(), name='budgets_dashboard'),  # داشبورد

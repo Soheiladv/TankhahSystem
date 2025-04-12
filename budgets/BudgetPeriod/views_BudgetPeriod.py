@@ -23,6 +23,7 @@ class BudgetPeriodCreateView(PermissionBaseView,CreateView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['initial']['created_by'] = self.request.user
+        kwargs['user'] = self.request.user
         return kwargs
 
     def get_context_data(self, **kwargs):

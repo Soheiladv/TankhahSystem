@@ -9,7 +9,6 @@ from budgets.models import BudgetPeriod
 # تنظیم لاگر
 logger = logging.getLogger(__name__)
 
-
 def convert_to_farsi_numbers(text):
     """تبدیل اعداد انگلیسی به فارسی"""
     farsi_digits = '۰۱۲۳۴۵۶۷۸۹'
@@ -76,10 +75,9 @@ class BudgetPeriodForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)  # برای تنظیم created_by
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         logger.debug("Initializing BudgetPeriodForm")
-        # تنظیم مقادیر اولیه تاریخ‌ها برای نمایش شمسی
         if self.instance and self.instance.pk:
             self.initial['start_date'] = format_jalali_date(self.instance.start_date)
             self.initial['end_date'] = format_jalali_date(self.instance.end_date)
@@ -92,7 +90,6 @@ class BudgetPeriodForm(forms.ModelForm):
             logger.error("start_date is empty")
             raise forms.ValidationError(_('تاریخ شروع اجباری است.'))
         try:
-            # تبدیل اعداد فارسی به انگلیسی
             date_str = to_english_digits(date_str)
             parsed_date = parse_jalali_date(date_str, field_name=_('تاریخ شروع'))
             logger.debug(f"Parsed start_date: {parsed_date}")
@@ -108,7 +105,6 @@ class BudgetPeriodForm(forms.ModelForm):
             logger.error("end_date is empty")
             raise forms.ValidationError(_('تاریخ پایان اجباری است.'))
         try:
-            # تبدیل اعداد فارسی به انگلیسی
             date_str = to_english_digits(date_str)
             parsed_date = parse_jalali_date(date_str, field_name=_('تاریخ پایان'))
             logger.debug(f"Parsed end_date: {parsed_date}")
@@ -167,25 +163,18 @@ class BudgetPeriodForm(forms.ModelForm):
         organization = cleaned_data.get('organization')
         name = cleaned_data.get('name')
 
-        # اعتبارسنجی تاریخ‌ها
         if start_date and end_date:
             if end_date <= start_date:
                 logger.error(f"end_date ({end_date}) <= start_date ({start_date})")
                 raise forms.ValidationError(_('تاریخ پایان باید بعد از تاریخ شروع باشد.'))
-            # غیرفعال کردن محدودیت تاریخ گذشته برای تست
-            # if start_date < timezone.now().date():
-            #     logger.error(f"start_date ({start_date}) is in the past")
-            #     raise forms.ValidationError(_('تاریخ شروع نمی‌تواند در گذشته باشد.'))
             logger.debug("Validated date comparison")
         else:
             logger.warning(f"Missing dates: start_date={start_date}, end_date={end_date}")
 
-        # اعتبارسنجی وضعیت‌ها
         if is_completed and is_active:
             logger.error("is_completed and is_active both True")
             raise forms.ValidationError(_('دوره تمام‌شده نمی‌تواند فعال باشد.'))
 
-        # اعتبارسنجی یکتایی نام در سازمان
         if organization and name:
             if BudgetPeriod.objects.filter(organization=organization, name=name).exclude(pk=self.instance.pk).exists():
                 logger.error(f"Duplicate name '{name}' for organization {organization}")
@@ -198,11 +187,11 @@ class BudgetPeriodForm(forms.ModelForm):
     def save(self, commit=True):
         logger.debug("Saving BudgetPeriodForm")
         instance = super().save(commit=False)
-        if self.user:
-            instance.created_by = self.user
-            logger.debug(f"Set created_by: {instance.created_by }")
-        else:
-            logger.warning("No user provided for created_by")
+        if not self.user or not self.user.is_authenticated:
+            logger.error("No authenticated user provided for created_by")
+            raise forms.ValidationError(_('کاربر معتبر برای ایجاد دوره بودجه لازم است.'))
+        instance.created_by = self.user
+        logger.debug(f"Set created_by: {instance.created_by}")
         if commit:
             try:
                 instance.save()

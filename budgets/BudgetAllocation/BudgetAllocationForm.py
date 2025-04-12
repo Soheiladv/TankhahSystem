@@ -10,7 +10,7 @@ from core.models import Organization, Project
 import logging
 logger = logging.getLogger(__name__)
 
-class ______________BudgetAllocationForm(forms.ModelForm):
+class BudgetAllocationForm(forms.ModelForm):
     project = forms.ModelChoiceField(
         queryset=Project.objects.filter(is_active=True),
         label=_("پروژه"),
