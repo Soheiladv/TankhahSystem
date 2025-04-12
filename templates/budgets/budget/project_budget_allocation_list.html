@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% load i18n static  rcms_custom_filters %}
+
+{% block title %}{% trans "لیست تخصیص‌های بودجه پروژه" %}{% endblock %}
+
+{% block extra_css %}
+ <style>
+    .budget-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: none;
+    }
+    .card-header-gradient {
+        background: linear-gradient(135deg, #4e54c8, #8f94fb);
+        color: white;
+        border-radius: 10px 10px 0 0 !important;
+    }
+    .table-responsive {
+        border-radius: 0 0 10px 10px;
+    }
+    .dataTables_wrapper .dataTables_filter input {
+        border-radius: 20px;
+        padding: 5px 15px;
+        border: 1px solid #dee2e6;
+    }
+    .badge-status {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    .btn-action {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+    .progress-thin {
+        height: 6px;
+    }
+    .search-box {
+        position: relative;
+    }
+    .search-box i {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card budget-card mb-4">
+        <div class="card-header card-header-gradient d-flex justify-content-between align-items-center py-3">
+            <div>
+                <h4 class="mb-0">
+                    <i class="fas fa-wallet me-2"></i>
+                    {% trans "مدیریت تخصیص بودجه پروژه" %}
+                </h4>
+                <small class="opacity-75">{{ organization.name }}</small>
+            </div>
+            <div>
+                <a href="{% url 'project_budget_allocation' organization.id %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-plus me-1"></i> {% trans "تخصیص جدید" %}
+                </a>
+            </div>
+            <div>
+                <a href="{% url 'organization_list' %}" class="btn btn-action btn-sm">
+                    <i class="fas fa-backspace me-1"></i> {% trans "بازگشت به شعبه" %}
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body">
+            {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% elif message.tags == 'error' %}fa-times-circle{% else %}fa-info-circle{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="table-responsive">
+                <table id="budgetAllocationsTable" class="table table-hover" style="width:100%">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="5%">#</th>
+                            <th>{% trans "پروژه" %}</th>
+                            <th>{% trans "زیرپروژه" %}</th>
+                            <th>{% trans "مبلغ تخصیص" %}</th>
+                            <th>{% trans "باقی‌مانده" %}</th>
+                            <th>{% trans "دوره بودجه" %}</th>
+                            <th>{% trans "وضعیت" %}</th>
+                            <th width="15%">{% trans "عملیات" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for allocation in allocations %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <a href="{% url 'project_budget_allocation_detail' allocation.id %}">
+                                    {{ allocation.project.name| to_persian_number_with_comma }}
+                                </a>
+                            </td>
+                            <td>{{ allocation.subproject.name|default:"-" | to_persian_number_with_comma}}</td>
+                            <td>{{ allocation.allocated_amount| format_negative }} {% trans "ریال" %}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress progress-thin w-100 me-2">
+                                        <div class="progress-bar bg-{% if allocation.remaining_percent < 20 %}danger{% elif allocation.remaining_percent < 50 %}warning{% else %}success{% endif %}"
+                                             role="progressbar" style="width: {{ allocation.remaining_percent }}%"
+                                             aria-valuenow="{{ allocation.remaining_percent }}"
+                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <small>{{ allocation.remaining_percent|to_persian_number }}%</small>
+                                </div>
+                            </td>
+                            <td>{{ allocation.budget_allocation.budget_period.name|to_persian_number_with_comma}}</td>
+                            <td>
+                                <span class="badge-status bg-{% if allocation.is_active %}success{% else %}secondary{% endif %}">
+                                    {% if allocation.is_active %}{% trans "فعال" %}{% else %}{% trans "غیرفعال" %}{% endif %}
+                                </span>
+                            </td>
+                            <td class="text-nowrap">
+                                <a href="{% url 'project_budget_allocation_detail' allocation.id %}"
+                                   class="btn-action btn btn-info btn-sm"
+                                   data-bs-toggle="tooltip"
+                                   title="{% trans 'جزئیات' %}">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'project_budget_allocation_edit' allocation.id %}"
+                                   class="btn-action btn btn-warning btn-sm mx-1"
+                                   data-bs-toggle="tooltip"
+                                   title="{% trans 'ویرایش' %}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'project_budget_allocation_delete' allocation.id %}"
+                                   class="btn-action btn btn-danger btn-sm"
+                                   data-bs-toggle="tooltip"
+                                   title="{% trans 'حذف' %}">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                                    <p class="mb-0">{% trans "هیچ تخصیص بودجه‌ای یافت نشد" %}</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'admin/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'admin/fa.json' %}"></script>
+<script>
+$(document).ready(function() {
+    // Initialize DataTable
+    $('#budgetAllocationsTable').DataTable({
+        language: {
+            url: "{% static 'admin/fa.json' %}"
+        },
+        dom: '<"row"<"col-md-6"l><"col-md-6"f>>rt<"row"<"col-md-6"i><"col-md-6"p>>',
+        responsive: true,
+        columnDefs: [
+            { orderable: false, targets: [7] }
+        ],
+        initComplete: function() {
+            $('.dataTables_filter input').addClass('form-control');
+            $('.dataTables_length select').addClass('form-select');
+        }
+    });
+
+    // Initialize tooltips
+    $('[data-bs-toggle="tooltip"]').tooltip();
+
+    // Add search box styling
+    $('.dataTables_filter input').attr('placeholder', '{% trans "جستجو..." %}');
+    $('.dataTables_filter').addClass('search-box');
+    $('.dataTables_filter').prepend('<i class="fas fa-search"></i>');
+});
+</script>
+{% endblock %}

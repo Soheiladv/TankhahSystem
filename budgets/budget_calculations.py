@@ -197,7 +197,6 @@ def calculate_total_allocated(entity=None, filters=None):
     logger.info(f"calculate_total_allocated: entity={entity}, filters={filters}, total={total}")
     return total
 
-
 def calculate_remaining_budget(entity=None, filters=None):
     """محاسبه مانده بودجه"""
     if isinstance(entity, BudgetPeriod):
@@ -219,7 +218,6 @@ def calculate_remaining_budget(entity=None, filters=None):
         remaining = total_budget - total_allocated
     logger.info(f"calculate_remaining_budget: entity={entity}, filters={filters}, remaining={remaining}")
     return remaining
-
 
 def get_budget_status(entity, filters=None):
     """بررسی وضعیت بودجه"""
@@ -247,7 +245,6 @@ def get_budget_status(entity, filters=None):
     logger.info(f"get_budget_status: entity={entity}, status={status}, message={message}")
     return {'status': status, 'message': message}
 
-
 def _apply_filters(queryset, filters):
     """اعمال فیلترها روی queryset"""
     if 'date_from' in filters:
@@ -260,7 +257,6 @@ def _apply_filters(queryset, filters):
         queryset = queryset.filter(budget_period=filters['budget_period'])
     logger.debug(f"_apply_filters: filters={filters}, queryset count={queryset.count()}")
     return queryset
-
 
 def get_budget_details(entity=None, filters=None):
     """دریافت جزئیات بودجه"""
@@ -295,7 +291,6 @@ def get_budget_details(entity=None, filters=None):
     }
     logger.info(f"get_budget_details: entity={entity}, filters={filters}, details={details}")
     return details
-
 
 def calculate_allocation_percentages(allocations):
     """محاسبه درصد تخصیص برای هر ردیف و جمع کل"""

@@ -1,9 +1,11 @@
 import logging
 
 import jdatetime
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
 from accounts.models import CustomUser
 from core.models import Organization, Project, SubProject, WorkflowStage
 
@@ -54,14 +56,31 @@ class BudgetPeriod(models.Model):
     def check_budget_status(self):
         remaining = self.get_remaining_amount()
         locked_amount = self.get_locked_amount()
-        warning_amount = (self.warning_threshold / Decimal("100")) * self.total_amount
+        warning_amount = self.get_warning_amount()
 
         if remaining <= locked_amount:
-            return "locked", "بودجه قفل شده است."
+            status, msg = "locked", "بودجه قفل شده است."
+            self.send_notification(status, msg)
+            return status, msg
         elif remaining <= warning_amount:
-            return "warning", "بودجه به آستانه اخطار رسیده است."
+            status, msg = "warning", "بودجه به آستانه اخطار رسیده است."
+            self.send_notification(status, msg)
+            return status, msg
         return "normal", "بودجه در وضعیت عادی است."
 
+    def send_notification(self, status, message):
+        # پیدا کردن کاربران مرتبط (مثلاً مدیران سازمان و زیرمجموعه‌ها)
+        recipients = CustomUser.objects.filter(
+            models.Q(organization=self.organization) |  # مدیران سازمان
+            models.Q(organization__parent=self.organization)  # زیرمجموعه‌ها
+        ).distinct()
+        from tankhah.models import Notification
+        for recipient in recipients:
+            Notification.objects.create(
+                recipient=recipient,
+                message=f"{self.name}: {message}",
+                level='WARNING' if status == 'warning' else 'ERROR' if status == 'locked' else 'INFO'
+            )
 
     def save(self, *args, **kwargs):
         if self.end_date < self.start_date:
@@ -69,6 +88,8 @@ class BudgetPeriod(models.Model):
         if self.lock_condition == 'AFTER_DATE' and self.end_date < timezone.now().date():
             self.is_active = False
         super().save(*args, **kwargs)
+        # بعد از ذخیره، وضعیت رو چک کن و اعلان بفرست
+        self.check_budget_status()
 
     def __str__(self):
         return f"{self.name} ({self.organization.code})"
@@ -85,10 +106,8 @@ class BudgetPeriod(models.Model):
             ('BudgetPeriod_archive', _('بایگانی دوره بودجه')),
         ]
 
-
 # ------------------------------------
-
-    """ BudgetAllocation (تخصیص بودجه):"""
+""" BudgetAllocation (تخصیص بودجه):"""
 class BudgetAllocation(models.Model):
     """
     توضیح: تخصیص بودجه به هر سطح از Organization (شعبه یا اداره داخلی). موقع ذخیره، بودجه کل رو چک و آپدیت می‌کنه.
@@ -113,12 +132,13 @@ class BudgetAllocation(models.Model):
             if self.allocated_amount > self.budget_period.get_remaining_amount():
                 raise ValueError("مبلغ تخصیص بیشتر از باقی‌مانده بودجه کل است")
             self.remaining_amount = self.allocated_amount
-            # self.budget_period.remaining_amount -= self.allocated_amount
-            # self.budget_period.save()
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.organization.name} - {self.allocated_amount}"
+        # نمایش بهتر با تاریخ جلالی و اطلاعات سازمان و دوره
+        from jdatetime import datetime as jdatetime
+        jalali_date = jdatetime.fromgregorian(date=self.allocation_date).strftime('%Y/%m/%d')
+        return f"ردیف بودجه{self.id}-{self.organization.name} - {self.budget_period.name} - {self.allocated_amount:,} ({jalali_date})"
 
     class Meta:
         verbose_name = _("تخصیص بودجه")
@@ -300,4 +320,75 @@ class TransactionType(models.Model):
             ('TransactionType_view', _('نمایش نوع تراکنش')),
             ('TransactionType_update', _('بروزرسانی نوع تراکنش')),
             ('TransactionType_delete', _('حذف نوع تراکنش')),
+        ]
+
+
+"""تخصیص بودجه به پروژه و زیر پروژه """
+class ProjectBudgetAllocation(models.Model):
+    """
+    تخصیص بودجه از BudgetAllocation شعبه به پروژه یا زیرپروژه.
+    توضیح: این مدل بودجه شعبه رو به پروژه یا زیرپروژه وصل می‌کنه و تاریخچه تخصیص رو نگه می‌داره.
+    """
+    budget_allocation = models.ForeignKey(
+        'budgets.BudgetAllocation', on_delete=models.CASCADE, related_name='project_allocations',
+        verbose_name=_("تخصیص بودجه شعبه"))
+    project = models.ForeignKey('core.Project', on_delete=models.CASCADE, related_name='budget_allocations',
+                                verbose_name=_("پروژه"))
+    subproject = models.ForeignKey('core.SubProject', on_delete=models.CASCADE, null=True, blank=True,
+                                   related_name='budget_allocations', verbose_name=_("زیرپروژه"))
+    allocated_amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ تخصیص"))
+    remaining_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0,
+                                           verbose_name=_("باقی‌مانده تخصیص"))
+    allocation_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ تخصیص"))
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
+                                   related_name='project_budget_allocations_created', verbose_name=_("ایجادکننده"))
+    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+
+    def clean(self):
+        # چک کردن بودجه باقی‌مانده BudgetPeriod
+        budget_period = self.budget_allocation.budget_period  # فرض می‌کنیم BudgetAllocation یه FK به BudgetPeriod داره
+        remaining = budget_period.get_remaining_amount()
+        locked_amount = budget_period.get_locked_amount()
+
+        if self.allocated_amount > remaining:
+            raise ValidationError(_("مبلغ تخصیص بیشتر از بودجه باقی‌مانده است"))
+        if remaining - self.allocated_amount < locked_amount:
+            raise ValidationError(_("تخصیص این مبلغ باعث نقض مقدار قفل‌شده بودجه می‌شود"))
+
+    def save(self, *args, **kwargs):
+        self.clean()  # چک کردن قبل از ذخیره
+        if not self.pk:  # فقط برای ایجاد جدید
+            self.remaining_amount = self.allocated_amount
+        # اعتبارسنجی بودجه شعبه
+        if not self.pk:
+            if self.allocated_amount > self.budget_allocation.remaining_amount:
+                raise ValueError("مبلغ تخصیص بیشتر از باقی‌مانده بودجه شعبه است")
+            self.remaining_amount = self.allocated_amount
+        # اعتبارسنجی پروژه/زیرپروژه
+        if self.subproject and self.subproject.project != self.project:
+            raise ValueError("زیرپروژه باید به پروژه انتخاب‌شده تعلق داشته باشد")
+        super().save(*args, **kwargs)
+        # بعد از ذخیره، وضعیت BudgetPeriod رو چک کن
+        self.budget_allocation.budget_period.check_budget_status()
+        # آپدیت باقی‌مانده BudgetAllocation
+        ba = self.budget_allocation
+        ba.remaining_amount = ba.get_remaining_amount()
+        ba.save(update_fields=['remaining_amount'])
+
+
+    def __str__(self):
+        target = self.subproject.name if self.subproject else self.project.name
+        return f"{target} - {self.allocated_amount:,} ({self.allocation_date})"
+
+    class Meta:
+        verbose_name = _("تخصیص بودجه پروژه")
+        verbose_name_plural = _("تخصیص‌های بودجه پروژه")
+        default_permissions = ()
+        permissions = [
+            ('ProjectBudgetAllocation_add', _('افزودن تخصیص بودجه پروژه')),
+            ('ProjectBudgetAllocation_view', _('نمایش تخصیص بودجه پروژه')),
+            ('ProjectBudgetAllocation_update', _('بروزرسانی تخصیص بودجه پروژه')),
+            ('ProjectBudgetAllocation_delete', _('حذف تخصیص بودجه پروژه')),
+            ('ProjectBudgetAllocation_Head_Office', 'تخصیص بودجه مجموعه پروژه(دفتر مرکزی)🏠'),
+            ('ProjectBudgetAllocation_Branch', 'تخصیص بودجه مجموعه پروژه(شعبه)🏠'),
         ]

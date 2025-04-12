@@ -1,29 +1,22 @@
 import json
 import logging
 from decimal import Decimal
-
-from django.utils.encoding import force_str
-from django.core.files.storage import default_storage
-
-from tankhah.models import Tankhah, Factor, FactorItem, StageApprover, TankhahDocument
-
+from django.shortcuts import render, redirect
+from budgets.budget_utils import get_project_remaining_budget, get_organization_budget, get_project_used_budget
+from tankhah.models import Tankhah,  StageApprover
 logger = logging.getLogger(__name__)
-
-# Tankhah/views.py
-
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-
 from core.PermissionBase import  PermissionBaseView
 from django.db.models import Q, Sum, F, Count
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.views.generic import TemplateView
 
-from .forms import OrganizationForm, ProjectForm, PostForm, UserPostForm, PostHistoryForm, WorkflowStageForm, \
+from core.forms import OrganizationForm, ProjectForm, PostForm, UserPostForm, PostHistoryForm, WorkflowStageForm, \
     SubProjectForm
-from .models import Organization, Project, Post, UserPost, PostHistory, WorkflowStage, SubProject
+from core.models import  Project, Post, UserPost, PostHistory, WorkflowStage, SubProject
 
 #######################################################################################
 # داشبورد آماری تنخواه گردان
@@ -108,6 +101,23 @@ class DashboardView_flows(LoginRequiredMixin, TemplateView):
         user_posts = user.userpost_set.all()
         user_orgs = [up.post.organization for up in user_posts] if user_posts else []
         is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
+        from budgets.models import BudgetPeriod
+        from tankhah.models import Notification
+        budget_periods = BudgetPeriod.objects.filter(organization=user.organization, is_active=True)
+        notifications = Notification.objects.filter(recipient=user, is_read=False)
+        budget_statuses = []
+        for period in budget_periods:
+            status, message = period.check_budget_status()
+            budget_statuses.append({
+                'name': period.name,
+                'remaining': period.get_remaining_amount(),
+                'total': period.total_amount,
+                'status': status,
+                'message': message,
+            })
+
+        context['budget_statuses'] = budget_statuses
+        context['notifications'] = notifications
 
         # Filter Tankhah objects based on user permissions
         Tankhahs = Tankhah.objects.all()
@@ -202,9 +212,6 @@ from django.db.models import Q
 from budgets.budget_calculations import get_budget_details
 from core.models import Organization
 from django.views.generic import ListView
-from django.http import HttpResponse
-from django.template import loader
-
 
 class OrganizationListView(PermissionBaseView, ListView):
     model = Organization
@@ -253,55 +260,6 @@ class OrganizationListView(PermissionBaseView, ListView):
         context['is_active'] = self.request.GET.get('is_active', '')
 
         logger.info(f"Final context organizations count: {len(context['organizations'])}")
-        return context
-class OrganizationListView1(PermissionBaseView, ListView):
-    model = Organization
-    template_name = 'core/organization_list.html'
-    context_object_name = 'organizations'
-    paginate_by = 10
-    extra_context = {'title': _('لیست سازمان‌ها')}
-    permission_codename = 'core.Organization_view'
-    check_organization = True
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        query = self.request.GET.get('q', '')
-        if query:
-            queryset = queryset.filter(
-                Q(code__icontains=query) |
-                Q(name__icontains=query) |
-                Q(description__icontains=query)
-            )
-        logger.debug(f"get_queryset: query={query}, count={queryset.count()}")
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        queryset = self.get_queryset()
-
-        # اعمال فیلترهای درخواست کاربر
-        filters = {}
-        if 'date_from' in self.request.GET:
-            filters['date_from'] = self.request.GET['date_from']
-        if 'date_to' in self.request.GET:
-            filters['date_to'] = self.request.GET['date_to']
-        if 'is_active' in self.request.GET:
-            filters['is_active'] = self.request.GET.get('is_active') == 'true'
-
-        logger.debug(f"Filters applied: {filters}")
-
-        # اضافه کردن جزئیات بودجه به هر سازمان
-        for org in queryset:
-            budget_details = get_budget_details(entity=org, filters=filters)
-            org.budget_details = budget_details
-            logger.info(f"Organization {org.name}: budget_details={budget_details}")
-
-        context['query'] = self.request.GET.get('q', '')
-        context['date_from'] = self.request.GET.get('date_from', '')
-        context['date_to'] = self.request.GET.get('date_to', '')
-        context['is_active'] = self.request.GET.get('is_active', '')
-
-        logger.info(f"Final context: {context}")
         return context
 
 class OrganizationDetailView(PermissionBaseView, DetailView):
@@ -361,8 +319,59 @@ class OrganizationDeleteView(PermissionBaseView, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('سازمان با موفقیت حذف شد.'))
         return super().delete(request, *args, **kwargs)
-# پروژه‌ها
+# پروژه‌هاچ
 class ProjectListView(PermissionBaseView, ListView):
+    model = Project
+    template_name = 'core/project_list.html' # Path to your template
+    context_object_name = 'projects' # This name is overridden by paginate_by context
+    paginate_by = 12 # Increase items per page for card view? Adjust as needed.
+    # extra_context = {'title': _('لیست پروژه‌ها')} # Set in get_context_data instead
+    permission_codename = 'core.Project_view' # Make sure this matches your actual permission
+    check_organization = True # فعال کردن چک سازمان
+
+    def get_queryset(self):
+        queryset = super().get_queryset().prefetch_related('allocations', 'subprojects', 'tankhah_set')
+
+        # --- Annotate with the total budget allocated to this project ---
+        # Sum the 'allocated_amount' from related BudgetAllocation objects
+        # Ensure 'allocations' is the correct related name/field and
+        # 'allocated_amount' exists on BudgetAllocation model.
+        queryset = queryset.annotate(
+           project_budget_allocated=Sum('allocations__allocated_amount', distinct=True)
+        )
+        queryset = queryset.annotate(
+            total_budget=Sum('allocations__allocated_amount'),
+            subproject_budget=Sum('subprojects__allocated_budget'),
+            tankhah_total=Sum('tankhah_set__amount', filter=Q(tankhah_set__status='PAID'))
+        )
+        # # --- Apply Filters ---
+        # query = self.request.GET.get('q')
+        # status = self.request.GET.get('status')
+        #
+        # if query:
+        #     queryset = queryset.filter(
+        #         Q(name__icontains=query) |
+        #         Q(code__icontains=query) |
+        #         Q(description__icontains=query) |
+        #         Q(subprojects__name__icontains=query) # Search in subproject names
+        #     ).distinct() # Use distinct because of potential duplicates from subproject join
+        #
+        # if status == 'active':
+        #     queryset = queryset.filter(is_active=True)
+        # elif status == 'inactive':
+        #     queryset = queryset.filter(is_active=False)
+
+        return queryset.order_by('-start_date', 'name') # Order by date then name
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('مدیریت پروژه‌ها')
+        context['query'] = self.request.GET.get('q', '')
+        context['status'] = self.request.GET.get('status', '') # Pass status for filter form
+        # Note: 'projects' context variable is automatically set to page_obj.object_list by ListView
+        return context
+
+class __ProjectListView(PermissionBaseView, ListView):
     model = Project
     template_name = 'core/project_list.html'
     context_object_name = 'projects'
@@ -420,14 +429,14 @@ class ProjectCreateView(PermissionBaseView, CreateView):
     template_name = 'core/project_form.html'
     success_url = reverse_lazy('project_list')
     permission_codename = 'core.Project_add'
-    check_organization = True  # فعال کردن چک سازمان
+    check_organization = True
 
     def form_valid(self, form):
         messages.success(self.request, _('پروژه با موفقیت ایجاد شد.'))
         return super().form_valid(form)
 
     def form_invalid(self, form):
-        print("Form errors:", form.errors)  # برای دیباگ
+        logger.error(f"Form errors: {form.errors.as_json()}")  # لاگ کردن خطاها
         messages.error(self.request, _('خطایی در ثبت پروژه رخ داد. لطفاً اطلاعات را بررسی کنید.'))
         return super().form_invalid(form)
 
@@ -690,6 +699,7 @@ class SubProjectListView(PermissionBaseView, ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         query = self.request.GET.get('q')
+
         if query:
             queryset = queryset.filter(
                 Q(name__icontains=query) |
@@ -715,8 +725,17 @@ class SubProjectCreateView(PermissionBaseView, CreateView):
         initial = super().get_initial()
         project_id = self.request.GET.get('project')
         if project_id:
-            initial['project'] = project_id
+            project = Project.objects.get(id=project_id)
+            initial['project'] = project
+            initial['allocated_budget'] = get_project_remaining_budget(project) / 2  # پیشنهاد نصف بودجه
         return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('ایجاد ساب‌پروژه جدید')
+        if 'project' in self.get_initial():
+            context['project_remaining_budget'] = get_project_remaining_budget(self.get_initial()['project'])
+        return context
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -729,6 +748,12 @@ class SubProjectUpdateView(PermissionBaseView, UpdateView):
     template_name = 'core/subproject/subproject_form.html'
     success_url = reverse_lazy('subproject_list')
     permission_required = 'core.SubProject_update'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('ویرایش ساب‌پروژه') + f" - {self.object.name}"
+        context['project_remaining_budget'] = self.object.project.get_remaining_budget()
+        return context
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -746,3 +771,63 @@ class SubProjectDeleteView(PermissionBaseView, DeleteView):
         messages.success(request, _('ساب‌پروژه با موفقیت حذف شد.'))
         return response
 
+# تخصیص بودجه به پروژه و زیر پروژه
+# budgets/views.py
+
+class BudgetAllocationView(PermissionBaseView, View):
+    template_name = 'budgets/budget/budget_allocation.html'
+    permission_required = (
+        'core.Project_add',
+        'core.Project_Budget_allocation_Head_Office',
+        'core.Project_Budget_allocation_Branch',
+        'core.SubProject_Budget_allocation_Head_Office',
+        'core.SubProject_Budget_allocation_Branch'
+    )
+
+    def get(self, request, *args, **kwargs):
+        projects = Project.objects.all()
+        subprojects = SubProject.objects.all()
+        organizations = Organization.objects.all()
+        context = {
+            'projects': projects,
+            'subprojects': subprojects,
+            'organizations': organizations,
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        entity_type = request.POST.get('entity_type')
+        budget_amount = Decimal(request.POST.get('budget_amount'))
+        organization_id = request.POST.get('organization')
+
+        if not organization_id:
+            messages.error(request, _('لطفاً یک سازمان انتخاب کنید.'))
+            return redirect('budget_allocation')
+
+        organization = Organization.objects.get(id=organization_id)
+        org_budget = get_organization_budget(organization)
+
+        if entity_type == 'project':
+            project = Project.objects.get(id=request.POST.get('project'))
+            remaining_org_budget = org_budget - get_project_used_budget(project)
+            if budget_amount > remaining_org_budget:
+                messages.error(request, _('بودجه بیشتر از باقیمانده سازمان است.'))
+                return redirect('budget_allocation')
+            # اضافه کردن بودجه به allocations پروژه
+            allocation = BudgetAllocation.objects.create(
+                organization=organization,
+                allocated_amount=budget_amount
+            )
+            project.allocations.add(allocation)
+            messages.success(request, _('بودجه به پروژه تخصیص یافت.'))
+
+        elif entity_type == 'subproject':
+            subproject = SubProject.objects.get(id=request.POST.get('subproject'))
+            if budget_amount > get_project_remaining_budget(subproject.project):
+                messages.error(request, _('بودجه بیشتر از باقیمانده پروژه است.'))
+                return redirect('budget_allocation')
+            subproject.allocated_budget += budget_amount
+            subproject.save()
+            messages.success(request, _('بودجه به ساب‌پروژه تخصیص یافت.'))
+
+        return redirect('project_list')

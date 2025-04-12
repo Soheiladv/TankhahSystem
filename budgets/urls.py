@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from .view_ProjectBudgetAllocation import ProjectBudgetAllocationListView, ProjectBudgetAllocationDetailView, \
+    ProjectBudgetAllocationEditView, ProjectBudgetAllocationDeleteView, ProjectBudgetAllocationCreateView
 from .views import BudgetPeriodListView, BudgetPeriodDetailView, BudgetPeriodCreateView, BudgetPeriodUpdateView, \
     BudgetPeriodDeleteView, BudgetPeriodDeleteView, BudgetAllocationDetailView, BudgetAllocationCreateView, \
     BudgetAllocationListView, BudgetAllocationDetailView, BudgetAllocationCreateView, \
@@ -7,10 +9,10 @@ from .views import BudgetPeriodListView, BudgetPeriodDetailView, BudgetPeriodCre
     PaymentOrderListView, PaymentOrderDetailView, PaymentOrderCreateView, PaymentOrderUpdateView, \
     PaymentOrderDeleteView, PayeeListView, PayeeDetailView, PayeeCreateView, PayeeUpdateView, PayeeDeleteView, \
     TransactionTypeListView, TransactionTypeDetailView, TransactionTypeCreateView, TransactionTypeUpdateView, \
-    TransactionTypeDeleteView ,OrganizationBudgetAllocationListView
+    TransactionTypeDeleteView, OrganizationBudgetAllocationListView
 
 urlpatterns = [
-    path('budgetperiods/', BudgetPeriodListView.as_view(), name='budgetperiod_list'),
+    path('budgetperiods/', BudgetPeriodListView.as_view(), name='budgetperiod_list'),    # مسیر لیست دوره‌های بودجه (برای دکمه انصراف)
     path('budgetperiods/<int:pk>/', BudgetPeriodDetailView.as_view(), name='budgetperiod_detail'),
     path('budgetperiods/create/', BudgetPeriodCreateView.as_view(), name='budgetperiod_create'),
     path('budgetperiods/<int:pk>/update/', BudgetPeriodUpdateView.as_view(), name='budgetperiod_update'),
@@ -51,3 +53,33 @@ urlpatterns += [
     path('transactiontypes/<int:pk>/update/', TransactionTypeUpdateView.as_view(), name='transactiontype_update'),
     path('transactiontypes/<int:pk>/delete/', TransactionTypeDeleteView.as_view(), name='transactiontype_delete'),
 ] # تعریف پویا نوع تراکنش‌ها
+
+from core.views import BudgetAllocationView
+urlpatterns += [
+    path('budget_allocation_view/', BudgetAllocationView.as_view(),name='budget_allocation_view'),
+]
+
+urlpatterns += [
+    #صفحه، پروژه‌ها و زیرپروژه‌ها رو با بودجه تخصیص‌یافته، باقی‌مانده، و درصد نشون می‌ده.
+    # مسیر تخصیص بودجه به پروژه‌ها و زیرپروژه‌ها
+
+    path('organization/<int:organization_id>/project-budget-allocations/',
+         ProjectBudgetAllocationListView.as_view(),
+         name='project_budget_allocation_list'),
+
+    path('project-budget-allocation/<int:pk>/detail/',
+          ProjectBudgetAllocationDetailView.as_view(),
+         name='project_budget_allocation_detail'),
+
+    path('project-budget-allocation/<int:pk>/edit/',
+          ProjectBudgetAllocationEditView.as_view(),
+         name='project_budget_allocation_edit'),
+
+    path('project-budget-allocation/<int:pk>/delete/',
+          ProjectBudgetAllocationDeleteView.as_view(),
+         name='project_budget_allocation_delete'),
+
+    path('organization/<int:organization_id>/project-budget-allocation/',
+          ProjectBudgetAllocationCreateView.as_view(),
+         name='project_budget_allocation'),
+]

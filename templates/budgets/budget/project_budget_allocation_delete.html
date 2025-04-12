@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load i18n rcms_custom_filters static %}
+
+{% block title %}{% trans "حذف تخصیص بودجه" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-card { max-width: 500px; margin: 0 auto; }
+    .delete-card .card-header { background: linear-gradient(90deg, #dc3545, #a71d2a); }
+    .btn-danger { padding: 0.5rem 1.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card delete-card">
+        <div class="card-header text-white">
+            <h4 class="mb-0"><i class="fas fa-trash-alt me-2"></i>{% trans "حذف تخصیص بودجه" %}</h4>
+        </div>
+        <div class="card-body">
+            <p>{% trans "آیا مطمئن هستید که می‌خواهید این تخصیص را حذف کنید؟" %}</p>
+            <p><strong>{% trans "پروژه:" %}</strong> {{ allocation.project.name }}</p>
+            <p><strong>{% trans "مبلغ:" %}</strong> {{ allocation.allocated_amount|format_negative }} {% trans "ریال" %}</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="text-end">
+                    <button type="submit" class="btn btn-danger me-2">
+                        <i class="fas fa-check"></i> {% trans "بله، حذف کن" %}
+                    </button>
+                    <a href="{% url 'project_budget_allocation_list' allocation.budget_allocation.organization_id %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> {% trans "خیر، انصراف" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

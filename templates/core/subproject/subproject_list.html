@@ -25,6 +25,7 @@
                 <table class="table table-striped table-hover">
                     <thead class="bg-primary text-white">
                         <tr>
+                            <th>{% trans "ردیف" %}</th>
                             <th>{% trans "پروژه اصلی" %}</th>
                             <th>{% trans "نام ساب‌پروژه" %}</th>
                             <th>{% trans "توضیحات" %}</th>
@@ -35,6 +36,7 @@
                     <tbody>
                         {% for subproject in subprojects %}
                         <tr>
+                            <td>{{ forloop.counter }}</td>
                             <td>{{ subproject.project.name }}</td>
                             <td>{{ subproject.name }}</td>
                             <td>{{ subproject.description|default:'-'|truncatewords:10 }}</td>

@@ -2,9 +2,12 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum
+
+from core.models import SubProject
+from .budget_utils import get_remaining_amount
 from .models import (
     BudgetPeriod, BudgetAllocation, BudgetTransaction,
-    PaymentOrder, Payee, TransactionType
+    PaymentOrder, Payee, TransactionType, ProjectBudgetAllocation
 )
 
 # ادمین BudgetPeriod
@@ -16,10 +19,10 @@ class BudgetPeriodAdmin(admin.ModelAdmin):
     search_fields = ('name', 'organization__name', 'organization__code')
     date_hierarchy = 'start_date'
     ordering = ('-start_date',)
-    readonly_fields = ('get_remaining_amount',)
+    # readonly_fields = ( get_remaining_amount() ,)
     fieldsets = (
         (None, {
-            'fields': ('organization', 'name', 'total_amount', 'get_remaining_amount')
+            'fields': ('organization', 'name', 'total_amount' )
         }),
         (_('دوره زمانی'), {
             'fields': ('start_date', 'end_date')
@@ -172,3 +175,153 @@ class TransactionTypeAdmin(admin.ModelAdmin):
     def description_short(self, obj):
         return obj.description[:50] + '...' if len(obj.description) > 50 else obj.description
     description_short.short_description = _("توضیحات کوتاه")
+
+@admin.register(SubProject)
+class SubProjectAdmin(admin.ModelAdmin):
+    list_display = ('name', 'project', 'is_active')
+    list_filter = ('project', 'is_active')
+    search_fields = ('name', 'project__name')  # برای autocomplete لازم داریم
+    ordering = ('name',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('project')
+
+
+#------------from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
+from django.db.models import Sum
+from .models import ProjectBudgetAllocation, BudgetAllocation  # اضافه کردن BudgetAllocation
+from django import forms
+
+class ProjectBudgetAllocationAdminForm(forms.ModelForm):
+    class Meta:
+        model = ProjectBudgetAllocation
+        fields = '__all__'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        budget_allocation = cleaned_data.get('budget_allocation')
+        allocated_amount = cleaned_data.get('allocated_amount')
+        subproject = cleaned_data.get('subproject')
+        project = cleaned_data.get('project')
+        #
+        # if budget_allocation and allocated_amount:
+        #     remaining = budget_allocation.get_remaining_amount()
+        #     if allocated_amount > remaining:
+        #         raise forms.ValidationError(
+        #             _("مبلغ تخصیص (%(amount)s) بیشتر از باقی‌مانده بودجه شعبه (%(remaining)s) است") % {
+        #                 'amount': allocated_amount,
+        #                 'remaining': remaining
+        #             }
+        #         )
+
+        if subproject and subproject.project != project:
+            raise forms.ValidationError(_("زیرپروژه باید به پروژه انتخاب‌شده تعلق داشته باشد"))
+
+        return cleaned_data
+
+@admin.register(ProjectBudgetAllocation)
+class ProjectBudgetAllocationAdmin(admin.ModelAdmin):
+    form = ProjectBudgetAllocationAdminForm
+    list_display = (
+        'project_name',
+        'subproject_name',
+        'allocated_amount_formatted',
+        'remaining_amount_formatted',
+        'budget_period_name',
+        'allocation_date',
+        'created_by',
+    )
+    list_filter = (
+        'budget_allocation__budget_period',
+        'project',
+        'subproject',
+        'allocation_date',
+        ('created_by', admin.RelatedOnlyFieldListFilter),
+    )
+    search_fields = (
+        'project__name',
+        'subproject__name',
+        'budget_allocation__budget_period__name',
+        'description',
+        'created_by__username',
+    )
+    list_per_page = 20
+    ordering = ('-allocation_date',)
+    autocomplete_fields = ('project', 'subproject', 'budget_allocation', 'created_by')
+    readonly_fields = ('remaining_amount',)
+    fieldsets = (
+        (None, {
+            'fields': (
+                'budget_allocation',
+                'project',
+                'subproject',
+                'allocated_amount',
+                'remaining_amount',
+                'allocation_date',
+                'created_by',
+                'description',
+            )
+        }),
+    )
+
+    # متدهای سفارشی برای نمایش
+    def project_name(self, obj):
+        return obj.project.name
+    project_name.short_description = _("پروژه")
+    project_name.admin_order_field = 'project__name'
+
+    def subproject_name(self, obj):
+        return obj.subproject.name if obj.subproject else "-"
+    subproject_name.short_description = _("زیرپروژه")
+
+    def allocated_amount_formatted(self, obj):
+        return f"{obj.allocated_amount:,.0f} {_('ریال')}"
+    allocated_amount_formatted.short_description = _("مبلغ تخصیص")
+
+    def remaining_amount_formatted(self, obj):
+        return f"{obj.remaining_amount:,.0f} {_('ریال')}"
+    remaining_amount_formatted.short_description = _("باقی‌مانده")
+
+    def budget_period_name(self, obj):
+        return obj.budget_allocation.budget_period.name
+    budget_period_name.short_description = _("دوره بودجه")
+    budget_period_name.admin_order_field = 'budget_allocation__budget_period__name'
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            'budget_allocation__budget_period',
+            'project',
+            'subproject',
+            'created_by'
+        )
+
+    @admin.action(description=_("محاسبه مجدد باقی‌مانده‌ها"))
+    def recalculate_remaining(self, request, queryset):
+        for allocation in queryset:
+            allocation.remaining_amount = allocation.allocated_amount - (
+                ProjectBudgetAllocation.objects.filter(budget_allocation=allocation.budget_allocation)
+                .exclude(id=allocation.id)
+                .aggregate(total=Sum('allocated_amount'))['total'] or 0
+            )
+            allocation.save()
+        self.message_user(request, _("باقی‌مانده‌ها با موفقیت محاسبه شدند"))
+
+    actions = [recalculate_remaining]
+
+    def has_add_permission(self, request):
+        return request.user.has_perm('budgets.ProjectBudgetAllocation_add')
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.has_perm('budgets.ProjectBudgetAllocation_delete')
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.has_perm('budgets.ProjectBudgetAllocation_view')
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj:
+            form.base_fields['budget_allocation'].queryset = BudgetAllocation.objects.filter(
+                budget_period__organization=obj.budget_allocation.organization
+            )
+        return form

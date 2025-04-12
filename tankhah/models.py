@@ -10,7 +10,7 @@ from django.views.generic import TemplateView
 
 import budgets
 from accounts.models import CustomUser
-from budgets.models import BudgetAllocation, TransactionType
+from budgets.models import BudgetAllocation, TransactionType, BudgetTransaction
 from core.models import Organization, Post, UserPost, Project, WorkflowStage, PostAction
 from core.models import Post, SubProject  # بررسی کنید که مسیر درست است
 from core.models import WorkflowStage  # اگر در همان اپلیکیشن است
@@ -71,7 +71,8 @@ class Tankhah(models.Model):
     due_date = models.DateTimeField(null=True, blank=True, verbose_name=_('مهلت زمانی'))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد")) # اجبار در توقف
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_('مجموعه/شعبه'))
-    project = models.ForeignKey('core.Project', on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('پروژه'))
+    # project = models.ForeignKey('core.Project', on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('پروژه'))
+    project = models.ForeignKey('core.Project', on_delete=models.SET_NULL, null=True, blank=True, related_name='tankhah_set', verbose_name=_('پروژه'))
     subproject = models.ForeignKey(SubProject, on_delete=models.CASCADE, null=True, blank=True, verbose_name=_("زیر مجموعه پروژه"))
     letter_number = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("شماره نامه"))
     created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='tankhah_created', verbose_name=_("ایجادکننده"))
@@ -97,6 +98,7 @@ class Tankhah(models.Model):
                                           verbose_name=_("تخصیص بودجه"))
     is_emergency = models.BooleanField(default=False, verbose_name=_("اضطراری"))
     """توضیح: لینک به BudgetAllocation برای مصرف بودجه و اضافه شدن is_emergency."""
+    request_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ درخواست"))
 
     def generate_number(self):
         """تولید شماره یکتا برای تنخواه با تاریخ شمسی"""
@@ -137,11 +139,42 @@ class Tankhah(models.Model):
             # اگه وضعیت COMPLETED یا PAID باشه، قفل کن
         if self.status in ['COMPLETED', 'PAID'] and not self.is_locked:
             self.is_locked = True
+        from budgets.models import ProjectBudgetAllocation
 
-            self.remaining_budget = self.budget
-        if self.amount > self.budget:
-            raise ValueError("مبلغ تنخواه نمی‌تواند بیشتر از بودجه تخصیصی باشد")
+        if not self.pk:  # فقط موقع ایجاد
+            # پیدا کردن تخصیص بودجه پروژه/زیرپروژه
+            if self.subproject:
+                allocation = ProjectBudgetAllocation.objects.filter(
+                    budget_allocation=self.budget_allocation,
+                    subproject=self.subproject
+                ).first()
+                budget = allocation.remaining_amount if allocation else self.subproject.get_remaining_budget()
+            elif self.project:
+                allocation = ProjectBudgetAllocation.objects.filter(
+                    budget_allocation=self.budget_allocation,
+                    project=self.project,
+                    subproject__isnull=True
+                ).first()
+                budget = allocation.remaining_amount if allocation else self.project.get_remaining_budget()
+            else:
+                raise ValueError("تنخواه باید به پروژه یا ساب‌پروژه وصل باشد.")
 
+            if self.amount > budget:
+                raise ValueError(f"مبلغ تنخواه ({self.amount}) بیشتر از بودجه باقیمانده ({budget}) است.")
+
+            # به‌روزرسانی بودجه تخصیص پروژه
+            if allocation:
+                allocation.remaining_amount -= self.amount
+                allocation.save()
+                # ثبت تراکنش بودجه
+                BudgetTransaction.objects.create(
+                    allocation=self.budget_allocation,
+                    transaction_type='CONSUMPTION',
+                    amount=self.amount,
+                    related_tankhah=self,
+                    created_by=self.created_by,
+                    description=f"مصرف بودجه توسط تنخواه {self.number}"
+                )
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -43,7 +43,7 @@ class ProjectAdmin(BaseAdmin):
     filter_horizontal = ('organizations',)
     ordering = ('-start_date',)
     fieldsets = (
-        (None, {'fields': ('code','allocations', 'name', 'organizations', 'start_date', 'end_date')}),
+        (None, {'fields': ('code',  'name', 'organizations', 'start_date', 'end_date')}),
         (_('توضیحات'), {'fields': ('description',), 'classes': ('collapse',)}),
     )
 

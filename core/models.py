@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from accounts.models import CustomUser
+from budgets.budget_utils import  get_project_total_budget, get_project_remaining_budget, get_subproject_remaining_budget
 
 
 class Organization(models.Model):
@@ -42,51 +43,59 @@ class Organization(models.Model):
             models.Index(fields=['code', 'org_type']),
         ]
 class Project(models.Model):
-    """مدل پروژه برای مدیریت پروژه‌های چندمجتمعی"""
-    priority_CHOICES = (
-        ('LOW', _('کم')), ('MEDIUM', _('متوسط')), ('HIGH', _('زیاد')),
-    )
     name = models.CharField(max_length=100, verbose_name=_("نام پروژه"))
     code = models.CharField(max_length=80, unique=True, verbose_name=_("کد پروژه"))
     organizations = models.ManyToManyField(Organization, limit_choices_to={'org_type': 'COMPLEX'}, verbose_name=_("مجتمع‌های مرتبط"))
-    allocations = models.ManyToManyField('budgets.BudgetAllocation', blank=True, verbose_name=_("تخصیص‌های بودجه مرتبط"))
+    # allocations = models.ManyToManyField('budgets.BudgetAllocation', blank=True, verbose_name=_("تخصیص‌های بودجه مرتبط"))
     start_date = models.DateField(verbose_name=_("تاریخ شروع"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
-    budget = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True, verbose_name=_("بودجه (ریال)"))
     is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
-    priority = models.CharField(max_length=10, choices=priority_CHOICES, null=True, blank=True, verbose_name=_("اولویت"))
+
 
     def get_total_budget(self):
-        """محاسبه بودجه کل پروژه از تخصیص‌ها"""
-        return self.allocations.aggregate(total=Sum('allocated_amount'))['total'] or 0
+        return get_project_total_budget(self)
+
+    def get_remaining_budget(self):
+        return get_project_remaining_budget(self)
+
 
     def __str__(self):
         status = "فعال" if self.is_active else "غیرفعال"
         return f"{self.code} - {self.name} ({status})"
 
-    def save(self, *args, **kwargs):
-        if self.end_date and self.end_date < self.start_date:
-            raise ValueError("تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد")
-        super().save(*args, **kwargs)
-
     class Meta:
         verbose_name = _("پروژه")
-        verbose_name_plural = _("پروژه‌ها")
+        verbose_name_plural = _("پروژه")
         default_permissions = ()
         permissions = [
-            ('Project_add', 'افزودن پروژه برای مدیریت پروژه‌های چندمجتمعی'),
-            ('Project_update', 'بروزرسانی پروژه برای مدیریت پروژه‌های چندمجتمعی'),
-            ('Project_view', 'نمایش پروژه برای مدیریت پروژه‌های چندمجتمعی'),
-            ('Project_delete', 'حــذف پروژه برای مدیریت پروژه‌های چندمجتمعی'),
+            ('Project_add', 'افزودن  مجموعه پروژه'),
+            ('Project_update', 'ویرایش مجموعه پروژه'),
+            ('Project_view', 'نمایش مجموعه پروژه'),
+            ('Project_delete', 'حــذف مجموعه پروژه'),
+            # ('Project_Budget_allocation_Head_Office', 'تخصیص بودجه مجموعه پروژه(دفتر مرکزی)'),
+            # ('Project_Budget_allocation_Branch', 'تخصیص بودجه مجموعه پروژه(شعبه)'),
         ]
-
 
 class SubProject(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='subprojects', verbose_name=_("پروژه اصلی"))
     name = models.CharField(max_length=200, verbose_name=_("نام ساب‌پروژه"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
+    # allocated_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("بودجه تخصیص‌یافته"))
+    allocations = models.ManyToManyField('budgets.ProjectBudgetAllocation',
+                                        related_name='budget_allocations_set' ,blank=True, verbose_name=_("تخصیص‌های بودجه مرتبط"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+
+    def get_remaining_budget(self):
+        return get_subproject_remaining_budget(self)
+
+    def save(self, *args, **kwargs):
+        if not self.pk and self.allocations > self.project.get_remaining_budget():
+            raise ValueError("بودجه ساب‌پروژه بیشتر از بودجه باقیمانده پروژه است.")
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} ({self.project.name})"
 
     class Meta:
         verbose_name = _("ساب‌پروژه")
@@ -97,9 +106,10 @@ class SubProject(models.Model):
             ('SubProject_update','ویرایش زیر مجموعه پروژه'),
             ('SubProject_view','نمایش زیر مجموعه پروژه'),
             ('SubProject_delete','حــذف زیر مجموعه پروژه'),
+            ('SubProject_Head_Office','تخصیص زیر مجموعه پروژه(دفتر مرکزی)🏠'),
+            ('SubProject_Branch','تخصیص  زیر مجموعه پروژه(شعبه)🏠'),
         ]
-    def __str__(self):
-        return f"{self.project.name} - {self.name}"
+
 class Post(models.Model):
     """مدل پست سازمانی برای تعریف سلسله مراتب"""
     BRANCH_CHOICES = (

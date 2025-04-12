@@ -12,8 +12,9 @@ from django.views.generic.base import TemplateView
 from core.PermissionBase import PermissionBaseView
 from core.models import WorkflowStage, Project, Organization
 from tankhah.models import Tankhah, ApprovalLog, Notification, Factor
-
+""" داشبورد اصلی سیستم"""
 class DashboardView( PermissionBaseView , TemplateView):
+    """ داشبورد اصلی سیستم"""
     template_name = 'core/dashboard.html'
     permission_codename = 'core.Dashboard_view'
     # check_organization = True  # فعال کردن چک سازمان (اگه نیاز داری فعال کن)
@@ -34,6 +35,11 @@ class DashboardView( PermissionBaseView , TemplateView):
                  'icon': 'fas fa-project-diagram'},
                 {'name': _('فهرست بودجه شعبات'), 'url': 'budgetallocation_list', 'permission': 'budgets.budgetallocation_view',
                  'icon': 'fas fa-plus'},
+
+                {'name': _('تخصیص بودجه به پروژه ها و زیرپروژه'), 'url': 'budget_allocation_view',
+                 'permission': 'core.Project_Budget_allocation_Head_Office',
+                 'icon': 'fas fa-plus'},
+
                 # {'name': _('تخصیص بودجه به شعبات'), 'url': 'budgetallocation_create',
                 #  'permission': 'budgets.budgetallocation_add',
                 #  'icon': 'fas fa-plus'},

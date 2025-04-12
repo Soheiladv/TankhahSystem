@@ -177,7 +177,23 @@
                 </div>
             </div>
         </div>
+<h2>وضعیت بودجه‌ها</h2>
+    {% for budget in budget_statuses %}
+        <div class="card {% if budget.status == 'locked' %}border-danger{% elif budget.status == 'warning' %}border-warning{% endif %} mb-3">
+            <div class="card-body">
+                <h5>{{ budget.name }}</h5>
+                <p>باقی‌مانده: {{ budget.remaining|floatformat:0 }} / {{ budget.total|floatformat:0 }} ریال</p>
+                <p>وضعیت: {{ budget.message }}</p>
+            </div>
+        </div>
+    {% endfor %}
 
+    <h2>اعلان‌ها</h2>
+    {% for notification in notifications %}
+        <div class="alert alert-{% if notification.level == 'WARNING' %}warning{% elif notification.level == 'ERROR' %}danger{% else %}info{% endif %}">
+            {{ notification.message }}
+        </div>
+    {% endfor %}
         <!-- لینک‌های داشبورد (زیبا و شیک) -->
         <div class="row g-4 mb-4">
             <div class="col-12">

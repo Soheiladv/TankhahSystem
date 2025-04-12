@@ -1,18 +1,26 @@
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q, Sum
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 # Create your views here.
 from django.contrib import messages
-from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 
 from core.PermissionBase import PermissionBaseView
-from core.models import Organization
-from .models import BudgetPeriod, BudgetAllocation, BudgetTransaction, PaymentOrder, Payee, TransactionType
-from .forms import (BudgetPeriodForm, BudgetAllocationForm, BudgetTransactionForm,
-                   PaymentOrderForm, PayeeForm, TransactionTypeForm)
+from core.models import Organization, Project
+from .budget_calculations import get_budget_details, calculate_allocation_percentages
+from .models import BudgetTransaction, PaymentOrder, Payee, TransactionType, BudgetAllocation, ProjectBudgetAllocation
+from .forms import (BudgetPeriodForm, BudgetAllocationForm,
+                    PaymentOrderForm, PayeeForm, TransactionTypeForm, ProjectBudgetAllocationForm)
+from budgets.models import   BudgetPeriod
+from django.utils.translation import gettext_lazy as _
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 # BudgetPeriod CRUD
 class BudgetPeriodListView(PermissionBaseView, ListView):
@@ -105,20 +113,6 @@ class BudgetPeriodDeleteView(PermissionBaseView, DeleteView):
         return super().post(request, *args, **kwargs)
 
  # BudgetAllocation CRUD
-from django.db.models import Q
-from budgets.budget_calculations import get_budget_details, calculate_total_allocated, calculate_remaining_budget
-from budgets.models import BudgetAllocation, BudgetPeriod
-from core.views import PermissionBaseView
-from django.views.generic import ListView
-
-from django.db.models import Q
-from budgets.budget_calculations import get_budget_details, calculate_allocation_percentages
-from budgets.models import BudgetAllocation
-from core.views import PermissionBaseView
-from django.views.generic import ListView
-import logging
-
-logger = logging.getLogger(__name__)
 
 class BudgetAllocationListView(PermissionBaseView, ListView):
     model = BudgetAllocation
@@ -144,6 +138,8 @@ class BudgetAllocationListView(PermissionBaseView, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        allocations = self.get_queryset()
+        total_budget = allocations.aggregate(total=Sum('allocated_amount'))['total'] or 0
         queryset = self.get_queryset()
 
         # فیلترهای کاربر
@@ -155,13 +151,15 @@ class BudgetAllocationListView(PermissionBaseView, ListView):
 
         # جزئیات بودجه کل
         budget_details = get_budget_details(filters=filters)
-        context['total_budget'] = budget_details['total_budget']
-        context['total_allocated'] = budget_details['total_allocated']
-        context['total_remaining'] = budget_details['remaining_budget']
+        context['total_budget'] = total_budget#budget_details['total_budget']
+        context['total_allocated'] =total_budget# budget_details['total_allocated']
+        # context['total_remaining'] = budget_details['remaining_budget']
+        context['total_remaining'] = sum(ba.get_remaining_amount() for ba in allocations)
 
         # محاسبه درصد تخصیص‌ها
-        budget_allocations = context['budget_allocations']
-        context['total_percentage'] = calculate_allocation_percentages(budget_allocations)
+        # budget_allocations = context['budget_allocations']
+        # context['total_percentage'] = calculate_allocation_percentages(budget_allocations)
+        context['total_percentage'] = (total_budget / total_budget * 100) if total_budget else 0
 
         # اختلاف‌ها
         context['allocated_diff'] = context['total_budget'] - context['total_allocated']
@@ -338,7 +336,6 @@ class OrganizationBudgetAllocationListView(PermissionBaseView, ListView):
         context['total_allocated'] = self.get_queryset().aggregate(total=Sum('allocated_amount'))['total'] or 0
         return context
 
-
 # BudgetTransaction CRUD
 class BudgetTransactionListView(PermissionBaseView, ListView):
     model = BudgetTransaction
@@ -477,8 +474,6 @@ class PayeeDetailView(PermissionBaseView, DetailView):
     template_name = 'budgets/payee/payee_detail.html'
     permission_codenames = ['budgets.Payee_view']
     context_object_name = 'payee'
-
-
 class PayeeCreateView(PermissionBaseView, CreateView):
     model = Payee
     form_class = PayeeForm
@@ -491,7 +486,6 @@ class PayeeCreateView(PermissionBaseView, CreateView):
         messages.success(self.request, f'دریافت‌کننده {form.instance.name} با موفقیت ایجاد شد.')
         return super().form_valid(form)
 
-
 class PayeeUpdateView(PermissionBaseView, UpdateView):
     model = Payee
     form_class = PayeeForm
@@ -503,7 +497,6 @@ class PayeeUpdateView(PermissionBaseView, UpdateView):
         messages.success(self.request, f'دریافت‌کننده {form.instance.name} با موفقیت به‌روزرسانی شد.')
         return super().form_valid(form)
 
-
 class PayeeDeleteView(PermissionBaseView, DeleteView):
     model = Payee
     template_name = 'budgets/payee/payee_confirm_delete.html'
@@ -514,7 +507,6 @@ class PayeeDeleteView(PermissionBaseView, DeleteView):
         payee = self.get_object()
         messages.success(request, f'دریافت‌کننده {payee.name} با موفقیت حذف شد.')
         return super().post(request, *args, **kwargs)
-
 
 # TransactionType CRUD
 class TransactionTypeListView(PermissionBaseView, ListView):
@@ -542,13 +534,11 @@ class TransactionTypeListView(PermissionBaseView, ListView):
         context['requires_extra_approval'] = self.request.GET.get('requires_extra_approval', '')
         return context
 
-
 class TransactionTypeDetailView(PermissionBaseView, DetailView):
     model = TransactionType
     template_name = 'budgets/transactiontype/transactiontype_detail.html'
     permission_codenames = ['budgets.TransactionType_view']
     context_object_name = 'transaction_type'
-
 
 class TransactionTypeCreateView(PermissionBaseView, CreateView):
     model = TransactionType
@@ -562,7 +552,6 @@ class TransactionTypeCreateView(PermissionBaseView, CreateView):
         messages.success(self.request, f'نوع تراکنش {form.instance.name} با موفقیت ایجاد شد.')
         return super().form_valid(form)
 
-
 class TransactionTypeUpdateView(PermissionBaseView, UpdateView):
     model = TransactionType
     form_class = TransactionTypeForm
@@ -574,7 +563,6 @@ class TransactionTypeUpdateView(PermissionBaseView, UpdateView):
         messages.success(self.request, f'نوع تراکنش {form.instance.name} با موفقیت به‌روزرسانی شد.')
         return super().form_valid(form)
 
-
 class TransactionTypeDeleteView(PermissionBaseView, DeleteView):
     model = TransactionType
     template_name = 'budgets/transactiontype/transactiontype_confirm_delete.html'
@@ -585,3 +573,103 @@ class TransactionTypeDeleteView(PermissionBaseView, DeleteView):
         transaction_type = self.get_object()
         messages.success(request, f'نوع تراکنش {transaction_type.name} با موفقیت حذف شد.')
         return super().post(request, *args, **kwargs)
+
+"""delete"""
+@login_required
+def __project_budget_allocation(request, organization_id):
+    # template_name = 'budgets/project_budget_allocation.html'
+    form  = ProjectBudgetAllocationForm()
+    try:
+        organization = Organization.objects.get(id=organization_id)
+    except Organization.DoesNotExist:
+        messages.error(request, _("سازمان موردنظر یافت نشد"))
+        return redirect('budgetperiod_list')
+
+    # چک کردن BudgetPeriod فعال
+    budget_periods = BudgetPeriod.objects.filter(
+        organization=organization,
+        # is_active=True
+    )
+    if not budget_periods.exists():
+        messages.warning(request, _("هیچ دوره بودجه فعالی برای این شعبه یافت نشد"))
+        return render(request, 'budgets/budget/project_budget_allocation.html', {
+            'organization': organization,
+            'form': None,
+            'projects': [],
+        })
+
+    # بودجه‌های تخصیص‌یافته به شعبه
+    budget_allocations = BudgetAllocation.objects.filter(
+        budget_period__in=budget_periods
+    )
+    if not budget_allocations.exists():
+        messages.warning(request, _("هیچ تخصیص بودجه‌ای برای این دوره‌ها یافت نشد"))
+        return render(request, 'budgets/budget/project_budget_allocation.html', {
+            'organization': organization,
+            'form': None,
+            'projects': [],
+        })
+
+    total_org_budget = budget_allocations.aggregate(total=Sum('allocated_amount'))['total'] or 0
+    budget_allocation = budget_allocations.first()  # برای فرم
+    budget_period = budget_allocation.budget_period
+    remaining_amount = budget_period.get_remaining_amount()
+    remaining_percent = (remaining_amount / budget_period.total_amount * 100) if budget_period.total_amount > 0 else 0
+    warning_threshold = budget_period.warning_threshold
+
+    # فیلتر پروژه‌ها فقط برای این سازمان
+    projects = Project.objects.filter(
+        organizations=organization,
+        is_active=True
+    )
+
+    if request.method == 'POST':
+        form = ProjectBudgetAllocationForm(request.POST, organization_id=organization_id)
+        if form.is_valid():
+            allocation = form.save(commit=False)
+            allocation.created_by = request.user
+            try:
+                allocation.save()
+                messages.success(request, _("تخصیص بودجه با موفقیت ثبت شد"))
+                return redirect('project_budget_allocation', organization_id=organization_id)
+            except ValidationError as e:
+                form.add_error('allocated_amount', str(e))
+    else:
+        form = ProjectBudgetAllocationForm(organization_id=organization_id)
+
+    # محاسبات پروژه‌ها و زیرپروژه‌ها
+    for project in projects:
+        total_budget = ProjectBudgetAllocation.objects.filter(project=project).aggregate(total=Sum('allocated_amount'))['total'] or 0
+        remaining_budget = project.get_remaining_budget()
+        project.remaining_percent = (remaining_budget / total_budget * 100) if total_budget > 0 else 0
+        project.total_percent = (total_budget / total_org_budget * 100) if total_org_budget > 0 else 0
+        for subproject in project.subprojects.filter(is_active=True):
+            subproject_total = ProjectBudgetAllocation.objects.filter(subproject=subproject).aggregate(total=Sum('allocated_amount'))['total'] or 0
+            subproject_remaining = subproject.get_remaining_budget()
+            subproject.remaining_percent = (subproject_remaining / subproject_total * 100) if subproject_total > 0 else 0
+            subproject.total_percent = (subproject_total / total_budget * 100) if total_budget > 0 else 0
+
+    context = {
+        'form': form,
+        'organization': organization,
+        'budget_allocation': budget_allocation,
+        'budget_period': budget_period,
+        'total_org_budget': total_org_budget,
+        'remaining_amount': remaining_amount,
+        'remaining_percent': remaining_percent,
+        'warning_threshold': warning_threshold,
+        'projects': projects,
+    }
+    return render(request, 'budgets/budget/project_budget_allocation.html', context)
+
+# from rest_framework import viewsets
+# from rest_framework.response import Response
+# from .models import SubProject
+# from .serializers import SubProjectSerializer
+# class SubProjectViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = SubProjectSerializer
+#     def get_queryset(self):
+#         project_id = self.request.query_params.get('project', None)
+#         if project_id:
+#             return SubProject.objects.filter(project_id=project_id, is_active=True)
+#         return SubProject.objects.none()

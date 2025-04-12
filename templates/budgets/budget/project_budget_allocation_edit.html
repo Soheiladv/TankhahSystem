@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "ویرایش تخصیص بودجه" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .edit-form { max-width: 700px; margin: 0 auto; }
+    .edit-form .card-header { background: linear-gradient(90deg, #ffc107, #e0a800); }
+    .form-label { font-weight: 500; }
+    .btn { padding: 0.5rem 1.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card edit-form">
+        <div class="card-header text-white">
+            <h4 class="mb-0"><i class="fas fa-edit me-2"></i>{% trans "ویرایش تخصیص بودجه" %}</h4>
+        </div>
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% if field.errors %}
+                            <div class="invalid-feedback d-block">{{ field.errors|join:" " }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                <div class="text-end">
+                    <button type="submit" class="btn btn-success me-2">
+                        <i class="fas fa-save"></i> {% trans "ذخیره" %}
+                    </button>
+                    <a href="{% url 'project_budget_allocation_list' allocation.budget_allocation.organization_id %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> {% trans "انصراف" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -180,18 +180,21 @@
                 <table class="table table-striped table-hover table-bordered table-sm align-middle">
                     <thead class="text-center table-light">
                         <tr>
+                            <th>{% trans "ردیف" %}</th>
                             <th>{% trans "نوع تراکنش" %}</th>
                             <th class="text-end">{% trans "مبلغ" %} <small>({% trans "ریال" %})</small></th>
                             <th>{% trans "سازمان مرتبط" %}</th>
                             <th>{% trans "زمان ثبت" %}</th>
                             <th>{% trans "کاربر ثبت کننده" %}</th>
                             <th>{% trans "توضیحات" %}</th>
+                            <th>{% trans "تخصیص بودجه" %}</th>
                         </tr>
                     </thead>
                     <tbody class="text-center">
                         {# Assuming 'transactions' is passed in context #}
                         {% for transaction in transactions %}
                         <tr>
+                        <td>{{ forloop.counter }}</td>
                             <td>{{ transaction.get_transaction_type_display|default:"-" }}</td>
                              {# Format amount based on type? (e.g., negative for withdrawal) #}
                             <td class="text-numeric">{{ transaction.amount|format_negative }}</td>
@@ -201,6 +204,13 @@
                             <td class="font-monospace">{{ transaction.timestamp|jformat:'%Y/%m/%d %H:%M'|to_persian_number }}</td>
                             <td>{{ transaction.created_by.get_full_name|default:"-" }}</td>
                             <td class="text-start">{{ transaction.description|default:"-"|truncatechars:50 }}</td> {# Align left, truncate #}
+                            <td class="text-start">
+                                <a href="{% url 'project_budget_allocation_list'  transaction.allocation.organization.pk %}"
+                                   class="btn btn-outline-success btn-sm"><i class="fas fa-dollar-sign"></i> {% trans "ثبت بودجه" %}</a>
+                            </td> {# Align left, truncate #}
+
+
+
                         </tr>
                         {% empty %}
                         <tr>
