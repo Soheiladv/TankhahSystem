@@ -3,13 +3,13 @@ from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
 from .models import Organization, Project, Post, UserPost, PostHistory
 from tankhah.models import WorkflowStage
-
+from core.models import OrganizationType
 
 # تابع کمکی برای کوتاه کردن متن
 def truncate_text(text, max_length=50):
     return text[:max_length] + '...' if text and len(text) > max_length else text
 
-
+admin.site.register(OrganizationType)
 # ادمین پایه با تنظیمات مشترک
 class BaseAdmin(admin.ModelAdmin):
     list_per_page = 20  # تعداد آیتم‌ها در هر صفحه

@@ -4,7 +4,29 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from accounts.models import CustomUser
-from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, get_subproject_remaining_budget
+from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, \
+    get_subproject_remaining_budget
+
+
+class OrganizationType(models.Model):
+    fname = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name=_('نام شعبه/مجتمع/اداره'))
+    org_type = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name=_('نام شعبه/مجتمع/اداره'))
+    is_budget_allocatable = models.BooleanField(default=False, verbose_name=_("قابل استفاده برای تخصیص بودجه"))
+
+    def __str__(self):
+        return self.fname
+
+    class Meta:
+        verbose_name = _('عنوان مرکز/شعبه/اداره/سازمان')
+        verbose_name_plural = _('عنوان مرکز/شعبه/اداره/سازمان')
+        default_permissions = ()
+        permissions = [
+            ('OrganizationType_add', 'افزودن شعبه/اداره/مجتمع/سازمان'),
+            ('OrganizationType_view', 'نمایش شعبه/اداره/مجتمع/سازمان'),
+            ('OrganizationType_update', 'ویرایش شعبه/اداره/مجتمع/سازمان'),
+            ('OrganizationType_delete', 'حــذف شعبه/اداره/مجتمع/سازمان'),
+         ]
+
 
 class Organization(models.Model):
     """مدل سازمان برای تعریف مجتمع‌ها و دفتر مرکزی"""
@@ -17,10 +39,13 @@ class Organization(models.Model):
     )
     code = models.CharField(max_length=10, unique=True, verbose_name=_("کد سازمان"))
     name = models.CharField(max_length=100, verbose_name=_("نام سازمان"))
-    org_type = models.CharField(max_length=25, choices=ORG_TYPES, verbose_name=_("نوع سازمان"))
+    # org_type = models.CharField(max_length=25, choices=ORG_TYPES, verbose_name=_("نوع سازمان"))
+    org_type = models.ForeignKey(OrganizationType, on_delete=models.SET_NULL, null=True, blank=True,
+                                 verbose_name=_("نوع سازمان"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
     parent_organization = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
                                             verbose_name=_("سازمان والد"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
 
     def __str__(self):
         return f"{self.code} - {self.name} ({self.org_type})"

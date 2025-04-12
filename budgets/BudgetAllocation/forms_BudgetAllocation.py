@@ -7,7 +7,7 @@ from decimal import Decimal
 import jdatetime
 import re
 from budgets.models import BudgetAllocation, BudgetPeriod
-from core.models import Organization, Project
+from core.models import Organization, Project, OrganizationType
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +51,13 @@ class BudgetAllocationForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         logger.debug(f"Initializing BudgetAllocationForm with budget_period={self.budget_period}, user={self.user}")
         super().__init__(*args, **kwargs)
+        # دریافت idهای OrganizationType که برای تخصیص بودجه مجاز هستند
+        allowed_org_types = OrganizationType.objects.filter(
+            is_budget_allocatable=True
+        ).values_list('id', flat=True)  # به جای 'org_type'، از 'id' استفاده می‌کنیم
         self.fields['organization'].queryset = Organization.objects.filter(
-            org_type__in=['COMPLEX', 'HQ'], is_active=True
+            org_type__in=allowed_org_types,  # مستقیماً به idهای OrganizationType اشاره می‌کنیم
+            is_active=True
         )
         if self.budget_period:
             allocated_orgs = BudgetAllocation.objects.filter(
@@ -61,7 +66,8 @@ class BudgetAllocationForm(forms.ModelForm):
             self.fields['organization'].queryset = self.fields['organization'].queryset.filter(
                 id__in=allocated_orgs
             ) if allocated_orgs else self.fields['organization'].queryset
-            logger.debug(f"Filtered organization queryset: {list(self.fields['organization'].queryset.values('id', 'name'))}")
+            logger.debug(
+                f"Filtered organization queryset: {list(self.fields['organization'].queryset.values('id', 'name'))}")
         if self.instance.pk and self.instance.allocation_date:
             j_date = jdatetime.date.fromgregorian(date=self.instance.allocation_date)
             self.initial['allocation_date'] = j_date.strftime('%Y/%m/%d')

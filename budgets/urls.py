@@ -6,11 +6,11 @@ from budgets.views import BudgetDashboardView, BudgetAllocationListView, BudgetA
     OrganizationBudgetAllocationListView, \
     BudgetTransactionListView, BudgetTransactionDetailView, PaymentOrderListView, PaymentOrderCreateView, \
     PaymentOrderUpdateView, PaymentOrderDeleteView, PayeeListView, PayeeCreateView, PayeeUpdateView, PayeeDeleteView, \
-    TransactionTypeListView, TransactionTypeCreateView, TransactionTypeUpdateView, TransactionTypeDeleteView, \
-    BudgetAllocationCreateView
+    TransactionTypeListView, TransactionTypeCreateView, TransactionTypeUpdateView, TransactionTypeDeleteView
 
 from budgets.BudgetPeriod.views_BudgetPeriod import BudgetPeriodListView, BudgetPeriodDetailView,BudgetPeriodCreateView,BudgetPeriodUpdateView,\
     BudgetPeriodDeleteView
+from .BudgetAllocation.views_BudgetAllocation import BudgetAllocationCreateView
 from .ProjectBudgetAllocation.views_ProjectBudgetAllocation import ProjectBudgetAllocationListView, ProjectBudgetAllocationCreateView, \
     ProjectBudgetAllocationDetailView, ProjectBudgetAllocationEditView, ProjectBudgetAllocationDeleteView
 

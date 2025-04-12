@@ -186,7 +186,7 @@ class __A__BudgetAllocationCreateView(PermissionBaseView, CreateView):  # فرض
             logger.error(f"Error on create: {str(e)}")
             messages.error(self.request, str(e))
             return self.form_invalid(form)
-class BudgetAllocationCreateView(CreateView):
+class _BudgetAllocationCreateView(CreateView):
     model = BudgetAllocation
     form_class = ProjectBudgetAllocationForm
     template_name = 'budgets/budget/budgetallocation_form.html'

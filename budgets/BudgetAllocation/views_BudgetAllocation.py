@@ -10,11 +10,11 @@ import logging
 from budgets.BudgetAllocation.forms_BudgetAllocation import BudgetAllocationForm
 from budgets.models import BudgetPeriod, BudgetAllocation
 from core.PermissionBase import PermissionBaseView
-from core.models import Organization, Project
+from core.models import Organization, Project, OrganizationType
 
 logger = logging.getLogger(__name__)
 
-class single_BudgetAllocationCreateView(PermissionBaseView, CreateView):
+class BudgetAllocationCreateView(PermissionBaseView, CreateView):
     model = BudgetAllocation
     form_class = BudgetAllocationForm
     template_name = 'budgets/budget/budgetallocation_form.html'
@@ -35,7 +35,15 @@ class single_BudgetAllocationCreateView(PermissionBaseView, CreateView):
         budget_period = self._get_budget_period()
         context['budget_period'] = budget_period
         context['title'] = _('ایجاد تخصیص بودجه جدید')
-        context['organizations'] = Organization.objects.filter(org_type__in=['COMPLEX', 'HQ'], is_active=True)
+
+        # به جای هاردکد کردن ['COMPLEX', 'HQ']، نوع‌های مجاز را از OrganizationType می‌خوانیم
+        allowed_org_types = OrganizationType.objects.filter(
+            is_budget_allocatable=True
+        ).values_list('org_type', flat=True)
+        context['organizations'] = Organization.objects.filter(
+            org_type__org_type__in=allowed_org_types,
+            is_active=True
+        )
         context['projects'] = Project.objects.filter(is_active=True)
 
         if budget_period:
@@ -64,7 +72,7 @@ class single_BudgetAllocationCreateView(PermissionBaseView, CreateView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['budget_period'] = self._get_budget_period()
-        kwargs['user'] = self.request.user  # تغییر از request به user
+        kwargs['user'] = self.request.user
         logger.debug(f"Form kwargs: {kwargs}")
         return kwargs
 
@@ -84,4 +92,3 @@ class single_BudgetAllocationCreateView(PermissionBaseView, CreateView):
         logger.error(f"Form errors: {form.errors.as_json()}")
         messages.error(self.request, _('لطفاً خطاهای فرم را بررسی کنید.'))
         return self.render_to_response(self.get_context_data(form=form))
-
