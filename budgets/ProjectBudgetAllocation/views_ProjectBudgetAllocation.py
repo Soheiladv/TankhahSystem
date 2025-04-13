@@ -6,13 +6,11 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView, CreateView, TemplateView
 
-from budgets import BudgetPeriod
 from budgets.ProjectBudgetAllocation.forms_ProjectBudgetAllocation import ProjectBudgetAllocationForm
-from budgets.models import ProjectBudgetAllocation
+from budgets.models import ProjectBudgetAllocation, BudgetPeriod
 from core.PermissionBase import PermissionBaseView
 from budgets.budget_calculations import (
-    get_budget_details, calculate_allocation_percentages, calculate_total_allocated,
-    calculate_remaining_budget, get_budget_status, get_organization_budget,
+    get_budget_details, get_organization_budget,
     get_project_remaining_budget, get_subproject_remaining_budget, get_subproject_total_budget, get_project_total_budget
 )
 import logging
@@ -26,6 +24,13 @@ class ProjectBudgetAllocationListView(PermissionBaseView, ListView):
     model = ProjectBudgetAllocation
     template_name = 'budgets/budget/project_budget_allocation_list.html'
     context_object_name = 'allocations'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        # kwargs['organization_id'] = self.kwargs['organization_id']
+        # kwargs['initial']['created_by'] = self.request.user
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def get_queryset(self):
         organization_id = self.kwargs['organization_id']
@@ -64,38 +69,11 @@ class ProjectBudgetAllocationCreateView(PermissionBaseView, CreateView):
     form_class = ProjectBudgetAllocationForm
     template_name = 'budgets/budget/project_budget_allocation.html'
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['organization_id'] = self.kwargs['organization_id']
-        kwargs['initial']['created_by'] = self.request.user
-        kwargs['user'] = self.request.user
-        return kwargs
-
-    @transaction.atomic
-    def form_valid(self, form):
-        form.instance.created_by = self.request.user
-        remaining = form.instance.budget_allocation.get_remaining_amount()
-        if form.instance.allocated_amount > remaining:
-            messages.error(self.request, f'مبلغ تخصیص بیشتر از باقی‌مانده بودجه شعبه ({remaining}) است.')
-            return self.form_invalid(form)
-        try:
-            response = super().form_valid(form)
-            logger.info(f"New allocation saved: {self.object.pk} - {self.object.allocated_amount}")
-            messages.success(self.request, _("تخصیص بودجه با موفقیت ثبت شد"))
-            return response
-        except ValidationError as e:
-            logger.error(f"Validation error on create: {str(e)}")
-            form.add_error('allocated_amount', str(e))
-            return self.form_invalid(form)
-
-    def get_success_url(self):
-        return reverse_lazy('project_budget_allocation_list',
-                            kwargs={'organization_id': self.kwargs['organization_id']})
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         organization = get_object_or_404(Organization, id=self.kwargs['organization_id'])
         budget_periods = BudgetPeriod.objects.filter(organization=organization, is_active=True)
+
         if not budget_periods.exists():
             messages.warning(self.request, _("هیچ دوره بودجه فعالی برای این شعبه یافت نشد"))
             context.update({
@@ -107,7 +85,7 @@ class ProjectBudgetAllocationCreateView(PermissionBaseView, CreateView):
             return context
 
         from budgets import BudgetAllocation
-        budget_allocations = BudgetAllocation.objects.filter(budget_period__in=budget_periods)
+        budget_allocations = BudgetAllocation.objects.filter(budget_period__in=budget_periods, is_active=True)
         if not budget_allocations.exists():
             messages.warning(self.request, _("هیچ تخصیص بودجه‌ای برای این دوره‌ها یافت نشد"))
             context.update({
@@ -162,6 +140,36 @@ class ProjectBudgetAllocationCreateView(PermissionBaseView, CreateView):
         })
         logger.debug(f"ProjectBudgetAllocationCreateView context: {context}")
         return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['organization_id'] = self.kwargs['organization_id']
+        kwargs['initial']['created_by'] = self.request.user
+        kwargs['user'] = self.request.user
+        logger.debug(f"Form kwargs: {kwargs}")
+        return kwargs
+
+    @transaction.atomic
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        remaining = form.instance.budget_allocation.get_remaining_amount()
+        if form.instance.allocated_amount > remaining:
+            messages.error(self.request, f'مبلغ تخصیص بیشتر از باقی‌مانده بودجه شعبه ({remaining}) است.')
+            return self.form_invalid(form)
+        try:
+            response = super().form_valid(form)
+            logger.info(f"New allocation saved: {self.object.pk} - {self.object.allocated_amount}")
+            messages.success(self.request, _("تخصیص بودجه با موفقیت ثبت شد"))
+            return response
+        except ValidationError as e:
+            logger.error(f"Validation error on create: {str(e)}")
+            form.add_error('allocated_amount', str(e))
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('project_budget_allocation_list',
+                            kwargs={'organization_id': self.kwargs['organization_id']})
+
 
     def dispatch(self, request, *args, **kwargs):
         try:

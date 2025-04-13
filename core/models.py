@@ -12,9 +12,8 @@ class OrganizationType(models.Model):
     fname = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name=_('نام شعبه/مجتمع/اداره'))
     org_type = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name=_('نام شعبه/مجتمع/اداره'))
     is_budget_allocatable = models.BooleanField(default=False, verbose_name=_("قابل استفاده برای تخصیص بودجه"))
-
     def __str__(self):
-        return self.fname
+        return f"{self.fname} - {self.org_type} "or _("نامشخص")
 
     class Meta:
         verbose_name = _('عنوان مرکز/شعبه/اداره/سازمان')
@@ -27,28 +26,35 @@ class OrganizationType(models.Model):
             ('OrganizationType_delete', 'حــذف شعبه/اداره/مجتمع/سازمان'),
          ]
 
-
 class Organization(models.Model):
     """مدل سازمان برای تعریف مجتمع‌ها و دفتر مرکزی"""
-    ORG_TYPES = (
-        ('COMPLEX', _('مجتمع')),
-        ('HOTEL', _('هتل')),
-        ('PROVINCE', _('دفاتر استانی')),
-        ('RENTAL', _('مجموعه‌های استیجاری')),
-        ('HQ', _('دفتر مرکزی')),
-    )
     code = models.CharField(max_length=10, unique=True, verbose_name=_("کد سازمان"))
     name = models.CharField(max_length=100, verbose_name=_("نام سازمان"))
-    # org_type = models.CharField(max_length=25, choices=ORG_TYPES, verbose_name=_("نوع سازمان"))
-    org_type = models.ForeignKey(OrganizationType, on_delete=models.SET_NULL, null=True, blank=True,
-                                 verbose_name=_("نوع سازمان"))
+    org_type = models.ForeignKey(
+        'OrganizationType',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("نوع سازمان"),
+        related_name='organizations'  # اضافه کردن related_name برای وضوح
+    )
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
-    parent_organization = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
-                                            verbose_name=_("سازمان والد"))
+    parent_organization = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("سازمان والد")
+    )
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
 
     def __str__(self):
-        return f"{self.code} - {self.name} ({self.org_type})"
+        org_type_str = self.org_type.fname if self.org_type else _("نامشخص")
+        return f"{self.code} - {self.name} ({org_type_str})"
+
+    @property
+    def org_type_code(self):
+        return self.org_type.fname if self.org_type else None
 
     class Meta:
         verbose_name = _("سازمان")
@@ -63,6 +69,7 @@ class Organization(models.Model):
         indexes = [
             models.Index(fields=['code', 'org_type']),
         ]
+
 class Project(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("نام پروژه"))
     code = models.CharField(max_length=80, unique=True, verbose_name=_("کد پروژه"))

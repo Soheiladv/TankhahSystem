@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
@@ -22,6 +23,9 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
 
     def _get_budget_period(self):
         budget_period_id = self.request.GET.get('budget_period') or self.request.POST.get('budget_period')
+        if not budget_period_id:
+            logger.warning("No budget_period_id provided in request")
+            return None
         try:
             budget_period = BudgetPeriod.objects.get(id=budget_period_id, is_active=True)
             logger.debug(f"Retrieved budget_period: {budget_period}")
@@ -35,13 +39,11 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
         budget_period = self._get_budget_period()
         context['budget_period'] = budget_period
         context['title'] = _('ایجاد تخصیص بودجه جدید')
-
-        # به جای هاردکد کردن ['COMPLEX', 'HQ']، نوع‌های مجاز را از OrganizationType می‌خوانیم
         allowed_org_types = OrganizationType.objects.filter(
             is_budget_allocatable=True
-        ).values_list('org_type', flat=True)
+        ).values_list('id', flat=True)
         context['organizations'] = Organization.objects.filter(
-            org_type__org_type__in=allowed_org_types,
+            org_type__in=allowed_org_types,
             is_active=True
         )
         context['projects'] = Project.objects.filter(is_active=True)
@@ -71,7 +73,10 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['budget_period'] = self._get_budget_period()
+        budget_period = self._get_budget_period()
+        if not budget_period:
+            raise ValidationError(_("دوره بودجه معتبر انتخاب نشده است."))
+        kwargs['budget_period'] = budget_period
         kwargs['user'] = self.request.user
         logger.debug(f"Form kwargs: {kwargs}")
         return kwargs

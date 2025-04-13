@@ -16,7 +16,7 @@ from budgets.forms import BudgetPeriodForm,   PaymentOrderForm, \
     PayeeForm, TransactionTypeForm
 from budgets.models import BudgetPeriod, BudgetAllocation, ProjectBudgetAllocation, BudgetTransaction, PaymentOrder, Payee, TransactionType
 from core.PermissionBase import PermissionBaseView
-from core.models import Organization, Project, SubProject
+from core.models import Organization, Project, SubProject, OrganizationType
 from budgets.budget_calculations import (
     get_budget_details, calculate_allocation_percentages, calculate_total_allocated,
     calculate_remaining_budget, get_budget_status, get_organization_budget,
@@ -116,76 +116,6 @@ class BudgetAllocationDetailView(PermissionBaseView, DetailView):
         context['budget_details'] = get_budget_details(self.object)
         logger.debug(f"BudgetAllocationDetailView context: {context}")
         return context
-class __A__BudgetAllocationCreateView(PermissionBaseView, CreateView):  # فرض کردم PermissionBaseView نیازی نیست
-    model = BudgetAllocation
-    form_class = ProjectBudgetAllocationForm
-    template_name = 'budgets/budget/budgetallocation_form.html'
-    success_url = reverse_lazy('budgetallocation_list')
-
-    def _get_budget_period(self):
-        budget_period_id = self.request.GET.get('budget_period') or self.request.POST.get('budget_period')
-        if budget_period_id:
-            try:
-                return BudgetPeriod.objects.get(id=budget_period_id)
-            except BudgetPeriod.DoesNotExist:
-                messages.error(self.request, _('دوره بودجه موردنظر یافت نشد.'))
-                return None
-        return None
-
-    def get_form_kwargs(self):
-        """پاس دادن سازمان‌ها به فرم"""
-        kwargs = super().get_form_kwargs()
-        kwargs['organizations'] = Organization.objects.all()  # لیست سازمان‌ها
-        return kwargs
-
-    def get_context_data(self, **kwargs):
-        context =  super().get_context_data(**kwargs)
-        budget_period = self._get_budget_period()
-        if budget_period:
-            budget_details = get_budget_details(budget_period)
-            context.update({
-                'budget_period': budget_period,
-                'total_amount': budget_period.total_amount,
-                'remaining_amount': budget_period.get_remaining_amount(),
-                'remaining_percent': (
-                    (budget_period.get_remaining_amount() / budget_period.total_amount * 100)
-                    if budget_period.total_amount else 0
-                ),
-                'warning_threshold': budget_period.warning_threshold,
-                'locked_percentage': budget_period.locked_percentage,
-                'budget_details': budget_details,
-            })
-        context['organizations'] = Organization.objects.all()  # برای اطمینان
-        logger.debug(f"BudgetAllocationCreateView context: {context}")
-        return context
-
-    @transaction.atomic
-    def form_valid(self, form):
-        budget_period = self._get_budget_period()
-        if not budget_period:
-            messages.error(self.request, _('دوره بودجه مشخص نشده است.'))
-            return self.form_invalid(form)
-
-        form.instance.budget_period = budget_period
-        form.instance.created_by = self.request.user
-        try:
-            response = super().form_valid(form)
-            BudgetTransaction.objects.create(
-                allocation=form.instance,
-                transaction_type='ALLOCATION',
-                amount=form.instance.allocated_amount,
-                created_by=self.request.user,
-                description=f'تخصیص بودجه به {form.instance.organization.name}'
-            )
-            status = get_budget_status(budget_period)
-            if status['status'] in ['warning', 'locked']:
-                messages.warning(self.request, status['message'])
-            messages.success(self.request, f'تخصیص بودجه به {form.instance.organization.name} با موفقیت ثبت شد.')
-            return response
-        except Exception as e:
-            logger.error(f"Error on create: {str(e)}")
-            messages.error(self.request, str(e))
-            return self.form_invalid(form)
 class _BudgetAllocationCreateView(CreateView):
     model = BudgetAllocation
     form_class = ProjectBudgetAllocationForm
@@ -203,7 +133,8 @@ class _BudgetAllocationCreateView(CreateView):
         context = super().get_context_data(**kwargs)
         budget_period = self._get_budget_period()
         context['budget_period'] = budget_period
-        context['organizations'] = Organization.objects.filter(org_type__in=['COMPLEX', 'HQ'])
+        context['organizations'] = Organization.objects.filter(is_budget_allocatable=True
+        ).values_list('id', flat=True)
         context['projects'] = Project.objects.filter(is_active=True)
         if budget_period:
             context['total_amount'] = budget_period.total_amount

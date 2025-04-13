@@ -5,21 +5,25 @@ from django.db.models import Sum, Q
 
 logger = logging.getLogger(__name__)
 
-def calculate_total_allocated(entity=None, filters=None):
+def calculate_total_allocated(entity, filters=None):
     """محاسبه مجموع بودجه تخصیص‌یافته"""
-    from budgets.models import ProjectBudgetAllocation, BudgetAllocation
-    from core.models import Organization, Project
-    queryset = BudgetAllocation.objects.all()
-    if entity:
-        if isinstance(entity, Organization):
-            queryset = queryset.filter(organization=entity)
-        elif isinstance(entity, Project):
-            queryset = ProjectBudgetAllocation.objects.filter(project=entity)
-    if filters:
-        queryset = _apply_filters(queryset, filters)
-    total = queryset.aggregate(total=Sum('allocated_amount'))['total'] or Decimal("0")
+    from budgets.models import BudgetAllocation
+    total = 0
+    if filters is None:
+        filters = {}
+
+    queryset = BudgetAllocation.objects.filter(organization=entity)
+    if 'date_from' in filters:
+        queryset = queryset.filter(allocation_date__gte=filters['date_from'])
+    if 'date_to' in filters:
+        queryset = queryset.filter(allocation_date__lte=filters['date_to'])
+    if 'is_active' in filters:
+        queryset = queryset.filter(is_active=filters['is_active'])
+
+    total = queryset.aggregate(total=Sum('allocated_amount'))['total'] or 0
     logger.debug(f"calculate_total_allocated: entity={entity}, filters={filters}, total={total}")
     return total
+
 
 def _calculate_remaining_budget(obj):
     """محاسبه بودجه باقی‌مانده برای هر سطح"""

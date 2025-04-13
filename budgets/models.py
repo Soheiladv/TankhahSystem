@@ -5,7 +5,6 @@ import jdatetime
 
 from accounts.models import CustomUser
 # from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget
-from budgets.temp import budget_utils
 from core.models import Organization, Project, SubProject, WorkflowStage
 
 from django.db import models
@@ -194,81 +193,32 @@ class BudgetPeriod(models.Model):
 
 # ------------------------------------
 """ BudgetAllocation (تخصیص بودجه):"""
+
 class BudgetAllocation(models.Model):
     """
     تخصیص بودجه به سازمان‌ها (شعبات یا ادارات) و پروژه‌ها.
     قابلیت‌ها: تخصیص چندباره، توقف بودجه، و ردیابی هزینه‌ها.
     """
-    budget_period = models.ForeignKey(
-        'BudgetPeriod',
-        on_delete=models.CASCADE,
-        related_name='allocations',
-        verbose_name=_("دوره بودجه")
-    )
-    organization = models.ForeignKey(
-        'core.Organization',
-        on_delete=models.CASCADE,
-        related_name='budget_allocations',
-        verbose_name=_("سازمان دریافت‌کننده")
-    )
-    project = models.ForeignKey(
-        'core.Project',
-        on_delete=models.CASCADE,
-        related_name='allocations',
-        verbose_name=_("پروژه")
-    )
-    allocated_amount = models.DecimalField(
-        max_digits=25,
-        decimal_places=2,
-        verbose_name=_("مبلغ تخصیص")
-    )
-    allocation_date = models.DateField(
-        default=timezone.now,
-        verbose_name=_("تاریخ تخصیص")
-    )
-    created_by = models.ForeignKey(
-        'accounts.CustomUser',
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='budget_allocations_created',
-        verbose_name=_("ایجادکننده")
-    )
-    description = models.TextField(
-        blank=True,
-        verbose_name=_("توضیحات")
-    )
-    is_active = models.BooleanField(
-        default=True,
-        verbose_name=_("فعال")
-    )
-    is_stopped = models.BooleanField(
-        default=False,
-        verbose_name=_("متوقف‌شده")
-    )
-    ALLOCATION_TYPES = (
-        ('amount', _("مبلغ ثابت")),
-        ('percent', _("درصد")),
-    )
-    allocation_type = models.CharField(
-        max_length=20,
-        choices=ALLOCATION_TYPES,
-        default='amount',
-        verbose_name=_("نوع تخصیص")
-    )
-    locked_percentage = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=0,
-        verbose_name=_("درصد قفل‌شده"),
-        help_text=_("درصد تخصیص که قفل می‌شود (0-100)")
-    )
-    warning_threshold = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=10,
-        verbose_name=_("آستانه اخطار"),
-        help_text=_("درصدی که هشدار نمایش داده می‌شود (0-100)")
-    )
+    budget_period = models.ForeignKey('BudgetPeriod', on_delete=models.CASCADE, related_name='allocations',
+                                      verbose_name=_("دوره بودجه"))
+    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, related_name='budget_allocations',
+                                     verbose_name=_("سازمان دریافت‌کننده"))
+    project = models.ForeignKey('core.Project', on_delete=models.CASCADE, related_name='allocations',
+                                verbose_name=_("پروژه"))
+    allocated_amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ تخصیص"))
+    allocation_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ تخصیص"))
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
+                                   related_name='budget_allocations_created', verbose_name=_("ایجادکننده"))
+    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    is_stopped = models.BooleanField(default=False, verbose_name=_("متوقف‌شده"))
+    ALLOCATION_TYPES = (('amount', _("مبلغ ثابت")), ('percent', _("درصد")),)
+    allocation_type = models.CharField(max_length=20, choices=ALLOCATION_TYPES, default='amount',
+                                       verbose_name=_("نوع تخصیص"))
+    locked_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده"),
+                                            help_text=_("درصد تخصیص که قفل می‌شود (0-100)"))
+    warning_threshold = models.DecimalField(max_digits=5, decimal_places=2, default=10, verbose_name=_("آستانه اخطار"),
+                                            help_text=_("درصدی که هشدار نمایش داده می‌شود (0-100)"))
     warning_action = models.CharField(
         max_length=50,
         choices=[
@@ -300,18 +250,33 @@ class BudgetAllocation(models.Model):
         return f"تخصیص {self.id} - {self.organization.name} - {self.project.name} - {self.allocated_amount:,} ({jalali_date})"
 
     def clean(self):
+        super().clean()
+        # فرض: شروع و پایان از خود BudgetPeriod استخراج می‌شه
+
+
         """اعتبارسنجی تخصیص"""
         if self.allocated_amount <= 0:
             raise ValidationError(_("مبلغ تخصیص باید مثبت باشد."))
         if not (0 <= self.locked_percentage <= 100):
             raise ValidationError(_("درصد قفل‌شده باید بین 0 تا 100 باشد."))
         if not (0 <= self.warning_threshold <= 100):
-            raise ValidationError(_("آستانه هشدار باید بین 0 تا 100 باشد."))
+            raise ValidationError(_("آستانه اخطار باید بین 0 تا 100 باشد."))
         if self.allocation_type == 'percent' and self.allocated_amount > 100:
             raise ValidationError(_("درصد تخصیص نمی‌تواند بیشتر از 100 باشد."))
         if self.budget_period and self.allocation_date:
-            if not (self.budget_period.start_date <= self.allocation_date <= self.budget_period.end_date):
-                raise ValidationError(_("تاریخ تخصیص باید در بازه دوره بودجه باشد."))
+            start_date = self.budget_period.start_date
+            end_date = self.budget_period.end_date
+
+            allocation_date = self.allocation_date
+            if hasattr(allocation_date, "date"):
+                allocation_date = allocation_date.date()
+            if not (start_date <= allocation_date <= end_date):
+                raise ValidationError("تاریخ تخصیص باید در بازه‌ی دوره بودجه باشد.")
+            # بررسی بازه تاریخ
+            # logger.info(
+            #     f"Checking date range: start_date={start_date}, allocation_date={self.allocation_date}, end_date={end_date}")
+            # if not (start_date <= self.allocation_date <= end_date):
+            #     raise ValidationError(_("تاریخ تخصیص باید در بازه دوره بودجه باشد."))
 
     def get_remaining_amount(self):
         """محاسبه باقی‌مانده تخصیص"""

@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic.base import TemplateView
 
 from core.PermissionBase import PermissionBaseView
-from core.models import WorkflowStage, Project, Organization
+from core.models import WorkflowStage, Project, Organization, OrganizationType
 from tankhah.models import Tankhah, ApprovalLog, Notification, Factor
 """ داشبورد اصلی سیستم"""
 class DashboardView( PermissionBaseView , TemplateView):
@@ -177,7 +177,7 @@ class DashboardView( PermissionBaseView , TemplateView):
         # اعلان‌ها
         context['notifications'] = Notification.objects.filter(user=user, is_read=False).order_by('-created_at')[:5]
 
-        # آمار کلی تنخواه و فاکتورها (با دسترسی)
+        # # آمار کلی تنخواه و فاکتورها (با دسترسی)
         if user.has_perm('core.Dashboard_Stats_view'):
             tankhah_stats = self.get_tankhah_statistics()
             context.update(tankhah_stats)
@@ -235,14 +235,25 @@ class DashboardView( PermissionBaseView , TemplateView):
             stats['tankhah_factors'][tankhah.number] = factors_total
 
         # آمار بر اساس شعبه
-        branches = Organization.objects.filter(org_type__in=['COMPLEX', 'HOTEL', 'PROVINCE', 'RENTAL'])
-        for branch in branches:
-            branch_tankhahs = Tankhah.objects.filter(organization=branch)
-            stats['branch_stats'][branch.name] = {
-                'allocated': branch_tankhahs.aggregate(total=Sum('amount'))['total'] or 0,
-                'spent': Factor.objects.filter(tankhah__organization=branch, status='APPROVED').aggregate(
-                    total=Sum('amount'))['total'] or 0
-            }
+        # branches = Organization.objects.filter(org_type__in=['COMPLEX', 'HOTEL', 'PROVINCE', 'RENTAL'])
+        # branches = OrganizationType.objects.filter(org_type__in=['COMPLEX', 'HOTEL', 'PROVINCE', 'RENTAL'])
+        # for branch in branches:
+        #     branch_tankhahs = Tankhah.objects.filter(organization=branch)
+        #     stats['branch_stats'][branch.org_type] = {
+        #         'allocated': branch_tankhahs.aggregate(total=Sum('amount'))['total'] or 0,
+        #         'spent': Factor.objects.filter(tankhah__organization=branch, status='APPROVED').aggregate(
+        #             total=Sum('amount'))['total'] or 0
+        #     }
+        #
+        # branches = OrganizationType.objects.filter(is_budget_allocatable=True).values_list('org_type', flat=True)
+        # for branch in branches:
+        #     # logging.info(f'branch.org_type is {branch.org_type}')
+        #     branch_tankhahs = Tankhah.objects.filter(organization=branch)
+        #     stats['branch_stats'][branch.org_type] = {
+        #         'allocated': branch_tankhahs.aggregate(total=Sum('amount'))['total'] or 0,
+        #         'spent': Factor.objects.filter(tankhah__organization=branch, status='APPROVED').aggregate(
+        #             total=Sum('amount'))['total'] or 0
+        #     }
 
         return stats
 
