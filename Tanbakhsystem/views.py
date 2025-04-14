@@ -12,6 +12,12 @@ from django.views.generic.base import TemplateView
 from core.PermissionBase import PermissionBaseView
 from core.models import WorkflowStage, Project, Organization, OrganizationType
 from tankhah.models import Tankhah, ApprovalLog, Notification, Factor
+
+def pdate(request):
+    return render(request, template_name='budgets/pdate.html')
+
+
+
 """ داشبورد اصلی سیستم"""
 class DashboardView( PermissionBaseView , TemplateView):
     """ داشبورد اصلی سیستم"""
@@ -105,6 +111,8 @@ class DashboardView( PermissionBaseView , TemplateView):
                 {'name': _('همه لینک‌ها'), 'url': 'all_links', 'icon': 'fas fa-link'},
                 {'name': _('مدیریت کاربران'), 'url': 'accounts:admin_dashboard', 'icon': 'fas fa-link'},
                 {'name': _('نسخه ها'), 'url': 'version_index_view', 'icon': 'fas fa-link'},
+                {'name': _('P Test '), 'url': 'pdate', 'icon': 'fas fa-link'},
+                {'name': _('راهنمای بودجه بندی'), 'url': 'budget_Help', 'icon': 'fas fa-link'},
             ],
         }
     }
@@ -185,8 +193,6 @@ class DashboardView( PermissionBaseView , TemplateView):
             context['stats_permission_denied'] = True
 
         return context
-
-
 
     def get_monthly_report_data(self):
         now = timezone.now()
@@ -433,3 +439,4 @@ class GuideView(TemplateView):
 #             context['cards'][card_title] = [link for link in links if user.has_perm(link['perm'])] if links else []
 #
 #         return context
+

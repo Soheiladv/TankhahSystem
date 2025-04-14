@@ -7,7 +7,7 @@ from django.views.generic.base import RedirectView
 from django.views.i18n import JavaScriptCatalog
 
 from Tanbakhsystem import views
-from Tanbakhsystem.views import TanbakhWorkflowView, DashboardView, GuideView
+from Tanbakhsystem.views import TanbakhWorkflowView, DashboardView, GuideView, pdate
 from accounts.views import SetTimeLockView, TimeLockListView, LockStatusView
 from accounts.RCMS_Lock.views import lock_status
 
@@ -31,6 +31,7 @@ urlpatterns = [
                   path('set-lock/', SetTimeLockView.as_view(), name='set_time_lock'),
                   path('view-locks/', TimeLockListView.as_view(), name='timelock_list'),
                   path('lock-status/', LockStatusView.as_view(), name='lock_status'),
+                  path('pdate/', pdate, name='pdate'),
 
                   path('js-catalog', JavaScriptCatalog.as_view(), name='js-catalog'),
                   path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('admin/img/favicon.ico')),

@@ -6,7 +6,7 @@ from django.db.models import Sum
 from core.models import SubProject
 from .models import (
     BudgetPeriod, BudgetAllocation, BudgetTransaction,
-    PaymentOrder, Payee, TransactionType, ProjectBudgetAllocation
+    PaymentOrder, Payee, TransactionType, ProjectBudgetAllocation,BudgetHistory
 )
 
 # ادمین BudgetPeriod
@@ -324,3 +324,5 @@ class ProjectBudgetAllocationAdmin(admin.ModelAdmin):
                 budget_period__organization=obj.budget_allocation.organization
             )
         return form
+
+admin.site.register(BudgetHistory)

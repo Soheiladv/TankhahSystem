@@ -47,6 +47,18 @@ class Organization(models.Model):
         verbose_name=_("سازمان والد")
     )
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    is_core = models.BooleanField(default=False, verbose_name=_("دفتر مرکزی سازمان"))  # تغییر پیش‌فرض به False
+
+    def clean(self):
+        """اعتبارسنجی مدل برای اطمینان از منطق دفتر مرکزی"""
+        from django.core.exceptions import ValidationError
+        if self.is_core and self.parent_organization:
+            raise ValidationError(_('دفتر مرکزی نمی‌تواند سازمان والد داشته باشد.'))
+        if self.is_core:
+            # بررسی وجود تنها یک دفتر مرکزی فعال
+            existing_core = Organization.objects.filter(is_core=True, is_active=True).exclude(pk=self.pk)
+            if existing_core.exists():
+                raise ValidationError(_('فقط یک سازمان می‌تواند به‌عنوان دفتر مرکزی فعال باشد.'))
 
     def __str__(self):
         org_type_str = self.org_type.fname if self.org_type else _("نامشخص")
@@ -55,6 +67,13 @@ class Organization(models.Model):
     @property
     def org_type_code(self):
         return self.org_type.fname if self.org_type else None
+
+
+    def save(self, *args, **kwargs):
+        """اجرای clean قبل از ذخیره"""
+        self.full_clean()  # اجرای اعتبارسنجی
+        super().save(*args, **kwargs)
+
 
     class Meta:
         verbose_name = _("سازمان")
@@ -120,9 +139,12 @@ class SubProject(models.Model):
         return get_subproject_remaining_budget(self)
 
     def save(self, *args, **kwargs):
-        if not self.pk and self.allocations > self.project.get_remaining_budget():
-            raise ValueError("بودجه ساب‌پروژه بیشتر از بودجه باقیمانده پروژه است.")
         super().save(*args, **kwargs)
+        if not self.pk:
+            total_allocated = sum([alloc.amount for alloc in self.allocations.all()])
+            if total_allocated > self.project.get_remaining_budget():
+                raise ValueError("بودجه تخصیص‌یافته بیشتر از بودجه باقی‌مانده پروژه است.")
+
 
     def __str__(self):
         return f"{self.name} ({self.project.name})"

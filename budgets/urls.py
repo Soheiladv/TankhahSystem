@@ -1,16 +1,18 @@
 # budgets/urls.py
 from django.urls import path
 from . import views
-from budgets.views import BudgetDashboardView, BudgetAllocationListView, BudgetAllocationDetailView, \
-    BudgetAllocationUpdateView, BudgetAllocationDeleteView, \
+from budgets.views import BudgetDashboardView , \
     OrganizationBudgetAllocationListView, \
     BudgetTransactionListView, BudgetTransactionDetailView, PaymentOrderListView, PaymentOrderCreateView, \
     PaymentOrderUpdateView, PaymentOrderDeleteView, PayeeListView, PayeeCreateView, PayeeUpdateView, PayeeDeleteView, \
-    TransactionTypeListView, TransactionTypeCreateView, TransactionTypeUpdateView, TransactionTypeDeleteView
-
+    TransactionTypeListView, TransactionTypeCreateView, TransactionTypeUpdateView, TransactionTypeDeleteView, \
+    NumberToWordsView, budget_Help
+from .BudgetAllocation.views_BudgetAllocation import  BudgetAllocationDetailView, BudgetAllocationDeleteView, BudgetAllocationUpdateView
 from budgets.BudgetPeriod.views_BudgetPeriod import BudgetPeriodListView, BudgetPeriodDetailView,BudgetPeriodCreateView,BudgetPeriodUpdateView,\
     BudgetPeriodDeleteView
-from .BudgetAllocation.views_BudgetAllocation import BudgetAllocationCreateView
+from .BudgetAllocation.get_projects_by_organization import get_projects_by_organization
+from .BudgetAllocation.views_BudgetAllocation import BudgetAllocationCreateView, BudgetAllocationListView
+# from .BudgetAllocation.views_BudgetAllocation import BudgetAllocationCreateView
 from .ProjectBudgetAllocation.views_ProjectBudgetAllocation import ProjectBudgetAllocationListView, ProjectBudgetAllocationCreateView, \
     ProjectBudgetAllocationDetailView, ProjectBudgetAllocationEditView, ProjectBudgetAllocationDeleteView
 
@@ -74,7 +76,20 @@ urlpatterns = [
 
 
     # path('budgetallocations/<int:pk>/update/', BudgetAllocationUpdateView.as_view(), name='budgetallocation_update'),
+
+    path('get_projects_by_organization/',
+         get_projects_by_organization, name='get_projects_by_organization'),# گرفتن پروژه‌های سازمان
+
+    path('convert_number_to_words/', NumberToWordsView.as_view(), name='convert_number_to_words'),
+
 ]
+
+urlpatterns += [
+    path('budget_Help/',budget_Help,name='budget_Help')
+]
+
+
+
  
 # #/
 # urlpatterns+  = [

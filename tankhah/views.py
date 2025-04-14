@@ -126,6 +126,7 @@ def get_subprojects_ok(request):
     except Exception as e:
         logger.error(f'خطا در get_subprojects: {str(e)}')
         return JsonResponse({'subprojects': []}, status=500)
+
 def get_subprojects(request):
     logger.info('ورود به تابع get_subprojects')
     project_id = request.GET.get('project_id')

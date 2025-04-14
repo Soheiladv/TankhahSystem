@@ -18,126 +18,13 @@ logger = logging.getLogger(__name__)
 
 # تابع کمکی برای تبدیل اعداد فارسی به انگلیسی
 def to_english_digits(text):
+    """تبدیل اعداد انگلیسی به فارسی"""
     persian_digits = '۰۱۲۳۴۵۶۷۸۹'
     english_digits = '0123456789'
     translation_table = str.maketrans(persian_digits, english_digits)
     return text.translate(translation_table)
+    # return ''.join(persian_digits[int(c)] if c.isdigit() else c for c in str(text))
 
-# budgets/forms.py
-
-class BudgetPeriodForm(forms.ModelForm):
-    """فرم دوره بودجه کلان با تاریخ شمسی و اعتبارسنجی‌های پیشرفته"""
-    start_date = forms.CharField(
-        label=_('تاریخ شروع'),
-        widget=forms.TextInput(attrs={
-            'data-jdp': '',
-            'class': 'form-control',
-            'placeholder': _('1404/01/17'),
-            'autocomplete': 'off'
-        })
-    )
-    end_date = forms.CharField(
-        label=_('تاریخ پایان'),
-        widget=forms.TextInput(attrs={
-            'data-jdp': '',
-            'class': 'form-control',
-            'placeholder': _('1404/12/29'),
-            'autocomplete': 'off'
-        })
-    )
-
-    class Meta:
-        model = BudgetPeriod
-        fields = [
-            'organization', 'name', 'start_date', 'end_date', 'total_amount',
-            'is_active', 'is_archived', 'is_completed', 'lock_condition',
-            'locked_percentage', 'warning_threshold', 'warning_action'
-        ]
-        widgets = {
-            'organization': forms.Select(attrs={'class': 'form-control', 'required': True}),
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('نام دوره (مثل بودجه ۱۴۰۴)')}),
-            'total_amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('مبلغ کل'), 'min': 1}),
-            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'is_archived': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'is_completed': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'lock_condition': forms.Select(attrs={'class': 'form-control'}),
-            'locked_percentage': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 100, 'step': 0.01}),
-            'warning_threshold': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 100, 'step': 0.01}),
-            'warning_action': forms.Select(attrs={'class': 'form-control'}),
-        }
-        labels = {
-            'organization': _('دفتر مرکزی'),
-            'name': _('نام دوره بودجه'),
-            'total_amount': _('مبلغ کل (ریال)'),
-            'is_active': _('فعال'),
-            'is_archived': _('بایگانی شده'),
-            'is_completed': _('تمام‌شده'),
-            'lock_condition': _('شرط قفل'),
-            'locked_percentage': _('درصد قفل‌شده'),
-            'warning_threshold': _('آستانه اخطار'),
-            'warning_action': _('اقدام هشدار'),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # تنظیم مقادیر اولیه تاریخ‌ها برای نمایش شمسی
-        if self.instance and self.instance.pk:
-            self.initial['start_date'] = format_jalali_date(self.instance.start_date)
-            self.initial['end_date'] = format_jalali_date(self.instance.end_date)
-
-    def clean_start_date(self):
-        date_str = self.cleaned_data.get('start_date')
-        return parse_jalali_date(date_str, field_name=_('تاریخ شروع'))
-
-    def clean_end_date(self):
-        date_str = self.cleaned_data.get('end_date')
-        return parse_jalali_date(date_str, field_name=_('تاریخ پایان'))
-
-    def clean_total_amount(self):
-        amount = self.cleaned_data.get('total_amount')
-        if amount is None or amount <= 0:
-            raise forms.ValidationError(_('مبلغ کل باید بزرگ‌تر از صفر باشد.'))
-        return amount
-
-    def clean_locked_percentage(self):
-        percentage = self.cleaned_data.get('locked_percentage')
-        if percentage is None or not (0 <= percentage <= 100):
-            raise forms.ValidationError(_('درصد قفل‌شده باید بین ۰ تا ۱۰۰ باشد.'))
-        return percentage
-
-    def clean_warning_threshold(self):
-        threshold = self.cleaned_data.get('warning_threshold')
-        if threshold is None or not (0 <= threshold <= 100):
-            raise forms.ValidationError(_('آستانه اخطار باید بین ۰ تا ۱۰۰ باشد.'))
-        locked_percentage = self.cleaned_data.get('locked_percentage')
-        if locked_percentage is not None and threshold <= locked_percentage:
-            raise forms.ValidationError(_('آستانه اخطار باید بزرگ‌تر از درصد قفل‌شده باشد.'))
-        return threshold
-
-    def clean(self):
-        cleaned_data = super().clean()
-        start_date = cleaned_data.get('start_date')
-        end_date = cleaned_data.get('end_date')
-        is_completed = cleaned_data.get('is_completed')
-        is_active = cleaned_data.get('is_active')
-        if start_date and end_date:
-            if end_date <= start_date:
-                raise forms.ValidationError(_('تاریخ پایان باید بعد از تاریخ شروع باشد.'))
-            if start_date < timezone.now().date():
-                raise forms.ValidationError(_('تاریخ شروع نمی‌تواند در گذشته باشد.'))
-
-        if is_completed and is_active:
-            raise forms.ValidationError(_('دوره تمام‌شده نمی‌تواند فعال باشد.'))
-
-        logger.info(cleaned_data,start_date,end_date,is_completed,is_active)
-        return cleaned_data
-
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        instance.created_by = self.initial.get('created_by', None)
-        if commit:
-            instance.save()
-        return instance
 
 class BudgetTransactionForm(forms.ModelForm):
     class Meta:

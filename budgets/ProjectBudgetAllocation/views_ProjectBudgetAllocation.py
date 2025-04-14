@@ -144,10 +144,14 @@ class ProjectBudgetAllocationCreateView(PermissionBaseView, CreateView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['organization_id'] = self.kwargs['organization_id']
-        kwargs['initial']['created_by'] = self.request.user
         kwargs['user'] = self.request.user
         logger.debug(f"Form kwargs: {kwargs}")
         return kwargs
+
+    def form_invalid(self, form):
+        logger.error(f"Form errors: {form.errors.as_json()}")
+        messages.error(self.request, _('لطفاً خطاهای فرم را بررسی کنید.'))
+        return self.render_to_response(self.get_context_data(form=form))
 
     @transaction.atomic
     def form_valid(self, form):

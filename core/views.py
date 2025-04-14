@@ -279,6 +279,7 @@ class OrganizationCreateView(PermissionBaseView, CreateView):
     form_class = OrganizationForm
     template_name = 'core/organization_form.html'
     success_url = reverse_lazy('organization_list')
+    extra_context = {'title': _('ثبت شعبات و دفتر اثلی سازمان')}
 
     permission_codename =  'core.Organization_add'
     check_organization = True  # فعال کردن چک سازمان
@@ -438,7 +439,10 @@ class ProjectCreateView(PermissionBaseView, CreateView):
 
         # اطلاعات بودجه شعبه‌ها
         budget_report = {}
-        for org in Organization.objects.filter(org_type__in=['COMPLEX', 'HQ']):
+        # for org in Organization.objects.filter(org_type__in=['COMPLEX', 'HQ']):
+        context['organizations'] = Organization.objects.filter(is_budget_allocatable=True).values_list('id', flat=True)
+
+        for org in context['organizations']:
             total_budget = get_organization_budget(org)
             used_budget = BudgetAllocation.objects.filter(organization=org).aggregate(
                 total=Sum('allocated_amount')

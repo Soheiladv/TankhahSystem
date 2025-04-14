@@ -1,92 +1,5 @@
-{% extends "base.html" %}
-{% load i18n jformat rcms_custom_filters static humanize %}
-
-{% block title %}{% trans "تخصیص بودجه جدید" %}{% endblock %}
-
-{% block extra_css %}
-    <style>
-        .budget-allocation-page {
-            max-width: 900px;
-            margin: 1rem auto;
-        }
-
-        .card-header {
-            padding: 0.75rem 1rem;
-        }
-
-        .card-body {
-            padding: 1.5rem;
-        }
-
-        .budget-summary {
-            margin-bottom: 1.5rem;
-        }
-
-        .progress-container {
-            padding-top: 1rem;
-        }
-
-        .progress {
-            height: 1rem;
-        }
-
-        .progress-labels {
-            font-size: 0.75rem;
-        }
-
-        .threshold-marker {
-            height: 0.6rem;
-        }
-
-        .metric small {
-            font-size: 0.75rem;
-        }
-
-        .metric strong {
-            font-size: 1.1rem;
-        }
-
-        .allocation-display {
-            padding: 0.75rem;
-            text-align: center;
-        }
-
-        .allocation-display small {
-            font-size: 0.75rem;
-        }
-
-        .allocation-display strong {
-            font-size: 1.1rem;
-        }
-
-        .word-display {
-            font-size: 0.8rem;
-        }
-
-        .form-label {
-            font-size: 0.9rem;
-            margin-bottom: 0.3rem;
-        }
-
-        .input-group-text {
-            font-size: 0.85rem;
-        }
-
-        .form-check {
-            margin-bottom: 0.3rem;
-        }
-
-        .form-actions {
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-        }
-
-        .btn {
-            padding: 0.4rem 1rem;
-            font-size: 0.9rem;
-        }
-    </style>
-{% endblock %}
+{% extends 'base.html' %}
+{% load i18n rcms_custom_filters static %}
 
 {% block content %}
     <div class="budget-allocation-page">
@@ -119,8 +32,8 @@
                         <div class="col-md-4 col-12">
                             <div class="progress-container">
                                 <div class="progress-labels">
-                                <span>{{ locked_percentage|to_persian_number }}% <i
-                                        class="fas fa-lock fa-xs text-danger"></i></span>
+                                    <span>{{ locked_percentage|to_persian_number }}% <i
+                                            class="fas fa-lock fa-xs text-danger"></i></span>
                                     <span>{{ warning_threshold|to_persian_number }}% <i
                                             class="fas fa-exclamation-triangle fa-xs text-warning"></i></span>
                                 </div>
@@ -161,24 +74,46 @@
                 {% endif %}
 
                 <div class="row g-3">
-                    <!-- Main Form Fields -->
+                    <!-- سازمان -->
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="{{ form.organization.id_for_label }}" class="form-label fw-semibold">
                                 <i class="fas fa-building fa-fw me-1 text-muted"></i> {% trans "سازمان:" %}
-                        </label>
-                        {{ form.organization }}
-                        {% if form.organization.errors %}
-                            <div class="invalid-feedback d-block">{{ form.organization.errors|striptags }}</div>
-                        {% endif %}
-                    </div>
+                            </label>
+                            {{ form.organization }}
+                            {% if form.organization.errors %}
+                                <div class="invalid-feedback d-block">{{ form.organization.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
                     </div>
 
+                    <!-- پروژه -->
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.project.id_for_label }}" class="form-label fw-semibold">
+                                <i class="fas fa-project-diagram fa-fw me-1 text-muted"></i> {% trans "پروژه:" %}
+                            </label>
+                            {{ form.project }}
+                            {% if form.project.errors %}
+                                <div class="invalid-feedback d-block">{{ form.project.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <!-- نمایش تخصیص -->
+                    <div class="col-md-4 col-6">
+                        <div class="allocation-display border rounded p-2 bg-light">
+                            <small class="text-muted d-block">{% trans "تخصیص:" %}</small>
+                            <strong id="allocated-amount-display">0</strong>
+                            <span id="allocated-amount-unit-display">{% trans "ریال" %}</span>
+                            <div class="word-display text-muted small mt-1" id="allocated-amount-words"></div>
+                        </div>
+                    </div>
+                    <!-- نوع تخصیص -->
                     <div class="col-md-3 col-6">
                         <div class="form-group">
                             <label class="form-label fw-semibold">
                                 <i class="fas fa-list-ul fa-fw me-1 text-muted"></i> {% trans "نوع:" %}
-                        </label>
+                            </label>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="{{ form.allocation_type.name }}"
                                        id="allocation_type_amount" value="amount"
@@ -190,86 +125,69 @@
                                        id="allocation_type_percent" value="percent"
                                        {% if form.allocation_type.value == 'percent' %}checked{% endif %}>
                                 <label class="form-check-label" for="allocation_type_percent">{% trans "درصد" %}</label>
-                        </div>
+                            </div>
                             {% if form.allocation_type.errors %}
                                 <div class="invalid-feedback d-block">{{ form.allocation_type.errors|striptags }}</div>
-                        {% endif %}
-                    </div>
+                            {% endif %}
+                        </div>
                     </div>
 
+                    <!-- مبلغ تخصیص -->
                     <div class="col-md-3 col-6">
                         <div class="form-group">
                             <label for="{{ form.allocated_amount.id_for_label }}" class="form-label fw-semibold"
                                    id="allocated-amount-label">
                                 <i class="fas fa-money-bill-wave fa-fw me-1 text-muted"></i> {% trans "مقدار:" %}
-                        </label>
-                        <div class="input-group">
-                            <input type="text" class="form-control numeric-input"
-                                   id="{{ form.allocated_amount.id_for_label }}"
-                                   name="{{ form.allocated_amount.name }}"
-                                   value="{{ form.allocated_amount.value|default:'' }}"
-                                   placeholder="{% trans 'مقدار' %}" required pattern="[۰-۹0-9,،.]*"
-                                   inputmode="numeric">
-                            <span class="input-group-text" id="allocated-amount-unit">{% trans "ریال" %}</span>
-                        </div>
-                        {% if form.allocated_amount.errors %}
-                            <div class="invalid-feedback d-block">{{ form.allocated_amount.errors|striptags }}</div>
-                        {% endif %}
-                    </div>
-                    </div>
-
-                    <div class="col-md-4 col-6">
-                        <div class="form-group">
-                            <label for="{{ form.allocation_date.id_for_label }}" class="form-label fw-semibold">
-                                <i class="fas fa-calendar-alt fa-fw me-1 text-muted"></i> {% trans "تاریخ:" %}
-                        </label>
-                        {{ form.allocation_date }}
-                        {% if form.allocation_date.errors %}
-                            <div class="invalid-feedback d-block">{{ form.allocation_date.errors|striptags }}</div>
-                        {% endif %}
-                    </div>
-                    </div>
-
-                    <div class="col-md-4 col-6">
-                        <div class="form-group">
-                            <label for="{{ form.status.id_for_label }}" class="form-label fw-semibold">
-                                <i class="fas fa-check fa-fw me-1 text-muted"></i> {% trans "وضعیت:" %}
                             </label>
-                            {{ form.status }}
-                            {% if form.status.errors %}
-                                <div class="invalid-feedback d-block">{{ form.status.errors|striptags }}</div>
+                            <div class="input-group">
+                                <input type="text" class="form-control numeric-input"
+                                       id="{{ form.allocated_amount.id_for_label }}"
+                                       name="{{ form.allocated_amount.name }}"
+                                       value="{{ form.allocated_amount.value|default:'' }}"
+                                       placeholder="{% trans 'مقدار' %}" required pattern="[۰-۹0-9,،.]*"
+                                       inputmode="numeric">
+                                <span class="input-group-text" id="allocated-amount-unit">{% trans "ریال" %}</span>
+                            </div>
+                            {% if form.allocated_amount.errors %}
+                                <div class="invalid-feedback d-block">{{ form.allocated_amount.errors|striptags }}</div>
                             {% endif %}
                         </div>
                     </div>
 
+                </div>
+                <!-- تاریخ تخصیص -->
                     <div class="col-md-4 col-6">
-                        <div class="allocation-display border rounded p-2 bg-light">
-                            <small class="text-muted d-block">{% trans "تخصیص:" %}</small>
-                            <strong id="allocated-amount-display">0</strong>
-                            <span id="allocated-amount-unit-display">{% trans "ریال" %}</span>
-                            <div class="word-display text-muted small mt-1" id="allocated-amount-words"></div>
+                        <div class="form-group">
+                            <label for="{{ form.allocation_date.id_for_label }}" class="form-label fw-semibold">
+                                <i class="fas fa-calendar-alt fa-fw me-1 text-muted"></i> {% trans "تاریخ:" %}
+                            </label>
+                            {{ form.allocation_date }}
+                            {% if form.allocation_date.errors %}
+                                <div class="invalid-feedback d-block">{{ form.allocation_date.errors|striptags }}</div>
+                            {% endif %}
                         </div>
                     </div>
 
+                <!-- توضیحات -->
                     <div class="col-12">
                         <div class="form-group">
                             <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">
                                 <i class="fas fa-comment fa-fw me-1 text-muted"></i> {% trans "شرح:" %}
-                        </label>
-                        {{ form.description }}
-                        {% if form.description.errors %}
-                            <div class="invalid-feedback d-block">{{ form.description.errors|striptags }}</div>
-                        {% endif %}
-                    </div>
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">{{ form.description.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
                     </div>
 
-                    <!-- Additional Fields with Consistent Styling -->
+                <!-- فعال -->
                     <div class="col-md-4 col-6">
                         <div class="form-group">
-                            <label for="{{ form.is_active.id_for_label }}" class="form-label fw-semibold">
+                            <label class="form-label fw-semibold d-block">
                                 <i class="fas fa-power-off fa-fw me-1 text-muted"></i> {% trans "فعال:" %}
                             </label>
-                            <div class="form-check form-switch">
+                            <div class="form-check form-switch form-check-lg">
                                 {{ form.is_active }}
                                 <label class="form-check-label" for="{{ form.is_active.id_for_label }}"></label>
                             </div>
@@ -279,6 +197,7 @@
                         </div>
                     </div>
 
+                <!-- متوقف‌شده -->
                     <div class="col-md-4 col-6">
                         <div class="form-group">
                             <label for="{{ form.is_stopped.id_for_label }}" class="form-label fw-semibold">
@@ -291,9 +210,10 @@
                             {% if form.is_stopped.errors %}
                                 <div class="invalid-feedback d-block">{{ form.is_stopped.errors }}</div>
                             {% endif %}
+                        </div>
                     </div>
-                </div>
 
+                <!-- درصد قفل‌شده -->
                     <div class="col-md-4 col-6">
                         <div class="form-group">
                             <label for="{{ form.locked_percentage.id_for_label }}" class="form-label fw-semibold">
@@ -306,6 +226,7 @@
                         </div>
                     </div>
 
+                <!-- آستانه اخطار -->
                     <div class="col-md-4 col-6">
                         <div class="form-group">
                             <label for="{{ form.warning_threshold.id_for_label }}" class="form-label fw-semibold">
@@ -318,6 +239,7 @@
                         </div>
                     </div>
 
+                <!-- اقدام هشدار -->
                     <div class="col-md-4 col-6">
                         <div class="form-group">
                             <label for="{{ form.warning_action.id_for_label }}" class="form-label fw-semibold">
@@ -330,6 +252,7 @@
                         </div>
                     </div>
 
+                <!-- شماره تخصیص -->
                     <div class="col-md-4 col-6">
                         <div class="form-group">
                             <label for="{{ form.allocation_number.id_for_label }}" class="form-label fw-semibold">
@@ -341,7 +264,8 @@
                             {% endif %}
                         </div>
                     </div>
-                </div>
+
+
 
                 <div class="form-actions border-top mt-4 pt-3 d-flex justify-content-end gap-2">
                     <button type="submit" class="btn btn-success px-4">
@@ -356,10 +280,64 @@
     </div>
     </div>
 
-{% endblock %}
 
+{% endblock %}
+<script>
+    $(document).ready(function () {
+        $('[data-jdp]').pDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            initialValue: false,
+            persianDigit: true
+        });
+
+        $('.needs-validation').on('submit', function (e) {
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            this.classList.add('was-validated');
+        });
+    });
+</script>
 {% block extra_js %}
     <!-- جاوااسکریپت قبلی بدون تغییر -->
+    <script>
+        $(document).ready(function () {
+
+            // به‌روزرسانی پروژه‌ها وقتی سازمان تغییر می‌کنه
+            $('#id_organization').on('change', function () {
+                var orgId = $(this).val();
+                $.ajax({
+                    url: '{% url "get_projects_by_organization" %}', // باید این URL رو توی urls.py تعریف کنید
+                    data: {
+                        'organization_id': orgId
+                    },
+                    success: function (data) {
+                        var $projectSelect = $('#id_project');
+                        $projectSelect.empty();
+                        $projectSelect.append('<option value="">---------</option>');
+                        $.each(data.projects, function (index, project) {
+                            $projectSelect.append('<option value="' + project.id + '">' + project.name + '</option>');
+                        });
+                        $projectSelect.trigger('change');
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching projects:', error);
+                    }
+                });
+            });
+            // اعتبارسنجی سمت کلاینت
+            $('.budget-allocation-form').on('submit', function (e) {
+                let form = this;
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+        });
+    </script>
     <script>
         (function () {
             "use strict";

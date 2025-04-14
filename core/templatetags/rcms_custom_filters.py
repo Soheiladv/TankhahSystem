@@ -208,3 +208,55 @@ def format_negative(value):
 
 
 
+def number_to_farsi_words(number):
+    """
+    تبدیل عدد به حروف فارسی
+    مثال: 1234567 -> یک میلیون و دویست و سی و چهار هزار و پانصد و شصت و هفت
+    """
+    if not isinstance(number, (int, float, str)):
+        return ""
+
+    try:
+        number = int(float(str(number).replace(",", "")))
+    except (ValueError, TypeError):
+        return ""
+
+    if number == 0:
+        return "صفر"
+
+    units = ["", "هزار", "میلیون", "میلیارد", "تریلیون"]
+    digits = [
+        "", "یک", "دو", "سه", "چهار", "پنج", "شش", "هفت", "هشت", "نه",
+        "ده", "یازده", "دوازده", "سیزده", "چهارده", "پانزده", "شانزده",
+        "هفده", "هجده", "نوزده"
+    ]
+    tens = ["", "", "بیست", "سی", "چهل", "پنجاه", "شصت", "هفتاد", "هشتاد", "نود"]
+    hundreds = ["", "صد", "دویست", "سیصد", "چهارصد", "پانصد", "ششصد", "هفتصد", "هشتصد", "نهصد"]
+
+    def convert_chunk(num):
+        if num == 0:
+            return ""
+        result = []
+        if num >= 100:
+            result.append(hundreds[num // 100])
+            num %= 100
+        if num >= 20:
+            result.append(tens[num // 10])
+            num %= 10
+        if num > 0:
+            result.append(digits[num])
+        return " و ".join(filter(None, result))
+
+    result = []
+    unit_index = 0
+    while number > 0:
+        chunk = number % 1000
+        if chunk > 0:
+            chunk_text = convert_chunk(chunk)
+            if unit_index > 0:
+                chunk_text += " " + units[unit_index]
+            result.insert(0, chunk_text)
+        number //= 1000
+        unit_index += 1
+
+    return " و ".join(filter(None, result)) if result else ""

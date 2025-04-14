@@ -1,6 +1,10 @@
+import re
+from datetime import date
+
 import jdatetime
 from django import forms
 
+from budgets.forms import to_english_digits
 from budgets.models import ProjectBudgetAllocation, BudgetAllocation
 from core.models import Project, SubProject, Organization
 from django.utils.translation import gettext_lazy as _
@@ -86,27 +90,33 @@ class ProjectBudgetAllocationForm(forms.ModelForm):
             self.initial['allocation_date'] = j_date.strftime('%Y/%m/%d')
 
     def clean_allocation_date(self):
-        date_str = self.cleaned_data.get('allocation_date')
-        logger.debug(f"Cleaning allocation_date: input={date_str}")
-        if not date_str:
+        date_input = self.cleaned_data.get('allocation_date')
+        logger.debug(f"Cleaning allocation_date: input={date_input}")
+        if not date_input:
             logger.error("allocation_date is empty")
             raise forms.ValidationError(_('تاریخ تخصیص اجباری است.'))
-        from budgets.forms import to_english_digits
-        date_str = to_english_digits(date_str.strip())
-        import re
+        if isinstance(date_input, date):
+            return date_input
+
+        date_str = to_english_digits(str(date_input).strip())
         date_str = re.sub(r'[-\.]', '/', date_str)
-        try:
-            j_date = jdatetime.date.strptime(date_str, '%Y/%m/%d')
-            g_date = j_date.togregorian()
-            from datetime import date
-            if not isinstance(g_date, date):
-                logger.error(f"Invalid allocation_date type: {type(g_date)}")
-                raise forms.ValidationError(_('فرمت تاریخ نامعتبر است.'))
-            logger.debug(f"Parsed allocation_date: {g_date}")
-            return g_date
-        except ValueError:
-            logger.error(f"Invalid allocation_date format: {date_str}")
-            raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
+
+        # امتحان کردن فرمت‌های مختلف
+        formats = ['%Y/%m/%d', '%Y-%m-%d']
+        g_date = None
+        for fmt in formats:
+            try:
+                j_date = jdatetime.date.strptime(date_str, fmt)
+                g_date = j_date.togregorian()
+                if isinstance(g_date, date):
+                    logger.debug(f"Parsed allocation_date: {g_date} with format {fmt}")
+                    return g_date
+            except ValueError:
+                continue
+
+        logger.error(f"Invalid allocation_date format: {date_input}")
+        raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17 یا 1404-01-17).'))
+
 
     def clean(self):
         cleaned_data = super().clean()

@@ -518,7 +518,7 @@ class SubProjectForm(forms.ModelForm):
 class OrganizationForm(forms.ModelForm):
     class Meta:
         model = Organization
-        fields = ['code', 'name', 'org_type', 'description', 'parent_organization']
+        fields = ['code', 'name', 'org_type', 'description', 'parent_organization','is_core']
         # budget = forms.DecimalField(
         #     widget=NumberToWordsWidget(attrs={'placeholder': '  ارقام بودجه سالانه را وارد کنید'}),
         #     label='بودجه سالانه'
@@ -528,6 +528,7 @@ class OrganizationForm(forms.ModelForm):
             'code': forms.TextInput(attrs={'class': 'form-control'}),
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'org_type': forms.Select(attrs={'class': 'form-control'}),
+            'is_core': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             # 'budget': forms.Select(attrs={'class': 'form-control'}),
             'parent_organization': forms.Select(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
@@ -536,6 +537,7 @@ class OrganizationForm(forms.ModelForm):
             'code': _('کد سازمان'),
             'name': _('نام سازمان'),
             'org_type': _('نوع سازمان'),
+            'is_core': _('شعبه اصلی سازمان(دفتر مرکزی)'),
             # 'budget': _('بودجه سالانه'),
             'parent_organization': _('نوع سازمان'),
             'description': _('توضیحات'),

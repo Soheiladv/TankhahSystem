@@ -24,6 +24,25 @@ print("All Tankhah deleted.")
     # )
 
 
+            ##### صلاح صحیح تاریخ
+              start_date = forms.CharField(
+                label=_('تاریخ'),
+                widget=forms.TextInput(attrs={
+                    'data-jdp': '',
+                    'class': 'form-control',
+                    'placeholder': convert_to_farsi_numbers(_('تاریخ را انتخاب کنید (1404/01/17)'))
+                })
+                )
+
+            j_date = jdatetime.date.fromgregorian(start_date=self.instance.start_date)
+            jalali_date_str = j_date.strftime('%Y/%m/%d')
+            self.fields['start_date'].initial = jalali_date_str
+            self.initial['start_date'] = jalali_date_str
+
+            j_date = jdatetime.date.fromgregorian(start_date=self.instance.end_date)
+            jalali_date_str = j_date.strftime('%Y/%m/%d')
+            self.fields['end_date'].initial = jalali_date_str
+            self.initial['end_date'] = jalali_date_str
 
 
 <strong>{% trans "تفاوت:" %}</strong>

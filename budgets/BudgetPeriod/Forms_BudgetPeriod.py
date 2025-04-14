@@ -1,18 +1,15 @@
-# budgets/forms.py
 import logging
+
+import jdatetime
 from django import forms
 from django.utils.translation import gettext_lazy as _
-from django.utils import timezone
-from decimal import Decimal
+
 from Tanbakhsystem.utils import format_jalali_date, parse_jalali_date
-from budgets.models import BudgetPeriod
-# تنظیم لاگر
+from budgets.models import BudgetPeriod, SystemSettings
+from core.templatetags.rcms_custom_filters import number_to_farsi_words
+
 logger = logging.getLogger(__name__)
 
-def convert_to_farsi_numbers(text):
-    """تبدیل اعداد انگلیسی به فارسی"""
-    farsi_digits = '۰۱۲۳۴۵۶۷۸۹'
-    return ''.join(farsi_digits[int(c)] if c.isdigit() else c for c in str(text))
 
 def to_english_digits(text):
     """تبدیل اعداد فارسی به انگلیسی"""
@@ -20,13 +17,11 @@ def to_english_digits(text):
     return str(text).translate(farsi_to_english)
 
 class BudgetPeriodForm(forms.ModelForm):
-    """فرم دوره بودجه کلان با تاریخ شمسی و اعتبارسنجی‌های پیشرفته"""
     start_date = forms.CharField(
         label=_('تاریخ شروع'),
         widget=forms.TextInput(attrs={
             'data-jdp': '',
-            'class': 'form-control',
-            'placeholder': convert_to_farsi_numbers(_('1404/01/17')),
+            'class': 'form-control jalali-datepicker',
             'autocomplete': 'off'
         }),
         required=True
@@ -35,8 +30,7 @@ class BudgetPeriodForm(forms.ModelForm):
         label=_('تاریخ پایان'),
         widget=forms.TextInput(attrs={
             'data-jdp': '',
-            'class': 'form-control',
-            'placeholder': convert_to_farsi_numbers(_('1404/12/29')),
+            'class': 'form-control jalali-datepicker',
             'autocomplete': 'off'
         }),
         required=True
@@ -45,21 +39,25 @@ class BudgetPeriodForm(forms.ModelForm):
     class Meta:
         model = BudgetPeriod
         fields = [
-            'organization', 'name', 'start_date', 'end_date', 'total_amount',
-            'is_active', 'is_archived', 'is_completed', 'lock_condition',
-            'locked_percentage', 'warning_threshold', 'warning_action'
+            'organization', 'name', 'start_date', 'end_date', 'total_amount', 'is_active',
+            'is_archived', 'is_completed', 'lock_condition', 'locked_percentage',
+            'warning_threshold', 'warning_action', 'description',
+            # 'total_allocated', 'returned_amount', 'allocation_phase'  <-- حذف شدند
         ]
         widgets = {
-            'organization': forms.Select(attrs={'class': 'form-control', 'required': True}),
+            'organization': forms.Select(attrs={'class': 'form-select', 'required': True}),
+            # استفاده از form-select برای سازگاری با بوت استرپ 5+
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('نام دوره (مثل بودجه ۱۴۰۴)')}),
-            'total_amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('مبلغ کل'), 'min': 1}),
+            'total_amount': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_archived': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_completed': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'lock_condition': forms.Select(attrs={'class': 'form-control'}),
+            'lock_condition': forms.Select(attrs={'class': 'form-select'}),  # استفاده از form-select
             'locked_percentage': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 100, 'step': 0.01}),
             'warning_threshold': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 100, 'step': 0.01}),
-            'warning_action': forms.Select(attrs={'class': 'form-control'}),
+            'warning_action': forms.Select(attrs={'class': 'form-select'}),  # استفاده از form-select
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            # تغییر rows به 2 برای فضای بیشتر
         }
         labels = {
             'organization': _('دفتر مرکزی'),
@@ -69,19 +67,41 @@ class BudgetPeriodForm(forms.ModelForm):
             'is_archived': _('بایگانی شده'),
             'is_completed': _('تمام‌شده'),
             'lock_condition': _('شرط قفل'),
-            'locked_percentage': _('درصد قفل‌شده'),
-            'warning_threshold': _('آستانه اخطار'),
+            'locked_percentage': _('درصد قفل (%)'),  # اضافه کردن واحد
+            'warning_threshold': _('آستانه اخطار (%)'),  # اضافه کردن واحد
             'warning_action': _('اقدام هشدار'),
+            'description': _('توضیحات'),  # اضافه کردن لیبل برای توضیحات
         }
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         logger.debug("Initializing BudgetPeriodForm")
+        # محدود کردن سازمان‌ها به دفاتر مرکزی فعال
+        from core.models import Organization
+        self.fields['organization'].queryset = Organization.objects.filter(is_core=True, is_active=True)
+        # تنظیم مقادیر پیش‌فرض از SystemSettings
+        system_settings = SystemSettings.objects.first()
+        if system_settings:
+            self.fields['locked_percentage'].initial = system_settings.budget_locked_percentage_default
+            self.fields['warning_threshold'].initial = system_settings.budget_warning_threshold_default
+            self.fields['warning_action'].initial = system_settings.budget_warning_action_default
+        # تنظیم تاریخ‌های اولیه
         if self.instance and self.instance.pk:
             self.initial['start_date'] = format_jalali_date(self.instance.start_date)
             self.initial['end_date'] = format_jalali_date(self.instance.end_date)
             logger.debug(f"Set initial dates: start_date={self.initial['start_date']}, end_date={self.initial['end_date']}")
+        else:
+            current_jalali_year = jdatetime.date.today().year
+            self.initial['start_date'] = f"{current_jalali_year}/01/01"
+            self.initial['end_date'] = f"{current_jalali_year}/12/29"
+            logger.debug(f"Set default dates for new instance: start={self.initial['start_date']}, end={self.initial['end_date']}")
+
+        # مقدار حروف برای total_amount
+        self.total_amount_words = ""
+        if self.instance and self.instance.total_amount:
+            self.total_amount_words = number_to_farsi_words(self.instance.total_amount)
+            logger.info(f' self.total_amount_words  IS {self.total_amount_words}')
 
     def clean_start_date(self):
         date_str = self.cleaned_data.get('start_date')
@@ -94,9 +114,9 @@ class BudgetPeriodForm(forms.ModelForm):
             parsed_date = parse_jalali_date(date_str, field_name=_('تاریخ شروع'))
             logger.debug(f"Parsed start_date: {parsed_date}")
             return parsed_date
-        except forms.ValidationError as e:
-            logger.error(f"Validation error in clean_start_date: {str(e)}")
-            raise
+        except Exception as e:
+            logger.error(f"Error parsing start_date: {str(e)}")
+            raise forms.ValidationError(_('فرمت تاریخ شروع نامعتبر است.'))
 
     def clean_end_date(self):
         date_str = self.cleaned_data.get('end_date')
@@ -109,9 +129,9 @@ class BudgetPeriodForm(forms.ModelForm):
             parsed_date = parse_jalali_date(date_str, field_name=_('تاریخ پایان'))
             logger.debug(f"Parsed end_date: {parsed_date}")
             return parsed_date
-        except forms.ValidationError as e:
-            logger.error(f"Validation error in clean_end_date: {str(e)}")
-            raise
+        except Exception as e:
+            logger.error(f"Error parsing end_date: {str(e)}")
+            raise forms.ValidationError(_('فرمت تاریخ پایان نامعتبر است.'))
 
     def clean_total_amount(self):
         amount = self.cleaned_data.get('total_amount')
@@ -122,7 +142,9 @@ class BudgetPeriodForm(forms.ModelForm):
         if amount <= 0:
             logger.error(f"Invalid total_amount: {amount} (must be positive)")
             raise forms.ValidationError(_('مبلغ کل باید بزرگ‌تر از صفر باشد.'))
-        logger.debug(f"Validated total_amount: {amount}")
+        # به‌روزرسانی مقدار حروف
+        self.total_amount_words = number_to_farsi_words(amount)
+        logger.debug(f"Validated total_amount: {amount}, words: {self.total_amount_words}")
         return amount
 
     def clean_locked_percentage(self):
@@ -153,6 +175,14 @@ class BudgetPeriodForm(forms.ModelForm):
         logger.debug(f"Validated warning_threshold: {threshold}")
         return threshold
 
+    def clean_organization(self):
+        organization = self.cleaned_data.get('organization')
+        logger.debug(f"Cleaning organization: input={organization}")
+        if organization and not organization.is_core:
+            logger.error(f"Selected organization {organization} is not core")
+            raise forms.ValidationError(_('فقط دفاتر مرکزی می‌توانند برای بودجه کلان انتخاب شوند.'))
+        return organization
+
     def clean(self):
         cleaned_data = super().clean()
         logger.debug(f"Running clean method: cleaned_data={cleaned_data}")
@@ -167,6 +197,18 @@ class BudgetPeriodForm(forms.ModelForm):
             if end_date <= start_date:
                 logger.error(f"end_date ({end_date}) <= start_date ({start_date})")
                 raise forms.ValidationError(_('تاریخ پایان باید بعد از تاریخ شروع باشد.'))
+            overlapping_periods = BudgetPeriod.objects.filter(
+                organization=organization,
+                start_date__lte=end_date,
+                end_date__gte=start_date
+            ).exclude(pk=self.instance.pk)
+            if overlapping_periods.exists():
+                logger.error("Overlapping budget period detected")
+                # raise forms.ValidationError(_('دوره بودجه با تاریخ‌های متداخل در این سازمان وجود دارد.'))
+                # from django.contrib import messages
+                # messages.success(self.request, _('دوره بودجه با موفقیت ایجاد شد.👍') + _(
+                #     '💸دوره بودجه با تاریخ‌های متداخل در این سازمان وجود دارد.'))
+
             logger.debug("Validated date comparison")
         else:
             logger.warning(f"Missing dates: start_date={start_date}, end_date={end_date}")
@@ -188,7 +230,7 @@ class BudgetPeriodForm(forms.ModelForm):
         logger.debug("Saving BudgetPeriodForm")
         instance = super().save(commit=False)
         if not self.user or not self.user.is_authenticated:
-            logger.error("No authenticated user provided for created_by")
+            logger.error("No authenticated user provided")
             raise forms.ValidationError(_('کاربر معتبر برای ایجاد دوره بودجه لازم است.'))
         instance.created_by = self.user
         logger.debug(f"Set created_by: {instance.created_by}")

@@ -1,11 +1,16 @@
 import logging
+
+from django.contrib.contenttypes.models import ContentType
+
+from budgets.budget_calculations import check_budget_status
+
 logger = logging.getLogger(__name__)
 
 import jdatetime
 
 from accounts.models import CustomUser
 # from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget
-from core.models import Organization, Project, SubProject, WorkflowStage
+# from core.models import Organization, Project, SubProject, WorkflowStage
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -20,17 +25,9 @@ from jdatetime import datetime as jdatetime
 # ------------------------------------
 """BudgetPeriod (دوره بودجه کلان):"""
 class BudgetPeriod(models.Model):
-    """
-    بودجه کلان برای دفتر مرکزی (HQ).
-    قابلیت‌ها: مدیریت قفل، هشدار، اتمام بودجه، و اعلانات.
-    """
-    organization = models.ForeignKey(
-        'core.Organization',
-        on_delete=models.CASCADE,
-        limit_choices_to={'org_type': 'HQ'},
-        verbose_name=_("دفتر مرکزی"),
-        related_name='budget_periods'
-    )
+
+    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("دفتر مرکزی"),
+                                     related_name='budget_periods')
     name = models.CharField(max_length=100, unique=True, verbose_name=_("نام دوره بودجه"))
     start_date = models.DateField(verbose_name=_("تاریخ شروع"))
     end_date = models.DateField(verbose_name=_("تاریخ پایان"))
@@ -39,54 +36,34 @@ class BudgetPeriod(models.Model):
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
     is_archived = models.BooleanField(default=False, verbose_name=_("بایگانی شده"))
     is_completed = models.BooleanField(default=False, verbose_name=_("تمام‌شده"))
-    created_by = models.ForeignKey(
-        'accounts.CustomUser',
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='budget_periods_created',
-        verbose_name=_("ایجادکننده")
-    )
-    locked_percentage = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=0,
-        verbose_name=_("درصد قفل‌شده"),
-        help_text=_("درصد بودجه که قفل می‌شود (0-100)")
-    )
-    warning_threshold = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=10,
-        verbose_name=_("آستانه اخطار"),
-        help_text=_("درصدی که هشدار نمایش داده می‌شود (0-100)")
-    )
-    lock_condition = models.CharField(
-        max_length=50,
-        choices=[
-            ('AFTER_DATE', _("بعد از تاریخ پایان")),
-            ('MANUAL', _("دستی")),
-            ('ZERO_REMAINING', _("باقی‌مانده صفر")),
-        ],
-        default='AFTER_DATE',
-        verbose_name=_("شرط قفل")
-    )
-    warning_action = models.CharField(
-        max_length=50,
-        choices=[
-            ('NOTIFY', _("فقط اعلان")),
-            ('LOCK', _("قفل کردن")),
-            ('RESTRICT', _("محدود کردن ثبت")),
-        ],
-        default='NOTIFY',
-        verbose_name=_("اقدام هشدار"),
-        help_text=_("رفتار سیستم هنگام رسیدن به آستانه هشدار")
-    )
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
+                                   related_name='budget_periods_created', verbose_name=_("ایجادکننده"))
+    locked_percentage = models.IntegerField(default=0, verbose_name=_("درصد قفل‌شده"),
+                                            help_text=_("درصد بودجه که قفل می‌شود (0-100)"))
+    warning_threshold = models.DecimalField(max_digits=5, decimal_places=2, default=10, verbose_name=_("آستانه اخطار"),
+                                            help_text=_("درصدی که هشدار نمایش داده می‌شود (0-100)"))
+    lock_condition = models.CharField(max_length=50,
+                                      choices=[('AFTER_DATE', _("بعد از تاریخ پایان")), ('MANUAL', _("دستی")),
+                                               ('ZERO_REMAINING', _("باقی‌مانده صفر")), ], default='AFTER_DATE',
+                                      verbose_name=_("شرط قفل"))
+    warning_action = models.CharField(max_length=50, choices=[('NOTIFY', _("فقط اعلان")), ('LOCK', _("قفل کردن")),
+                                                              ('RESTRICT', _("محدود کردن ثبت")), ], default='NOTIFY',
+                                      verbose_name=_("اقدام هشدار"),
+                                      help_text=_("رفتار سیستم هنگام رسیدن به آستانه هشدار"))
+    allocation_phase = models.CharField(max_length=50, blank=True, verbose_name=_("فاز تخصیص"))
+    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+
+    returned_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("مجموع بودجه برگشتی"))
 
     class Meta:
         verbose_name = _("دوره بودجه")
         verbose_name_plural = _("دوره‌های بودجه")
-        default_permissions = ('add', 'change', 'delete', 'view')
+        default_permissions = ()
         permissions = [
+            ('budgetperiod_add', _("افزودن دوره بودجه")),
+            ('budgetperiod_update', _("بروزرسانی دوره بودجه")),
+            ('budgetperiod_view', _("نمایش دوره بودجه")),
+            ('budgetperiod_delete', _("حذف دوره بودجه")),
             ('budgetperiod_archive', _("بایگانی دوره بودجه")),
         ]
 
@@ -94,7 +71,9 @@ class BudgetPeriod(models.Model):
         return f"{self.name} ({self.organization.code})"
 
     def clean(self):
-        """اعتبارسنجی تاریخ‌ها و درصد‌ها"""
+        # super().clean()
+        # if self.total_allocated > self.total_amount:
+        #     raise ValidationError(_("مجموع تخصیص‌ها نمی‌تواند از مبلغ کل بیشتر باشد."))
         if not self.start_date or not self.end_date:
             raise ValidationError(_("تاریخ شروع و پایان نمی‌توانند خالی باشند."))
         if self.end_date <= self.start_date:
@@ -107,7 +86,6 @@ class BudgetPeriod(models.Model):
             raise ValidationError(_("دوره تمام‌شده نمی‌تواند فعال باشد."))
 
     def get_remaining_amount(self):
-        """محاسبه باقی‌مانده بودجه"""
         from budgets.models import BudgetAllocation
         allocated = BudgetAllocation.objects.filter(budget_period=self).aggregate(
             total=Sum('allocated_amount')
@@ -115,41 +93,12 @@ class BudgetPeriod(models.Model):
         return max(self.total_amount - allocated, Decimal('0'))
 
     def get_locked_amount(self):
-        """محاسبه مقدار قفل‌شده"""
         return (self.total_amount * self.locked_percentage) / Decimal('100')
 
     def get_warning_amount(self):
-        """محاسبه مقدار آستانه هشدار"""
         return (self.total_amount * self.warning_threshold) / Decimal('100')
 
-    def check_budget_status(self):
-        """چک کردن وضعیت بودجه"""
-        from django.utils import timezone
-        remaining = self.get_remaining_amount()
-        locked = self.get_locked_amount()
-        warning = self.get_warning_amount()
-
-        if not self.is_active:
-            return 'inactive', _('دوره غیرفعال است.')
-        if self.is_completed:
-            return 'completed', _('بودجه تمام‌شده است.')
-        if remaining <= 0 and self.lock_condition == 'ZERO_REMAINING':
-            self.is_completed = True
-            self.is_active = False
-            self.save()
-            return 'completed', _('بودجه به صفر رسیده و تمام‌شده است.')
-        if self.lock_condition == 'AFTER_DATE' and self.end_date < timezone.now().date():
-            self.is_active = False
-            self.save()
-            return 'locked', _('دوره به دلیل پایان تاریخ قفل شده است.')
-        if self.lock_condition == 'MANUAL' and remaining <= locked:
-            return 'locked', _('بودجه به حد قفل‌شده رسیده است.')
-        if remaining <= warning:
-            return 'warning', _('بودجه به آستانه هشدار رسیده است.')
-        return 'normal', _('وضعیت عادی')
-
     def send_notification(self, status, message):
-        """ارسال اعلان به کاربران مرتبط"""
         from notifications.models import Notification
         from accounts.models import CustomUser
         recipients = CustomUser.objects.filter(
@@ -171,29 +120,20 @@ class BudgetPeriod(models.Model):
             )
 
     def save(self, *args, **kwargs):
-        """مدیریت ذخیره و اعلانات"""
-        self.full_clean()  # اجرای اعتبارسنجی کامل
+        self.full_clean()
         super().save(*args, **kwargs)
-        status, message = self.check_budget_status()
+        status, message = check_budget_status(self)
+
+        # self.budget_period.total_allocated = BudgetAllocation.objects.filter(
+        #     budget_period=self
+        # ).aggregate(Sum('allocated_amount'))['allocated_amount__sum'] or Decimal('0')
+        # self.budget_period.save(update_fields=['total_allocated'])
+
         if status in ('warning', 'locked', 'completed'):
             self.send_notification(status, message)
 
-    class Meta:
-        verbose_name = _("دوره بودجه")
-        verbose_name_plural = _("دوره‌های بودجه")
-        default_permissions = ()
-        permissions = [
-            ('budgetperiod_add', _("افزودن دوره بودجه")),
-            ('budgetperiod_update', _("بروزرسانی دوره بودجه")),
-            ('budgetperiod_view', _("نمایش دوره بودجه")),
-            ('budgetperiod_delete', _("حذف دوره بودجه")),
-            ('budgetperiod_archive', _("بایگانی دوره بودجه")),
-        ]
-
-
 # ------------------------------------
 """ BudgetAllocation (تخصیص بودجه):"""
-
 class BudgetAllocation(models.Model):
     """
     تخصیص بودجه به سازمان‌ها (شعبات یا ادارات) و پروژه‌ها.
@@ -204,8 +144,10 @@ class BudgetAllocation(models.Model):
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, related_name='budget_allocations',
                                      verbose_name=_("سازمان دریافت‌کننده"))
     project = models.ForeignKey('core.Project', on_delete=models.CASCADE, related_name='allocations',
-                                verbose_name=_("پروژه"))
+                                verbose_name=_("پروژه"), null=True, blank=True)  # اختیاری کردن پروژه
     allocated_amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ تخصیص"))
+    remaining_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0,
+                                           verbose_name=_("باقی‌مانده تخصیص"))
     allocation_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ تخصیص"))
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
                                    related_name='budget_allocations_created', verbose_name=_("ایجادکننده"))
@@ -221,17 +163,13 @@ class BudgetAllocation(models.Model):
                                             help_text=_("درصدی که هشدار نمایش داده می‌شود (0-100)"))
     warning_action = models.CharField(
         max_length=50,
-        choices=[
-            ('NOTIFY', _("فقط اعلان")),
-            ('LOCK', _("قفل کردن")),
-            ('RESTRICT', _("محدود کردن ثبت")),
-        ],
+        choices=[('NOTIFY', _("فقط اعلان")), ('LOCK', _("قفل کردن")), ('RESTRICT', _("محدود کردن ثبت")), ],
         default='NOTIFY',
         verbose_name=_("اقدام هشدار"),
         help_text=_("رفتار سیستم هنگام رسیدن به آستانه هشدار")
     )
-    allocation_number = models.IntegerField(default=1, verbose_name=_("شماره تخصیص")) #برای ردیابی تخصیص‌های چندباره:
-
+    allocation_number = models.IntegerField(default=1, verbose_name=_("شماره تخصیص"))
+    returned_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0,verbose_name=_("مجموع بودجه برگشتی"))
     class Meta:
         verbose_name = _("تخصیص بودجه")
         verbose_name_plural = _("تخصیص‌های بودجه")
@@ -243,18 +181,20 @@ class BudgetAllocation(models.Model):
             ('budgetallocation_delete', _("حذف تخصیص بودجه")),
             ('budgetallocation_adjust', _("تنظیم تخصیص بودجه (افزایش/کاهش)")),
             ('budgetallocation_stop', _("توقف تخصیص بودجه")),
+            ('budgetallocation_return', _("برگشت تخصیص بودجه")),  # جدید
+        ]
+        indexes = [
+            models.Index(fields=['budget_period', 'allocation_date']),
+            models.Index(fields=['organization', 'allocated_amount']),
         ]
 
     def __str__(self):
-        jalali_date = jdatetime.fromgregorian(date=self.allocation_date).strftime('%Y/%m/%d')
-        return f"تخصیص {self.id} - {self.organization.name} - {self.project.name} - {self.allocated_amount:,} ({jalali_date})"
+        jalali_date = jdatetime.date.fromgregorian(date=self.allocation_date).strftime('%Y/%m/%d')
+        project_name = self.project.name if self.project else _("بدون پروژه")
+        return f"تخصیص {self.id} - {self.organization.name} - {project_name} - {self.allocated_amount:,} ({jalali_date})"
 
     def clean(self):
         super().clean()
-        # فرض: شروع و پایان از خود BudgetPeriod استخراج می‌شه
-
-
-        """اعتبارسنجی تخصیص"""
         if self.allocated_amount <= 0:
             raise ValidationError(_("مبلغ تخصیص باید مثبت باشد."))
         if not (0 <= self.locked_percentage <= 100):
@@ -264,41 +204,27 @@ class BudgetAllocation(models.Model):
         if self.allocation_type == 'percent' and self.allocated_amount > 100:
             raise ValidationError(_("درصد تخصیص نمی‌تواند بیشتر از 100 باشد."))
         if self.budget_period and self.allocation_date:
-            start_date = self.budget_period.start_date
-            end_date = self.budget_period.end_date
-
             allocation_date = self.allocation_date
             if hasattr(allocation_date, "date"):
                 allocation_date = allocation_date.date()
-            if not (start_date <= allocation_date <= end_date):
-                raise ValidationError("تاریخ تخصیص باید در بازه‌ی دوره بودجه باشد.")
-            # بررسی بازه تاریخ
-            # logger.info(
-            #     f"Checking date range: start_date={start_date}, allocation_date={self.allocation_date}, end_date={end_date}")
-            # if not (start_date <= self.allocation_date <= end_date):
-            #     raise ValidationError(_("تاریخ تخصیص باید در بازه دوره بودجه باشد."))
+            if not (self.budget_period.start_date <= allocation_date <= self.budget_period.end_date):
+                raise ValidationError(_("تاریخ تخصیص باید در بازه دوره بودجه باشد."))
+        if self.organization.is_core:
+            raise ValidationError(_("نمی‌توان به دفتر مرکزی تخصیص داد."))
 
     def get_remaining_amount(self):
-        """محاسبه باقی‌مانده تخصیص"""
-        used = ProjectBudgetAllocation.objects.filter(budget_allocation=self).aggregate(
-            total=Sum('allocated_amount')
-        )['total'] or Decimal('0')
-        return max(self.allocated_amount - used, Decimal('0'))
+        return max(self.remaining_amount, Decimal('0'))
 
     def get_locked_amount(self):
-        """محاسبه مقدار قفل‌شده"""
         return (self.allocated_amount * self.locked_percentage) / Decimal('100')
 
     def get_warning_amount(self):
-        """محاسبه مقدار آستانه هشدار"""
         return (self.allocated_amount * self.warning_threshold) / Decimal('100')
 
     def check_allocation_status(self):
-        """چک کردن وضعیت تخصیص"""
         remaining = self.get_remaining_amount()
         locked = self.get_locked_amount()
         warning = self.get_warning_amount()
-
         if not self.is_active:
             return 'inactive', _('تخصیص غیرفعال است.')
         if self.is_stopped:
@@ -312,7 +238,6 @@ class BudgetAllocation(models.Model):
         return 'normal', _('وضعیت عادی')
 
     def send_notification(self, status, message):
-        """ارسال اعلان به کاربران مرتبط"""
         from tankhah.models import Notification
         recipients = CustomUser.objects.filter(
             models.Q(organization=self.organization) |
@@ -326,25 +251,31 @@ class BudgetAllocation(models.Model):
             'inactive': 'INFO',
             'normal': 'INFO'
         }.get(status, 'INFO')
+        project_name = self.project.name if self.project else _("بدون پروژه")
         for recipient in recipients:
             Notification.objects.create(
                 recipient=recipient,
-                message=f"تخصیص {self.id} - {self.project.name}: {message}",
+                message=f"تخصیص {self.id} - {project_name}: {message}",
                 level=level
             )
 
     def save(self, *args, **kwargs):
         """مدیریت ذخیره و اعلانات"""
-        self.clean()
-        if self.allocation_type == 'percent' and self.budget_period:
-            self.allocated_amount = (self.budget_period.total_amount * self.allocated_amount) / Decimal('100')
-        super().save(*args, **kwargs)
-        status, message = self.check_allocation_status()
-        if status in ('warning', 'locked', 'completed', 'stopped'):
-            self.send_notification(status, message)
-
-# ------------------------------------
-"""تاریخچه برای هر بودجه کلان"""
+        def save(self, *args, **kwargs):
+            self.clean()
+            if self.allocation_type == 'percent' and self.budget_period:
+                self.allocated_amount = (self.budget_period.total_amount * self.allocated_amount) / Decimal('100')
+            if not self.pk:
+                self.remaining_amount = self.allocated_amount
+            super().save(*args, **kwargs)
+            # به‌روزرسانی total_allocated
+            self.budget_period.total_allocated = BudgetAllocation.objects.filter(
+                budget_period=self.budget_period
+            ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+            self.budget_period.save(update_fields=['total_allocated'])
+            status, message = self.check_allocation_status()
+            if status in ('warning', 'locked', 'completed', 'stopped'):
+                self.send_notification(status, message)
 
 """ BudgetTransaction (تراکنش بودجه):"""
 class BudgetTransaction(models.Model):
@@ -370,17 +301,53 @@ class BudgetTransaction(models.Model):
     transaction_id = models.CharField(max_length=50, unique=True, verbose_name=_("شناسه تراکنش"))#یک شناسه منحصربه‌فرد برای هر تراکنش:
 
     def save(self, *args, **kwargs):
-        if self.transaction_type == 'CONSUMPTION' and self.amount > self.allocation.remaining_amount:
-            raise ValueError("مبلغ مصرف بیشتر از باقی‌مانده تخصیص است")
-        if self.transaction_type in ['CONSUMPTION', 'ADJUSTMENT_DECREASE']:
+        from django.core.exceptions import ValidationError
+        from django.contrib.contenttypes.models import ContentType
+
+        if not self.transaction_id:
+            self.transaction_id = f"TX-{self.allocation.id}-{timezone.now().timestamp()}"
+
+        if self.transaction_type == 'CONSUMPTION':
+            if self.amount > self.allocation.remaining_amount:
+                raise ValidationError(_("مبلغ مصرف بیشتر از باقی‌مانده تخصیص است."))
+        elif self.transaction_type == 'RETURN':
+            if self.amount > self.allocation.allocated_amount:
+                raise ValidationError(_("مبلغ برگشتی نمی‌تواند بیشتر از مبلغ تخصیص‌یافته باشد."))
+            if not self.allocation.budget_period.is_active:
+                raise ValidationError(_("نمی‌توان از دوره غیرفعال بودجه برگشت داد."))
+
+            self.allocation.remaining_amount += self.amount  # remaining_amount تخصیص افزایش یابد.
+            self.allocation.allocated_amount -= self.amount  # کاهش مبلغ تخصیص
+            self.allocation.returned_amount += self.amount
+
+            self.allocation.budget_period.total_allocated -= self.amount
+            self.allocation.budget_period.returned_amount += self.amount
+
+            self.allocation.save(update_fields=['remaining_amount', 'allocated_amount', 'returned_amount'])
+            self.allocation.budget_period.save(update_fields=['total_allocated', 'returned_amount'])
+
+            # self.allocation.budget_period.save(update_fields=['total_allocated'])
+            # ثبت در BudgetHistory
+            BudgetHistory.objects.create(
+                content_type=ContentType.objects.get_for_model(BudgetAllocation),
+                object_id=self.allocation.id,
+                action='RETURN',
+                amount=self.amount,
+                created_by=self.created_by,
+                details=f"برگشت {self.amount:,} از تخصیص {self.allocation.id} به دوره بودجه {self.allocation.budget_period.name}",
+                transaction_type='RETURN',
+                transaction_id=f"RET-{self.transaction_id}"
+            )
+        elif self.transaction_type in ['CONSUMPTION', 'ADJUSTMENT_DECREASE']:
             self.allocation.remaining_amount -= self.amount
         elif self.transaction_type in ['ALLOCATION', 'ADJUSTMENT_INCREASE']:
             self.allocation.remaining_amount += self.amount
-        self.allocation.save()
+
+        self.allocation.save(update_fields=['remaining_amount', 'allocated_amount'])
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.transaction_type} - {self.amount} ({self.timestamp})"
+        return f"{self.transaction_type} - {self.amount:,} ({self.timestamp})"
 
     class Meta:
         verbose_name = _("تراکنش بودجه")
@@ -388,10 +355,11 @@ class BudgetTransaction(models.Model):
         default_permissions = ()
 
         permissions = [
-            # ('BudgetTransaction_add', 'افزودن تراکنش بودجه'),
-            # ('BudgetTransaction_update', 'بروزرسانی تراکنش بودجه'),
-            # ('BudgetTransaction_delete', 'حــذف تراکنش بودجه'),
+            ('BudgetTransaction_add', 'افزودن تراکنش بودجه'),
+            ('BudgetTransaction_update', 'بروزرسانی تراکنش بودجه'),
+            ('BudgetTransaction_delete', 'حــذف تراکنش بودجه'),
             ('BudgetTransaction_view', _('نمایش تراکنش بودجه')),
+            ('BudgetTransaction_return', _('برگشت تراکنش بودجه')),  # جدید
             # add/update/delete معمولاً توسط سیستم انجام می‌شه، نه کاربر
         ]
 
@@ -548,6 +516,11 @@ class ProjectBudgetAllocation(models.Model):
             raise ValidationError(_("زیرپروژه باید به پروژه انتخاب‌شده تعلق داشته باشد"))
         if self.allocated_amount < 0:
             raise ValidationError(_("مبلغ تخصیص نمی‌تواند منفی باشد"))
+        if self.budget_allocation and self.allocation_date:
+            start_date = self.budget_allocation.budget_period.start_date
+            end_date = self.budget_allocation.budget_period.end_date
+            if not (start_date <= self.allocation_date <= end_date):
+                raise ValidationError(_("تاریخ تخصیص باید در بازه دوره بودجه باشد"))
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -595,33 +568,46 @@ class BudgetSettings(models.Model):
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, null=True)
     budget_period = models.ForeignKey('BudgetPeriod', on_delete=models.CASCADE, null=True, verbose_name=_("دوره بودجه"))
 
-"""مدل BudgetHistory برای لاگ کردن تغییرات بودجه و تخصیص‌ها:"""
-class BudgetHistory(models.Model):
+    # ردیابی مدل
     # content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    # object_id = models.PositiveIntegerField()
+    # content_object = GenericForeignKey('content_type', 'object_id')
+
+"""مدل BudgetHistory برای لاگ کردن تغییرات بودجه و تخصیص‌ها:"""
+# ------------------------------------
+"""تاریخچه برای هر بودجه کلان"""
+class BudgetHistory(models.Model):
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     # content_object = GenericForeignKey('content_type', 'object_id')
-    action = models.CharField(max_length=50, choices=[('CREATE', 'ایجاد'), ('UPDATE', 'بروزرسانی'), ('STOP', 'توقف'), ('REALLOCATE', 'انتقال')])
-    amount = models.DecimalField(max_digits=25, decimal_places=2, null=True)
-    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    details = models.TextField(blank=True)
-    transaction_type = models.CharField(max_length=20, choices=[('ALLOCATION', 'تخصیص'), ('CONSUMPTION', 'مصرف')],
-                                        verbose_name=_("نوع تراکنش"))
+    action = models.CharField(max_length=50, choices=[
+        ('CREATE', _('ایجاد')),
+        ('UPDATE', _('بروزرسانی')),
+        ('STOP', _('توقف')),
+        ('REALLOCATE', _('انتقال')),
+        ('RETURN', _('برگشت'))  # جدید
+    ])
+    amount = models.DecimalField(max_digits=25, decimal_places=2, null=True, verbose_name=_('رقم عدد'))
+    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, verbose_name=_('کاربر ثبت کننده'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('اکشن در تاریخ و ساعت'))
+    details = models.TextField(blank=True, verbose_name=_('جزئیات'))
+    transaction_type = models.CharField(max_length=20, choices=[('ALLOCATION', _('تخصیص')), ('CONSUMPTION', _('مصرف')), ('RETURN', _('برگشت'))],verbose_name=_("نوع تراکنش"))
+    transaction_id = models.CharField(max_length=50, unique=True, verbose_name=_("شناسه تراکنش"))
 
-""" مدل پیشنهادی برای هزینه‌های متعارف"""
-class CostCenter(models.Model):
-    """ مدل پیشنهادی برای هزینه‌های متعارف"""
-    name = models.CharField(max_length=200, verbose_name=_("نام مرکز هزینه"))
-    code = models.CharField(max_length=50, unique=True, verbose_name=_("کد مرکز هزینه"))
-    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("سازمان"))
-    budget_allocation = models.ForeignKey(BudgetAllocation, on_delete=models.CASCADE, verbose_name=_("تخصیص بودجه"))
-    allocated_budget = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("بودجه تخصیص‌یافته"))
-    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
 
-    def get_remaining_budget(self):
-        from tankhah.models import Tankhah
-        consumed = Tankhah.objects.filter(cost_center=self).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
-        return max(self.allocated_budget - consumed, Decimal('0'))
+    def __str__(self):
+        return f"{self.action} - {self.amount:,} ({self.created_at})"
+
+    class Meta:
+        verbose_name = _("تاریخچه بودجه")
+        verbose_name_plural = _("تاریخچه‌های بودجه")
+        default_permissions = ()
+        permissions = [
+            ('BudgetHistory_add','افزودن تاریخچه برای هر بودجه کلان'),
+            ('BudgetHistory_view',' نمایش تاریخچه هر بودجه کلان'),
+            ('BudgetHistory_update','بروزرسانی تاریخچه برای هر بودجه کلان'),
+            ('BudgetHistory_delete',' حــذف تاریخچه برای هر بودجه کلان'),
+        ]
 
 class SystemSettings(models.Model):
     """تنظیمات سیستم بودجه"""
@@ -646,3 +632,25 @@ class SystemSettings(models.Model):
 
     def __str__(self):
         return "تنظیمات سیستم بودجه"
+
+
+
+""" مدل پیشنهادی برای هزینه‌های متعارف"""
+class CostCenter(models.Model):
+    """ مدل پیشنهادی برای هزینه‌های متعارف"""
+    name = models.CharField(max_length=200, verbose_name=_("نام مرکز هزینه"))
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("کد مرکز هزینه"))
+    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("سازمان"))
+    budget_allocation = models.ForeignKey(BudgetAllocation, on_delete=models.CASCADE, verbose_name=_("تخصیص بودجه"))
+    allocated_budget = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("بودجه تخصیص‌یافته"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+
+    def get_remaining_budget(self):
+        from tankhah.models import Tankhah
+        consumed = Tankhah.objects.filter(cost_center=self).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
+        return max(self.allocated_budget - consumed, Decimal('0'))
+
+    class Meta:
+        verbose_name = _("مرکز هزینه")
+        verbose_name_plural = _("مراکز هزینه")
+

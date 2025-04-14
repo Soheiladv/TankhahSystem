@@ -36,6 +36,15 @@ def to_english_digits(value):
     return value.translate(translation_table)
 
 #  /utils.py
+#   تبدیل تاریخ
+#
+
+def parse_jalali_date_jdate(date_str):
+    try:
+        return jdatetime.datetime.strptime(date_str, "%Y/%m/%d").date().togregorian()
+    except ValueError:
+        raise ValueError("فرمت تاریخ نامعتبر است (مثال: 1404/01/01)")
+#
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 import jdatetime
