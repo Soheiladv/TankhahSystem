@@ -45,6 +45,24 @@ print("All Tankhah deleted.")
             self.initial['end_date'] = jalali_date_str
 
 
+            def clean_allocation_date(self):
+                allocation_date = self.cleaned_data.get('allocation_date')
+                logger.debug(f"Cleaning allocation_date: input={allocation_date}")
+                if not allocation_date:
+                    logger.error("allocation_date is empty")
+                    raise forms.ValidationError(_('تاریخ شروع اجباری است.'))
+                try:
+                    allocation_date = to_english_digits(allocation_date)
+                    from Tanbakhsystem.utils import parse_jalali_date
+                    parsed_date = parse_jalali_date(allocation_date, field_name=_('تاریخ شروع'))
+                    logger.debug(f"Parsed start_date: {parsed_date}")
+                    return parsed_date
+                except Exception as e:
+                    logger.error(f"Error parsing start_date: {str(e)}")
+                    raise forms.ValidationError(_('فرمت تاریخ شروع نامعتبر است.'))
+
+
+######################################
 <strong>{% trans "تفاوت:" %}</strong>
                             <span class="badge fs-5 {{ difference|floatformat:0| yesno:'bg-success,bg-danger,bg-warning' }} text-white">
                                 {{ difference|format_negative}}

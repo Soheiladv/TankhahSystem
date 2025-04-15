@@ -25,12 +25,13 @@ class BudgetAllocationForm(forms.ModelForm):
         ('percent', _('درصد')),
     ]
 
-    WARNING_ACTION_CHOICES = [
+    WARNING_ACTION_CHOICES_ = [
         ('email', _('ارسال ایمیل هشدار')),
         ('sms', _('ارسال پیامک هشدار')),
         ('notification', _('ارسال اعلان سیستم')),
     ]
-
+    WARNING_ACTION_CHOICES = [
+    ('NOTIFY', _("فقط اعلان")), ('LOCK', _("قفل کردن")), ('RESTRICT', _("محدود کردن ثبت")),]
     allocation_type = forms.ChoiceField(
         choices=ALLOCATION_TYPE_CHOICES,
         widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
@@ -202,39 +203,56 @@ class BudgetAllocationForm(forms.ModelForm):
             self.initial['allocation_date'] = j_date.strftime('%Y/%m/%d')
 
     def clean_allocation_date(self):
-        date_input = self.cleaned_data.get('allocation_date')
-        logger.debug(f"Cleaning allocation_date: input={date_input}, type={type(date_input)}")
-
-        if not date_input:
-            raise forms.ValidationError(_('تاریخ تخصیص اجباری است.'))
-
-        if isinstance(date_input, date):
-            return date_input
-
+        allocation_date = self.cleaned_data.get('allocation_date')
+        logger.debug(f"Cleaning allocation_date: input={allocation_date}")
+        if not allocation_date:
+            logger.error("allocation_date is empty")
+            raise forms.ValidationError(_('تاریخ شروع اجباری است.'))
         try:
-            date_str = to_english_digits(str(date_input).strip())
-            date_str = re.sub(r'[-\.]', '/', date_str)
-            # پشتیبانی از فرمت YYYY/MM/DD
-            try:
-                if re.match(r'^\d{4}/\d{2}/\d{2}$', date_str):
-                    j_date = jdatetime.date.strptime(date_str, '%Y/%m/%d')
-                    g_date = j_date.togregorian()
-                    logger.debug(f"Parsed allocation_date: {g_date}")
-                    return g_date
-            except ValueError:
-                pass
-            # پشتیبانی از فرمت میلادی YYYY-MM-DD
-            try:
-                if re.match(r'^\d{4}-\d{2}-\d{2}$', date_str):
-                    g_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-                    logger.debug(f"Parsed gregorian date: {g_date}")
-                    return g_date
-            except ValueError:
-                pass
-            raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17 یا 2025-04-01).'))
+            allocation_date = to_english_digits(allocation_date)
+            from Tanbakhsystem.utils import parse_jalali_date
+            parsed_date = parse_jalali_date(allocation_date, field_name=_('تاریخ شروع'))
+            logger.debug(f"Parsed start_date: {parsed_date}")
+            return parsed_date
         except Exception as e:
-            logger.error(f"Error parsing date: {str(e)}")
-            raise forms.ValidationError(_('خطا در پردازش تاریخ.'))
+            logger.error(f"Error parsing start_date: {str(e)}")
+            raise forms.ValidationError(_('فرمت تاریخ شروع نامعتبر است.'))
+
+
+    # def clean_allocation_date(self):
+    #     date_input = self.cleaned_data.get('allocation_date')
+    #     logger.debug(f"Cleaning allocation_date: input={date_input}, type={type(date_input)}")
+    #
+    #     if not date_input:
+    #         raise forms.ValidationError(_('تاریخ تخصیص اجباری است.'))
+    #
+    #     if isinstance(date_input, date):
+    #         return date_input
+    #
+    #     try:
+    #         date_str = to_english_digits(str(date_input).strip())
+    #         date_str = re.sub(r'[-\.]', '/', date_str)
+    #         # پشتیبانی از فرمت YYYY/MM/DD
+    #         try:
+    #             if re.match(r'^\d{4}/\d{2}/\d{2}$', date_str):
+    #                 j_date = jdatetime.date.strptime(date_str, '%Y/%m/%d')
+    #                 g_date = j_date.togregorian()
+    #                 logger.debug(f"Parsed allocation_date: {g_date}")
+    #                 return g_date
+    #         except ValueError:
+    #             pass
+    #         # پشتیبانی از فرمت میلادی YYYY-MM-DD
+    #         try:
+    #             if re.match(r'^\d{4}-\d{2}-\d{2}$', date_str):
+    #                 g_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    #                 logger.debug(f"Parsed gregorian date: {g_date}")
+    #                 return g_date
+    #         except ValueError:
+    #             pass
+    #         raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17 یا 2025-04-01).'))
+    #     except Exception as e:
+    #         logger.error(f"Error parsing date: {str(e)}")
+    #         raise forms.ValidationError(_('خطا در پردازش تاریخ.'))
 
 
 
