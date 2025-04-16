@@ -12,7 +12,7 @@ from accounts.models import CustomUser
 # from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget
 # from core.models import Organization, Project, SubProject, WorkflowStage
 
-from django.db import models
+from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum
 from decimal import Decimal
@@ -33,6 +33,8 @@ class BudgetPeriod(models.Model):
     end_date = models.DateField(verbose_name=_("تاریخ پایان"))
     total_amount = models.DecimalField(max_digits=25, decimal_places=0, verbose_name=_("مبلغ کل"))
     total_allocated = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("مجموع تخصیص‌ها"))
+    returned_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0,
+                                          verbose_name=_("مجموع بودجه برگشتی"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
     is_archived = models.BooleanField(default=False, verbose_name=_("بایگانی شده"))
     is_completed = models.BooleanField(default=False, verbose_name=_("تمام‌شده"))
@@ -53,7 +55,6 @@ class BudgetPeriod(models.Model):
     allocation_phase = models.CharField(max_length=50, blank=True, verbose_name=_("فاز تخصیص"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
 
-    returned_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("مجموع بودجه برگشتی"))
 
     class Meta:
         verbose_name = _("دوره بودجه")
@@ -85,12 +86,16 @@ class BudgetPeriod(models.Model):
         if self.is_completed and self.is_active:
             raise ValidationError(_("دوره تمام‌شده نمی‌تواند فعال باشد."))
 
+    # def get_remaining_amount(self):
+    #     from budgets.models import BudgetAllocation
+    #     allocated = BudgetAllocation.objects.filter(budget_period=self).aggregate(
+    #         total=Sum('allocated_amount')
+    #     )['total'] or Decimal('0')
+    #     return max(self.total_amount - allocated, Decimal('0'))
+
     def get_remaining_amount(self):
-        from budgets.models import BudgetAllocation
-        allocated = BudgetAllocation.objects.filter(budget_period=self).aggregate(
-            total=Sum('allocated_amount')
-        )['total'] or Decimal('0')
-        return max(self.total_amount - allocated, Decimal('0'))
+        allocated = self.allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+        return max(self.total_amount - allocated + self.returned_amount, Decimal('0'))
 
     def get_locked_amount(self):
         return (self.total_amount * self.locked_percentage) / Decimal('100')
@@ -132,6 +137,9 @@ class BudgetPeriod(models.Model):
         if status in ('warning', 'locked', 'completed'):
             self.send_notification(status, message)
 
+
+# ------------------------------------
+""" مدل نوع بودجه """
 # ------------------------------------
 """ BudgetAllocation (تخصیص بودجه):"""
 class BudgetAllocation(models.Model):
@@ -143,6 +151,8 @@ class BudgetAllocation(models.Model):
                                       verbose_name=_("دوره بودجه"))
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, related_name='budget_allocations',
                                      verbose_name=_("سازمان دریافت‌کننده"))
+    budget_item = models.ForeignKey('BudgetItem', on_delete=models.PROTECT, related_name='allocations',
+                                    verbose_name=_("ردیف بودجه"))
     project = models.ForeignKey('core.Project', on_delete=models.CASCADE, related_name='allocations',
                                 verbose_name=_("پروژه"), null=True, blank=True)  # اختیاری کردن پروژه
     allocated_amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ تخصیص"))
@@ -154,7 +164,8 @@ class BudgetAllocation(models.Model):
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
     is_stopped = models.BooleanField(default=False, verbose_name=_("متوقف‌شده"))
-    ALLOCATION_TYPES = (('amount', _("مبلغ ثابت")), ('percent', _("درصد")),)
+    ALLOCATION_TYPES = (('amount', _("مبلغ ثابت")), ('percent', _("درصد")), ('returned', _("برگشتی")),)
+
     allocation_type = models.CharField(max_length=20, choices=ALLOCATION_TYPES, default='amount',
                                        verbose_name=_("نوع تخصیص"))
     locked_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده"),
@@ -170,6 +181,7 @@ class BudgetAllocation(models.Model):
     )
     allocation_number = models.IntegerField(default=1, verbose_name=_("شماره تخصیص"))
     returned_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0,verbose_name=_("مجموع بودجه برگشتی"))
+
     class Meta:
         verbose_name = _("تخصیص بودجه")
         verbose_name_plural = _("تخصیص‌های بودجه")
@@ -189,31 +201,72 @@ class BudgetAllocation(models.Model):
         ]
 
     def __str__(self):
-        jalali_date = jdatetime.date.fromgregorian(date=self.allocation_date).strftime('%Y/%m/%d')
-        project_name = self.project.name if self.project else _("بدون پروژه")
-        return f"تخصیص {self.id} - {self.organization.name} - {project_name} - {self.allocated_amount:,} ({jalali_date})"
+        try:
+            allocation_date = self.allocation_date
+            if allocation_date:
+                if hasattr(allocation_date, 'date'):
+                    allocation_date = allocation_date.date()
+                jalali_date = jdatetime.date.fromgregorian(date=allocation_date).strftime('%Y/%m/%d')
+            else:
+                jalali_date = 'بدون تاریخ'
+            org_name = self.organization.name if self.organization else 'بدون سازمان/' + 'بدون شعبه'
+            return f"{org_name} - {self.budget_item.name} - {jalali_date} - {self.allocated_amount:,.0f} ریال"
+            # return f"{org_name} - {jalali_date} - {self.allocated_amount:,.0f} ریال"
+        except Exception as e:
+            logger.error(f"Error in BudgetAllocation.__str__: {str(e)}", exc_info=True)
+            return f"تخصیص ID {self.pk}"
+
+    def get_percentage(self):
+        if self.budget_item.total_amount and self.budget_item.total_amount != 0:
+            return (self.allocated_amount / self.budget_item.total_amount) * 100
+        return Decimal('0')
 
     def clean(self):
         super().clean()
+        logger.debug(
+            f"Cleaning BudgetAllocation: allocated_amount={self.allocated_amount}, allocation_type={self.allocation_type}")
+
+        if not self.budget_item:
+            raise ValidationError(_("ردیف بودجه اجباری است."))
+
+        if self.allocated_amount is None:
+            raise ValidationError(_("مبلغ تخصیص نمی‌تواند خالی باشد."))
         if self.allocated_amount <= 0:
             raise ValidationError(_("مبلغ تخصیص باید مثبت باشد."))
-        if not (0 <= self.locked_percentage <= 100):
-            raise ValidationError(_("درصد قفل‌شده باید بین 0 تا 100 باشد."))
-        if not (0 <= self.warning_threshold <= 100):
-            raise ValidationError(_("آستانه اخطار باید بین 0 تا 100 باشد."))
-        if self.allocation_type == 'percent' and self.allocated_amount > 100:
-            raise ValidationError(_("درصد تخصیص نمی‌تواند بیشتر از 100 باشد."))
+
+        remaining_budget = self.budget_item.get_remaining_amount()
+        if self.pk:  # برای ویرایش، تخصیص فعلی رو حساب نکن
+            current_allocation = BudgetAllocation.objects.filter(pk=self.pk).aggregate(
+                total=Sum('allocated_amount')
+            )['total'] or Decimal('0')
+            remaining_budget += current_allocation
+        if self.allocated_amount > remaining_budget:
+            raise ValidationError(_(
+                f"مبلغ تخصیص ({self.allocated_amount:,.0f} ریال) بیشتر از باقی‌مانده ردیف بودجه ({remaining_budget:,.0f} ریال) است."
+            ))
+
+        if self.budget_period and self.budget_item:
+            if self.budget_item.budget_period != self.budget_period:
+                raise ValidationError(_("ردیف بودجه باید متعلق به دوره بودجه انتخاب‌شده باشد."))
+
         if self.budget_period and self.allocation_date:
             allocation_date = self.allocation_date
             if hasattr(allocation_date, "date"):
                 allocation_date = allocation_date.date()
             if not (self.budget_period.start_date <= allocation_date <= self.budget_period.end_date):
                 raise ValidationError(_("تاریخ تخصیص باید در بازه دوره بودجه باشد."))
-        if self.organization.is_core:
-            raise ValidationError(_("نمی‌توان به دفتر مرکزی تخصیص داد."))
+
+        if self.warning_threshold is not None and not (0 <= self.warning_threshold <= 100):
+            raise ValidationError(_("آستانه اخطار باید بین ۰ تا ۱۰۰ باشد."))
+
+        logger.debug("Clean validation passed")
 
     def get_remaining_amount(self):
-        return max(self.remaining_amount, Decimal('0'))
+        # return max(self.remaining_amount, Decimal('0'))
+        return max(self.allocated_amount -
+                   self.transactions.filter(transaction_type='CONSUMPTION').aggregate(total=Sum('amount'))[
+                       'total'] or Decimal('0') + self.returned_amount, Decimal('0'))
+
 
     def get_locked_amount(self):
         return (self.allocated_amount * self.locked_percentage) / Decimal('100')
@@ -260,22 +313,66 @@ class BudgetAllocation(models.Model):
             )
 
     def save(self, *args, **kwargs):
-        """مدیریت ذخیره و اعلانات"""
-        def save(self, *args, **kwargs):
-            self.clean()
-            if self.allocation_type == 'percent' and self.budget_period:
-                self.allocated_amount = (self.budget_period.total_amount * self.allocated_amount) / Decimal('100')
-            if not self.pk:
-                self.remaining_amount = self.allocated_amount
-            super().save(*args, **kwargs)
-            # به‌روزرسانی total_allocated
-            self.budget_period.total_allocated = BudgetAllocation.objects.filter(
-                budget_period=self.budget_period
-            ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
-            self.budget_period.save(update_fields=['total_allocated'])
-            status, message = self.check_allocation_status()
-            if status in ('warning', 'locked', 'completed', 'stopped'):
-                self.send_notification(status, message)
+        logger.debug(f"Starting save for BudgetAllocation (pk={self.pk}, allocated_amount={self.allocated_amount})")
+        try:
+            with transaction.atomic():
+                self.clean()
+                if not self.pk:
+                    self.remaining_amount = self.allocated_amount
+                    logger.debug(f"New instance, set remaining_amount={self.remaining_amount}")
+
+                super().save(*args, **kwargs)
+                logger.info(f"BudgetAllocation saved with ID: {self.pk}")
+
+                total_allocated = BudgetAllocation.objects.filter(
+                    budget_period=self.budget_period
+                ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+                logger.debug(f"Calculated total_allocated={total_allocated} for BudgetPeriod {self.budget_period.id}")
+
+                self.budget_period.total_allocated = total_allocated
+                self.budget_period.save(update_fields=['total_allocated'])
+                logger.info(f"Updated BudgetPeriod {self.budget_period.id} with total_allocated={total_allocated}")
+
+                status, message = self.check_allocation_status()
+                logger.debug(f"Allocation status: {status}, message: {message}")
+                if status in ('warning', 'completed', 'stopped'):
+                    self.send_notification(status, message)
+                    logger.info(f"Sent notification for status: {status}")
+
+        except Exception as e:
+            logger.error(f"Error saving BudgetAllocation: {str(e)}", exc_info=True)
+            raise
+
+
+class BudgetItem(models.Model):
+    budget_period = models.ForeignKey('BudgetPeriod', on_delete=models.CASCADE, related_name='budget_items',
+                                      verbose_name=_("دوره بودجه"))
+    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, related_name='budget_items',
+                                     verbose_name=_("شعبه"))
+    name = models.CharField(max_length=100, verbose_name=_("نام ردیف بودجه"), null=True, blank=True)
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("کد ردیف"))
+    total_amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name=_("مبلغ بودجه ردیف"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    create_at = models.DateTimeField(auto_now_add=True, verbose_name=_('تاریخ ثبت '), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("ردیف بودجه")
+        verbose_name_plural = _("ردیف‌های بودجه")
+        unique_together = ('budget_period', 'organization', 'code')
+
+    def __str__(self):
+        return f"{self.name} - {self.organization.name}"  # - {self.budget_period.name}"
+
+    def clean(self):
+        super().clean()
+        if self.total_amount <= 0:
+            raise ValidationError(_("مبلغ بودجه ردیف باید مثبت باشد."))
+
+    def get_remaining_amount(self):
+        allocated = BudgetAllocation.objects.filter(
+            budget_item=self
+        ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+        return self.total_amount - allocated
 
 """ BudgetTransaction (تراکنش بودجه):"""
 class BudgetTransaction(models.Model):
@@ -632,7 +729,6 @@ class SystemSettings(models.Model):
 
     def __str__(self):
         return "تنظیمات سیستم بودجه"
-
 
 
 """ مدل پیشنهادی برای هزینه‌های متعارف"""

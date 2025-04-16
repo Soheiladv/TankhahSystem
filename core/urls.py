@@ -1,5 +1,7 @@
 from django.urls import path
 
+from budgets.BudgetAllocation.get_projects_by_organization import get_budget_items_by_organization, \
+    get_budget_item_remaining, get_budget_item_details
 from core.views import (
     # داشبوردها
     DashboardView_flows_1, DashboardView_flows, AllLinksView,
@@ -77,4 +79,10 @@ urlpatterns += [
     path('subproject/add/', SubProjectCreateView.as_view(), name='subproject_create'),
     path('subproject/<int:pk>/edit/', SubProjectUpdateView.as_view(), name='subproject_update'),
     path('subproject/<int:pk>/delete/', SubProjectDeleteView.as_view(), name='subproject_delete'),
+]
+urlpatterns += [
+    # ... سایر URL‌ها ...
+    path('budget-items/',  get_budget_items_by_organization, name='get_budget_items_by_organization'),
+    path('budget-item-remaining/', get_budget_item_remaining, name='get_budget_item_remaining'),
+    path('budget-item-details/',  get_budget_item_details, name='get_budget_item_details'),
 ]

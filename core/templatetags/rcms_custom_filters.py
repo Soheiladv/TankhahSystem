@@ -1,5 +1,6 @@
 from django import template
 from django.utils import numberformat
+from decimal import Decimal
 
 register = template.Library()
 
@@ -260,3 +261,25 @@ def number_to_farsi_words(number):
         unit_index += 1
 
     return " و ".join(filter(None, result)) if result else ""
+
+@register.filter
+def div(value, arg):
+    """Divides value by arg and returns the result."""
+    try:
+        value = Decimal(value)
+        arg = Decimal(arg)
+        if arg == 0:
+            return Decimal('0')
+        return value / arg
+    except (ValueError, TypeError, ZeroDivisionError):
+        return Decimal('0')
+
+@register.filter
+def mul(value, arg):
+    """Multiplies value by arg."""
+    try:
+        value = Decimal(value)
+        arg = Decimal(arg)
+        return value * arg
+    except (ValueError, TypeError):
+        return Decimal('0')

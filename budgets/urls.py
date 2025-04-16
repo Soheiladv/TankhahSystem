@@ -77,8 +77,8 @@ urlpatterns = [
 
     # path('budgetallocations/<int:pk>/update/', BudgetAllocationUpdateView.as_view(), name='budgetallocation_update'),
 
-    path('get_projects_by_organization/',
-         get_projects_by_organization, name='get_projects_by_organization'),# گرفتن پروژه‌های سازمان
+    # path('get_projects_by_organization/',get_projects_by_organization, name='get_projects_by_organization'),# گرفتن پروژه‌های سازمان
+    path('api/projects-by-organization/',  get_projects_by_organization, name='get_projects_by_organization'),
 
     path('convert_number_to_words/', NumberToWordsView.as_view(), name='convert_number_to_words'),
 
@@ -87,10 +87,14 @@ urlpatterns = [
 urlpatterns += [
     path('budget_Help/',budget_Help,name='budget_Help')
 ]
-
-
-
- 
+from .Budget_Items.views_Budget_item import BudgetItemListView, BudgetItemCreateView, BudgetItemUpdateView, BudgetItemDeleteView,BudgetItemDetailView
+urlpatterns += [
+    path('budgetitems/',  BudgetItemListView.as_view(), name='budgetitem_list'),
+    path('budgetitems/create/',  BudgetItemCreateView.as_view(), name='budgetitem_create'),
+    path('budgetitems/<int:pk>/update/',  BudgetItemUpdateView.as_view(), name='budgetitem_update'),
+    path('budgetitems/<int:pk>/delete/',  BudgetItemDeleteView.as_view(), name='budgetitem_delete'),
+    path('budgetitems/<int:pk>/',  BudgetItemDetailView.as_view(), name='budgetitem_detail'),
+]
 # #/
 # urlpatterns+  = [
 #     path('budgetperiods/', BudgetPeriodListView.as_view(), name='budgetperiod_list'),    # مسیر لیست دوره‌های بودجه (برای دکمه انصراف)

@@ -186,15 +186,21 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {'format': '{levelname} {asctime} {module} {message}', 'style': '{'},
-        'simple': {'format': '{levelname} {message}', 'style': '{'},
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {funcName} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
     },
     'handlers': {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': os.path.join(BASE_DIR, 'logs', 'MyLog.log'),
-            'maxBytes': 1024 * 1024 * 5,
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
             'formatter': 'verbose',
             'encoding': 'utf-8',
@@ -202,22 +208,32 @@ LOGGING = {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'simple',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
         'django': {
             'handlers': ['file', 'console'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': False,
         },
-        '': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
+        'django.db.backends': {
+            # 'handlers': ['file', 'console'],
+            'handlers': ['file' ],
+            'level': 'DEBUG',
+            'propagate': False,
         },
+        # 'budgets': {  # برای اپ budgets
+        #     'handlers': ['file', 'console'],
+        #     'level': 'DEBUG',
+        #     'propagate': False,
+        # },
+        # '': {
+        #     'handlers': ['file', 'console'],
+        #     'level': 'DEBUG',
+        # },
     },
 }
-
 logging.config.dictConfig(LOGGING)
 logger = logging.getLogger(__name__)
 

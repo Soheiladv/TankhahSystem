@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load i18n static rcms_custom_filters %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h3 class="mb-0"><i class="fas fa-plus-circle fa-fw me-2"></i>{{ title }}</h3>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+                <div class="mb-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="row g-3">
+                    {% for field in form %}
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-{{ field.label|slugify }}-alt fa-fw me-1 text-muted"></i>
+                                    {{ field.label }}
+                                </label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+                                {% if field.errors %}
+                                    <div class="invalid-feedback d-block">{{ field.errors|striptags }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="form-actions mt-4 pt-3 d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="fas fa-check me-1"></i> {% trans "ثبت" %}
+                    </button>
+                    <a href="{% url 'budgetitem_list' %}" class="btn btn-outline-secondary px-4">
+                        <i class="fas fa-times me-1"></i> {% trans "انصراف" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'admin/js/select2.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('select').select2({
+        placeholder: '{% trans "انتخاب کنید" %}',
+        allowClear: true
+    });
+
+    $('.needs-validation').on('submit', function(e) {
+        if (!this.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        this.classList.add('was-validated');
+    });
+
+    $('.numeric-input').on('input', function(e) {
+        let value = e.target.value;
+        value = value.replace(/[^۰-۹0-9]/g, '');
+        e.target.value = value;
+    });
+});
+</script>
+{% endblock %}

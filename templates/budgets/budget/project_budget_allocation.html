@@ -127,6 +127,7 @@
                                 <div class="metric">
                                     <small class="text-muted d-block">{% trans "باقی‌مانده:" %}</small>
                                     <strong id="remaining-amount">{{ remaining_amount|floatformat:0|to_persian_number }}</strong>
+                                    <strong id="remaining-amount">{{ budget_period.get_remaining_amount|format_negative|to_persian_number }}</strong>
                                     <span class="text-muted"> {% trans "ریال" %}</span>
                                     <small id="remaining-percent">({{ remaining_percent|floatformat:1|to_persian_number }}%)</small>
                                 </div>

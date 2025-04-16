@@ -6,7 +6,7 @@ from django.db.models import Sum
 from core.models import SubProject
 from .models import (
     BudgetPeriod, BudgetAllocation, BudgetTransaction,
-    PaymentOrder, Payee, TransactionType, ProjectBudgetAllocation,BudgetHistory
+    PaymentOrder, Payee, TransactionType, ProjectBudgetAllocation,BudgetHistory,BudgetItem
 )
 
 # ادمین BudgetPeriod
@@ -45,7 +45,7 @@ class BudgetPeriodAdmin(admin.ModelAdmin):
 @admin.register(BudgetAllocation)
 class BudgetAllocationAdmin(admin.ModelAdmin):
     list_display = ('budget_period', 'organization', 'allocated_amount',
-                     'allocation_date')
+                     'allocation_date','budget_item')
     list_filter = ('budget_period', 'organization', 'allocation_date')
     search_fields = ('budget_period__name', 'organization__name')
     date_hierarchy = 'allocation_date'
@@ -53,7 +53,7 @@ class BudgetAllocationAdmin(admin.ModelAdmin):
     readonly_fields = ('budget_period',)
     fieldsets = (
         (None, {
-            'fields': ('budget_period', 'organization', 'allocated_amount',  )
+            'fields': ('budget_period', 'organization', 'allocated_amount', 'budget_item', )
         }),
         (_('تاریخ'), {
             'fields': ('allocation_date',)
@@ -326,3 +326,4 @@ class ProjectBudgetAllocationAdmin(admin.ModelAdmin):
         return form
 
 admin.site.register(BudgetHistory)
+admin.site.register(BudgetItem)

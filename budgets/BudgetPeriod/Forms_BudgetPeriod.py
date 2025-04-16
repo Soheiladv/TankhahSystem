@@ -47,7 +47,7 @@ class BudgetPeriodForm(forms.ModelForm):
         widgets = {
             'organization': forms.Select(attrs={'class': 'form-select', 'required': True}),
             # استفاده از form-select برای سازگاری با بوت استرپ 5+
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('نام دوره (مثل بودجه ۱۴۰۴)')}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('نام دوره مثل ردیف "عملیاتی"، "سرمایه‌ای" یا "پژوهشی" بهمراه مثلا سال 1404')}),
             'total_amount': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_archived': forms.CheckboxInput(attrs={'class': 'form-check-input'}),

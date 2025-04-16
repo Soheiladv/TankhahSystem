@@ -91,8 +91,9 @@
                     <div class="col-md-4 col-6">
                         <div class="metric">
                             <small class="text-muted d-block">{% trans "باقی‌مانده:" %}</small>
-                            <strong id="remaining-amount">0</strong>
-                            <span class="text-muted"> {% trans "ریال" %}</span>
+                            <strong id="remaining-amount">0</strong><span class="text-muted"> {% trans "ریال" %}</span>
+{#                            <strong id="remaining-amount">{{ budget_period.get_remaining_amount|format_negative|to_persian_number }}</strong>#}
+
                             <small id="remaining-percent">(0%)</small>
                         </div>
                     </div>

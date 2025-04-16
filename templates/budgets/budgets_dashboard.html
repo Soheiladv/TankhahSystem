@@ -21,6 +21,27 @@
     <!-- بخش‌های بودجه -->
     <div class="accordion" id="budgetAccordion">
         <!-- BudgetPeriod -->
+      <div class="accordion-item">
+            <h2 class="accordion-header" id="headingBudgetItems">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBudgetItems"
+                        aria-expanded="true" aria-controls="collapseBudgetItems">
+                    {% trans "ردیف بودجه" %}<i class="fa fa-mobile-screen-button"></i>
+                </button>
+            </h2>
+            <div id="collapseBudgetItems" class="accordion-collapse collapse show" aria-labelledby="headingBudgetItems" data-bs-parent="#budgetAccordion">
+                <div class="accordion-body">
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <a href="{% url 'budgetitem_list' %}" class="btn btn-outline-primary btn-sm">{% trans "لیست ردیف بودجه" %}</a>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="{% url 'budgetitem_create' %}" class="btn btn-outline-success btn-sm">{% trans "ایجاد ردیف بودجه جدید" %}</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
         <div class="accordion-item">
             <h2 class="accordion-header" id="headingBudgetPeriod">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBudgetPeriod" aria-expanded="true" aria-controls="collapseBudgetPeriod">

@@ -12,29 +12,29 @@
         <div class="card-body">
             {% if budget_period %}
                 <div class="budget-summary border-bottom pb-2">
-                    <h6 class="mb-2 text-muted">{% trans "وضعیت:" %} {{ budget_period.name | to_persian_number }}</h6>
+                    <h6 class="mb-2 text-muted">{% trans "وضعیت:" %} {{ budget_period.name   }}</h6>
                     <div class="row g-2 mb-2">
                         <div class="col-md-4 col-6">
                             <div class="metric">
                                 <small class="text-muted d-block">{% trans "کل بودجه:" %}</small>
-                                <strong id="total-amount-display">{{ total_amount|floatformat:0|format_negative }}</strong>
+                                <strong id="total-amount-display">{{ total_amount|format_negative }}</strong>
                                 <span class="text-muted"> {% trans "ریال" %}</span>
                             </div>
                         </div>
                         <div class="col-md-4 col-6">
                             <div class="metric">
                                 <small class="text-muted d-block">{% trans "باقی‌مانده:" %}</small>
-                                <strong id="remaining-amount">{{ remaining_amount|floatformat:0|to_persian_number }}</strong>
+                                <strong id="remaining-amount">{{ remaining_amount|format_negative }}</strong>
                                 <span class="text-muted"> {% trans "ریال" %}</span>
-                                <small id="remaining-percent">({{ remaining_percent|floatformat:1|to_persian_number }}%)</small>
+                                <small id="remaining-percent">({{ remaining_percent|format_negative }}%)</small>
                             </div>
                         </div>
                         <div class="col-md-4 col-12">
                             <div class="progress-container">
                                 <div class="progress-labels">
-                                    <span>{{ locked_percentage|to_persian_number }}% <i
+                                    <span>{{ locked_percentage }}% <i
                                             class="fas fa-lock fa-xs text-danger"></i></span>
-                                    <span>{{ warning_threshold|to_persian_number }}% <i
+                                    <span>{{ warning_threshold }}% <i
                                             class="fas fa-exclamation-triangle fa-xs text-warning"></i></span>
                                 </div>
                                 <div class="progress position-relative">
@@ -86,7 +86,12 @@
                             {% endif %}
                         </div>
                     </div>
-
+{#  <h2>{% trans "ایجاد تخصیص بودجه" %}</h2>#}
+{#    <form method="post" id="budget_allocation_form">#}
+{#        {% csrf_token %}#}
+{#        {{ form.as_p }}#}
+{#        <button type="submit" class="btn btn-primary">{% trans "ثبت" %}</button>#}
+{#    </form>#}
                     <!-- پروژه -->
                     <div class="col-md-6">
                         <div class="form-group">
@@ -300,7 +305,59 @@
         });
     });
 </script>
+
+
 {% block extra_js %}
+<script src="{% static 'admin/js/select2.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // مقداردهی اولیه Select2
+    $('#id_organization').select2({
+        placeholder: '{% trans "انتخاب سازمان" %}',
+        allowClear: true
+    });
+    $('#id_project').select2({
+        placeholder: '{% trans "انتخاب پروژه" %}',
+        allowClear: true
+    });
+
+    // به‌روزرسانی پروژه‌ها هنگام تغییر سازمان
+    $('#id_organization').on('change', function() {
+        var organizationId = $(this).val();
+        var projectSelect = $('#id_project');
+
+        // خالی کردن پروژه‌ها
+        projectSelect.empty();
+        projectSelect.append('<option value="">{% trans "--------- (بدون پروژه)" %}</option>');
+
+        if (organizationId) {
+            // درخواست AJAX برای دریافت پروژه‌ها
+            $.ajax({
+                url: '{% url "get_projects_by_organization" %}',
+                data: { 'organization_id': organizationId },
+                dataType: 'json',
+                success: function(data) {
+                    $.each(data.projects, function(index, project) {
+                        projectSelect.append(
+                            $('<option></option>').val(project.id).text(project.name)
+                        );
+                    });
+                    projectSelect.trigger('change'); // به‌روزرسانی Select2
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching projects:', error);
+                    alert('{% trans "خطا در بارگذاری پروژه‌ها." %}');
+                }
+            });
+        }
+    });
+
+    // اطمینان از بارگذاری پروژه‌های مرتبط هنگام ویرایش
+    if ($('#id_organization').val()) {
+        $('#id_organization').trigger('change');
+    }
+});
+</script>
     <!-- جاوااسکریپت قبلی بدون تغییر -->
     <script>
         $(document).ready(function () {
