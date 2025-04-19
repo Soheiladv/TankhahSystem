@@ -1,0 +1,57 @@
+from core.RCMS_Lock.security import TimeLock
+import datetime
+
+# تاریخ انقضا و تعداد کاربران رو مشخص کن
+expiry_date = datetime.date(2025, 12, 31)  # مثلاً 31 دسامبر 2025
+max_users = 10  # حداکثر کاربران مجاز
+
+# ثبت قفل جدید
+result = TimeLock.set_expiry_date(expiry_date, max_users)
+
+# نتیجه رو چک کن
+print(result)  # باید True برگردونه
+print(TimeLock.get_expiry_date())  # تاریخ انقضا رو نشون می‌ده
+print(TimeLock.get_max_users())  # تعداد کاربران مجاز رو نشون می‌ده
+خروجی
+
+True
+2025-12-31
+10
+######
+
+import os
+import sys
+import django
+from datetime import date
+
+# تنظیمات جنگو رو لود کن
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "apartmant.settings")  # اسم پروژه‌ت رو بذار
+django.setup()
+
+from core.RCMS_Lock.security import TimeLock
+
+def set_manual_lock(expiry_date, max_users):
+    result = TimeLock.set_expiry_date(expiry_date, max_users)
+    if result:
+        print(f"قفل با موفقیت ثبت شد: تاریخ انقضا={expiry_date}, حداکثر کاربران={max_users}")
+    else:
+        print("خطا در ثبت قفل!")
+
+if __name__ == "__main__":
+    # تاریخ و تعداد کاربران دلخواه رو اینجا تنظیم کن
+    expiry_date = date(2025, 12, 31)  # مثلاً 31 دسامبر 2025
+    max_users = 10
+    set_manual_lock(expiry_date, max_users)
+
+
+اجرا
+python set_lock_manual.py
+خروجی
+قفل با موفقیت ثبت شد: تاریخ انقضا=2025-12-31, حداکثر کاربران=10
+تست بعد از ثبت
+# توی شل جنگو
+from core.RCMS_Lock.security import TimeLock
+print(TimeLock.is_locked())  # True یا False
+print(TimeLock.get_expiry_date())  # تاریخ انقضا
+print(TimeLock.get_max_users())  # تعداد کاربران مجاز
