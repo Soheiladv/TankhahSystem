@@ -18,7 +18,7 @@ from core.views import (
     PostHistoryListView, PostHistoryCreateView, PostHistoryDeleteView,
     # مراحل گردش کار
     WorkflowStageListView, WorkflowStageCreateView, WorkflowStageUpdateView, WorkflowStageDeleteView,
-    OrganizationChartView,
+
 )
 from reports.views import FinancialDashboardView
 
@@ -87,7 +87,7 @@ urlpatterns += [
     path('budget-item-remaining/', get_budget_item_remaining, name='get_budget_item_remaining'),
     path('budget-item-details/',  get_budget_item_details, name='get_budget_item_details'),
 ]
-from core.views_API.views_api import OrganizationChartAPIView
+from core.views_API.views_api import OrganizationChartAPIView,OrganizationChartView
 
 urlpatterns += [
     path('api/organization-chart/', OrganizationChartAPIView.as_view(), name='organization_chart_api'),

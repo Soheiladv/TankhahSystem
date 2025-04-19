@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from core.PermissionBase import  PermissionBaseView
-from django.db.models import Q, Sum, F, Count
+from django.db.models import Q, Sum, F, Count, Prefetch
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
@@ -892,16 +892,3 @@ class BudgetAllocationView(PermissionBaseView, View):
         return redirect('project_list')
 
 #####################################
-from django.views.generic import TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
-
-class OrganizationChartView(LoginRequiredMixin, TemplateView):
-    template_name = 'core/chart_API/organization_chart.html'
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        logger.debug(f"Rendering organization chart for user {self.request.user}")
-        context['title'] = 'چارت سازمانی'
-        context['organizations'] = Organization.objects.filter(is_active=True)
-        from accounts.models import Role
-        context['roles'] = Role.objects.all()
-        return context
