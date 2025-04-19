@@ -3,7 +3,7 @@ from django.views.generic.edit import UpdateView
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 from django.urls import reverse_lazy
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.db import transaction
 from django.db.models import Sum
 from django.core.exceptions import ValidationError
@@ -18,8 +18,9 @@ from budgets.models import ProjectBudgetAllocation, BudgetTransaction
 
 # تنظیم لاگر برای ثبت جزئیات خطاها و رویدادها
 logger = logging.getLogger(__name__)
+from core.PermissionBase import  PermissionBaseView
 
-class Project__Budget__Allocation__Edit__View(UpdateView):
+class Project__Budget__Allocation__Edit__View(PermissionBaseView, UpdateView):
     # مدل ویو: از ProjectBudgetAllocation استفاده می‌کنیم که تخصیص بودجه به پروژه/زیرپروژه رو مدیریت می‌کنه
     model = ProjectBudgetAllocation
     # فرم: از فرم جدید ProjectBudgetAllocationForm استفاده می‌کنیم که برای ProjectBudgetAllocation طراحی شده
@@ -28,19 +29,31 @@ class Project__Budget__Allocation__Edit__View(UpdateView):
     template_name = 'budgets/budget/project_budget_allocation_edit.html'
 
     def get_object(self, queryset=None):
-        """
-        یافتن تخصیص با بررسی دسترسی کاربر به سازمان.
-        - pk از URL گرفته می‌شه (kwargs['pk']).
-        - فقط تخصیص‌هایی که به سازمان‌های مجاز کاربر تعلق دارن برگردونده می‌شن.
-        - اگه تخصیص پیدا نشه یا کاربر دسترسی نداشته باشه، خطای 404 می‌ده.
-        """
-        logger.debug(f"Attempting to get ProjectBudgetAllocation with pk={self.kwargs['pk']} for user={self.request.user}")
-        allocation = get_object_or_404(
-            ProjectBudgetAllocation,
-            pk=self.kwargs['pk'],
-            budget_allocation__organization__in=self.request.user.get_authorized_organizations()
-        )
-        logger.info(f"Successfully retrieved allocation {allocation.id} for organization {allocation.budget_allocation.organization}")
+        logger.debug(
+            f"Attempting to get ProjectBudgetAllocation with pk={self.kwargs['pk']} for user={self.request.user}")
+        try:
+            # اگر فقط تخصیص‌های فعال قابل ویرایش هستند، شرط زیر را اضافه کنید
+            allocation = ProjectBudgetAllocation.objects.get(pk=self.kwargs['pk'], is_active=True)
+            # allocation = ProjectBudgetAllocation.objects.get(pk=self.kwargs['pk'])
+        except ProjectBudgetAllocation.DoesNotExist:
+            logger.error(f"ProjectBudgetAllocation with pk={self.kwargs['pk']} does not exist")
+            raise Http404(_("تخصیص موردنظر یافت نشد"))
+
+        # بررسی دسترسی به سازمان
+        authorized_orgs = self.request.user.get_authorized_organizations()
+        if allocation.budget_allocation.organization not in authorized_orgs:
+            logger.error(
+                f"User {self.request.user} does not have access to organization {allocation.budget_allocation.organization}")
+            raise Http404(_("شما به سازمان این تخصیص دسترسی ندارید"))
+
+        # بررسی دوره بودجه (اختیاری)
+        if not allocation.budget_allocation.budget_period.is_active:
+            logger.warning(f"Budget period {allocation.budget_allocation.budget_period.id} is inactive")
+            # اگر دوره بسته‌شده قابل ویرایش نیست، خطا بدهید
+            raise Http404(_("دوره بودجه این تخصیص بسته شده است"))
+
+        logger.info(
+            f"Successfully retrieved allocation👍💸 {allocation.id} for organization {allocation.budget_allocation.organization}")
         return allocation
 
     def get_form_kwargs(self):

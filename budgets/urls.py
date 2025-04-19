@@ -46,12 +46,12 @@ urlpatterns = [
     path('organization/<int:organization_id>/project-budget-allocation/',ProjectBudgetAllocationCreateView.as_view(), name='project_budget_allocation'),
     path('project-budget-allocation/<int:pk>/detail/',ProjectBudgetAllocationDetailView.as_view(), name='project_budget_allocation_detail'),
 
-    path('project__budget__allocation__edit__view/<int:pk>/edit/',Project__Budget__Allocation__Edit__View.as_view(), name='project__budget__allocation__edit__view'),
+    # path('project__budget__allocation__edit__view/<int:pk>/edit/',Project__Budget__Allocation__Edit__View.as_view(), name='project__budget__allocation__edit__view'),
+
+    path('budget/allocation/<int:pk>/edit/', Project__Budget__Allocation__Edit__View.as_view(), name='project__budget__allocation__edit__view'),
 
 
     path('project-budget-allocation/<int:pk>/delete/',ProjectBudgetAllocationDeleteView.as_view(), name='project_budget_allocation_delete'),
-
-
 
     # BudgetTransaction
     path('budgettransaction/',BudgetTransactionListView.as_view(), name='budgettransaction_list'),
@@ -103,6 +103,7 @@ urlpatterns += [
 urlpatterns += [
     path('budgetrealtimeReportView/', BudgetRealtimeReportView.as_view(),name='budgetrealtimeReportView'),
 ] # Reports
+
 
 
 # #/

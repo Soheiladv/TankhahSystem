@@ -217,6 +217,7 @@ class UserPost(models.Model):
     # ردیابی تاریخ
     start_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ شروع"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
 
     class Meta:
         unique_together = ('user', 'post')
@@ -230,6 +231,18 @@ class UserPost(models.Model):
             ('UserPost_view', 'نمایش   اتصال کاربر به پست'),
             ('UserPost_delete', 'حــذف  اتصال کاربر به پست'),
         ]
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            'chart_updates', {
+                'type': 'chart_update',
+                'message': 'UserPost updated, reload chart'
+            }
+        )
 
     def __str__(self):
         return f"{self.user.username} - {self.post.name} (از {self.start_date})"

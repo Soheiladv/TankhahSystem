@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     # 'admin_interface',
     # 'colorfield',
+    'rest_framework',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -52,6 +54,7 @@ INSTALLED_APPS = [
     'notifications',
     'core.templatetags.file_tags', # تمپلیت برای تگ تصاویر
     'budgets.apps.BudgetsConfig',
+
 ]
 
 # INSTALLED_APPS = [

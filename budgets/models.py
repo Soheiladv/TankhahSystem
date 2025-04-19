@@ -2,6 +2,9 @@ from django.db.models.functions import Coalesce
 from django.db.models import Value
 import logging
 from django.utils import timezone
+
+from core.models import Organization
+
 logger = logging.getLogger(__name__)
 from django.contrib.contenttypes.models import ContentType
 
@@ -99,25 +102,33 @@ class BudgetPeriod(models.Model):
         return (self.total_amount * self.warning_threshold) / Decimal('100')
 
     def send_notification(self, status, message):
-        from notifications.models import Notification
-        from accounts.models import CustomUser
-        recipients = CustomUser.objects.filter(
-            models.Q(organization=self.organization) |
-            models.Q(organization__parent=self.organization)
-        ).distinct()
-        level = {
-            'warning': 'WARNING',
-            'locked': 'ERROR',
-            'completed': 'ERROR',
-            'inactive': 'INFO',
-            'normal': 'INFO'
-        }.get(status, 'INFO')
-        for recipient in recipients:
-            Notification.objects.create(
-                recipient=recipient,
-                message=f"{self.name}: {message}",
-                level=level
-            )
+        """
+        Send notification to relevant users (e.g., Financial Manager, Budget Manager).
+        """
+        try:
+            # فرض می‌کنیم CustomUser از طریق رابطه organizations به سازمان متصل است
+            recipients = CustomUser.objects.filter(
+                organizations=self.organization,  # اصلاح فیلد به رابطه صحیح
+                roles__name__in=['Financial Manager', 'Budget Manager']
+            ).distinct()
+
+            if not recipients.exists():
+                logger.warning(f"No recipients found for notification: {message}")
+                return
+
+            for recipient in recipients:
+                from tankhah.models import Notification
+                Notification.objects.create(
+                    recipient=recipient,
+                    actor=recipient,  # یا کاربر دیگری مثل created_by
+                    verb=status,
+                    description=message,
+                    target=self,
+                    level=status.lower()
+                )
+            logger.info(f"Notification sent to {recipients.count()} users: {message}")
+        except Exception as e:
+            logger.error(f"Error sending notification: {str(e)}", exc_info=True)
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -193,22 +204,6 @@ class BudgetAllocation(models.Model):
             models.Index(fields=['budget_period', 'allocation_date']),
             models.Index(fields=['organization', 'allocated_amount']),
         ]
-
-    # def __str__(self):
-    #     try:
-    #         allocation_date = self.allocation_date
-    #         if allocation_date:
-    #             if hasattr(allocation_date, 'date'):
-    #                 allocation_date = allocation_date.date()
-    #             jalali_date = jdatetime.date.fromgregorian(date=allocation_date).strftime('%Y/%m/%d')
-    #         else:
-    #             jalali_date = 'بدون تاریخ'
-    #         org_name = self.organization.name if self.organization else 'بدون سازمان/بدون شعبه'
-    #         item_name = self.budget_item.name if self.budget_item else 'بدون ردیف'
-    #         return f"{org_name} - {item_name} - {jalali_date} - {self.allocated_amount:,.0f} ریال"
-    #     except Exception as e:
-    #         logger.error(f"Error in BudgetAllocation.__str__: {str(e)}", exc_info=True)
-    #         return f"تخصیص ID {self.pk}"
 
     def __str__(self):
         try:
@@ -318,26 +313,41 @@ class BudgetAllocation(models.Model):
         return 'normal', _('وضعیت عادی')
 
     def send_notification(self, status, message):
-        from tankhah.models import Notification
-        recipients = CustomUser.objects.filter(
-            models.Q(organization=self.organization) |
-            models.Q(organization__parent=self.organization)
-        ).distinct()
-        level = {
-            'warning': 'WARNING',
-            'locked': 'ERROR',
-            'completed': 'ERROR',
-            'stopped': 'ERROR',
-            'inactive': 'INFO',
-            'normal': 'INFO'
-        }.get(status, 'INFO')
-        project_name = self.project.name if self.project else _("بدون پروژه")
-        for recipient in recipients:
-            Notification.objects.create(
-                recipient=recipient,
-                message=f"تخصیص {self.id} - {project_name}: {message}",
-                level=level
-            )
+        """
+        Send notification to users with roles 'Financial Manager' or 'Budget Manager'
+        who are associated with the organization or its parent organization.
+        """
+        try:
+            # انتخاب کاربرانی که از طریق پست‌های سازمانی به سازمان یا سازمان والد مرتبط هستند
+            from django.db.models import Q
+            recipients = CustomUser.objects.filter(
+                Q(userpost__post__organization=self.organization) |
+                Q(userpost__post__organization__parent=self.organization),
+                # Q(roles__name__in=['Financial Manager', 'Budget Manager']) |
+                # Q(groups__roles__name__in=['Financial Manager', 'Budget Manager']),
+                is_active=True
+            ).distinct()
+
+            if not recipients.exists():
+                logger.warning(f"No recipients found for notification: {message} (organization_id={self.organization_id})")
+                return
+
+            for recipient in recipients:
+                # from tankhah.models import Notification
+                from notifications.models import Notification
+                Notification.objects.create(
+                    recipient=recipient,
+                    actor=self.created_by or recipient,  # استفاده از created_by اگر وجود داشته باشد
+                    verb=status,
+                    description=message,
+                    target=self,
+                    level=status.lower()
+                )
+            logger.info(f"Notification sent to {recipients.count()} users for BudgetAllocation {self.id}: {message}")
+        except Exception as e:
+            logger.error(f"Error sending notification for BudgetAllocation {self.id}: {str(e)}", exc_info=True)
+            # جلوگیری از خرابی تراکنش در صورت خطا
+            return
 
     def save(self, *args, **kwargs):
         logger.debug(f"Starting save for BudgetAllocation (pk={self.pk}, allocated_amount={self.allocated_amount})")

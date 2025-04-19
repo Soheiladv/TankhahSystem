@@ -890,3 +890,18 @@ class BudgetAllocationView(PermissionBaseView, View):
             messages.success(request, _('بودجه به ساب‌پروژه تخصیص یافت.'))
 
         return redirect('project_list')
+
+#####################################
+from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+class OrganizationChartView(LoginRequiredMixin, TemplateView):
+    template_name = 'core/chart_API/organization_chart.html'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        logger.debug(f"Rendering organization chart for user {self.request.user}")
+        context['title'] = 'چارت سازمانی'
+        context['organizations'] = Organization.objects.filter(is_active=True)
+        from accounts.models import Role
+        context['roles'] = Role.objects.all()
+        return context

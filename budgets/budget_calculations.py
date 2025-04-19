@@ -13,6 +13,7 @@ from django.utils.translation import gettext_lazy as _
 logger = logging.getLogger(__name__)
 
 
+
 def calculate_total_allocated(entity=None, filters=None):
     from budgets.models import BudgetAllocation
     if filters is None:

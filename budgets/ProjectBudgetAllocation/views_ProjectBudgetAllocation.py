@@ -126,6 +126,8 @@ class ProjectBudgetAllocationListView(ListView):
         })
         logger.info(f"Context prepared for organization {organization.id}: {context}")
         return context
+
+
 class ProjectBudgetAllocationDetailView(PermissionBaseView, DetailView):
     model = ProjectBudgetAllocation
     template_name = 'budgets/budget/project_budget_allocation_detail.html'
@@ -163,7 +165,7 @@ class ProjectBudgetAllocationDetailView(PermissionBaseView, DetailView):
         logger.debug(f"ProjectBudgetAllocationDetailView context: {context}")
         return context
 
-class ProjectBudgetAllocationCreateView(CreateView):
+class ProjectBudgetAllocationCreateView(PermissionBaseView,CreateView):
     model = ProjectBudgetAllocation
     form_class = ProjectBudgetAllocationForm
     template_name = 'budgets/budget/project_budget_allocation.html'

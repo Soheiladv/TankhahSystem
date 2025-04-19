@@ -1,0 +1,236 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% trans "سیستم مدیریت بودجه" %}{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://visjs.github.io/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+        #org-chart-container {
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(100%);
+        }
+        #org-chart-container.open {
+            transform: translateX(0);
+        }
+        .vis-network canvas { direction: ltr; }
+        .node-organization { background-color: #1e40af; color: white; }
+        .node-post { background-color: #047857; color: white; }
+        .node-user { background-color: #b45309; color: white; }
+        .node-workstage { background-color: #6d28d9; color: white; }
+        .vis-label { transition: transform 0.2s, opacity 0.2s; }
+        .vis-label:hover { transform: scale(1.1); }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- محتوای اصلی -->
+    <div class="container mx-auto p-4">
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="bg-{% if message.tags == 'error' %}red{% else %}green{% endif %}-100 border border-{% if message.tags == 'error' %}red{% else %}green{% endif %}-400 text-{% if message.tags == 'error' %}red{% else %}green{% endif %}-700 px-4 py-3 rounded relative" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- دکمه شناور -->
+    <button id="toggle-chart-btn" class="fixed bottom-4 right-4 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-transform transform hover:scale-110" title="{% trans 'نمایش چارت سازمانی' %}">
+        📊
+    </button>
+
+    <!-- پنل شناور -->
+    <div id="org-chart-container" class="fixed top-0 right-0 w-full md:w-2/3 h-full bg-white shadow-2xl p-6 overflow-auto z-50">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">{% trans "چارت سازمانی" %}</h2>
+            <button id="close-chart-btn" class="text-red-500 hover:text-red-700 text-2xl">✕</button>
+        </div>
+        <!-- فیلتر و جستجو -->
+        <div class="mb-6 space-y-4">
+            <input id="search-input" type="text" placeholder="{% trans 'جستجوی کاربر، پست، سازمان یا مرحله...' %}" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+            <select id="role-filter" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                <option value="">{% trans "همه نقش‌ها" %}</option>
+                {% for role in roles %}
+                    <option value="{{ role.name }}">{{ role.name }}</option>
+                {% endfor %}
+            </select>
+            <select id="org-filter" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                <option value="">{% trans "همه سازمان‌ها" %}</option>
+                {% for org in organizations %}
+                    <option value="{{ org.id }}">{{ org.name }}</option>
+                {% endfor %}
+            </select>
+            <select id="status-filter" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                <option value="">{% trans "همه وضعیت‌ها" %}</option>
+                <option value="Pending">{% trans "در انتظار" %}</option>
+                <option value="In Progress">{% trans "در حال انجام" %}</option>
+                <option value="Completed">{% trans "تکمیل شده" %}</option>
+            </select>
+            <input id="date-filter" type="date" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+        </div>
+        <!-- دکمه دانلود -->
+        <button id="download-btn" class="mb-4 bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600">{% trans "دانلود نمودار" %}</button>
+        <!-- کانتینر نمودار -->
+        <div id="org-chart" class="w-full h-[70vh] border rounded-lg bg-gray-50"></div>
+    </div>
+
+    <script>
+        // مدیریت پنل شناور
+        const toggleBtn = document.getElementById('toggle-chart-btn');
+        const closeBtn = document.getElementById('close-chart-btn');
+        const chartContainer = document.getElementById('org-chart-container');
+
+        toggleBtn.addEventListener('click', () => {
+            chartContainer.classList.toggle('open');
+            if (chartContainer.classList.contains('open')) {
+                loadChart();
+            }
+        });
+        closeBtn.addEventListener('click', () => {
+            chartContainer.classList.remove('open');
+        });
+
+        // بارگذاری نمودار
+        function loadChart() {
+            const role = document.getElementById('role-filter').value;
+            const org = document.getElementById('org-filter').value;
+            const status = document.getElementById('status-filter').value;
+            const date = document.getElementById('date-filter').value;
+            let url = `/api/organization-chart/?role=${role}&org_id=${org}&status=${status}`;
+            if (date) url += `&date=${date}`;
+
+            fetch(url, {
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const nodes = new vis.DataSet(data.nodes.map(node => ({
+                        id: node.id,
+                        label: node.group === 'user' ?
+                            `${node.label} ${node.data.roles.map(r => data.roles[r]?.icon || '').join(' ')}` :
+                            node.label,
+                        group: node.group,
+                        title: `<div style='padding: 10px; background: #fff; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>` +
+                               `<strong>${node.data.type === 'organization' ? 'سازمان' : node.data.type === 'post' ? 'پست' : node.data.type === 'user' ? 'کاربر' : 'مرحله کاری'}</strong><br>` +
+                               Object.entries(node.data).map(([key, value]) => `${key}: ${value}`).join('<br>') +
+                               `</div>`,
+                        color: node.group === 'user' && node.data.roles.length ?
+                            { background: data.roles[node.data.roles[0]]?.color || '#b45309', border: data.roles[node.data.roles[0]]?.color || '#b45309' } :
+                            undefined,
+                        shape: node.group === 'organization' ? 'ellipse' : node.group === 'workstage' ? 'diamond' : 'box',
+                        font: { size: 14, color: 'white', face: 'arial' },
+                        shadow: { enabled: true, size: 10, x: 5, y: 5 }
+                    })));
+                    const edges = new vis.DataSet(data.edges.map(edge => ({
+                        from: edge.from,
+                        to: edge.to,
+                        color: { color: '#6b7280', highlight: '#2563eb' },
+                        smooth: { type: 'curvedCW', roundness: 0.2 }
+                    })));
+                    const container = document.getElementById('org-chart');
+                    const chartData = { nodes, edges };
+                    const options = {
+                        layout: {
+                            hierarchical: {
+                                direction: 'UD',
+                                sortMethod: 'directed',
+                                levelSeparation: 150,
+                                nodeSpacing: 200
+                            }
+                        },
+                        nodes: {
+                            shape: 'box',
+                            font: { color: 'white', size: 14 },
+                            margin: 10,
+                            widthConstraint: { minimum: 100, maximum: 200 },
+                            shadow: true
+                        },
+                        edges: {
+                            arrows: { to: { enabled: true, scaleFactor: 0.5 } },
+                            color: '#6b7280',
+                            smooth: { enabled: true, type: 'curvedCW', roundness: 0.2 }
+                        },
+                        groups: {
+                            organization: {
+                                shape: 'ellipse',
+                                color: { background: '#1e40af', border: '#1e3a8a' },
+                                size: 40
+                            },
+                            post: { color: { background: '#047857', border: '#065f46' } },
+                            user: { color: { background: '#b45309', border: '#92400e' } },
+                            workstage: {
+                                shape: 'diamond',
+                                color: { background: '#6d28d9', border: '#5b21b6' },
+                                size: 30
+                            }
+                        },
+                        physics: false,
+                        interaction: {
+                            zoomView: true,
+                            dragView: true,
+                            hover: true,
+                            tooltipDelay: 200
+                        }
+                    };
+                    const network = new vis.Network(container, chartData, options);
+                    network.on('click', function(params) {
+                        if (params.nodes.length) {
+                            const nodeId = params.nodes[0];
+                            if (nodeId.startsWith('org_')) {
+                                document.getElementById('org-filter').value = nodeId.replace('org_', '');
+                                loadChart();
+                            }
+                        }
+                    });
+                    network.on('hoverNode', function(params) {
+                        network.canvas.body.container.style.cursor = 'pointer';
+                    });
+                    network.on('blurNode', function(params) {
+                        network.canvas.body.container.style.cursor = 'default';
+                    });
+                })
+                .catch(error => console.error('Error loading chart:', error));
+        }
+
+        // مدیریت جستجو
+        document.getElementById('search-input').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const nodes = document.querySelectorAll('.vis-network .vis-label');
+            nodes.forEach(node => {
+                const parent = node.parentElement;
+                if (node.textContent.toLowerCase().includes(searchTerm)) {
+                    parent.style.opacity = 1;
+                    parent.style.transform = 'scale(1.1)';
+                } else {
+                    parent.style.opacity = 0.3;
+                    parent.style.transform = 'scale(1)';
+                }
+            });
+        });
+
+        // مدیریت فیلترها
+        document.getElementById('role-filter').addEventListener('change', loadChart);
+        document.getElementById('org-filter').addEventListener('change', loadChart);
+        document.getElementById('status-filter').addEventListener('change', loadChart);
+        document.getElementById('date-filter').addEventListener('change', loadChart);
+
+        // دانلود نمودار
+        document.getElementById('download-btn').addEventListener('click', () => {
+            const canvas = document.querySelector('#org-chart canvas');
+            const link = document.createElement('a');
+            link.download = 'org-chart.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

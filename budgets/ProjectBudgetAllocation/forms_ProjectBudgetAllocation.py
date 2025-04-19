@@ -83,6 +83,18 @@ class ProjectBudgetAllocationForm(forms.ModelForm):
         self.organization_id = organization_id
         super().__init__(*args, **kwargs)
 
+        # اگر نمونه تخصیص وجود دارد
+        if self.instance and self.instance.pk:
+            if not self.instance.is_active:
+                logger.warning(f"Editing inactive allocation {self.instance.id}")
+                # اختیاری: غیرفعال کردن برخی فیلدها
+                # self.fields['allocated_amount'].disabled = True
+            if not self.instance.budget_allocation.budget_period.is_active:
+                logger.warning(f"Editing allocation {self.instance.id} with inactive budget period")
+                # اختیاری: نمایش پیام یا غیرفعال کردن فیلدها
+                self.fields['allocated_amount'].disabled = True
+
+        # فیلتر کردن تخصیص‌های بودجه
         if organization_id:
             budget_allocations = BudgetAllocation.objects.filter(
                 organization_id=organization_id,
@@ -90,6 +102,7 @@ class ProjectBudgetAllocationForm(forms.ModelForm):
                 budget_period__is_active=True
             )
             self.fields['budget_allocation'].queryset = budget_allocations
+
             self.fields['project'].queryset = Project.objects.filter(
                 organizations__id=organization_id,
                 is_active=True

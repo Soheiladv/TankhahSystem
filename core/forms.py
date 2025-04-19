@@ -596,7 +596,6 @@ class ProjectForm(forms.ModelForm):
 
             return instance
 
-
 class SubProjectForm(forms.ModelForm):
 
     allocated_budget = forms.DecimalField(label=_("بودجه ساب‌پروژه"), decimal_places=2, max_digits=25, widget=forms.NumberInput(attrs={'class': 'form-control'}))

@@ -83,6 +83,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=150, blank=True, verbose_name=_('فامیلی'))
     is_active = models.BooleanField(default=True, verbose_name=_('فعالیت'))
     is_staff = models.BooleanField(default=False, verbose_name=_('کارمندی؟'))
+    # is_superuser = models.BooleanField(default=False)  # بعلت سیاست مدیر پروژه غیرفعال باشد 
+
 
     user_permissions = models.ManyToManyField(
         Permission,
@@ -138,6 +140,22 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         # return False
 
+    # --------
+    def get_authorized_organizations(self):
+        """
+        Return organizations that the user has access to via their posts.
+        این متد سازمان‌هایی را برمی‌گرداند که کاربر از طریق پست‌های سازمانی (UserPost و Post) به آنها دسترسی دارد.
+        شامل سازمان‌های والد (parent_organization) نیز می‌شود.
+        """
+        from core.models import Organization
+        from django.db.models import Q
+
+        return Organization.objects.filter(
+            Q(post__userpost__user=self, is_active=True) |
+            Q(parent_organization__post__userpost__user=self, is_active=True),
+            is_active=True
+        ).distinct()
+    # --------
     def get_all_permissions(self, obj=None):
         if not self.is_active or self.is_superuser:
             return set()
@@ -151,6 +169,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             for p in self.user_permissions.all()
         )
         return perms
+
+
 User = get_user_model()
 class CustomProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile",
