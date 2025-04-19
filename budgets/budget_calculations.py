@@ -9,6 +9,7 @@ from django.utils import timezone
 from Tanbakhsystem.utils import parse_jalali_date
 from django.utils.translation import gettext_lazy as _
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -231,11 +232,21 @@ def calculate_allocation_percentages(allocations):
     return total_percentage
 
 
-def get_organization_budget(organization):
-    total = calculate_total_allocated(entity=organization)
-    logger.debug(f"get_organization_budget: org={organization}, total={total}")
-    return total
+def get_organization_budget(organization) -> Decimal:
+    #     total = calculate_total_allocated(entity=organization)
+    #     logger.debug(f"get_organization_budget: org={organization}, total={total}")
+    #     return total
 
+    # from core.models import Organization
+    # from budgets.models import BudgetPeriod
+    # def get_organization_budget(organization: core.models.Organization) -> Decimal:
+    """محاسبه بودجه کل سازمان بر اساس دوره‌های بودجه فعال.
+    """
+    from core.models import Organization
+    from budgets.models import BudgetPeriod
+
+    total_budget = BudgetPeriod.objects.filter(organization=organization,is_active=True,is_completed=False).aggregate(total=Sum('total_amount'))['total'] or Decimal('0')
+    return total_budget
 
 def get_project_total_budget(project):
     from budgets.models import ProjectBudgetAllocation
@@ -261,9 +272,21 @@ def get_project_used_budget(project):
 
 
 def get_project_remaining_budget(project):
-    remaining = get_project_total_budget(project) - get_project_used_budget(project)
-    logger.debug(f"get_project_remaining_budget: project={project}, remaining={remaining}")
-    return remaining
+    """محاسبه بودجه باقی‌مانده پروژه"""
+    from budgets.models import ProjectBudgetAllocation
+    allocations = ProjectBudgetAllocation.objects.filter(project=project)
+    total_allocated = allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+    # فرض می‌کنیم مصرف‌ها از BudgetTransaction ثبت می‌شوند
+    from budgets.models import BudgetTransaction
+    consumptions = BudgetTransaction.objects.filter(
+        allocation__project_allocations__project=project,
+        transaction_type='CONSUMPTION'
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    returns = BudgetTransaction.objects.filter(
+        allocation__project_allocations__project=project,
+        transaction_type='RETURN'
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    return max(total_allocated - consumptions + returns, Decimal('0'))
 
 
 def get_subproject_total_budget(subproject):
@@ -284,9 +307,22 @@ def get_subproject_used_budget(subproject):
 
 
 def get_subproject_remaining_budget(subproject):
-    remaining = get_subproject_total_budget(subproject) - get_subproject_used_budget(subproject)
-    logger.debug(f"get_subproject_remaining_budget: subproject={subproject}, remaining={remaining}")
-    return remaining
+    """محاسبه بودجه باقی‌مانده زیرپروژه"""
+    from budgets.models import ProjectBudgetAllocation
+    allocations = ProjectBudgetAllocation.objects.filter(subproject=subproject)
+    total_allocated = allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+    from budgets.models import BudgetTransaction
+    consumptions = BudgetTransaction.objects.filter(
+        allocation__project_allocations__subproject=subproject,
+        transaction_type='CONSUMPTION'
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    returns = BudgetTransaction.objects.filter(
+        allocation__project_allocations__subproject=subproject,
+        transaction_type='RETURN'
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    return max(total_allocated - consumptions + returns, Decimal('0'))
+
+
 
 
 def can_delete_budget(entity):

@@ -12,11 +12,12 @@ from budgets.BudgetPeriod.views_BudgetPeriod import BudgetPeriodListView, Budget
     BudgetPeriodDeleteView
 from .BudgetAllocation.get_projects_by_organization import get_projects_by_organization
 from .BudgetAllocation.views_BudgetAllocation import BudgetAllocationCreateView, BudgetAllocationListView
+from .ProjectBudgetAllocation.view_Update_Project_Budget_Allocation import Project__Budget__Allocation__Edit__View
 # from .BudgetAllocation.views_BudgetAllocation import BudgetAllocationCreateView
-from .ProjectBudgetAllocation.views_ProjectBudgetAllocation import ProjectBudgetAllocationListView, ProjectBudgetAllocationCreateView, \
-    ProjectBudgetAllocationDetailView, ProjectBudgetAllocationEditView, ProjectBudgetAllocationDeleteView
-
-
+from .ProjectBudgetAllocation.views_ProjectBudgetAllocation import ProjectBudgetAllocationListView, \
+    ProjectBudgetAllocationCreateView, \
+    ProjectBudgetAllocationDetailView,   ProjectBudgetAllocationDeleteView, \
+    BudgetRealtimeReportView
 
 urlpatterns = [
     path('budgets-dashboard',BudgetDashboardView.as_view(), name='budgets_dashboard'),  # داشبورد
@@ -38,20 +39,19 @@ urlpatterns = [
     path('budgetallocations/create/',BudgetAllocationCreateView.as_view(), name='budgetallocation_create'),
 
     # Organization Budget
-    path('organization/<int:org_id>/allocations/',
-        OrganizationBudgetAllocationListView.as_view(), name='organization_budgetallocation_list'),
+    path('organization/<int:org_id>/allocations/', OrganizationBudgetAllocationListView.as_view(), name='organization_budgetallocation_list'),
 
     # ProjectBudgetAllocation
-    path('organization/<int:organization_id>/project-budget-allocations/',
-        ProjectBudgetAllocationListView.as_view(), name='project_budget_allocation_list'),
-    path('organization/<int:organization_id>/project-budget-allocation/',
-        ProjectBudgetAllocationCreateView.as_view(), name='project_budget_allocation'),
-    path('project-budget-allocation/<int:pk>/detail/',
-        ProjectBudgetAllocationDetailView.as_view(), name='project_budget_allocation_detail'),
-    path('project-budget-allocation/<int:pk>/edit/',
-        ProjectBudgetAllocationEditView.as_view(), name='project_budget_allocation_edit'),
-    path('project-budget-allocation/<int:pk>/delete/',
-        ProjectBudgetAllocationDeleteView.as_view(), name='project_budget_allocation_delete'),
+    path('organization/<int:organization_id>/project-budget-allocations/',ProjectBudgetAllocationListView.as_view(), name='project_budget_allocation_list'),
+    path('organization/<int:organization_id>/project-budget-allocation/',ProjectBudgetAllocationCreateView.as_view(), name='project_budget_allocation'),
+    path('project-budget-allocation/<int:pk>/detail/',ProjectBudgetAllocationDetailView.as_view(), name='project_budget_allocation_detail'),
+
+    path('project__budget__allocation__edit__view/<int:pk>/edit/',Project__Budget__Allocation__Edit__View.as_view(), name='project__budget__allocation__edit__view'),
+
+
+    path('project-budget-allocation/<int:pk>/delete/',ProjectBudgetAllocationDeleteView.as_view(), name='project_budget_allocation_delete'),
+
+
 
     # BudgetTransaction
     path('budgettransaction/',BudgetTransactionListView.as_view(), name='budgettransaction_list'),
@@ -95,6 +95,16 @@ urlpatterns += [
     path('budgetitems/<int:pk>/delete/',  BudgetItemDeleteView.as_view(), name='budgetitem_delete'),
     path('budgetitems/<int:pk>/',  BudgetItemDetailView.as_view(), name='budgetitem_detail'),
 ]
+from core.views import BudgetAllocationView
+urlpatterns += [
+    path('budget_allocation_view/', BudgetAllocationView.as_view(),name='budget_allocation_view'),
+]
+
+urlpatterns += [
+    path('budgetrealtimeReportView/', BudgetRealtimeReportView.as_view(),name='budgetrealtimeReportView'),
+] # Reports
+
+
 # #/
 # urlpatterns+  = [
 #     path('budgetperiods/', BudgetPeriodListView.as_view(), name='budgetperiod_list'),    # مسیر لیست دوره‌های بودجه (برای دکمه انصراف)
@@ -139,10 +149,7 @@ urlpatterns += [
 #     path('transactiontypes/<int:pk>/delete/', TransactionTypeDeleteView.as_view(), name='transactiontype_delete'),
 # ] # تعریف پویا نوع تراکنش‌ها
 
-from core.views import BudgetAllocationView
-urlpatterns += [
-    path('budget_allocation_view/', BudgetAllocationView.as_view(),name='budget_allocation_view'),
-]
+
 #
 # urlpatterns += [
 #     #صفحه، پروژه‌ها و زیرپروژه‌ها رو با بودجه تخصیص‌یافته، باقی‌مانده، و درصد نشون می‌ده.

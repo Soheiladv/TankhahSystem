@@ -1,13 +1,20 @@
+import json
+
+from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.translation import gettext_lazy as _
 # --- ProjectBudgetAllocation CRUD ---
+from decimal import Decimal
+
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.shortcuts import get_object_or_404
+from django.db.models import Sum
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView, CreateView, TemplateView
 
 from budgets.ProjectBudgetAllocation.forms_ProjectBudgetAllocation import ProjectBudgetAllocationForm
-from budgets.models import ProjectBudgetAllocation, BudgetPeriod
+from budgets.models import ProjectBudgetAllocation, BudgetPeriod, BudgetTransaction, BudgetAllocation
 from core.PermissionBase import PermissionBaseView
 from budgets.budget_calculations import (
     get_budget_details, get_organization_budget,
@@ -15,44 +22,110 @@ from budgets.budget_calculations import (
 )
 import logging
 
-from core.models import Organization, Project
+from core.models import Organization, Project, SubProject
 
 logger = logging.getLogger(__name__)
-from django.utils.translation import gettext_lazy as _
 
-class ProjectBudgetAllocationListView(PermissionBaseView, ListView):
+class ProjectBudgetAllocationListView(ListView):
     model = ProjectBudgetAllocation
     template_name = 'budgets/budget/project_budget_allocation_list.html'
     context_object_name = 'allocations'
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        # kwargs['organization_id'] = self.kwargs['organization_id']
-        # kwargs['initial']['created_by'] = self.request.user
-        kwargs['user'] = self.request.user
-        return kwargs
+    paginate_by = 10
 
     def get_queryset(self):
         organization_id = self.kwargs['organization_id']
-        from django.shortcuts import get_object_or_404
-        from core.models import Organization
         organization = get_object_or_404(Organization, id=organization_id)
+        project_id = self.request.GET.get('project_id')
         queryset = ProjectBudgetAllocation.objects.filter(
-            budget_allocation__organization=organization
-        ).select_related('project', 'subproject', 'budget_allocation__budget_period')
-        logger.info(f"Allocations for org {organization_id}: {list(queryset.values('id', 'allocated_amount'))}")
+            budget_allocation__organization=organization,
+            budget_allocation__is_active=True
+        ).select_related(
+            'project', 'subproject', 'budget_allocation__budget_period', 'budget_allocation__organization'
+        ).order_by('-allocation_date')
+        if project_id:
+            queryset = queryset.filter(project_id=project_id)
+        logger.info(f"Allocations for org {organization_id}: {queryset.count()} records")
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from django.shortcuts import get_object_or_404
-        from core.models import Organization
         organization = get_object_or_404(Organization, id=self.kwargs['organization_id'])
-        context['organization'] = organization
-        context['budget_details'] = get_budget_details(organization)
-        logger.debug(f"ProjectBudgetAllocationListView context: {context}")
-        return context
 
+        # دریافت تخصیص‌های بودجه سازمان
+        budget_allocations = BudgetAllocation.objects.filter(
+            organization=organization, is_active=True
+        ).select_related('budget_period')
+
+        # محاسبه بودجه کل و باقی‌مانده سازمان
+        total_org_budget = budget_allocations.aggregate(
+            total=Sum('allocated_amount')
+        )['total'] or Decimal('0')
+
+        consumed = BudgetTransaction.objects.filter(
+            allocation__in=budget_allocations,
+            transaction_type='CONSUMPTION'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        returned = BudgetTransaction.objects.filter(
+            allocation__in=budget_allocations,
+            transaction_type='RETURN'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        remaining_org_budget = total_org_budget - consumed + returned
+
+        # داده‌های پروژه‌ها
+        project_data = []
+        projects = Project.objects.filter(
+            organizations=organization, is_active=True
+        ).prefetch_related('subprojects')
+
+        for project in projects:
+            project_allocations = ProjectBudgetAllocation.objects.filter(
+                project=project, subproject__isnull=True
+            )
+            total_budget = project_allocations.aggregate(
+                total=Sum('allocated_amount')
+            )['total'] or Decimal('0')
+
+            # استفاده از related_name صحیح: project_allocations
+            project_budget_allocations = BudgetAllocation.objects.filter(
+                project_allocations__project=project
+            )
+            consumed = BudgetTransaction.objects.filter(
+                allocation__in=project_budget_allocations,
+                transaction_type='CONSUMPTION'
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            returned = BudgetTransaction.objects.filter(
+                allocation__in=project_budget_allocations,
+                transaction_type='RETURN'
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+            remaining_budget = total_budget - consumed + returned
+            remaining_percentage = (
+                (remaining_budget / total_budget * 100) if total_budget > 0 else Decimal('0')
+            )
+            allocated_percentage = (
+                (total_budget / total_org_budget * 100) if total_org_budget > 0 else Decimal('0')
+            )
+
+            project_data.append({
+                'project': project,
+                'total_budget': total_budget,
+                'remaining_budget': remaining_budget,
+                'remaining_percentage': remaining_percentage,
+                'allocated_percentage': allocated_percentage
+            })
+
+        # بررسی شرایط خاص
+        if not budget_allocations.exists():
+            messages.warning(self.request, _("هیچ تخصیص بودجه فعالی برای این سازمان یافت نشد"))
+
+        context.update({
+            'organization': organization,
+            'total_org_budget': total_org_budget,
+            'remaining_org_budget': remaining_org_budget,
+            'project_data': project_data,
+        })
+        logger.info(f"Context prepared for organization {organization.id}: {context}")
+        return context
 class ProjectBudgetAllocationDetailView(PermissionBaseView, DetailView):
     model = ProjectBudgetAllocation
     template_name = 'budgets/budget/project_budget_allocation_detail.html'
@@ -60,11 +133,37 @@ class ProjectBudgetAllocationDetailView(PermissionBaseView, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['budget_details'] = get_budget_details(self.object.project)
+        allocation = self.object
+        project = allocation.project
+        subproject = allocation.subproject
+
+        # تراکنش‌های مرتبط
+        transactions = BudgetTransaction.objects.filter(
+            allocation=allocation.budget_allocation
+        ).order_by('-timestamp')
+
+        # اطلاعات بودجه پروژه
+        total_project_budget = project.get_total_budget() or Decimal('0')
+        remaining_project_budget = project.get_remaining_budget() or Decimal('0')
+
+        context.update({
+            'budget_details': get_budget_details(project),
+            'transactions': transactions,
+            'total_project_budget': total_project_budget,
+            'remaining_project_budget': remaining_project_budget,
+            'allocated_percentage': (
+                (allocation.allocated_amount / total_project_budget * 100)
+                if total_project_budget > 0 else Decimal('0')
+            ),
+            'remaining_percentage': (
+                (remaining_project_budget / total_project_budget * 100)
+                if total_project_budget > 0 else Decimal('0')
+            ),
+        })
         logger.debug(f"ProjectBudgetAllocationDetailView context: {context}")
         return context
 
-class ProjectBudgetAllocationCreateView(PermissionBaseView, CreateView):
+class ProjectBudgetAllocationCreateView(CreateView):
     model = ProjectBudgetAllocation
     form_class = ProjectBudgetAllocationForm
     template_name = 'budgets/budget/project_budget_allocation.html'
@@ -72,80 +171,167 @@ class ProjectBudgetAllocationCreateView(PermissionBaseView, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         organization = get_object_or_404(Organization, id=self.kwargs['organization_id'])
-        budget_periods = BudgetPeriod.objects.filter(organization=organization, is_active=True)
+        context['organization'] = organization
 
-        if not budget_periods.exists():
-            messages.warning(self.request, _("هیچ دوره بودجه فعالی برای این شعبه یافت نشد"))
-            context.update({
-                'organization': organization,
-                'form': None,
-                'projects': [],
-                'budget_details': get_budget_details(organization)
-            })
-            return context
+        # تخصیص‌های بودجه فعال
+        budget_allocations = BudgetAllocation.objects.filter(
+            organization=organization,
+            is_active=True,
+            budget_period__is_active=True
+        ).select_related('budget_period', 'budget_item').order_by('-allocation_date')
 
-        from budgets import BudgetAllocation
-        budget_allocations = BudgetAllocation.objects.filter(budget_period__in=budget_periods, is_active=True)
         if not budget_allocations.exists():
-            messages.warning(self.request, _("هیچ تخصیص بودجه‌ای برای این دوره‌ها یافت نشد"))
+            logger.warning(f"No active BudgetAllocation found for organization {organization.id}")
+            messages.warning(self.request, _("هیچ تخصیص بودجه فعالی برای این سازمان یافت نشد"))
             context.update({
-                'organization': organization,
                 'form': None,
                 'projects': [],
-                'budget_details': get_budget_details(organization)
+                'budget_allocation': None,
+                'budget_period': None,
+                'total_org_budget': Decimal('0'),
+                'remaining_amount': Decimal('0'),
+                'remaining_percent': Decimal('0'),
+                'warning_threshold': 50,
+                'project_data': [],
+                'budget_allocations_json': '[]',
+                'subprojects_json': '[]',
             })
             return context
 
-        total_org_budget = get_organization_budget(organization)
-        budget_allocation = budget_allocations.first()
-        budget_period = budget_allocation.budget_period
-        projects = Project.objects.filter(organizations=organization, is_active=True)
+        # داده‌های JSON برای جاوااسکریپت
+        from django_jalali.templatetags.jformat import jformat
+        allocations_list_for_json = [
+            {
+                'id': alloc.id,
+                'name': f"{alloc.budget_item.name} - {alloc.budget_period.name} ({alloc.allocation_date })",
+                'allocated_amount': float(alloc.allocated_amount),
+                'remaining_amount': float(alloc.get_remaining_amount()),
+            } for alloc in budget_allocations
+        ]
+        context['budget_allocations_json'] = json.dumps(allocations_list_for_json, cls=DjangoJSONEncoder)
 
+        subprojects_list = list(SubProject.objects.filter(
+            project__organizations=organization,
+            is_active=True
+        ).values('id', 'name', 'project_id'))
+        context['subprojects_json'] = json.dumps(subprojects_list, cls=DjangoJSONEncoder)
+
+        # تخصیص اولیه
+        form = context.get('form')
+        initial_allocation_id = None
+        if form and form.initial.get('budget_allocation'):
+            initial_allocation_id = form.initial['budget_allocation']
+        elif form and form.is_bound and form.data.get('budget_allocation'):
+            initial_allocation_id = form.data['budget_allocation']
+
+        budget_allocation = budget_allocations.filter(id=initial_allocation_id).first() or budget_allocations.first()
+        context['budget_allocation'] = budget_allocation
+
+        # محاسبه بودجه کل و باقی‌مانده شعبه
+        total_org_budget = budget_allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+        consumed = BudgetTransaction.objects.filter(
+            allocation__in=budget_allocations,
+            transaction_type='CONSUMPTION'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        returned = BudgetTransaction.objects.filter(
+            allocation__in=budget_allocations,
+            transaction_type='RETURN'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        remaining_amount = total_org_budget - consumed + returned
+        remaining_percent = (remaining_amount / total_org_budget * 100) if total_org_budget > 0 else Decimal('0')
+
+        # محاسبه برای تخصیص انتخاب‌شده
+        allocation_total = budget_allocation.allocated_amount if budget_allocation else Decimal('0')
+        allocation_remaining = budget_allocation.get_remaining_amount() if budget_allocation else Decimal('0')
+        allocation_remaining_percent = (
+            (allocation_remaining / allocation_total * 100) if allocation_total > 0 else Decimal('0')
+        )
+
+        # پروژه‌ها
+        projects = Project.objects.filter(
+            organizations=organization,
+            is_active=True
+        ).prefetch_related('subprojects', 'budget_allocations').order_by('name')
+
+        project_data = []
         for project in projects:
-            project.total_budget = get_project_total_budget(project)
-            project.remaining_budget = get_project_remaining_budget(project)
-            project.remaining_percent = (
-                (project.remaining_budget / project.total_budget * 100)
-                if project.total_budget > 0 else 0
+            total_budget = ProjectBudgetAllocation.objects.filter(
+                project=project,
+                subproject__isnull=True
+            ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+            project_budget_allocations = BudgetAllocation.objects.filter(
+                project_allocations__project=project
             )
+            consumed = BudgetTransaction.objects.filter(
+                allocation__in=project_budget_allocations,
+                transaction_type='CONSUMPTION'
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            returned = BudgetTransaction.objects.filter(
+                allocation__in=project_budget_allocations,
+                transaction_type='RETURN'
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            remaining_budget = total_budget - consumed + returned
+            remaining_percentage = (
+                (remaining_budget / total_budget * 100) if total_budget > 0 else Decimal('0')
+            )
+
+            project.total_budget = total_budget
+            project.remaining_budget = remaining_budget
             project.total_percent = (
-                (project.total_budget / total_org_budget * 100)
-                if total_org_budget > 0 else 0
+                (total_budget / total_org_budget * 100) if total_org_budget > 0 else Decimal('0')
             )
+            project.remaining_percent = remaining_percentage
+
             for subproject in project.subprojects.filter(is_active=True):
-                subproject.total_budget = get_subproject_total_budget(subproject)
-                subproject.remaining_budget = get_subproject_remaining_budget(subproject)
+                subproject_budget = ProjectBudgetAllocation.objects.filter(
+                    subproject=subproject
+                ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+                subproject_budget_allocations = BudgetAllocation.objects.filter(
+                    project_allocations__subproject=subproject
+                )
+                sub_consumed = BudgetTransaction.objects.filter(
+                    allocation__in=subproject_budget_allocations,
+                    transaction_type='CONSUMPTION'
+                ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+                sub_returned = BudgetTransaction.objects.filter(
+                    allocation__in=subproject_budget_allocations,
+                    transaction_type='RETURN'
+                ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+                subproject.total_budget = subproject_budget
+                subproject.remaining_budget = subproject_budget - sub_consumed + sub_returned
                 subproject.remaining_percent = (
-                    (subproject.remaining_budget / subproject.total_budget * 100)
-                    if subproject.total_budget > 0 else 0
+                    (subproject.remaining_budget / subproject_budget * 100) if subproject_budget > 0 else Decimal('0')
                 )
                 subproject.total_percent = (
-                    (subproject.total_budget / project.total_budget * 100)
-                    if project.total_budget > 0 else 0
+                    (subproject_budget / total_budget * 100) if total_budget > 0 else Decimal('0')
                 )
 
+            project_data.append({
+                'project': project,
+                'total_budget': total_budget,
+                'remaining_budget': remaining_budget,
+                'remaining_percentage': remaining_percentage
+            })
+
         context.update({
-            'organization': organization,
-            'budget_allocation': budget_allocation,
-            'budget_period': budget_period,
+            'budget_period': budget_allocation.budget_period if budget_allocation else None,
             'total_org_budget': total_org_budget,
-            'remaining_amount': budget_period.get_remaining_amount(),
-            'remaining_percent': (
-                (context['remaining_amount'] / budget_period.total_amount * 100)
-                if budget_period.total_amount > 0 else 0
-            ),
-            'warning_threshold': budget_period.warning_threshold,
+            'remaining_amount': remaining_amount,
+            'remaining_percent': remaining_percent,
+            'allocation_total': allocation_total,
+            'allocation_remaining': allocation_remaining,
+            'allocation_remaining_percent': allocation_remaining_percent,
+            'warning_threshold': budget_allocation.warning_threshold if budget_allocation else 50,
             'projects': projects,
-            'budget_details': get_budget_details(organization)
+            'project_data': project_data,
         })
-        logger.debug(f"ProjectBudgetAllocationCreateView context: {context}")
+        logger.info(f"Context prepared for organization {organization.id}")
         return context
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['organization_id'] = self.kwargs['organization_id']
         kwargs['user'] = self.request.user
-        logger.debug(f"Form kwargs: {kwargs}")
         return kwargs
 
     def form_invalid(self, form):
@@ -158,7 +344,7 @@ class ProjectBudgetAllocationCreateView(PermissionBaseView, CreateView):
         form.instance.created_by = self.request.user
         remaining = form.instance.budget_allocation.get_remaining_amount()
         if form.instance.allocated_amount > remaining:
-            messages.error(self.request, f'مبلغ تخصیص بیشتر از باقی‌مانده بودجه شعبه ({remaining}) است.')
+            messages.error(self.request, f'مبلغ تخصیص بیشتر از باقی‌مانده بودجه شعبه ({remaining:,} ریال) است.')
             return self.form_invalid(form)
         try:
             response = super().form_valid(form)
@@ -171,9 +357,7 @@ class ProjectBudgetAllocationCreateView(PermissionBaseView, CreateView):
             return self.form_invalid(form)
 
     def get_success_url(self):
-        return reverse_lazy('project_budget_allocation_list',
-                            kwargs={'organization_id': self.kwargs['organization_id']})
-
+        return reverse_lazy('project_budget_allocation_list', kwargs={'organization_id': self.kwargs['organization_id']})
 
     def dispatch(self, request, *args, **kwargs):
         try:
@@ -181,43 +365,10 @@ class ProjectBudgetAllocationCreateView(PermissionBaseView, CreateView):
         except Organization.DoesNotExist:
             logger.error(f"Organization with id={self.kwargs['organization_id']} not found")
             messages.error(request, _("سازمان موردنظر یافت نشد"))
-            from django.shortcuts import redirect
             return redirect('budgetperiod_list')
         return super().dispatch(request, *args, **kwargs)
 
-class ProjectBudgetAllocationEditView(PermissionBaseView, UpdateView):
-    model = ProjectBudgetAllocation
-    form_class = ProjectBudgetAllocationForm
-    template_name = 'budgets/budget/project_budget_allocation_edit.html'
-    context_object_name = 'allocation'
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['organization_id'] = self.object.budget_allocation.organization_id
-        return kwargs
-
-    @transaction.atomic
-    def form_valid(self, form):
-        old_amount = self.get_object().allocated_amount
-        new_amount = form.instance.allocated_amount
-        remaining = self.get_object().budget_allocation.get_remaining_amount() + old_amount
-        if new_amount > remaining:
-            messages.error(self.request, f'مبلغ تخصیص بیشتر از باقی‌مانده بودجه شعبه ({remaining}) است.')
-            return self.form_invalid(form)
-        try:
-            response = super().form_valid(form)
-            logger.info(f"Allocation {self.object.pk} updated")
-            messages.success(self.request, _("تخصیص بودجه با موفقیت ویرایش شد"))
-            return response
-        except ValidationError as e:
-            logger.error(f"Validation error on edit: {str(e)}")
-            form.add_error(None, str(e))
-            return self.form_invalid(form)
-
-    def get_success_url(self):
-        return reverse_lazy('project_budget_allocation_list',
-                            kwargs={'organization_id': self.object.budget_allocation.organization_id})
-
+"""BudgetAllocationUpdateView داخل فایل دیگه ای """
 class ProjectBudgetAllocationDeleteView(PermissionBaseView, DeleteView):
     model = ProjectBudgetAllocation
     template_name = 'budgets/budget/project_budget_allocation_delete.html'
@@ -226,9 +377,13 @@ class ProjectBudgetAllocationDeleteView(PermissionBaseView, DeleteView):
     @transaction.atomic
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
+        budget_allocation = self.object.budget_allocation
         logger.info(f"Allocation {self.object.pk} deleted")
         success_url = self.get_success_url()
         self.object.delete()
+        # به‌روزرسانی remaining_amount
+        budget_allocation.remaining_amount = budget_allocation.get_remaining_amount()
+        budget_allocation.save(update_fields=['remaining_amount'])
         messages.success(self.request, _("تخصیص بودجه با موفقیت حذف شد"))
         from django.shortcuts import redirect
         return redirect(success_url)
@@ -236,3 +391,65 @@ class ProjectBudgetAllocationDeleteView(PermissionBaseView, DeleteView):
     def get_success_url(self):
         return reverse_lazy('project_budget_allocation_list',
                             kwargs={'organization_id': self.object.budget_allocation.organization_id})
+
+# Reports
+class BudgetRealtimeReportView(PermissionBaseView, TemplateView):
+    template_name = 'reports/realtime_report.html'
+    permission_required = 'budgets.view_budgetallocation'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        organization_id = self.request.GET.get('organization_id')
+        project_id = self.request.GET.get('project_id')
+
+        organizations = Organization.objects.filter(is_active=True)
+        data = []
+
+        for org in organizations:
+            if organization_id and org.id != int(organization_id):
+                continue
+            org_budget = get_organization_budget(org) or Decimal('0')
+            org_remaining = sum(
+                alloc.get_remaining_amount() for alloc in BudgetAllocation.objects.filter(
+                    organization=org, is_active=True
+                )
+            ) or Decimal('0')
+            projects = Project.objects.filter(organizations=org, is_active=True)
+            project_data = []
+
+            for project in projects:
+                if project_id and project.id != int(project_id):
+                    continue
+                total_budget = project.get_total_budget() or Decimal('0')
+                remaining_budget = project.get_remaining_budget() or Decimal('0')
+                transactions = BudgetTransaction.objects.filter(
+                    allocation__project_allocations__project=project
+                ).order_by('-timestamp')[:10]  # محدود به 10 تراکنش اخیر
+                project_data.append({
+                    'project': project,
+                    'total_budget': total_budget,
+                    'remaining_budget': remaining_budget,
+                    'allocated_percentage': (
+                        (total_budget / org_budget * 100) if org_budget > 0 else Decimal('0')
+                    ),
+                    'remaining_percentage': (
+                        (remaining_budget / total_budget * 100) if total_budget > 0 else Decimal('0')
+                    ),
+                    'transactions': transactions,
+                })
+
+            data.append({
+                'organization': org,
+                'total_budget': org_budget,
+                'remaining_budget': org_remaining,
+                'projects': project_data,
+            })
+
+        context.update({
+            'report_data': data,
+            'organizations': organizations,
+            'selected_organization': organization_id,
+            'selected_project': project_id,
+        })
+        logger.debug(f"BudgetRealtimeReportView context: {context}")
+        return context

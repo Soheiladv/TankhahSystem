@@ -22,6 +22,9 @@ class BudgetPeriodCreateView(PermissionBaseView,CreateView):
     form_class = BudgetPeriodForm
     template_name = 'budgets/budget/budgetperiod_form.html'
     success_url = reverse_lazy('budgetperiod_list')
+    permission_required = 'budgets.add_budgetperiod'
+    check_object_permission = 'budgets.add_budgetperiod'
+    check_organization = True
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -32,6 +35,10 @@ class BudgetPeriodCreateView(PermissionBaseView,CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = _('ایجاد دوره بودجه جدید')
+        from core.models import Organization
+        context['organizations'] = Organization.objects.filter(
+            is_core=True, is_active=True
+        ).select_related('org_type')
         return context
 
     @transaction.atomic
@@ -45,8 +52,10 @@ class BudgetPeriodCreateView(PermissionBaseView,CreateView):
             return self.form_invalid(form)
 
     def form_invalid(self, form):
+        logger.error(f"Form invalid: errors={form.errors.as_json()}")
         messages.error(self.request, _('لطفاً خطاهای فرم را بررسی کنید.'))
         return self.render_to_response(self.get_context_data(form=form))
+
 
 class BudgetPeriodUpdateView(PermissionBaseView,UpdateView):
     model = BudgetPeriod

@@ -14,6 +14,15 @@
     <!-- CSS فارسی دیتاپیکر -->
     <link href="{% static 'admin/css/jalalidatepicker.min.css' %}" rel="stylesheet">
     <link href="{% static 'admin/css/custom.css' %}" rel="stylesheet">
+
+{# Select2 CSS #}
+<link href="{% static 'admin/css/select2.min.css'%}" rel="stylesheet" />
+{# Select2 Bootstrap 5 Theme #}
+<link rel="stylesheet" href="{% static 'admin/css/select2-bootstrap-5-theme.min.css'%}" />
+{# Bootstrap Icons (already included but good practice) #}
+{#<link rel="stylesheet" href="{% static 'admin/css/bootstrap-icons.css'%}" />#}
+
+
     <!-- استایل بالا را اینجا قرار دهید -->
     <style>@font-face {
         font-family: 'Parastoo';
@@ -228,9 +237,13 @@
     </div>
 </footer>
 <script src="{% static 'admin/js/jquery-3.6.0.min.js' %}"></script>
+{# jQuery (if not loaded globally) #}
 <script src="{% static 'admin/js/jquery-ui.min.js' %}"></script>
+{# Select2 JS #}
+<script src="{% static 'admin/js/select2.min.js'%}"></script>
 <!--  تاریخ فارسی  -->
 {#    <script src="{% static 'admin/js/datepicker-fa.js' %}"></script>#}
+{# Jalali Datepicker JS - Make sure the path is correct #}
 <script src="{% static 'admin/js/jalalidatepicker.min.js' %}"></script>
 {#<link rel="stylesheet" href="{% static 'admin/css/persian-datepicker.min.css' %}">#}
 

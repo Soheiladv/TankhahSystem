@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load i18n humanize static %} {# Assuming you might need static for custom CSS/JS later #}
+
+{% block title %}{% trans "گزارش لحظه‌ای بودجه" %}{% endblock %}
+
+{% block extra_css %}
+{# Select2 CSS (Recommended for better dropdowns) #}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+{# Bootstrap Icons #}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+    body { background-color: #f8f9fa; } /* Light background for the page */
+    .card { margin-bottom: 1.5rem; border: none; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075); }
+    .card-header.org-header { background-color: #e9ecef; border-bottom: 1px solid #dee2e6; }
+    .card-header.project-header { background-color: #f8f9fa; }
+    .project-report { margin-bottom: 1rem; }
+    .filter-card { background-color: #ffffff; margin-bottom: 2rem; }
+    .table th { font-weight: 600; }
+    .text-end-numeric { text-align: right !important; direction: ltr; font-family: monospace; } /* Align numbers right */
+    .progress { height: 8px; margin-bottom: 0.5rem; }
+    .summary-value { font-weight: 600; }
+    .summary-label { color: #6c757d; font-size: 0.9em;}
+    /* Select2 adjustments */
+    .select2-container--bootstrap-5 .select2-selection { min-height: calc(1.5em + 0.75rem + 2px); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0 d-flex align-items-center">
+            <i class="bi bi-bar-chart-line-fill me-2 text-primary"></i>{% trans "گزارش لحظه‌ای بودجه" %}
+        </h2>
+        {# Optional: Add refresh button or other actions here #}
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card filter-card">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label for="organization_id" class="form-label small">{% trans "فیلتر بر اساس سازمان" %}:</label>
+                    <select name="organization_id" id="organization_id" class="form-select form-select-sm select2-filter">
+                        <option value="">{% trans "همه سازمان‌ها" %}</option>
+                        {% for org in organizations %}
+                            {# Use item.id directly, no need for stringformat:"s" unless primary key is not int #}
+                            <option value="{{ org.id }}" {% if selected_organization == org.id|stringformat:"s" %}selected{% endif %}>{{ org.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label for="project_id" class="form-label small">{% trans "فیلتر بر اساس پروژه" %}:</label>
+                    <select name="project_id" id="project_id" class="form-select form-select-sm select2-filter">
+                        <option value="">{% trans "همه پروژه‌ها" %}</option>
+                         {# Make sure 'projects' context contains all projects for filtering #}
+                        {% for project in projects %}
+                            <option value="{{ project.id }}" {% if selected_project == project.id|stringformat:"s" %}selected{% endif %}>{{ project.name }} {% if project.organization %}({{ project.organization.name }}){% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-funnel me-1"></i>{% trans "اعمال" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Report Data Loop -->
+    {% for org_data in report_data %}
+        <div class="card organization-report">
+            <div class="card-header org-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0 d-flex align-items-center">
+                    <i class="bi bi-building me-2"></i>{{ org_data.organization.name }}
+                </h4>
+                <div class="summary-overall text-end">
+                    <span class="summary-label me-2">{% trans "بودجه کل سازمان:" %}</span>
+                    <span class="summary-value text-end-numeric">{{ org_data.total_budget|default:0|intcomma }} {% trans "ریال" %}</span>
+                    <span class="summary-label ms-3 me-2">{% trans "باقی‌مانده:" %}</span>
+                    <span class="summary-value text-primary text-end-numeric">{{ org_data.remaining_budget|default:0|intcomma }} {% trans "ریال" %}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if not org_data.projects %}
+                     <p class="text-muted text-center">{% trans "هیچ پروژه‌ای برای این سازمان یافت نشد." %}</p>
+                {% else %}
+                    <h5 class="mb-3 text-muted">{% trans "جزئیات پروژه‌ها" %}</h5>
+                    <div class="row g-3">
+                        {% for project_data in org_data.projects %}
+                            <div class="col-md-6"> {# Display two projects per row on medium screens and up #}
+                                <div class="card project-report h-100">
+                                    <div class="card-header project-header d-flex justify-content-between">
+                                        <h6 class="mb-0 d-flex align-items-center"><i class="bi bi-diagram-3 me-2"></i>{{ project_data.project.name }}</h6>
+                                    </div>
+                                    <div class="card-body">
+                                         <div class="row mb-2">
+                                            <div class="col-6">
+                                                <span class="summary-label">{% trans "بودجه پروژه:" %}</span><br>
+                                                <span class="summary-value text-end-numeric">{{ project_data.total_budget|default:0|intcomma }} {% trans "ریال" %}</span>
+                                            </div>
+                                             <div class="col-6">
+                                                <span class="summary-label">{% trans "باقی‌مانده:" %}</span><br>
+                                                <span class="summary-value {% if project_data.remaining_budget < 0 %}text-danger{% else %}text-success{% endif %} fw-bold text-end-numeric">
+                                                    {{ project_data.remaining_budget|default:0|intcomma }} {% trans "ریال" %}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="summary-label">{% trans "میزان تخصیص:" %} {{ project_data.allocated_percentage|floatformat:1|default:"0" }}%</span>
+                                            <div class="progress" data-bs-toggle="tooltip" title="{{ project_data.allocated_percentage|floatformat:1|default:'0' }}% {% trans 'تخصیص یافته' %}">
+                                                <div class="progress-bar {% if project_data.allocated_percentage > 85 %}bg-danger{% elif project_data.allocated_percentage > 60 %}bg-warning{% else %}bg-success{% endif %}"
+                                                     role="progressbar"
+                                                     style="width: {{ project_data.allocated_percentage|default:'0' }}%;" {# No persian number in style #}
+                                                     aria-valuenow="{{ project_data.allocated_percentage|default:'0' }}" {# No persian number in aria #}
+                                                     aria-valuemin="0" aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-3">
+                                        <h6 class="mb-2 small text-uppercase text-muted">{% trans "تراکنش‌های اخیر" %}</h6>
+                                        <div class="table-responsive" style="max-height: 150px; overflow-y: auto;"> {# Limit height and add scroll #}
+                                            <table class="table table-sm table-striped table-hover mb-0">
+                                                <thead class="table-light" style="position: sticky; top: 0; z-index: 1;"> {# Sticky header within scrollable div #}
+                                                    <tr>
+                                                        <th>{% trans "نوع" %}</th>
+                                                        <th class="text-end">{% trans "مبلغ (ریال)" %}</th>
+                                                        <th class="text-center">{% trans "زمان" %}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for transaction in project_data.transactions %}
+                                                        <tr>
+                                                            <td>{{ transaction.get_transaction_type_display }}</td>
+                                                            <td class="text-end-numeric {% if transaction.amount < 0 %}text-danger{% endif %}">{{ transaction.amount|intcomma }}</td>
+                                                            <td class="text-center small text-muted text-nowrap">{{ transaction.timestamp|date:"y/m/d H:i" }}</td> {# Shorter date format #}
+                                                        </tr>
+                                                    {% empty %}
+                                                        <tr><td colspan="3" class="text-center text-muted small py-2">{% trans "بدون تراکنش اخیر" %}</td></tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div> {# End Project Card Body #}
+                                </div> {# End Project Card #}
+                            </div> {# End Col for Project #}
+                        {% endfor %}
+                    </div> {# End Row for Projects #}
+                {% endif %} {# End Check for Projects #}
+            </div> {# End Org Card Body #}
+        </div> {# End Org Card #}
+    {% empty %}
+        <div class="card">
+            <div class="card-body text-center text-muted py-5">
+                <i class="bi bi-exclamation-triangle-fill fs-1 text-warning mb-3"></i>
+                <h4>{% trans "هیچ داده‌ای برای نمایش وجود ندارد." %}</h4>
+                <p>{% trans "لطفا فیلترها را بررسی کنید یا مطمئن شوید داده بودجه‌ای ثبت شده است." %}</p>
+            </div>
+        </div>
+    {% endfor %} {# End Report Data Loop #}
+
+</div> {# End Container #}
+{% endblock %}
+
+
+{% block extra_js %}
+{# jQuery (if not loaded globally) #}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{# Select2 JS #}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+{# Bootstrap Bundle JS (for Tooltips) #}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> {# Or your local Bootstrap JS #}
+
+<script>
+    (function () {
+        "use strict";
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize Select2
+            $('.select2-filter').select2({
+                theme: 'bootstrap-5',
+                 dir: "rtl",
+                placeholder: '{% trans "انتخاب کنید..." %}',
+                allowClear: true,
+                width: '100%'
+            });
+
+             // Initialize Bootstrap Tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+                new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Optional: Dynamic Project Loading based on Organization Selection
+            // Uncomment and adapt if needed
+            /*
+            $('#organization_id').on('change', function() {
+                const orgId = $(this).val();
+                const projectSelect = $('#project_id');
+                // Clear current project options (except the 'all' option)
+                projectSelect.find('option:not(:first)').remove();
+                projectSelect.val('').trigger('change'); // Reset selection
+
+                if (orgId) {
+                    // Add loading state
+                    projectSelect.prop('disabled', true);
+                    // Make an AJAX call to get projects for the selected organization
+                    // Example URL, replace with your actual endpoint
+                    // $.ajax({
+                    //     url: '/api/get-projects-for-org/' + orgId + '/',
+                    //     method: 'GET',
+                    //     success: function(data) {
+                    //         // Populate project dropdown
+                    //         data.projects.forEach(function(project) {
+                    //              projectSelect.append(new Option(project.name, project.id));
+                    //         });
+                    //         projectSelect.prop('disabled', false);
+                    //     },
+                    //     error: function() {
+                    //         console.error('Failed to load projects');
+                    //         projectSelect.prop('disabled', false); // Re-enable even on error
+                    //     }
+                    // });
+                } else {
+                     projectSelect.prop('disabled', false); // Enable if 'all orgs' selected
+                }
+            });
+            */
+        });
+    })();
+</script>
+{% endblock %}

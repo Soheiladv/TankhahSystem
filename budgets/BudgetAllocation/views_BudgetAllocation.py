@@ -15,7 +15,7 @@ import logging
 from django.http import JsonResponse
 
 from budgets.budget_calculations import calculate_allocation_percentages
-from budgets.models import BudgetPeriod, BudgetAllocation, BudgetTransaction, BudgetItem
+from budgets.models import BudgetPeriod, BudgetAllocation, BudgetTransaction, BudgetItem, ProjectBudgetAllocation
 from core.PermissionBase import PermissionBaseView
 from core.models import Organization, Project, OrganizationType
 
@@ -58,39 +58,30 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
             logger.warning(f"Invalid budget_period_id: {budget_period_id}, error: {str(e)}")
             return None
 
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        budget_period_id = self.request.GET.get('budget_period')
         budget_period = self._get_budget_period()
-        context['budget_period'] = budget_period
+
         context['title'] = _('ایجاد تخصیص بودجه جدید')
 
+        # سازمان‌های مجاز
         allowed_org_types = OrganizationType.objects.filter(is_budget_allocatable=True).values_list('id', flat=True)
         context['organizations'] = Organization.objects.filter(
             org_type__in=allowed_org_types, is_active=True
         ).select_related('org_type')
 
         if budget_period:
+            context['budget_period'] = budget_period
             context['budget_items'] = BudgetItem.objects.filter(
                 budget_period=budget_period,
                 is_active=True
             ).select_related('organization')
-            context['total_budget'] = context['budget_items'].aggregate(total=Sum('total_amount'))['total'] or Decimal(
-                '0')
-
-            context['remaining_budget_item'] = Decimal('0')
-            budget_item_id = self.request.GET.get('budget_item')
-            if budget_item_id:
-                try:
-                    budget_item = BudgetItem.objects.get(id=budget_item_id, budget_period=budget_period)
-                    context['remaining_budget_item'] = budget_item.get_remaining_amount()
-                except BudgetItem.DoesNotExist:
-                    logger.warning(f"Invalid budget_item_id: {budget_item_id}")
-
+            # بودجه کل از BudgetPeriod
             context['total_amount'] = budget_period.total_amount or Decimal('0')
-            used_budget = BudgetAllocation.objects.filter(
-                budget_period=budget_period
-            ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
-            context['remaining_amount'] = max(context['total_amount'] - used_budget, Decimal('0'))
+            # باقی‌مانده دوره
+            context['remaining_amount'] = budget_period.get_remaining_amount() or Decimal('0')
             context['remaining_percent'] = (
                 (context['remaining_amount'] / context['total_amount'] * 100)
                 if context['total_amount'] else 0
@@ -99,9 +90,8 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
             context['warning_threshold'] = budget_period.warning_threshold or 10
             logger.info(f"Budget period data: total={context['total_amount']}, remaining={context['remaining_amount']}")
         else:
+            context['budget_period'] = None
             context['budget_items'] = BudgetItem.objects.none()
-            context['total_budget'] = Decimal('0')
-            context['remaining_budget_item'] = Decimal('0')
             context['total_amount'] = Decimal('0')
             context['remaining_amount'] = Decimal('0')
             context['remaining_percent'] = 0
@@ -114,6 +104,7 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
 
         return context
 
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         budget_period = self._get_budget_period()
@@ -125,6 +116,7 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
             kwargs['budget_period'] = budget_period
         kwargs['user'] = self.request.user
         return kwargs
+
 
     def form_valid(self, form):
         logger.debug("Form is valid, starting save process")
@@ -143,17 +135,37 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
             form.add_error(None, _('خطایی در ثبت تخصیص بودجه رخ داد: ') + str(e))
             return self.form_invalid(form)
 
+
     def form_invalid(self, form):
         logger.error(f"Form invalid: errors={form.errors.as_json()}")
         messages.error(self.request, _('لطفاً خطاهای فرم را بررسی کنید.'))
         return self.render_to_response(self.get_context_data(form=form))
-
 
 class BudgetAllocationUpdateView(PermissionBaseView, UpdateView):
     model = BudgetAllocation
     form_class = BudgetAllocationForm
     template_name = 'budgets/budget/budgetallocation_form.html'
     success_url = reverse_lazy('budgetallocation_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('ویرایش تخصیص بودجه')
+        context['budget_period'] = self.object.budget_period
+        context['total_amount'] = self.object.budget_period.total_amount or Decimal('0')
+        context['remaining_amount'] = self.object.budget_period.get_remaining_amount() + self.object.allocated_amount
+        context['remaining_percent'] = (
+            (context['remaining_amount'] / context['total_amount'] * 100)
+            if context['total_amount'] else 0
+        )
+        context['locked_percentage'] = self.object.budget_period.locked_percentage or 0
+        context['warning_threshold'] = self.object.budget_period.warning_threshold or 10
+        context['budget_items'] = BudgetItem.objects.filter(
+            budget_period=self.object.budget_period,
+            is_active=True
+        ).select_related('organization')
+        context['organizations'] = Organization.objects.filter(is_active=True).select_related('org_type')
+        context['projects'] = Project.objects.filter(is_active=True).select_related('category')
+        return context
 
     @transaction.atomic
     def form_valid(self, form):
@@ -162,7 +174,7 @@ class BudgetAllocationUpdateView(PermissionBaseView, UpdateView):
         difference = new_amount - old_amount
         remaining = self.get_object().budget_period.get_remaining_amount() + old_amount
         if new_amount > remaining:
-            messages.error(self.request, f'مبلغ تخصیص بیشتر از باقی‌مانده بودجه ({remaining}) است.')
+            messages.error(self.request, f'مبلغ تخصیص بیشتر از باقی‌مانده بودجه ({remaining:,.0f} ریال) است.')
             return self.form_invalid(form)
 
         response = super().form_valid(form)
@@ -183,9 +195,12 @@ class BudgetAllocationListView(PermissionBaseView, ListView):
     template_name = 'budgets/budget/budgetallocation_list.html'
     context_object_name = 'budget_allocations'
     paginate_by = 10
+    permission_required = 'budgets.view_budgetallocation'
 
     def get_queryset(self):
-        queryset = BudgetAllocation.objects.all().select_related('organization', 'project', 'budget_period', 'budget_item')
+        # همان کد قبلی بدون تغییر
+        queryset = BudgetAllocation.objects.all().select_related('organization', 'project', 'budget_period',
+                                                                 'budget_item')
         logger.info(f"BudgetAllocationListView queryset: {queryset.count()} records")
 
         query = self.request.GET.get('q', '')
@@ -226,50 +241,145 @@ class BudgetAllocationListView(PermissionBaseView, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         organization_id = self.request.GET.get('organization')
+        budget_period_id = self.request.GET.get('budget_period')
         budget_item_id = self.request.GET.get('budget_item')
+        project_id = self.request.GET.get('project')  # اضافه کردن فیلتر پروژه
 
-        # بودجه کل فعال شعبه
+        # مقداردهی اولیه
         total_budget = Decimal('0')
-        if organization_id:
-            total_budget = BudgetItem.objects.filter(
-                organization_id=organization_id,
-                is_active=True
-            ).aggregate(total=Sum('total_amount'))['total'] or Decimal('0')
+        remaining_budget = Decimal('0')
+        allocated_percentage = Decimal('0')
+        remaining_percentage = Decimal('0')
+        total_allocated = Decimal('0')
 
-        # تخصیص‌ها و باقی‌مانده تخصیص
-        total_allocated = context['budget_allocations'].aggregate(
-            total=Sum('allocated_amount')
-        )['total'] or Decimal('0')
-        total_remaining_allocation = context['budget_allocations'].aggregate(
-            total=Sum('remaining_amount')
-        )['total'] or Decimal('0')
+        # محاسبه بودجه دوره
+        if budget_period_id:
+            try:
+                budget_period = BudgetPeriod.objects.get(id=budget_period_id, is_active=True)
+                total_budget = budget_period.total_amount or Decimal('0')
+                remaining_budget = budget_period.get_remaining_amount() or Decimal('0')
+                total_allocated = BudgetAllocation.objects.filter(budget_period=budget_period).aggregate(
+                    total=Sum('allocated_amount')
+                )['total'] or Decimal('0')
 
-        # باقی‌مانده ردیف بودجه
-        total_remaining_budget_item = Decimal('0')
+                if total_budget > 0:
+                    allocated_percentage = (total_allocated / total_budget) * Decimal('100')
+                    remaining_percentage = (remaining_budget / total_budget) * Decimal('100')
+
+                logger.info(
+                    f"Budget period {budget_period.id}: total={total_budget}, "
+                    f"remaining={remaining_budget}, allocated={total_allocated}, "
+                    f"allocated_percentage={allocated_percentage:.2f}%, "
+                    f"remaining_percentage={remaining_percentage:.2f}%"
+                )
+            except BudgetPeriod.DoesNotExist:
+                logger.warning(f"Invalid budget_period_id: {budget_period_id}")
+                context['status_message'] = _('دوره بودجه انتخاب‌شده نامعتبر است.')
+        else:
+            total_allocated = context['budget_allocations'].aggregate(
+                total=Sum('allocated_amount')
+            )['total'] or Decimal('0')
+            total_budget = BudgetPeriod.objects.filter(is_active=True).aggregate(
+                total=Sum('total_amount')
+            )['total'] or Decimal('0')
+            remaining_budget = BudgetPeriod.objects.filter(is_active=True).aggregate(
+                total=Sum('total_amount') - Sum('total_allocated')
+            )['total'] or Decimal('0')
+
+            if total_budget > 0:
+                allocated_percentage = (total_allocated / total_budget) * Decimal('100')
+                remaining_percentage = (remaining_budget / total_budget) * Decimal('100')
+
+        # محاسبه اطلاعات ردیف بودجه
+        budget_item_data = {}
         if budget_item_id:
             try:
                 budget_item = BudgetItem.objects.get(id=budget_item_id, is_active=True)
-                total_remaining_budget_item = budget_item.get_remaining_amount()
+                budget_period = budget_item.budget_period
+                budget_item_total = budget_period.total_amount or Decimal('0')
+                budget_item_allocated = BudgetAllocation.objects.filter(budget_item=budget_item).aggregate(
+                    total=Sum('allocated_amount')
+                )['total'] or Decimal('0')
+                budget_item_remaining = budget_item_total - budget_item_allocated
+                budget_item_allocated_percentage = (
+                    (budget_item_allocated / budget_item_total * Decimal('100'))
+                    if budget_item_total > 0 else Decimal('0')
+                )
+                budget_item_remaining_percentage = (
+                    (budget_item_remaining / budget_item_total * Decimal('100'))
+                    if budget_item_total > 0 else Decimal('0')
+                )
+
+                budget_item_data = {
+                    'total': budget_item_total,
+                    'remaining': budget_item_remaining,
+                    'allocated': budget_item_allocated,
+                    'allocated_percentage': budget_item_allocated_percentage,
+                    'remaining_percentage': budget_item_remaining_percentage,
+                }
             except BudgetItem.DoesNotExist:
                 logger.warning(f"Invalid budget_item_id: {budget_item_id}")
+                context['status_message'] = _('ردیف بودجه انتخاب‌شده نامعتبر است.')
+
+        # محاسبه اطلاعات پروژه
+        project_data = {}
+        if project_id:
+            try:
+                project = Project.objects.get(id=project_id, is_active=True)
+                project_allocations = ProjectBudgetAllocation.objects.filter(project=project)
+                project_total = project_allocations.aggregate(
+                    total=Sum('allocated_amount')
+                )['total'] or Decimal('0')
+                project_remaining = project.get_remaining_budget() or Decimal('0')
+                project_allocated_percentage = (
+                    (project_total / project_total * Decimal('100'))
+                    if project_total > 0 else Decimal('0')
+                )
+                project_remaining_percentage = (
+                    (project_remaining / project_total * Decimal('100'))
+                    if project_total > 0 else Decimal('0')
+                )
+
+                project_data = {
+                    'total': project_total,
+                    'remaining': project_remaining,
+                    'allocated': project_total,
+                    'allocated_percentage': project_allocated_percentage,
+                    'remaining_percentage': project_remaining_percentage,
+                }
+                logger.info(
+                    f"Project {project.id}: total={project_total}, "
+                    f"remaining={project_remaining}, allocated_percentage={project_allocated_percentage:.2f}%, "
+                    f"remaining_percentage={project_remaining_percentage:.2f}%"
+                )
+            except Project.DoesNotExist:
+                logger.warning(f"Invalid project_id: {project_id}")
+                context['status_message'] = _('پروژه انتخاب‌شده نامعتبر است.')
 
         context.update({
             'total_budget': total_budget,
+            'remaining_budget': remaining_budget,
             'total_allocated': total_allocated,
-            'total_remaining_allocation': total_remaining_allocation,
-            'total_remaining_budget_item': total_remaining_budget_item,
+            'allocated_percentage': allocated_percentage,
+            'remaining_percentage': remaining_percentage,
+            'budget_item_data': budget_item_data,
+            'project_data': project_data,  # اضافه کردن اطلاعات پروژه
             'budget_items': BudgetItem.objects.filter(is_active=True).select_related('organization', 'budget_period'),
             'organizations': Organization.objects.filter(is_active=True),
+            'budget_periods': BudgetPeriod.objects.filter(is_active=True),
+            'projects': Project.objects.filter(is_active=True),  # اضافه کردن پروژه‌ها برای فیلتر
             'status': 'filtered',
-            'status_message': _('نمایش تخصیص‌های فیلترشده'),
+            'status_message': context.get('status_message', _('نمایش تخصیص‌های فیلترشده')),
             'query': self.request.GET.get('q', ''),
             'date_from': self.request.GET.get('date_from', ''),
             'date_to': self.request.GET.get('date_to', ''),
             'selected_budget_item': budget_item_id,
             'selected_organization': organization_id,
+            'selected_budget_period': budget_period_id,
+            'selected_project': project_id,
         })
 
-        logger.debug(f"BudgetAllocationListView context: total_budget={total_budget}, total_remaining_budget_item={total_remaining_budget_item}")
+        logger.debug(f"BudgetAllocationListView context: {context}")
         return context
 
 class BudgetAllocationDetailView(PermissionBaseView, DetailView):

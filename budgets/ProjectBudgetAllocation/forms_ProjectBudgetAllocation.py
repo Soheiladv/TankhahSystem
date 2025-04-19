@@ -1,23 +1,35 @@
-import re
-from datetime import date
-
-import jdatetime
+from decimal import Decimal
 from django import forms
-
-from budgets.forms import to_english_digits
-from budgets.models import ProjectBudgetAllocation, BudgetAllocation
-from core.models import Project, SubProject, Organization
+from django.core.exceptions import ValidationError
+import jdatetime
+import re
 from django.utils.translation import gettext_lazy as _
-
-
-
+from budgets.models import ProjectBudgetAllocation, BudgetAllocation
+from core.models import Project, SubProject
 import logging
+
 logger = logging.getLogger(__name__)
 
+def to_english_digits(text):
+    persian_digits = '۰۱۲۳۴۵۶۷۸۹'
+    english_digits = '0123456789'
+    translation_table = str.maketrans(persian_digits, english_digits)
+    return text.translate(translation_table)
+
 class ProjectBudgetAllocationForm(forms.ModelForm):
+    allocation_date = forms.CharField(
+        label=_('تاریخ تخصیص'),  # Changed label slightly
+        widget=forms.TextInput(attrs={
+            'data-jdp': '',
+            'class': 'form-control form-control-lg jalali-datepicker',  # Added jalali-datepicker class
+            'autocomplete': 'off',
+            'placeholder': _('مثال: 1404/01/26')  # Updated placeholder
+        }),
+        required=True
+    )
     class Meta:
         model = ProjectBudgetAllocation
-        fields = ['budget_allocation', 'project', 'subproject', 'allocated_amount', 'description']
+        fields = ['budget_allocation', 'project', 'subproject', 'allocated_amount', 'allocation_date', 'description']
         widgets = {
             'budget_allocation': forms.Select(attrs={
                 'class': 'form-select select2',
@@ -31,149 +43,181 @@ class ProjectBudgetAllocationForm(forms.ModelForm):
                 'class': 'form-select select2',
                 'data-placeholder': _('انتخاب زیرپروژه (اختیاری)'),
             }),
-            'allocated_amount': forms.NumberInput(attrs={
+            'allocated_amount': forms.TextInput(attrs={  # تغییر به TextInput برای پشتیبانی از اعداد پارسی
                 'class': 'form-control numeric-input',
-                'placeholder': _('مبلغ به ریال'),
+                'placeholder': _('مبلغ به ریال یا درصد'),
                 'dir': 'ltr',
-                'min': '0',
-                'step': '1000',
+                'inputmode': 'numeric',
             }),
+            'allocation_date': forms.DateInput(attrs={
+                'data-jdp': 'true',
+                'class': 'form-control form-control-lg jalali-datepicker',
+                'autocomplete': 'off',
+                'placeholder': _('مثال: 1404/01/26'),
+            }),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'description': forms.Textarea(attrs={
                 'class': 'form-control',
-                'rows': 3,
+                'rows': 2,
                 'placeholder': _('توضیحات مربوط به تخصیص بودجه'),
             }),
+
         }
         labels = {
             'budget_allocation': _('تخصیص بودجه شعبه'),
             'project': _('پروژه'),
             'subproject': _('زیرپروژه (اختیاری)'),
-            'allocated_amount': _('مبلغ تخصیص (ریال)'),
+            'allocated_amount': _('مبلغ تخصیص'),
+            'allocation_date': _('تاریخ تخصیص'),
+            'is_active': _('فعال'),
             'description': _('توضیحات'),
         }
         help_texts = {
-            'allocated_amount': _('مبلغ باید کمتر از باقی‌مانده بودجه دوره باشد'),
+            'allocated_amount': _('مبلغ یا درصد را وارد کنید. مثال: 1,000,000 یا 10%'),
             'subproject': _('در صورتی که بودجه به زیرپروژه خاصی تعلق دارد انتخاب کنید'),
+            'allocation_date': _('تاریخ را به فرمت 1404/01/17 وارد کنید'),
         }
 
-
-    def __init__(self, *args, organization_id=None, **kwargs):
-        self.user = kwargs.pop('user', None)
-        self.organization_id = kwargs.pop('organization_id', None)
-        # logger.debug(f"Initializing ProjectBudgetAllocationForm with user={self.user}, organization_id={self.organization_id}")
+    def __init__(self, *args, organization_id=None, user=None, **kwargs):
+        self.user = user
+        self.organization_id = organization_id
         super().__init__(*args, **kwargs)
 
-        # محدود کردن انتخاب‌ها بر اساس سازمان
-        if self.organization_id:
-            organization = Organization.objects.get(id=self.organization_id)
-            self.fields['budget_allocation'].queryset = BudgetAllocation.objects.filter(
-                organization=organization,
-                is_active=True
+        if organization_id:
+            budget_allocations = BudgetAllocation.objects.filter(
+                organization_id=organization_id,
+                is_active=True,
+                budget_period__is_active=True
             )
+            self.fields['budget_allocation'].queryset = budget_allocations
             self.fields['project'].queryset = Project.objects.filter(
-                organizations=organization,
+                organizations__id=organization_id,
                 is_active=True
             )
             self.fields['subproject'].queryset = SubProject.objects.filter(
-                project__organizations=organization,
+                project__organizations__id=organization_id,
                 is_active=True
             )
-        else:
-            # logger.warning("No organization_id provided to form")
-            self.fields['budget_allocation'].queryset = BudgetAllocation.objects.none()
-            self.fields['project'].queryset = Project.objects.none()
-            self.fields['subproject'].queryset = SubProject.objects.none()
+
+            if budget_allocations.exists() and not self.initial.get('budget_allocation'):
+                self.initial['budget_allocation'] = budget_allocations.first().id
+                logger.info(f"Set default budget_allocation to ID {self.initial['budget_allocation']}")
 
         # تنظیم تاریخ اولیه
-        if self.instance.pk and self.instance.allocation_date:
-            j_date = jdatetime.date.fromgregorian(date=self.instance.allocation_date)
-            self.initial['allocation_date'] = j_date.strftime('%Y/%m/%d')
+        if not self.initial.get('allocation_date'):
+            if self.instance and self.instance.pk and self.instance.allocation_date:
+                try:
+                    self.initial['allocation_date'] = jdatetime.date.fromgregorian(
+                        date=self.instance.allocation_date
+                    ).strftime('%Y/%m/%d')
+                    logger.debug(f"Set initial allocation_date from instance: {self.initial['allocation_date']}")
+                except Exception as e:
+                    logger.error(f"Error formatting existing allocation date: {e}")
+                    self.initial['allocation_date'] = jdatetime.date.today().strftime('%Y/%m/%d')
+            else:
+                self.initial['allocation_date'] = jdatetime.date.today().strftime('%Y/%m/%d')
+                logger.debug(f"Set default allocation_date for new instance: {self.initial['allocation_date']}")
+
+
+    def clean_allocated_amount(self):
+        allocated_amount = self.cleaned_data.get('allocated_amount')
+        input_mode = self.data.get('input_mode', 'amount')
+        budget_allocation = self.cleaned_data.get('budget_allocation')
+
+        if not allocated_amount:
+            raise forms.ValidationError(_('مبلغ تخصیص اجباری است.'))
+
+        # تبدیل مقدار ورودی به عدد
+        try:
+            if isinstance(allocated_amount, str):
+                allocated_amount = allocated_amount.replace(',', '').replace('،', '')
+                allocated_amount = float(allocated_amount)
+            allocated_amount = Decimal(allocated_amount)
+        except (ValueError, TypeError):
+            raise forms.ValidationError(_('مقدار تخصیص نامعتبر است.'))
+
+        if input_mode == 'percent':
+            if allocated_amount < 0 or allocated_amount > 100:
+                raise forms.ValidationError(_('درصد باید بین 0 تا 100 باشد.'))
+            if budget_allocation:
+                allocated_amount = (allocated_amount / 100) * budget_allocation.allocated_amount
+                allocated_amount = allocated_amount.quantize(Decimal('1.'))  # گرد کردن به عدد صحیح
+
+        if allocated_amount <= 0:
+            raise forms.ValidationError(_('مبلغ تخصیص باید مثبت باشد.'))
+
+        if budget_allocation:
+            remaining = budget_allocation.get_remaining_amount()
+            if allocated_amount > remaining:
+                raise forms.ValidationError(
+                    f'مبلغ تخصیص بیشتر از باقی‌مانده بودجه ({remaining:,} ریال) است.'
+                )
+
+        return allocated_amount
+
+    # * def clean_allocation_date(self):
+    #      date_input = self.cleaned_data.get('allocation_date')
+    #      if not date_input:
+    #          raise forms.ValidationError(_('تاریخ تخصیص اجباری است.'))
+    #      if isinstance(date_input, jdatetime.date):
+    #          return date_input.togregorian()
+    #      raise forms.ValidationError(_('تاریخ نامعتبر است.'))
+
 
     def clean_allocation_date(self):
-        date_input = self.cleaned_data.get('allocation_date')
-        logger.debug(f"Cleaning allocation_date: input={date_input}")
-        if not date_input:
-            logger.error("allocation_date is empty")
-            raise forms.ValidationError(_('تاریخ تخصیص اجباری است.'))
-        if isinstance(date_input, date):
-            return date_input
-
-        date_str = to_english_digits(str(date_input).strip())
-        date_str = re.sub(r'[-\.]', '/', date_str)
-
-        # امتحان کردن فرمت‌های مختلف
-        formats = ['%Y/%m/%d', '%Y-%m-%d']
-        g_date = None
-        for fmt in formats:
-            try:
-                j_date = jdatetime.date.strptime(date_str, fmt)
-                g_date = j_date.togregorian()
-                if isinstance(g_date, date):
-                    logger.debug(f"Parsed allocation_date: {g_date} with format {fmt}")
-                    return g_date
-            except ValueError:
-                continue
-
-        logger.error(f"Invalid allocation_date format: {date_input}")
-        raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17 یا 1404-01-17).'))
-
+        """Parse Jalali date string to Python date object."""
+        date_str = self.cleaned_data.get('allocation_date')
+        logger.debug(f"Cleaning allocation_date: input='{date_str}'")
+        if not date_str:
+            # This might be redundant if field is required=True
+            raise ValidationError(_('تاریخ تخصیص اجباری است.'))
+        try:
+            # Use the utility function to parse
+            from Tanbakhsystem.utils import parse_jalali_date
+            parsed_date = parse_jalali_date(str(date_str), field_name=_('تاریخ تخصیص'))
+            logger.debug(f"Parsed allocation_date: {parsed_date}")
+            return parsed_date  # Return the Python date object
+        except ValueError as e:  # Catch specific parsing errors
+            logger.warning(f"Could not parse allocation_date '{date_str}': {e}")
+            raise ValidationError(e)  # Show the specific error from parse_jalali_date
+        except Exception as e:  # Catch other unexpected errors
+            logger.error(f"Unexpected error parsing allocation_date '{date_str}': {e}", exc_info=True)
+            raise ValidationError(_('فرمت تاریخ تخصیص نامعتبر است.'))
 
     def clean(self):
         cleaned_data = super().clean()
         budget_allocation = cleaned_data.get('budget_allocation')
         project = cleaned_data.get('project')
         subproject = cleaned_data.get('subproject')
-        allocated_amount = cleaned_data.get('allocated_amount')
         allocation_date = cleaned_data.get('allocation_date')
 
         if not budget_allocation:
-            logger.error("No budget_allocation selected")
             raise forms.ValidationError(_('لطفاً یک تخصیص بودجه انتخاب کنید.'))
-
         if not project:
-            logger.error("No project selected")
             raise forms.ValidationError(_('لطفاً یک پروژه انتخاب کنید.'))
-
         if subproject and subproject.project != project:
-            logger.error(f"Subproject {subproject} does not belong to project {project}")
             raise forms.ValidationError(_('زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد.'))
-
-        if allocated_amount is None or allocated_amount <= 0:
-            logger.error(f"Invalid allocated_amount: {allocated_amount}")
-            raise forms.ValidationError(_('مبلغ تخصیص باید مثبت باشد.'))
-
-        if budget_allocation and allocated_amount:
-            remaining = budget_allocation.get_remaining_amount()
-            if allocated_amount > remaining:
-                logger.error(f"allocated_amount ({allocated_amount}) exceeds remaining budget ({remaining})")
-                raise forms.ValidationError(_(
-                    f'مبلغ تخصیص ({allocated_amount:,} ریال) بیشتر از بودجه باقی‌مانده ({remaining:,} ریال) است.'
-                ))
 
         if allocation_date and budget_allocation:
             start_date = budget_allocation.budget_period.start_date
             end_date = budget_allocation.budget_period.end_date
             if not (start_date <= allocation_date <= end_date):
-                logger.error(f"allocation_date ({allocation_date}) outside budget period")
                 raise forms.ValidationError(_('تاریخ تخصیص باید در بازه دوره بودجه باشد.'))
 
-        logger.debug("Clean method completed")
         return cleaned_data
 
     def save(self, commit=True):
-        logger.debug("Saving ProjectBudgetAllocationForm")
         instance = super().save(commit=False)
         if self.user and self.user.is_authenticated:
             instance.created_by = self.user
         else:
-            logger.error("No authenticated user provided")
             raise forms.ValidationError(_('کاربر معتبر برای ایجاد تخصیص لازم است.'))
         if commit:
             try:
                 instance.save()
-                logger.info(f"ProjectBudgetAllocation saved: {instance}")
+                instance.budget_allocation.remaining_amount = instance.budget_allocation.get_remaining_amount()
+                instance.budget_allocation.save(update_fields=['remaining_amount'])
             except Exception as e:
                 logger.error(f"Error saving ProjectBudgetAllocation: {str(e)}")
                 raise
         return instance
-

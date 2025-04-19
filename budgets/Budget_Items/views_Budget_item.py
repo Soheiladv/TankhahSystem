@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.db import models
+from django.db.models import Q
 from django.shortcuts import redirect
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.urls import reverse_lazy
@@ -7,7 +8,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.utils.translation import gettext_lazy as _
 
 from budgets.Budget_Items.frosm_BudgetItem import BudgetItemForm
-from budgets.models import BudgetItem
+from budgets.models import BudgetItem, BudgetPeriod
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 import logging
@@ -50,7 +51,16 @@ class BudgetItemCreateView(PermissionRequiredMixin, SuccessMessageMixin, CreateV
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = _('ایجاد ردیف بودجه جدید')
+        context['budget_periods'] = BudgetPeriod.objects.filter(is_active=True).select_related('organization')
+        from core.models import Organization
+        context['organizations'] = Organization.objects.filter(is_active=True).select_related('org_type')
         return context
+
+    def form_invalid(self, form):
+        logger.error(f"Form invalid: errors={form.errors.as_json()}")
+        messages.error(self.request, _('لطفاً خطاهای فرم را بررسی کنید.'))
+        return super().form_invalid(form)
+
 
 class BudgetItemUpdateView(PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     model = BudgetItem

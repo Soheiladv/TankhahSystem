@@ -12,7 +12,7 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView, CreateView, TemplateView
 
-from budgets.ProjectBudgetAllocation.forms_ProjectBudgetAllocation import ProjectBudgetAllocationForm
+# from budgets.ProjectBudgetAllocation.forms_ProjectBudgetAllocation import ProjectBudgetAllocationForm
 from budgets.forms import   PaymentOrderForm, \
     PayeeForm, TransactionTypeForm
 from budgets.models import BudgetPeriod, BudgetAllocation, ProjectBudgetAllocation, BudgetTransaction, PaymentOrder, \
@@ -25,6 +25,12 @@ from budgets.budget_calculations import (
     get_project_remaining_budget, get_subproject_remaining_budget, get_subproject_total_budget, get_project_total_budget
 )
 from core.templatetags.rcms_custom_filters import number_to_farsi_words
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_protect
+from django.utils.decorators import method_decorator
+from django.views import View
 
 logger = logging.getLogger(__name__)
 # Dashboard
@@ -55,7 +61,6 @@ class OrganizationBudgetAllocationListView(PermissionBaseView, ListView):
         context['budget_details'] = get_budget_details(organization)
         logger.debug(f"OrganizationBudgetAllocationListView context: {context}")
         return context
-
 
 # --- BudgetTransaction CRUD ---
 class BudgetTransactionListView(PermissionBaseView, ListView):
@@ -301,12 +306,6 @@ class TransactionTypeDeleteView(PermissionBaseView, DeleteView):
             transaction_type.delete()
             messages.success(request, f'نوع تراکنش {transaction_type.name} با موفقیت حذف شد.')
         return redirect(self.success_url)
-
-
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_protect
-from django.utils.decorators import method_decorator
-from django.views import View
 
 @method_decorator(csrf_protect, name='dispatch')
 class NumberToWordsView(View):

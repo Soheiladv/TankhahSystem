@@ -440,9 +440,13 @@ class ProjectCreateView(PermissionBaseView, CreateView):
         # اطلاعات بودجه شعبه‌ها
         budget_report = {}
         # for org in Organization.objects.filter(org_type__in=['COMPLEX', 'HQ']):
-        context['organizations'] = Organization.objects.filter(is_budget_allocatable=True).values_list('id', flat=True)
+        # context['organizations'] = Organization.objects.filter(is_budget_allocatable=True).values_list('id', flat=True)
+        # context['organizations'] = Organization.objects.filter(org_type__is_budget_allocatable=True, is_active=True ).values_list('id', flat=True)
+        organizations = Organization.objects.filter(
+            org_type__is_budget_allocatable=True, is_active=True
+        ).select_related('org_type')
 
-        for org in context['organizations']:
+        for org in organizations:
             total_budget = get_organization_budget(org)
             used_budget = BudgetAllocation.objects.filter(organization=org).aggregate(
                 total=Sum('allocated_amount')
@@ -455,15 +459,16 @@ class ProjectCreateView(PermissionBaseView, CreateView):
                 'remaining_budget': remaining_budget
             }
         context['budget_report'] = budget_report
+        context['organizations'] = organizations
         return context
 
     def form_valid(self, form):
-        form.request = self.request
+        form.instance.created_by = self.request.user
         messages.success(self.request, _('پروژه با موفقیت ایجاد شد.'))
         return super().form_valid(form)
 
     def form_invalid(self, form):
-        logger.error(f"Form errors: {form.errors.as_json()}")
+        logger.error(f"Form errors: {form.errors.as_json()}, data: {form.data}")
         messages.error(self.request, _('خطایی در ثبت پروژه رخ داد. لطفاً اطلاعات را بررسی کنید.'))
         return super().form_invalid(form)
 
@@ -481,7 +486,11 @@ class ProjectUpdateView(PermissionBaseView, UpdateView):
 
         # اطلاعات بودجه شعبه‌ها
         budget_report = {}
-        for org in Organization.objects.filter(org_type__in=['COMPLEX', 'HQ']):
+        organizations = Organization.objects.filter(
+            org_type__is_budget_allocatable=True, is_active=True
+        ).select_related('org_type')
+
+        for org in organizations:
             total_budget = get_organization_budget(org)
             used_budget = BudgetAllocation.objects.filter(organization=org).aggregate(
                 total=Sum('allocated_amount')

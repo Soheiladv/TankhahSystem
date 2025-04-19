@@ -4,8 +4,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from accounts.models import CustomUser
-from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, \
-    get_subproject_remaining_budget
+from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, get_subproject_remaining_budget
 
 
 class OrganizationType(models.Model):
@@ -92,7 +91,12 @@ class Organization(models.Model):
 class Project(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("نام پروژه"))
     code = models.CharField(max_length=80, unique=True, verbose_name=_("کد پروژه"))
-    organizations = models.ManyToManyField(Organization, limit_choices_to={'org_type': 'COMPLEX'}, verbose_name=_("مجتمع‌های مرتبط"))
+    # organizations = models.ManyToManyField(Organization, limit_choices_to={'org_type': 'COMPLEX'}, verbose_name=_("مجتمع‌های مرتبط"))
+    organizations = models.ManyToManyField(
+        Organization,
+        limit_choices_to={'org_type__is_budget_allocatable': True},  # سازمان‌هایی که می‌توانند بودجه دریافت کنند
+        verbose_name=_("سازمان‌های مرتبط")
+    )
     # allocations = models.ManyToManyField('budgets.BudgetAllocation', blank=True, verbose_name=_("تخصیص‌های بودجه مرتبط"))
     start_date = models.DateField(verbose_name=_("تاریخ شروع"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))

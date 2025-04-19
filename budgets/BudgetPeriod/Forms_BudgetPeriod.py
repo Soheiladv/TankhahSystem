@@ -79,7 +79,8 @@ class BudgetPeriodForm(forms.ModelForm):
         logger.debug("Initializing BudgetPeriodForm")
         # محدود کردن سازمان‌ها به دفاتر مرکزی فعال
         from core.models import Organization
-        self.fields['organization'].queryset = Organization.objects.filter(is_core=True, is_active=True)
+        self.fields['organization'].queryset = Organization.objects.filter(is_core=True, is_active=True).select_related('org_type')
+
         # تنظیم مقادیر پیش‌فرض از SystemSettings
         system_settings = SystemSettings.objects.first()
         if system_settings:

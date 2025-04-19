@@ -33,6 +33,7 @@ class DashboardView( PermissionBaseView , TemplateView):
                 {'name': _('روند تنخواه'), 'url': 'dashboard_flows',  'icon': 'fas fa-link'}, #'permission': 'Dashboard__view',
                 {'name': _('BI گزارشات'), 'url': 'financialDashboardView', 'icon': 'fas fa-chart-bar'},
                 {'name': _('گزارش جزئیات تنخواه'), 'url': 'tankhah_detail', 'icon': 'fas fa-chart-bar'},
+                {'name': _('گزارش لحظه ای از بودجه بندی '), 'url': 'budgetrealtimeReportView', 'icon': 'fas fa-chart-bar'},
             ],
             'بودجه سازمان': [
                 {'name': _('فهرست  بودجه کلان'), 'url': 'budgetperiod_list', 'permission': 'budgets.budgetperiod_view',

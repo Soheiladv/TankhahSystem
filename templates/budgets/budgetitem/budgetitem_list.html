@@ -35,12 +35,13 @@
                 <table class="table table-striped table-hover">
                     <thead>
                         <tr>
+                            <th>{% trans "ردیف" %}</th>
                             <th>{% trans "نام" %}</th>
                             <th>{% trans "کد" %}</th>
                             <th>{% trans "دوره بودجه" %}</th>
                             <th>{% trans "شعبه" %}</th>
-                            <th>{% trans "مبلغ کل (ریال)" %}</th>
-                            <th>{% trans "باقی‌مانده (ریال)" %}</th>
+{#                            <th>{% trans "مبلغ کل (ریال)" %}</th>#}
+{#                            <th>{% trans "باقی‌مانده (ریال)" %}</th>#}
                             <th>{% trans "فعال" %}</th>
                             <th>{% trans "عملیات" %}</th>
                         </tr>
@@ -48,12 +49,13 @@
                     <tbody>
                         {% for item in budget_items %}
                             <tr>
+                                <td>{{ forloop.counter | to_persian_number }}</td>
                                 <td>{{ item.name|to_persian_number }}</td>
                                 <td>{{ item.code|to_persian_number }}</td>
                                 <td>{{ item.budget_period.name|to_persian_number }}</td>
                                 <td>{{ item.organization.name }}</td>
-                                <td>{{ item.total_amount|format_negative|to_persian_number }}</td>
-                                <td>{{ item.get_remaining_amount|format_negative|to_persian_number }}</td>
+{#                                <td>{{ item.total_amount|format_negative|to_persian_number }}</td>#}
+{#                                <td>{{ item.get_remaining_amount|format_negative|to_persian_number }}</td>#}
                                 <td>
                                     {% if item.is_active %}
                                         <i class="fas fa-check-circle text-success"></i>

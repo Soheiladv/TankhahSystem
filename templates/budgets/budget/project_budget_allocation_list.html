@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% load i18n static  rcms_custom_filters %}
+{% load i18n static jformat rcms_custom_filters %}
 
 {% block title %}{% trans "لیست تخصیص‌های بودجه پروژه" %}{% endblock %}
 
 {% block extra_css %}
- <style>
+<style>
     .budget-card {
         border-radius: 10px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -48,6 +48,33 @@
         right: 15px;
         color: #6c757d;
     }
+    .modal-content {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .modal-header {
+        background: linear-gradient(135deg, #4e54c8, #8f94fb);
+        color: white;
+        border-radius: 10px 10px 0 0;
+    }
+    .form-control.is-invalid, .form-control:invalid {
+        border-color: #dc3545;
+    }
+    .invalid-feedback {
+        display: none;
+        font-size: 0.85rem;
+        color: #dc3545;
+    }
+    .form-control.is-invalid ~ .invalid-feedback,
+    .form-control:invalid ~ .invalid-feedback {
+        display: block;
+    }
+    .modal.fade .modal-dialog {
+        transition: transform 0.2s ease-out;
+    }
+    .modal.show .modal-dialog {
+        transform: none;
+    }
 </style>
 {% endblock %}
 
@@ -62,23 +89,30 @@
                 </h4>
                 <small class="opacity-75">{{ organization.name }}</small>
             </div>
-            <div>
+            <div class="d-flex gap-2">
                 <a href="{% url 'project_budget_allocation' organization.id %}" class="btn btn-light btn-sm">
                     <i class="fas fa-plus me-1"></i> {% trans "تخصیص جدید" %}
                 </a>
-            </div>
-            <div>
                 <a href="{% url 'organization_list' %}" class="btn btn-action btn-sm">
                     <i class="fas fa-backspace me-1"></i> {% trans "بازگشت به شعبه" %}
                 </a>
             </div>
         </div>
-
         <div class="card-body">
+            <div class="budget-summary mb-4">
+                <h5>{% trans "خلاصه بودجه سازمان" %}</h5>
+                {% if total_org_budget %}
+                    <p><strong>{% trans "بودجه کل" %}:</strong> {{ total_org_budget|to_persian_number }} {% trans "ریال" %}</p>
+                    <p><strong>{% trans "باقی‌مانده" %}:</strong> {{ remaining_org_budget|to_persian_number }} {% trans "ریال" %}</p>
+                {% else %}
+                    <p>{% trans "هیچ بودجه‌ای تخصیص داده نشده است." %}</p>
+                {% endif %}
+            </div>
+
             {% if messages %}
             <div class="mb-4">
                 {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
                     <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% elif message.tags == 'error' %}fa-times-circle{% else %}fa-info-circle{% endif %} me-2"></i>
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -107,11 +141,11 @@
                             <td>{{ forloop.counter }}</td>
                             <td>
                                 <a href="{% url 'project_budget_allocation_detail' allocation.id %}">
-                                    {{ allocation.project.name| to_persian_number_with_comma }}
+                                    {{ allocation.project.name|to_persian_number_with_comma }}
                                 </a>
                             </td>
-                            <td>{{ allocation.subproject.name|default:"-" | to_persian_number_with_comma}}</td>
-                            <td>{{ allocation.allocated_amount| format_negative }} {% trans "ریال" %}</td>
+                            <td>{{ allocation.subproject.name|default:"-"|to_persian_number_with_comma }}</td>
+                            <td>{{ allocation.allocated_amount|format_negative }} {% trans "ریال" %}</td>
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="progress progress-thin w-100 me-2">
@@ -123,7 +157,7 @@
                                     <small>{{ allocation.remaining_percent|to_persian_number }}%</small>
                                 </div>
                             </td>
-                            <td>{{ allocation.budget_allocation.budget_period.name|to_persian_number_with_comma}}</td>
+                            <td>{{ allocation.budget_allocation.budget_period.name|to_persian_number_with_comma }}</td>
                             <td>
                                 <span class="badge-status bg-{% if allocation.is_active %}success{% else %}secondary{% endif %}">
                                     {% if allocation.is_active %}{% trans "فعال" %}{% else %}{% trans "غیرفعال" %}{% endif %}
@@ -136,12 +170,22 @@
                                    title="{% trans 'جزئیات' %}">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{% url 'project_budget_allocation_edit' allocation.id %}"
-                                   class="btn-action btn btn-warning btn-sm mx-1"
-                                   data-bs-toggle="tooltip"
-                                   title="{% trans 'ویرایش' %}">
-                                    <i class="fas fa-edit"></i>
-                                </a>
+                               <!-- در تمپلیت لیست تخصیص‌ها (مثل project_budget_allocation_list.html) -->
+                               <button class="btn-action btn btn-warning btn-sm mx-1"
+                data-bs-toggle="modal"
+                data-bs-target="#editModal-{{ allocation.id }}"
+                data-allocation-id="{{ allocation.id }}"
+                title="{% trans 'ویرایش سریع' %}">
+            <i class="fas fa-edit"></i>
+        </button>
+        <a href="{% url 'project__budget__allocation__edit__view' allocation.id %}"
+           class="btn-action btn btn-primary btn-sm mx-1"
+           data-bs-toggle="tooltip"
+           title="{% trans 'ویرایش کامل' %}">
+            <i class="fas fa-pen-alt"></i>
+        </a>
+
+
                                 <a href="{% url 'project_budget_allocation_delete' allocation.id %}"
                                    class="btn-action btn btn-danger btn-sm"
                                    data-bs-toggle="tooltip"
@@ -150,19 +194,83 @@
                                 </a>
                             </td>
                         </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="8" class="text-center py-4">
-                                <div class="text-muted">
-                                    <i class="fas fa-inbox fa-2x mb-2"></i>
-                                    <p class="mb-0">{% trans "هیچ تخصیص بودجه‌ای یافت نشد" %}</p>
-                                </div>
-                            </td>
-                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+
+            <!-- مودال ویرایش برای هر تخصیص -->
+            {% for allocation in allocations %}
+            <div class="modal fade" id="editModal-{{ allocation.id }}" tabindex="-1" aria-labelledby="editModalLabel-{{ allocation.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editModalLabel-{{ allocation.id }}">
+                                {% trans "ویرایش تخصیص بودجه" %} - {{ allocation.project.name }}
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form class="edit-allocation-form needs-validation" data-allocation-id="{{ allocation.id }}"
+                              action="{% url 'project__budget__allocation__edit__view' allocation.id %}" method="post" novalidate>
+                            <div class="modal-body">
+                                {% csrf_token %}
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">{% trans "پروژه" %}</label>
+                                        <input type="text" class="form-control" value="{{ allocation.project.name }}" disabled>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">{% trans "زیرپروژه" %}</label>
+                                        <input type="text" class="form-control" value="{{ allocation.subproject.name|default:'-' }}" disabled>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="allocated_amount-{{ allocation.id }}" class="form-label">{% trans "مبلغ تخصیص (ریال)" %}</label>
+                                        <div class="input-group">
+                                            <input type="text" name="allocated_amount" id="allocated_amount-{{ allocation.id }}"
+                                                   class="form-control numeric-input" value="{{ allocation.allocated_amount|to_persian_number }}"
+                                                   required pattern="[۰-۹0-9,،.]*">
+                                            <span class="input-group-text">{% trans "ریال" %}</span>
+                                        </div>
+                                        <div class="invalid-feedback">
+                                            {% trans "لطفاً مبلغ معتبر وارد کنید." %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="allocation_date-{{ allocation.id }}" class="form-label">{% trans "تاریخ تخصیص" %}</label>
+                                        <div class="input-group">
+                                            <input type="text" name="allocation_date" id="allocation_date-{{ allocation.id }}"
+                                                   class="form-control jalali-datepicker" value="{{ allocation.allocation_date|jformat:'%Y/%m/%d' }}"
+                                                   required>
+                                            <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                        </div>
+                                        <div class="invalid-feedback">
+                                            {% trans "لطفاً تاریخ معتبر وارد کنید." %}
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="description-{{ allocation.id }}" class="form-label">{% trans "توضیحات" %}</label>
+                                        <textarea name="description" id="description-{{ allocation.id }}"
+                                                  class="form-control" rows="3">{{ allocation.description }}</textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            <input type="checkbox" name="is_active" id="is_active-{{ allocation.id }}"
+                                                   class="form-check-input" {% if allocation.is_active %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_active-{{ allocation.id }}">{% trans "فعال" %}</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="alert alert-danger mt-3 d-none" id="form-errors-{{ allocation.id }}"></div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "بستن" %}</button>
+                                <button type="submit" class="btn btn-primary">{% trans "ذخیره تغییرات" %}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
@@ -174,28 +282,95 @@
 <script>
 $(document).ready(function() {
     // Initialize DataTable
-    $('#budgetAllocationsTable').DataTable({
-        language: {
-            url: "{% static 'admin/fa.json' %}"
-        },
+    const table = $('#budgetAllocationsTable').DataTable({
+        language: { url: "{% static 'admin/fa.json' %}" },
         dom: '<"row"<"col-md-6"l><"col-md-6"f>>rt<"row"<"col-md-6"i><"col-md-6"p>>',
         responsive: true,
-        columnDefs: [
-            { orderable: false, targets: [7] }
-        ],
+        columnDefs: [{ orderable: false, targets: [7] }],
         initComplete: function() {
-            $('.dataTables_filter input').addClass('form-control');
+            $('.dataTables_filter input').addClass('form-control').attr('placeholder', '{% trans "جستجو..." %}');
             $('.dataTables_length select').addClass('form-select');
+            $('.dataTables_filter').addClass('search-box').prepend('<i class="fas fa-search"></i>');
         }
     });
 
     // Initialize tooltips
     $('[data-bs-toggle="tooltip"]').tooltip();
 
-    // Add search box styling
-    $('.dataTables_filter input').attr('placeholder', '{% trans "جستجو..." %}');
-    $('.dataTables_filter').addClass('search-box');
-    $('.dataTables_filter').prepend('<i class="fas fa-search"></i>');
+    // Initialize Jalali Datepicker
+    $('.jalali-datepicker').each(function() {
+        $(this).persianDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            toolbox: { enabled: true, calendarSwitch: { enabled: false } },
+            observer: true,
+            altField: '#' + $(this).attr('id') + '-alt',
+            altFormat: 'YYYY-MM-DD'
+        });
+    });
+
+    // Numeric input formatting
+    $('.numeric-input').on('input', function() {
+        let value = $(this).val().replace(/[^۰-۹0-9,،.]/g, '');
+        $(this).val(value);
+    });
+
+    // Client-side form validation
+    $('.edit-allocation-form').on('submit', function(e) {
+        e.preventDefault();
+        const form = $(this);
+        const allocationId = form.data('allocation-id');
+        const modal = $(`#editModal-${allocationId}`);
+        const errorDiv = $(`#form-errors-${allocationId}`);
+
+        if (!form[0].checkValidity()) {
+            form.addClass('was-validated');
+            return;
+        }
+
+        // Convert Persian numbers to English for submission
+        const allocatedAmountInput = form.find('.numeric-input');
+        allocatedAmountInput.val(allocatedAmountInput.val().replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)));
+
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                if (response.success) {
+                    // Update table row
+                    const row = $(`tr:has(button[data-allocation-id="${allocationId}"])`);
+                    row.find('td:eq(3)').html(`${response.allocated_amount} {% trans "ریال" %}`);
+                    row.find('td:eq(4) .progress-bar').css('width', `${response.remaining_percent}%`)
+                        .removeClass('bg-danger bg-warning bg-success')
+                        .addClass(response.remaining_percent < 20 ? 'bg-danger' : response.remaining_percent < 50 ? 'bg-warning' : 'bg-success');
+                    row.find('td:eq(4) small').text(`${response.remaining_percent}%`);
+                    row.find('td:eq(6) .badge-status').removeClass('bg-success bg-secondary')
+                        .addClass(response.is_active ? 'bg-success' : 'bg-secondary')
+                        .text(response.is_active ? '{% trans "فعال" %}' : '{% trans "غیرفعال" %}');
+
+                    // Close modal and show success message
+                    modal.modal('hide');
+                    const alert = $('<div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2" role="alert">' +
+                        '<i class="fas fa-check-circle me-2"></i>{% trans "تخصیص با موفقیت ویرایش شد" %}' +
+                        '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
+                    $('.card-body').prepend(alert);
+                    setTimeout(() => alert.alert('close'), 3000);
+                } else {
+                    errorDiv.removeClass('d-none').html(
+                        Object.entries(response.errors || {}).map(([field, errors]) =>
+                            `<div>${field}: ${errors.join(', ')}</div>`
+                        ).join('') || '{% trans "خطایی در فرم وجود دارد." %}'
+                    );
+                    setTimeout(() => errorDiv.addClass('d-none'), 5000);
+                }
+            },
+            error: function(xhr) {
+                errorDiv.removeClass('d-none').text('{% trans "خطایی رخ داد. لطفاً دوباره تلاش کنید." %}');
+                setTimeout(() => errorDiv.addClass('d-none'), 5000);
+            }
+        });
+    });
 });
 </script>
 {% endblock %}
