@@ -7,6 +7,7 @@ from budgets.views import BudgetDashboardView , \
     PaymentOrderUpdateView, PaymentOrderDeleteView, PayeeListView, PayeeCreateView, PayeeUpdateView, PayeeDeleteView, \
     TransactionTypeListView, TransactionTypeCreateView, TransactionTypeUpdateView, TransactionTypeDeleteView, \
     NumberToWordsView, budget_Help
+from .ApproveReject.view_ApproveReject import ApproveRejectView
 from .BudgetAllocation.views_BudgetAllocation import  BudgetAllocationDetailView, BudgetAllocationDeleteView, BudgetAllocationUpdateView
 from budgets.BudgetPeriod.views_BudgetPeriod import BudgetPeriodListView, BudgetPeriodDetailView,BudgetPeriodCreateView,BudgetPeriodUpdateView,\
     BudgetPeriodDeleteView
@@ -104,7 +105,11 @@ urlpatterns += [
     path('budgetrealtimeReportView/', BudgetRealtimeReportView.as_view(),name='budgetrealtimeReportView'),
 ] # Reports
 
+urlpatterns += [
+    path('approve-reject/<str:entity_type>/<int:entity_id>/<str:action>/', ApproveRejectView.as_view(),
+         name='approve_reject'),
 
+]
 
 # #/
 # urlpatterns+  = [

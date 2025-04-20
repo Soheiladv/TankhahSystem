@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mt-5">
+    <h4 class="text-center mb-5">
+        <i class="fas fa-tachometer-alt me-2"></i>{% trans "داشبورد مدیریت تنخواه" %}
+    </h4>
+
+{% for stage, data in entities_by_stage.items %}
+  <div class="card {{ data.color_class }}">
+    <div class="card-header">
+      <h3>{{ stage.name }} (مرحله {{ stage.order }})</h3>
+      <p>وضعیت: {{ data.status_label }}</p>
+      <p>تعداد تنخواه: {{ data.tankhah_count }}</p>
+      <p>تعداد تخصیص بودجه: {{ data.budget_allocation_count }}</p>
+      <p>تأییدکنندگان: {{ data.approvers|join:", " }}</p>
+    </div>
+    <div class="card-body">
+      {% if data.tankhahs %}
+        <h4>تنخواه‌ها:</h4>
+        <ul>
+          {% for tankhah in data.tankhahs %}
+            <li>{{ tankhah.number }} - مبلغ: {{ tankhah.amount }} - وضعیت: {{ tankhah.status }}
+              {% if data.can_approve_tankhah %}
+                <form method="post" action="{% url 'approve_reject' entity_type='tankhah' entity_id=tankhah.id action='APPROVE' %}">
+                  {% csrf_token %}
+                  <input type="text" name="comment" placeholder="توضیحات (اختیاری)">
+                  <button type="submit" class="btn btn-success">تأیید</button>
+                </form>
+              {% endif %}
+              {% if data.can_reject_tankhah %}
+                <form method="post" action="{% url 'approve_reject' entity_type='tankhah' entity_id=tankhah.id action='REJECT' %}">
+                  {% csrf_token %}
+                  <input type="text" name="comment" placeholder="توضیحات (اختیاری)">
+                  <button type="submit" class="btn btn-danger">رد</button>
+                </form>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% if data.budget_allocations %}
+        <h4>تخصیص‌های بودجه:</h4>
+        <ul>
+          {% for allocation in data.budget_allocations %}
+            <li>{{ allocation }} - مبلغ: {{ allocation.allocated_amount }} - وضعیت: {{ allocation.status }}
+              {% if data.can_approve_budget %}
+                <form method="post" action="{% url 'approve_reject' entity_type='budget_allocation' entity_id=allocation.id action='APPROVE' %}">
+                  {% csrf_token %}
+                  <input type="text" name="comment" placeholder="توضیحات (اختیاری)">
+                  <button type="submit" class="btn btn-success">تأیید</button>
+                </form>
+              {% endif %}
+              {% if data.can_reject_budget %}
+                <form method="post" action="{% url 'approve_reject' entity_type='budget_allocation' entity_id=allocation.id action='REJECT' %}">
+                  {% csrf_token %}
+                  <input type="text" name="comment" placeholder="توضیحات (اختیاری)">
+                  <button type="submit" class="btn btn-danger">رد</button>
+                </form>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  </div>
+{% endfor %}
+</div>
+<style>
+    .tanbakh-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        border-radius: 10px;
+    }
+    .tanbakh-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+        border-radius: 10px 10px 0 0;
+        padding: 15px;
+    }
+    .card-body {
+        padding: 20px;
+    }
+    .btn-sm {
+        padding: 5px 10px;
+        font-size: 0.9rem;
+    }
+    .list-group-item {
+        border: none;
+        padding: 10px 0;
+    }
+    .small {
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}

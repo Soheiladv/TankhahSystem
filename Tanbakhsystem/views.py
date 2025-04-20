@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import timedelta
 from django.utils import timezone
 
@@ -12,11 +13,17 @@ from django.views.generic.base import TemplateView
 from core.PermissionBase import PermissionBaseView
 from core.models import WorkflowStage, Project, Organization, OrganizationType
 from tankhah.models import Tankhah, ApprovalLog, Notification, Factor
+from version_tracker.models import FinalVersion, AppVersion
+
 
 def pdate(request):
     return render(request, template_name='budgets/pdate.html')
 
 
+def home_view(request, *args, **kwargs):
+    final_version = FinalVersion.calculate_final_version()
+    latest_version = AppVersion.objects.order_by('-release_date').first()
+    return render(request, 'index.html', {'latest_version': latest_version, 'final_version': final_version})
 
 """ داشبورد اصلی سیستم"""
 class DashboardView( PermissionBaseView , TemplateView):
@@ -24,10 +31,11 @@ class DashboardView( PermissionBaseView , TemplateView):
     template_name = 'core/dashboard.html'
     permission_codename = 'core.Dashboard_view'
     # check_organization = True  # فعال کردن چک سازمان (اگه نیاز داری فعال کن)
-
+    final_version = FinalVersion.calculate_final_version()
+    # logging.info(f' final_version is {final_version} ')
     extra_context = {
         'title': _('داشبورد مدیریت تنخواه'),
-        'version': '1.2.3',  # نسخه نرم‌افزار
+        'version': final_version,  # نسخه نرم‌افزار
         'dashboard_links': {
             'روند تنخواه': [
                 {'name': _('روند تنخواه'), 'url': 'dashboard_flows',  'icon': 'fas fa-link'}, #'permission': 'Dashboard__view',
@@ -137,7 +145,8 @@ class DashboardView( PermissionBaseView , TemplateView):
         # اطلاعات پایه
         context['user'] = user
         context['title'] = _('داشبورد مدیریت تنخواه')
-        context['version'] = '1.2.3'
+        final_version = FinalVersion.calculate_final_version()
+        context['version'] = final_version#'1.2.3'
 
         # تعداد تنخواه فعال
         context['active_tankhah_count'] = Tankhah.objects.filter(

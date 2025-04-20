@@ -193,6 +193,8 @@ class PermissionBaseView__(LoginRequiredMixin, View):
                 return obj.organization
             elif hasattr(obj, 'project') and obj.project:
                 return obj.project.organizations.first()
+            elif hasattr(obj, 'budget_allocation') and obj.budget_allocation:
+                return (obj.budget_allocation.organization)
             return None
         except AttributeError:
             return None
@@ -266,7 +268,17 @@ class PermissionBaseView(LoginRequiredMixin, View):
 
     def _has_organization_access(self, request, **kwargs):
         # کامنت: گرفتن همه سازمان‌های کاربر با سلسله‌مراتب
-        user_orgs = set()
+        # user_orgs = set()
+        user_orgs = set(up.post.organization for up in
+                        request.user.userpost_set.all()) if request.user.userpost_set.exists() else set()
+        logger.info(f"سازمان‌های کاربر: 🏠 {user_orgs}")
+
+        # is_hq_user = any(org.org_type == 'HQ' for org in user_orgs)
+        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
+        if is_hq_user:
+            logger.info("کاربر HQ است، دسترسی کامل 👍👍👍")
+            return True
+
         for up in request.user.userpost_set.all():
             org = up.post.organization
             user_orgs.add(org)
@@ -274,21 +286,20 @@ class PermissionBaseView(LoginRequiredMixin, View):
                 org = org.parent_organization
                 user_orgs.add(org)
 
-        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs)
-        if is_hq_user:
-            logger.info("کاربر HQ است، دسترسی کامل")
-            return True
 
         # کامنت: مدیریت ویوهای مختلف با چک سلسله‌مراتب
         if isinstance(self, (DetailView, UpdateView, DeleteView)):
             obj = self.get_object()
             target_org = self._get_organization_from_object(obj)
+            logger.info(f"سازمان‌های شیء: {target_org}")
             if not target_org:
+                logger.warning("سازمان شیء پیدا نشد 😭")
                 return False
             current_org = target_org
             while current_org:
                 if current_org in user_orgs:
                     return True
+                logger.warning(f"کاربر به هیچ‌کدام از سازمان‌های {current_org} دسترسی ندارد")
                 current_org = current_org.parent_organization
             return False
 
@@ -312,6 +323,7 @@ class PermissionBaseView(LoginRequiredMixin, View):
                 while current_org:
                     if current_org in user_orgs:
                         return True
+                    logger.warning(f"کاربر به هیچ‌کدام از سازمان‌های {current_org} دسترسی ندارد")
                     current_org = current_org.parent_organization
                 return False
             return True  # موقت برای فرم

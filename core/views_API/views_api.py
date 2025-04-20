@@ -7,12 +7,16 @@ from django.views.generic import TemplateView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db.models import Prefetch
+
+from core.PermissionBase import PermissionBaseView
 from core.models import Organization, Post, UserPost
 from accounts.models import CustomUser
 
 logger = logging.getLogger(__name__)
 
-class OrganizationChartAPIView(APIView):
+class OrganizationChartAPIView(PermissionBaseView, APIView):
+    permission_codenames = 'core.OrganizationChartAPIView_view'
+    check_organization = True
     def get(self, request):
         """
         Return hierarchical data for organization chart.
@@ -128,9 +132,10 @@ class OrganizationChartAPIView(APIView):
             logger.error(f"Error in OrganizationChartAPIView: {str(e)}", exc_info=True)
             return Response({'error': str(e)}, status=500)
 
-class OrganizationChartView(LoginRequiredMixin, TemplateView):
+class OrganizationChartView(PermissionBaseView, LoginRequiredMixin, TemplateView):
     template_name = 'core/chart_API/organization_chart.html'
-
+    permission_codenames = 'core.OrganizationChartView_view'
+    check_organization = True
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = _("نمودار سازمانی")

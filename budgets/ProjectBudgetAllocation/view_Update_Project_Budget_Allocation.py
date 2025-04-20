@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.http import JsonResponse, Http404
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 # from .models import ProjectBudgetAllocation, BudgetTransaction
@@ -15,6 +15,7 @@ from django.utils.translation import gettext_lazy as _
 
 from budgets.ProjectBudgetAllocation.forms_ProjectBudgetAllocation import ProjectBudgetAllocationForm
 from budgets.models import ProjectBudgetAllocation, BudgetTransaction
+from core.models import SubProject
 
 # تنظیم لاگر برای ثبت جزئیات خطاها و رویدادها
 logger = logging.getLogger(__name__)
@@ -32,25 +33,27 @@ class Project__Budget__Allocation__Edit__View(PermissionBaseView, UpdateView):
         logger.debug(
             f"Attempting to get ProjectBudgetAllocation with pk={self.kwargs['pk']} for user={self.request.user}")
         try:
-            # اگر فقط تخصیص‌های فعال قابل ویرایش هستند، شرط زیر را اضافه کنید
-            allocation = ProjectBudgetAllocation.objects.get(pk=self.kwargs['pk'], is_active=True)
-            # allocation = ProjectBudgetAllocation.objects.get(pk=self.kwargs['pk'])
+            allocation = ProjectBudgetAllocation.objects.get(pk=self.kwargs['pk'])
         except ProjectBudgetAllocation.DoesNotExist:
             logger.error(f"ProjectBudgetAllocation with pk={self.kwargs['pk']} does not exist")
             raise Http404(_("تخصیص موردنظر یافت نشد"))
 
-        # بررسی دسترسی به سازمان
         authorized_orgs = self.request.user.get_authorized_organizations()
+        logger.debug(f"Authorized organizations: {list(authorized_orgs.values('id', 'name'))}")
+        logger.debug(f"Allocation organization: {allocation.budget_allocation.organization}")
         if allocation.budget_allocation.organization not in authorized_orgs:
             logger.error(
-                f"User {self.request.user} does not have access to organization {allocation.budget_allocation.organization}")
-            raise Http404(_("شما به سازمان این تخصیص دسترسی ندارید"))
+                f"User {self.request.user} does not have access to organization {allocation.budget_allocation.organization} (ID: {allocation.budget_allocation.organization.id})")
+            raise Http404(
+                _("شما به سازمان این تخصیص ({} - {}) دسترسی ندارید").format(
+                    allocation.budget_allocation.organization.id,
+                    allocation.budget_allocation.organization.name
+                )
+            )
 
-        # بررسی دوره بودجه (اختیاری)
         if not allocation.budget_allocation.budget_period.is_active:
             logger.warning(f"Budget period {allocation.budget_allocation.budget_period.id} is inactive")
-            # اگر دوره بسته‌شده قابل ویرایش نیست، خطا بدهید
-            raise Http404(_("دوره بودجه این تخصیص بسته شده است"))
+            messages.warning(self.request, _("دوره بودجه این تخصیص بسته شده است، اما می‌توانید ویرایش کنید."))
 
         logger.info(
             f"Successfully retrieved allocation👍💸 {allocation.id} for organization {allocation.budget_allocation.organization}")
@@ -74,12 +77,12 @@ class Project__Budget__Allocation__Edit__View(PermissionBaseView, UpdateView):
 
     def get_context_data(self, **kwargs):
         """
-        ارسال داده‌های اضافی به تمپلیت برای نمایش خلاصه بودجه.
-        - organization: برای نمایش نام سازمان و ریدایرکت‌ها.
-        - total_org_budget: بودجه کل تخصیص‌شده به سازمان.
-        - consumed_amount: مبلغ مصرف‌شده برای این تخصیص.
-        - remaining_org_budget: بودجه باقی‌مانده.
-        - allocation: خود تخصیص برای نمایش جزئیات.
+               ارسال داده‌های اضافی به تمپلیت برای نمایش خلاصه بودجه.
+               - organization: برای نمایش نام سازمان و ریدایرکت‌ها.
+               - total_org_budget: بودجه کل تخصیص‌شده به سازمان.
+               - consumed_amount: مبلغ مصرف‌شده برای این تخصیص.
+               - remaining_org_budget: بودجه باقی‌مانده.
+               - allocation: خود تخصیص برای نمایش جزئیات.
         """
         context = super().get_context_data(**kwargs)
         allocation = self.get_object()
@@ -91,30 +94,34 @@ class Project__Budget__Allocation__Edit__View(PermissionBaseView, UpdateView):
         total_org_budget = budget_allocation.allocated_amount
         logger.debug(f"Total organization budget: {total_org_budget}")
 
+        # پیدا کردن subproject‌های مرتبط با این تخصیص
+        subprojects = SubProject.objects.filter(allocations=allocation)
+
         # محاسبه مبلغ مصرف‌شده برای این تخصیص
         consumed = BudgetTransaction.objects.filter(
             allocation=budget_allocation,
-            project=allocation.project,
-            subproject=allocation.subproject,
+            allocation__project=allocation.project,
             transaction_type='CONSUMPTION'
         ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
         returned = BudgetTransaction.objects.filter(
             allocation=budget_allocation,
-            project=allocation.project,
-            subproject=allocation.subproject,
+            allocation__project=allocation.project,
             transaction_type='RETURN'
         ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
         consumed_amount = consumed - returned
         logger.debug(f"Consumed: {consumed}, Returned: {returned}, Net consumed: {consumed_amount}")
 
         # محاسبه بودجه باقی‌مانده
-        remaining_org_budget = total_org_budget - BudgetTransaction.objects.filter(
+        remaining_org_budget = (Decimal(total_org_budget) - Decimal(BudgetTransaction.objects.filter(
             allocation=budget_allocation,
             transaction_type='CONSUMPTION'
-        ).aggregate(total=Sum('amount'))['total'] or Decimal('0') + BudgetTransaction.objects.filter(
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')) +
+                                Decimal(BudgetTransaction.objects.filter(
             allocation=budget_allocation,
             transaction_type='RETURN'
-        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')))
         logger.debug(f"Remaining organization budget: {remaining_org_budget}")
 
         context.update({
@@ -123,6 +130,7 @@ class Project__Budget__Allocation__Edit__View(PermissionBaseView, UpdateView):
             'consumed_amount': consumed_amount,
             'remaining_org_budget': remaining_org_budget,
             'allocation': allocation,
+            'subprojects': subprojects,
         })
         return context
 
@@ -135,16 +143,15 @@ class Project__Budget__Allocation__Edit__View(PermissionBaseView, UpdateView):
         """
         logger.debug(f"Validating new amount {new_amount} for allocation {allocation.id}")
         budget_allocation = allocation.budget_allocation
+
         consumed = BudgetTransaction.objects.filter(
             allocation=budget_allocation,
-            project=allocation.project,
-            subproject=allocation.subproject,
+            allocation__project=allocation.project,
             transaction_type='CONSUMPTION'
         ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
         returned = BudgetTransaction.objects.filter(
             allocation=budget_allocation,
-            project=allocation.project,
-            subproject=allocation.subproject,
+            allocation__project=allocation.project,
             transaction_type='RETURN'
         ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
         total_consumed = consumed - returned
@@ -209,7 +216,7 @@ class Project__Budget__Allocation__Edit__View(PermissionBaseView, UpdateView):
                 ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
                 remaining = allocation.allocated_amount - consumed + returned
                 remaining_percent = (
-                    (remaining / allocation.allocated_amount * 100) if allocation.allocated_amount > 0 else Decimal('0')
+                    (Decimal(remaining )/ Decimal(allocation.allocated_amount * 100)) if allocation.allocated_amount > 0 else Decimal('0')
                 )
                 logger.debug(f"Remaining amount: {remaining}, Remaining percent: {remaining_percent}")
 

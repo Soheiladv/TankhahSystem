@@ -686,27 +686,37 @@ class PostForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance.pk:
-            self.fields['workflow_stages'] = forms.ModelMultipleChoiceField(
-                queryset=WorkflowStage.objects.all(),
-                widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-                required=False,
-                label=_('مراحل تأیید'),
-                initial=WorkflowStage.objects.filter(stageapprover__post=self.instance)
-            )
+        self.fields['workflow_stages'] = forms.ModelMultipleChoiceField(
+            queryset=WorkflowStage.objects.all(),
+            widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+            required=False,
+            label=_('مراحل تأیید'),
+            initial=WorkflowStage.objects.filter(stageapprover__post=self.instance,
+                                                 stageapprover__is_active=True) if self.instance.pk else None
+        )
 
     def save(self, commit=True):
-        project = super().save(commit=False)
+        post = super().save(commit=False)
         if commit:
-            project.save()
-            self.save_m2m()
-            if self.cleaned_data.get('has_subproject'):
-                SubProject.objects.update_or_create(
-                    project=project,
-                    name=self.cleaned_data['subproject_name'],
-                    defaults={'allocated_budget': self.cleaned_data['subproject_budget']}
-                )
-        return project
+            post.save()
+            # به‌روزرسانی StageApprover
+            selected_stages = self.cleaned_data.get('workflow_stages', [])
+            from tankhah.models import StageApprover
+            current_approvers = StageApprover.objects.filter(post=post)
+            current_stages = set(current_approvers.values_list('stage_id', flat=True))
+
+            # حذف مراحل غیرانتخاب‌شده
+            StageApprover.objects.filter(
+                post=post,
+                stage__in=WorkflowStage.objects.exclude(id__in=[s.id for s in selected_stages])
+            ).delete()
+
+            # اضافه کردن مراحل جدید
+            for stage in selected_stages:
+                if stage.id not in current_stages:
+                    StageApprover.objects.create(post=post, stage=stage, is_active=True)
+
+        return post
 
 class UserPostForm(forms.ModelForm):
     class Meta:

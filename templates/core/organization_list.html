@@ -6,7 +6,19 @@
 {% block content %}
 <div class="card">
     <div class="card-header bg-primary text-white">
-        <h3 class="mb-0">{% trans "لیست سازمان‌ها" %}</h3>
+
+        <div class="row g-2">
+            <div class="col-md-3">
+                <h3 class="mb-0">
+                   <i class="fa-solid fa-list-dots"></i> {% trans "لیست سازمان‌ها" %}</h3>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'organization_chart' %}"
+                   class="btn btn-info btn-sm"><i class="fa-solid fa-chart-bar"></i>
+                    {% trans "چارت سازمانی" %}</a>
+            </div>
+
+        </div>
     </div>
     <div class="card-body">
         <form method="get" class="mb-3">
@@ -63,7 +75,7 @@
                     <td>{{ organization.budget_details.status_message }}</td>
                     <td>
                         <a href="{% url 'organization_detail' organization.pk %}" class="btn btn-info btn-sm"><i class="fa-solid fa-circle-info"></i> {% trans "جزئیات" %}</a>
-                        <a href="{% url 'organization_update' organization.pk %}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i> {% trans "ویرایش" %}</a>
+                         <a href="{% url 'organization_update' organization.pk %}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i> {% trans "ویرایش" %}</a>
                         <a href="{% url 'organization_delete' organization.pk %}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> {% trans "حذف" %}</a>
 {#                        <a href="{% url 'organization_budgetallocation_list' org_id=organization.id %}" class="btn btn-info btn-sm"><i class="fas fa-dollar-sign"></i> {% trans "جزئیات بودجه" %}</a>#}
                         <a href="{% url 'project_budget_allocation_list' organization.id %}" class="btn btn-primary btn-sm"> <i class="fas fa-dollar-sign"></i>{% trans "تخصیص بودجه پروژه" %} </a>

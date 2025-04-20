@@ -2,7 +2,8 @@
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
+import logging
+logger = logging.getLogger(__name__)
 from accounts.models import CustomUser
 from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, get_subproject_remaining_budget
 
@@ -347,24 +348,31 @@ class PostAction(models.Model):
     ACTION_TYPES = (
         ('APPROVE', _('تأیید')),
         ('REJECT', _('رد')),
-        ('ISSUE_PAYMENT_ORDER', _('صدور دستور پرداخت')),
         ('FINALIZE', _('اتمام')),
-        ('INSURANCE', _('ثبت بیمه')),
         ('CUSTOM', _('سفارشی')),
+    )
+    ENTITY_TYPES = (
+        ('TANKHAH', _('تنخواه')),
+        ('BUDGET_ALLOCATION', _('تخصیص بودجه')),
+        ('BUDGET_RETURN', _('تخصیص بودجه')),
+        ('ISSUE_PAYMENT_ORDER', _('صدور دستور پرداخت')),
     )
 
     post = models.ForeignKey('core.Post', on_delete=models.CASCADE, verbose_name=_("پست"))
     stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_("مرحله"))
     action_type = models.CharField(max_length=50, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
+    entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, default='TANKHAH', verbose_name=_("نوع موجودیت"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
 
+
     def __str__(self):
-        return f"{self.post} - {self.action_type} در {self.stage}"
+        return f"{self.post} - {self.action_type} برای {self.get_entity_type_display()} در {self.stage}"
+        # return f"{self.post} - {self.action_type} در {self.stage}"
 
     class Meta:
         verbose_name = _("اقدام مجاز پست")
         verbose_name_plural = _("اقدامات مجاز پست‌ها")
-        unique_together = ('post', 'stage', 'action_type')
+        unique_together = ('post', 'stage', 'action_type', 'entity_type')  # اضافه کردن entity_type به unique_together
         permissions = [
             ('PostAction_view', 'نمایش اقدامات مجاز پست'),
             ('PostAction_add', 'افزودن اقدامات مجاز پست'),
@@ -372,9 +380,6 @@ class PostAction(models.Model):
             ('PostAction_delete', 'حذف اقدامات مجاز پست'),
         ]
 #---
-# lock -------
-import logging
-logger = logging.getLogger(__name__)
 ############################################################# End Off models
 class Dashboard_Core(models.Model):
     class Meta:
@@ -395,4 +400,20 @@ class DashboardView(models.Model):
         default_permissions = ()
         permissions = [
             ('Dashboard__view','دسترسی به داشبورد اصلی 💻')
+        ]
+
+class OrganizationChartAPIView(models.Model):
+    class Meta:
+        default_permissions = ()
+        permissions = [
+            ('OrganizationChartAPIView_view','دسترسی به داشبورد چارت سازمانی 💻'),
+
+        ]
+
+class OrganizationChartView(models.Model):
+    class Meta:
+        default_permissions = ()
+        permissions = [
+            ('OrganizationChartView_view','   دسترسی به گرافیک داشبورد چارت سازمانی 💻'),
+
         ]

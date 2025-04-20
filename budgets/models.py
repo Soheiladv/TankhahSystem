@@ -199,6 +199,10 @@ class BudgetAllocation(models.Model):
             ('budgetallocation_adjust', _("تنظیم تخصیص بودجه (افزایش/کاهش)")),
             ('budgetallocation_stop', _("توقف تخصیص بودجه")),
             ('budgetallocation_return', _("برگشت تخصیص بودجه")),  # جدید
+
+            ('BudgetAllocation_approve', 'می‌تواند تخصیص بودجه را تأیید کند'),
+            ('BudgetAllocation_reject', 'می‌تواند تخصیص بودجه را رد کند'),
+
         ]
         indexes = [
             models.Index(fields=['budget_period', 'allocation_date']),
@@ -465,6 +469,7 @@ class BudgetTransaction(models.Model):
                 transaction_type='RETURN',
                 transaction_id=f"RET-{self.transaction_id}"
             )
+
         elif self.transaction_type in ['CONSUMPTION', 'ADJUSTMENT_DECREASE']:
             self.allocation.remaining_amount -= self.amount
         elif self.transaction_type in ['ALLOCATION', 'ADJUSTMENT_INCREASE']:
@@ -783,7 +788,6 @@ class SystemSettings(models.Model):
     def __str__(self):
         return "تنظیمات سیستم بودجه"
 
-
 """ مدل پیشنهادی برای هزینه‌های متعارف"""
 class CostCenter(models.Model):
     """ مدل پیشنهادی برای هزینه‌های متعارف"""
@@ -802,4 +806,3 @@ class CostCenter(models.Model):
     class Meta:
         verbose_name = _("مرکز هزینه")
         verbose_name_plural = _("مراکز هزینه")
-

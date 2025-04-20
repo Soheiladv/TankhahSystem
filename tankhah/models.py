@@ -196,7 +196,10 @@ class Tankhah(models.Model):
             ('Tankhah_delete', 'حذف تنخواه'),
 
             ('Tankhah_part_approve', '👍تأیید رئیس قسمت'),
-            ('Tankhah_approve', '👍تأیید مدیر مجموعه'),
+
+            ('Tankhah_approve', '👍  ‌تواند تنخواه را تأیید کند'),
+            ('Tankhah_reject', _('می‌تواند تنخواه را رد کند👎' )),
+
             ('Tankhah_hq_view', 'رصد دفتر مرکزی'),
             ('Tankhah_hq_approve', '👍تأیید رده بالا در دفتر مرکزی'),
 
@@ -204,7 +207,7 @@ class Tankhah(models.Model):
             ('Tankhah_HQ_OPS_APPROVED', _('👍تأییدشده - بهره‌برداری')),
             ('Tankhah_HQ_FIN_PENDING', _('در حال بررسی - مالی')),
             ('Tankhah_PAID', _('پرداخت‌شده')),
-            ('Tankhah_REJECTED', _('ردشده')),
+
             ("FactorItem_approve", "👍تایید/رد ردیف فاکتور (تایید ردیف فاکتور*استفاده در مراحل تایید*)"),
             ('edit_full_tankhah','👍😊تغییرات کاربری در فاکتور /تایید یا رد ردیف ها '),
 
@@ -451,6 +454,10 @@ class FactorItem(models.Model):
             ('FactorItem_delete','حذف اقلام فاکتور'),
         ]
 
+#--------------
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
 class ApprovalLog(models.Model):
     ACTION_CHOICES = [
         ('APPROVE', 'تأیید'),
@@ -475,17 +482,34 @@ class ApprovalLog(models.Model):
 
     action_type = models.CharField(max_length=50, blank=True, verbose_name=_("نوع اقدام"))
 
+    # پشتیبانی از چندین نوع موجودیت با استفاده از GenericForeignKey
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, verbose_name=_("نوع موجودیت"))
+    object_id = models.PositiveIntegerField(verbose_name=_("شناسه موجودیت"))
+    content_object = GenericForeignKey('content_type', 'object_id')
+
 
     # -- برای بودجه
     def save(self, *args, **kwargs):
         # چک کن که پست کاربر مجاز به این اقدام تو این مرحله باشه
         user_post = self.user.userpost_set.filter(end_date__isnull=True).first()
-        if user_post and self.action_type:
-            if not PostAction.objects.filter(
-                post=user_post.post, stage=self.stage, action_type=self.action_type
-            ).exists():
-                raise ValueError(f"پست {user_post.post} مجاز به {self.action_type} در این مرحله نیست")
+        if user_post and not PostAction.objects.filter(
+                post=user_post.post,
+                stage=self.stage,
+                action_type=self.action,
+                entity_type=self.content_type.model.upper(),
+                is_active=True
+        ).exists():
+            raise ValueError(
+                f"پست {user_post.post} مجاز به {self.action} در این مرحله برای {self.content_type.model} نیست")
         super().save(*args, **kwargs)
+
+        # old
+        # if user_post and self.action_type:
+        #     if not PostAction.objects.filter(
+        #         post=user_post.post, stage=self.stage, action_type=self.action_type
+        #     ).exists():
+        #         raise ValueError(f"پست {user_post.post} مجاز به {self.action_type} در این مرحله نیست")
+        # super().save(*args, **kwargs)
 
 
 
@@ -505,18 +529,29 @@ class ApprovalLog(models.Model):
                 ]
 
 """مشخص کردن کاربران یا نقش‌های مجاز برای هر مرحله"""
+"""
+توضیح:
+این مدل مشخص می‌کند کدام پست‌ها در یک مرحله خاص می‌توانند به‌عنوان تأییدکننده برای تنخواه یا بودجه عمل کنند.
+فیلد entity_type مشابه PostAction اضافه شده تا نوع موجودیت مشخص شود.
+"""
 class StageApprover(models.Model):
     stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_('مرحله'))
     post = models.ForeignKey( 'core.Post', on_delete=models.CASCADE, verbose_name=_('پست مجاز'))  # فرض بر وجود مدل Post
     is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
-
+    entity_type = models.CharField(
+        max_length=50,
+        choices=(('TANKHAH', _('تنخواه')), ('BUDGET_ALLOCATION', _('تخصیص بودجه'))),
+        default='TANKHAH',
+        verbose_name=_("نوع موجودیت")
+    )
     def __str__(self):
-        return f"{self.stage} - {self.post}"
+        return f"{self.post} - تأییدکننده برای {self.get_entity_type_display()} در {self.stage}"
+        # return f"{self.stage} - {self.post}"
 
     class Meta:
         verbose_name = _('تأییدکننده مرحله')
         verbose_name_plural = _('تأییدکنندگان مرحله')
-        unique_together = ('post', 'stage')
+        unique_together = ('stage', 'post', 'entity_type')
         default_permissions=()
         permissions = [
             ('stageapprover__view','نمایش تأییدکننده مرحله'),
@@ -532,6 +567,21 @@ class TankhahFinalApproval(models.Model):
             ('TankhahFinalApproval_view','دسترسی تایید یا رد تنخواه گردان ')
         ]
 
+class Notification(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name="کاربر")
+    message = models.TextField(verbose_name="پیام")
+    tankhah = models.ForeignKey('Tankhah', on_delete=models.CASCADE, null=True, verbose_name="تنخواه")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    is_read = models.BooleanField(default=False, verbose_name="خوانده شده")
+
+    class Meta:
+        verbose_name = "اعلان"
+        verbose_name_plural = "اعلان‌ها"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.message[:50]}"
+
+#---------------------- End Models ----------------------------------##########
 class DashboardView(TemplateView):
     template_name = 'tankhah/calc_dashboard.html'
 
@@ -570,16 +620,3 @@ class Dashboard_Tankhah(models.Model):
             ('Dashboard_Tankhah_view','دسترسی به داشبورد تنخواه گردان ')
         ]
 
-class Notification(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name="کاربر")
-    message = models.TextField(verbose_name="پیام")
-    tankhah = models.ForeignKey('Tankhah', on_delete=models.CASCADE, null=True, verbose_name="تنخواه")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
-    is_read = models.BooleanField(default=False, verbose_name="خوانده شده")
-
-    class Meta:
-        verbose_name = "اعلان"
-        verbose_name_plural = "اعلان‌ها"
-
-    def __str__(self):
-        return f"{self.user.username} - {self.message[:50]}"

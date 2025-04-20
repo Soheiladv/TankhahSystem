@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n static rcms_custom_filters jformat %}
 
-{% block title %}{% trans "داشبورد مدیریت تنخواه" %} | {{ block.super }}{% endblock %}
+{% block title %}{{ title }}{% trans "داشبورد مدیریت تنخواه" %} | {{ block.super }}{% endblock %}
 
 {% block content %}
     <div class="container-fluid dashboard-creative-page py-4 px-md-4">
@@ -40,13 +40,15 @@
                             </div>
                         {% endif %}
                     </div>
-                    <span class="badge bg-light text-dark shadow-sm p-2 px-3 mb-2">
-                    <i class="fas fa-calendar-alt me-2 text-primary"></i>
-                    <span id="dashboard-datetime">{% now "l، j F Y" %}</span>
-                </span>
+                    {#                    <span class="badge bg-light text-dark shadow-sm p-2 px-3 mb-2">#}
+                    {#                    <i class="fas fa-calendar-alt me-2 text-primary"></i>#}
+                    {#                    <span id="dashboard-datetime">{% now "l، j F Y" %}</span>#}
+                    {#                </span>#}
+                    {#                    {% if user_permissions.ApplicationVersion_view %}#}
                     <span class="badge bg-primary text-white shadow-sm p-2 px-3">
                     <i class="fas fa-code-branch me-2"></i>
-                    نسخه {{ version }}
+                       <strong>  نسخه نهایی:</strong> <span class="badge bg-primary">{{ version }}</span>
+{#                    {% endif %}#}
                 </span>
                 </div>
             </div>

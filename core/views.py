@@ -15,10 +15,118 @@ from django.views.generic import TemplateView
 
 from core.forms import OrganizationForm, ProjectForm, PostForm, UserPostForm, PostHistoryForm, WorkflowStageForm, \
     SubProjectForm
-from core.models import  Project, Post, UserPost, PostHistory, WorkflowStage, SubProject
+from core.models import Project, Post, UserPost, PostHistory, WorkflowStage, SubProject, PostAction
 
 #######################################################################################
 # داشبورد آماری تنخواه گردان
+"""این ویو استفاده نشده است ولی جدید ترین است"""
+class DashboardView_flows(LoginRequiredMixin, TemplateView):
+    template_name = 'core/dashboard1.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        user_posts = user.userpost_set.filter(is_active=True).select_related('post')
+        user_post_ids = [up.post.id for up in user_posts]
+        user_orgs = [up.post.organization for up in user_posts] if user_posts else []
+        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
+
+        # گرفتن مراحل گردش کار
+        workflow_stages = WorkflowStage.objects.all().order_by('-order')
+        entities_by_stage = {}
+
+        for stage in workflow_stages:
+            # تنخواه‌ها در این مرحله
+            stage_tankhahs = Tankhah.objects.filter(current_stage=stage)
+            if not is_hq_user and not user.is_superuser:
+                stage_tankhahs = stage_tankhahs.filter(organization__in=user_orgs)
+
+            # تخصیص‌های بودجه در این مرحله
+            stage_budget_allocations = BudgetAllocation.objects.all()#.filter(current_stage=stage)
+            if not is_hq_user and not user.is_superuser:
+                stage_budget_allocations = stage_budget_allocations.filter(organization__in=user_orgs)
+
+            # بررسی مجوزهای تأیید/رد
+            can_approve_tankhah = user.has_perm('tankhah.Tankhah_approve') and any(
+                PostAction.objects.filter(
+                    post__in=user_post_ids,
+                    stage=stage,
+                    action_type='APPROVE',
+                    entity_type='TANKHAH',
+                    is_active=True
+                ).exists()
+                for p in user_posts
+            )
+            can_reject_tankhah = user.has_perm('tankhah.Tankhah_reject') and any(
+                PostAction.objects.filter(
+                    post__in=user_post_ids,
+                    stage=stage,
+                    action_type='REJECT',
+                    entity_type='TANKHAH',
+                    is_active=True
+                ).exists()
+                for p in user_posts
+            )
+            can_approve_budget = user.has_perm('budgets.BudgetAllocation_approve') and any(
+                PostAction.objects.filter(
+                    post__in=user_post_ids,
+                    stage=stage,
+                    action_type='APPROVE',
+                    entity_type='BUDGET_ALLOCATION',
+                    is_active=True
+                ).exists()
+                for p in user_posts
+            )
+            can_reject_budget = user.has_perm('budgets.BudgetAllocation_reject') and any(
+                PostAction.objects.filter(
+                    post__in=user_post_ids,
+                    stage=stage,
+                    action_type='REJECT',
+                    entity_type='BUDGET_ALLOCATION',
+                    is_active=True
+                ).exists()
+                for p in user_posts
+            )
+
+            # تأییدکنندگان مرحله
+            approvers = StageApprover.objects.filter(stage=stage, is_active=True).select_related('post')
+
+            # تعیین رنگ و برچسب
+            if stage_tankhahs.filter(status='DRAFT').exists():# or stage_budget_allocations.filter(status='DRAFT').exists():
+                color_class = 'bg-warning'
+                status_label = 'پیش‌نویس'
+            elif stage_tankhahs.filter(status='REJECTED').exists(): #or stage_budget_allocations.filter(status='REJECTED').exists():
+                color_class = 'bg-danger'
+                status_label = 'رد شده'
+            elif stage_tankhahs.filter(status='APPROVED').exists() :#or stage_budget_allocations.filter(status='APPROVED').exists():
+                color_class = 'bg-success'
+                status_label = 'تأیید شده'
+            elif stage_tankhahs.filter(status='PAID').exists():
+                color_class = 'bg-primary'
+                status_label = 'پرداخت شده'
+            else:
+                color_class = 'bg-info'
+                status_label = 'در حال بررسی'
+
+            entities_by_stage[stage] = {
+                'tankhah_count': stage_tankhahs.count(),
+                'budget_allocation_count': stage_budget_allocations.count(),
+                'color_class': color_class,
+                'status_label': status_label,
+                'tankhahs': stage_tankhahs,
+                'budget_allocations': stage_budget_allocations,
+                'can_approve_tankhah': can_approve_tankhah,
+                'can_reject_tankhah': can_reject_tankhah,
+                'can_approve_budget': can_approve_budget,
+                'can_reject_budget': can_reject_budget,
+                'approvers': [approver.post.name for approver in approvers],
+            }
+
+        context['entities_by_stage'] = entities_by_stage
+        context['workflow_stages'] = workflow_stages
+        return context
+
+
 """داشبورد روند تنخواه‌گردانی با رنگ‌بندی و وضعیت مراحل"""
 class DashboardView_flows_1(PermissionBaseView, TemplateView):
     template_name = 'core/dashboard1.html'
@@ -91,7 +199,7 @@ class DashboardView_flows_1(PermissionBaseView, TemplateView):
         return context
 
 """یه نسخه دیگه از داشبورد با اطلاعات خلاصه و مجوز تأیید"""
-class DashboardView_flows(LoginRequiredMixin, TemplateView):
+class __DashboardView_flows(LoginRequiredMixin, TemplateView):
     template_name = 'core/dashboard1.html'  # Adjust this to your actual template path
 
     def get_context_data(self, **kwargs):
@@ -102,18 +210,18 @@ class DashboardView_flows(LoginRequiredMixin, TemplateView):
         is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
         from budgets.models import BudgetPeriod
         from tankhah.models import Notification
-        budget_periods = BudgetPeriod.objects.filter(organization=user.organization, is_active=True)
-        notifications = Notification.objects.filter(recipient=user, is_read=False)
+        budget_periods = BudgetPeriod.objects.filter( is_active=True) #organization=user.organization,
+        notifications = Notification.objects.filter( is_read=False)#recipient=user,
         budget_statuses = []
-        for period in budget_periods:
-            status, message = period.check_budget_status()
-            budget_statuses.append({
-                'name': period.name,
-                'remaining': period.get_remaining_amount(),
-                'total': period.total_amount,
-                'status': status,
-                'message': message,
-            })
+        # for period in budget_periods:
+        #     status, message = period.check_budget_status()
+        #     budget_statuses.append({
+        #         'name': period.name,
+        #         'remaining': period.get_remaining_amount(),
+        #         'total': period.total_amount,
+        #         'status': status,
+        #         'message': message,
+        #     })
 
         context['budget_statuses'] = budget_statuses
         context['notifications'] = notifications
@@ -594,6 +702,7 @@ class PostUpdateView(PermissionBaseView, UpdateView):
     # check_organization = True  # فعال کردن چک سازمان
 
     def form_valid(self, form):
+        logger.debug(f"Form data: {self.request.POST}")
         messages.success(self.request, _('پست سازمانی با موفقیت به‌روزرسانی شد.'))
         return super().form_valid(form)
 
@@ -890,5 +999,3 @@ class BudgetAllocationView(PermissionBaseView, View):
             messages.success(request, _('بودجه به ساب‌پروژه تخصیص یافت.'))
 
         return redirect('project_list')
-
-#####################################
