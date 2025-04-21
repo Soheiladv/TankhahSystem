@@ -3,7 +3,7 @@ from django.urls import path
 from . import views
 from budgets.views import BudgetDashboardView , \
     OrganizationBudgetAllocationListView, \
-    BudgetTransactionListView, BudgetTransactionDetailView, PaymentOrderListView, PaymentOrderCreateView, \
+    PaymentOrderListView, PaymentOrderCreateView, \
     PaymentOrderUpdateView, PaymentOrderDeleteView, PayeeListView, PayeeCreateView, PayeeUpdateView, PayeeDeleteView, \
     TransactionTypeListView, TransactionTypeCreateView, TransactionTypeUpdateView, TransactionTypeDeleteView, \
     NumberToWordsView, budget_Help
@@ -13,6 +13,10 @@ from budgets.BudgetPeriod.views_BudgetPeriod import BudgetPeriodListView, Budget
     BudgetPeriodDeleteView
 from .BudgetAllocation.get_projects_by_organization import get_projects_by_organization
 from .BudgetAllocation.views_BudgetAllocation import BudgetAllocationCreateView, BudgetAllocationListView
+from .BudgetReturn.view_BudgetReturn import BudgetReturnView
+from .BudgetTransaction.view_budgetTransaction import BudgetTransactionListView_2D, BudgetTransactionDetailView, \
+    BudgetTransactionListView
+from .ProjectBudgetAllocation.view_Project_budget_list import ProjectBudgetAllocationListView2D
 from .ProjectBudgetAllocation.view_Update_Project_Budget_Allocation import Project__Budget__Allocation__Edit__View
 # from .BudgetAllocation.views_BudgetAllocation import BudgetAllocationCreateView
 from .ProjectBudgetAllocation.views_ProjectBudgetAllocation import ProjectBudgetAllocationListView, \
@@ -39,11 +43,17 @@ urlpatterns = [
          name='budgetallocation_delete'),
     path('budgetallocations/create/',BudgetAllocationCreateView.as_view(), name='budgetallocation_create'),
 
+    # path('budget/allocation/<int:pk>/detail/', ProjectBudgetAllocationDetailView.as_view(),
+    #      name='project_budget_allocation_detail'),
+
+
     # Organization Budget
     path('organization/<int:org_id>/allocations/', OrganizationBudgetAllocationListView.as_view(), name='organization_budgetallocation_list'),
 
     # ProjectBudgetAllocation
     path('organization/<int:organization_id>/project-budget-allocations/',ProjectBudgetAllocationListView.as_view(), name='project_budget_allocation_list'),
+
+
     path('organization/<int:organization_id>/project-budget-allocation/',ProjectBudgetAllocationCreateView.as_view(), name='project_budget_allocation'),
     path('project-budget-allocation/<int:pk>/detail/',ProjectBudgetAllocationDetailView.as_view(), name='project_budget_allocation_detail'),
 
@@ -56,6 +66,8 @@ urlpatterns = [
 
     # BudgetTransaction
     path('budgettransaction/',BudgetTransactionListView.as_view(), name='budgettransaction_list'),
+    path('budget/allocation/<int:allocation_id>/transactions/', BudgetTransactionListView_2D.as_view(),
+         name='budget_transaction_list_2d'),
     path('budgettransaction/<int:pk>/',BudgetTransactionDetailView.as_view(), name='budgettransaction_detail'),
 
     # PaymentOrder
@@ -108,8 +120,10 @@ urlpatterns += [
 urlpatterns += [
     path('approve-reject/<str:entity_type>/<int:entity_id>/<str:action>/', ApproveRejectView.as_view(),
          name='approve_reject'),
-
-]
+] # رد بودجه
+urlpatterns += [
+    path('budget/allocation/<int:allocation_id>/return/', BudgetReturnView.as_view(), name='budget_return'),
+ ] # برگشت بودجه
 
 # #/
 # urlpatterns+  = [

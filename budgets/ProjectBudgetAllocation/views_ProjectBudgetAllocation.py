@@ -1,12 +1,13 @@
 import json
 
 from django.core.serializers.json import DjangoJSONEncoder
+from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 # --- ProjectBudgetAllocation CRUD ---
 from decimal import Decimal
 
 from django.contrib import messages
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, PermissionDenied
 from django.db import transaction
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404, redirect
@@ -18,7 +19,8 @@ from budgets.models import ProjectBudgetAllocation, BudgetPeriod, BudgetTransact
 from core.PermissionBase import PermissionBaseView
 from budgets.budget_calculations import (
     get_budget_details, get_organization_budget,
-    get_project_remaining_budget, get_subproject_remaining_budget, get_subproject_total_budget, get_project_total_budget
+    get_project_remaining_budget, get_subproject_remaining_budget, get_subproject_total_budget,
+    get_project_total_budget, get_project_used_budget
 )
 import logging
 
@@ -132,38 +134,119 @@ class ProjectBudgetAllocationDetailView(PermissionBaseView, DetailView):
     model = ProjectBudgetAllocation
     template_name = 'budgets/budget/project_budget_allocation_detail.html'
     context_object_name = 'allocation'
+    permission_codename = 'budgets.ProjectBudgetAllocation_view'
+    permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
+    check_organization = True
+
+    def get_object(self, queryset=None):
+        try:
+            obj = super().get_object(queryset)
+            if not obj.is_active:
+                logger.error(f"Allocation {obj.pk} is inactive")
+                raise Http404(_('تخصیص بودجه غیرفعال است.'))
+            # بررسی دسترسی سازمانی
+            try:
+                user_organizations = self.request.user.get_authorized_organizations()
+            except AttributeError:
+                user_organizations = self.request.user.organizations.all()
+            if not user_organizations.filter(pk=obj.budget_allocation.organization.pk).exists():
+                logger.warning(
+                    f"User {self.request.user.username} attempted to access allocation {obj.pk} "
+                    f"without organization permission"
+                )
+                raise PermissionDenied(self.permission_denied_message)
+            return obj
+        except ProjectBudgetAllocation.DoesNotExist:
+            logger.error(f"Allocation {self.kwargs['pk']} does not exist")
+            messages.error(self.request, _('تخصیص بودجه مورد نظر یافت نشد.'))
+            return None
+
+    def dispatch(self, request, *args, **kwargs):
+        obj = self.get_object()
+        if not obj:
+            return redirect('budgetallocation_list')
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        allocation = self.object
-        project = allocation.project
-        subproject = allocation.subproject
+        allocation = self.get_object()
+        if not allocation:
+            return context
 
-        # تراکنش‌های مرتبط
-        transactions = BudgetTransaction.objects.filter(
-            allocation=allocation.budget_allocation
-        ).order_by('-timestamp')
+        organization = allocation.budget_allocation.organization
+        budget_allocation = allocation.budget_allocation
+        logger.debug(f"Preparing context for allocation {allocation.id}, organization {organization.name}")
 
-        # اطلاعات بودجه پروژه
-        total_project_budget = project.get_total_budget() or Decimal('0')
-        remaining_project_budget = project.get_remaining_budget() or Decimal('0')
+        # بودجه کل سازمان
+        total_org_budget = budget_allocation.allocated_amount
+        logger.debug(f"Total organization budget: {total_org_budget}")
+
+        # پیدا کردن زیرپروژه‌های مرتبط
+        subprojects = SubProject.objects.filter(allocations=allocation)
+
+        # محاسبه تراکنش‌ها
+        consumed = BudgetTransaction.objects.filter(
+            allocation=budget_allocation,
+            allocation__project=allocation.project,
+            transaction_type='CONSUMPTION'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+        returned = BudgetTransaction.objects.filter(
+            allocation=budget_allocation,
+            allocation__project=allocation.project,
+            transaction_type='RETURN'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+        consumed_amount = consumed - returned
+        logger.debug(f"Consumed: {consumed}, Returned: {returned}, Net consumed: {consumed_amount}")
+
+        # بودجه باقی‌مانده
+        remaining_org_budget = total_org_budget - BudgetTransaction.objects.filter(
+            allocation=budget_allocation,
+            transaction_type='CONSUMPTION'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0') + BudgetTransaction.objects.filter(
+            allocation=budget_allocation,
+            transaction_type='RETURN'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        logger.debug(f"Remaining organization budget: {remaining_org_budget}")
+
+        # تراکنش‌های اخیر
+        recent_transactions = BudgetTransaction.objects.filter(
+            allocation=budget_allocation,
+            allocation__project=allocation.project
+        ).order_by('-timestamp')[:10]
 
         context.update({
-            'budget_details': get_budget_details(project),
-            'transactions': transactions,
-            'total_project_budget': total_project_budget,
-            'remaining_project_budget': remaining_project_budget,
-            'allocated_percentage': (
-                (allocation.allocated_amount / total_project_budget * 100)
-                if total_project_budget > 0 else Decimal('0')
-            ),
-            'remaining_percentage': (
-                (remaining_project_budget / total_project_budget * 100)
-                if total_project_budget > 0 else Decimal('0')
-            ),
+            'organization': organization,
+            'total_org_budget': total_org_budget,
+            'consumed_amount': consumed_amount,
+            'remaining_org_budget': remaining_org_budget,
+            'subprojects': subprojects,
+            'recent_transactions': recent_transactions,
+            'project': allocation.project,
         })
-        logger.debug(f"ProjectBudgetAllocationDetailView context: {context}")
+        # اضافه کردن اطلاعات بودجه
+        project = allocation.project
+        context.update({
+            'total_budget': get_project_total_budget(project),
+            'used_budget': get_project_used_budget(project),
+            'remaining_budget': get_project_remaining_budget(project),
+            'budget_details': get_budget_details(entity=project),
+        })
+
         return context
+
+    def get(self, request, *args, **kwargs):
+        try:
+            return super().get(request, *args, **kwargs)
+        except Exception as e:
+            logger.error(f"Error accessing allocation {self.kwargs.get('pk')}: {str(e)}")
+            messages.error(request, _("خطایی در دسترسی به جزئیات تخصیص بودجه رخ داد."))
+            return self.redirect_to_organizations()
+
+    def redirect_to_organizations(self):
+        return redirect('organization_list')
+
 
 class ProjectBudgetAllocationCreateView(PermissionBaseView,CreateView):
     model = ProjectBudgetAllocation

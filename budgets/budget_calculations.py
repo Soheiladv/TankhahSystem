@@ -1,10 +1,7 @@
 import logging
-import jdatetime
 from decimal import Decimal
 from django.db.models import Sum, Q
 from django.core.cache import cache
-from Tanbakhsystem.utils import parse_jalali_date
-from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from Tanbakhsystem.utils import parse_jalali_date
 from django.utils.translation import gettext_lazy as _
@@ -44,9 +41,11 @@ def calculate_total_allocated(entity=None, filters=None):
     logger.debug(f"calculate_total_allocated: entity={entity}, filters={filters}, total={total}")
     return total
 
+
 def calculate_remaining_budget(obj=None, filters=None):
     from budgets.models import BudgetPeriod, BudgetAllocation, ProjectBudgetAllocation
     from tankhah.models import Tankhah
+    from core.models import Organization
     from decimal import Decimal
 
     cache_key = f"remaining_budget_{type(obj).__name__ if obj else 'global'}_{obj.pk if obj else '0'}"
@@ -76,11 +75,20 @@ def calculate_remaining_budget(obj=None, filters=None):
                 consumed = apply_filters(consumed, filters)
             consumed = consumed.aggregate(total=Sum('amount'))['total'] or Decimal('0')
             result = max(obj.allocated_amount - consumed, Decimal('0'))
+        elif isinstance(obj, Organization):
+            total_budget = BudgetPeriod.objects.filter(organization=obj, is_active=True, is_completed=False)
+            if filters:
+                total_budget = apply_filters(total_budget, filters)
+            total_budget = total_budget.aggregate(total=Sum('total_amount'))['total'] or Decimal('0')
+            total_allocated = BudgetAllocation.objects.filter(organization=obj)
+            if filters:
+                total_allocated = apply_filters(total_allocated, filters)
+            total_allocated = total_allocated.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+            result = max(total_budget - total_allocated, Decimal('0'))
         else:
             logger.warning(f"Invalid object type for calculate_remaining_budget: {type(obj)}")
             result = Decimal('0')
     else:
-        # محاسبه بودجه باقی‌مانده کلان با فیلترها
         total_budget = BudgetPeriod.objects.all()
         if filters:
             total_budget = apply_filters(total_budget, filters)
@@ -243,7 +251,6 @@ def get_organization_budget(organization) -> Decimal:
     # def get_organization_budget(organization: core.models.Organization) -> Decimal:
     """محاسبه بودجه کل سازمان بر اساس دوره‌های بودجه فعال.
     """
-    from core.models import Organization
     from budgets.models import BudgetPeriod
 
     total_budget = BudgetPeriod.objects.filter(organization=organization,is_active=True,is_completed=False).aggregate(total=Sum('total_amount'))['total'] or Decimal('0')

@@ -129,23 +129,35 @@ class BudgetAllocationForm(forms.ModelForm):
         if self.budget_period:
             self.fields['budget_period'].queryset = BudgetPeriod.objects.filter(id=self.budget_period.id,
                                                                                 is_active=True)
-            self.fields['budget_item'].queryset = BudgetItem.objects.filter(
-                budget_period=self.budget_period, is_active=True
-            )
+            self.fields['budget_item'].queryset = BudgetItem.objects.filter(budget_period=self.budget_period,
+                                                                            is_active=True)
         else:
             self.fields['budget_period'].queryset = BudgetPeriod.objects.filter(is_active=True)
             self.fields['budget_item'].queryset = BudgetItem.objects.none()
 
-        # self.fields['organization'].queryset = Organization.objects.filter(is_active=True)
-        self.fields['organization'].queryset = Organization.objects.filter(org_type__is_budget_allocatable=True,
-                                                                           is_active=True).select_related(
-            'org_type').order_by('name')
-        self.fields['project'].queryset = Project.objects.filter(is_active=True).select_related(
-            'organizations').prefetch_related('organizations')
-            # 'category').prefetch_related('organizations')
-
-        self.fields['project'].queryset = Project.objects.filter(is_active=True)
+        self.fields['organization'].queryset = Organization.objects.filter(
+            org_type__is_budget_allocatable=True, is_active=True
+        ).select_related('org_type').order_by('name')
+        self.fields['project'].queryset = Project.objects.filter(is_active=True).order_by('name')
         self.fields['project'].required = False
+        self.fields['project'].empty_label = _("--------- (بدون پروژه)")
+
+        if not self.initial.get('allocation_date'):
+            if self.instance and self.instance.pk and self.instance.allocation_date:
+                try:
+                    self.initial['allocation_date'] = jdatetime.date.fromgregorian(
+                        date=self.instance.allocation_date
+                    ).strftime('%Y/%m/%d')
+                except Exception as e:
+                    logger.error(f"Error formatting existing allocation date: {e}")
+                    self.initial['allocation_date'] = jdatetime.date.today().strftime('%Y/%m/%d')
+            else:
+                self.initial['allocation_date'] = jdatetime.date.today().strftime('%Y/%m/%d')
+
+        if self.budget_period and not self.instance.pk:
+            self.initial['locked_percentage'] = self.budget_period.locked_percentage
+            self.initial['warning_threshold'] = self.budget_period.warning_threshold
+            self.initial['warning_action'] = self.budget_period.warning_action
 
         # تنظیم کوئری‌ست سازمان‌ها
         try:
@@ -161,75 +173,32 @@ class BudgetAllocationForm(forms.ModelForm):
             logger.error(f"Error setting organization queryset: {e}")
             self.fields['organization'].queryset = Organization.objects.none()
 
-        # تنظیم کوئری‌ست پروژه‌ها
-        try:
-            self.fields['project'].queryset = Project.objects.filter(is_active=True).order_by('name')
-            self.fields['project'].empty_label = _("--------- (بدون پروژه)")
-            self.fields['project'].required = False
-            logger.debug("Initial project queryset set for all active projects.")
-        except Exception as e:
-            logger.error(f"Error setting project queryset: {e}")
-            self.fields['project'].queryset = Project.objects.none()
-
-        # تنظیم تاریخ اولیه
-        if not self.initial.get('allocation_date'):
-            if self.instance and self.instance.pk and self.instance.allocation_date:
-                try:
-                    self.initial['allocation_date'] = jdatetime.date.fromgregorian(
-                        date=self.instance.allocation_date
-                    ).strftime('%Y/%m/%d')
-                    logger.debug(f"Set initial allocation_date from instance: {self.initial['allocation_date']}")
-                except Exception as e:
-                    logger.error(f"Error formatting existing allocation date: {e}")
-                    self.initial['allocation_date'] = jdatetime.date.today().strftime('%Y/%m/%d')
-            else:
-                self.initial['allocation_date'] = jdatetime.date.today().strftime('%Y/%m/%d')
-                logger.debug(f"Set default allocation_date for new instance: {self.initial['allocation_date']}")
-
-        # تنظیم مقادیر اولیه برای هشدار و قفل
-        if self.budget_period and not self.instance.pk:
-            self.initial['locked_percentage'] = self.budget_period.locked_percentage
-            self.initial['warning_threshold'] = self.budget_period.warning_threshold
-            self.initial['warning_action'] = self.budget_period.warning_action
-            logger.debug("Set initial warning/lock values from budget period.")
-
     def clean_organization(self):
-        """Ensure the selected organization is active."""
         organization = self.cleaned_data.get('organization')
         if organization and not organization.is_active:
-            logger.error(f"Selected organization '{organization.name}' (ID: {organization.id}) is not active.")
             raise ValidationError(_('سازمان انتخاب شده فعال نیست و نمی‌توان به آن بودجه تخصیص داد.'))
-        # Also check if it's allocatable type (redundant if queryset is correct, but safe)
         if organization and not organization.org_type.is_budget_allocatable:
-             logger.error(f"Selected organization '{organization.name}' type '{organization.org_type.name}' is not budget allocatable.")
-             raise ValidationError(_('این نوع سازمان قابلیت دریافت تخصیص بودجه ندارد.'))
+            raise ValidationError(_('این نوع سازمان قابلیت دریافت تخصیص بودجه ندارد.'))
         return organization
 
     def clean_allocation_date(self):
-        """Parse Jalali date string to Python date object."""
         date_str = self.cleaned_data.get('allocation_date')
-        logger.debug(f"Cleaning allocation_date: input='{date_str}'")
         if not date_str:
-            # This might be redundant if field is required=True
             raise ValidationError(_('تاریخ تخصیص اجباری است.'))
         try:
-            # Use the utility function to parse
             parsed_date = parse_jalali_date(str(date_str), field_name=_('تاریخ تخصیص'))
-            logger.debug(f"Parsed allocation_date: {parsed_date}")
-            return parsed_date # Return the Python date object
-        except ValueError as e: # Catch specific parsing errors
+            return parsed_date
+        except ValueError as e:
             logger.warning(f"Could not parse allocation_date '{date_str}': {e}")
-            raise ValidationError(e) # Show the specific error from parse_jalali_date
-        except Exception as e: # Catch other unexpected errors
+            raise ValidationError(e)
+        except Exception as e:
             logger.error(f"Unexpected error parsing allocation_date '{date_str}': {e}", exc_info=True)
             raise ValidationError(_('فرمت تاریخ تخصیص نامعتبر است.'))
 
     def clean_allocated_amount(self):
         amount_input = self.cleaned_data.get('allocated_amount')
         allocation_type = self.cleaned_data.get('allocation_type')
-        budget_item = self.cleaned_data.get('budget_item')
         budget_period = self.cleaned_data.get('budget_period') or self.budget_period
-        logger.debug(f"Cleaning allocated_amount: input={amount_input}, allocation_type={allocation_type}")
 
         if amount_input is None:
             raise ValidationError(_('مقدار تخصیص نمی‌تواند خالی باشد.'))
@@ -245,30 +214,10 @@ class BudgetAllocationForm(forms.ModelForm):
         if allocation_type == 'percent' and not (0 <= amount_decimal <= 100):
             raise ValidationError(_('درصد تخصیص باید بین ۰ تا ۱۰۰ باشد.'))
 
-        if allocation_type == 'percent' and budget_item:
-            total_period_amount = budget_item.total_amount
-            calculated_amount = (amount_decimal / Decimal('100')) * total_period_amount
-        else:
-            calculated_amount = amount_decimal
-
-        # if budget_item:
-        #     remaining_budget = budget_item.get_remaining_amount()
-        #     if self.instance.pk:
-        #         current_allocation = BudgetAllocation.objects.filter(pk=self.instance.pk).aggregate(
-        #             total=Sum('allocated_amount')
-        #         )['total'] or Decimal('0')
-        #         remaining_budget += current_allocation
-        #     if calculated_amount > remaining_budget:
-        #         raise ValidationError(_(
-        #             f"مبلغ تخصیص ({calculated_amount:,.0f} ریال) بیشتر از باقی‌مانده ردیف بودجه ({remaining_budget:,.0f} ریال) است."
-        #         ))
-
-        logger.debug(f"Validated allocated_amount: {amount_decimal}")
         return amount_decimal
 
     def clean(self):
         cleaned_data = super().clean()
-        logger.debug(f"Form clean: cleaned_data keys={list(cleaned_data.keys())}")
         organization = cleaned_data.get('organization')
         budget_item = cleaned_data.get('budget_item')
         project = cleaned_data.get('project')
@@ -288,20 +237,24 @@ class BudgetAllocationForm(forms.ModelForm):
             if not project.organizations.filter(id=organization.id).exists():
                 self.add_error('project', _('پروژه انتخاب‌شده به سازمان انتخاب‌شده تعلق ندارد.'))
 
+        # محاسبه مبلغ موثر
         if allocation_type == 'percent' and allocated_amount is not None:
             effective_amount = (allocated_amount / Decimal('100')) * budget_period.total_amount
-            logger.info(f"Calculated percent: {allocated_amount}% = {effective_amount} Riyals")
             cleaned_data['effective_amount'] = effective_amount
         elif allocated_amount is not None:
             cleaned_data['effective_amount'] = allocated_amount
-            logger.debug(f"Effective amount: {allocated_amount} Riyals")
 
+        # اعتبارسنجی بودجه دوره
         if cleaned_data.get('effective_amount') and budget_period:
             used_budget = BudgetAllocation.objects.filter(budget_period=budget_period).aggregate(
                 total=Sum('allocated_amount')
             )['total'] or Decimal('0')
+            if self.instance.pk:
+                current_allocation = BudgetAllocation.objects.filter(pk=self.instance.pk).aggregate(
+                    total=Sum('allocated_amount')
+                )['total'] or Decimal('0')
+                used_budget -= current_allocation
             remaining_budget = budget_period.total_amount - used_budget
-            logger.debug(f"Budget period {budget_period.id}: total={budget_period.total_amount}, used={used_budget}, remaining={remaining_budget}")
             if cleaned_data['effective_amount'] > remaining_budget:
                 self.add_error('allocated_amount', _(
                     f'مبلغ تخصیص ({cleaned_data["effective_amount"]:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining_budget:,.0f} ریال) است.'
@@ -313,71 +266,250 @@ class BudgetAllocationForm(forms.ModelForm):
                     f'تاریخ تخصیص باید در بازه {budget_period.start_date} تا {budget_period.end_date} باشد.'
                 ))
 
-        effective_amount = cleaned_data.get('effective_amount')
-        if budget_item and effective_amount and hasattr(budget_item, 'total_amount'):
-            remaining = budget_item.get_remaining_amount()
-            if effective_amount > remaining:
-                self.add_error('budget_item', _(
-                    f"مبلغ تخصیص ({effective_amount:,.0f} ریال) بیشتر از باقی‌مانده ردیف ({remaining:,.0f} ریال) است."
-                ))
-
-        if cleaned_data.get('warning_threshold') is not None and not (0 <= cleaned_data.get('warning_threshold') <= 100):
+        if cleaned_data.get('warning_threshold') is not None and not (
+                0 <= cleaned_data.get('warning_threshold') <= 100):
             self.add_error('warning_threshold', _('آستانه اخطار باید بین ۰ تا ۱۰۰ باشد.'))
 
-        logger.debug("Form clean completed")
         return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        logger.debug(f"Saving BudgetAllocationForm (commit={commit}, user={self.user})")
-        try:
-            if not self.cleaned_data.get('budget_period') and self.budget_period:
-                self.instance.budget_period = self.budget_period
-                logger.debug(f"Set budget_period: {self.budget_period.id}")
-            elif not self.instance.budget_period_id:
-                logger.error("No budget_period provided")
-                raise ValidationError("Budget period is required.")
-            #
-            # allocation_type = self.cleaned_data.get('allocation_type')
-            # allocated_amount = self.cleaned_data.get('allocated_amount')
-            # budget_item = self.cleaned_data.get('budget_item')
-            #
-            # if allocation_type == 'percent' and allocated_amount is not None:
-            #     total_period_amount = self.instance.budget_period.total_amount
-            #     calculated_amount = (allocated_amount / Decimal('100')) * total_period_amount
-            #     self.instance.allocated_amount = calculated_amount
-            #     logger.info(f"Set allocated_amount from percent: {allocated_amount}% = {calculated_amount} Riyals")
-            # else:
-            #     self.instance.allocated_amount = allocated_amount
-            #     logger.debug(f"Set allocated_amount: {allocated_amount} Riyals")
+        if not self.cleaned_data.get('budget_period') and self.budget_period:
+            instance.budget_period = self.budget_period
+        elif not instance.budget_period_id:
+            raise ValidationError(_('دوره بودجه اجباری است.'))
 
-            instance.allocated_amount = self.cleaned_data['effective_amount']
-            if not self.instance.pk and self.user and self.user.is_authenticated:
-                self.instance.created_by = self.user
-                logger.debug(f"Set created_by: {self.user}")
+        instance.allocated_amount = self.cleaned_data['effective_amount']
+        if not instance.pk and self.user and self.user.is_authenticated:
+            instance.created_by = self.user
 
-            with transaction.atomic():
-                instance = super().save(commit=commit)
-                logger.info(f"Form saved BudgetAllocation with ID: {instance.pk}")
-                if commit and instance.budget_period_id:
-                    total_allocated = BudgetAllocation.objects.filter(
-                        budget_period=instance.budget_period
-                    ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
-                    instance.budget_period.total_allocated = total_allocated
-                    instance.budget_period.save(update_fields=['total_allocated'])
-                    logger.info(f"Updated BudgetPeriod {instance.budget_period_id} with total_allocated={total_allocated}")
+        with transaction.atomic():
+            instance = super().save(commit=commit)
+            if commit and instance.budget_period_id:
+                total_allocated = BudgetAllocation.objects.filter(
+                    budget_period=instance.budget_period
+                ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+                instance.budget_period.total_allocated = total_allocated
+                instance.budget_period.save(update_fields=['total_allocated'])
 
-            return instance
-        except Exception as e:
-            logger.error(f"Error in BudgetAllocationForm.save: {str(e)}", exc_info=True)
-            self.add_error(None, str(e))
-            raise
-
-    def get(self, request, *args, **kwargs):
-        budget_period = self._get_budget_period()
-        if not budget_period:
-            from django.contrib import messages
-            messages.error(request, _('دوره بودجه معتبر انتخاب نشده است.'))
-            from django.shortcuts import redirect
-            return redirect('budgetperiod_list')
-        return super().get(request, *args, **kwargs)
+        return instance
+    #     # تنظیم کوئری‌ست پروژه‌ها
+    #     try:
+    #         self.fields['project'].queryset = Project.objects.filter(is_active=True).order_by('name')
+    #         self.fields['project'].empty_label = _("--------- (بدون پروژه)")
+    #         self.fields['project'].required = False
+    #         logger.debug("Initial project queryset set for all active projects.")
+    #     except Exception as e:
+    #         logger.error(f"Error setting project queryset: {e}")
+    #         self.fields['project'].queryset = Project.objects.none()
+    #
+    #     # تنظیم تاریخ اولیه
+    #     if not self.initial.get('allocation_date'):
+    #         if self.instance and self.instance.pk and self.instance.allocation_date:
+    #             try:
+    #                 self.initial['allocation_date'] = jdatetime.date.fromgregorian(
+    #                     date=self.instance.allocation_date
+    #                 ).strftime('%Y/%m/%d')
+    #                 logger.debug(f"Set initial allocation_date from instance: {self.initial['allocation_date']}")
+    #             except Exception as e:
+    #                 logger.error(f"Error formatting existing allocation date: {e}")
+    #                 self.initial['allocation_date'] = jdatetime.date.today().strftime('%Y/%m/%d')
+    #         else:
+    #             self.initial['allocation_date'] = jdatetime.date.today().strftime('%Y/%m/%d')
+    #             logger.debug(f"Set default allocation_date for new instance: {self.initial['allocation_date']}")
+    #
+    #     # تنظیم مقادیر اولیه برای هشدار و قفل
+    #     if self.budget_period and not self.instance.pk:
+    #         self.initial['locked_percentage'] = self.budget_period.locked_percentage
+    #         self.initial['warning_threshold'] = self.budget_period.warning_threshold
+    #         self.initial['warning_action'] = self.budget_period.warning_action
+    #         logger.debug("Set initial warning/lock values from budget period.")
+    #
+    # def clean_organization(self):
+    #     """Ensure the selected organization is active."""
+    #     organization = self.cleaned_data.get('organization')
+    #     if organization and not organization.is_active:
+    #         logger.error(f"Selected organization '{organization.name}' (ID: {organization.id}) is not active.")
+    #         raise ValidationError(_('سازمان انتخاب شده فعال نیست و نمی‌توان به آن بودجه تخصیص داد.'))
+    #     # Also check if it's allocatable type (redundant if queryset is correct, but safe)
+    #     if organization and not organization.org_type.is_budget_allocatable:
+    #          logger.error(f"Selected organization '{organization.name}' type '{organization.org_type.name}' is not budget allocatable.")
+    #          raise ValidationError(_('این نوع سازمان قابلیت دریافت تخصیص بودجه ندارد.'))
+    #     return organization
+    #
+    # def clean_allocation_date(self):
+    #     """Parse Jalali date string to Python date object."""
+    #     date_str = self.cleaned_data.get('allocation_date')
+    #     logger.debug(f"Cleaning allocation_date: input='{date_str}'")
+    #     if not date_str:
+    #         # This might be redundant if field is required=True
+    #         raise ValidationError(_('تاریخ تخصیص اجباری است.'))
+    #     try:
+    #         # Use the utility function to parse
+    #         parsed_date = parse_jalali_date(str(date_str), field_name=_('تاریخ تخصیص'))
+    #         logger.debug(f"Parsed allocation_date: {parsed_date}")
+    #         return parsed_date # Return the Python date object
+    #     except ValueError as e: # Catch specific parsing errors
+    #         logger.warning(f"Could not parse allocation_date '{date_str}': {e}")
+    #         raise ValidationError(e) # Show the specific error from parse_jalali_date
+    #     except Exception as e: # Catch other unexpected errors
+    #         logger.error(f"Unexpected error parsing allocation_date '{date_str}': {e}", exc_info=True)
+    #         raise ValidationError(_('فرمت تاریخ تخصیص نامعتبر است.'))
+    #
+    # def clean_allocated_amount(self):
+    #     amount_input = self.cleaned_data.get('allocated_amount')
+    #     allocation_type = self.cleaned_data.get('allocation_type')
+    #     budget_item = self.cleaned_data.get('budget_item')
+    #     budget_period = self.cleaned_data.get('budget_period') or self.budget_period
+    #     logger.debug(f"Cleaning allocated_amount: input={amount_input}, allocation_type={allocation_type}")
+    #
+    #     if amount_input is None:
+    #         raise ValidationError(_('مقدار تخصیص نمی‌تواند خالی باشد.'))
+    #
+    #     try:
+    #         amount_decimal = Decimal(str(amount_input))
+    #     except Exception:
+    #         raise ValidationError(_('مقدار وارد شده عدد معتبری نیست.'))
+    #
+    #     if amount_decimal <= 0:
+    #         raise ValidationError(_('مقدار تخصیص باید مثبت باشد.'))
+    #
+    #     if allocation_type == 'percent' and not (0 <= amount_decimal <= 100):
+    #         raise ValidationError(_('درصد تخصیص باید بین ۰ تا ۱۰۰ باشد.'))
+    #
+    #     if allocation_type == 'percent' and budget_item:
+    #         total_period_amount = budget_item.total_amount
+    #         calculated_amount = (amount_decimal / Decimal('100')) * total_period_amount
+    #     else:
+    #         calculated_amount = amount_decimal
+    #
+    #     # if budget_item:
+    #     #     remaining_budget = budget_item.get_remaining_amount()
+    #     #     if self.instance.pk:
+    #     #         current_allocation = BudgetAllocation.objects.filter(pk=self.instance.pk).aggregate(
+    #     #             total=Sum('allocated_amount')
+    #     #         )['total'] or Decimal('0')
+    #     #         remaining_budget += current_allocation
+    #     #     if calculated_amount > remaining_budget:
+    #     #         raise ValidationError(_(
+    #     #             f"مبلغ تخصیص ({calculated_amount:,.0f} ریال) بیشتر از باقی‌مانده ردیف بودجه ({remaining_budget:,.0f} ریال) است."
+    #     #         ))
+    #
+    #     logger.debug(f"Validated allocated_amount: {amount_decimal}")
+    #     return amount_decimal
+    #
+    # def clean(self):
+    #     cleaned_data = super().clean()
+    #     logger.debug(f"Form clean: cleaned_data keys={list(cleaned_data.keys())}")
+    #     organization = cleaned_data.get('organization')
+    #     budget_item = cleaned_data.get('budget_item')
+    #     project = cleaned_data.get('project')
+    #     allocated_amount = cleaned_data.get('allocated_amount')
+    #     allocation_date = cleaned_data.get('allocation_date')
+    #     budget_period = cleaned_data.get('budget_period') or self.budget_period
+    #     allocation_type = cleaned_data.get('allocation_type')
+    #
+    #     if budget_item and organization:
+    #         if budget_item.organization != organization:
+    #             self.add_error('budget_item', _('ردیف بودجه باید متعلق به شعبه انتخاب‌شده باشد.'))
+    #
+    #     if not budget_period:
+    #         raise ValidationError(_('دوره بودجه مشخص نیست.'))
+    #
+    #     if project and organization:
+    #         if not project.organizations.filter(id=organization.id).exists():
+    #             self.add_error('project', _('پروژه انتخاب‌شده به سازمان انتخاب‌شده تعلق ندارد.'))
+    #
+    #     if allocation_type == 'percent' and allocated_amount is not None:
+    #         effective_amount = (allocated_amount / Decimal('100')) * budget_period.total_amount
+    #         logger.info(f"Calculated percent: {allocated_amount}% = {effective_amount} Riyals")
+    #         cleaned_data['effective_amount'] = effective_amount
+    #     elif allocated_amount is not None:
+    #         cleaned_data['effective_amount'] = allocated_amount
+    #         logger.debug(f"Effective amount: {allocated_amount} Riyals")
+    #
+    #     if cleaned_data.get('effective_amount') and budget_period:
+    #         used_budget = BudgetAllocation.objects.filter(budget_period=budget_period).aggregate(
+    #             total=Sum('allocated_amount')
+    #         )['total'] or Decimal('0')
+    #         remaining_budget = budget_period.total_amount - used_budget
+    #         logger.debug(f"Budget period {budget_period.id}: total={budget_period.total_amount}, used={used_budget}, remaining={remaining_budget}")
+    #         if cleaned_data['effective_amount'] > remaining_budget:
+    #             self.add_error('allocated_amount', _(
+    #                 f'مبلغ تخصیص ({cleaned_data["effective_amount"]:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining_budget:,.0f} ریال) است.'
+    #             ))
+    #
+    #     if allocation_date and budget_period:
+    #         if not (budget_period.start_date <= allocation_date <= budget_period.end_date):
+    #             self.add_error('allocation_date', _(
+    #                 f'تاریخ تخصیص باید در بازه {budget_period.start_date} تا {budget_period.end_date} باشد.'
+    #             ))
+    #
+    #     effective_amount = cleaned_data.get('effective_amount')
+    #     if budget_item and effective_amount and hasattr(budget_item, 'total_amount'):
+    #         remaining = budget_item.get_remaining_amount()
+    #         if effective_amount > remaining:
+    #             self.add_error('budget_item', _(
+    #                 f"مبلغ تخصیص ({effective_amount:,.0f} ریال) بیشتر از باقی‌مانده ردیف ({remaining:,.0f} ریال) است."
+    #             ))
+    #
+    #     if cleaned_data.get('warning_threshold') is not None and not (0 <= cleaned_data.get('warning_threshold') <= 100):
+    #         self.add_error('warning_threshold', _('آستانه اخطار باید بین ۰ تا ۱۰۰ باشد.'))
+    #
+    #     logger.debug("Form clean completed")
+    #     return cleaned_data
+    #
+    # def save(self, commit=True):
+    #     instance = super().save(commit=False)
+    #     logger.debug(f"Saving BudgetAllocationForm (commit={commit}, user={self.user})")
+    #     try:
+    #         if not self.cleaned_data.get('budget_period') and self.budget_period:
+    #             self.instance.budget_period = self.budget_period
+    #             logger.debug(f"Set budget_period: {self.budget_period.id}")
+    #         elif not self.instance.budget_period_id:
+    #             logger.error("No budget_period provided")
+    #             raise ValidationError("Budget period is required.")
+    #         #
+    #         # allocation_type = self.cleaned_data.get('allocation_type')
+    #         # allocated_amount = self.cleaned_data.get('allocated_amount')
+    #         # budget_item = self.cleaned_data.get('budget_item')
+    #         #
+    #         # if allocation_type == 'percent' and allocated_amount is not None:
+    #         #     total_period_amount = self.instance.budget_period.total_amount
+    #         #     calculated_amount = (allocated_amount / Decimal('100')) * total_period_amount
+    #         #     self.instance.allocated_amount = calculated_amount
+    #         #     logger.info(f"Set allocated_amount from percent: {allocated_amount}% = {calculated_amount} Riyals")
+    #         # else:
+    #         #     self.instance.allocated_amount = allocated_amount
+    #         #     logger.debug(f"Set allocated_amount: {allocated_amount} Riyals")
+    #
+    #         instance.allocated_amount = self.cleaned_data['effective_amount']
+    #         if not self.instance.pk and self.user and self.user.is_authenticated:
+    #             self.instance.created_by = self.user
+    #             logger.debug(f"Set created_by: {self.user}")
+    #
+    #         with transaction.atomic():
+    #             instance = super().save(commit=commit)
+    #             logger.info(f"Form saved BudgetAllocation with ID: {instance.pk}")
+    #             if commit and instance.budget_period_id:
+    #                 total_allocated = BudgetAllocation.objects.filter(
+    #                     budget_period=instance.budget_period
+    #                 ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+    #                 instance.budget_period.total_allocated = total_allocated
+    #                 instance.budget_period.save(update_fields=['total_allocated'])
+    #                 logger.info(f"Updated BudgetPeriod {instance.budget_period_id} with total_allocated={total_allocated}")
+    #
+    #         return instance
+    #     except Exception as e:
+    #         logger.error(f"Error in BudgetAllocationForm.save: {str(e)}", exc_info=True)
+    #         self.add_error(None, str(e))
+    #         raise
+    #
+    # def get(self, request, *args, **kwargs):
+    #     budget_period = self._get_budget_period()
+    #     if not budget_period:
+    #         from django.contrib import messages
+    #         messages.error(request, _('دوره بودجه معتبر انتخاب نشده است.'))
+    #         from django.shortcuts import redirect
+    #         return redirect('budgetperiod_list')
+    #     return super().get(request, *args, **kwargs)

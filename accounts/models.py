@@ -142,20 +142,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     # --------
     def get_authorized_organizations(self):
-        """
-        Return organizations that the user has access to via their posts.
-        این متد سازمان‌هایی را برمی‌گرداند که کاربر از طریق پست‌های سازمانی (UserPost و Post) به آنها دسترسی دارد.
-        شامل سازمان‌های والد (parent_organization) نیز می‌شود.
-        """
-
         from core.models import Organization
-        from django.db.models import Q
-
         return Organization.objects.filter(
-            Q(post__userpost__user=self, post__userpost__is_active=True, post__userpost__end_date__isnull=True) |
-            Q(parent_organization__post__userpost__user=self, parent_organization__post__userpost__is_active=True,
-              parent_organization__post__userpost__end_date__isnull=True),
-            is_active=True
+            posts__userposts__user=self,
+            posts__userposts__is_active=True
         ).distinct()
     # --------
     def get_all_permissions(self, obj=None):

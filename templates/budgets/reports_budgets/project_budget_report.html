@@ -1,0 +1,51 @@
+<!-- templates/budgets/project_budget_report.html -->
+{% extends 'base.html' %}
+{% load i18n humanize %}
+
+{% block title %}{% trans "گزارش بودجه پروژه" %} - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4 text-center">{% trans "گزارش بودجه پروژه" %} - {{ project.name }}</h1>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <p><strong>{% trans "کد پروژه" %}:</strong> {{ project.code }}</p>
+            <p><strong>{% trans "مجموع بودجه تخصیص‌یافته" %}:</strong> {{ total_allocated|intcomma }} {% trans "ریال" %}</p>
+            <p><strong>{% trans "مبلغ مصرف‌شده" %}:</strong> {{ consumed|intcomma }} {% trans "ریال" %}</p>
+            <p><strong>{% trans "مبلغ بازگشتی" %}:</strong> {{ returned|intcomma }} {% trans "ریال" %}</p>
+            <p><strong>{% trans "بودجه باقی‌مانده" %}:</strong> {{ remaining|intcomma }} {% trans "ریال" %}</p>
+        </div>
+    </div>
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">{% trans "تخصیص‌های مرتبط" %}</h3>
+        </div>
+        <div class="card-body">
+            {% if allocations %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>{% trans "شناسه" %}</th>
+                        <th>{% trans "مبلغ تخصیص‌یافته" %}</th>
+                        <th>{% trans "تاریخ تخصیص" %}</th>
+                        <th>{% trans "وضعیت" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for allocation in allocations %}
+                    <tr>
+                        <td><a href="{% url 'project_budget_allocation_detail' allocation.pk %}">{{ allocation.id }}</a></td>
+                        <td>{{ allocation.allocated_amount|intcomma }} {% trans "ریال" %}</td>
+                        <td>{{ allocation.allocation_date|date:"Y/m/d" }}</td>
+                        <td>{{ allocation.is_active|yesno:"فعال,غیرفعال" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">{% trans "هیچ تخصیصی یافت نشد." %}</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

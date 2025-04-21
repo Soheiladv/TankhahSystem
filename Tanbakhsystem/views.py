@@ -53,13 +53,13 @@ class DashboardView( PermissionBaseView , TemplateView):
                 {'name': _('فهرست بودجه شعبات'), 'url': 'budgetallocation_list', 'permission': 'budgets.budgetallocation_view',
                  'icon': 'fas fa-plus'},
 
-                # {'name': _('تخصیص بودجه به پروژه ها و زیرپروژه'), 'url': 'budget_allocation_view',
-                #  'permission': 'core.Project_Budget_allocation_Head_Office',
-                #  'icon': 'fas fa-plus'},
+                {'name': _(' گزارش هشدارهای بودجه '), 'url': 'budget_warning_report',
+                 # 'permission': 'core.budget_warning_report',
+                 'icon': 'fas fa-plus'},
 
-                # {'name': _('تخصیص بودجه به شعبات'), 'url': 'budgetallocation_create',
-                #  'permission': 'budgets.budgetallocation_add',
-                #  'icon': 'fas fa-plus'},
+                {'name': _('  (برگشت بودجه )فهرست بودجه در پروژه '), 'url': 'budgetallocation_list',
+                 'permission': 'budgets.view_budgetallocation',
+                 'icon': 'fas fa-plus'},
 
                 {'name': _('فهرست تغییر در بودجه'), 'url': 'budgettransaction_list',
                  'permission': 'BudgetTransaction_view',

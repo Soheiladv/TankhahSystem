@@ -42,6 +42,14 @@ class BudgetDashboardView(PermissionBaseView, TemplateView):
         context['organizations'] = Organization.objects.all()
         return context
 
+# استفاده در تمپلیت‌ها
+# جزئیات تخصیص: {% url 'project_budget_allocation_detail' allocation.pk %}
+# ویرایش تخصیص: {% url 'project_budget_allocation_edit' allocation.pk %}
+# لیست تراکنش‌ها: {% url 'budget_transaction_list' allocation_id=allocation.id %}
+# گزارش بودجه پروژه: {% url 'project_budget_report' project.pk %}
+# گزارش هشدارها: {% url 'budget_warning_report' %}
+
+
 # --- Organization Budget ---
 class OrganizationBudgetAllocationListView(PermissionBaseView, ListView):
     model = BudgetAllocation
@@ -61,40 +69,6 @@ class OrganizationBudgetAllocationListView(PermissionBaseView, ListView):
         context['budget_details'] = get_budget_details(organization)
         logger.debug(f"OrganizationBudgetAllocationListView context: {context}")
         return context
-
-# --- BudgetTransaction CRUD ---
-class BudgetTransactionListView(PermissionBaseView, ListView):
-    model = BudgetTransaction
-    template_name = 'budgets/budget/budgettransaction_list.html'
-    context_object_name = 'budget_transactions'
-    paginate_by = 10
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        query = self.request.GET.get('q', '')
-        if query:
-            queryset = queryset.filter(
-                Q(allocation__budget_period__name__icontains=query) |
-                Q(allocation__organization__name__icontains=query) |
-                Q(description__icontains=query)
-            )
-        trans_type = self.request.GET.get('transaction_type')
-        if trans_type:
-            queryset = queryset.filter(transaction_type=trans_type)
-        return queryset.order_by('-timestamp')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['query'] = self.request.GET.get('q', '')
-        context['transaction_type'] = self.request.GET.get('transaction_type', '')
-        context['transaction_types'] = BudgetTransaction.TRANSACTION_TYPES
-        logger.debug(f"BudgetTransactionListView context: {context}")
-        return context
-
-class BudgetTransactionDetailView(PermissionBaseView, DetailView):
-    model = BudgetTransaction
-    template_name = 'budgets/budget/budgettransaction_detail.html'
-    context_object_name = 'budget_transaction'
 
 # --- PaymentOrder CRUD ---
 class PaymentOrderListView(PermissionBaseView, ListView):
@@ -124,7 +98,6 @@ class PaymentOrderListView(PermissionBaseView, ListView):
         context['status_choices'] = PaymentOrder.STATUS_CHOICES
         logger.debug(f"PaymentOrderListView context: {context}")
         return context
-
 class PaymentOrderCreateView(PermissionBaseView, CreateView):
     model = PaymentOrder
     form_class = PaymentOrderForm
@@ -137,7 +110,6 @@ class PaymentOrderCreateView(PermissionBaseView, CreateView):
             response = super().form_valid(form)
             messages.success(self.request, f'دستور پرداخت {form.instance.order_number} با موفقیت ایجاد شد.')
             return response
-
 class PaymentOrderUpdateView(PermissionBaseView, UpdateView):
     model = PaymentOrder
     form_class = PaymentOrderForm
@@ -149,7 +121,6 @@ class PaymentOrderUpdateView(PermissionBaseView, UpdateView):
             response = super().form_valid(form)
             messages.success(self.request, f'دستور پرداخت {form.instance.order_number} با موفقیت به‌روزرسانی شد.')
             return response
-
 class PaymentOrderDeleteView(PermissionBaseView, DeleteView):
     model = PaymentOrder
     template_name = 'budgets/paymentorder/paymentorder_confirm_delete.html'
@@ -161,6 +132,11 @@ class PaymentOrderDeleteView(PermissionBaseView, DeleteView):
             payment_order.delete()
             messages.success(request, f'دستور پرداخت {payment_order.order_number} با موفقیت حذف شد.')
         return redirect(self.success_url)
+class PaymentOrderDetailView(PermissionBaseView, DetailView):
+    model = PaymentOrder
+    template_name = 'budgets/paymentorder/paymentorder_detail.html'
+    permission_codenames = ['budgets.PaymentOrder_view']
+    context_object_name = 'payment_order'
 
 # --- Payee CRUD ---
 class PayeeListView(PermissionBaseView, ListView):
@@ -190,12 +166,10 @@ class PayeeListView(PermissionBaseView, ListView):
         context['payee_types'] = Payee.PAYEE_TYPES
         logger.debug(f"PayeeListView context: {context}")
         return context
-
 class PayeeDetailView(PermissionBaseView, DetailView):
     model = Payee
     template_name = 'budgets/payee/payee_detail.html'
     context_object_name = 'payee'
-
 class PayeeCreateView(PermissionBaseView, CreateView):
     model = Payee
     form_class = PayeeForm
@@ -208,7 +182,6 @@ class PayeeCreateView(PermissionBaseView, CreateView):
             response = super().form_valid(form)
             messages.success(self.request, f'دریافت‌کننده {form.instance.name} با موفقیت ایجاد شد.')
             return response
-
 class PayeeUpdateView(PermissionBaseView, UpdateView):
     model = Payee
     form_class = PayeeForm
@@ -220,13 +193,6 @@ class PayeeUpdateView(PermissionBaseView, UpdateView):
             response = super().form_valid(form)
             messages.success(self.request, f'دریافت‌کننده {form.instance.name} با موفقیت به‌روزرسانی شد.')
             return response
-
-class PaymentOrderDetailView(PermissionBaseView, DetailView):
-    model = PaymentOrder
-    template_name = 'budgets/paymentorder/paymentorder_detail.html'
-    permission_codenames = ['budgets.PaymentOrder_view']
-    context_object_name = 'payment_order'
-
 class PayeeDeleteView(PermissionBaseView, DeleteView):
     model = Payee
     template_name = 'budgets/payee/payee_confirm_delete.html'
@@ -264,12 +230,10 @@ class TransactionTypeListView(PermissionBaseView, ListView):
         context['requires_extra_approval'] = self.request.GET.get('requires_extra_approval', '')
         logger.debug(f"TransactionTypeListView context: {context}")
         return context
-
 class TransactionTypeDetailView(PermissionBaseView, DetailView):
     model = TransactionType
     template_name = 'budgets/transactiontype/transactiontype_detail.html'
     context_object_name = 'transaction_type'
-
 class TransactionTypeCreateView(PermissionBaseView, CreateView):
     model = TransactionType
     form_class = TransactionTypeForm
@@ -282,7 +246,6 @@ class TransactionTypeCreateView(PermissionBaseView, CreateView):
             response = super().form_valid(form)
             messages.success(self.request, f'نوع تراکنش {form.instance.name} با موفقیت ایجاد شد.')
             return response
-
 class TransactionTypeUpdateView(PermissionBaseView, UpdateView):
     model = TransactionType
     form_class = TransactionTypeForm
@@ -294,7 +257,6 @@ class TransactionTypeUpdateView(PermissionBaseView, UpdateView):
             response = super().form_valid(form)
             messages.success(self.request, f'نوع تراکنش {form.instance.name} با موفقیت به‌روزرسانی شد.')
             return response
-
 class TransactionTypeDeleteView(PermissionBaseView, DeleteView):
     model = TransactionType
     template_name = 'budgets/transactiontype/transactiontype_confirm_delete.html'

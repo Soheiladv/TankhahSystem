@@ -8,7 +8,7 @@ from core.models import Organization
 logger = logging.getLogger(__name__)
 from django.contrib.contenttypes.models import ContentType
 
-from budgets.budget_calculations import check_budget_status
+from budgets.budget_calculations import check_budget_status, get_project_remaining_budget
 
 import jdatetime
 from django.db import models, transaction
@@ -20,7 +20,7 @@ from accounts.models import CustomUser
 # from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget
 # from core.models import Organization, Project, SubProject, WorkflowStage
  # -- New
-# ------------------------------------
+""" مدل نوع بودجه """# ------------------------------------
 """BudgetPeriod (دوره بودجه کلان):"""
 class BudgetPeriod(models.Model):
 
@@ -142,9 +142,7 @@ class BudgetPeriod(models.Model):
 
         if status in ('warning', 'locked', 'completed'):
             self.send_notification(status, message)
-
 # ------------------------------------
-""" مدل نوع بودجه """
 # ------------------------------------
 """ BudgetAllocation (تخصیص بودجه):"""
 class BudgetAllocation(models.Model):
@@ -430,6 +428,45 @@ class BudgetTransaction(models.Model):
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
 
     transaction_id = models.CharField(max_length=50, unique=True, verbose_name=_("شناسه تراکنش"))#یک شناسه منحصربه‌فرد برای هر تراکنش:
+
+    def validate_return(self):
+        """اعتبارسنجی تراکنش بازگشت"""
+        if self.transaction_type != 'RETURN':
+            return True, None
+        consumed = BudgetTransaction.objects.filter(
+            allocation=self.allocation,
+            allocation__project=self.allocation.project_allocations.first().project,
+            transaction_type='CONSUMPTION'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        returned = BudgetTransaction.objects.filter(
+            allocation=self.allocation,
+            allocation__project=self.allocation.project_allocations.first().project,
+            transaction_type='RETURN'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        total_consumed = consumed - returned
+        if self.amount > total_consumed:
+            return False, _(f"مبلغ بازگشت ({self.amount:,.0f} ریال) نمی‌تواند بیشتر از مصرف خالص ({total_consumed:,.0f} ریال) باشد.")
+        remaining_budget = get_project_remaining_budget(self.allocation.project_allocations.first().project)
+        if self.amount > remaining_budget:
+            return False, _(f"مبلغ بازگشت ({self.amount:,.0f} ریال) نمی‌تواند بیشتر از بودجه باقی‌مانده ({remaining_budget:,.0f} ریال) باشد.")
+        return True, None
+
+    def save(self, *args, **kwargs):
+        if self.transaction_type == 'RETURN':
+            is_valid, error_message = self.validate_return()
+            if not is_valid:
+                raise ValidationError(error_message)
+        super().save(*args, **kwargs)
+        # به‌روزرسانی وضعیت و اعلان
+        status, message = check_budget_status(self.allocation.budget_period)
+        if status in ('warning', 'locked', 'completed', 'stopped'):
+            self.allocation.send_notification(status, message)
+        if self.transaction_type == 'RETURN':
+            self.allocation.send_notification(
+                'return',
+                f"مبلغ {self.amount:,.0f} ریال از تخصیص {self.allocation.id} برگشت داده شد."
+            )
+
 
     def save(self, *args, **kwargs):
         from django.core.exceptions import ValidationError

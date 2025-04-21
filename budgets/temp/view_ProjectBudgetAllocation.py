@@ -10,7 +10,7 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView, CreateView
 
-from budgets.forms import ProjectBudgetAllocationForm
+from budgets.ProjectBudgetAllocation.forms_ProjectBudgetAllocation import ProjectBudgetAllocationForm
 from budgets.models import BudgetAllocation, ProjectBudgetAllocation, BudgetPeriod
 from core.models import Organization, Project
 

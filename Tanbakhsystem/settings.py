@@ -184,7 +184,6 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 LOG_DIR = os.path.join(BASE_DIR, 'logs')
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -200,7 +199,7 @@ LOGGING = {
     },
     'handlers': {
         'file': {
-            'level': 'DEBUG',
+            'level': 'ERROR',  # فقط خطاها در فایل ذخیره می‌شوند
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': os.path.join(BASE_DIR, 'logs', 'MyLog.log'),
             'maxBytes': 1024 * 1024 * 5,  # 5 MB
@@ -209,34 +208,38 @@ LOGGING = {
             'encoding': 'utf-8',
         },
         'console': {
-            'level': 'DEBUG',
+            'level': 'ERROR',  # فقط خطاها در کنسول نمایش داده می‌شوند
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
     },
     'loggers': {
-        'django': {
-            'handlers': ['file', 'console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
+        # 'django': {
+        #     'handlers': ['file', 'console'],
+        #     'level': 'INFO',  # این سطح را تغییر ندهید، مگر اینکه بخواهید لاگ‌های Django را نیز محدود کنید
+        #     'propagate': False,
+        # },
         'django.db.backends': {
-            # 'handlers': ['file', 'console'],
-            'handlers': ['file' ],
-            'level': 'DEBUG',
+            'handlers': ['file'],
+            'level': 'DEBUG',  # این سطح را برای دیباگ پایگاه داده تغییر ندهید، مگر اینکه مطمئن باشید
             'propagate': False,
         },
         # 'budgets': {  # برای اپ budgets
         #     'handlers': ['file', 'console'],
-        #     'level': 'DEBUG',
+        #     'level': 'DEBUG',  # سطح لاگ برای این logger را در صورت نیاز تغییر دهید
         #     'propagate': False,
         # },
         # '': {
         #     'handlers': ['file', 'console'],
-        #     'level': 'DEBUG',
+        #     'level': 'DEBUG',  # سطح لاگ برای logger ریشه را در صورت نیاز تغییر دهید
         # },
     },
 }
+import logging.config
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # یا هر روش دیگری برای تعریف BASE_DIR
+
 logging.config.dictConfig(LOGGING)
 logger = logging.getLogger(__name__)
 

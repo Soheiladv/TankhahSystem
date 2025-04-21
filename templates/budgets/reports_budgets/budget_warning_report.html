@@ -1,0 +1,41 @@
+<!-- templates/budgets/budget_warning_report.html -->
+{% extends 'base.html' %}
+{% load i18n humanize %}
+
+{% block title %}{% trans "گزارش هشدارهای بودجه" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4 text-center">{% trans "گزارش هشدارهای بودجه" %}</h1>
+    <div class="card shadow">
+        <div class="card-body">
+            {% if allocations %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>{% trans "شناسه تخصیص" %}</th>
+                        <th>{% trans "پروژه" %}</th>
+                        <th>{% trans "مبلغ تخصیص‌یافته" %}</th>
+                        <th>{% trans "مصرف خالص" %}</th>
+                        <th>{% trans "هشدار" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for allocation in allocations %}
+                    <tr>
+                        <td><a href="{% url 'project_budget_allocation_detail' allocation.pk %}">{{ allocation.id }}</a></td>
+                        <td>{{ allocation.project.name }}</td>
+                        <td>{{ allocation.allocated_amount|intcomma }} {% trans "ریال" %}</td>
+                        <td>{{ allocation.total_consumed|intcomma }} {% trans "ریال" %}</td>
+                        <td class="text-danger">{{ allocation.warning_message }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">{% trans "هیچ هشداری یافت نشد." %}</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

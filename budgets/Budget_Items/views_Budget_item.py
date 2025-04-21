@@ -49,18 +49,18 @@ class BudgetItemCreateView(PermissionRequiredMixin, SuccessMessageMixin, CreateV
     permission_required = 'budgets.add_budgetitem'
 
     def get_context_data(self, **kwargs):
+        from core.models import Organization
         context = super().get_context_data(**kwargs)
         context['title'] = _('ایجاد ردیف بودجه جدید')
         context['budget_periods'] = BudgetPeriod.objects.filter(is_active=True).select_related('organization')
-        from core.models import Organization
         context['organizations'] = Organization.objects.filter(is_active=True).select_related('org_type')
         return context
+
 
     def form_invalid(self, form):
         logger.error(f"Form invalid: errors={form.errors.as_json()}")
         messages.error(self.request, _('لطفاً خطاهای فرم را بررسی کنید.'))
         return super().form_invalid(form)
-
 
 class BudgetItemUpdateView(PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     model = BudgetItem
