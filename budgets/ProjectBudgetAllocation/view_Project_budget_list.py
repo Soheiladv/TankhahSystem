@@ -6,7 +6,7 @@ from django.db.models import Q, Sum
 from decimal import Decimal
 
 from Tanbakhsystem.utils import parse_jalali_date, to_english_digits
-from budgets.budget_calculations import get_project_remaining_budget, get_project_used_budget, get_budget_details, \
+from budgets.budget_calculations import get_project_remaining_budget, get_project_used_budget , \
     get_project_total_budget
 from budgets.models import ProjectBudgetAllocation, BudgetPeriod, BudgetItem
 from  core.models import  Project
@@ -109,6 +109,7 @@ class ProjectBudgetAllocationListView2D(PermissionBaseView, ListView):
             try:
                 organization = Organization.objects.get(id=organization_id, is_active=True)
                 context['organization'] = organization
+                from budgets.get_budget_details import get_budget_details
                 context['org_budget'] = get_budget_details(entity=organization)
             except Organization.DoesNotExist:
                 logger.warning(f"Invalid organization_id: {organization_id}")

@@ -1,12 +1,12 @@
 # budgets/urls.py
 from django.urls import path
 from . import views
-from budgets.views import BudgetDashboardView , \
+from budgets.views import BudgetDashboardView, \
     OrganizationBudgetAllocationListView, \
     PaymentOrderListView, PaymentOrderCreateView, \
     PaymentOrderUpdateView, PaymentOrderDeleteView, PayeeListView, PayeeCreateView, PayeeUpdateView, PayeeDeleteView, \
     TransactionTypeListView, TransactionTypeCreateView, TransactionTypeUpdateView, TransactionTypeDeleteView, \
-    NumberToWordsView, budget_Help
+    NumberToWordsView, budget_Help, get_budget_info
 from .ApproveReject.view_ApproveReject import ApproveRejectView
 from .BudgetAllocation.views_BudgetAllocation import  BudgetAllocationDetailView, BudgetAllocationDeleteView, BudgetAllocationUpdateView
 from budgets.BudgetPeriod.views_BudgetPeriod import BudgetPeriodListView, BudgetPeriodDetailView,BudgetPeriodCreateView,BudgetPeriodUpdateView,\
@@ -94,6 +94,11 @@ urlpatterns = [
     path('api/projects-by-organization/',  get_projects_by_organization, name='get_projects_by_organization'),
 
     path('convert_number_to_words/', NumberToWordsView.as_view(), name='convert_number_to_words'),
+
+   #Api get_budget_info
+    path('get-budget-info/', get_budget_info, name='get_budget_info'),
+
+
 
 ]
 

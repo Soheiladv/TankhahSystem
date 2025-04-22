@@ -298,3 +298,12 @@ def divide(value, arg):
         return float(value) / float(arg) if float(arg) != 0 else 0
     except (ValueError, TypeError):
         return 0
+
+
+
+@register.filter(name='subtract')
+def subtract(value, arg):
+    try:
+        return float(value) - float(arg)
+    except (ValueError, TypeError):
+        return ''

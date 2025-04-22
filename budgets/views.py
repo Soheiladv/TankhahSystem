@@ -18,12 +18,8 @@ from budgets.forms import   PaymentOrderForm, \
 from budgets.models import BudgetPeriod, BudgetAllocation, ProjectBudgetAllocation, BudgetTransaction, PaymentOrder, \
     Payee, TransactionType
 from core.PermissionBase import PermissionBaseView
-from core.models import Organization, Project, SubProject, OrganizationType
-from budgets.budget_calculations import (
-    get_budget_details, calculate_allocation_percentages, calculate_total_allocated,
-    calculate_remaining_budget, get_budget_status, get_organization_budget,
-    get_project_remaining_budget, get_subproject_remaining_budget, get_subproject_total_budget, get_project_total_budget
-)
+from core.models import Organization, SubProject, Project
+
 from core.templatetags.rcms_custom_filters import number_to_farsi_words
 
 
@@ -66,9 +62,39 @@ class OrganizationBudgetAllocationListView(PermissionBaseView, ListView):
         org_id = self.kwargs.get('org_id')
         organization = get_object_or_404(Organization, id=org_id)
         context['organization'] = organization
+        from budgets.get_budget_details import get_budget_details
         context['budget_details'] = get_budget_details(organization)
         logger.debug(f"OrganizationBudgetAllocationListView context: {context}")
         return context
+
+def get_budget_info(request):
+    project_id = request.GET.get('project_id')
+    subproject_id = request.GET.get('subproject_id')
+    if not project_id:
+        logger.warning('project_id دریافت نشد')
+        return JsonResponse({'total_budget': 0, 'remaining_budget': 0}, status=400)
+
+    try:
+        project_id = int(project_id)
+        project = Project.objects.get(id=project_id)
+        from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, get_subproject_total_budget, get_subproject_remaining_budget
+        data = {
+            'total_budget': float(get_project_total_budget(project)),
+            'remaining_budget': float(get_project_remaining_budget(project))
+        }
+        if subproject_id:
+            subproject_id = int(subproject_id)
+            subproject = SubProject.objects.get(id=subproject_id)
+            data['subproject_total_budget'] = float(get_subproject_total_budget(subproject))
+            data['subproject_remaining_budget'] = float(get_subproject_remaining_budget(subproject))
+        logger.info(f"Budget info for project {project_id}: {data}")
+        return JsonResponse(data)
+    except (Project.DoesNotExist, SubProject.DoesNotExist):
+        logger.error(f'پروژه یا زیرپروژه یافت نشد: project_id={project_id}, subproject_id={subproject_id}')
+        return JsonResponse({'total_budget': 0, 'remaining_budget': 0}, status=404)
+    except Exception as e:
+        logger.error(f'خطا در get_budget_info: {str(e)}')
+        return JsonResponse({'total_budget': 0, 'remaining_budget': 0}, status=500)
 
 # --- PaymentOrder CRUD ---
 class PaymentOrderListView(PermissionBaseView, ListView):

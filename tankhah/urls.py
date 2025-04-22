@@ -1,3 +1,4 @@
+from budgets.views import get_budget_info
 from tankhah.TankhahTrackingView import TankhahTrackingView
 from django.urls import path
 
@@ -80,5 +81,6 @@ urlpatterns += [
 ]
 urlpatterns +=[
     path('get_subprojects/',  get_subprojects, name='get_subprojects'),
+    path('get-budget-info/',  get_budget_info, name='get_budget_info'),
 
 ]

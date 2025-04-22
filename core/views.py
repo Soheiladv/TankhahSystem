@@ -316,12 +316,12 @@ from budgets.models import BudgetAllocation  # فرض بر این که BudgetAll
 
 # core/views.py
 from django.db.models import Q
-from budgets.budget_calculations import get_budget_details, get_organization_budget, get_project_remaining_budget, \
-    get_project_used_budget
+from budgets.budget_calculations import get_project_remaining_budget, \
+    get_project_used_budget, get_organization_budget
 from core.models import Organization
 from django.views.generic import ListView
 
-class OrganizationListView(PermissionBaseView, ListView):
+class old_OrganizationListView(PermissionBaseView, ListView):
     model = Organization
     template_name = 'core/organization_list.html'
     context_object_name = 'organizations'
@@ -357,15 +357,80 @@ class OrganizationListView(PermissionBaseView, ListView):
         # به‌جای تغییر queryset، مستقیماً context['organizations'] را پر می‌کنیم
         organizations = queryset
         for org in organizations:
+            from budgets.get_budget_details import get_budget_details
             budget_details = get_budget_details(entity=org, filters=filters)
             org.budget_details = budget_details
             logger.info(f"Org {org.name}: budget_details={budget_details}")
 
+        context['get_org_type_display'] = organizations
         context['organizations'] = organizations  # صراحتاً تنظیم می‌کنیم
         context['query'] = self.request.GET.get('q', '')
         context['date_from'] = self.request.GET.get('date_from', '')
         context['date_to'] = self.request.GET.get('date_to', '')
         context['is_active'] = self.request.GET.get('is_active', '')
+
+        logger.info(f"Final context organizations count: {len(context['organizations'])}")
+        return context
+
+class OrganizationListView(PermissionBaseView, ListView):
+    model = Organization
+    template_name = 'core/organization_list.html'
+    context_object_name = 'organizations'
+    paginate_by = 10
+    permission_codenames = ['core.Organization_view']
+    check_organization = True
+    extra_context = {'title': _('لیست سازمان‌ها')}
+
+    def get_queryset(self):
+        """استخراج کوئری‌ست با اعمال فیلترها"""
+        queryset = super().get_queryset().select_related('org_type').order_by('id')
+        query = self.request.GET.get('q', '')
+        is_active = self.request.GET.get('is_active', '')
+
+        # فیلتر جستجو
+        if query:
+            queryset = queryset.filter(
+                Q(code__icontains=query) |
+                Q(name__icontains=query) |
+                Q(description__icontains=query)
+            )
+
+        # فیلتر وضعیت
+        if is_active:
+            queryset = queryset.filter(is_active=(is_active == 'true'))
+
+        logger.info(f"Queryset count: {queryset.count()}")
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        """افزودن داده‌های اضافی به کنتکست"""
+        context = super().get_context_data(**kwargs)
+        queryset = self.get_queryset()
+
+        # جمع‌آوری فیلترها
+        filters = {}
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        if date_from:
+            filters['date_from'] = date_from
+            context['date_from'] = date_from
+        if date_to:
+            filters['date_to'] = date_to
+            context['date_to'] = date_to
+        if 'is_active' in self.request.GET:
+            context['is_active'] = self.request.GET.get('is_active', '')
+
+        # افزودن جزئیات بودجه به سازمان‌ها
+        organizations = queryset
+        for org in organizations:
+            from budgets.get_budget_details import get_budget_details
+            budget_details = get_budget_details(entity=org, filters=filters)
+            org.budget_details = budget_details
+            logger.info(f"Org {org.name}: budget_details={budget_details}")
+
+        context['organizations'] = organizations
+        context['query'] = self.request.GET.get('q', '')
+        context['total_organizations'] = queryset.count()
 
         logger.info(f"Final context organizations count: {len(context['organizations'])}")
         return context
@@ -532,6 +597,7 @@ class ProjectUpdateView____(PermissionBaseView, UpdateView):
         context = super().get_context_data(**kwargs)
         context['title'] = _('ویرایش پروژه') + f" - {self.object.code}"
         return context
+
 
 class ProjectCreateView(PermissionBaseView, CreateView):
     model = Project

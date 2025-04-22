@@ -141,12 +141,24 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         # return False
 
     # --------
+    # def get_authorized_organizations(self):
+    #     from core.models import Organization
+    #     return Organization.objects.filter(
+    #         posts__userposts__user=self,
+    #         posts__userposts__is_active=True
+    #     ).distinct()
     def get_authorized_organizations(self):
-        from core.models import Organization
-        return Organization.objects.filter(
-            posts__userposts__user=self,
-            posts__userposts__is_active=True
-        ).distinct()
+        """استخراج سازمان‌های مجاز کاربر"""
+        try:
+            from core.models import Organization
+            return Organization.objects.filter(
+                user_posts__user=self,
+                user_posts__is_active=True
+            ).distinct()
+        except Exception as e:
+            logger.error(f"خطا در get_authorized_organizations برای کاربر {self.username}: {str(e)}")
+            return Organization.objects.none()
+
     # --------
     def get_all_permissions(self, obj=None):
         if not self.is_active or self.is_superuser:

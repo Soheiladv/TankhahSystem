@@ -107,7 +107,7 @@
                                 <td>
                                     <!-- دکمه‌های عملیات -->
                                     <div class="text-center mb-4">
-                                        <a href="{% url 'project_budget_allocation_edit' allocation.pk %}"
+                                        <a href="{% url 'project__budget__allocation__edit__view' allocation.pk %}"
                                            class="btn btn-primary">{% trans "ویرایش تخصیص" %}</a>
                                         <a href="{% url 'budget_return' allocation_id=allocation.id %}"
                                            class="btn btn-warning">{% trans "ثبت بازگشت بودجه" %}</a>
@@ -127,7 +127,7 @@
 
         <!-- دکمه‌های عملیات -->
         <div class="text-center mb-4">
-            <a href="{% url 'project_budget_allocation_edit' allocation.pk %}"
+            <a href="{% url 'project__budget__allocation__edit__view' allocation.pk %}"
                class="btn btn-primary">{% trans "ویرایش تخصیص" %}</a>
             <a href="{% url 'organization_list' %}" class="btn btn-secondary">{% trans "بازگشت به لیست سازمان‌ها" %}</a>
         </div>

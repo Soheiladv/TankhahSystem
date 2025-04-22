@@ -1,219 +1,474 @@
-<!-- templates/budgets/budgetallocation_list.html -->
-{% extends 'base.html' %}
-{% load i18n humanize %}
+{% extends "base.html" %}
+{% load i18n static rcms_custom_filters jalali_tags %}
+
+{% block title %}{% trans "لیست تخصیص بودجه" %}{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1 class="mb-4">{% trans "لیست تخصیص‌های بودجه" %}</h1>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>{% trans "شناسه" %}</th>
-                <th>{% trans "پروژه" %}</th>
-                <th>{% trans "سازمان" %}</th>
-                <th>{% trans "مبلغ" %}</th>
-                <th>{% trans "عملیات" %}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for allocation in object_list %}
-            <tr>
-                <td>{{ allocation.id }}</td>
-                <td>{{ allocation.project.name }}</td>
-                <td>{{ allocation.budget_allocation.organization.name }}</td>
-                <td>{{ allocation.allocated_amount|intcomma }} {% trans "ریال" %}</td>
-                <td>
-                    <a href="{% url 'project_budget_allocation_detail' pk=allocation.id %}" class="btn btn-info btn-sm">{% trans "جزئیات" %}</a>
-                    <a href="{% url 'budget_return' allocation_id=allocation.id %}" class="btn btn-warning btn-sm">{% trans "بازگشت بودجه" %}</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5" class="text-center">{% trans "هیچ تخصیصی وجود ندارد." %}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+    <div class="container-fluid py-4">
+        <!-- هدر صفحه -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">{% trans "مدیریت تخصیص بودجه" %}</h4>
+                            {% if perms.budgets.add_budgetallocation %}
+                                <a href="{% url 'budgetallocation_create' %}" class="btn add-row">
+                                    <i class="fas fa-plus me-2"></i>{% trans "تخصیص جدید" %}
+                                </a>
+                                 <a href="{% url 'budgets_dashboard' %}" class="btn btn-close-white">
+                                <i class="fas fa-backward me-2"></i>{% trans "بازگشت" %}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت فیلترها -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <form method="get" class="row g-3">
+                            <!-- ردیف اول فیلترها -->
+                            <div class="col-md-3">
+                                <label for="q" class="form-label">{% trans "جستجو" %}</label>
+                                <input type="text" name="q" id="q" class="form-control"
+                                       placeholder="{% trans "جستجو..." %}" value="{{ query }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="budget_period" class="form-label">{% trans "دوره بودجه" %}</label>
+                                <select name="budget_period" id="budget_period" class="form-select">
+                                    <option value="">{% trans "همه دوره‌ها" %}</option>
+                                    {% for period in budget_periods %}
+                                        <option value="{{ period.id }}"
+                                                {% if selected_budget_period == period.id|stringformat:"s" %}selected{% endif %}>
+                                            {{ period.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="organization" class="form-label">{% trans "سازمان" %}</label>
+                                <select name="organization" id="organization" class="form-select">
+                                    <option value="">{% trans "همه سازمان‌ها" %}</option>
+                                    {% for org in organizations %}
+                                        <option value="{{ org.id }}"
+                                                {% if selected_organization == org.id|stringformat:"s" %}selected{% endif %}>
+                                            {{ org.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="project" class="form-label">{% trans "پروژه" %}</label>
+                                <select name="project" id="project" class="form-select">
+                                    <option value="">{% trans "همه پروژه‌ها" %}</option>
+                                    {% for project in projects %}
+                                        <option value="{{ project.id }}"
+                                                {% if selected_project == project.id|stringformat:"s" %}selected{% endif %}>
+                                            {{ project.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- ردیف دوم فیلترها -->
+                            <div class="col-md-3">
+                                <label for="budget_item" class="form-label">{% trans "ردیف بودجه" %}</label>
+                                <select name="budget_item" id="budget_item" class="form-select">
+                                    <option value="">{% trans "همه ردیف‌ها" %}</option>
+                                    {% for item in budget_items %}
+                                        <option value="{{ item.id }}"
+                                                {% if selected_budget_item == item.id|stringformat:"s" %}selected{% endif %}>
+                                            {{ item.name }} ({{ item.organization.name }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="date_from" class="form-label">{% trans "از تاریخ" %}</label>
+                                <input type="text" name="date_from" id="date_from"
+                                       class="form-control persian-datepicker"
+                                       placeholder="{% trans "از تاریخ" %}" value="{{ date_from }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="date_to" class="form-label">{% trans "تا تاریخ" %}</label>
+                                <input type="text" name="date_to" id="date_to" class="form-control persian-datepicker"
+                                       placeholder="{% trans "تا تاریخ" %}" value="{{ date_to }}">
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="fas fa-filter me-2"></i>{% trans "اعمال فیلتر" %}
+                                </button>
+                                <a href="{% url 'budgetallocation_list' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i>{% trans "حذف فیلتر" %}
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت آمار و اطلاعات -->
+        {% if status == 'filtered' %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- آمار کلی -->
+                                <div class="col-md-4">
+                                    <div class="card bg-light mb-3">
+                                        <div class="card-body">
+                                            <h5 class="card-title text-center">{% trans "بودجه کل" %}</h5>
+                                            <p class="card-text text-center fs-3 fw-bold text-primary">
+                                                {{ total_budget|format_negative }} {% trans "ریال" %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light mb-3">
+                                        <div class="card-body">
+                                            <h5 class="card-title text-center">{% trans "تخصیص یافته" %}</h5>
+                                            <p class="card-text text-center fs-3 fw-bold text-success">
+                                                {{ total_allocated|format_negative }} {% trans "ریال" %}
+                                                <small class="d-block text-muted">({{ allocated_percentage|floatformat:2 }}%)</small>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light mb-3">
+                                        <div class="card-body">
+                                            <h5 class="card-title text-center">{% trans "مانده قابل تخصیص" %}</h5>
+                                            <p class="card-text text-center fs-3 fw-bold text-danger">
+                                                {{ remaining_budget|format_negative }} {% trans "ریال" %}
+                                                <small class="d-block text-muted">({{ remaining_percentage|floatformat:2 }}%)</small>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- کارت لیست تخصیص‌ها -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">{% trans "لیست تخصیص بودجه" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if budget_allocations %}
+                            <div class="table-responsive">
+                                <table class="table table-hover table-striped">
+                                    <thead class="table-primary">
+                                    <tr>
+                                        <th>{% trans "ردیف" %}</th>
+                                        <th>{% trans "دوره بودجه" %}</th>
+                                        <th>{% trans "سازمان" %}</th>
+                                        <th>{% trans "پروژه" %}</th>
+                                        <th>{% trans "ردیف بودجه" %}</th>
+                                        <th>{% trans "مبلغ تخصیص" %}</th>
+                                        <th>{% trans "تاریخ تخصیص" %}</th>
+                                        <th>{% trans "توضیحات" %}</th>
+                                        <th>{% trans "عملیات" %}</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for allocation in budget_allocations %}
+                                        <tr>
+                                            <td>{{ forloop.counter|to_persian_number }}</td>
+                                            <td>{{ allocation.budget_period.name  |to_persian_number }}</td>
+                                            <td>{{ allocation.organization.name }}</td>
+                                            <td>{{ allocation.project.name|default:"-"|to_persian_number }}</td>
+                                            <td>{{ allocation.budget_item.name |to_persian_number }}</td>
+                                            <td class="fw-bold">{{ allocation.allocated_amount|format_negative }}</td>
+                                            <td>{{ allocation.allocation_date|to_jalali:'%Y/%m/%d'|to_persian_number }}</td>
+                                            <td>{{ allocation.description|truncatechars:30|default:"-" |to_persian_number }}</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{% url 'budgetallocation_detail' allocation.id %}"
+                                                       class="btn btn-outline-info" title="{% trans 'جزئیات' %}">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    {% if perms.budgets.change_budgetallocation %}
+                                                        <a href="{% url 'budgetallocation_update' allocation.id %}"
+                                                           class="btn btn-outline-primary" title="{% trans 'ویرایش' %}">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                    {% if perms.budgets.delete_budgetallocation %}
+                                                        <a href="{% url 'budgetallocation_delete' allocation.id %}"
+                                                           class="btn btn-outline-danger" title="{% trans 'حذف' %}">
+                                                            <i class="fas fa-trash"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- صفحه‌بندی -->
+                            {% if is_paginated %}
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination justify-content-center mt-4">
+                                        {% if page_obj.has_previous %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page=
+                                                        {{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                    &laquo; {% trans "قبلی" %}
+                                                </a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item disabled">
+                                                <span class="page-link">&laquo; {% trans "قبلی" %}</span>
+                                            </li>
+                                        {% endif %}
+
+                                        {% for i in paginator.page_range %}
+                                            {% if page_obj.number == i %}
+                                                <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                                            {% else %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?page=
+                                                            {{ i }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                        {{ i }}
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+
+                                        {% if page_obj.has_next %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page=
+                                                        {{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                                    {% trans "بعدی" %} &raquo;
+                                                </a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item disabled">
+                                                <span class="page-link">{% trans "بعدی" %} &raquo;</span>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </nav>
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                {% trans "هیچ تخصیص بودجه‌ای یافت نشد." %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
+
+{% block extra_js %}
+    <!-- تقویم شمسی -->
+
+    <script>
+        $(document).ready(function () {
+            $('.persian-datepicker').persianDatepicker({
+                format: 'YYYY/MM/DD',
+                observer: true,
+                initialValue: false,
+                autoClose: true
+            });
+        });
+    </script>
+{% endblock %}
+
 
 {#{% extends 'base.html' %}#}
 {#{% load i18n rcms_custom_filters jformat static %}#}
-{##}
 {#{% block title %}{% trans "لیست تخصیص‌های بودجه" %}{% endblock %}#}
-{##}
 {#{% block extra_css %}#}
-{##}
-{#<style>#}
-{#    .card-header.bg-primary-subtle { /* Softer header */#}
-{#        border-bottom: 2px solid var(--bs-primary);#}
-{#    }#}
-{##}
-{#    .table th {#}
-{#        background-color: #f8f9fa;#}
-{#        position: sticky;#}
-{#        top: 0; /* Adjust if you have a fixed navbar above */#}
-{#        z-index: 10;#}
-{#        font-weight: 600; /* Bolder headers */#}
-{#        white-space: nowrap;#}
-{#    }#}
-{##}
-{#    .table-hover tbody tr:hover {#}
-{#        background-color: rgba(var(--bs-primary-rgb), 0.1); /* Subtle primary hover */#}
-{#    }#}
-{##}
-{#    .filter-accordion .accordion-button {#}
-{#        background-color: #f8f9fa;#}
-{#        font-weight: 500;#}
-{#    }#}
-{##}
-{#    .filter-accordion .accordion-body {#}
-{#        background-color: #ffffff;#}
-{#    }#}
-{##}
-{#    .summary-card {#}
-{#        background-color: #f8f9fa;#}
-{#        border: 1px solid #dee2e6;#}
-{#    }#}
-{##}
-{#    .summary-card strong {#}
-{#        font-weight: 600;#}
-{#    }#}
-{##}
-{#    .table tfoot tr { /* Make footer stand out */#}
-{#        background-color: #e9ecef !important;#}
-{#        font-weight: bold;#}
-{#    }#}
-{##}
-{#    /* Ensure select2 fits nicely */#}
-{#    .select2-container--bootstrap-5 .select2-selection {#}
-{#        min-height: calc(1.5em + 0.75rem + 2px); /* Match Bootstrap input height */#}
-{#        padding: 0.375rem 0.75rem;#}
-{#        font-size: 1rem;#}
-{#        line-height: 1.5;#}
-{#    }#}
-{##}
-{#    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {#}
-{#        line-height: 1.5;#}
-{#        padding-left: 0;#}
-{#    }#}
-{##}
-{#    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {#}
-{#        height: calc(1.5em + 0.75rem); /* Adjust arrow position */#}
-{#    }#}
-{##}
-{#    /* Align numbers to the right */#}
-{#    .text-end-numeric {#}
-{#        text-align: right !important;#}
-{#        direction: ltr; /* Keep LTR for numbers */#}
-{#        font-family: monospace; /* Optional: For better number alignment */#}
-{#    }#}
-{##}
-{#    /* در بلاک <style> یا فایل CSS */#}
-{#    .table-responsive {#}
-{#        border-radius: 0 0 10px 10px; /* حفظ گوشه‌های گرد */#}
-{#    }#}
-{##}
-{#    .table th, .table td {#}
-{#        vertical-align: middle; /* تراز عمودی محتوا */#}
-{#        padding: 0.65rem 0.75rem; /* کمی پدینگ بیشتر */#}
-{#    }#}
-{##}
-{#    /* کمی خطوط جداکننده ملایم‌تر */#}
-{#    .table-bordered {#}
-{#        border-color: #e9ecef;#}
-{#    }#}
-{##}
-{#    .table th {#}
-{#        background-color: #f8f9fa;#}
-{#        /* ... بقیه استایل‌های th ... */#}
-{#        border-bottom-width: 2px; /* تاکید بیشتر روی هدر */#}
-{#    }#}
-{##}
-{#    /* استایل‌دهی بهتر به ردیف‌های Hover */#}
-{#    .table-hover tbody tr:hover {#}
-{#        background-color: #eef2ff; /* رنگ آبی بسیار روشن */#}
-{#    }#}
-{##}
-{#    /* در صفحات کوچک، اسکرول افقی را واضح‌تر نشان دهید */#}
-{#    @media (max-width: 767.98px) {#}
-{#        .table-responsive {#}
-{#            border: 1px dashed #dee2e6; /* یک حاشیه برای نشان دادن ناحیه اسکرول */#}
-{#            padding-bottom: 10px; /* فضا برای اسکرول‌بار */#}
+{#    <style>#}
+{#        .card-header.bg-primary-subtle { /* Softer header */#}
+{#            border-bottom: 2px solid var(--bs-primary);#}
 {#        }#}
 {##}
-{#        .table th, .table td {#}
-{#            white-space: nowrap; /* جلوگیری از شکستن متن در سلول‌ها (باعث اسکرول می‌شود) */#}
-{#            font-size: 0.85rem; /* کمی کوچک‌تر کردن فونت */#}
-{#            padding: 0.5rem 0.6rem;#}
+{#        .table th {#}
+{#            background-color: #f8f9fa;#}
+{#            position: sticky;#}
+{#            top: 0; /* Adjust if you have a fixed navbar above */#}
+{#            z-index: 10;#}
+{#            font-weight: 600; /* Bolder headers */#}
+{#            white-space: nowrap;#}
 {#        }#}
 {##}
-{#        .no-print { /* دکمه‌های عملیات ممکن است نیاز به فضای بیشتری داشته باشند */#}
-{#            min-width: 120px; /* یا مقدار مناسب‌تر */#}
-{#        }#}
-{#    }#}
-{##}
-{#    /* Print styles */#}
-{#    @media print {#}
-{#        .no-print {#}
-{#            display: none !important;#}
+{#        .table-hover tbody tr:hover {#}
+{#            background-color: rgba(var(--bs-primary-rgb), 0.1); /* Subtle primary hover */#}
 {#        }#}
 {##}
-{#        .card {#}
-{#            box-shadow: none !important;#}
-{#            border: 1px solid #ccc !important;#}
+{#        .filter-accordion .accordion-button {#}
+{#            background-color: #f8f9fa;#}
+{#            font-weight: 500;#}
 {#        }#}
 {##}
-{#        .card-header {#}
-{#            background: none !important;#}
-{#            color: black !important;#}
-{#            border-bottom: 1px solid #000 !important;#}
-{#            padding: 0.5rem 0 !important;#}
+{#        .filter-accordion .accordion-body {#}
+{#            background-color: #ffffff;#}
 {#        }#}
 {##}
-{#        .card-body {#}
-{#            padding: 0.5rem !important;#}
-{#        }#}
-{##}
-{#        .table {#}
-{#            border: 1px solid #000 !important;#}
-{#            font-size: 0.8rem;#}
-{#        }#}
-{##}
-{#        .table th, .table td {#}
-{#            border: 1px solid #aaa !important;#}
-{#            padding: 0.2rem !important;#}
-{#        }#}
-{##}
-{#        .table tfoot tr {#}
-{#            background-color: #eee !important;#}
-{#        }#}
-{##}
-{#        .accordion {#}
-{#            display: none;#}
-{#        }#}
-{##}
-{#        /* Hide filters in print */#}
 {#        .summary-card {#}
-{#            border: 1px solid #aaa !important;#}
-{#            background-color: #fff !important;#}
+{#            background-color: #f8f9fa;#}
+{#            border: 1px solid #dee2e6;#}
 {#        }#}
 {##}
-{#        .container-fluid {#}
-{#            padding: 0 !important;#}
+{#        .summary-card strong {#}
+{#            font-weight: 600;#}
 {#        }#}
 {##}
-{#        h3, h4 {#}
+{#        .table tfoot tr { /* Make footer stand out */#}
+{#            background-color: #e9ecef !important;#}
+{#            font-weight: bold;#}
+{#        }#}
+{##}
+{#        /* Ensure select2 fits nicely */#}
+{#        .select2-container--bootstrap-5 .select2-selection {#}
+{#            min-height: calc(1.5em + 0.75rem + 2px); /* Match Bootstrap input height */#}
+{#            padding: 0.375rem 0.75rem;#}
 {#            font-size: 1rem;#}
-{#            margin-bottom: 0.5rem;#}
+{#            line-height: 1.5;#}
 {#        }#}
 {##}
-{#        p {#}
-{#            font-size: 0.8rem;#}
-{#            margin-bottom: 0.2rem;#}
+{#        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {#}
+{#            line-height: 1.5;#}
+{#            padding-left: 0;#}
 {#        }#}
-{#    }#}
-{#</style>#}
+{##}
+{#        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {#}
+{#            height: calc(1.5em + 0.75rem); /* Adjust arrow position */#}
+{#        }#}
+{##}
+{#        /* Align numbers to the right */#}
+{#        .text-end-numeric {#}
+{#            text-align: right !important;#}
+{#            direction: ltr; /* Keep LTR for numbers */#}
+{#            font-family: monospace; /* Optional: For better number alignment */#}
+{#        }#}
+{##}
+{#        /* در بلاک <style> یا فایل CSS */#}
+{#        .table-responsive {#}
+{#            border-radius: 0 0 10px 10px; /* حفظ گوشه‌های گرد */#}
+{#        }#}
+{##}
+{#        .table th, .table td {#}
+{#            vertical-align: middle; /* تراز عمودی محتوا */#}
+{#            padding: 0.65rem 0.75rem; /* کمی پدینگ بیشتر */#}
+{#        }#}
+{##}
+{#        /* کمی خطوط جداکننده ملایم‌تر */#}
+{#        .table-bordered {#}
+{#            border-color: #e9ecef;#}
+{#        }#}
+{##}
+{#        .table th {#}
+{#            background-color: #f8f9fa;#}
+{#            /* ... بقیه استایل‌های th ... */#}
+{#            border-bottom-width: 2px; /* تاکید بیشتر روی هدر */#}
+{#        }#}
+{##}
+{#        /* استایل‌دهی بهتر به ردیف‌های Hover */#}
+{#        .table-hover tbody tr:hover {#}
+{#            background-color: #eef2ff; /* رنگ آبی بسیار روشن */#}
+{#        }#}
+{##}
+{#        /* در صفحات کوچک، اسکرول افقی را واضح‌تر نشان دهید */#}
+{#        @media (max-width: 767.98px) {#}
+{#            .table-responsive {#}
+{#                border: 1px dashed #dee2e6; /* یک حاشیه برای نشان دادن ناحیه اسکرول */#}
+{#                padding-bottom: 10px; /* فضا برای اسکرول‌بار */#}
+{#            }#}
+{##}
+{#            .table th, .table td {#}
+{#                white-space: nowrap; /* جلوگیری از شکستن متن در سلول‌ها (باعث اسکرول می‌شود) */#}
+{#                font-size: 0.85rem; /* کمی کوچک‌تر کردن فونت */#}
+{#                padding: 0.5rem 0.6rem;#}
+{#            }#}
+{##}
+{#            .no-print { /* دکمه‌های عملیات ممکن است نیاز به فضای بیشتری داشته باشند */#}
+{#                min-width: 120px; /* یا مقدار مناسب‌تر */#}
+{#            }#}
+{#        }#}
+{##}
+{#        /* Print styles */#}
+{#        @media print {#}
+{#            .no-print {#}
+{#                display: none !important;#}
+{#            }#}
+{##}
+{#            .card {#}
+{#                box-shadow: none !important;#}
+{#                border: 1px solid #ccc !important;#}
+{#            }#}
+{##}
+{#            .card-header {#}
+{#                background: none !important;#}
+{#                color: black !important;#}
+{#                border-bottom: 1px solid #000 !important;#}
+{#                padding: 0.5rem 0 !important;#}
+{#            }#}
+{##}
+{#            .card-body {#}
+{#                padding: 0.5rem !important;#}
+{#            }#}
+{##}
+{#            .table {#}
+{#                border: 1px solid #000 !important;#}
+{#                font-size: 0.8rem;#}
+{#            }#}
+{##}
+{#            .table th, .table td {#}
+{#                border: 1px solid #aaa !important;#}
+{#                padding: 0.2rem !important;#}
+{#            }#}
+{##}
+{#            .table tfoot tr {#}
+{#                background-color: #eee !important;#}
+{#            }#}
+{##}
+{#            .accordion {#}
+{#                display: none;#}
+{#            }#}
+{##}
+{#            /* Hide filters in print */#}
+{#            .summary-card {#}
+{#                border: 1px solid #aaa !important;#}
+{#                background-color: #fff !important;#}
+{#            }#}
+{##}
+{#            .container-fluid {#}
+{#                padding: 0 !important;#}
+{#            }#}
+{##}
+{#            h3, h4 {#}
+{#                font-size: 1rem;#}
+{#                margin-bottom: 0.5rem;#}
+{#            }#}
+{##}
+{#            p {#}
+{#                font-size: 0.8rem;#}
+{#                margin-bottom: 0.2rem;#}
+{#            }#}
+{#        }#}
+{#    </style>#}
 {#{% endblock %}#}
 {##}
 {#{% block content %}#}
@@ -236,8 +491,7 @@
 {#                                data-bs-toggle="tooltip" title="{% trans 'چاپ لیست' %}">#}
 {#                            <i class="bi bi-printer me-1"></i> {% trans "چاپ" %}#}
 {#                        </button>#}
-                        {# Add export buttons here if needed #}
-                        {# <button class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</button> #}
+{#                          <button class="btn btn-outline-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</button>#}
 {#                    </div>#}
 {#            </div>#}
 {#        </div>#}
@@ -249,7 +503,7 @@
 {#                <!-- Card 1: Overall Budget Summary -->#}
 {#                <div class="col-lg-4 col-md-6">#}
 {#                    <div class="card summary-card h-100 shadow-sm border-light">#}
-{#                        <div class="card-body d-flex flex-column"> {# Use flex column for structure #}
+{#                        <div class="card-body d-flex flex-column">#}
 {#                            <h5 class="card-title mb-3 d-flex align-items-center">#}
 {#                                <i class="bi bi-pie-chart-fill me-2 text-info"></i>{% trans "خلاصه کل بودجه دوره فعال" %}#}
 {#                            </h5>#}
@@ -268,11 +522,11 @@
 {#                            </div>#}
 {#                            <div class="progress mb-2" style="height: 5px;" data-bs-toggle="tooltip" title="{% trans 'درصد تخصیص یافته' %}">#}
 {#                                <div class="progress-bar bg-success" role="progressbar"#}
-{#                                     style="width: {{ allocated_percentage|default:'0' }}%;"  {# CSS width needs English numbers #}
-{#                                     aria-valuenow="{{ allocated_percentage|default:'0' }}" {# Aria needs English numbers #}
+{#                                     style="width: {{ allocated_percentage|default:'0' }}%;"#}
+{#                                     aria-valuenow="{{ allocated_percentage|default:'0' }}"#}
 {#                                     aria-valuemin="0" aria-valuemax="100"></div>#}
 {#                            </div>#}
-{#                            <div class="mt-auto"> {# Push remaining to bottom if needed, or remove mt-auto #}
+{#                            <div class="mt-auto">#}
 {#                                <strong>{% trans "باقی‌مانده:" %}</strong>#}
 {#                                <span class="float-end text-primary fw-bold text-end-numeric">#}
 {#                                    {{ remaining_budget|floatformat:0|format_negative|default:"0"|to_persian_number }} {% trans "ریال" %}#}
@@ -290,8 +544,8 @@
 {#                        <div class="card-body d-flex flex-column">#}
 {#                             <h5 class="card-title mb-3 d-flex align-items-center">#}
 {#                                 <i class="bi bi-filter-circle-fill me-2 text-warning"></i>{% trans "خلاصه ردیف بودجه انتخابی" %}#}
-                                 {# Optional: Show the name of the selected item #}
-                                 {# <small class="ms-2 text-muted">({{ budget_item_data.name }})</small> #}
+{#                                  Optional: Show the name of the selected item#}
+{#                                  <small class="ms-2 text-muted">({{ budget_item_data.name }})</small>#}
 {#                            </h5>#}
 {#                            <div class="mb-2">#}
 {#                                <strong>{% trans "بودجه ردیف:" %}</strong>#}
@@ -307,9 +561,9 @@
 {#                                </span>#}
 {#                            </div>#}
 {#                            <div class="progress mb-2" style="height: 5px;" data-bs-toggle="tooltip" title="{% trans 'درصد تخصیص یافته برای این ردیف' %}">#}
-{#                                <div class="progress-bar bg-warning" role="progressbar" {# Changed color to warning for distinction #}
-{#                                     style="width: {{ budget_item_data.allocated_percentage|default:'0' }}%;" {# CSS needs English numbers #}
-{#                                     aria-valuenow="{{ budget_item_data.allocated_percentage|default:'0' }}" {# Aria needs English numbers #}
+{#                                <div class="progress-bar bg-warning" role="progressbar"#}
+{#                                     style="width: {{ budget_item_data.allocated_percentage|default:'0' }}%;"#}
+{#                                     aria-valuenow="{{ budget_item_data.allocated_percentage|default:'0' }}"#}
 {#                                     aria-valuemin="0" aria-valuemax="100"></div>#}
 {#                            </div>#}
 {#                            <div class="mt-auto">#}
@@ -325,14 +579,14 @@
 {#                {% endif %}#}
 {##}
 {#                <!-- Card 3: Selected Project Summary (Conditional) -->#}
-{#                {% if selected_project and project_data %} {# Assuming you have 'selected_project' and 'project_data' in context #}
+{#                {% if selected_project and project_data %}#}
 {#                <div class="col-lg-4 col-md-6">#}
 {#                    <div class="card summary-card h-100 shadow-sm border-light">#}
 {#                         <div class="card-body d-flex flex-column">#}
 {#                            <h5 class="card-title mb-3 d-flex align-items-center">#}
 {#                                <i class="bi bi-diagram-3-fill me-2 text-success"></i>{% trans "خلاصه پروژه انتخابی" %}#}
-                                {# Optional: Show the name of the selected project #}
-                                {# <small class="ms-2 text-muted">({{ project_data.name }})</small> #}
+{#                                 Optional: Show the name of the selected project#}
+{#                                 <small class="ms-2 text-muted">({{ project_data.name }})</small>#}
 {#                            </h5>#}
 {#                            <div class="mb-2">#}
 {#                                <strong>{% trans "بودجه پروژه:" %}</strong>#}
@@ -348,14 +602,14 @@
 {#                                </span>#}
 {#                            </div>#}
 {#                            <div class="progress mb-2" style="height: 5px;" data-bs-toggle="tooltip" title="{% trans 'درصد تخصیص یافته برای این پروژه' %}">#}
-{#                                <div class="progress-bar bg-info" role="progressbar" {# Changed color #}
-{#                                     style="width: {{ project_data.allocated_percentage|default:'0' }}%;" {# CSS needs English numbers #}
-{#                                     aria-valuenow="{{ project_data.allocated_percentage|default:'0' }}" {# Aria needs English numbers #}
+{#                                <div class="progress-bar bg-info" role="progressbar"#}
+{#                                     style="width: {{ project_data.allocated_percentage|default:'0' }}%;"#}
+{#                                     aria-valuenow="{{ project_data.allocated_percentage|default:'0' }}"#}
 {#                                     aria-valuemin="0" aria-valuemax="100"></div>#}
 {#                            </div>#}
 {#                             <div class="mt-auto">#}
 {#                                <strong>{% trans "باقی‌مانده:" %}</strong>#}
-{#                                <span class="float-end text-info fw-bold text-end-numeric"> {# Changed color #}
+{#                                <span class="float-end text-info fw-bold text-end-numeric"> {# Changed color#}
 {#                                    {{ project_data.remaining|floatformat:0|format_negative|default:"0"|to_persian_number }} {% trans "ریال" %}#}
 {#                                    <small>({{ project_data.remaining_percentage|floatformat:1|default:"0"|to_persian_number }}%)</small>#}
 {#                                </span>#}
@@ -468,38 +722,39 @@
 {#        <tbody>#}
 {#        {% for budget_allocation in budget_allocations %}#}
 {#            <tr>#}
-                {# ستون اول برای نمایش در حالت دسکتاپ #}
+{#                 ستون اول برای نمایش در حالت دسکتاپ#}
 {#                <td class="d-none d-lg-table-cell text-center">{{ page_obj.start_index|add:forloop.counter0|to_persian_number }}</td>#}
 {##}
-                {# ستون اصلی که در حالت کارت هم نمایش داده می‌شود #}
+{#                 ستون اصلی که در حالت کارت هم نمایش داده می‌شود#}
 {#                <td>#}
 {#                    <div class="d-flex flex-column">#}
-                        {# ردیف بودجه و دوره #}
-{#                        <strong class="mb-1">{{ budget_allocation.budget_item.name|to_persian_number }} <small#}
+{#                    <div >#}
+{#                         <strong class="mb-1">{{ budget_allocation.budget_item.name|to_persian_number }} <small#}
 {#                                class="text-muted">({{ budget_allocation.budget_item.code }})</small></strong>#}
 {#                        <small class="text-muted">{{ budget_allocation.budget_period.name|to_persian_number }}</small>#}
-                        {# نمایش در موبایل با data-label #}
-{#                        <div class="d-lg-none mt-2">#}
+{#                         <div class="d-lg-none mt-2">#}
 {#                            <span class="badge bg-light text-dark me-1">{% trans "شعبه:" %}</span> {{ budget_allocation.organization.name }}<br>#}
 {#                            <span class="badge bg-light text-dark me-1">{% trans "پروژه:" %}</span> {{ budget_allocation.project.name|default:"-" }}<br>#}
 {#                            <span class="badge bg-light text-dark me-1">{% trans "تخصیص:" %}</span> <span#}
 {#                                class="text-end-numeric">{{ budget_allocation.allocated_amount|floatformat:0|format_negative|to_persian_number }}</span><br>#}
 {#                            <span class="badge bg-light text-dark me-1">{% trans "باقی‌مانده:" %}</span> <span#}
-{#                                class="text-end-numeric {% if budget_allocation.remaining_amount < 0 %}text-danger{% endif %}">{{ budget_allocation.remaining_amount|floatformat:0|format_negative|to_persian_number }}</span><br>#}
+{#                                class="text-end-numeric {% if budget_allocation.remaining_amount < 0 %}text-danger{% endif %}">#}
+{#                            {{ budget_allocation.remaining_amount|floatformat:0|format_negative|to_persian_number }}</span><br>#}
 {#                            <span class="badge bg-light text-dark me-1">{% trans "تاریخ:" %}</span> <span#}
 {#                                class="text-nowrap">{{ budget_allocation.allocation_date|jformat:'%y/%m/%d'|to_persian_number }}</span>#}
-                            {# Shorter date #}
+{##}
 {#                        </div>#}
 {#                    </div>#}
 {#                </td>#}
-                {# بقیه ستون‌ها فقط در دسکتاپ نمایش داده می‌شوند #}
+{#                 بقیه ستون‌ها فقط در دسکتاپ نمایش داده می‌شوند#}
+{#                <td class="d-none d-lg-table-cell">{{ budget_allocation.organization.name }}</td>#}
 {#                <td class="d-none d-lg-table-cell">{{ budget_allocation.organization.name }}</td>#}
 {#                <td class="d-none d-lg-table-cell">{{ budget_allocation.project.name|default:"-" }}</td>#}
 {#                <td class="d-none d-lg-table-cell text-end-numeric">{{ budget_allocation.allocated_amount|floatformat:0|format_negative|to_persian_number }}</td>#}
 {#                <td class="d-none d-lg-table-cell text-end-numeric {% if budget_allocation.remaining_amount < 0 %}text-danger{% endif %}">{{ budget_allocation.remaining_amount|floatformat:0|format_negative|to_persian_number }}</td>#}
 {#                <td class="d-none d-lg-table-cell text-center text-nowrap">{{ budget_allocation.allocation_date|jformat:'%Y/%m/%d'|to_persian_number }}</td>#}
 {#                <td class="d-none d-lg-table-cell text-center">#}
-                    {# بج وضعیت #}
+{#                     بج وضعیت#}
 {#                    {% if not budget_allocation.is_active %}#}
 {#                        <span class="badge bg-secondary">{% trans "غیرفعال" %}</span>#}
 {#                    {% elif budget_allocation.is_stopped %}#}
@@ -510,10 +765,10 @@
 {#                </td>#}
 {#                <td class="d-none d-lg-table-cell text-center text-nowrap">{{ budget_allocation.description }}</td>#}
 {##}
-                {# ستون عملیات که در هر دو حالت نمایش داده می‌شود #}
-{#                <td class="no-print text-center text-nowrap align-middle"> {# تراز عمودی #}
+{#                 ستون عملیات که در هر دو حالت نمایش داده می‌شود#}
+{#                <td class="no-print text-center text-nowrap align-middle">#}
 {#                    <div class="d-flex flex-column flex-lg-row gap-1 justify-content-center">#}
-                        {# چینش متفاوت در موبایل و دسکتاپ #}
+{#                         چینش متفاوت در موبایل و دسکتاپ#}
 {#                        <a href="{% url 'budgetallocation_detail' budget_allocation.pk %}"#}
 {#                           class="btn btn-outline-info btn-sm border-0" data-bs-toggle="tooltip"#}
 {#                           title="{% trans 'مشاهده جزئیات' %}"><i class="bi bi-eye"></i></a>#}
@@ -526,13 +781,16 @@
 {#                        <a href="{% url 'budget_return' budget_allocation.pk %}"#}
 {#                           class="btn btn-outline-primary btn-sm border-0" data-bs-toggle="tooltip"#}
 {#                           title="{% trans 'برگشت بودجه' %}"><i class="bi bi-arrow-return-left"></i></a>#}
-                        {# Changed color #}
+{##}
+{#                    <a href="{% url 'project_budget_allocation_detail' pk=budget_allocation.id %}" class="btn btn-info btn-sm">{% trans "جزئیات" %}</a>#}
+{#                    <a href="{% url 'budget_return' allocation_id=budget_allocation.id %}" class="btn btn-warning btn-sm">{% trans "بازگشت بودجه" %}</a>#}
+{##}
 {#                    </div>#}
 {#                </td>#}
 {#            </tr>#}
 {#        {% empty %}#}
 {#            <tr>#}
-                {# پیام "یافت نشد" باید تمام ستون‌های قابل مشاهده در دسکتاپ را پوشش دهد #}
+{#                 پیام "یافت نشد" باید تمام ستون‌های قابل مشاهده در دسکتاپ را پوشش دهد#}
 {#                <td colspan="11" class="text-center text-muted py-4">#}
 {#                    <i class="bi bi-exclamation-circle fs-4 d-block mb-2"></i>#}
 {#                    {% trans "هیچ تخصیصی با فیلترهای انتخاب شده یافت نشد." %}#}
@@ -541,14 +799,14 @@
 {#        {% endfor %}#}
 {#        </tbody>#}
 {#        <tfoot>#}
-        {# Footer بدون تغییر یا با تنظیم colspan مناسب #}
+{#         Footer بدون تغییر یا با تنظیم colspan مناسب#}
 {#        <tr>#}
 {#            <td colspan="5" class="d-none d-lg-table-cell"></td>#}
-            {# ستون‌های مخفی در دسکتاپ #}
+{#             ستون‌های مخفی در دسکتاپ#}
 {#            <td class="text-center" colspan="2"><strong>{% trans "جمع کل (صفحه فعلی)" %}</strong></td>#}
-            {# colspan برای موبایل #}
+{#             colspan برای موبایل#}
 {#            <td class="d-lg-none"></td>#}
-            {# ستون مخفی برای موبایل #}
+{#             ستون مخفی برای موبایل#}
 {##}
 {#            <td class="text-end-numeric">{{ total_allocated_page|floatformat:0|format_negative|to_persian_number }}</td>#}
 {#            <td class="text-end-numeric">{{ total_remaining_page|floatformat:0|format_negative|to_persian_number }}</td>#}
@@ -556,7 +814,7 @@
 {#            <td class="d-none d-lg-table-cell"></td>#}
 {#            <td class="no-print d-none d-lg-table-cell"></td>#}
 {#        </tr>#}
-        {# ردیف جمع کل همه صفحات (اگر وجود دارد) هم باید مشابه تنظیم شود #}
+{#         ردیف جمع کل همه صفحات (اگر وجود دارد) هم باید مشابه تنظیم شود#}
 {#        </tfoot>#}
 {#    </table>#}
 {#</div>#}
@@ -567,7 +825,7 @@
 {#                    <ul class="pagination pagination-sm">#}
 {#                    {% if page_obj.has_previous %}#}
 {#                        <li class="page-item">#}
-                            {# Link to page 1, keeping other filters #}
+{#                             Link to page 1, keeping other filters#}
 {#                            <a class="page-link" href="?#}
 {#                                    {% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1"#}
 {#                               aria-label="First">#}
@@ -575,7 +833,7 @@
 {#                            </a>#}
 {#                        </li>#}
 {#                        <li class="page-item">#}
-                            {# Link to previous page, keeping other filters #}
+{#                             Link to previous page, keeping other filters#}
 {#                            <a class="page-link" href="?#}
 {#                                    {% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}"#}
 {#                               aria-label="Previous">#}
@@ -599,7 +857,7 @@
 {##}
 {#                    {% if page_obj.has_next %}#}
 {#                        <li class="page-item">#}
-                            {# Link to next page, keeping other filters #}
+{#                             Link to next page, keeping other filters#}
 {#                            <a class="page-link" href="?#}
 {#                                    {% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}"#}
 {#                               aria-label="Next">#}
@@ -607,7 +865,7 @@
 {#                            </a>#}
 {#                        </li>#}
 {#                        <li class="page-item">#}
-                            {# Link to last page, keeping other filters #}
+{#                             Link to last page, keeping other filters#}
 {#                            <a class="page-link" href="?#}
 {#                                    {% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ paginator.num_pages }}"#}
 {#                               aria-label="Last">#}
@@ -629,12 +887,6 @@
 {#{% endblock %}#}
 {##}
 {#{% block extra_js %}#}
-    {# jQuery (if not loaded globally) #}
-    {#<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>#}
-    {# Select2 JS #}
-    {#<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>#}
-    {# Jalali Datepicker JS - Make sure the path is correct #}
-    {#<script src="https://unpkg.com/jalalidatepicker/dist/jalalidatepicker.min.js"></script>#}
 {##}
 {#<script>#}
 {#    (function () {#}

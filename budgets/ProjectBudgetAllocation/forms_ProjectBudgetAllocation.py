@@ -228,8 +228,8 @@ class ProjectBudgetAllocationForm(forms.ModelForm):
         if commit:
             try:
                 instance.save()
-                instance.budget_allocation.remaining_amount = instance.budget_allocation.get_remaining_amount()
-                instance.budget_allocation.save(update_fields=['remaining_amount'])
+                # instance.budget_allocation.remaining_amount = instance.budget_allocation.get_remaining_amount()
+                # instance.budget_allocation.save(update_fields=['remaining_amount'])
             except Exception as e:
                 logger.error(f"Error saving ProjectBudgetAllocation: {str(e)}")
                 raise

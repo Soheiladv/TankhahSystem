@@ -1,4 +1,6 @@
 import logging
+from decimal import Decimal
+
 from  django.utils import timezone
 import jdatetime
 from django.contrib.auth.decorators import login_required
@@ -15,6 +17,8 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
 from accounts.models import CustomUser
+from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, \
+    get_subproject_total_budget, get_subproject_remaining_budget
 from core.PermissionBase import get_lowest_access_level, get_initial_stage_order
 # Local imports
 from core.models import UserPost, Post, WorkflowStage, PostHistory, SubProject, Project
@@ -98,7 +102,7 @@ class TankhahManageView(PermissionBaseView, CreateView):
         context['title'] = _('مدیریت تنخواه')
         return context
 
-def get_subprojects_ok(request):
+def get_subprojects(request):
     logger.info('ورود به تابع get_subprojects')
     project_id = request.GET.get('project_id')
     if not project_id:
@@ -161,6 +165,112 @@ class TankhahCreateView(PermissionBaseView, CreateView):
     template_name = 'tankhah/Tankhah_form.html'
     success_url = reverse_lazy('tankhah_list')
     context_object_name = 'Tankhah'
+    permission_codenames = ['tankhah.Tankhah_add']
+    permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
+    check_organization = True
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        with transaction.atomic():
+            self.object = form.save(commit=False)
+            initial_stage = WorkflowStage.objects.order_by('order').first()
+            if not initial_stage:
+                messages.error(self.request, _("مرحله اولیه جریان کاری تعریف نشده است."))
+                return self.form_invalid(form)
+
+            user_orgs = set(up.post.organization for up in self.request.user.userpost_set.filter(is_active=True))
+            if not user_orgs:
+                messages.error(self.request, _("شما به هیچ سازمانی دسترسی ندارید."))
+                return self.form_invalid(form)
+
+            project = form.cleaned_data['project']
+            project_orgs = set(project.organizations.all())
+            if not project_orgs.intersection(user_orgs):
+                messages.error(self.request, _("این پروژه با سازمان شما هماهنگ نیست."))
+                return self.form_invalid(form)
+
+            subproject = form.cleaned_data.get('subproject')
+            if subproject and subproject.project != project:
+                messages.error(self.request, _("زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد."))
+                return self.form_invalid(form)
+
+            self.object.subproject = subproject
+            self.object.organization = form.cleaned_data['organization']
+            self.object.current_stage = initial_stage
+            self.object.status = 'DRAFT'
+            self.object.created_by = self.request.user
+            self.object.save()
+
+            approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=initial_stage)
+            if approvers.exists():
+                notify.send(
+                    sender=self.request.user,
+                    recipient=approvers,
+                    verb='تنخواه برای تأیید آماده است',
+                    target=self.object
+                )
+                logger.info(f"Notification sent to {approvers.count()} approvers for stage {initial_stage.name}")
+
+        messages.success(self.request, _('تنخواه با موفقیت ثبت شد.'))
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('ایجاد تنخواه جدید')
+
+        # مدیریت بودجه‌ها برای درخواست‌های GET و POST
+        project = None
+        subproject = None
+
+        # بررسی درخواست POST
+        if self.request.method == 'POST' and 'project' in self.request.POST:
+            try:
+                project_id = int(self.request.POST.get('project'))
+                project = Project.objects.get(id=project_id)
+                if 'subproject' in self.request.POST and self.request.POST.get('subproject'):
+                    subproject_id = int(self.request.POST.get('subproject'))
+                    subproject = SubProject.objects.get(id=subproject_id)
+            except (ValueError, Project.DoesNotExist, SubProject.DoesNotExist) as e:
+                logger.error(f"Error fetching project/subproject: {str(e)}")
+                project = None
+                subproject = None
+
+        # برای حالت ویرایش یا بارگذاری اولیه با داده‌های فرم
+        elif self.request.method == 'GET' and self.form_class and hasattr(self, 'object') and self.object:
+            project = self.object.project
+            subproject = self.object.subproject
+
+        # تنظیم مقادیر بودجه
+        if project:
+            context['total_budget'] = get_project_total_budget(project)
+            context['remaining_budget'] = get_project_remaining_budget(project)
+        else:
+            context['total_budget'] = Decimal('0')
+            context['remaining_budget'] = Decimal('0')
+
+        if subproject:
+            context['subproject_total_budget'] = get_subproject_total_budget(subproject)
+            context['subproject_remaining_budget'] = get_subproject_remaining_budget(subproject)
+        else:
+            context['subproject_total_budget'] = Decimal('0')
+            context['subproject_remaining_budget'] = Decimal('0')
+
+        return context
+
+    def handle_no_permission(self):
+        messages.error(self.request, self.permission_denied_message)
+        return super().handle_no_permission()
+
+class old__TankhahCreateView(PermissionBaseView, CreateView):
+    model = Tankhah
+    form_class = TankhahForm
+    template_name = 'tankhah/Tankhah_form.html'
+    success_url = reverse_lazy('tankhah_list')
+    context_object_name = 'Tankhah'
     permission_codenames = ['tankhah.Tankhah_add']  # فرمت درست
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
     check_organization = True  # فعال کردن چک سازمان
@@ -175,17 +285,20 @@ class TankhahCreateView(PermissionBaseView, CreateView):
         with transaction.atomic():
             self.object = form.save(commit=False)
             initial_stage = WorkflowStage.objects.order_by('order').first()
-            logger.info(f'initial_stage is: {initial_stage}')
+            # logger.info(f'initial_stage is: {initial_stage}')
+            if not initial_stage:
+                messages.error(self.request, _("مرحله اولیه جریان کاری تعریف نشده است."))
+                return self.form_invalid(form)
 
             # گرفتن سازمان کاربر
-            user_orgs = set(up.post.organization for up in self.request.user.userpost_set.all())
+            # user_orgs = set(up.post.organization for up in self.request.user.userpost_set.all())
+            user_orgs = set(up.post.organization for up in self.request.user.userpost_set.filter(is_active=True))
             if not user_orgs:
                 messages.error(self.request, "شما به هیچ سازمانی دسترسی ندارید.")
                 return self.form_invalid(form)
 
                 # گرفتن پروژه از فرم
                 project = form.cleaned_data['project']
-
                 # چک کردن هماهنگی پروژه با سازمان کاربر
                 project_orgs = set(project.organizations.all())
                 if not project_orgs.intersection(user_orgs):
@@ -195,10 +308,7 @@ class TankhahCreateView(PermissionBaseView, CreateView):
                 # گرفتن ساب‌پروژه از فرم
                 subproject = form.cleaned_data.get('subproject')
                 if not subproject:
-                    subproject = SubProject.objects.filter(
-                        project=project,
-                        organization__in=user_orgs
-                    ).first()
+                    subproject = SubProject.objects.filter(project=project, organization__in=user_orgs).first()
                     if not subproject:
                         messages.error(self.request, "هیچ زیرپروژه‌ای برای این پروژه و سازمان شما یافت نشد.")
                         return self.form_invalid(form)
@@ -220,15 +330,37 @@ class TankhahCreateView(PermissionBaseView, CreateView):
                     verb='تنخواه برای تأیید آماده است',
                     target=self.object
                 )
-                logger.info(f"Notification sent to {approvers.count()} approvers for stage {initial_stage.name}")
+                # logger.info(f"Notification sent to {approvers.count()} approvers for stage {initial_stage.name}")
 
         messages.success(self.request, 'تنخواه با موفقیت ثبت شد.')
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
-        """اضافه کردن عنوان به کنتکست"""
         context = super().get_context_data(**kwargs)
         context['title'] = _('ایجاد تنخواه جدید')
+
+        if 'project' in self.request.POST:
+            try:
+                project_id = int(self.request.POST.get('project'))
+                project = Project.objects.get(id=project_id)
+                context['total_budget'] = get_project_total_budget(project)
+                context['remaining_budget'] = get_project_remaining_budget(project)
+                if 'subproject' in self.request.POST:
+                    subproject_id = int(self.request.POST.get('subproject'))
+                    subproject = SubProject.objects.get(id=subproject_id)
+                    context['subproject_total_budget'] = get_subproject_total_budget(subproject)
+                    context['subproject_remaining_budget'] = get_subproject_remaining_budget(subproject)
+            except (ValueError, Project.DoesNotExist, SubProject.DoesNotExist):
+                context['total_budget'] = Decimal('0')
+                context['remaining_budget'] = Decimal('0')
+                context['subproject_total_budget'] = Decimal('0')
+                context['subproject_remaining_budget'] = Decimal('0')
+        else:
+            context['total_budget'] = Decimal('0')
+            context['remaining_budget'] = Decimal('0')
+            context['subproject_total_budget'] = Decimal('0')
+            context['subproject_remaining_budget'] = Decimal('0')
+
         return context
 
     def handle_no_permission(self):

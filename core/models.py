@@ -1,8 +1,10 @@
 # Create your models here.
+import logging
+
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-import logging
+
 logger = logging.getLogger(__name__)
 from accounts.models import CustomUser
 from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, get_subproject_remaining_budget
@@ -30,22 +32,13 @@ class Organization(models.Model):
     """مدل سازمان برای تعریف مجتمع‌ها و دفتر مرکزی"""
     code = models.CharField(max_length=10, unique=True, verbose_name=_("کد سازمان"))
     name = models.CharField(max_length=100, verbose_name=_("نام سازمان"))
-    org_type = models.ForeignKey(
-        'OrganizationType',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        verbose_name=_("نوع سازمان"),
-        related_name='organizations'  # اضافه کردن related_name برای وضوح
-    )
+    org_type = models.ForeignKey('OrganizationType', on_delete=models.SET_NULL, null=True, blank=True,
+                                 verbose_name=_("نوع سازمان"),
+                                 related_name='organizations')  # اضافه کردن related_name برای وضوح
+
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
-    parent_organization = models.ForeignKey(
-        'self',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        verbose_name=_("سازمان والد")
-    )
+    parent_organization = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
+                                            verbose_name=_("سازمان والد"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
     is_core = models.BooleanField(default=False, verbose_name=_("دفتر مرکزی سازمان"))  # تغییر پیش‌فرض به False
 

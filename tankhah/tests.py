@@ -71,7 +71,6 @@ class TankhahhModelTest(TestCase):
         self.assertEqual(doc.tankhah, tankhah)
         self.assertIn(tankhah.number, doc.document.name)
         self.assertTrue(doc.document.name.endswith('.pdf'))
-
 #----  viwes
 class FactorModelTest(TestCase):
     def setUp(self):
@@ -116,7 +115,6 @@ class FactorModelTest(TestCase):
             # amount رو حذف کن چون محاسباتیه
         )
         self.assertEqual(item.amount, 50000)
-
 class ApprovalLogTest(TestCase):
     def setUp(self):
         self.user = CustomUser.objects.create_user(
@@ -148,7 +146,6 @@ class ApprovalLogTest(TestCase):
         self.assertEqual(log.tankhah, self.tankhah)
         self.assertEqual(log.action, 'APPROVE')
         self.assertEqual(log.user, self.user)
-
 class StageApproverTest(TestCase):
     def setUp(self):
         self.org = Organization.objects.create(name='Test Org', code='TST', org_type='HQ')
@@ -159,9 +156,6 @@ class StageApproverTest(TestCase):
         approver = StageApprover.objects.create(stage=self.stage, post=self.post)
         self.assertEqual(approver.stage, self.stage)
         self.assertEqual(approver.post, self.post)
-
-
-
 class TankhahListViewTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -287,7 +281,6 @@ class TankhahListViewTest(TestCase):
 
     def tearDown(self):
         self.client.logout()
-
 class TankhahDetailViewTest(TestCase):
     def setUp(self):
         self.user = CustomUser.objects.create_user(username='testuser', password='testpass')
@@ -313,7 +306,6 @@ class TankhahDetailViewTest(TestCase):
         self.client.force_login(user_no_perm)
         response = self.client.get(reverse('tankhah_detail', kwargs={'pk': self.tankhah.pk}))
         self.assertEqual(response.status_code, 403)
-
 class TankhahDeleteViewTest(TestCase):
     def setUp(self):
         self.user = CustomUser.objects.create_superuser(username='admin', password='adminpass')
@@ -325,8 +317,6 @@ class TankhahDeleteViewTest(TestCase):
         response = self.client.post(reverse('tankhah_delete', kwargs={'pk': self.tankhah.pk}))
         self.assertRedirects(response, reverse('tankhah_list'))
         self.assertFalse(Tankhah.objects.filter(pk=self.tankhah.pk).exists())
-
-
 class TankhahApprovalTest(TestCase):
     def setUp(self):
         self.user = CustomUser.objects.create_user(username='approver', password='testpass')
@@ -358,8 +348,6 @@ class TankhahApprovalTest(TestCase):
         self.tankhah.refresh_from_db()
         self.assertEqual(self.tankhah.status, 'REJECTED')
         self.assertRedirects(response, reverse('dashboard_flows'))
-
-
 class FinalApprovalTest(TestCase):
     def setUp(self):
         self.hq_user = CustomUser.objects.create_user(username='hquser', password='hqpass')
@@ -395,4 +383,44 @@ class FinalApprovalTest(TestCase):
             {'status': 'PAID'}
         )
         self.assertEqual(response.status_code, 403)
+#------------
+from django.test import TestCase
+from django.core.exceptions import ValidationError
+from budgets.models import BudgetPeriod, BudgetAllocation,  CostCenter
+from tankhah.models import Tankhah
+from core.models import Organization
+from accounts.models import CustomUser
+from decimal import Decimal
 
+class TankhahTest(TestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(username='jj', password='D@d123',email='jj@itdc.net')
+        self.org = Organization.objects.create(name='Test Org', code='TST')
+        self.budget_period = BudgetPeriod.objects.create(
+            organization=self.org, name='Test Period', total_amount=1000000,
+            start_date='2025-01-01', end_date='2025-12-31', created_by=self.user
+        )
+        self.budget_allocation = BudgetAllocation.objects.create(
+            budget_period=self.budget_period, organization=self.org,
+            allocated_amount=500000, created_by=self.user
+        )
+        self.cost_center = CostCenter.objects.create(
+            name='Test Center', code='TC001', organization=self.org,
+            budget_allocation=self.budget_allocation, allocated_budget=200000
+        )
+
+    def test_tankhah_creation(self):
+        tankhah = Tankhah.objects.create(
+            organization=self.org, cost_center=self.cost_center,
+            amount=100000, created_by=self.user
+        )
+        self.assertTrue(tankhah.number.startswith('TNK-'))
+        self.assertEqual(tankhah.status, 'DRAFT')
+
+    def test_tankhah_invalid_amount(self):
+        with self.assertRaises(ValidationError):
+            tankhah = Tankhah(
+                organization=self.org, cost_center=self.cost_center,
+                amount=300000, created_by=self.user
+            )
+            tankhah.full_clean()

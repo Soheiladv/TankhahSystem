@@ -100,6 +100,7 @@ class FactorUpdateView(PermissionBaseView, UpdateView):
     success_url = reverse_lazy('factor_list')
     permission_codenames = ['tankhah.a_factor_update']
     check_organization = True
+    permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -117,7 +118,11 @@ class FactorUpdateView(PermissionBaseView, UpdateView):
 
         context['tankhah_count'] = 1  # اگر فقط یک تنخواه مرتبط است، یا منطق دیگری اعمال کنید
         context['documents_count'] = self.object.documents.count() + tankhah.documents.count()  # جمع اسناد فاکتور و تنخواه
-        context['title'] = _('ویرایش فاکتور') + f" - {self.object.number}"
+        context['title'] = _(f"ویرایش فاکتور {self.object.number}")
+        from budgets.budget_calculations import get_tankhah_remaining_budget
+        context['tankhah_remaining_budget'] = get_tankhah_remaining_budget(self.object.tankhah)
+        from budgets.budget_calculations import get_factor_remaining_budget
+        context['factor_remaining_budget'] = get_factor_remaining_budget(self.object)
         context['tankhah'] = tankhah
         context['tankhah_documents'] = tankhah.documents.all()
         context['total_amount'] = sum(item.amount * item.quantity for item in self.object.items.all())

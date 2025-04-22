@@ -203,6 +203,11 @@
                         <div class="tab-pane fade show active" id="main-tab-pane" role="tabpanel"
                              aria-labelledby="main-tab" tabindex="0">
                             <div class="row g-3 mb-4">
+                                     <div class="budget-info">
+                <h5>{% trans "اطلاعات بودجه" %}</h5>
+                <p><strong>{% trans "بودجه باقی‌مانده تنخواه" %}:</strong> {{ tankhah_remaining_budget|floatformat:"0"|to_persian_number }} {% trans "ریال" %}</p>
+                <p><strong>{% trans "بودجه باقی‌مانده فاکتور" %}:</strong> {{ factor_remaining_budget|floatformat:"0"|to_persian_number }} {% trans "ریال" %}</p>
+            </div>
                                 {% for field in form %}
                                     {% if field.name != 'amount' and field.name != 'description' %}
                                         <div class="col-md-6 animate__animated animate__fadeInUp"

@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.db import transaction
 
 from Tanbakhsystem.utils import parse_jalali_date_jdate
-from budgets.budget_calculations import get_budget_details, check_budget_status, calculate_remaining_budget
+from budgets.budget_calculations import check_budget_status
 from core.PermissionBase import PermissionBaseView
 from budgets.models import BudgetPeriod, BudgetTransaction, BudgetHistory
 from budgets.BudgetPeriod.Forms_BudgetPeriod  import BudgetPeriodForm
@@ -185,6 +185,7 @@ class BudgetPeriodDetailView(PermissionBaseView, DetailView):
         context['transactions'] = paginator.get_page(page_number)
         # جزئیات بودجه
         try:
+            from budgets.get_budget_details import get_budget_details
             context['budget_details'] = get_budget_details(self.object)
         except Exception as e:
             logger.error(f"Error in get_budget_details: {str(e)}")

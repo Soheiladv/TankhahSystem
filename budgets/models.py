@@ -1,5 +1,5 @@
 from django.db.models.functions import Coalesce
-from django.db.models import Value
+from django.db.models import Value, Q
 import logging
 from django.utils import timezone
 
@@ -92,8 +92,13 @@ class BudgetPeriod(models.Model):
     #     return max(self.total_amount - allocated, Decimal('0'))
 
     def get_remaining_amount(self):
-        allocated = self.allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
-        return max(self.total_amount - allocated + self.returned_amount, Decimal('0'))
+        """محاسبه بودجه باقی‌مانده دوره"""
+        from django.db.models import Sum
+        from decimal import Decimal
+        total_allocated = self.allocations.aggregate(
+            total=Sum('allocated_amount')
+        )['total'] or Decimal('0')
+        return max(self.total_amount - total_allocated + self.returned_amount, Decimal('0'))
 
     def get_locked_amount(self):
         return (self.total_amount * self.locked_percentage) / Decimal('100')
@@ -159,8 +164,8 @@ class BudgetAllocation(models.Model):
     project = models.ForeignKey('core.Project', on_delete=models.CASCADE, related_name='allocations',
                                 verbose_name=_("پروژه"), null=True, blank=True)  # اختیاری کردن پروژه
     allocated_amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ تخصیص"))
-    remaining_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0,
-                                           verbose_name=_("باقی‌مانده تخصیص"))
+    # remaining_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0,
+    #                                        verbose_name=_("باقی‌مانده تخصیص"))
     allocation_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ تخصیص"))
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
                                    related_name='budget_allocations_created', verbose_name=_("ایجادکننده"))
@@ -291,6 +296,28 @@ class BudgetAllocation(models.Model):
         project_consumed = ProjectBudgetAllocation.objects.filter( budget_allocation=self ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
         return self.allocated_amount - consumption_total - project_consumed + return_total
 
+    def get_actual_remaining_amount(self):
+        # این متد باید همیشه از دیتابیس بخواند و نباید به فیلد ذخیره شده تکیه کند
+        # مگر اینکه فیلد ذخیره شده با دقت بسیار بالا آپدیت شود
+        transactions_sum = self.transactions.aggregate(
+            consumption=Sum('amount', filter=Q(transaction_type='CONSUMPTION')),
+            adjustment_decrease=Sum('amount', filter=Q(transaction_type='ADJUSTMENT_DECREASE')),
+            returns=Sum('amount', filter=Q(transaction_type='RETURN')),
+            adjustment_increase=Sum('amount', filter=Q(transaction_type='ADJUSTMENT_INCREASE')),
+            # ALLOCATION اولیه جزو allocated_amount است و نباید اینجا محاسبه شود
+        )
+        consumed = (transactions_sum['consumption'] or Decimal('0')) + \
+                   (transactions_sum['adjustment_decrease'] or Decimal('0'))
+        added_back = (transactions_sum['returns'] or Decimal('0')) + \
+                     (transactions_sum['adjustment_increase'] or Decimal('0'))
+
+        # remaining = self.allocated_amount - consumed + added_back
+        # **اصلاح مهم:** allocated_amount با برگشت کم می‌شود، پس مبنای محاسبه remaining
+        # باید allocated_amount فعلی باشد و فقط مصرف‌ها از آن کم شوند.
+        # یا: مبنا allocated_amount اولیه باشد و برگشت‌ها اضافه شوند.
+        # روش صحیح‌تر: تکیه بر فیلد remaining_amount که توسط تراکنش‌ها آپدیت می‌شود.
+        # بنابراین این متد بیشتر برای نمایش یا چک کردن است:
+        return self.remaining_amount  # تکیه بر فیلد آپدیت شده
 
     def get_locked_amount(self):
         return (self.allocated_amount * self.locked_percentage) / Decimal('100')
@@ -399,7 +426,10 @@ class BudgetItem(models.Model):
         unique_together = ('budget_period', 'organization', 'code')
 
     def __str__(self):
-        return f"{self.name} - {self.organization.name}"  # - {self.budget_period.name}"
+        if self.budget_period.name:
+            return f"{self.budget_period.name} - {self.name} - {self.organization.name}"
+        else:
+            return f"{self.name} - {self.organization.name}-بدون ردیف بودجه"
 
     def clean(self):
         super().clean()
@@ -550,12 +580,27 @@ class ProjectBudgetAllocation(models.Model):
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, related_name='project_budget_allocations_created', verbose_name=_("ایجادکننده"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
     is_active= models.BooleanField(default=True,verbose_name=_('فعال'))
+
+    # def get_remaining_amount(self):
+    #     from budgets.budget_calculations import get_subproject_remaining_budget
+    #     if self.subproject:
+    #         return get_subproject_remaining_budget(self.subproject)
+    #     from budgets.budget_calculations import get_project_remaining_budget
+    #     return get_project_remaining_budget(self.project)
+
     def get_remaining_amount(self):
-        from budgets.budget_calculations import get_subproject_remaining_budget
-        if self.subproject:
-            return get_subproject_remaining_budget(self.subproject)
-        from budgets.budget_calculations import get_project_remaining_budget
-        return get_project_remaining_budget(self.project)
+        """محاسبه بودجه باقی‌مانده تخصیص پروژه"""
+
+        consumed = BudgetTransaction.objects.filter(
+            allocation=self.budget_allocation,
+            transaction_type='CONSUMPTION'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        returned = BudgetTransaction.objects.filter(
+            allocation=self.budget_allocation,
+            transaction_type='RETURN'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        return self.allocated_amount - consumed + returned
+
 
     def clean(self):
         remaining = self.budget_allocation.get_remaining_amount()

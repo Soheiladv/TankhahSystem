@@ -10,11 +10,9 @@ from django.utils.translation import gettext_lazy as _
 from budgets.models import BudgetTransaction
 from budgets.BudgetReturn.forms_BudgetReturm import BudgetReturnForm
 from budgets.budget_calculations import (get_project_remaining_budget,
-                                         calculate_remaining_budget,
                                          get_project_remaining_budget,
                                          get_project_total_budget,
                                          get_project_used_budget,
-                                         get_budget_details,
                                          check_budget_status, get_organization_budget
                                          )
 from core.PermissionBase import PermissionBaseView
@@ -73,6 +71,7 @@ class BudgetReturnView(PermissionBaseView, CreateView):
         organization = allocation.budget_allocation.organization
         budget_period = allocation.budget_allocation.budget_period
 
+        from budgets.get_budget_details import get_budget_details
         context.update({
             'allocation': allocation,
             'project': project,

@@ -4,6 +4,7 @@ from decimal import Decimal
 # from dis import CONVERT_VALUE
 
 from Tanbakhsystem.widgets import NumberToWordsWidget
+from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget
 
 logger = logging.getLogger(__name__)
 
@@ -109,55 +110,55 @@ class TankhahForm(JalaliDateForm):
         widget=forms.TextInput(attrs={
             'data-jdp': '',
             'class': 'form-control',
-            'placeholder': _('تاریخ را انتخاب کنید (1404/01/17)'),
+            'placeholder': _('مثال: 1404/01/17'),
         })
     )
     due_date = forms.CharField(
-        label=_('مهلت باقی مانده'),
+        label=_('مهلت زمانی'),
+        required=False,
         widget=forms.TextInput(attrs={
             'data-jdp': '',
             'class': 'form-control',
-            'placeholder': _('تاریخ را انتخاب کنید (1404/01/17)'),
-        }),
-        required=False
+            'placeholder': _('مثال: 1404/01/17'),
+        })
     )
 
     class Meta:
         model = Tankhah
-        fields = ['date', 'organization', 'project','subproject', 'letter_number', 'due_date', 'amount', 'description']
+        fields = ['date', 'organization', 'project', 'subproject', 'letter_number', 'due_date', 'amount', 'description']
         widgets = {
             'organization': forms.Select(attrs={'class': 'form-control'}),
             'project': forms.Select(attrs={'class': 'form-control'}),
             'subproject': forms.Select(attrs={'class': 'form-control'}),
             'letter_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('اختیاری')}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        if self.user:
-            # گرفتن سازمان‌های کاربر
-            user_orgs = set(up.post.organization for up in self.user.userpost_set.all())
-            user_org_ids = [org.id for org in user_orgs]  # تبدیل به لیست id‌ها
-            logger.info(f"سازمان‌های کاربر: {user_org_ids}")
 
-        # فیلتر ساب‌پروژه‌ها بر اساس پروژه انتخاب‌شده
-        if 'project' in self.data:
-            try:
-                project_id = int(self.data.get('project'))
-                self.fields['subproject'].queryset = SubProject.objects.filter(project_id=project_id)
-            except (ValueError, TypeError):
+        if self.user:
+            user_orgs = set(up.post.organization for up in self.user.userpost_set.filter(is_active=True))
+            self.fields['organization'].queryset = Organization.objects.filter(id__in=[org.id for org in user_orgs])
+            self.fields['project'].queryset = Project.objects.filter(organizations__in=user_orgs).distinct()
+
+            # فیلتر زیرپروژه‌ها
+            if 'project' in self.data:
+                try:
+                    project_id = int(self.data.get('project'))
+                    self.fields['subproject'].queryset = SubProject.objects.filter(project_id=project_id)
+                except (ValueError, TypeError):
+                    self.fields['subproject'].queryset = SubProject.objects.none()
+            elif self.instance.pk and self.instance.project:
+                self.fields['subproject'].queryset = SubProject.objects.filter(project=self.instance.project)
+            else:
                 self.fields['subproject'].queryset = SubProject.objects.none()
-        elif self.instance.pk and self.instance.project:
-            self.fields['subproject'].queryset = SubProject.objects.filter(project=self.instance.project)
-        else:
-            self.fields['subproject'].queryset = SubProject.objects.none()
 
-        if self.user:
-            user_posts = self.user.userpost_set.all()
+            # غیرفعال کردن فیلدها در صورت عدم دسترسی
             if self.instance.pk and self.instance.organization:
+                user_posts = self.user.userpost_set.filter(is_active=True)
                 if not any(post.post.organization == self.instance.organization for post in user_posts):
                     for field_name in self.fields:
                         if field_name not in ['status', 'description']:
@@ -166,20 +167,26 @@ class TankhahForm(JalaliDateForm):
         self.set_jalali_initial('date', 'date')
         self.set_jalali_initial('due_date', 'due_date')
 
-        if not self.instance.current_stage:
-            self.initial['current_stage'] = get_default_workflow_stage()
-
     def clean(self):
         cleaned_data = super().clean()
         project = cleaned_data.get('project')
         subproject = cleaned_data.get('subproject')
+        amount = cleaned_data.get('amount')
+
         if subproject and subproject.project != project:
-            raise forms.ValidationError(_("ساب‌پروژه باید متعلق به پروژه انتخاب‌شده باشد."))
+            raise forms.ValidationError(_("زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد."))
+
+        if project and amount:
+            remaining_budget = get_subproject_remaining_budget(subproject) if subproject else get_project_remaining_budget(project)
+            if amount > remaining_budget:
+                raise forms.ValidationError(
+                    _(f"مبلغ واردشده ({amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining_budget:,.0f} ریال) است.")
+                )
+
         return cleaned_data
 
     def clean_date(self):
-        date = self.clean_jalali_date('date')
-        return date if date else timezone.now()
+        return self.clean_jalali_date('date') or timezone.now()
 
     def clean_due_date(self):
         return self.clean_jalali_date('due_date')
@@ -187,13 +194,14 @@ class TankhahForm(JalaliDateForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
         if self.user:
-            user_post = self.user.userpost_set.filter(post__organization=instance.organization).first()
+            user_post = self.user.userpost_set.filter(post__organization=instance.organization, is_active=True).first()
             if not instance.pk:
                 instance.created_by = self.user
                 instance.last_stopped_post = user_post.post if user_post else None
         if commit:
             instance.save()
         return instance
+
 
 class TanbakhApprovalForm(forms.ModelForm):
     comment = forms.CharField(

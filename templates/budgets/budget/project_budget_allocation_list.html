@@ -1,647 +1,467 @@
 {% extends "base.html" %}
-{% load i18n static jformat rcms_custom_filters %}
+{% load i18n static rcms_custom_filters humanize jalali_tags %}
 
-{% block title %}{% trans "لیست تخصیص‌های بودجه پروژه" %}{% endblock %}
+{% block title %}{% trans "مدیریت تخصیص بودجه پروژه‌ها" %} | {{ organization.name }}{% endblock %}
 
 {% block extra_css %}
-{# استایل‌های شما بدون تغییر در اینجا قرار می‌گیرد #}
 <style>
-    /* ... CSS styles from previous version ... */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    }
+
     .budget-card {
-        border-radius: 10px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);
         border: none;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
+
+    .budget-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    }
+
     .card-header-gradient {
-        background: linear-gradient(135deg, #4e54c8, #8f94fb);
+        background: var(--primary-gradient);
         color: white;
-        border-radius: 10px 10px 0 0 !important;
+        padding: 1.5rem;
     }
+
+    .stat-card {
+        border-radius: 10px;
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card.total {
+        border-left-color: #4e54c8;
+        background: rgba(78, 84, 200, 0.05);
+    }
+
+    .stat-card.allocated {
+        border-left-color: #2ecc71;
+        background: rgba(46, 204, 113, 0.05);
+    }
+
+    .stat-card.remaining {
+        border-left-color: #e74c3c;
+        background: rgba(231, 76, 60, 0.05);
+    }
+
+    .progress-thin {
+        height: 8px;
+        border-radius: 4px;
+    }
+
+    .badge-status {
+        padding: 0.35em 0.65em;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
     .table-responsive {
-        border-radius: 0 0 10px 10px;
-    }
-    /* ... other styles ... */
-     .form-errors { /* Style for the error container inside modal */
-        font-size: 0.85rem;
-     }
-     .form-errors ul {
-        padding-right: 1.5rem; /* Indent list items */
-        margin-bottom: 0;
-     }
-     /* Style for DataTable controls */
-     .dataTables_wrapper .dataTables_length select.form-select-sm {
-         padding-top: 0.4rem;
-         padding-bottom: 0.4rem;
-     }
-     .dataTables_wrapper .dataTables_filter input.form-control-sm {
-         padding: 0.4rem 0.75rem;
-     }
-     /* Ensure spinner inside button is vertically centered */
-     .btn .spinner-border-sm {
-         vertical-align: middle;
-     }
-</style>
-
-<style>
-    /* استایل‌های ثابت برای مودال */
-    .modal {
-        overflow-y: auto; /* برای اسکرول داخلی */
-        backdrop-filter: blur(2px); /* افکت محو برای پس‌زمینه */
-    }
-    .modal-dialog {
-        margin: 1.75rem auto;
-        transition: none !important; /* غیرفعال کردن انیمیشن‌های پیش‌فرض */
-    }
-    .modal-content {
-        border: none;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        border-radius: 0 0 12px 12px;
     }
 
-    /* جلوگیری از تغییر اندازه ناگهانی */
-    .modal-body {
-        min-height: 150px; /* ارتفاع حداقلی */
+    .table thead {
+        background: #f8f9fa;
     }
 
-    /* بهبود نمایش تاریخ‌شمار */
-    .jalali-datepicker {
-        z-index: 1060 !important; /* بالاتر از مودال */
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+    }
+
+    .action-btns .btn {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
+    .filter-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: var(--primary-gradient);
+        border-color: transparent;
+    }
+
+    .pagination .page-link {
+        color: #4e54c8;
+    }
+
+    .hover-shadow {
+        transition: box-shadow 0.3s ease;
+    }
+
+    .hover-shadow:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
 </style>
-
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="card budget-card mb-4">
-        <div class="card-header card-header-gradient d-flex justify-content-between align-items-center py-3">
-            <div>
-                <h4 class="mb-0">
-                    <i class="fas fa-wallet me-2"></i>
-                    {% trans "مدیریت تخصیص بودجه پروژه" %}
-                </h4>
-                 {% if organization %} {# Check if organization context exists #}
-                <small class="opacity-75">{{ organization.name }}</small>
-                {% endif %}
-            </div>
-            <div class="d-flex gap-2">
-                {% if organization %} {# Check if organization context exists #}
-                <a href="{% url 'project_budget_allocation' organization.id %}" class="btn btn-light btn-sm">
-                    <i class="fas fa-plus me-1"></i> {% trans "تخصیص جدید" %}
-                </a>
-                 <a href="{% url 'organization_list' %}" class="btn btn-outline-light btn-sm"> {# Changed style #}
-                    <i class="fas fa-arrow-left me-1"></i> {% trans "بازگشت به لیست سازمان‌ها" %}
-                </a>
-                {% endif %}
+<div class="container-fluid py-4">
+    <!-- هدر صفحه -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card budget-card">
+                <div class="card-header card-header-gradient">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="fas fa-project-diagram me-2"></i>
+                                {% trans "مدیریت تخصیص بودجه پروژه‌ها" %}
+                            </h2>
+                            <p class="mb-0 opacity-75">
+                                <i class="fas fa-building me-1"></i>
+                                {{ organization.name }}
+                            </p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'project_budget_allocation' organization.id %}"
+                               class="btn btn-light btn-lg hover-shadow">
+                                <i class="fas fa-plus me-2"></i>
+                                {% trans "تخصیص جدید" %}
+                            </a>
+                            <a href="{% url 'organization_list' %}"
+                               class="btn btn-outline-light btn-lg hover-shadow">
+                                <i class="fas fa-arrow-right me-2"></i>
+                                {% trans "لیست سازمان‌ها" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="card-body">
-            {# Container for dynamically added alerts #}
-            <div id="alert-container" class="mb-4"></div>
+    </div>
 
-             {% if organization %} {# Check if organization context exists #}
-            <div class="budget-summary mb-4 p-3 bg-light rounded">
-                <h5 class="mb-3"><i class="fas fa-info-circle text-primary me-2"></i>{% trans "خلاصه بودجه سازمان" %} ({{ organization.name }})</h5>
-                {% if total_org_budget is not None and remaining_org_budget is not None %}
-                    <div class="row">
-                        <div class="col-md-6">
-                             <p><strong>{% trans "بودجه کل تخصیص‌یافته" %}:</strong> {{ total_org_budget|to_persian_number_with_comma }} {% trans "ریال" %}</p>
+    <!-- کارت آمار کلی -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card total h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">{% trans "بودجه کل سازمان" %}</h6>
+                            <h3 class="mb-0 text-primary">
+                                {{ total_org_budget|intcomma|to_persian_number}}
+                                <small class="text-muted fs-6">{% trans "ریال" %}</small>
+                            </h3>
                         </div>
-                         <div class="col-md-6">
-                            <p><strong>{% trans "باقی‌مانده قابل تخصیص" %}:</strong> <span class="fw-bold {% if remaining_org_budget < 0 %}text-danger{% else %}text-success{% endif %}">{{ remaining_org_budget|to_persian_number_with_comma }} {% trans "ریال" %}</span></p>
-                         </div>
+                        <div class="bg-primary bg-opacity-10 p-3 rounded">
+                            <i class="fas fa-wallet fa-2x text-primary"></i>
+                        </div>
                     </div>
-                {% else %}
-                    <p class="text-muted">{% trans "اطلاعات بودجه کلی برای این سازمان در دسترس نیست." %}</p>
-                {% endif %}
-            </div>
-            {% endif %}
-
-
-            {% if messages %}
-            <div class="mb-4">
-                {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
-                    <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% elif message.tags == 'error' %}fa-times-circle{% else %}fa-info-circle{% endif %} me-2"></i>
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
-                {% endfor %}
             </div>
-            {% endif %}
+        </div>
 
-            <div class="table-responsive">
-                <table id="budgetAllocationsTable" class="table table-hover table-striped" style="width:100%"> {# Added table-striped #}
-                    <thead class="table-light">
-                        <tr>
-                            <th width="5%">#</th>
-                            <th>{% trans "پروژه" %}</th>
-                            <th>{% trans "زیرپروژه" %}</th>
-                            <th>{% trans "مبلغ تخصیص" %}</th>
-                            <th>{% trans "باقی‌مانده" %}</th>
-                            <th>{% trans "دوره بودجه" %}</th>
-                            <th>{% trans "وضعیت" %}</th>
-                            <th width="15%">{% trans "عملیات" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for allocation in allocations %}
-                        {# Add data-row-id for easier selection if needed #}
-                        <tr data-row-id="{{ allocation.id }}">
-                            <td>{{ forloop.counter|to_persian_number }}</td> {# Persian number for counter #}
-                            <td>
-                                {# Link to project detail if available #}
-                                {% if allocation.project.get_absolute_url %}
-                                <a href="{{ allocation.project.get_absolute_url }}" title="{% trans 'مشاهده پروژه' %} {{ allocation.project.name }}">
-                                    {{ allocation.project.name|default:"-"|to_persian_number_with_comma }}
-                                </a>
-                                {% else %}
-                                     {{ allocation.project.name|default:"-"|to_persian_number_with_comma }}
-                                {% endif %}
-                            </td>
-                             <td>
-                                 {% if allocation.subproject %}
-                                     {# Link to subproject detail if available #}
-                                     {% if allocation.subproject.get_absolute_url %}
-                                         <a href="{{ allocation.subproject.get_absolute_url }}" title="{% trans 'مشاهده زیرپروژه' %} {{ allocation.subproject.name }}">
-                                             {{ allocation.subproject.name|to_persian_number_with_comma }}
-                                         </a>
-                                     {% else %}
-                                         {{ allocation.subproject.name|to_persian_number_with_comma }}
-                                     {% endif %}
-                                 {% else %}
-                                     <span class="text-muted">-</span>
-                                 {% endif %}
-                             </td>
-                            <td class="text-nowrap">{{ allocation.allocated_amount|to_persian_number_with_comma }} {% trans "ریال" %}</td> {# Format number #}
-                            <td>
-                                {# Improved Progress Bar Display #}
-                                {% with remaining_pct=allocation.remaining_percent|default:0 %}
-                                <div class="d-flex align-items-center" title="{% trans 'باقی‌مانده:' %} {{ allocation.remaining_amount|to_persian_number_with_comma }} {% trans 'ریال' %}">
-                                    <div class="progress progress-thin w-100 me-2" style="background-color: #e9ecef;">
-                                        <div class="progress-bar {% if remaining_pct <= 0 %}bg-secondary{% elif remaining_pct < 20 %}bg-danger{% elif remaining_pct < 50 %}bg-warning{% else %}bg-success{% endif %}"
-                                             role="progressbar" style="width: {{ remaining_pct }}%"
-                                             aria-valuenow="{{ remaining_pct }}"
-                                             aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                    <small class="text-muted text-nowrap">{{ remaining_pct|floatformat:0|to_persian_number }}%</small>
-                                </div>
-                                {% endwith %}
-                            </td>
-                             <td>
-                                 {% if allocation.budget_allocation.budget_period %}
-                                    {{ allocation.budget_allocation.budget_period.name|to_persian_number_with_comma }}
-                                    <br><small class="text-muted">({{ allocation.budget_allocation.allocation_date|jformat:'%Y/%m/%d' }})</small>
-                                 {% else %}
-                                     <span class="text-muted">-</span>
-                                 {% endif %}
-                             </td>
-                            <td>
-                                <span class="badge rounded-pill badge-status {% if allocation.is_active %}bg-success-subtle text-success-emphasis{% else %}bg-secondary-subtle text-secondary-emphasis{% endif %}">
-                                    {% if allocation.is_active %}<i class="fas fa-check-circle me-1"></i>{% trans "فعال" %}{% else %}<i class="fas fa-times-circle me-1"></i>{% trans "غیرفعال" %}{% endif %}
-                                </span>
-                            </td>
-                            <td class="text-nowrap">
-                                {# Details Button #}
-                                <a href="{% url 'project_budget_allocation_detail' allocation.id %}"
-                                   class="btn-action btn btn-outline-info btn-sm"
-                                   data-bs-toggle="tooltip"
-                                   title="{% trans 'مشاهده جزئیات کامل' %}">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                {# Quick Edit Button (triggers modal) #}
+        <div class="col-md-4">
+            <div class="card stat-card allocated h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">{% trans "مصرف شده" %}</h6>
+                            <h3 class="mb-0 text-success">
+                                {{ total_org_budget|subtract:remaining_org_budget|intcomma|to_persian_number}}
+                                <small class="text-muted fs-6">{% trans "ریال" %}</small>
+                            </h3>
+                        </div>
+                        <div class="bg-success bg-opacity-10 p-3 rounded">
+                            <i class="fas fa-chart-line fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                                {# Full Edit Button (navigates to separate page) #}
-                                 {% if user.is_active and user.is_staff %}
-                                    <a href="{% url 'project__budget__allocation__edit__view' allocation.id %}"
-                                       class="btn-action btn btn-outline-primary btn-sm mx-1"
-                                       data-bs-toggle="tooltip"
-                                       title="{% trans 'ویرایش در صفحه جداگانه' %}">
-                                        <i class="fas fa-pen-alt"></i>
+        <div class="col-md-4">
+            <div class="card stat-card remaining h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">{% trans "مانده بودجه" %}</h6>
+                            <h3 class="mb-0 {% if remaining_org_budget < 0 %}text-danger{% else %}text-success{% endif %}">
+                                {{ remaining_org_budget|intcomma|to_persian_number}}
+                                <small class="text-muted fs-6">{% trans "ریال" %}</small>
+                            </h3>
+                        </div>
+                        <div class="{% if remaining_org_budget < 0 %}bg-danger{% else %}bg-success{% endif %} bg-opacity-10 p-3 rounded">
+                            <i class="fas fa-piggy-bank fa-2x {% if remaining_org_budget < 0 %}text-danger{% else %}text-success{% endif %}"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- کارت فیلترها -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card filter-card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="project" class="form-label">{% trans "پروژه" %}</label>
+                            <select name="project_id" id="project" class="form-select">
+                                <option value="">{% trans "همه پروژه‌ها" %}</option>
+                                {% for project in organization.project_set.all %}
+                                <option value="{{ project.id }}" {% if request.GET.project_id == project.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ project.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-filter me-2"></i>
+                                {% trans "اعمال فیلتر" %}
+                            </button>
+                            <a href="{% url 'project_budget_allocation_list' organization.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                {% trans "حذف فیلتر" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- کارت لیست تخصیص‌ها -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card budget-card">
+                <div class="card-header bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list-ol me-2"></i>
+                            {% trans "لیست تخصیص‌های بودجه" %}
+                        </h5>
+                        <span class="badge bg-primary rounded-pill">
+                            {{ allocations.paginator.count|to_persian_number}}
+                            {% trans "مورد" %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th width="5%">#</th>
+                                    <th>{% trans "پروژه" %}</th>
+                                    <th>{% trans "زیرپروژه" %}</th>
+                                    <th class="text-end">{% trans "مبلغ تخصیص" %}</th>
+                                    <th width="20%">{% trans "پیشرفت مصرف" %}</th>
+                                    <th>{% trans "دوره بودجه" %}</th>
+                                    <th>{% trans "وضعیت" %}</th>
+                                    <th width="12%" class="text-center">{% trans "عملیات" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for allocation in allocations %}
+                                <tr class="align-middle">
+                                    <td>{{ forloop.counter|to_persian_number}}</td>
+                                    <td>
+                                        <a href="{{ allocation.project.get_absolute_url|default:'#' }}"
+                                           class="text-dark fw-bold">
+                                            {{ allocation.project.name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {% if allocation.subproject %}
+                                        <span class="badge bg-info bg-opacity-10 text-info">
+                                            {{ allocation.subproject.name }}
+                                        </span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end fw-bold">
+                                        {{ allocation.allocated_amount|intcomma|to_persian_number}}
+                                        <small class="text-muted">{% trans "ریال" %}</small>
+                                    </td>
+                                    <td>
+                                        {% with remaining_pct=allocation.remaining_percent|default:100 %}
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress progress-thin flex-grow-1 me-2">
+                                                <div class="progress-bar {% if remaining_pct <= 0 %}bg-secondary{% elif remaining_pct < 20 %}bg-danger{% elif remaining_pct < 50 %}bg-warning{% else %}bg-success{% endif %}"
+                                                     role="progressbar"
+                                                     style="width: {{ 100|subtract:remaining_pct }}%"
+                                                     aria-valuenow="{{ 100|subtract:remaining_pct }}"
+                                                     aria-valuemin="0"
+                                                     aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                            <small class="text-muted text-nowrap">
+                                                {{ 100|subtract:remaining_pct|floatformat:0|to_persian_number}}%
+                                            </small>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">
+                                            {{ allocation.remaining_amount|intcomma|to_persian_number}} {% trans "ریال باقی‌مانده" %}
+                                        </small>
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        {% if allocation.budget_allocation.budget_period %}
+                                        <span class="badge bg-light text-dark">
+                                            {{ allocation.budget_allocation.budget_period.name |to_persian_number}}
+                                        </span>
+                                        <small class="text-muted d-block mt-1">
+                                            {{ allocation.budget_allocation.allocation_date|to_jalali:'%Y/%m/%d'|to_persian_number}}
+                                        </small>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge rounded-pill {% if allocation.is_active %}bg-success bg-opacity-10 text-success{% else %}bg-secondary bg-opacity-10 text-secondary{% endif %}">
+                                            <i class="fas {% if allocation.is_active %}fa-check-circle{% else %}fa-times-circle{% endif %} me-1"></i>
+                                            {% if allocation.is_active %}{% trans "فعال" %}{% else %}{% trans "غیرفعال" %}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="text-center action-btns">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'project_budget_allocation_detail' allocation.id %}"
+                                               class="btn btn-outline-info"
+                                               data-bs-toggle="tooltip"
+                                               title="{% trans 'جزئیات' %}">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if perms.budgets.change_projectbudgetallocation %}
+                                            <a href="{% url 'project__budget__allocation__edit__view' allocation.id %}"
+                                               class="btn btn-outline-primary"
+                                               data-bs-toggle="tooltip"
+                                               title="{% trans 'ویرایش' %}">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% endif %}
+                                            {% if perms.budgets.delete_projectbudgetallocation %}
+                                            <a href="{% url 'project_budget_allocation_delete' allocation.id %}"
+                                               class="btn btn-outline-danger"
+                                               data-bs-toggle="tooltip"
+                                               title="{% trans 'حذف' %}"
+                                               onclick="return confirm('آیا از حذف این تخصیص اطمینان دارید؟');">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">
+                                        <div class="alert alert-info mb-0">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            {% trans "هیچ تخصیص بودجه‌ای یافت نشد." %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- صفحه‌بندی -->
+                    {% if allocations.paginator.num_pages > 1 %}
+                    <div class="card-footer bg-white">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if allocations.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?page={{ allocations.previous_page_number }}{% if request.GET.project_id %}&project_id={{ request.GET.project_id }}{% endif %}">
+                                        <i class="fas fa-chevron-right"></i>
                                     </a>
+                                </li>
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </span>
+                                </li>
                                 {% endif %}
-                                {# Delete Button #}
-                                <a href="{% url 'project_budget_allocation_delete' allocation.id %}" {# Consider using POST for delete via JS confirmation #}
-                                   class="btn-action btn btn-outline-danger btn-sm"
-                                   data-bs-toggle="tooltip"
-                                   title="{% trans 'حذف تخصیص' %}"
-                                   {# Add confirmation onclick="return confirm('{% trans "آیا از حذف این تخصیص مطمئن هستید؟" %}');" #}
-                                   >
-                                    <i class="fas fa-trash"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+
+                                {% for i in allocations.paginator.page_range %}
+                                {% if allocations.number == i %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ i|to_persian_number}}</span>
+                                </li>
+                                {% else %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?page={{ i }}{% if request.GET.project_id %}&project_id={{ request.GET.project_id }}{% endif %}">
+                                        {{ i|to_persian_number}}
+                                    </a>
+                                </li>
+                                {% endif %}
+                                {% endfor %}
+
+                                {% if allocations.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?page={{ allocations.next_page_number }}{% if request.GET.project_id %}&project_id={{ request.GET.project_id }}{% endif %}">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </span>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-
-
-        </div> {# End card-body #}
-    </div> {# End budget-card #}
-</div> {# End container #}
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-{# Load jQuery first if not loaded in base.html #}
-{# <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> #}
-
-{# Load DataTables JS #}
-<script src="{% static 'admin/js/jquery.dataTables.min.js' %}"></script>
-{# Load DataTables Bootstrap 5 integration (recommended for styling) #}
-{# <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script> #}
-{# Load Persian Datepicker JS (ensure paths are correct) #}
-{# <script src="path/to/persian-date.min.js"></script> #}
-{# <script src="path/to/persian-datepicker.min.js"></script> #}
-
 <script>
 $(document).ready(function() {
+    // فعال‌سازی tooltip
+    $('[data-bs-toggle="tooltip"]').tooltip();
 
-    // --- 1. Initialize DataTable ---
-    let table; // Declare table variable in a broader scope
-    try {
-        table = $('#budgetAllocationsTable').DataTable({
-            // language: { url: "{% static 'admin/fa.json' %}" }, // Uncomment if file exists
-            language: { // Direct configuration as fallback
-                 "processing": "{% trans 'در حال پردازش...' %}",
-                 "search": "{% trans 'جستجو:' %}",
-                 "lengthMenu": "{% trans 'نمایش _MENU_ رکورد در صفحه' %}",
-                 "info": "{% trans 'نمایش _START_ تا _END_ از _TOTAL_ رکورد' %}",
-                 "infoEmpty": "{% trans 'نمایش 0 تا 0 از 0 رکورد' %}",
-                 "infoFiltered": "{% trans '(فیلتر شده از _MAX_ رکورد کل)' %}",
-                 "loadingRecords": "{% trans 'در حال بارگذاری...' %}",
-                 "zeroRecords": "{% trans 'هیچ رکوردی یافت نشد' %}",
-                 "emptyTable": "{% trans 'داده‌ای برای نمایش در جدول وجود ندارد' %}",
-                 "paginate": {
-                     "first": "{% trans 'اولین' %}",
-                     "previous": "{% trans 'قبلی' %}",
-                     "next": "{% trans 'بعدی' %}",
-                     "last": "{% trans 'آخرین' %}"
-                 },
-                 "aria": {
-                     "sortAscending": ": {% trans 'فعال‌سازی برای مرتب‌سازی صعودی ستون' %}",
-                     "sortDescending": ": {% trans 'فعال‌سازی برای مرتب‌سازی نزولی ستون' %}"
-                 }
-             },
-            dom: '<"row mb-3"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' + // Length and Filter
-                 't' + // The Table
-                 '<"row mt-3"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>', // Info and Pagination
-            responsive: true,
-            columnDefs: [
-                { orderable: false, targets: 7, searchable: false }, // Disable ordering/searching for Actions column
-                { className: "text-nowrap", targets: [3, 4, 7] }, // Prevent wrap on amount/progress/actions
-                { className: "text-center", targets: [0, 6, 7] } // Center align some columns
-             ],
-            order: [[ 1, 'asc' ]], // Default order by Project name ascending
-            pageLength: 10, // Default number of rows per page
-            lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, "{% trans 'همه' %}"] ], // Page length options
-            initComplete: function() {
-                // Style DataTable controls using Bootstrap classes
-                const container = this.api().table().container();
-                $('.dataTables_filter input', container)
-                    .addClass('form-control form-control-sm')
-                    .attr('placeholder', '{% trans "جستجو در جدول..." %}')
-                    .wrap('<div class="position-relative"></div>') // Wrap for icon positioning
-                    .after('<i class="fas fa-search position-absolute" style="top: 50%; right: 10px; transform: translateY(-50%); color: #6c757d;"></i>');
-                $('.dataTables_length select', container)
-                    .addClass('form-select form-select-sm')
-                    .css('display', 'inline-block') // Adjust display for alignment
-                    .css('width', 'auto'); // Adjust width
-                // Add spacing to pagination
-                 $('.dataTables_paginate .pagination', container).addClass('justify-content-end');
-            }
-        });
-    } catch (e) {
-         console.error("Error initializing DataTable:", e);
-         // Provide fallback or message?
-    }
-
-    // --- 2. Initialize tooltips using event delegation ---
-    // Ensure tooltips are destroyed when modal closes if needed
-    $('body').tooltip({
-        selector: '[data-bs-toggle="tooltip"]',
-        trigger: 'hover' // Show on hover
+    // اعتبارسنجی فرم فیلتر
+    $('form').on('submit', function(e) {
+        // می‌توانید اعتبارسنجی‌های لازم را اینجا اضافه کنید
     });
 
-    // --- 4. Numeric input formatting ---
-    // Helper function to convert to Persian digits and remove invalid chars
-    function toPersianDigits(str) {
-        if (str === null || str === undefined) return '';
-        str = String(str);
-        return str.replace(/[0-9]/g, function (d) {
-            return '۰۱۲۳۴۵۶۷۸۹'[d];
-        });
-    }
-
-    // Helper function to convert to English digits and remove non-digits/separators
-    function toEnglishDigitsAndClean(str) {
-         if (str === null || str === undefined) return '';
-         str = String(str);
-         // First, convert all Persian digits to English
-         str = str.replace(/[۰-۹]/g, function (d) {
-             return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);
-         });
-         // Then, remove anything that is not an English digit or a decimal point
-         // Allow only one decimal point
-         let cleaned = str.replace(/[^0-9.]/g, '');
-         let decimalParts = cleaned.split('.');
-         if (decimalParts.length > 2) {
-             cleaned = decimalParts[0] + '.' + decimalParts.slice(1).join('');
-         }
-         return cleaned;
-    }
-
-    // Apply Persian digit formatting on input/blur for display
-    $('body').on('input blur', '.numeric-input', function(e) {
-        let englishValue = toEnglishDigitsAndClean($(this).val());
-        // Optionally format with commas for display (only on blur?)
-        // if (e.type === 'blur' && englishValue) {
-        //     try {
-        //        let num = parseFloat(englishValue);
-        //        $(this).val(toPersianDigits(num.toLocaleString('fa-IR', { maximumFractionDigits: 2 })));
-        //     } catch (parseErr) {
-        //         $(this).val(toPersianDigits(englishValue)); // Fallback if parsing fails
-        //     }
-        // } else {
-            $(this).val(toPersianDigits(englishValue));
-        // }
-    });
-
-
-    // --- 5. AJAX Form Submission ---
-    // Use event delegation for the submit event on the form
-    $('body').on('submit', 'form.edit-allocation-form', function(e) {
-        e.preventDefault(); // Stop default synchronous submission
-
-        const form = $(this);
-        const modalElement = form.closest('.modal')[0]; // Get the DOM element
-        const modalInstance = bootstrap.Modal.getInstance(modalElement); // Get BS5 instance
-        const errorDiv = form.find('.form-errors');
-        const submitButton = form.find('button[type="submit"]');
-        const originalButtonHtml = submitButton.html(); // Store original button content
-
-        // --- Reset UI State ---
-        form.removeClass('was-validated'); // Remove previous validation state
-        form.find('.is-invalid').removeClass('is-invalid'); // Remove field error highlights
-        errorDiv.addClass('d-none').html(''); // Clear previous errors
-        submitButton.prop('disabled', true).html(
-            `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {% trans "در حال ارسال..." %}`
-        );
-
-        // --- Client-Side Validation (Bootstrap 5) ---
-        if (!form[0].checkValidity()) {
-            form.addClass('was-validated'); // Trigger Bootstrap's feedback display
-            submitButton.prop('disabled', false).html(originalButtonHtml); // Re-enable button
-            // Optionally scroll to the first invalid field
-             form.find(':invalid').first().focus();
-            return; // Stop if basic HTML5 validation fails
+    // انیمیشن‌های کارت‌ها
+    $('.budget-card').hover(
+        function() {
+            $(this).css('transform', 'translateY(-5px)');
+        },
+        function() {
+            $(this).css('transform', 'translateY(0)');
         }
-
-        // --- Prepare Data for AJAX ---
-        const formData = new FormData(form[0]); // More robust way to get form data, handles checkboxes correctly
-        const dataToSend = {};
-
-        formData.forEach((value, key) => {
-            if (key === 'allocated_amount') {
-                // Convert formatted Persian/comma value to clean English number string
-                dataToSend[key] = toEnglishDigitsAndClean(value);
-            } else if (key === 'allocation_date') {
-                // Convert Jalali YYYY/MM/DD date from datepicker to Gregorian YYYY-MM-DD
-                // Requires persianDate library to be loaded
-                if (typeof persianDate !== 'undefined' && value.match(/^\d{4}\/\d{2}\/\d{2}$/)) {
-                     try {
-                         const pDate = new persianDate(value.split('/').map(Number));
-                         if (pDate.isValid()) {
-                             dataToSend[key] = pDate.toLocale('en').toCalendar('gregorian').format('YYYY-MM-DD');
-                         } else {
-                              console.warn("Invalid Persian date detected:", value);
-                              dataToSend[key] = ''; // Send empty or handle error
-                         }
-                     } catch (dateError) {
-                         console.error("Error converting Persian date:", value, dateError);
-                         dataToSend[key] = ''; // Send empty or handle error
-                     }
-                } else {
-                    dataToSend[key] = value; // Send as is if not in expected format or library missing
-                }
-            } else if (key !== 'csrfmiddlewaretoken') { // Exclude CSRF token if sending as object
-                dataToSend[key] = value;
-            }
-        });
-         // Ensure 'is_active' is present even if unchecked (FormData skips unchecked boxes)
-         dataToSend['is_active'] = form.find('input[name="is_active"]').is(':checked');
-
-        // Add CSRF token manually if not using FormData directly with jQuery.ajax settings
-        dataToSend['csrfmiddlewaretoken'] = form.find('input[name="csrfmiddlewaretoken"]').val();
-
-
-        // --- AJAX Request ---
-        $.ajax({
-            url: form.attr('action'),
-            type: 'POST',
-            data: dataToSend, // Send the processed data object
-            dataType: 'json', // Expect a JSON response from the server
-            success: function(response) {
-                if (response && response.success) {
-                    // --- Update DataTable (if table instance is valid) ---
-                    const allocationId = form.find('input[name="allocation_id_in_form"]').val();
-                    let rowIndex = -1;
-
-                    if (table) { // Check if DataTable initialized successfully
-                        // Find row index more reliably
-                        table.rows().every(function (index) {
-                            // Check a unique identifier in the row, e.g., the data-row-id or the button's data attribute
-                            const rowNode = this.node();
-                            if ($(rowNode).data('row-id') == allocationId || $(rowNode).find(`.edit-modal-btn[data-allocation-id="${allocationId}"]`).length > 0) {
-                                rowIndex = index;
-                                return false; // Stop searching
-                            }
-                        });
-
-                        if (rowIndex !== -1 && rowIndex !== undefined) {
-                             // Update using API (safer)
-                             table.cell(rowIndex, 3).data(`${response.allocated_amount_formatted || '-'} {% trans "ریال" %}`);
-                             // Update progress bar HTML
-                             const remaining_pct = response.remaining_percent !== undefined ? response.remaining_percent : 0;
-                             const progressHtml = `<div class="d-flex align-items-center" title="{% trans 'باقی‌مانده:' %} ${response.remaining_amount_formatted || '-'} {% trans 'ریال' %}">
-                                                    <div class="progress progress-thin w-100 me-2" style="background-color: #e9ecef;">
-                                                        <div class="progress-bar ${remaining_pct <= 0 ? 'bg-secondary' : remaining_pct < 20 ? 'bg-danger' : remaining_pct < 50 ? 'bg-warning' : 'bg-success'}"
-                                                             role="progressbar" style="width: ${remaining_pct}%"
-                                                             aria-valuenow="${remaining_pct}" aria-valuemin="0" aria-valuemax="100"></div>
-                                                    </div>
-                                                    <small class="text-muted text-nowrap">${toPersianDigits(remaining_pct.toFixed(0))}%</small>
-                                                </div>`;
-                             table.cell(rowIndex, 4).data(progressHtml);
-                             // Update status badge HTML
-                             const statusHtml = `<span class="badge rounded-pill badge-status ${response.is_active ? 'bg-success-subtle text-success-emphasis' : 'bg-secondary-subtle text-secondary-emphasis'}">
-                                                    <i class="fas ${response.is_active ? 'fa-check-circle' : 'fa-times-circle'} me-1"></i>
-                                                    ${response.is_active ? '{% trans "فعال" %}' : '{% trans "غیرفعال" %}'}
-                                                 </span>`;
-                             table.cell(rowIndex, 6).data(statusHtml);
-
-                             // Re-draw the specific row
-                             table.row(rowIndex).invalidate().draw(false);
-                        } else {
-                             console.warn("DataTable row not found for ID:", allocationId, ". Consider full page reload.");
-                             // Optionally trigger a page reload if row update fails
-                             // window.location.reload();
-                        }
-                    } else {
-                         console.warn("DataTable instance not available for update. Consider full page reload.");
-                          // Trigger page reload if table is not available
-                          window.location.reload();
-                    }
-
-
-                    // --- Close Modal & Show Success Alert ---
-                    if (modalInstance) {
-                        modalInstance.hide();
-                    }
-                    const successMsg = response.message || '{% trans "تغییرات با موفقیت ذخیره شد." %}';
-                    const successAlertHtml = `<div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
-                                                <i class="fas fa-check-circle flex-shrink-0 me-2"></i>
-                                                <div>${successMsg}</div>
-                                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                              </div>`;
-                    $('#alert-container').prepend(successAlertHtml); // Add alert to a dedicated container
-                    // Auto-dismiss after a few seconds
-                     window.setTimeout(() => {
-                         $('#alert-container .alert-success').alert('close');
-                     }, 5000);
-
-                } else {
-                    // --- Handle Server-Side Errors ---
-                    let errorSummary = '{% trans "خطا در اعتبارسنجی فرم:" %}';
-                    if (response && response.errors) {
-                         errorSummary += '<ul class="mb-0 mt-2">';
-                         $.each(response.errors, function(field, errors) {
-                             const fieldElement = form.find(`[name="${field}"]`);
-                             if (fieldElement.length) {
-                                 fieldElement.addClass('is-invalid'); // Highlight field
-                                 // Add error message below field if possible (requires specific HTML structure)
-                                 let feedbackDiv = fieldElement.siblings('.invalid-feedback');
-                                 if(feedbackDiv.length === 0 && fieldElement.parent().hasClass('input-group')) {
-                                     feedbackDiv = fieldElement.parent().siblings('.invalid-feedback');
-                                 }
-                                 if(feedbackDiv.length){
-                                     feedbackDiv.html(errors.join('<br>'));
-                                 }
-                             }
-                             // Add to summary list
-                             errorSummary += `<li>${errors.join('<br>')}</li>`;
-                         });
-                         errorSummary += '</ul>';
-                    } else if (response && response.message) {
-                        errorSummary = response.message; // General error message from server
-                    }
-                    errorDiv.removeClass('d-none').html(errorSummary);
-                    // Don't close the modal on error
-                }
-            },
-            error: function(xhr, status, error) {
-                // --- Handle AJAX/Network Errors ---
-                console.error("AJAX Request Error:", status, error, xhr.responseText);
-                let errorMsg = '{% trans "خطای غیرمنتظره در ارتباط با سرور. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید." %}';
-                if (xhr.responseJSON) {
-                    if (xhr.responseJSON.message) {
-                        errorMsg = xhr.responseJSON.message;
-                    } else if (xhr.responseJSON.errors) {
-                        // Format multiple errors if backend provides them
-                        errorMsg = '{% trans "خطاهای دریافتی از سرور:" %}<ul>';
-                        $.each(xhr.responseJSON.errors, function(field, errors) {
-                            errorMsg += `<li>${errors.join('<br>')}</li>`;
-                        });
-                        errorMsg += '</ul>';
-                    }
-                } else if (xhr.status === 0) {
-                    errorMsg = '{% trans "خطا: عدم امکان برقراری ارتباط با سرور. لطفاً اتصال اینترنت خود را بررسی کنید." %}';
-                } else if (xhr.status === 403) {
-                     errorMsg = '{% trans "خطا: شما دسترسی لازم برای انجام این عملیات را ندارید." %}';
-                 } else if (xhr.status === 404) {
-                     errorMsg = '{% trans "خطا: منبع درخواستی یافت نشد." %}';
-                 } else if (xhr.status >= 500) {
-                     errorMsg = '{% trans "خطا: مشکل داخلی در سرور رخ داده است. لطفاً بعداً تلاش کنید." %}';
-                 }
-                errorDiv.removeClass('d-none').html(errorMsg);
-            },
-            complete: function() {
-                // --- Re-enable Submit Button ---
-                submitButton.prop('disabled', false).html(originalButtonHtml);
-            }
-        }); // End $.ajax
-    }); // End form submit handler
-
-    // --- Optional: Reset form completely when modal is closed ---
-    // This prevents old data/errors from showing if modal is reopened
-    $('.modal').on('hidden.bs.modal', function () {
-        const form = $(this).find('.edit-allocation-form');
-        if (form.length) {
-            form[0].reset(); // Reset form fields to initial values
-            form.removeClass('was-validated'); // Clear validation state
-            form.find('.is-invalid').removeClass('is-invalid'); // Clear error highlights
-            form.find('.form-errors').addClass('d-none').html(''); // Hide error display area
-            // Reset datepicker visual state if needed (might require specific datepicker API)
-            // $(this).find('.jalali-datepicker').persianDatepicker('clear'); // If such a method exists
-        }
-    });
-// --- 3. Initialize Jalali Datepicker ---
-    // Ensure the library is loaded correctly
-    // +++ راه حل جدید: مقداردهی اولیه Datepicker بعد از نمایش مودال +++
-if (typeof $.fn.persianDatepicker === 'function') {
-    try {
-        // برای هر مودالی که در صفحه وجود دارد
-        $('.modal').each(function() {
-            const modalElement = this;
-            const datepickerInput = $(modalElement).find('.jalali-datepicker');
-
-            if (datepickerInput.length) {
-                // رویداد 'shown.bs.modal' زمانی اجرا می‌شود که انیمیشن مودال تمام شده باشد
-                $(modalElement).on('shown.bs.modal', function () {
-                    // فقط اگر قبلاً مقداردهی نشده باشد
-                    if (!datepickerInput.hasClass('hasDatepicker')) {
-                        datepickerInput.persianDatepicker({
-                            format: 'YYYY/MM/DD',
-                            autoClose: true,
-                            initialValue: false,
-                            toolbox: { enabled: true, calendarSwitch: { enabled: false }, todayButton: { enabled: true, text: { fa: 'امروز' } } },
-                            navigator: { enabled: true, scroll: { enabled: false } },
-                            onSelect: function(unix){ $(this).trigger('change'); } // Trigger change for validation
-                         });
-                        // console.log('Datepicker initialized for modal:', $(modalElement).attr('id'));
-                    }
-                     // Optional: Force focus back to datepicker if needed after init
-                     // datepickerInput.focus();
-                });
-
-                 // Optional: Destroy datepicker when modal hides to prevent issues
-                 $(modalElement).on('hidden.bs.modal', function () {
-                     // Check if the 'destroy' method exists for your specific datepicker library version
-                     if (datepickerInput.hasClass('hasDatepicker') && typeof datepickerInput.persianDatepicker === 'function' && typeof datepickerInput.persianDatepicker('destroy') !== 'undefined') {
-                        try {
-                             // datepickerInput.persianDatepicker('destroy'); // Uncomment if destroy method available and needed
-                             // console.log('Datepicker destroyed for modal:', $(modalElement).attr('id'));
-                         } catch(destroyError) {
-                             console.warn("Could not destroy datepicker:", destroyError)
-                         }
-                     }
-                     // Also reset the form as before
-                     const form = $(this).find('.edit-allocation-form');
-                     if (form.length) {
-                         form[0].reset();
-                         form.removeClass('was-validated');
-                         form.find('.is-invalid').removeClass('is-invalid');
-                         form.find('.form-errors').addClass('d-none').html('');
-                     }
-                 });
-            }
-        });
-    } catch(e) {
-         console.error("Error setting up modal event listeners for Datepicker:", e);
-    }
-} else {
-    console.warn("Persian Datepicker library not found for modal initialization strategy.");
-}
-
-
-}); // End $(document).ready
+    );
+});
 </script>
 {% endblock %}
