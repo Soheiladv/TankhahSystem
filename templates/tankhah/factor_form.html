@@ -3,6 +3,11 @@
 
 {% block extra_head %}
     <style>
+        .form-label {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
         .form-control:disabled, .form-select:disabled {
             background-color: #e9ecef;
             opacity: 0.7;
@@ -162,6 +167,14 @@
                     <i class="fas fa-arrow-left me-1"></i>{% trans "بازگشت" %}
                 </a>
             </div>
+            <div id="item-formset">
+                {% if item_formset.non_form_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in item_formset.non_form_errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
             <div class="card-body p-0">
                 <ul class="nav nav-tabs factor-tabs px-4 pt-3" id="factorTabs" role="tablist">
@@ -469,22 +482,23 @@
         </div>
     </div>
 
-    <!-- تمپلیت خالی برای ردیف جدید -->
-    <template id="empty-item-form">
-    <div class="item-row bg-light p-3 mb-2 rounded shadow-sm animate__animated animate__fadeInUp" data-id="__prefix__">
-    <div class="row g-2 align-items-center">
-    <div class="col-auto">
-        <span class="row-number badge bg-secondary rounded-pill">__row_num__</span>
-    </div>
-    <div class="col-md-5">
-        <label for="id_form-__prefix__-description" class="form-label visually-hidden">{% trans "شرح قلم" %}</label>
-        <input type="text" name="form-__prefix__-description" class="form-control form-control-sm" maxlength="200"
-               id="id_form-__prefix__-description">
-    </div>
-    <div class="col-md-2 col-6">
-    <label for="id_form-__prefix__-amount" class="form-label visually-hidden">{% trans "مبلغ قلم" %}</label>
-    <div class="input-group input-group-sm">
-    <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+        <!-- تمپلیت خالی برای ردیف جدید -->
+        <template id="empty-item-form">
+        <div class="item-row bg-light p-3 mb-2 rounded shadow-sm animate__animated animate__fadeInUp" data-id="__prefix__">
+            <div class="row g-2 align-items-center">
+                <div class="col-auto">
+                    <span class="row-number badge bg-secondary rounded-pill">__row_num__</span>
+                </div>
+                <div class="col-md-5">
+                    <label for="id_form-__prefix__-description"
+                           class="form-label small text-muted">{% trans "شرح قلم" %}</label>
+                    <input type="text" name="form-__prefix__-description" class="form-control form-control-sm"
+                           maxlength="200"
+                           id="id_form-__prefix__-description">
+                </div>
+                <div class="col-md-2 col-6">
+                    <label for="id_form-__prefix__-amount"
+                           class="form-label small text-muted">{% trans "مبلغ قلم" %}</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
                         <input type="number" name="form-__prefix__-amount"
@@ -494,7 +508,7 @@
                 </div>
                 <div class="col-md-1 col-6">
                     <label for="id_form-__prefix__-quantity"
-                           class="form-label visually-hidden">{% trans "تعداد قلم" %}</label>
+                           class="form-label small text-muted">{% trans "تعداد قلم" %}</label>
                     <input type="number" name="form-__prefix__-quantity" value="1"
                            class="form-control form-control-sm ltr-input quantity-field" min="1"
                            id="id_form-__prefix__-quantity">
@@ -516,13 +530,12 @@
                 </div>
             </div>
         </div>
-    </template>
-
+        </template>
+    </div>
 {% endblock %}
 
 
 {% block extra_js %}
-
     <script>
         $(document).ready(function () {
             function toLatinDigits(str) {
@@ -553,32 +566,37 @@
             const totalFormsInput = document.getElementById('id_form-TOTAL_FORMS');
             let formCount = parseInt(totalFormsInput.value) || 0;
 
-            const firstRow = itemFormsetContainer.querySelector('.item-row');
-            if (!firstRow) {
-                console.error("No initial item row found");
-                return;
-            }
-            const emptyFormTemplate = firstRow.outerHTML.replace(/-0-/g, `-__prefix__-`).replace(firstRow.querySelector('.row-number').textContent, '__row_num__');
+            // استفاده از قالب خالی
+            const emptyFormTemplate = document.getElementById('empty-item-form').content;
 
             if (addItemButton) {
                 addItemButton.addEventListener('click', function () {
                     const newIndex = formCount;
-                    let newFormHtml = emptyFormTemplate.replace(/__prefix__/g, newIndex);
-                    newFormHtml = newFormHtml.replace(/__row_num__/g, (formCount).toLocaleString('fa-IR'));
+                    const newForm = emptyFormTemplate.cloneNode(true);
+                    const newFormElement = newForm.querySelector('.item-row');
 
-                    const newFormElement = document.createElement('div');
-                    newFormElement.innerHTML = newFormHtml;
-                    const actualFormRow = newFormElement.firstElementChild;
+                    // جایگزینی __prefix__ با شاخص جدید
+                    newFormElement.innerHTML = newFormElement.innerHTML.replace(/__prefix__/g, newIndex);
+                    // تنظیم شماره ردیف
+                    newFormElement.querySelector('.row-number').textContent = (formCount + 1).toLocaleString('fa-IR');
 
-                    itemFormsetContainer.querySelector('.item-summary').before(actualFormRow);
+                    // تنظیم مقادیر پیش‌فرض
+                    newFormElement.querySelector('[name$="-description"]').value = '';
+                    newFormElement.querySelector('[name$="-amount"]').value = '';
+                    newFormElement.querySelector('[name$="-quantity"]').value = '1';
+                    newFormElement.querySelector('.item-total').textContent = '۰';
+
+                    // افزودن ردیف جدید به فرم‌ست
+                    itemFormsetContainer.querySelector('.item-summary').before(newFormElement);
                     formCount++;
                     totalFormsInput.value = formCount;
 
-                    attachItemCalculationListeners(actualFormRow);
-                    attachDeleteListener(actualFormRow.querySelector('[name$="-DELETE"]'));
-                    calculateItemTotal(actualFormRow);
+                    // اتصال listenerها
+                    attachItemCalculationListeners(newFormElement);
+                    attachDeleteListener(newFormElement.querySelector('[name$="-DELETE"]'));
+                    calculateItemTotal(newFormElement);
 
-                    const newDescriptionInput = actualFormRow.querySelector('[name$="-description"]');
+                    const newDescriptionInput = newFormElement.querySelector('[name$="-description"]');
                     if (newDescriptionInput) newDescriptionInput.focus();
                 });
             }

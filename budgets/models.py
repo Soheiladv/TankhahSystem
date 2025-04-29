@@ -409,6 +409,10 @@ class BudgetAllocation(models.Model):
             logger.error(f"Error saving BudgetAllocation: {str(e)}", exc_info=True)
             raise
 
+    @property
+    def project_allocations(self):
+        return ProjectBudgetAllocation.objects.filter(budget_allocation=self)
+
 """ BudgetItem (نوع ردیف بودجه):"""
 class BudgetItem(models.Model):
     budget_period = models.ForeignKey('BudgetPeriod', on_delete=models.CASCADE, related_name='budget_items',
@@ -627,6 +631,12 @@ class ProjectBudgetAllocation(models.Model):
         # if not self.pk:
         #     self.remaining_amount = self.allocated_amount
         super().save(*args, **kwargs)
+        # # به‌روزرسانی بودجه پروژه
+        # self.project.update_total_budget()
+        # اگر زیرپروژه وجود دارد، بودجه آن را هم به‌روزرسانی کنید
+        if self.subproject:
+            self.subproject.save()  # متد save در SubProject بودجه را به‌روزرسانی می‌کند
+
         # self.budget_allocation.remaining_amount = self.budget_allocation.get_remaining_amount()
         # self.budget_allocation.save(update_fields=['remaining_amount'])
         # self.remaining_amount = self.get_remaining_amount()
@@ -666,6 +676,10 @@ class ProjectBudgetAllocation(models.Model):
             ('ProjectBudgetAllocation_delete', _('حذف تخصیص بودجه پروژه')),
             ('ProjectBudgetAllocation_Head_Office', 'تخصیص بودجه مجموعه پروژه(دفتر مرکزی)🏠'),
             ('ProjectBudgetAllocation_Branch', 'تخصیص بودجه مجموعه پروژه(شعبه)🏠'),
+        ]
+        indexes = [
+            models.Index(fields=['project']),
+            models.Index(fields=['subproject']),
         ]
 
 """PaymentOrder (دستور پرداخت):"""

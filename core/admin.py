@@ -1,9 +1,8 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
-from .models import Organization, Project, Post, UserPost, PostHistory
-from tankhah.models import WorkflowStage
-from core.models import OrganizationType
+from core.models import Organization, OrganizationType, Project, Post, UserPost, PostHistory, WorkflowStage
+
 
 # تابع کمکی برای کوتاه کردن متن
 def truncate_text(text, max_length=50):
@@ -15,7 +14,6 @@ class BaseAdmin(admin.ModelAdmin):
     list_per_page = 20  # تعداد آیتم‌ها در هر صفحه
     ordering = ('-id',)  # ترتیب پیش‌فرض
     search_fields = ('name',)  # فیلد جستجوی پیش‌فرض
-
 
 # ادمین سازمان
 @admin.register(Organization)
@@ -32,7 +30,6 @@ class OrganizationAdmin(BaseAdmin):
     def description_short(self, obj):
         return truncate_text(obj.description)
     description_short.short_description = _('توضیحات کوتاه')
-
 
 # ادمین پروژه
 @admin.register(Project)
@@ -51,7 +48,6 @@ class ProjectAdmin(BaseAdmin):
         return obj.organizations.count()
     org_count.short_description = _('تعداد مجتمع‌ها')
 
-
 # ادمین پست سازمانی
 @admin.register(Post)
 class PostAdmin(BaseAdmin):
@@ -65,7 +61,6 @@ class PostAdmin(BaseAdmin):
         (None, {'fields': ('name', 'organization', 'parent', 'level', 'branch')}),
         (_('توضیحات'), {'fields': ('description',), 'classes': ('collapse',)}),
     )
-
 
 # ادمین اتصال کاربر به پست
 @admin.register(UserPost)
@@ -101,7 +96,7 @@ class PostHistoryAdmin(BaseAdmin):
 
 
 # ادمین مراحل گردش کار
-@admin.register(WorkflowStage)
+@admin.register(WorkflowStage) # <-- اینجا نام خود کلاس مدل WorkflowStage را بدون ' ' و بدون آدرس اپلیکیشن بنویسید
 class WorkflowStageAdmin(BaseAdmin):
     list_display = ('name', 'order', 'description_short')
     search_fields = ('name', 'description')

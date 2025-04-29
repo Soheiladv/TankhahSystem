@@ -124,7 +124,7 @@
                         <li>
                             <i class="fas fa-coins"></i>
                             <div class="detail-value fw-bold">
-                         {{ project_budgets|dict_get:project.id|default:0|floatformat:0|format_negative }} <small class="text-muted">{% trans "ریال بودجه" %}</small>
+                                {{ project.total_budget|default:0|floatformat:0|to_persian_number }} <small class="text-muted">{% trans "ریال بودجه" %}</small>
                             </div>
                         </li>
                         <li>

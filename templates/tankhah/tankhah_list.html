@@ -2,580 +2,1031 @@
 {% load i18n jformat static rcms_custom_filters %}
 
 {% block content %}
-    <div class="container mt-4 mb-5"> {# اضافه کردن فاصله پایین #}
-
-        <div class="card shadow-lg border-0 overflow-hidden"> {# سایه بیشتر و حذف بوردر #}
-            <div class="card-header bg-gradient-primary text-white p-4"> {# استفاده از گرادینت و پدینگ بیشتر #}
+    <div class="container mt-4 mb-5">
+        <div class="card shadow-lg border-0 overflow-hidden">
+            <div class="card-header bg-gradient-primary text-white p-4">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-                    <h1 class="card-title mb-3 mb-md-0 h4"> {# کاهش اندازه عنوان برای هماهنگی #}
-                        <i class="fas fa-list-alt me-2"></i>{{ title|default:'لیست تنخواه‌ها' }}
+                    <h1 class="card-title mb-3 mb-md-0 h4">
+                        <i class="fas fa-wallet me-2"></i>{{ title|default:'مدیریت تنخواه‌ها' }}
                     </h1>
-                    <div class="d-flex flex-wrap gap-2"> {# دکمه‌ها با فاصله #}
-                    {% if perms.tankhah.Tankhah_add and is_hq_user and not show_archived %}
-                        <a href="{% url 'tankhah_create' %}" class="btn btn-light btn-sm text-primary fw-bold">
-                            <i class="fas fa-plus me-1"></i>{% trans "ایجاد تنخواه جدید" %}
-                        </a>
-                    {% endif %}
-                        {# دکمه‌های اضافی رو می‌تونیم توی dropdown بذاریم اگر زیاد شدن #}
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-outline-light btn-sm dropdown-toggle"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-ellipsis-h"></i> {% trans "بیشتر" %}
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a href="{% url 'workflow' %}" class="dropdown-item">
-                                        <i class="fas fa-hands-helping me-2 text-info"></i>{% trans "راهنمای جریان کار" %}
-                                    </a>
-                                </li>
-                                {# لینک‌های دیگر در صورت نیاز #}
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item" href="#"><i
-                                        class="fas fa-print me-2 text-secondary"></i> {% trans "چاپ لیست" %}</a></li>
+
+                    <!-- خطای سیستم -->
+                    {% if errors %}
+                        <div class="alert alert-danger">
+                            <ul>
+                                {% for error in errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
                             </ul>
                         </div>
+                    {% endif %}
+
+                    <div class="d-flex flex-wrap gap-2">
+                        {% if perms.tankhah.Tankhah_add and is_hq_user and not show_archived %}
+                            <a href="{% url 'tankhah_create' %}" class="btn btn-light btn-sm text-primary fw-bold">
+                                <i class="fas fa-plus me-1"></i>{% trans "تنخواه جدید" %}
+                            </a>
+                        {% endif %}
+
+                        <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#filterCollapse" aria-expanded="false"
+                                aria-controls="filterCollapse">
+                            <i class="fas fa-filter me-1"></i> فیلترها
+                            {% if query or show_archived %}
+                                <span class="badge bg-white text-primary ms-1">{{ page_obj.paginator.count }}</span>
+                            {% endif %}
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <div class="card-body p-4">
-                <div class="accordion mb-4" id="filterAccordion">
-                    <div class="accordion-item border-0 shadow-sm">
-                        <h2 class="accordion-header" id="headingOne">
-                            <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#collapseFilter" aria-expanded="false"
-                                    aria-controls="collapseFilter">
-                                <i class="fas fa-filter me-2"></i>{% trans "فیلتر و جستجو" %}
-                                {% if query or show_archived %}
-                                    <span class="badge bg-primary rounded-pill ms-2">{% trans "فیلتر فعال" %}</span>
-                                {% endif %}
-                            </button>
-                        </h2>
-                        <div id="collapseFilter"
-                             class="accordion-collapse collapse {% if query or show_archived %}show{% endif %}"
-                             aria-labelledby="headingOne" data-bs-parent="#filterAccordion">
-                            <div class="accordion-body border-top">
-                                <form method="get" class="">
-                                    <div class="row g-3 align-items-center">
-                                        <div class="col-md-8">
-                                            <div class="input-group input-group-sm">
-                                                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                                <input type="text" name="q" value="{{ query|default:'' }}"
-                                                       placeholder="{% trans 'جستجو در شماره، پروژه، سازمان...' %}"
-                                                       class="form-control">
-                                                <button type="submit"
-                                                        class="btn btn-outline-primary">{% trans "اعمال" %}</button>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-check form-switch form-check-inline float-md-end">
-                                                <input type="checkbox" class="form-check-input" name="show_archived"
-                                                       id="showArchived"
-                                                       value="true" {% if show_archived %}checked{% endif %}
-                                                       onchange="this.form.submit()">
-                                                <label class="form-check-label"
-                                                       for="showArchived">{% trans "نمایش آرشیو شده‌ها" %}</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
+            <!-- پنل فیلترها -->
+            <div class="collapse {% if query or show_archived %}show{% endif %}" id="filterCollapse">
+                <div class="card-body border-bottom py-3 bg-light">
+                    <form method="get" class="row g-3 align-items-center">
+                        <div class="col-md-8">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" name="q" value="{{ query|default:'' }}"
+                                       placeholder="جستجو در شماره، پروژه، سازمان..."
+                                       class="form-control">
+                                <button type="submit" class="btn btn-primary">
+                                    {% trans "اعمال فیلتر" %}
+                                </button>
+                            </div>
                         </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch float-md-end">
+                                <input type="checkbox" class="form-check-input" name="show_archived"
+                                       id="showArchived" value="true"
+                                       {% if show_archived %}checked{% endif %}>
+                                <label class="form-check-label" for="showArchived">
+                                    نمایش آرشیو شده‌ها
+                                </label>
+                            </div>
                         </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <!-- خلاصه آمار -->
+                <div class="d-flex flex-wrap justify-content-around p-3 bg-light border-bottom small">
+                    <div class="text-center px-3">
+                        <div class="text-muted">تعداد تنخواه‌ها</div>
+                        <div class="fw-bold">{{ page_obj.paginator.count|to_persian_number }}</div>
+                    </div>
+                    <div class="text-center px-3">
+                        <div class="text-muted">مجموع مبالغ</div>
+                        <div class="fw-bold">{{ total_amount|floatformat:0|to_persian_number }} ریال</div>
+                    </div>
+                    <div class="text-center px-3">
+                        <div class="text-muted">میانگین مبلغ</div>
+                        <div class="fw-bold">{{ avg_amount|floatformat:0|to_persian_number }} ریال</div>
                     </div>
                 </div>
 
-                <div class="table-responsive tankhah-table-wrapper">
-                    <table class="table table-hover align-middle tankhah-table">
-                        {# table-striped حذف شد برای خوانایی بهتر با هاور #}
-                        <thead class="table-light sticky-top"> {# چسبیدن هدر جدول #}
-                        <tr>
-                            <th scope="col">{% trans "#" %}</th>
-                            <th scope="col">{% trans "شماره" %}</th>
-                            <th scope="col">{% trans "تاریخ" %}</th>
-                            <th scope="col">{% trans "مبلغ (ریال)" %}</th>
-                            <th scope="col">{% trans "سازمان" %}</th>
-                            <th scope="col">{% trans "پروژه" %}</th>
-                            <th scope="col">{% trans "زیرپروژه" %}</th>
-                            <th scope="col">{% trans "وضعیت" %}</th>
-                            <th scope="col" class="text-center no-print">{% trans "اقدامات" %}</th>
-                            {% if perms.reports.FinancialReport_view %}
-                                <th scope="col" class="text-center no-print">{% trans "گزارش" %}</th>
-                            {% endif %}
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for tankhah in page_obj %}
-                            <tr class="{% if tankhah.is_archived %}table-secondary text-muted{% endif %}">
-                                {# اضافه کردن data-label برای نمایش در موبایل #}
-                                <td data-label="ردیف">
-                                <span class="row-counter {% if tankhah.is_archived %}archived{% endif %}">
-                                    {{ page_obj.start_index|add:forloop.counter0|to_persian_number }}
-                                </span>
-                                </td>
-                                <td data-label="شماره">{{ tankhah.number|to_persian_number }}</td>
-                                <td data-label="تاریخ"
-                                    class="text-nowrap">{{ tankhah.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
-                                <td data-label="مبلغ"
-                                    class="text-nowrap fw-bold">{{ tankhah.amount|format_negative }}</td>
-                                <td data-label="سازمان">{{ tankhah.organization.name|default:'-' }}</td>
-                                <td data-label="پروژه">{{ tankhah.project.name|default:'-' }}</td>
-                                <td data-label="زیرپروژه">{{ tankhah.subproject.name|default:'-' }}</td>
-                                <td data-label="وضعیت">
-                                    {% with status_lower=tankhah.status|lower %}
-                                        <span class="badge status-badge status-{{ status_lower }}">
-                                    {% if status_lower == 'paid' %} <i class="fas fa-check-circle me-1"></i>
-                                    {% elif status_lower == 'pending' %} <i class="fas fa-clock me-1"></i>
-                                    {% elif status_lower == 'rejected' %} <i class="fas fa-times-circle me-1"></i>
-                                    {% elif status_lower == 'draft' %} <i class="fas fa-pencil-alt me-1"></i>
-                                    {% else %} <i class="fas fa-question-circle me-1"></i>
-                                    {% endif %}
+                <!-- لیست تنخواه‌ها -->
+                <div class="list-group list-group-flush">
+                    {% for tankhah in tankhahs %}
+                        <div class="list-group-item list-group-item-action p-0 border-bottom">
+                            <div class="d-flex flex-column flex-md-row align-items-md-center p-3">
+                                <!-- اطلاعات اصلی -->
+                                <div class="flex-grow-1 mb-2 mb-md-0">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge me-2 status-badge status-{{ tankhah.status|lower }}">
                                             {{ tankhah.get_status_display }}
-                                </span>
-                                    {% endwith %}
-                                </td>
-                                <td data-label="اقدامات" class="text-center no-print">
+                                        </span>
+                                        <h6 class="mb-0">
+                                            تنخواه شماره {{ tankhah.number|to_persian_number }}
+                                            <small class="text-muted ms-2">
+                                                {{ tankhah.date|jformat:"%Y/%m/%d"|to_persian_number }}
+                                            </small>
+                                        </h6>
+                                    </div>
+
+                                    <div class="mt-2 small">
+                                        <span class="me-3">
+                                            <i class="fas fa-building me-1 text-muted"></i>
+                                            {{ tankhah.organization.name|default:'-' }}
+                                        </span>
+                                        <span class="me-3">
+                                            <i class="fas fa-project-diagram me-1 text-muted"></i>
+                                            {{ tankhah.project.name|default:'-' }}
+                                        </span>
+                                        <span class="text-success fw-bold">
+                                            <i class="fas fa-money-bill-wave me-1"></i>
+                                            {{ tankhah.amount|floatformat:0|to_persian_number }} ریال
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- اقدامات -->
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a href="{% url 'tankhah_detail' tankhah.pk %}"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+
                                     <div class="dropdown">
-                                        {# ! اضافه کردن data-bs-display="static" به دکمه #}
-                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
-                                                id="actionsMenu{{ tankhah.pk }}"
-                                                data-bs-toggle="dropdown"
-                                                aria-expanded="false">
-                                            <i class="fas fa-cog"></i>
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                                type="button" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-h"></i>
                                         </button>
-                                        <ul class="dropdown-menu dropdown-menu-end"
-                                            aria-labelledby="actionsMenu{{ tankhah.pk }}">
+                                        <ul class="dropdown-menu dropdown-menu-end">
                                             <li>
-                                                <a href="{% url 'tankhah_detail' tankhah.pk %}" class="dropdown-item">
-                                                    <i class="fas fa-eye fa-fw me-2 text-info"></i> {% trans "مشاهده جزئیات" %}
+                                                <a href="{% url 'tankhah_tracking' tankhah.pk %}"
+                                                   class="dropdown-item">
+                                                    <i class="fas fa-tree fa-fw me-2 text-success"></i>
+                                                    درخت پیگیری
                                                 </a>
                                             </li>
-                                            <li>
-                                                <a href="{% url 'tankhah_tracking' tankhah.pk %}" class="dropdown-item">
-                                                    <i class="fas fa-tree fa-fw me-2 text-success"></i>{% trans "درخت پیگیری" %}
-                                                </a>
-                                            </li>
-                                        {% if not tankhah.is_archived %}
-                                            {% if perms.tankhah.Tankhah_update %}
-                                                <li>
-                                                    <hr class="dropdown-divider">
-                                                </li>
-                                                <li>
-                                                    <a href="{% url 'tankhah_update' tankhah.pk %}"
-                                                       class="dropdown-item">
-                                                        <i class="fas fa-edit fa-fw me-2 text-secondary"></i> {% trans "ویرایش" %}
-                                                </a>
-                                                </li>
+                                            {% if not tankhah.is_archived %}
+                                                {% if perms.tankhah.Tankhah_update %}
+                                                    <li>
+                                                        <a href="{% url 'tankhah_update' tankhah.pk %}"
+                                                           class="dropdown-item">
+                                                            <i class="fas fa-edit fa-fw me-2"></i>
+                                                            ویرایش
+                                                        </a>
+                                                    </li>
+                                                {% endif %}
+                                                {% if perms.tankhah.Tankhah_approve and tankhah.status == 'PENDING' %}
+                                                    <li>
+                                                        <a href="{% url 'tankhah_approve' tankhah.pk %}"
+                                                           class="dropdown-item text-success">
+                                                            <i class="fas fa-check fa-fw me-2"></i>
+                                                            تأیید
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="{% url 'tankhah_reject' tankhah.pk %}"
+                                                           class="dropdown-item text-danger">
+                                                            <i class="fas fa-times fa-fw me-2"></i>
+                                                            رد کردن
+                                                        </a>
+                                                    </li>
+                                                {% endif %}
                                             {% endif %}
-                                            {% if perms.tankhah.Tankhah_delete %}
-                                                <li>
-                                                    <a href="{% url 'tankhah_delete' tankhah.pk %}"
-                                                       class="dropdown-item text-danger">
-                                                        <i class="fas fa-trash fa-fw me-2"></i> {% trans "حذف" %}
-                                                </a>
-                                                </li>
-                                            {% endif %}
-                                            {% if perms.tankhah.Tankhah_approve and tankhah.status == 'PENDING' %}
-                                                <li>
-                                                    <hr class="dropdown-divider">
-                                                </li>
-                                                <li>
-                                                    <a href="{% url 'tankhah_approve' tankhah.pk %}"
-                                                       class="dropdown-item text-success">
-                                                        <i class="fas fa-check fa-fw me-2"></i> {% trans "تأیید" %}
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="{% url 'tankhah_reject' tankhah.pk %}"
-                                                       class="dropdown-item text-danger">
-                                                        <i class="fas fa-times fa-fw me-2"></i> {% trans "رد کردن" %}
-                                                    </a>
-                                                </li>
-                                            {% endif %}
-                                        {% else %}
-                                            <li>
-                                                <hr class="dropdown-divider">
-                                            </li>
-                                            <li><span class="dropdown-item-text text-muted"><i
-                                                    class="fas fa-archive me-2"></i> {% trans "آرشیو شده" %}</span></li>
-                                        {% endif %}
                                         </ul>
                                     </div>
-                                </td>
-                                {% if perms.reports.FinancialReport_view %}
-                                    <td data-label="گزارش مالی" class="text-center no-print">
-                                        {% if tankhah.current_stage.name == 'HQ_FIN_PENDING' or tankhah.is_archived %}
-                                            <a href="{% url 'tankhah_financial_report' tankhah.pk %}"
-                                               class="btn btn-outline-success btn-sm"
-                                               title="{% trans 'مشاهده گزارش مالی' %}">
-                                                <i class="fas fa-file-invoice-dollar"></i>
-                                            </a>
-                                        {% else %}
-                                            <button class="btn btn-outline-secondary btn-sm" disabled
-                                                    title="{% trans 'گزارش مالی در این مرحله در دسترس نیست' %}">
-                                                <i class="fas fa-file-invoice-dollar"></i>
-                                            </button>
-                                        {% endif %}
-                                    </td>
+                                </div>
+                            </div>
+
+                            <!-- اطلاعات توسعه یافته -->
+                            <div class="collapse" id="details-{{ tankhah.pk }}">
+                                <div class="p-3 bg-light small">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-2">
+                                                <strong>زیرپروژه:</strong>
+                                                {{ tankhah.subproject.name|default:'-' }}
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong>وضعیت بودجه:</strong>
+                                                <span class="{% if tankhah.project_remaining_budget < 0 %}text-danger{% endif %}">
+                                                    {{ tankhah.project_remaining_budget|floatformat:0|to_persian_number }} ریال باقیمانده
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-2">
+                                                <strong>مصرف پروژه:</strong>
+                                                <div class="progress mt-1" style="height: 8px;">
+                                                    {% with percentage=tankhah.project_consumed_percentage|default:0 %}
+                                                        <div class="progress-bar
+                                                            {% if percentage >= 95 %}bg-danger
+                                                            {% elif percentage >= 80 %}bg-warning
+                                                            {% else %}bg-success{% endif %}"
+                                                             style="width: {{ percentage }}%">
+                                                        </div>
+                                                    {% endwith %}
+                                                </div>
+                                                <small>{{ tankhah.project_consumed_percentage|default:0 }}% مصرف شده</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- دکمه نمایش جزئیات -->
+                            <div class="text-center py-2 bg-light">
+                                <button class="btn btn-sm btn-link text-muted"
+                                        type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#details-{{ tankhah.pk }}">
+                                    <i class="fas fa-chevron-down"></i>
+                                    نمایش جزئیات بیشتر
+                                </button>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="fas fa-wallet fa-3x mb-3"></i>
+                                <p class="h5">هیچ تنخواهی یافت نشد</p>
+                                {% if not query and not show_archived and perms.tankhah.Tankhah_add and is_hq_user %}
+                                    <a href="{% url 'tankhah_create' %}" class="btn btn-primary mt-3">
+                                        <i class="fas fa-plus me-1"></i>ایجاد اولین تنخواه
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- صفحه‌بندی -->
+                {% if page_obj.paginator.num_pages > 1 %}
+                    <div class="card-footer bg-light">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="?page=1&q={{ query|default:'' }}&show_archived={{ show_archived|default:'' }}">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="?page={{ page_obj.previous_page_number }}&q={{ query|default:'' }}&show_archived={{ show_archived|default:'' }}">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
                                 {% endif %}
 
-                                {# ! نمایش فاکتورها از اینجا حذف شد - باید در صفحه جزئیات باشد #}
-
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="{% if perms.reports.FinancialReport_view %}10{% else %}9{% endif %}"
-                                    class="text-center py-5">
-                                    <div class="text-muted">
-                                        <i class="fas fa-folder-open fa-3x mb-3"></i>
-                                        <p>{% trans "هیچ تنخواهی مطابق با فیلترهای شما یافت نشد." %}</p>
-                                        {% if not query and not show_archived and perms.tankhah.Tankhah_add and is_hq_user %}
-                                            <a href="{% url 'tankhah_create' %}" class="btn btn-primary mt-2">
-                                                <i class="fas fa-plus me-1"></i>{% trans "ایجاد اولین تنخواه" %}
-                                            </a>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3">
-                    <div class="alert alert-light border small mb-0" role="alert">
-                        {% trans "وضعیت نمایش:" %}
-                        <strong class="mx-1">
-                            {% if show_archived %}{% trans "آرشیو شده" %}
-                            {% else %}{% trans "فعال" %}{% endif %}
-                        </strong>
-                        | {% trans "سازمان:" %} <strong class="mx-1">{{ org_display_name }}</strong>
-                        | {% blocktrans count counter=page_obj.paginator.count %}۱ نتیجه
-                        {% plural %}{{ counter|to_persian_number }} نتیجه{% endblocktrans %}
-                </div>
-
-                {% if page_obj.paginator.num_pages > 1 %}
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-center mb-0">
-                            {% if page_obj.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link"
-                                       href="?page=1&q={{ query|default:'' }}&show_archived={{ show_archived|default:'' }}"
-                                       aria-label="First">
-                                        <i class="fas fa-angle-double-right"></i> {# RTL #}
-                                    </a>
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        صفحه {{ page_obj.number|to_persian_number }} از {{ page_obj.paginator.num_pages|to_persian_number }}
+                                    </span>
                                 </li>
-                                <li class="page-item">
-                                    <a class="page-link"
-                                       href="?page={{ page_obj.previous_page_number }}&q={{ query|default:'' }}&show_archived={{ show_archived|default:'' }}"
-                                       aria-label="Previous">
-                                        <i class="fas fa-angle-right"></i> {# RTL #}
-                                    </a>
-                                </li>
-                            {% else %}
-                                <li class="page-item disabled"><span class="page-link"><i
-                                        class="fas fa-angle-double-right"></i></span></li>
-                                <li class="page-item disabled"><span class="page-link"><i
-                                        class="fas fa-angle-right"></i></span></li>
-                            {% endif %}
 
-                            <li class="page-item disabled">
-                                <span class="page-link text-primary">
-                                    {% blocktrans with current=page_obj.number|to_persian_number total=page_obj.paginator.num_pages|to_persian_number %}
-                                        صفحه {{ current }} از {{ total }}{% endblocktrans %}
-                                </span>
-                            </li>
-
-                            {% if page_obj.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link"
-                                       href="?page={{ page_obj.next_page_number }}&q={{ query|default:'' }}&show_archived={{ show_archived|default:'' }}"
-                                       aria-label="Next">
-                                        <i class="fas fa-angle-left"></i> {# RTL #}
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link"
-                                       href="?page={{ page_obj.paginator.num_pages }}&q={{ query|default:'' }}&show_archived={{ show_archived|default:'' }}"
-                                       aria-label="Last">
-                                        <i class="fas fa-angle-double-left"></i> {# RTL #}
-                                    </a>
-                                </li>
-                            {% else %}
-                                <li class="page-item disabled"><span class="page-link"><i class="fas fa-angle-left"></i></span>
-                                </li>
-                                <li class="page-item disabled"><span class="page-link"><i
-                                        class="fas fa-angle-double-left"></i></span></li>
-                            {% endif %}
-                        </ul>
-                    </nav>
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="?page={{ page_obj.next_page_number }}&q={{ query|default:'' }}&show_archived={{ show_archived|default:'' }}">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="?page={{ page_obj.paginator.num_pages }}&q={{ query|default:'' }}&show_archived={{ show_archived|default:'' }}">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
                 {% endif %}
             </div>
-            </div>
-            {# End Card Body #}
         </div>
-        {# End Card #}
-    </div> {# End Container #}
+    </div>
 {% endblock %}
 
-
 {% block extra_css %}
-    {# استایل‌های اختصاصی این صفحه - می‌تواند در فایل CSS اصلی سایت هم باشد #}
     <style>
         :root {
-            /* تعریف متغیرهای رنگی وضعیت (می‌تواند از CSS اصلی بیاید) */
             --status-paid-bg: #d1e7dd;
             --status-paid-text: #0f5132;
-            --status-paid-border: #a3cfbb;
             --status-pending-bg: #fff3cd;
             --status-pending-text: #664d03;
-            --status-pending-border: #ffecb5;
             --status-rejected-bg: #f8d7da;
             --status-rejected-text: #842029;
-            --status-rejected-border: #f5c6cb;
             --status-draft-bg: #e2e3e5;
             --status-draft-text: #41464b;
-            --status-draft-border: #d3d6d8;
-            --status-default-bg: #f8f9fa;
-            --status-default-text: #6c757d;
-            --status-default-border: #dee2e6;
+            --status-archived-bg: #f8f9fa;
+            --status-archived-text: #6c757d;
         }
 
         [data-theme="dark"] {
-            --status-paid-bg: #0f5132;
-            --status-paid-text: #a3cfbb;
-            --status-paid-border: #146c43;
-            --status-pending-bg: #664d03;
-            --status-pending-text: #ffecb5;
-            --status-pending-border: #997404;
-            --status-rejected-bg: #842029;
-            --status-rejected-text: #f5c6cb;
-            --status-rejected-border: #a52834;
-            --status-draft-bg: #41464b;
+            --status-paid-bg: rgba(25, 135, 84, 0.2);
+            --status-paid-text: #75b798;
+            --status-pending-bg: rgba(255, 193, 7, 0.2);
+            --status-pending-text: #ffda6a;
+            --status-rejected-bg: rgba(220, 53, 69, 0.2);
+            --status-rejected-text: #ea868f;
+            --status-draft-bg: rgba(108, 117, 125, 0.2);
             --status-draft-text: #adb5bd;
-            --status-draft-border: #5c636a;
-            --status-default-bg: #343a40;
-            --status-default-text: #adb5bd;
-            --status-default-border: #495057;
+            --status-archived-bg: rgba(73, 80, 87, 0.2);
+            --status-archived-text: #ced4da;
         }
 
-        .bg-gradient-primary {
-            background: linear-gradient(90deg, #0d6efd, #0a58ca); /* مثال گرادینت آبی */
-            /* background: linear-gradient(90deg, var(--primary), var(--primary-hover)); */ /* اگر متغیر دارید */
-        }
-
-        .tankhah-table th {
-            white-space: nowrap; /* جلوگیری از شکستن عنوان ستون‌ها */
-        }
-
-        .tankhah-table tbody tr:hover {
-            background-color: rgba(0, 123, 255, 0.05); /* هاور آبی خیلی ملایم */
-        }
-
-        [data-theme="dark"] .tankhah-table tbody tr:hover {
-            background-color: rgba(var(--bs-primary-rgb), 0.15);
-        }
-
-        .row-counter {
-            font-weight: bold;
-            color: var(--bs-secondary-color); /* رنگ پیش‌فرض */
-        }
-
-        .row-counter.archived {
-            color: var(--bs-danger-text-emphasis); /* رنگ قرمز برای آرشیو */
-            text-decoration: line-through;
-        }
-
-        /* استایل بج‌های وضعیت */
         .status-badge {
-            padding: 0.4em 0.7em;
-            font-size: 0.8em;
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
             font-weight: 600;
-            border: 1px solid transparent;
-            border-radius: 0.375rem; /* Bootstrap's default */
-        }
-
-        .status-badge i {
-            font-size: 0.9em;
+            border-radius: 0.25rem;
         }
 
         .status-paid {
             background-color: var(--status-paid-bg);
             color: var(--status-paid-text);
-            border-color: var(--status-paid-border);
         }
 
         .status-pending {
             background-color: var(--status-pending-bg);
             color: var(--status-pending-text);
-            border-color: var(--status-pending-border);
         }
 
         .status-rejected {
             background-color: var(--status-rejected-bg);
             color: var(--status-rejected-text);
-            border-color: var(--status-rejected-border);
         }
 
         .status-draft {
             background-color: var(--status-draft-bg);
             color: var(--status-draft-text);
-            border-color: var(--status-draft-border);
         }
 
-        /* برای وضعیت‌های دیگر */
-        .status-badge:not(.status-paid):not(.status-pending):not(.status-rejected):not(.status-draft) {
-            background-color: var(--status-default-bg);
-            color: var(--status-default-text);
-            border-color: var(--status-default-border);
+        .status-archived {
+            background-color: var(--status-archived-bg);
+            color: var(--status-archived-text);
         }
 
-        /* استایل جدول در موبایل (data-label) */
+        .list-group-item {
+            transition: all 0.2s ease;
+        }
+
+        .list-group-item:hover {
+            background-color: rgba(var(--bs-primary-rgb), 0.05);
+        }
+
         @media (max-width: 768px) {
-            .tankhah-table thead {
-                display: none;
+            .list-group-item {
+                padding: 1rem;
             }
 
-            .tankhah-table tr {
-                display: block;
-                margin-bottom: 1rem;
-                border: 1px solid var(--bs-border-color);
-                border-radius: var(--bs-card-border-radius);
-                overflow: hidden;
-                box-shadow: var(--bs-box-shadow-sm);
+            .status-badge {
+                font-size: 0.65em;
             }
-
-            .tankhah-table td {
-                display: block;
-                text-align: right; /* RTL */
-                padding-left: 50% !important; /* برای ایجاد فضا */
-                position: relative;
-                border: none;
-                border-bottom: 1px dashed var(--bs-border-color-translucent);
-            }
-
-            .tankhah-table td:last-child {
-                border-bottom: none;
-            }
-
-            .tankhah-table td::before {
-                content: attr(data-label);
-                position: absolute;
-                left: auto; /* پاک کردن left پیش‌فرض */
-                right: 1rem; /* RTL */
-                width: 45%; /* تنظیم عرض لیبل */
-                padding-right: 0; /* RTL */
-                white-space: nowrap;
-                font-weight: bold;
-                color: var(--bs-primary); /* رنگ لیبل */
-                text-align: left; /* RTL */
-            }
-
-            .tankhah-table td.no-print {
-                display: block !important;
-            }
-
-            /* نمایش ستون اقدامات در موبایل */
-            .tankhah-table td.text-center {
-                text-align: right !important;
-            }
-
-            /* تراز اقدامات در موبایل */
-            .tankhah-table td.text-center .dropdown {
-                display: inline-block;
-            }
-
-            /* نمایش صحیح dropdown */
         }
 
-        /* استایل برای چاپ */
-        @media print {
-            body {
-                background-color: #fff !important;
-            }
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+        }
 
-            .card-header, .accordion, .pagination, .alert, .no-print {
-                display: none !important;
-            }
-
-            .card {
-                box-shadow: none !important;
-                border: none !important;
-            }
-
-            .card-body {
-                padding: 0 !important;
-            }
-
-            .table-responsive {
-                overflow: visible !important;
-            }
-
-            .table {
-                font-size: 10pt;
-            }
-
-            .table th, .table td {
-                padding: 5px !important;
-            }
-
-            @page {
-                size: A4 landscape;
-                margin: 10mm;
-            }
+        .progress-bar {
+            transition: width 0.6s ease;
         }
     </style>
 {% endblock %}
 
 {% block extra_js %}
-    {# اسکریپت‌های اضافی اگر لازم است #}
     <script>
-        // Optional: Initialize tooltips for action buttons if you add titles
-        // var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        // var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        //   return new bootstrap.Tooltip(tooltipTriggerEl)
-        // })
-    </script>
-    <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // فقط دکمه‌های دراپ‌داون داخل جدول تنخواه رو انتخاب می‌کنیم
-    var tableDropdownToggles = document.querySelectorAll('.tankhah-table .dropdown-toggle');
+        document.addEventListener('DOMContentLoaded', function() {
+            // فعال کردن collapse با انیمیشن
+            const detailsCollapses = document.querySelectorAll('[id^="details-"]');
+            detailsCollapses.forEach(collapse => {
+                collapse.addEventListener('show.bs.collapse', function() {
+                    const btn = this.previousElementSibling.querySelector('button');
+                    btn.innerHTML = '<i class="fas fa-chevron-up"></i> بستن جزئیات';
+                });
 
-    if (typeof bootstrap !== 'undefined' && typeof bootstrap.Dropdown !== 'undefined') { // بررسی وجود بوت‌استرپ
-        tableDropdownToggles.forEach(function (toggle) {
-            // یک کانفیگ سفارشی برای Popper.js تعریف می‌کنیم
-            const customPopperConfig = {
-                strategy: 'fixed', // ! استراتژی موقعیت‌یابی رو fixed می‌کنیم
-                // modifiers: [ // مادیفایرهای اضافی در صورت نیاز (مثلا برای آفست)
-                //     { name: 'offset', options: { offset: [0, 2] } } // کمی فاصله از دکمه
-                // ]
-            };
+                collapse.addEventListener('hide.bs.collapse', function() {
+                    const btn = this.previousElementSibling.querySelector('button');
+                    btn.innerHTML = '<i class="fas fa-chevron-down"></i> نمایش جزئیات بیشتر';
+                });
+            });
 
-            // دراپ‌داون بوت‌استرپ رو با کانفیگ سفارشی برای Popper مقداردهی اولیه می‌کنیم
-            // این کار باعث می‌شه برای این دکمه‌ها از کانفیگ ما استفاده بشه
-            new bootstrap.Dropdown(toggle, {
-                popperConfig: function (defaultConfig) {
-                    // کانفیگ پیش‌فرض رو با کانفیگ سفارشی خودمون ترکیب می‌کنیم
-                    // یا مستقیما کانفیگ خودمون رو برمی‌گردونیم
-                    // console.log("Applying fixed strategy to dropdown:", toggle);
-                    // return { ...defaultConfig, strategy: 'fixed' }; // ترکیب
-                    return customPopperConfig; // بازگشت مستقیم کانفیگ ما
-                }
+            // اعمال فیلتر با تغییر وضعیت آرشیو
+            document.getElementById('showArchived').addEventListener('change', function() {
+                this.form.submit();
             });
         });
-        console.log('Dropdown Popper strategy configured for table actions.');
-
-    } else {
-         console.error('Bootstrap Dropdown component not found. Make sure Bootstrap JS is loaded correctly.');
-    }
-
-    // Optional: Initialize tooltips
-    // var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    // var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-    //   return new bootstrap.Tooltip(tooltipTriggerEl)
-    // })
-});
-</script>
-
+    </script>
 {% endblock %}
+
+
+
+{#{% extends 'base.html' %}#}
+{#{% load i18n jformat static rcms_custom_filters %}#}
+{##}
+{#{% block content %}#}
+{#    <div class="container mt-4 mb-5"> {# اضافه کردن فاصله پایین #}
+{##}
+{#        <div class="card shadow-lg border-0 overflow-hidden"> {# سایه بیشتر و حذف بوردر #}
+{#            <div class="card-header bg-gradient-primary text-white p-4"> {# استفاده از گرادینت و پدینگ بیشتر #}
+{#                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">#}
+{#                    <h1 class="card-title mb-3 mb-md-0 h4"> {# کاهش اندازه عنوان برای هماهنگی #}
+{#                        <i class="fas fa-list-alt me-2"></i>{{ title|default:'لیست تنخواه‌ها' }}#}
+{#                    </h1>#}
+{#                    <div class="d-flex flex-wrap gap-2"> {# دکمه‌ها با فاصله #}
+{#                    {% if perms.tankhah.Tankhah_add and is_hq_user and not show_archived %}#}
+{#                        <a href="{% url 'tankhah_create' %}" class="btn btn-light btn-sm text-primary fw-bold">#}
+{#                            <i class="fas fa-plus me-1"></i>{% trans "ایجاد تنخواه جدید" %}#}
+{#                        </a>#}
+{#                    {% endif %}#}
+                        {# دکمه‌های اضافی رو می‌تونیم توی dropdown بذاریم اگر زیاد شدن #}
+{#                        <div class="btn-group">#}
+{#                            <button type="button" class="btn btn-outline-light btn-sm dropdown-toggle"#}
+{#                                    data-bs-toggle="dropdown" aria-expanded="false">#}
+{#                                <i class="fas fa-ellipsis-h"></i> {% trans "بیشتر" %}#}
+{#                            </button>#}
+{#                            <ul class="dropdown-menu dropdown-menu-end">#}
+{#                                <li>#}
+{#                                    <a href="{% url 'workflow' %}" class="dropdown-item">#}
+{#                                        <i class="fas fa-hands-helping me-2 text-info"></i>{% trans "راهنمای جریان کار" %}#}
+{#                                    </a>#}
+{#                                </li>#}
+                                {# لینک‌های دیگر در صورت نیاز #}
+{#                                <li>#}
+{#                                    <hr class="dropdown-divider">#}
+{#                                </li>#}
+{#                                <li><a class="dropdown-item" href="#"><i#}
+{#                                        class="fas fa-print me-2 text-secondary"></i> {% trans "چاپ لیست" %}</a></li>#}
+{#                            </ul>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{##}
+{#            <div class="card-body p-4">#}
+{#                <div class="accordion mb-4" id="filterAccordion">#}
+{#                    <div class="accordion-item border-0 shadow-sm">#}
+{#                        <h2 class="accordion-header" id="headingOne">#}
+{#                            <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse"#}
+{#                                    data-bs-target="#collapseFilter" aria-expanded="false"#}
+{#                                    aria-controls="collapseFilter">#}
+{#                                <i class="fas fa-filter me-2"></i>{% trans "فیلتر و جستجو" %}#}
+{#                                {% if query or show_archived %}#}
+{#                                    <span class="badge bg-primary rounded-pill ms-2">{% trans "فیلتر فعال" %}</span>#}
+{#                                {% endif %}#}
+{#                            </button>#}
+{#                        </h2>#}
+{#                        <div id="collapseFilter"#}
+{#                             class="accordion-collapse collapse {% if query or show_archived %}show{% endif %}"#}
+{#                             aria-labelledby="headingOne" data-bs-parent="#filterAccordion">#}
+{#                            <div class="accordion-body border-top">#}
+{#                                <form method="get" class="">#}
+{#                                    <div class="row g-3 align-items-center">#}
+{#                                        <div class="col-md-8">#}
+{#                                            <div class="input-group input-group-sm">#}
+{#                                                <span class="input-group-text"><i class="fas fa-search"></i></span>#}
+{#                                                <input type="text" name="q" value="{{ query|default:'' }}"#}
+{#                                                       placeholder="{% trans 'جستجو در شماره، پروژه، سازمان...' %}"#}
+{#                                                       class="form-control">#}
+{#                                                <button type="submit"#}
+{#                                                        class="btn btn-outline-primary">{% trans "اعمال" %}</button>#}
+{#                                            </div>#}
+{#                                        </div>#}
+{#                                        <div class="col-md-4">#}
+{#                                            <div class="form-check form-switch form-check-inline float-md-end">#}
+{#                                                <input type="checkbox" class="form-check-input" name="show_archived"#}
+{#                                                       id="showArchived"#}
+{#                                                       value="true" {% if show_archived %}checked{% endif %}#}
+{#                                                       onchange="this.form.submit()">#}
+{#                                                <label class="form-check-label"#}
+{#                                                       for="showArchived">{% trans "نمایش آرشیو شده‌ها" %}</label>#}
+{#                                            </div>#}
+{#                                        </div>#}
+{#                                    </div>#}
+{#                                </form>#}
+{#                        </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="table-responsive tankhah-table-wrapper">#}
+{#                    <table class="table table-hover align-middle tankhah-table">#}
+                        {# table-striped حذف شد برای خوانایی بهتر با هاور #}
+{#                        <thead class="table-light sticky-top"> {# چسبیدن هدر جدول #}
+{#                        <tr>#}
+{#                            <th scope="col">{% trans "#" %}</th>#}
+{#                            <th scope="col">{% trans "شماره" %}</th>#}
+{#                            <th scope="col">{% trans "تاریخ" %}</th>#}
+{#                            <th scope="col">{% trans "مبلغ (ریال)" %}</th>#}
+{#                            <th scope="col">{% trans "سازمان" %}</th>#}
+{#                            <th scope="col">{% trans "پروژه" %}</th>#}
+{#                            <th scope="col">{% trans "زیرپروژه" %}</th>#}
+{#                            <th scope="col">{% trans "وضعیت" %}</th>#}
+{# --- ستون‌های جدید بودجه پروژه --- #}
+{#                            <th scope="col" class="text-end">{% trans "کل بودجه پروژه" %}</th>#}
+{#                            <th scope="col" class="text-end">{% trans "باقی‌مانده پروژه" %}</th>#}
+{#                            <th scope="col" style="min-width: 100px;">{% trans "مصرف پروژه" %}</th> {# ستون برای پروگرس بار #}
+{# --- پایان ستون‌های جدید --- #}
+{#                            <th scope="col">{% trans "زیرپروژه" %}</th> {# انتقال زیرپروژه به بعد از بودجه پروژه #}
+{#                            <th scope="col">{% trans "وضعیت" %}</th>#}
+{#                            <th scope="col" class="text-center no-print">{% trans "اقدامات" %}</th>#}
+{#                            {% if perms.reports.FinancialReport_view %}#}
+{#                                <th scope="col" class="text-center no-print">{% trans "گزارش" %}</th>#}
+{#                            {% endif %}#}
+{#                        </tr>#}
+{#                        </thead>#}
+{#                        <tbody>#}
+{#                        {% for tankhah in page_obj %}#}
+{#                            <tr class="{% if tankhah.is_archived %}table-secondary text-muted{% endif %}">#}
+                                {# اضافه کردن data-label برای نمایش در موبایل #}
+{#                                <td data-label="ردیف">#}
+{#                                <span class="row-counter {% if tankhah.is_archived %}archived{% endif %}">#}
+{#                                    {{ page_obj.start_index|add:forloop.counter0|to_persian_number }}#}
+{#                                </span>#}
+{#                                </td>#}
+{#                                <td data-label="شماره">{{ tankhah.number|to_persian_number }}</td>#}
+{#                                <td data-label="تاریخ"#}
+{#                                    class="text-nowrap">{{ tankhah.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>#}
+{#                                <td data-label="مبلغ"#}
+{#                                    class="text-nowrap fw-bold">{{ tankhah.amount|format_negative }}</td>#}
+{#                                <td data-label="سازمان">{{ tankhah.organization.name|default:'-' }}</td>#}
+{#                                <td data-label="پروژه">{{ tankhah.project.name|default:'-' }}</td>#}
+{# --- نمایش مقادیر جدید بودجه پروژه --- #}
+{#                                <td data-label="کل بودجه پروژه" class="text-nowrap text-end">#}
+{#                                    {{ tankhah.project_total_budget_display|default:0|floatformat:0|format_negative }}#}
+{#                                </td>#}
+{#                                <td data-label="باقی‌مانده پروژه" class="text-nowrap text-end {% if tankhah.project_remaining_budget_display < 0 %}text-danger fw-bold{% endif %}">#}
+{#                                    {{ tankhah.project_remaining_budget_display|default:0|floatformat:0|format_negative }}#}
+{#                                </td>#}
+{#                                <td data-label="مصرف پروژه">#}
+{#                                    {% if tankhah.project %} {# فقط اگر پروژه دارد نمایش بده #}
+{#                                    <div class="progress" style="height: 10px; min-width: 80px;" title="{{ tankhah.project_consumed_percentage|default:0 }}٪ {% trans 'مصرف شده' %}">#}
+{#                                         {% with percentage=tankhah.project_consumed_percentage|default:0 %}#}
+{#                                            <div class="progress-bar#}
+{#                                                {% if percentage >= 95 %}bg-danger{% elif percentage >= 80 %}bg-warning{% else %}bg-success{% endif %}"#}
+{#                                                role="progressbar" style="width: {{ percentage }}%;"#}
+{#                                                aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100">#}
+{#                                            </div>#}
+{#                                         {% endwith %}#}
+{#                                    </div>#}
+{#                                    {% else %}#}
+{#                                    -#}
+{#                                    {% endif %}#}
+{#                                </td>#}
+{##}
+{#                                <td data-label="زیرپروژه">{{ tankhah.subproject.name|default:'-' }}</td>#}
+{#                                <td data-label="وضعیت">#}
+{#                                    {% with status_lower=tankhah.status|lower %}#}
+{#                                        <span class="badge status-badge status-{{ status_lower }}">#}
+{#                                    {% if status_lower == 'paid' %} <i class="fas fa-check-circle me-1"></i>#}
+{#                                    {% elif status_lower == 'pending' %} <i class="fas fa-clock me-1"></i>#}
+{#                                    {% elif status_lower == 'rejected' %} <i class="fas fa-times-circle me-1"></i>#}
+{#                                    {% elif status_lower == 'draft' %} <i class="fas fa-pencil-alt me-1"></i>#}
+{#                                    {% else %} <i class="fas fa-question-circle me-1"></i>#}
+{#                                    {% endif %}#}
+{#                                            {{ tankhah.get_status_display }}#}
+{#                                </span>#}
+{#                                    {% endwith %}#}
+{#                                </td>#}
+{#                                <td data-label="اقدامات" class="text-center no-print">#}
+{#                                    <div class="dropdown">#}
+                                        {# ! اضافه کردن data-bs-display="static" به دکمه #}
+{#                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"#}
+{#                                                id="actionsMenu{{ tankhah.pk }}"#}
+{#                                                data-bs-toggle="dropdown"#}
+{#                                                aria-expanded="false">#}
+{#                                            <i class="fas fa-cog"></i>#}
+{#                                        </button>#}
+{#                                        <ul class="dropdown-menu dropdown-menu-end"#}
+{#                                            aria-labelledby="actionsMenu{{ tankhah.pk }}">#}
+{#                                            <li>#}
+{#                                                <a href="{% url 'tankhah_detail' tankhah.pk %}" class="dropdown-item">#}
+{#                                                    <i class="fas fa-eye fa-fw me-2 text-info"></i> {% trans "مشاهده جزئیات" %}#}
+{#                                                </a>#}
+{#                                            </li>#}
+{#                                            <li>#}
+{#                                                <a href="{% url 'tankhah_tracking' tankhah.pk %}" class="dropdown-item">#}
+{#                                                    <i class="fas fa-tree fa-fw me-2 text-success"></i>{% trans "درخت پیگیری" %}#}
+{#                                                </a>#}
+{#                                            </li>#}
+{#                                        {% if not tankhah.is_archived %}#}
+{#                                            {% if perms.tankhah.Tankhah_update %}#}
+{#                                                <li>#}
+{#                                                    <hr class="dropdown-divider">#}
+{#                                                </li>#}
+{#                                                <li>#}
+{#                                                    <a href="{% url 'tankhah_update' tankhah.pk %}"#}
+{#                                                       class="dropdown-item">#}
+{#                                                        <i class="fas fa-edit fa-fw me-2 text-secondary"></i> {% trans "ویرایش" %}#}
+{#                                                </a>#}
+{#                                                </li>#}
+{#                                            {% endif %}#}
+{#                                            {% if perms.tankhah.Tankhah_delete %}#}
+{#                                                <li>#}
+{#                                                    <a href="{% url 'tankhah_delete' tankhah.pk %}"#}
+{#                                                       class="dropdown-item text-danger">#}
+{#                                                        <i class="fas fa-trash fa-fw me-2"></i> {% trans "حذف" %}#}
+{#                                                </a>#}
+{#                                                </li>#}
+{#                                            {% endif %}#}
+{#                                            {% if perms.tankhah.Tankhah_approve and tankhah.status == 'PENDING' %}#}
+{#                                                <li>#}
+{#                                                    <hr class="dropdown-divider">#}
+{#                                                </li>#}
+{#                                                <li>#}
+{#                                                    <a href="{% url 'tankhah_approve' tankhah.pk %}"#}
+{#                                                       class="dropdown-item text-success">#}
+{#                                                        <i class="fas fa-check fa-fw me-2"></i> {% trans "تأیید" %}#}
+{#                                                    </a>#}
+{#                                                </li>#}
+{#                                                <li>#}
+{#                                                    <a href="{% url 'tankhah_reject' tankhah.pk %}"#}
+{#                                                       class="dropdown-item text-danger">#}
+{#                                                        <i class="fas fa-times fa-fw me-2"></i> {% trans "رد کردن" %}#}
+{#                                                    </a>#}
+{#                                                </li>#}
+{#                                            {% endif %}#}
+{#                                        {% else %}#}
+{#                                            <li>#}
+{#                                                <hr class="dropdown-divider">#}
+{#                                            </li>#}
+{#                                            <li><span class="dropdown-item-text text-muted"><i#}
+{#                                                    class="fas fa-archive me-2"></i> {% trans "آرشیو شده" %}</span></li>#}
+{#                                        {% endif %}#}
+{#                                        </ul>#}
+{#                                    </div>#}
+{#                                </td>#}
+{#                                {% if perms.reports.FinancialReport_view %}#}
+{#                                    <td data-label="گزارش مالی" class="text-center no-print">#}
+{#                                        {% if tankhah.current_stage.name == 'HQ_FIN_PENDING' or tankhah.is_archived %}#}
+{#                                            <a href="{% url 'tankhah_financial_report' tankhah.pk %}"#}
+{#                                               class="btn btn-outline-success btn-sm"#}
+{#                                               title="{% trans 'مشاهده گزارش مالی' %}">#}
+{#                                                <i class="fas fa-file-invoice-dollar"></i>#}
+{#                                            </a>#}
+{#                                        {% else %}#}
+{#                                            <button class="btn btn-outline-secondary btn-sm" disabled#}
+{#                                                    title="{% trans 'گزارش مالی در این مرحله در دسترس نیست' %}">#}
+{#                                                <i class="fas fa-file-invoice-dollar"></i>#}
+{#                                            </button>#}
+{#                                        {% endif %}#}
+{#                                    </td>#}
+{#                                {% endif %}#}
+{##}
+                                {# ! نمایش فاکتورها از اینجا حذف شد - باید در صفحه جزئیات باشد #}
+{##}
+{#                            </tr>#}
+{#                        {% empty %}#}
+{#                            <tr>#}
+{#                                <td colspan="{% if perms.reports.FinancialReport_view %}10{% else %}9{% endif %}"#}
+{#                                    class="text-center py-5">#}
+{#                                    <div class="text-muted">#}
+{#                                        <i class="fas fa-folder-open fa-3x mb-3"></i>#}
+{#                                        <p>{% trans "هیچ تنخواهی مطابق با فیلترهای شما یافت نشد." %}</p>#}
+{#                                        {% if not query and not show_archived and perms.tankhah.Tankhah_add and is_hq_user %}#}
+{#                                            <a href="{% url 'tankhah_create' %}" class="btn btn-primary mt-2">#}
+{#                                                <i class="fas fa-plus me-1"></i>{% trans "ایجاد اولین تنخواه" %}#}
+{#                                            </a>#}
+{#                                        {% endif %}#}
+{#                                    </div>#}
+{#                                </td>#}
+{#                            </tr>#}
+{#                        {% endfor %}#}
+{#                        </tbody>#}
+{#                    </table>#}
+{#                </div>#}
+{##}
+{#                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3">#}
+{#                    <div class="alert alert-light border small mb-0" role="alert">#}
+{#                        {% trans "وضعیت نمایش:" %}#}
+{#                        <strong class="mx-1">#}
+{#                            {% if show_archived %}{% trans "آرشیو شده" %}#}
+{#                            {% else %}{% trans "فعال" %}{% endif %}#}
+{#                        </strong>#}
+{#                        | {% trans "سازمان:" %} <strong class="mx-1">{{ org_display_name }}</strong>#}
+{#                        | {% blocktrans count counter=page_obj.paginator.count %}۱ نتیجه#}
+{#                        {% plural %}{{ counter|to_persian_number }} نتیجه{% endblocktrans %}#}
+{#                </div>#}
+{##}
+{#                {% if page_obj.paginator.num_pages > 1 %}#}
+{#                    <nav aria-label="Page navigation">#}
+{#                        <ul class="pagination justify-content-center mb-0">#}
+{#                            {% if page_obj.has_previous %}#}
+{#                                <li class="page-item">#}
+{#                                    <a class="page-link"#}
+{#                                       href="?page=1&q={{ query|default:'' }}&show_archived={{ show_archived|default:'' }}"#}
+{#                                       aria-label="First">#}
+{#                                        <i class="fas fa-angle-double-right"></i> {# RTL #}
+{#                                    </a>#}
+{#                                </li>#}
+{#                                <li class="page-item">#}
+{#                                    <a class="page-link"#}
+{#                                       href="?page={{ page_obj.previous_page_number }}&q={{ query|default:'' }}&show_archived={{ show_archived|default:'' }}"#}
+{#                                       aria-label="Previous">#}
+{#                                        <i class="fas fa-angle-right"></i> {# RTL #}
+{#                                    </a>#}
+{#                                </li>#}
+{#                            {% else %}#}
+{#                                <li class="page-item disabled"><span class="page-link"><i#}
+{#                                        class="fas fa-angle-double-right"></i></span></li>#}
+{#                                <li class="page-item disabled"><span class="page-link"><i#}
+{#                                        class="fas fa-angle-right"></i></span></li>#}
+{#                            {% endif %}#}
+{##}
+{#                            <li class="page-item disabled">#}
+{#                                <span class="page-link text-primary">#}
+{#                                    {% blocktrans with current=page_obj.number|to_persian_number total=page_obj.paginator.num_pages|to_persian_number %}#}
+{#                                        صفحه {{ current }} از {{ total }}{% endblocktrans %}#}
+{#                                </span>#}
+{#                            </li>#}
+{##}
+{#                            {% if page_obj.has_next %}#}
+{#                                <li class="page-item">#}
+{#                                    <a class="page-link"#}
+{#                                       href="?page={{ page_obj.next_page_number }}&q={{ query|default:'' }}&show_archived={{ show_archived|default:'' }}"#}
+{#                                       aria-label="Next">#}
+{#                                        <i class="fas fa-angle-left"></i> {# RTL #}
+{#                                    </a>#}
+{#                                </li>#}
+{#                                <li class="page-item">#}
+{#                                    <a class="page-link"#}
+{#                                       href="?page={{ page_obj.paginator.num_pages }}&q={{ query|default:'' }}&show_archived={{ show_archived|default:'' }}"#}
+{#                                       aria-label="Last">#}
+{#                                        <i class="fas fa-angle-double-left"></i> {# RTL #}
+{#                                    </a>#}
+{#                                </li>#}
+{#                            {% else %}#}
+{#                                <li class="page-item disabled"><span class="page-link"><i class="fas fa-angle-left"></i></span>#}
+{#                                </li>#}
+{#                                <li class="page-item disabled"><span class="page-link"><i#}
+{#                                        class="fas fa-angle-double-left"></i></span></li>#}
+{#                            {% endif %}#}
+{#                        </ul>#}
+{#                    </nav>#}
+{#                {% endif %}#}
+{#            </div>#}
+{#            </div>#}
+            {# End Card Body #}
+{#        </div>#}
+        {# End Card #}
+{#    </div> {# End Container #}
+{#{% endblock %}#}
+{##}
+{##}
+{#{% block extra_css %}#}
+    {# استایل‌های اختصاصی این صفحه - می‌تواند در فایل CSS اصلی سایت هم باشد #}
+{#    <style>#}
+{#        :root {#}
+{#            /* تعریف متغیرهای رنگی وضعیت (می‌تواند از CSS اصلی بیاید) */#}
+{#            --status-paid-bg: #d1e7dd;#}
+{#            --status-paid-text: #0f5132;#}
+{#            --status-paid-border: #a3cfbb;#}
+{#            --status-pending-bg: #fff3cd;#}
+{#            --status-pending-text: #664d03;#}
+{#            --status-pending-border: #ffecb5;#}
+{#            --status-rejected-bg: #f8d7da;#}
+{#            --status-rejected-text: #842029;#}
+{#            --status-rejected-border: #f5c6cb;#}
+{#            --status-draft-bg: #e2e3e5;#}
+{#            --status-draft-text: #41464b;#}
+{#            --status-draft-border: #d3d6d8;#}
+{#            --status-default-bg: #f8f9fa;#}
+{#            --status-default-text: #6c757d;#}
+{#            --status-default-border: #dee2e6;#}
+{#        }#}
+{##}
+{#        [data-theme="dark"] {#}
+{#            --status-paid-bg: #0f5132;#}
+{#            --status-paid-text: #a3cfbb;#}
+{#            --status-paid-border: #146c43;#}
+{#            --status-pending-bg: #664d03;#}
+{#            --status-pending-text: #ffecb5;#}
+{#            --status-pending-border: #997404;#}
+{#            --status-rejected-bg: #842029;#}
+{#            --status-rejected-text: #f5c6cb;#}
+{#            --status-rejected-border: #a52834;#}
+{#            --status-draft-bg: #41464b;#}
+{#            --status-draft-text: #adb5bd;#}
+{#            --status-draft-border: #5c636a;#}
+{#            --status-default-bg: #343a40;#}
+{#            --status-default-text: #adb5bd;#}
+{#            --status-default-border: #495057;#}
+{#        }#}
+{##}
+{#        .bg-gradient-primary {#}
+{#            background: linear-gradient(90deg, #0d6efd, #0a58ca); /* مثال گرادینت آبی */#}
+{#            /* background: linear-gradient(90deg, var(--primary), var(--primary-hover)); */ /* اگر متغیر دارید */#}
+{#        }#}
+{##}
+{#        .tankhah-table th {#}
+{#            white-space: nowrap; /* جلوگیری از شکستن عنوان ستون‌ها */#}
+{#        }#}
+{##}
+{#        .tankhah-table tbody tr:hover {#}
+{#            background-color: rgba(0, 123, 255, 0.05); /* هاور آبی خیلی ملایم */#}
+{#        }#}
+{##}
+{#        [data-theme="dark"] .tankhah-table tbody tr:hover {#}
+{#            background-color: rgba(var(--bs-primary-rgb), 0.15);#}
+{#        }#}
+{##}
+{#        .row-counter {#}
+{#            font-weight: bold;#}
+{#            color: var(--bs-secondary-color); /* رنگ پیش‌فرض */#}
+{#        }#}
+{##}
+{#        .row-counter.archived {#}
+{#            color: var(--bs-danger-text-emphasis); /* رنگ قرمز برای آرشیو */#}
+{#            text-decoration: line-through;#}
+{#        }#}
+{##}
+{#        /* استایل بج‌های وضعیت */#}
+{#        .status-badge {#}
+{#            padding: 0.4em 0.7em;#}
+{#            font-size: 0.8em;#}
+{#            font-weight: 600;#}
+{#            border: 1px solid transparent;#}
+{#            border-radius: 0.375rem; /* Bootstrap's default */#}
+{#        }#}
+{##}
+{#        .status-badge i {#}
+{#            font-size: 0.9em;#}
+{#        }#}
+{##}
+{#        .status-paid {#}
+{#            background-color: var(--status-paid-bg);#}
+{#            color: var(--status-paid-text);#}
+{#            border-color: var(--status-paid-border);#}
+{#        }#}
+{##}
+{#        .status-pending {#}
+{#            background-color: var(--status-pending-bg);#}
+{#            color: var(--status-pending-text);#}
+{#            border-color: var(--status-pending-border);#}
+{#        }#}
+{##}
+{#        .status-rejected {#}
+{#            background-color: var(--status-rejected-bg);#}
+{#            color: var(--status-rejected-text);#}
+{#            border-color: var(--status-rejected-border);#}
+{#        }#}
+{##}
+{#        .status-draft {#}
+{#            background-color: var(--status-draft-bg);#}
+{#            color: var(--status-draft-text);#}
+{#            border-color: var(--status-draft-border);#}
+{#        }#}
+{##}
+{#        /* برای وضعیت‌های دیگر */#}
+{#        .status-badge:not(.status-paid):not(.status-pending):not(.status-rejected):not(.status-draft) {#}
+{#            background-color: var(--status-default-bg);#}
+{#            color: var(--status-default-text);#}
+{#            border-color: var(--status-default-border);#}
+{#        }#}
+{##}
+{#        /* استایل جدول در موبایل (data-label) */#}
+{#        @media (max-width: 768px) {#}
+{#            .tankhah-table thead {#}
+{#                display: none;#}
+{#            }#}
+{##}
+{#            .tankhah-table tr {#}
+{#                display: block;#}
+{#                margin-bottom: 1rem;#}
+{#                border: 1px solid var(--bs-border-color);#}
+{#                border-radius: var(--bs-card-border-radius);#}
+{#                overflow: hidden;#}
+{#                box-shadow: var(--bs-box-shadow-sm);#}
+{#            }#}
+{##}
+{#            .tankhah-table td {#}
+{#                display: block;#}
+{#                text-align: right; /* RTL */#}
+{#                padding-left: 50% !important; /* برای ایجاد فضا */#}
+{#                position: relative;#}
+{#                border: none;#}
+{#                border-bottom: 1px dashed var(--bs-border-color-translucent);#}
+{#            }#}
+{##}
+{#            .tankhah-table td:last-child {#}
+{#                border-bottom: none;#}
+{#            }#}
+{##}
+{#            .tankhah-table td::before {#}
+{#                content: attr(data-label);#}
+{#                position: absolute;#}
+{#                left: auto; /* پاک کردن left پیش‌فرض */#}
+{#                right: 1rem; /* RTL */#}
+{#                width: 45%; /* تنظیم عرض لیبل */#}
+{#                padding-right: 0; /* RTL */#}
+{#                white-space: nowrap;#}
+{#                font-weight: bold;#}
+{#                color: var(--bs-primary); /* رنگ لیبل */#}
+{#                text-align: left; /* RTL */#}
+{#            }#}
+{##}
+{#            .tankhah-table td.no-print {#}
+{#                display: block !important;#}
+{#            }#}
+{##}
+{#            /* نمایش ستون اقدامات در موبایل */#}
+{#            .tankhah-table td.text-center {#}
+{#                text-align: right !important;#}
+{#            }#}
+{##}
+{#            /* تراز اقدامات در موبایل */#}
+{#            .tankhah-table td.text-center .dropdown {#}
+{#                display: inline-block;#}
+{#            }#}
+{##}
+{#            /* نمایش صحیح dropdown */#}
+{#        }#}
+{##}
+{#        /* استایل برای چاپ */#}
+{#        @media print {#}
+{#            body {#}
+{#                background-color: #fff !important;#}
+{#            }#}
+{##}
+{#            .card-header, .accordion, .pagination, .alert, .no-print {#}
+{#                display: none !important;#}
+{#            }#}
+{##}
+{#            .card {#}
+{#                box-shadow: none !important;#}
+{#                border: none !important;#}
+{#            }#}
+{##}
+{#            .card-body {#}
+{#                padding: 0 !important;#}
+{#            }#}
+{##}
+{#            .table-responsive {#}
+{#                overflow: visible !important;#}
+{#            }#}
+{##}
+{#            .table {#}
+{#                font-size: 10pt;#}
+{#            }#}
+{##}
+{#            .table th, .table td {#}
+{#                padding: 5px !important;#}
+{#            }#}
+{##}
+{#            @page {#}
+{#                size: A4 landscape;#}
+{#                margin: 10mm;#}
+{#            }#}
+{#        }#}
+{##}
+{#        /* استایل برای ستون‌های عددی */#}
+{#        .table td.text-end {#}
+{#             font-family: var(--font-family-monospace);#}
+{#             direction: ltr;#}
+{#        }#}
+{#        /* استایل برای Progress Bar در جدول */#}
+{#        .table .progress {#}
+{#            height: 10px;#}
+{#            border-radius: 5px;#}
+{#            background-color: #e9ecef;#}
+{#            margin-bottom: 0; /* حذف مارجین پایین */#}
+{#        }#}
+{#        .table .progress-bar {#}
+{#            font-size: 0; /* عدم نمایش درصد داخل نوار در لیست */#}
+{#            line-height: 10px;#}
+{#            transition: width 0.5s ease, background-color 0.5s ease;#}
+{#        }#}
+{##}
+{##}
+{#    </style>#}
+{#{% endblock %}#}
+{##}
+{#{% block extra_js %}#}
+    {# اسکریپت‌های اضافی اگر لازم است #}
+{#    <script>#}
+{#        // Optional: Initialize tooltips for action buttons if you add titles#}
+{#        // var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))#}
+{#        // var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {#}
+{#        //   return new bootstrap.Tooltip(tooltipTriggerEl)#}
+{#        // })#}
+{#    </script>#}
+{#    <script>#}
+{#document.addEventListener('DOMContentLoaded', function () {#}
+{#    // فقط دکمه‌های دراپ‌داون داخل جدول تنخواه رو انتخاب می‌کنیم#}
+{#    var tableDropdownToggles = document.querySelectorAll('.tankhah-table .dropdown-toggle');#}
+{##}
+{#    if (typeof bootstrap !== 'undefined' && typeof bootstrap.Dropdown !== 'undefined') { // بررسی وجود بوت‌استرپ#}
+{#        tableDropdownToggles.forEach(function (toggle) {#}
+{#            // یک کانفیگ سفارشی برای Popper.js تعریف می‌کنیم#}
+{#            const customPopperConfig = {#}
+{#                strategy: 'fixed', // ! استراتژی موقعیت‌یابی رو fixed می‌کنیم#}
+{#                // modifiers: [ // مادیفایرهای اضافی در صورت نیاز (مثلا برای آفست)#}
+{#                //     { name: 'offset', options: { offset: [0, 2] } } // کمی فاصله از دکمه#}
+{#                // ]#}
+{#            };#}
+{##}
+{#            // دراپ‌داون بوت‌استرپ رو با کانفیگ سفارشی برای Popper مقداردهی اولیه می‌کنیم#}
+{#            // این کار باعث می‌شه برای این دکمه‌ها از کانفیگ ما استفاده بشه#}
+{#            new bootstrap.Dropdown(toggle, {#}
+{#                popperConfig: function (defaultConfig) {#}
+{#                    // کانفیگ پیش‌فرض رو با کانفیگ سفارشی خودمون ترکیب می‌کنیم#}
+{#                    // یا مستقیما کانفیگ خودمون رو برمی‌گردونیم#}
+{#                    // console.log("Applying fixed strategy to dropdown:", toggle);#}
+{#                    // return { ...defaultConfig, strategy: 'fixed' }; // ترکیب#}
+{#                    return customPopperConfig; // بازگشت مستقیم کانفیگ ما#}
+{#                }#}
+{#            });#}
+{#        });#}
+{#        console.log('Dropdown Popper strategy configured for table actions.');#}
+{##}
+{#    } else {#}
+{#         console.error('Bootstrap Dropdown component not found. Make sure Bootstrap JS is loaded correctly.');#}
+{#    }#}
+{##}
+{#    // Optional: Initialize tooltips#}
+{#    // var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))#}
+{#    // var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {#}
+{#    //   return new bootstrap.Tooltip(tooltipTriggerEl)#}
+{#    // })#}
+{#});#}
+{#</script>#}
+{##}
+{#{% endblock %}#}

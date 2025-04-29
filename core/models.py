@@ -1,7 +1,9 @@
 # Create your models here.
 import logging
+from decimal import Decimal
 
 from django.db import models
+from django.db.models import Sum
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -61,6 +63,11 @@ class Organization(models.Model):
     def org_type_code(self):
         return self.org_type.fname if self.org_type else None
 
+    @property
+    def budget_allocations(self):
+        from budgets.models import BudgetAllocation
+        return BudgetAllocation.objects.filter(organization=self)
+
 
     def save(self, *args, **kwargs):
         """اجرای clean قبل از ذخیره"""
@@ -98,13 +105,14 @@ class Project(models.Model):
     is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
     PRIORITY_CHOICES = (('LOW', _('کم')), ('MEDIUM', _('متوسط')), ('HIGH', _('زیاد')),)
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='MEDIUM', verbose_name=_("اولویت"))
+    # total_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("بودجه کل تخصیص‌یافته"))  # فیلد جدید
 
     def get_total_budget(self):
+        """محاسبه کل بودجه تخصیص‌یافته به پروژه"""
         return get_project_total_budget(self)
 
     def get_remaining_budget(self):
         return get_project_remaining_budget(self)
-
 
     def __str__(self):
         status = "فعال" if self.is_active else "غیرفعال"
@@ -129,15 +137,31 @@ class SubProject(models.Model):
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
     allocated_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0,
                                            verbose_name=_("بودجه تخصیص‌یافته"))
-    allocations = models.ManyToManyField('budgets.ProjectBudgetAllocation',
-                                        related_name='budget_allocations_set' ,blank=True, verbose_name=_("تخصیص‌های بودجه مرتبط"))
+    # allocations = models.ManyToManyField('budgets.ProjectBudgetAllocation',
+    #                                     related_name='budget_allocations_set' ,blank=True, verbose_name=_("تخصیص‌های بودجه مرتبط"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
 
     def get_remaining_budget(self):
         return get_subproject_remaining_budget(self)
 
+    # def get_remaining_budget(self):
+    #     total_allocated = self.budget_allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+    #     consumed = BudgetTransaction.objects.filter(
+    #         allocation__in=self.budget_allocations.all(),
+    #         transaction_type='CONSUMPTION'
+    #     ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    #     returned = BudgetTransaction.objects.filter(
+    #         allocation__in=self.budget_allocations.all(),
+    #         transaction_type='RETURN'
+    #     ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    #     return total_allocated - consumed + returned
+    #
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+        # به‌روزرسانی بودجه تخصیص‌یافته
+        total_allocated = self.budget_allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+        self.allocated_budget = total_allocated
+        super().save(update_fields=['allocated_budget'])
         if not self.pk:
             total_allocated = sum([alloc.amount for alloc in self.allocations.all()])
             if total_allocated > self.project.get_remaining_budget():
@@ -351,7 +375,7 @@ class PostAction(models.Model):
         ('ISSUE_PAYMENT_ORDER', _('صدور دستور پرداخت')),
     )
 
-    post = models.ForeignKey('core.Post', on_delete=models.CASCADE, verbose_name=_("پست"))
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name=_("پست"))
     stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_("مرحله"))
     action_type = models.CharField(max_length=50, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
     entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, default='TANKHAH', verbose_name=_("نوع موجودیت"))

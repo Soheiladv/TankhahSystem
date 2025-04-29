@@ -1,25 +1,25 @@
 import json
-
-from django.core.serializers.json import DjangoJSONEncoder
-from django.http import Http404
-from django.utils.translation import gettext_lazy as _
+import logging
 # --- ProjectBudgetAllocation CRUD ---
 from decimal import Decimal
 
 from django.contrib import messages
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, PermissionDenied
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 from django.db.models import Sum
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView, DetailView, DeleteView, CreateView, TemplateView
 
 from budgets.ProjectBudgetAllocation.forms_ProjectBudgetAllocation import ProjectBudgetAllocationForm
-from budgets.models import ProjectBudgetAllocation, BudgetPeriod, BudgetTransaction, BudgetAllocation
+from budgets.budget_calculations import (get_organization_budget, get_project_total_budget, get_project_used_budget,
+                                         get_project_remaining_budget)
+from budgets.get_budget_details import get_budget_details
+from budgets.models import ProjectBudgetAllocation, BudgetTransaction, BudgetAllocation
 from core.PermissionBase import PermissionBaseView
-from budgets.budget_calculations import (     get_organization_budget )
-import logging
-
 from core.models import Organization, Project, SubProject
 
 logger = logging.getLogger(__name__)
@@ -125,7 +125,6 @@ class ProjectBudgetAllocationListView(ListView):
         logger.info(f"Context prepared for organization {organization.id}: {context}")
         return context
 
-
 class ProjectBudgetAllocationDetailView(PermissionBaseView, DetailView):
     model = ProjectBudgetAllocation
     template_name = 'budgets/budget/project_budget_allocation_detail.html'
@@ -134,39 +133,18 @@ class ProjectBudgetAllocationDetailView(PermissionBaseView, DetailView):
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
     check_organization = True
 
-    # def get_object(self, queryset=None):
-    #     try:
-    #         obj = super().get_object(queryset)
-    #         if not obj.is_active:
-    #             logger.error(f"Allocation {obj.pk} is inactive")
-    #             raise Http404(_('تخصیص بودجه غیرفعال است.'))
-    #         # بررسی دسترسی سازمانی
-    #         try:
-    #             user_organizations = self.request.user.get_authorized_organizations()
-    #         except AttributeError:
-    #             user_organizations = self.request.user.organizations.all()
-    #         if not user_organizations.filter(pk=obj.budget_allocation.organization.pk).exists():
-    #             logger.warning(
-    #                 f"User {self.request.user.username} attempted to access allocation {obj.pk} "
-    #                 f"without organization permission"
-    #             )
-    #             raise PermissionDenied(self.permission_denied_message)
-    #         return obj
-    #
-    #     except ProjectBudgetAllocation.DoesNotExist:
-    #         logger.error(f"Allocation {self.kwargs['pk']} does not exist")
-    #         messages.error(self.request, _('تخصیص بودجه مورد نظر یافت نشد.'))
-    #         return None
     def get_object(self, queryset=None):
-        """استخراج شیء با بررسی وجود"""
+        """استخراج شیء با بررسی وجود و دسترسی"""
         if queryset is None:
             queryset = self.get_queryset()
 
         pk = self.kwargs.get(self.pk_url_kwarg)
         queryset = queryset.filter(pk=pk)
-
         try:
             obj = queryset.get()
+            if not obj.is_active:
+                logger.error(f"Allocation {obj.pk} is inactive")
+                raise Http404(_('تخصیص بودجه غیرفعال است.'))
             return obj
         except ProjectBudgetAllocation.DoesNotExist:
             logger.error(f"ProjectBudgetAllocation با ID {pk} یافت نشد")
@@ -249,16 +227,68 @@ class ProjectBudgetAllocationDetailView(PermissionBaseView, DetailView):
     def get_context_data(self, **kwargs):
         """افزودن داده‌های اضافی به کنتکست"""
         context = super().get_context_data(**kwargs)
-        obj = self.object
-        context['organization'] = obj.budget_allocation.organization
-        context['budget_allocation'] = obj.budget_allocation
-        context['remaining_amount'] = obj.budget_allocation.get_remaining_amount()
-        # logger.info(f"جزئیات تخصیص بودجه پروژه {obj.pk} بارگذاری شد")
+        allocation = self.object
+
+        organization = allocation.budget_allocation.organization
+        budget_allocation = allocation.budget_allocation
+        logger.debug(f"Preparing context for allocation {allocation.id}, organization {organization.name}")
+
+        # بودجه کل سازمان
+        total_org_budget = budget_allocation.allocated_amount
+        logger.debug(f"Total organization budget: {total_org_budget}")
+
+        # پیدا کردن زیرپروژه‌های مرتبط
+        subprojects = SubProject.objects.filter(allocations=allocation)
+
+        # محاسبه تراکنش‌ها
+        consumed = BudgetTransaction.objects.filter(
+            allocation=budget_allocation,
+            allocation__project=allocation.project,
+            transaction_type='CONSUMPTION'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+        returned = BudgetTransaction.objects.filter(
+            allocation=budget_allocation,
+            allocation__project=allocation.project,
+            transaction_type='RETURN'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+        consumed_amount = consumed - returned
+        logger.debug(f"Consumed: {consumed}, Returned: {returned}, Net consumed: {consumed_amount}")
+
+        # بودجه باقی‌مانده
+        remaining_org_budget = total_org_budget - consumed + returned
+        logger.debug(f"Remaining organization budget: {remaining_org_budget}")
+
+        # تراکنش‌های اخیر
+        recent_transactions = BudgetTransaction.objects.filter(
+            allocation=budget_allocation,
+            allocation__project=allocation.project
+        ).order_by('-timestamp')[:10]
+
+        # اضافه کردن اطلاعات به کنتکست
+        context.update({
+            'organization': organization,
+            'total_org_budget': total_org_budget,
+            'consumed_amount': consumed_amount,
+            'remaining_org_budget': remaining_org_budget,
+            'subprojects': subprojects,
+            'recent_transactions': recent_transactions,
+            'project': allocation.project,
+            'remaining_amount': budget_allocation.get_remaining_amount(),
+        })
+
+        # اضافه کردن اطلاعات بودجه پروژه (در صورت نیاز)
+        project = allocation.project
+        context.update({
+            'total_budget': get_project_total_budget(project),
+            'used_budget': get_project_used_budget(project),
+            'remaining_budget': get_project_remaining_budget(project),
+            'budget_details': get_budget_details(entity=project),
+        })
+
+        logger.info(f"جزئیات تخصیص بودجه پروژه {allocation.pk} بارگذاری شد")
         return context
-
-    def get_success_url(self):
-        return reverse_lazy('project_budget_allocation_list', kwargs={'organization_id': self.object.budget_allocation.organization.pk})
-
 
     def get(self, request, *args, **kwargs):
         try:
@@ -270,7 +300,6 @@ class ProjectBudgetAllocationDetailView(PermissionBaseView, DetailView):
 
     def redirect_to_organizations(self):
         return redirect('organization_list')
-
 
 class ProjectBudgetAllocationCreateView(PermissionBaseView,CreateView):
     model = ProjectBudgetAllocation
@@ -308,7 +337,6 @@ class ProjectBudgetAllocationCreateView(PermissionBaseView,CreateView):
             return context
 
         # داده‌های JSON برای جاوااسکریپت
-        from django_jalali.templatetags.jformat import jformat
         allocations_list_for_json = [
             {
                 'id': alloc.id,

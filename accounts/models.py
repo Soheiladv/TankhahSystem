@@ -140,24 +140,40 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         # return False
 
-    # --------
-    # def get_authorized_organizations(self):
-    #     from core.models import Organization
-    #     return Organization.objects.filter(
-    #         posts__userposts__user=self,
-    #         posts__userposts__is_active=True
-    #     ).distinct()
     def get_authorized_organizations(self):
-        """استخراج سازمان‌های مجاز کاربر"""
-        try:
-            from core.models import Organization
-            return Organization.objects.filter(
-                user_posts__user=self,
-                user_posts__is_active=True
-            ).distinct()
-        except Exception as e:
-            logger.error(f"خطا در get_authorized_organizations برای کاربر {self.username}: {str(e)}")
-            return Organization.objects.none()
+        """
+               برگرداندن سازمان‌هایی که کاربر از طریق UserPost و Post به آن‌ها دسترسی دارد.
+               شامل سازمان‌های والد نیز می‌شود.
+               """
+        from core.models import Organization
+        if self.is_superuser:
+            # سوپریوزر به همه سازمان‌ها دسترسی دارد
+            return Organization.objects.all()
+
+        # استخراج سازمان‌ها از طریق UserPostهای فعال
+        user_orgs = set()
+        for user_post in self.userpost_set.filter(is_active=True):
+            # دسترسی به سازمان از طریق پست
+            org = user_post.post.organization
+            if org:
+                user_orgs.add(org)
+                # اضافه کردن والدین سازمان به مجموعه
+                current_org = org
+                while current_org.parent_organization:
+                    current_org = current_org.parent_organization
+                    user_orgs.add(current_org)
+        # تبدیل مجموعه به QuerySet
+        return Organization.objects.filter(id__in=[org.id for org in user_orgs])
+        #
+        # try:
+        #     from core.models import Organization
+        #     return Organization.objects.filter(
+        #         user_posts__user=self,
+        #         user_posts__is_active=True
+        #     ).distinct()
+        # except Exception as e:
+        #     logger.error(f"خطا در get_authorized_organizations برای کاربر {self.username}: {str(e)}")
+        #     return Organization.objects.none()
 
     # --------
     def get_all_permissions(self, obj=None):

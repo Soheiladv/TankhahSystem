@@ -421,17 +421,33 @@ class OrganizationListView(PermissionBaseView, ListView):
             context['is_active'] = self.request.GET.get('is_active', '')
 
         # افزودن جزئیات بودجه به سازمان‌ها
-        organizations = queryset
+        organizations = list(queryset)  # تبدیل به لیست برای جلوگیری از اجرای مجدد کوئری
         for org in organizations:
             from budgets.get_budget_details import get_budget_details
             budget_details = get_budget_details(entity=org, filters=filters)
-            org.budget_details = budget_details
-            logger.info(f"Org {org.name}: budget_details={budget_details}")
+            if budget_details is None:
+                logger.warning(f"No budget details for organization {org.name}")
+                # مقدار پیش‌فرض در صورت عدم وجود بودجه
+                org.budget_details = {
+                    'total_budget': 0,
+                    'total_allocated': 0,
+                    'remaining_budget': 0,
+                    'status_message': _('نامشخص'),
+                    'project_count': 0,
+                    'allocation_count': 0,
+                    'last_update': None
+                }
+            else:
+                org.budget_details = budget_details
+            logger.info(f"Org {org.name}: budget_details={org.budget_details}")
 
         context['organizations'] = organizations
         context['query'] = self.request.GET.get('q', '')
-        context['total_organizations'] = queryset.count()
 
+        context['organizations'] = organizations
+        context['query'] = self.request.GET.get('q', '')
+        # context['total_organizations'] = len(organizations)
+        context['total_organizations'] = queryset.count()
         logger.info(f"Final context organizations count: {len(context['organizations'])}")
         return context
 
@@ -493,8 +509,60 @@ class OrganizationDeleteView(PermissionBaseView, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('سازمان با موفقیت حذف شد.'))
         return super().delete(request, *args, **kwargs)
+
+
 # پروژه‌هاچ
+from budgets.budget_calculations import get_project_total_budget
 class ProjectListView(PermissionBaseView, ListView):
+    model = Project
+    template_name = 'core/project_list.html'
+    context_object_name = 'projects'
+    paginate_by = 12
+    extra_context = {'title': _('لیست پروژه‌ها')}
+    permission_codename = 'core.Project_view'
+    check_organization = True
+
+    def get_queryset(self):
+        queryset = super().get_queryset().prefetch_related('budget_allocations', 'subprojects', 'tankhah_set')
+
+        # فقط سایر مقادیر را با annotate محاسبه می‌کنیم
+        queryset = queryset.annotate(
+            subproject_budget=Sum('subprojects__allocated_budget'),
+            tankhah_total=Sum('tankhah_set__amount', filter=Q(tankhah_set__status='PAID'))
+        )
+
+        query = self.request.GET.get('q')
+        status = self.request.GET.get('status')
+
+        if query:
+            queryset = queryset.filter(
+                Q(name__icontains=query) |
+                Q(code__icontains=query) |
+                Q(description__icontains=query) |
+                Q(subprojects__name__icontains=query)
+            ).distinct()
+
+        if status == 'active':
+            queryset = queryset.filter(is_active=True)
+        elif status == 'inactive':
+            queryset = queryset.filter(is_active=False)
+
+        return queryset.order_by('-start_date', 'name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('مدیریت پروژه‌ها')
+        context['query'] = self.request.GET.get('q', '')
+        context['status'] = self.request.GET.get('status', '')
+
+        # محاسبه بودجه کل برای هر پروژه
+        projects = context['projects']
+        project_budgets = {project.id: get_project_total_budget(project) for project in projects}
+        context['project_budgets'] = project_budgets
+
+        return context
+
+class old__ProjectListView(PermissionBaseView, ListView):
     model = Project
     template_name = 'core/project_list.html' # Path to your template
     context_object_name = 'projects' # This name is overridden by paginate_by context
@@ -504,14 +572,16 @@ class ProjectListView(PermissionBaseView, ListView):
     check_organization = True # فعال کردن چک سازمان
 
     def get_queryset(self):
-        queryset = super().get_queryset().prefetch_related('allocations', 'subprojects', 'tankhah_set')
+        queryset = super().get_queryset().prefetch_related('budget_allocations', 'subprojects', 'tankhah_set')  # اصلاح نام رابطه
 
         # --- Annotate with the total budget allocated to this project ---
         # Sum the 'allocated_amount' from related BudgetAllocation objects
         # Ensure 'allocations' is the correct related name/field and
         # 'allocated_amount' exists on BudgetAllocation model.
         queryset = queryset.annotate(
-            total_budget=Sum('allocations__allocated_amount'),
+            total_budget=Sum('budget_allocations__allocated_amount'),  # اصلاح از 'allocations' به 'budget_allocations'
+            #اینجا total_budget از مدل ProjectBudgetAllocation و از طریق رابطه allocations (که احتمالاً related_name در ProjectBudgetAllocation است) محاسبه می‌شود.
+            #"""اینجا total_budget از مدل ProjectBudgetAllocation و از طریق رابطه allocations (که احتمالاً related_name در ProjectBudgetAllocation است) محاسبه می‌شود."""
             subproject_budget=Sum('subprojects__allocated_budget'),
             tankhah_total=Sum('tankhah_set__amount', filter=Q(tankhah_set__status='PAID'))
         )
@@ -597,7 +667,6 @@ class ProjectUpdateView____(PermissionBaseView, UpdateView):
         context = super().get_context_data(**kwargs)
         context['title'] = _('ویرایش پروژه') + f" - {self.object.code}"
         return context
-
 
 class ProjectCreateView(PermissionBaseView, CreateView):
     model = Project

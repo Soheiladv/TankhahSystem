@@ -1,22 +1,21 @@
-{% extends 'base.html' %} {# فرض بر این است که از یک بیس تمپلیت ارث‌بری می‌کنید #}
+{% extends 'base.html' %}
 {% load i18n static jalali_tags rcms_custom_filters jformat %}
-{% load i18n %} {# برای استفاده از تگ‌های ترجمه Django #}
-{% load static %} {# برای لینک دادن به فایل‌های استاتیک مثل CSS و JS #}
-{% load humanize %} {# برای استفاده از فیلتر intcomma #}
+{% load humanize %}
 
-{% block title %}{{ title }}{% endblock %} {# تنظیم عنوان صفحه از کانتکست ویو #}
+{% block title %}{{ title }}{% endblock %}
 
 {% block extra_head %}
-    {# لینک‌های Bootstrap، Font Awesome و CSS دلخواه در بیس تمپلیت شما باید قرار داشته باشند #}
-    {# اگر در بیس تمپلیت نیستند، اینجا اضافه کنید: #}
-    {# <link rel="stylesheet" href="{% static 'path/to/bootstrap.min.css' %}"> #}
-    {# <link rel="stylesheet" href="{% static 'path/to/all.min.css' %}"> #}
-    {# <link rel="stylesheet" href="{% static 'css/your-custom-styles.css' %}"> {# ارجاع به CSS مرتب شده قبلی #}
-
-    {# لینک به فایل CSS Jalali Date Picker #}
-
     <style>
-        /* انیمیشن ساده برای نمایش کارت */
+        :root {
+            --primary-color: #6a11cb;
+            --secondary-color: #2575fc;
+            --success-color: #28a745;
+            --warning-color: #feb47b;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+            --shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
         .fade-in {
             animation: fadeIn 0.8s ease-in-out;
         }
@@ -32,44 +31,126 @@
             }
         }
 
-        /* استایل دلخواه برای فیلدهای disabled */
-         .form-control:disabled, .form-select:disabled {
-             background-color: var(--light-bg); /* استفاده از متغیر css برای پس‌زمینه */
-             color: var(--secondary); /* رنگ خاکستری برای متن */
-             opacity: 0.8;
-         }
+        .form-control, .form-select {
+            border-radius: 8px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
 
-        /* استفاده از متغیرهای CSS برای استایل دکمه‌ها و کارت‌ها که قبلا مرتب کردید */
-        /* این استایل‌ها باید در custom-styles.css شما باشند */
-        /* مثال: */
-        /*
-        .card { border-radius: 15px; box-shadow: var(--shadow); ... }
-        .card-header { background: var(--light-bg); color: var(--text-dark); ... }
-        .btn-primary { background-color: var(--primary); ... }
-        */
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 8px rgba(106, 17, 203, 0.3);
+        }
 
+        .form-control:disabled, .form-select:disabled {
+            background-color: var(--light-bg);
+            color: #6c757d;
+            opacity: 0.8;
+        }
+
+        .progress {
+            height: 25px;
+            background-color: #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            font-weight: 600;
+            font-size: 14px;
+            color: white;
+            text-align: center;
+            transition: width 0.6s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-bar-striped {
+            background-image: linear-gradient(
+                    45deg,
+                    rgba(255, 255, 255, 0.15) 25%,
+                    transparent 25%,
+                    transparent 50%,
+                    rgba(255, 255, 255, 0.15) 50%,
+                    rgba(255, 255, 255, 0.15) 75%,
+                    transparent 75%,
+                    transparent
+            );
+            background-size: 1rem 1rem;
+        }
+
+        .progress-bar-animated {
+            animation: progress-bar-stripes 1s linear infinite;
+        }
+
+        @keyframes progress-bar-stripes {
+            0% {
+                background-position: 1rem 0;
+            }
+            100% {
+                background-position: 0 0;
+            }
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .persian-amount-label {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .remaining-budget-progress .progress-bar {
+            background: linear-gradient(90deg, #28a745, #34d058);
+        }
     </style>
 {% endblock %}
 
 {% block content %}
-    {# نمایش پیام‌های Django (Success, Error, Warning, Info) #}
-    {# فرض بر این است که یک تمپلیت جزئی برای نمایش پیام‌ها دارید #}
-{#    {% include 'messages.html' %} {# اگر ندارید، باید کد نمایش پیام‌ها را اینجا اضافه کنید #}
-
-    <div class="container mt-4 mb-4"> {# فاصله از بالا و پایین #}
-        <div class="card fade-in"> {# اعمال کلاس انیمیشن fade-in و کلاس card بوت استرپ #}
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4 class="mb-0"><i class="fas fa-file-invoice-dollar me-2"></i> {{ title }}</h4> {# آیکون و عنوان #}
-                {# می‌توانید دکمه‌های اضافی مثل بازگشت به لیست را اینجا اضافه کنید #}
+    <div class="container mt-5 mb-5">
+        <div class="card fade-in">
+            <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                <h4 class="mb-0"><i class="fas fa-file-invoice-dollar me-2 text-primary"></i>{{ title }}</h4>
                 <a href="{% url 'tankhah_list' %}" class="btn btn-secondary btn-sm">
-                     <i class="fas fa-list me-1"></i> {% trans "بازگشت به لیست" %}
+                    <i class="fas fa-list me-1"></i>{% trans "بازگشت به لیست" %}
                 </a>
             </div>
-            <div class="card-body">
-                <form method="post" id="tankhah-form"> {# اضافه کردن یک ID برای فرم برای استفاده احتمالی در JS #}
-                    {% csrf_token %} {# توکن CSRF برای امنیت #}
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
 
-                    {# نمایش خطاهای کلی فرم #}
+
+            <div class="card-body">
+                <form method="post" id="tankhah-form">
+                    {% csrf_token %}
+
                     {% if form.non_field_errors %}
                         <div class="alert alert-danger" role="alert">
                             {% for error in form.non_field_errors %}
@@ -79,18 +160,17 @@
                     {% endif %}
 
                     <div class="row">
-                        {# فیلد تاریخ #}
-                        <div class="col-md-6 mb-3"> {# استفاده از گرید سیستم بوت استرپ #}
-                            <label for="{{ form.date.id_for_label }}" class="form-label">{{ form.date.label }} <span class="text-danger">*</span></label> {# برچسب فیلد #}
-                            {{ form.date }} {# رندر کردن فیلد فرم Django #}
-                            {% if form.date.errors %} {# نمایش خطاهای فیلد خاص #}
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.date.id_for_label }}" class="form-label">{{ form.date.label }} <span
+                                    class="text-danger">*</span></label>
+                            {{ form.date }}
+                            {% if form.date.errors %}
                                 {% for error in form.date.errors %}
                                     <small class="text-danger d-block">{{ error }}</small>
                                 {% endfor %}
                             {% endif %}
                         </div>
 
-                        {# فیلد مهلت باقی مانده #}
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.due_date.id_for_label }}" class="form-label">{{ form.due_date.label }}</label>
                             {{ form.due_date }}
@@ -103,18 +183,16 @@
                     </div>
 
                     <div class="row">
-                        {# فیلد سازمان #}
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.organization.id_for_label }}" class="form-label">{{ form.organization.label }} <span class="text-danger">*</span></label>
                             {{ form.organization }}
-                             {% if form.organization.errors %}
+                            {% if form.organization.errors %}
                                 {% for error in form.organization.errors %}
                                     <small class="text-danger d-block">{{ error }}</small>
                                 {% endfor %}
                             {% endif %}
                         </div>
 
-                        {# فیلد پروژه #}
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.project.id_for_label }}" class="form-label">{{ form.project.label }} <span class="text-danger">*</span></label>
                             {{ form.project }}
@@ -123,18 +201,29 @@
                                     <small class="text-danger d-block">{{ error }}</small>
                                 {% endfor %}
                             {% endif %}
-                            {# نمایش اطلاعات بودجه پروژه #}
-                            {% if total_budget is not None %} {# چک می‌کنیم آیا متغیر در کانتکست وجود دارد #}
+                            {% if total_budget is not None %}
                                 <small class="form-text text-muted d-block mt-1">
-                                    <i class="fas fa-money-bill-wave me-1"></i> {% trans "بودجه کل پروژه:" %} <span id="project_total_budget">{{ total_budget|floatformat:0|intcomma }}</span> {% trans "ریال" %} |
-                                    <i class="fas fa-coins me-1"></i> {% trans "بودجه باقی‌مانده پروژه:" %} <span id="project_remaining_budget">{{ remaining_budget|floatformat:0|intcomma }}</span> {% trans "ریال" %}
+                                    <i class="fas fa-money-bill-wave me-1 text-success"></i> {% trans "بودجه کل پروژه:" %}
+                                    <span id="project_total_budget">{{ total_budget|floatformat:0|intcomma }}</span> {% trans "ریال" %}
+                                    <br>
+                                    <i class="fas fa-coins me-1 text-primary"></i> {% trans "بودجه باقی‌مانده پروژه:" %}
+                                    <span id="project_remaining_budget">{{ remaining_budget|floatformat:0|intcomma }}</span> {% trans "ریال" %}
                                 </small>
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                         role="progressbar"
+                                         style="width: {{ project_budget_percentage }}%; background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));"
+                                         aria-valuenow="{{ project_budget_percentage }}"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100">
+                                        {{ project_budget_percentage|floatformat:1 }}%
+                                    </div>
+                                </div>
                             {% endif %}
                         </div>
                     </div>
 
-                     <div class="row">
-                        {# فیلد ساب‌پروژه #}
+                    <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.subproject.id_for_label }}" class="form-label">{{ form.subproject.label }}</label>
                             {{ form.subproject }}
@@ -143,16 +232,27 @@
                                     <small class="text-danger d-block">{{ error }}</small>
                                 {% endfor %}
                             {% endif %}
-                            {# نمایش اطلاعات بودجه ساب‌پروژه #}
-                            {% if subproject_total_budget is not None %} {# چک می‌کنیم آیا متغیر در کانتکست وجود دارد #}
+                            {% if subproject_total_budget is not None %}
                                 <small class="form-text text-muted d-block mt-1">
-                                    <i class="fas fa-money-bill me-1"></i> {% trans "بودجه کل زیرپروژه:" %} <span id="subproject_total_budget">{{ subproject_total_budget|floatformat:0|intcomma }}</span> {% trans "ریال" %} |
-                                    <i class="fas fa-hand-holding-usd me-1"></i> {% trans "بودجه باقی‌مانده زیرپروژه:" %} <span id="subproject_remaining_budget">{{ subproject_remaining_budget|floatformat:0|intcomma }}</span> {% trans "ریال" %}
+                                    <i class="fas fa-money-bill me-1 text-success"></i> {% trans "بودجه کل زیرپروژه:" %}
+                                    <span id="subproject_total_budget">{{ subproject_total_budget|floatformat:0|intcomma }}</span> {% trans "ریال" %}
+                                    <br>
+                                    <i class="fas fa-hand-holding-usd me-1 text-primary"></i> {% trans "بودجه باقی‌مانده زیرپروژه:" %}
+                                    <span id="subproject_remaining_budget">{{ subproject_remaining_budget|floatformat:0|intcomma }}</span> {% trans "ریال" %}
                                 </small>
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                         role="progressbar"
+                                         style="width: {{ subproject_budget_percentage }}%; background: linear-gradient(90deg, #ff7e5f, #feb47b);"
+                                         aria-valuenow="{{ subproject_budget_percentage }}"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100">
+                                        {{ subproject_budget_percentage|floatformat:1 }}%
+                                    </div>
+                                </div>
                             {% endif %}
                         </div>
 
-                        {# فیلد شماره نامه #}
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.letter_number.id_for_label }}" class="form-label">{{ form.letter_number.label }}</label>
                             {{ form.letter_number }}
@@ -165,20 +265,40 @@
                     </div>
 
                     <div class="row">
-                        {# فیلد مبلغ #}
                         <div class="col-md-12 mb-3">
                             <label for="{{ form.amount.id_for_label }}" class="form-label">{{ form.amount.label }} <span class="text-danger">*</span></label>
                             {{ form.amount }}
-                             {% if form.amount.errors %}
+                            {% if form.amount.errors %}
                                 {% for error in form.amount.errors %}
                                     <small class="text-danger d-block">{{ error }}</small>
                                 {% endfor %}
                             {% endif %}
+                            <small class="form-text text-muted d-block mt-1">
+                                <i class="fas fa-calculator me-1 text-info"></i> {% trans "مقدار به فارسی:" %}
+                                <span id="amount-in-persian" class="persian-amount-label">۰</span> {% trans "ریال" %}
+                                <br>
+                                <i class="fas fa-font me-1 text-info"></i> {% trans "مقدار به حروف:" %}
+                                <span id="amount-in-words" class="persian-amount-label">-</span>
+                            </small>
+                            <small class="form-text text-muted d-block mt-1">
+                                <i class="fas fa-coins me-1 text-primary"></i> {% trans "بودجه باقی‌مانده پس از تخصیص:" %}
+                                <span id="remaining-after-amount">۰</span> {% trans "ریال" %}
+                            </small>
+                            <div class="progress remaining-budget-progress">
+                                <div id="remaining-budget-progress-bar"
+                                     class="progress-bar progress-bar-striped progress-bar-animated"
+                                     role="progressbar"
+                                     style="width: 100%;"
+                                     aria-valuenow="100"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    100%
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="row">
-                        {# فیلد توضیحات #}
                         <div class="col-md-12 mb-3">
                             <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
                             {{ form.description }}
@@ -190,22 +310,18 @@
                         </div>
                     </div>
 
-                     {# فیلدهای Hidden (اگر در فرم تعریف شده باشند) #}
                     {% for hidden in form.hidden_fields %}
                         {{ hidden }}
                     {% endfor %}
 
                     <div class="text-center mt-4">
-                        {# دکمه ثبت #}
                         <button type="submit" class="btn btn-primary btn-lg">
-                             <i class="fas fa-save me-2"></i> {% trans "ثبت تنخواه" %}
+                            <i class="fas fa-save me-2"></i>{% trans "ثبت تنخواه" %}
                         </button>
-                        {# دکمه انصراف/بازگشت #}
                         <a href="{% url 'tankhah_list' %}" class="btn btn-secondary btn-lg ms-2">
-                            <i class="fas fa-times-circle me-2"></i> {% trans "انصراف" %}
+                            <i class="fas fa-times-circle me-2"></i>{% trans "انصراف" %}
                         </a>
                     </div>
-
                 </form>
             </div>
         </div>
@@ -213,15 +329,120 @@
 {% endblock %}
 
 {% block extra_js %}
-    {# لینک به فایل JS Bootstrap #}
-    {# <script src="{% static 'path/to/bootstrap.bundle.min.js' %}"></script> #}
-
-    {# لینک به فایل JS Jalali Date Picker #}
-        <script>
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
             // راه‌اندازی Jalali Date Picker
             jalaliDatepicker.startWatch();
 
+            // تبدیل اعداد انگلیسی به فارسی
+            function toPersianDigits(number) {
+                const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                return number.toString().replace(/\d/g, digit => persianDigits[parseInt(digit)]);
+            }
+
+            // فرمت‌دهی عدد با جداکننده هزارگان و تبدیل به فارسی
+            function formatNumberToPersian(number) {
+                if (!number) return '۰';
+                const formattedNumber = Number(number).toLocaleString('fa-IR');
+                return formattedNumber;
+            }
+
+            // تبدیل عدد به حروف (به فارسی)
+            function numberToPersianWords(num) {
+                if (!num || num == 0) return '-';
+
+                const units = ['', 'هزار', 'میلیون', 'میلیارد', 'تریلیون'];
+                const numbers = [
+                    '', 'یک', 'دو', 'سه', 'چهار', 'پنج', 'شش', 'هفت', 'هشت', 'نه',
+                    'ده', 'یازده', 'دوازده', 'سیزده', 'چهارده', 'پانزده', 'شانزده', 'هفده', 'هجده', 'نوزده'
+                ];
+                const tens = ['', '', 'بیست', 'سی', 'چهل', 'پنجاه', 'شصت', 'هفتاد', 'هشتاد', 'نود'];
+                const hundreds = ['', 'صد', 'دویست', 'سیصد', 'چهارصد', 'پانصد', 'ششصد', 'هفتصد', 'هشتصد', 'نهصد'];
+
+                function convertLessThanThousand(n) {
+                    if (n == 0) return '';
+                    if (n < 20) return numbers[n];
+                    if (n < 100) {
+                        const ten = Math.floor(n / 10);
+                        const remainder = n % 10;
+                        return tens[ten] + (remainder ? ' و ' + numbers[remainder] : '');
+                    }
+                    const hundred = Math.floor(n / 100);
+                    const remainder = n % 100;
+                    return hundreds[hundred] + (remainder ? ' و ' + convertLessThanThousand(remainder) : '');
+                }
+
+                let result = '';
+                let unitIndex = 0;
+                num = Math.floor(num); // فقط بخش صحیح عدد
+
+                while (num > 0) {
+                    const part = num % 1000;
+                    if (part > 0) {
+                        const partText = convertLessThanThousand(part);
+                        result = partText + (unitIndex > 0 ? ' ' + units[unitIndex] : '') + (result ? ' و ' + result : '');
+                    }
+                    num = Math.floor(num / 1000);
+                    unitIndex++;
+                }
+
+                return result || 'صفر';
+            }
+
+            // به‌روزرسانی مقادیر پویا هنگام تایپ
+            const amountInput = document.getElementById('{{ form.amount.id_for_label }}');
+            const amountInPersianSpan = document.getElementById('amount-in-persian');
+            const amountInWordsSpan = document.getElementById('amount-in-words');
+            const remainingAfterAmountSpan = document.getElementById('remaining-after-amount');
+            const remainingBudgetProgressBar = document.getElementById('remaining-budget-progress-bar');
+
+            // مقدار اولیه بودجه باقی‌مانده (از کانتکست)
+            let baseRemainingBudget = {{ remaining_budget|default:0 }};
+            let baseTotalBudget = {{ total_budget|default:0 }};
+            let baseSubprojectRemainingBudget = {{ subproject_remaining_budget|default:0 }};
+            let baseSubprojectTotalBudget = {{ subproject_total_budget|default:0 }};
+
+            function updateDynamicFields() {
+                let amount = amountInput.value.replace(/[^0-9.]/g, '');
+                amount = amount ? parseFloat(amount) : 0;
+
+                // به‌روزرسانی مقدار فارسی
+                const persianValue = formatNumberToPersian(amount);
+                amountInPersianSpan.textContent = persianValue;
+
+                // به‌روزرسانی مقدار به حروف
+                const wordsValue = numberToPersianWords(amount);
+                amountInWordsSpan.textContent = wordsValue + ' ریال';
+
+                // محاسبه بودجه باقی‌مانده پس از کسر مقدار واردشده
+                let remainingBudget = baseSubprojectRemainingBudget > 0 ? baseSubprojectRemainingBudget : baseRemainingBudget;
+                let totalBudget = baseSubprojectTotalBudget > 0 ? baseSubprojectTotalBudget : baseTotalBudget;
+                const newRemaining = remainingBudget - amount;
+                const percentage = totalBudget > 0 ? (newRemaining / totalBudget * 100) : 0;
+
+                // به‌روزرسانی مقدار بودجه باقی‌مانده
+                remainingAfterAmountSpan.textContent = formatNumberToPersian(Math.max(newRemaining, 0));
+
+                // به‌روزرسانی پروگرس بار
+                remainingBudgetProgressBar.style.width = `${Math.max(percentage, 0)}%`;
+                remainingBudgetProgressBar.setAttribute('aria-valuenow', Math.max(percentage, 0));
+                remainingBudgetProgressBar.textContent = `${Math.max(percentage, 0).toFixed(1)}%`;
+
+                // تغییر رنگ پروگرس بار بر اساس مقدار باقی‌مانده
+                if (percentage > 50) {
+                    remainingBudgetProgressBar.style.background = 'linear-gradient(90deg, #28a745, #34d058)';
+                } else if (percentage > 20) {
+                    remainingBudgetProgressBar.style.background = 'linear-gradient(90deg, #ff7e5f, #feb47b)';
+                } else {
+                    remainingBudgetProgressBar.style.background = 'linear-gradient(90deg, #dc3545, #ff6b6b)';
+                }
+            }
+
+            amountInput.addEventListener('input', updateDynamicFields);
+            amountInput.addEventListener('change', updateDynamicFields);
+            updateDynamicFields();
+
+            // به‌روزرسانی زیرپروژه‌ها و بودجه
             const projectSelect = document.getElementById('{{ form.project.id_for_label }}');
             const subprojectSelect = document.getElementById('{{ form.subproject.id_for_label }}');
             const projectTotalBudgetSpan = document.getElementById('project_total_budget');
@@ -235,17 +456,19 @@
                 subprojectSelect.disabled = true;
 
                 if (!projectId) {
-                    // Reset budget info
                     if (projectTotalBudgetSpan) projectTotalBudgetSpan.textContent = '0';
                     if (projectRemainingBudgetSpan) projectRemainingBudgetSpan.textContent = '0';
                     if (subprojectTotalBudgetSpan) subprojectTotalBudgetSpan.textContent = '0';
                     if (subprojectRemainingBudgetSpan) subprojectRemainingBudgetSpan.textContent = '0';
-                    document.querySelector('.budget-info')?.remove();
+                    baseRemainingBudget = 0;
+                    baseTotalBudget = 0;
+                    baseSubprojectRemainingBudget = 0;
+                    baseSubprojectTotalBudget = 0;
+                    updateDynamicFields();
                     return;
                 }
 
-                // Fetch subprojects
-                const subprojectsUrl = '{% url "get_subprojects" %}'; // اطمینان از استفاده از نام درست
+                const subprojectsUrl = '{% url "get_subprojects" %}';
                 fetch(`${subprojectsUrl}?project_id=${projectId}`)
                     .then(response => {
                         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -273,26 +496,23 @@
                         subprojectSelect.innerHTML = '<option value="">خطا در بارگذاری زیرپروژه‌ها</option>';
                     });
 
-                // Fetch budget info
-                const budgetUrl = '{% url "get_budget_info" %}'; // اطمینان از استفاده از نام درست
+                const budgetUrl = '{% url "get_budget_info" %}';
                 fetch(`${budgetUrl}?project_id=${projectId}`)
                     .then(response => {
                         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                         return response.json();
                     })
                     .then(data => {
-                        const budgetInfo = document.querySelector('.budget-info') || document.createElement('div');
-                        budgetInfo.className = 'budget-info';
-                        budgetInfo.innerHTML = `
-                            <h5>{% trans "اطلاعات بودجه پروژه" %}</h5>
-                            <p><strong>{% trans "بودجه کل تخصیص‌یافته" %}:</strong> <span id="project_total_budget">${data.total_budget.toLocaleString('fa-IR')}</span> {% trans "ریال" %}</p>
-                            <p><strong>{% trans "بودجه باقی‌مانده" %}:</strong> <span id="project_remaining_budget">${data.remaining_budget.toLocaleString('fa-IR')}</span> {% trans "ریال" %}</p>
-                        `;
-                        document.querySelector('.card-body').prepend(budgetInfo);
+                        if (projectTotalBudgetSpan) projectTotalBudgetSpan.textContent = data.total_budget.toLocaleString('fa-IR');
+                        if (projectRemainingBudgetSpan) projectRemainingBudgetSpan.textContent = data.remaining_budget.toLocaleString('fa-IR');
+                        baseRemainingBudget = data.remaining_budget;
+                        baseTotalBudget = data.total_budget;
+                        baseSubprojectRemainingBudget = 0;
+                        baseSubprojectTotalBudget = 0;
+                        updateDynamicFields();
                     })
                     .catch(error => {
                         console.error('Error fetching budget info:', error);
-                        document.querySelector('.budget-info')?.remove();
                     });
             }
 
@@ -301,6 +521,9 @@
                 if (!subprojectId) {
                     if (subprojectTotalBudgetSpan) subprojectTotalBudgetSpan.textContent = '0';
                     if (subprojectRemainingBudgetSpan) subprojectRemainingBudgetSpan.textContent = '0';
+                    baseSubprojectRemainingBudget = 0;
+                    baseSubprojectTotalBudget = 0;
+                    updateDynamicFields();
                     return;
                 }
 
@@ -311,14 +534,11 @@
                         return response.json();
                     })
                     .then(data => {
-                        const budgetInfo = document.querySelector('.budget-info');
-                        if (budgetInfo) {
-                            budgetInfo.innerHTML += `
-                                <h5>{% trans "اطلاعات بودجه زیرپروژه" %}</h5>
-                                <p><strong>{% trans "بودجه کل تخصیص‌یافته" %}:</strong> <span id="subproject_total_budget">${data.subproject_total_budget.toLocaleString('fa-IR')}</span> {% trans "ریال" %}</p>
-                                <p><strong>{% trans "بودجه باقی‌مانده" %}:</strong> <span id="subproject_remaining_budget">${data.subproject_remaining_budget.toLocaleString('fa-IR')}</span> {% trans "ریال" %}</p>
-                            `;
-                        }
+                        if (subprojectTotalBudgetSpan) subprojectTotalBudgetSpan.textContent = data.subproject_total_budget.toLocaleString('fa-IR');
+                        if (subprojectRemainingBudgetSpan) subprojectRemainingBudgetSpan.textContent = data.subproject_remaining_budget.toLocaleString('fa-IR');
+                        baseSubprojectRemainingBudget = data.subproject_remaining_budget;
+                        baseSubprojectTotalBudget = data.subproject_total_budget;
+                        updateDynamicFields();
                     })
                     .catch(error => {
                         console.error('Error fetching subproject budget:', error);
@@ -328,7 +548,6 @@
             projectSelect.addEventListener('change', updateSubprojectsAndBudget);
             subprojectSelect.addEventListener('change', updateSubprojectBudget);
 
-            // Initialize on page load
             if (projectSelect.value) {
                 updateSubprojectsAndBudget();
             }
@@ -337,5 +556,4 @@
             }
         });
     </script>
-
 {% endblock %}

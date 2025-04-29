@@ -9,7 +9,8 @@ from notifications.signals import notify
 from accounts.models import CustomUser
 from core.models import UserPost
 from .fun_can_edit_approval import can_edit_approval
-from .models import Tankhah, ApprovalLog, WorkflowStage
+from core.models import  WorkflowStage
+from tankhah.models import Tankhah, ApprovalLog
 from core.views import PermissionBaseView
 from .utils import restrict_to_user_organization
 
@@ -159,7 +160,6 @@ class TankhahTrackingView1(PermissionBaseView, DetailView):
     def handle_no_permission(self):
         messages.error(self.request, _('شما مجوز لازم برای مشاهده این تنخواه را ندارید.'))
         return redirect('factor_list')
-
 
 class TankhahTrackingView(PermissionBaseView, DetailView):
     model = Tankhah

@@ -1,6 +1,5 @@
-<!-- templates/budgets/project_budget_allocation_detail.html -->
 {% extends 'base.html' %}
-{% load i18n humanize %}
+{% load i18n rcms_custom_filters jalali_tags %}
 
 {% block title %}{% trans "جزئیات تخصیص بودجه پروژه" %} #{{ allocation.id }}{% endblock %}
 
@@ -17,24 +16,29 @@
                 <div class="row">
                     <div class="col-md-6">
                         <p><strong>{% trans "سازمان" %}:</strong> {{ organization.name }}</p>
-                        <p><strong>{% trans "پروژه" %}:</strong> {{ project.name }} ({{ project.code }})</p>
+                        <p><strong>{% trans "پروژه" %}:</strong> {{ project.name|to_persian_number  }} ({{ project.code }})</p>
                         <p>
-                            <strong>{% trans "مبلغ تخصیص‌یافته" %}:</strong> {{ allocation.allocated_amount|intcomma }} {% trans "ریال" %}
+                            <strong>{% trans "مبلغ تخصیص‌یافته" %}:</strong><strong style="color: red">
+                            {{ allocation.allocated_amount|format_negative }} {% trans "ریال" %}</strong>
                         </p>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>{% trans "تاریخ تخصیص" %}:</strong> {{ allocation.allocation_date|date:"Y/m/d" }}</p>
+                        <p><strong>{% trans "تاریخ تخصیص" %}:</strong> {{ allocation.allocation_date|to_jalali:"%Y/%m/%d" |to_persian_number }}</p>
                         <p><strong>{% trans "وضعیت" %}:</strong>
-                            {% if allocation.is_active %}{% trans "فعال" %}{% else %}{% trans "غیرفعال" %}{% endif %}
+                            {% if allocation.is_active %}
+                                <span class="badge bg-success">{% trans "فعال" %}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{% trans "غیرفعال" %}</span>
+                            {% endif %}
                         </p>
-                        <p><strong>{% trans "توضیحات" %}:</strong> {{ allocation.description|default:"-" }}</p>
+                        <p><strong>{% trans "توضیحات" %}:</strong> {{ allocation.description|default:"-"|to_persian_number  }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- کارت زیرپروژه‌ها -->
-        {% if subprojects %}
+        {% if subprojects.exists %}
             <div class="card shadow mb-4">
                 <div class="card-header bg-info text-white">
                     <h3 class="mb-0">{% trans "زیرپروژه‌های مرتبط" %}</h3>
@@ -44,11 +48,15 @@
                         {% for subproject in subprojects %}
                             <li class="list-group-item">
                                 {{ subproject.name }}
-                                ({% trans "بودجه تخصیص‌یافته" %}: {{ subproject.allocated_budget|intcomma }} {% trans "ریال" %})
+                                ({% trans "بودجه تخصیص‌یافته" %}: {{ subproject.allocated_budget|format_negative }} {% trans "ریال" %})
                             </li>
                         {% endfor %}
                     </ul>
                 </div>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                {% trans "هیچ زیرپروژه‌ای برای این تخصیص یافت نشد." %}
             </div>
         {% endif %}
 
@@ -61,17 +69,17 @@
                 <div class="row">
                     <div class="col-md-4">
                         <p>
-                            <strong>{% trans "بودجه کل سازمان" %}:</strong> {{ total_org_budget|intcomma }} {% trans "ریال" %}
+                            <strong>{% trans "بودجه کل سازمان" %}:</strong> <strong style="color: red">{{ total_org_budget|format_negative }} {% trans "ریال" %}</strong>
                         </p>
                     </div>
                     <div class="col-md-4">
                         <p>
-                            <strong>{% trans "مبلغ مصرف‌شده" %}:</strong> {{ consumed_amount|intcomma }} {% trans "ریال" %}
+                            <strong>{% trans "مبلغ مصرف‌شده" %}:</strong>  <strong style="color: red">{{ consumed_amount|format_negative }} {% trans "ریال" %}</strong>
                         </p>
                     </div>
                     <div class="col-md-4">
                         <p>
-                            <strong>{% trans "بودجه باقی‌مانده" %}:</strong> {{ remaining_org_budget|intcomma }} {% trans "ریال" %}
+                            <strong>{% trans "بودجه باقی‌مانده" %}:</strong> <strong style="color: red"> {{ remaining_org_budget|format_negative }} {% trans "ریال" %}</strong>
                         </p>
                     </div>
                 </div>
@@ -84,7 +92,7 @@
                 <h3 class="mb-0">{% trans "تراکنش‌های اخیر" %}</h3>
             </div>
             <div class="card-body">
-                {% if recent_transactions %}
+                {% if recent_transactions.exists %}
                     <table class="table table-striped">
                         <thead>
                         <tr>
@@ -93,28 +101,16 @@
                             <th>{% trans "مبلغ" %}</th>
                             <th>{% trans "تاریخ" %}</th>
                             <th>{% trans "توضیحات" %}</th>
-                            <th>{% trans "عملیات" %}</th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for transaction in recent_transactions %}
                             <tr>
-                                <td>{{ transaction.id }}</td>
+                                <td>{{ transaction.id|to_persian_number }}</td>
                                 <td>{{ transaction.get_transaction_type_display }}</td>
-                                <td>{{ transaction.amount|intcomma }} {% trans "ریال" %}</td>
-                                <td>{{ transaction.timestamp|date:"Y/m/d H:i" }}</td>
-                                <td>{{ transaction.description|default:"-" }}</td>
-                                <td>
-                                    <!-- دکمه‌های عملیات -->
-                                    <div class="text-center mb-4">
-                                        <a href="{% url 'project__budget__allocation__edit__view' allocation.pk %}"
-                                           class="btn btn-primary">{% trans "ویرایش تخصیص" %}</a>
-                                        <a href="{% url 'budget_return' allocation_id=allocation.id %}"
-                                           class="btn btn-warning">{% trans "ثبت بازگشت بودجه" %}</a>
-                                        <a href="{% url 'organization_list' %}"
-                                           class="btn btn-secondary">{% trans "بازگشت به لیست سازمان‌ها" %}</a>
-                                    </div>
-                                </td>
+                                <td>{{ transaction.amount|to_persian_number }} {% trans "ریال" %}</td>
+                                <td>{{ transaction.timestamp|to_jalali:"%Y/%m/%d %H:%i"|to_persian_number }}</td>
+                                <td>{{ transaction.description|default:"-"|to_persian_number }}</td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -129,6 +125,8 @@
         <div class="text-center mb-4">
             <a href="{% url 'project__budget__allocation__edit__view' allocation.pk %}"
                class="btn btn-primary">{% trans "ویرایش تخصیص" %}</a>
+            <a href="{% url 'budget_return' allocation_id=allocation.id %}"
+               class="btn btn-warning">{% trans "ثبت بازگشت بودجه" %}</a>
             <a href="{% url 'organization_list' %}" class="btn btn-secondary">{% trans "بازگشت به لیست سازمان‌ها" %}</a>
         </div>
     </div>

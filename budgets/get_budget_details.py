@@ -1,23 +1,29 @@
 from django.db.models import Sum, Q
-from django.utils import timezone
 from datetime import datetime
 from decimal import Decimal
-import logging
-from budgets.models import BudgetPeriod, BudgetAllocation, BudgetTransaction, ProjectBudgetAllocation
-from core.models import Organization, Project
-from django_jalali.db.models import jDateField
+from budgets.models import BudgetAllocation, BudgetTransaction, ProjectBudgetAllocation
+from core.models import  Project
 from django.utils.translation import gettext_lazy as _
+import logging
 
 logger = logging.getLogger(__name__)
 
 def get_budget_details(entity, filters=None):
     """
-    محاسبه جزئیات بودجه برای یک سازمان با در نظر گرفتن فیلترهای تاریخ
+    محاسبه جزئیات بودجه برای یک موجودیت (مثل سازمان)
+    entity: می‌تواند یک Organization یا Project باشد
+    filters: دیکشنری شامل فیلترهای تاریخ (date_from, date_to)
     """
     filters = filters or {}
     date_from = filters.get('date_from')
     date_to = filters.get('date_to')
-    is_active = filters.get('is_active')
+
+    # کش کردن نتیجه
+    # cache_key = f"budget_details_{entity.__class__.__name__}_{entity.id}"
+    # cached_data = cache.get(cache_key)
+    # if cached_data:
+    #     logger.debug(f"Cache hit for {cache_key}: {cached_data}")
+    #     return cached_data
 
     try:
         # تبدیل تاریخ‌های جلالی به میلادی
@@ -78,8 +84,8 @@ def get_budget_details(entity, filters=None):
         # آخرین به‌روزرسانی
         last_update = BudgetTransaction.objects.filter(
             allocation__in=budget_allocations
-        ).order_by('-created_at').first()
-        last_update_date = last_update.created_at if last_update else None
+        ).order_by('-timestamp').first()  # استفاده از timestamp به جای created_at
+        last_update_date = last_update.timestamp if last_update else None
         if last_update_date and isinstance(last_update_date, datetime):
             from django_jalali.templatetags.jformat import to_jalali
             last_update_date = to_jalali(last_update_date)
@@ -87,7 +93,7 @@ def get_budget_details(entity, filters=None):
         # وضعیت
         status_message = _('فعال') if entity.is_active else _('غیرفعال')
 
-        return {
+        result = {
             'total_budget': total_budget,
             'total_allocated': total_allocated,
             'remaining_budget': remaining_budget,
@@ -96,6 +102,11 @@ def get_budget_details(entity, filters=None):
             'last_update': last_update_date,
             'status_message': status_message
         }
+
+        # ذخیره در کش
+        # cache.set(cache_key, result, timeout=60*60)  # کش برای 1 ساعت
+        # logger.debug(f"Computed budget details for {cache_key}: {result}")
+        return result
 
     except Exception as e:
         logger.error(f"Error in get_budget_details for organization {entity}: {str(e)}")

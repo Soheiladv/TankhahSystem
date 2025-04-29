@@ -1,39 +1,21 @@
-import os
 import logging
+import os
 from decimal import Decimal
-# from dis import CONVERT_VALUE
-
-from Tanbakhsystem.widgets import NumberToWordsWidget
+from django import forms
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget
-
-logger = logging.getLogger(__name__)
-
-from django.db import models
 from .utils import restrict_to_user_organization
 import jdatetime
 from django.utils import timezone
 from Tanbakhsystem.utils import convert_to_farsi_numbers, to_english_digits
-from core.models import WorkflowStage, Project, Organization
-from .models import Factor, ApprovalLog, FactorItem, Tankhah, get_default_workflow_stage
-from core.models import SubProject
-from django import forms
-from django.utils.translation import gettext_lazy as _
-from django.forms import inlineformset_factory
 from Tanbakhsystem.base import JalaliDateForm
+from tankhah.models import Factor, FactorItem, Tankhah  # وارد کردن مدل‌ها
 
+logger = logging.getLogger(__name__)
 
 class FactorItemApprovalForm(forms.Form):
     item_id = forms.IntegerField(widget=forms.HiddenInput)
-    # action = forms.ChoiceField(
-    #     choices=[('APPROVE', 'تأیید'), ('REJECT', 'رد'), ('NONE', 'هیچکدام')],
-    #     widget=forms.HiddenInput,
-    #     initial='NONE'
-    # )
-    # comment = forms.CharField(
-    #     required=False,
-    #     widget=forms.Textarea(attrs={'rows': 2, 'class': 'form-control comment-field'})
-    # )
-    #
     action = forms.ChoiceField(
         choices=[
             ('PENDING', _('در انتظار')),
@@ -56,10 +38,7 @@ class FactorItemApprovalForm(forms.Form):
         label=_("توضیحات")
     )
 
-# ------------ New
 class FactorApprovalForm(forms.ModelForm):
-    """فرم تأیید یا رد فاکتور و ردیف‌های آن"""
-
     comment = forms.CharField(
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         required=False,
@@ -67,12 +46,11 @@ class FactorApprovalForm(forms.ModelForm):
     )
 
     class Meta:
-        model = Factor
-        fields = ['comment']  # فقط توضیحات کلی برای کل فاکتور
+        model = Factor  # استفاده از کلاس مدل واقعی
+        fields = ['comment']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # اضافه کردن فیلدهای پویا برای هر ردیف فاکتور
         for item in self.instance.items.all():
             self.fields[f'action_{item.id}'] = forms.ChoiceField(
                 choices=[
@@ -94,7 +72,6 @@ class FactorApprovalForm(forms.ModelForm):
         instance = super().save(commit=False)
         if commit:
             instance.save()
-            # به‌روزرسانی وضعیت ردیف‌ها
             for item in self.instance.items.all():
                 action_field = f'action_{item.id}'
                 comment_field = f'comment_{item.id}'
@@ -103,7 +80,7 @@ class FactorApprovalForm(forms.ModelForm):
                     item.comment = self.cleaned_data[comment_field]
                     item.save()
         return instance
-# ------------
+
 class TankhahForm(JalaliDateForm):
     date = forms.CharField(
         label=_('تاریخ'),
@@ -136,6 +113,7 @@ class TankhahForm(JalaliDateForm):
         }
 
     def __init__(self, *args, **kwargs):
+        from core.models import Organization, Project, SubProject
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
@@ -144,7 +122,6 @@ class TankhahForm(JalaliDateForm):
             self.fields['organization'].queryset = Organization.objects.filter(id__in=[org.id for org in user_orgs])
             self.fields['project'].queryset = Project.objects.filter(organizations__in=user_orgs).distinct()
 
-            # فیلتر زیرپروژه‌ها
             if 'project' in self.data:
                 try:
                     project_id = int(self.data.get('project'))
@@ -156,7 +133,6 @@ class TankhahForm(JalaliDateForm):
             else:
                 self.fields['subproject'].queryset = SubProject.objects.none()
 
-            # غیرفعال کردن فیلدها در صورت عدم دسترسی
             if self.instance.pk and self.instance.organization:
                 user_posts = self.user.userpost_set.filter(is_active=True)
                 if not any(post.post.organization == self.instance.organization for post in user_posts):
@@ -202,7 +178,6 @@ class TankhahForm(JalaliDateForm):
             instance.save()
         return instance
 
-
 class TanbakhApprovalForm(forms.ModelForm):
     comment = forms.CharField(
         widget=forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
@@ -212,7 +187,7 @@ class TanbakhApprovalForm(forms.ModelForm):
 
     class Meta:
         model = Tankhah
-        fields = []  # هیچ فیلد دیگری از مدل نیاز نیست
+        fields = []
 
 class FactorForm(forms.ModelForm):
     date = forms.CharField(
@@ -223,24 +198,16 @@ class FactorForm(forms.ModelForm):
             'placeholder': convert_to_farsi_numbers(_('تاریخ را انتخاب کنید (1404/01/17)'))
         })
     )
-    # amount = forms.DecimalField(
-    #     widget=NumberToWordsWidget(attrs={'placeholder': 'مجموع ارقام فاکتور را وارد کنید'}),
-    #     label='مبلغ'
-    # )
-    # number = forms.DecimalField(
-    #     widget=NumberToWordsWidget(attrs={'placeholder': 'تعداد را وارد کنید'}),
-    #     label='تعداد'
-    # )
 
     class Meta:
         model = Factor
         fields = ['tankhah', 'date', 'amount', 'description']
         widgets = {
-            'amount': forms.NumberInput(attrs={'class': 'form-control' }),
+            'amount': forms.NumberInput(attrs={'class': 'form-control'}),
             'tankhah': forms.Select(attrs={'class': 'form-control'}),
             'description': forms.Textarea(
                 attrs={'class': 'form-control', 'rows': 1, 'placeholder': _('توضیحات فاکتور')}),
-            }
+        }
         labels = {
             'tankhah': _('تنخواه'),
             'date': _('تاریخ'),
@@ -249,6 +216,7 @@ class FactorForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        from core.models import WorkflowStage, Project, SubProject
         self.user = kwargs.pop('user', None)
         self.tankhah = kwargs.pop('tankhah', None)
         super().__init__(*args, **kwargs)
@@ -256,21 +224,22 @@ class FactorForm(forms.ModelForm):
 
         if self.user:
             user_orgs = restrict_to_user_organization(self.user)
-            if user_orgs is None:  # HQ یا Superuser
+            if user_orgs is None:
                 self.fields['tankhah'].queryset = Tankhah.objects.filter(
                     status__in=['DRAFT', 'PENDING'],
                     current_stage__order=initial_stage_order
                 )
-            else:  # شعبات
+            else:
                 projects = Project.objects.filter(organizations__in=user_orgs)
                 subprojects = SubProject.objects.filter(project__in=projects)
+                from django.db.models import Q
                 queryset = Tankhah.objects.filter(
                     status__in=['DRAFT', 'PENDING'],
                     current_stage__order=initial_stage_order
                 ).filter(
-                    models.Q(organization__in=user_orgs) |
-                    models.Q(project__in=projects) |
-                    models.Q(subproject__in=subprojects)
+                    Q(organization__in=user_orgs) |
+                    Q(project__in=projects) |
+                    Q(subproject__in=subprojects)
                 ).distinct()
                 self.fields['tankhah'].queryset = queryset
                 logger.info(f"Tankhah queryset: {list(queryset.values('number', 'project__name', 'subproject__name'))}")
@@ -284,10 +253,10 @@ class FactorForm(forms.ModelForm):
                 self.fields['date'].initial = jalali_date_str
                 self.initial['date'] = jalali_date_str
 
-            amount_rounded = round(Decimal(self.instance.amount))
-                # ویجت CharField انتظار رشته دارد
-            self.initial['amount'] = str(int(amount_rounded))
-            logger.info(f'Initial amount set for widget: {self.initial["amount"]}')
+            amount = self.instance.amount
+            if amount is not None:
+                self.initial['amount'] = str(int(round(Decimal(amount))))
+                logger.info(f'Initial amount set for widget: {self.initial["amount"]}')
 
         elif self.tankhah:
             self.fields['tankhah'].initial = self.tankhah
@@ -299,85 +268,55 @@ class FactorForm(forms.ModelForm):
     def clean_date(self):
         date_str = self.cleaned_data.get('date')
         if not date_str:
+            logger.error("خطا: تاریخ فاکتور وارد نشده است")
             raise forms.ValidationError(_('تاریخ فاکتور اجباری است.'))
         try:
             j_date = jdatetime.datetime.strptime(date_str, '%Y/%m/%d')
             gregorian_date = j_date.togregorian()
+            logger.info(f"تاریخ تبدیل‌شده: {gregorian_date}")
             return timezone.make_aware(gregorian_date)
         except ValueError:
+            # logger.error(f"خطا در تبدیل تاریخ: {e}")
             raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
 
     def clean_amount(self):
-        amount_str = self.cleaned_data.get('amount', '')  # چون CharField است، مقدار رشته‌ای است
-        if amount_str is None or str(amount_str).strip() == '':
+        amount = self.cleaned_data.get('amount')
+        if amount is None:
             raise forms.ValidationError(_("وارد کردن مبلغ الزامی است."))
+        if amount <= 0:
+            raise forms.ValidationError(_("مبلغ باید بزرگتر از صفر باشد."))
+        return amount
 
-        from decimal import InvalidOperation
-        try:
-            # 1. تبدیل اعداد فارسی به انگلیسی و حذف کاما
-            # حتما تابع to_english_digits را import کرده باشید
-            english_amount_str = to_english_digits(str(amount_str)).replace(',', '')
-
-            # 2. تبدیل به Decimal برای دقت (یا float اگر دقت خیلی بالا لازم نیست)
-            amount_decimal = Decimal(english_amount_str)
-
-            # 3. گرد کردن به نزدیک‌ترین عدد صحیح
-            # round() پایتون به نزدیک‌ترین زوج گرد می‌کند (برای x.5)
-            # Decimal.quantize(Decimal('1')) روش دقیق‌تر گرد کردن عادی است
-            # اما round() معمولا کافیست
-            amount_rounded = round(amount_decimal)
-
-            # 4. تبدیل به عدد صحیح (int)
-            amount_int = int(amount_rounded)
-
-            # 5. اعتبارسنجی مقدار
-            if amount_int <= 0:
-                raise forms.ValidationError(_("مبلغ باید بزرگتر از صفر باشد."))
-
-            logger.info(
-                f"Cleaned amount: Original='{amount_str}', English='{english_amount_str}', Decimal='{amount_decimal}', RoundedInt='{amount_int}'")
-            return amount_int  # مقدار گرد شده و صحیح را برمی‌گردانیم
-
-        except (ValueError, TypeError, InvalidOperation):
-            logger.warning(f"Invalid amount input: '{amount_str}'")
-            raise forms.ValidationError(_("لطفاً یک عدد معتبر برای مبلغ وارد کنید (فقط عدد)."))
-
-
-    def clean_quantity(self):
-        quantity_str = self.cleaned_data.get('quantity', '')
-        if quantity_str:
-            try:
-                # تبدیل اعداد پارسی به انگلیسی
-                quantity_str = to_english_digits(str(quantity_str))
-                quantity_val = int(quantity_str)
-                if quantity_val <= 0:
-                    raise forms.ValidationError(_("تعداد باید بزرگتر از صفر باشد."))
-                return quantity_val
-            except (ValueError, TypeError):
-                raise forms.ValidationError(_("لطفاً یک عدد معتبر برای تعداد وارد کنید."))
-        raise forms.ValidationError(_("وارد کردن تعداد الزامی است."))
+    def clean(self):
+        cleaned_data = super().clean()
+        logger.info(f"داده‌های اعتبارسنجی‌شده: {cleaned_data}")
+        return cleaned_data
 
     def save(self, commit=True):
+        logger.info(f"Starting save for factor by {self.user}, commit={commit}, data={self.cleaned_data}")
         instance = super().save(commit=False)
-        if self.user and self.instance.pk and self.has_changed():
-            old_instance = Factor.objects.get(pk=self.instance.pk)
-            for field in self.changed_data:
-                old_value = getattr(old_instance, field)
-                new_value = getattr(instance, field)
-                logger.info(f"تغییر در فاکتور {instance.number}: {field} از {old_value} به {new_value} توسط {self.user}")
+        if self.user:
+            if self.instance.pk and self.has_changed():
+                old_instance = Factor.objects.get(pk=self.instance.pk)
+                for field in self.changed_data:
+                    old_value = getattr(old_instance, field)
+                    new_value = getattr(instance, field)
+                    logger.info(
+                        f"Change in factor (ID: {instance.pk}): {field} from {old_value} to {new_value} by {self.user}")
+            else:
+                logger.info(f"Creating new factor by {self.user}: {self.cleaned_data}")
         if commit:
             instance.save()
+            logger.info(f"Factor saved: ID={instance.pk}, number={instance.number}")
         return instance
 
-# فرم برای اقلام فاکتور
 class FactorItemForm(forms.ModelForm):
-    """فرم ایجاد و ویرایش اقلام فاکتور"""
     class Meta:
         model = FactorItem
         fields = ['description', 'amount', 'quantity']
         widgets = {
             'description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('شرح ردیف')}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control','placeholder': 'مبلغ را وارد کنید'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'مبلغ را وارد کنید'}),
             'quantity': forms.NumberInput(
                 attrs={'class': 'form-control quantity-field', 'placeholder': _('تعداد'), 'min': '1'}),
         }
@@ -392,12 +331,7 @@ class FactorItemForm(forms.ModelForm):
             raise forms.ValidationError(_('تعداد باید حداقل ۱ باشد.'))
         return cleaned_data
 
-FactorItemFormSet = inlineformset_factory(Factor, FactorItem, form=FactorItemForm,
-                                          fields=['description', 'amount', 'quantity'],extra=1, can_delete=True, max_num=100)
-
-
 class ApprovalForm(forms.ModelForm):
-    """فرم ثبت تأیید یا رد"""
     action = forms.ChoiceField(choices=[
         ('APPROVE', 'تأیید'),
         ('REJECT', 'رد'),
@@ -406,30 +340,23 @@ class ApprovalForm(forms.ModelForm):
     ])
 
     class Meta:
+        from tankhah.models import ApprovalLog
         model = ApprovalLog
-        # fields = ['tankhah', 'factor', 'comment', 'action']  # user و date توسط سیستم پر می‌شوند
         fields = ['action', 'comment', 'tankhah', 'factor', 'factor_item']
         widgets = {
             'tankhah': forms.Select(attrs={'class': 'form-control'}),
             'factor': forms.Select(attrs={'class': 'form-control'}),
             'comment': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': _('توضیحات اختیاری')}),
             'action': forms.Select(attrs={'class': 'form-control'}),
-
-            # 'tankhah': forms.HiddenInput(),
-            # 'factor': forms.HiddenInput(),
             'factor_item': forms.HiddenInput(),
-
-            # 'is_approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
             'tankhah': _('تنخواه'),
             'factor': _('فاکتور'),
             'comment': _('توضیحات'),
             'action': _('شاخه'),
-            # 'is_approved': _('تأیید شده؟'),
         }
 
-"""این فرم وضعیت و مرحله فعلی تنخواه را نمایش می‌دهد:"""
 class TankhahStatusForm(forms.ModelForm):
     class Meta:
         model = Tankhah
@@ -449,7 +376,6 @@ class TankhahStatusForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # غیرفعال کردن فیلدها برای نمایش فقط خواندنی
         for field in self.fields.values():
             field.disabled = True
 
@@ -468,33 +394,25 @@ class FactorStatusForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['status'].disabled = True
 
-"""*** مهم ***"""
-"""چون در مدل TanbakhDocument فقط یک document ذخیره می‌شود، اما ما چندین فایل را آپلود می‌کنیم. بنابراین نیازی به ModelForm نیست."""
 class MultipleFileInput(forms.ClearableFileInput):
-    allow_multiple_selected = True  # امکان انتخاب چندین فایل را فعال می‌کند
+    allow_multiple_selected = True
 
 class MultipleFileField(forms.FileField):
     def __init__(self, *args, **kwargs):
-        # kwargs.setdefault("widget", MultipleFileInput(attrs={'class': 'form-control'}))
         kwargs.setdefault("widget", MultipleFileInput(attrs={'multiple': True, 'class': 'form-control'}))
         super().__init__(*args, **kwargs)
 
     def clean(self, data, initial=None):
         single_file_clean = super().clean
         if isinstance(data, (list, tuple)):
-            # result = [single_file_clean(d, initial) for d in data]
-            # اطمینان از اینکه فقط فایل‌های آپلود شده معتبر را برمی‌گردانیم
             result = [single_file_clean(d, initial) for d in data if d is not None]
         else:
             result = single_file_clean(data, initial)
         return result
-# --- تعریف پسوندهای مجاز ---
-# ! لیست پسوندهای مجاز رو اینجا تعریف کن (با نقطه و حروف کوچک)
-ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png']
-# می‌تونی فرمت‌های دیگه مثل .txt, .odt, .ods, .gif, .zip, .rar رو هم اضافه کنی
-ALLOWED_EXTENSIONS_STR = ", ".join(ALLOWED_EXTENSIONS) # برای نمایش در پیام خطا
 
-# --- فرم اسناد فاکتور (اصلاح شده با اعتبارسنجی) ---
+ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png']
+ALLOWED_EXTENSIONS_STR = ", ".join(ALLOWED_EXTENSIONS)
+
 class FactorDocumentForm(forms.Form):
     files = MultipleFileField(
         label=_("بارگذاری اسناد فاکتور (فقط {} مجاز است)".format(ALLOWED_EXTENSIONS_STR)),
@@ -502,58 +420,51 @@ class FactorDocumentForm(forms.Form):
         widget=MultipleFileInput(
             attrs={
                 'multiple': True,
-                'class': 'form-control form-control-sm', # کلاس برای استایل بهتر
-                'accept': ",".join(ALLOWED_EXTENSIONS) # راهنمایی به مرورگر برای فیلتر فایل‌ها
-                }
-            )
+                'class': 'form-control form-control-sm',
+                'accept': ",".join(ALLOWED_EXTENSIONS)
+            }
         )
+    )
 
     def clean_files(self):
-        """اعتبارسنجی نوع فایل‌های آپلود شده برای اسناد فاکتور."""
         files = self.cleaned_data.get('files')
-        if files: # اگر فایلی آپلود شده بود
+        if files:
             invalid_files = []
             for uploaded_file in files:
-                if uploaded_file: # اطمینان از اینکه فایل None نیست
-                    # گرفتن پسوند فایل و تبدیل به حروف کوچک
+                if uploaded_file:
                     ext = os.path.splitext(uploaded_file.name)[1].lower()
                     if ext not in ALLOWED_EXTENSIONS:
                         invalid_files.append(uploaded_file.name)
                         logger.warning(f"Invalid file type uploaded for FactorDocument: {uploaded_file.name} (type: {ext})")
 
-            # اگر فایل نامعتبری وجود داشت، خطا ایجاد کن
             if invalid_files:
                 invalid_files_str = ", ".join(invalid_files)
                 error_msg = _("فایل(های) زیر دارای فرمت غیرمجاز هستند: {files}. فرمت‌های مجاز: {allowed}").format(
                     files=invalid_files_str,
                     allowed=ALLOWED_EXTENSIONS_STR
                 )
-                from django.core.exceptions import ValidationError
                 raise ValidationError(error_msg)
-        return files # برگرداندن لیست فایل‌های (احتمالا) معتبر
+        return files
 
-# --- فرم اسناد تنخواه (اصلاح شده با اعتبارسنجی) ---
 class TankhahDocumentForm(forms.Form):
-    # prefix='tankhah_docs'
     documents = MultipleFileField(
         label=_("بارگذاری مدارک تنخواه (فقط {} مجاز است)".format(ALLOWED_EXTENSIONS_STR)),
         required=False,
-         widget=MultipleFileInput(
+        widget=MultipleFileInput(
             attrs={
                 'multiple': True,
                 'class': 'form-control form-control-sm',
                 'accept': ",".join(ALLOWED_EXTENSIONS)
-                }
-            )
+            }
         )
+    )
 
     def clean_documents(self):
-        """اعتبارسنجی نوع فایل‌های آپلود شده برای اسناد تنخواه."""
         files = self.cleaned_data.get('documents')
         if files:
             invalid_files = []
             for uploaded_file in files:
-                 if uploaded_file:
+                if uploaded_file:
                     ext = os.path.splitext(uploaded_file.name)[1].lower()
                     if ext not in ALLOWED_EXTENSIONS:
                         invalid_files.append(uploaded_file.name)
@@ -565,7 +476,15 @@ class TankhahDocumentForm(forms.Form):
                     files=invalid_files_str,
                     allowed=ALLOWED_EXTENSIONS_STR
                 )
-                from django.core.exceptions import ValidationError
                 raise ValidationError(error_msg)
         return files
 
+
+def get_factor_item_formset():
+    from django.forms import inlineformset_factory
+    return inlineformset_factory(
+        Factor, FactorItem, form=FactorItemForm,
+        fields=['description', 'amount', 'quantity'],
+        # extra=1, can_delete=True, min_num=1, validate_min=True, max_num=100
+        extra=1, can_delete=True, min_num=1, validate_min=True, max_num=100
+    )

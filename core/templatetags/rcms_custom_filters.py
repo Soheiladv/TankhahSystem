@@ -207,7 +207,9 @@ def format_negative(value):
         return "۰"
 
 
-
+@register.filter
+def dict_get(dictionary, key):
+    return dictionary.get(key)
 
 def number_to_farsi_words(number):
     """
@@ -307,3 +309,5 @@ def subtract(value, arg):
         return float(value) - float(arg)
     except (ValueError, TypeError):
         return ''
+
+

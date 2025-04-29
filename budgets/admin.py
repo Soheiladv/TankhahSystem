@@ -4,10 +4,12 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum
 
 from core.models import SubProject
-from .models import (
+from budgets.models import (
     BudgetPeriod, BudgetAllocation, BudgetTransaction,
     PaymentOrder, Payee, TransactionType, ProjectBudgetAllocation,BudgetHistory,BudgetItem
 )
+
+from django import forms
 
 # ادمین BudgetPeriod
 @admin.register(BudgetPeriod)
@@ -187,10 +189,6 @@ class SubProjectAdmin(admin.ModelAdmin):
 
 
 #------------from django.contrib import admin
-from django.utils.translation import gettext_lazy as _
-from django.db.models import Sum
-from .models import ProjectBudgetAllocation, BudgetAllocation  # اضافه کردن BudgetAllocation
-from django import forms
 
 class ProjectBudgetAllocationAdminForm(forms.ModelForm):
     class Meta:

@@ -145,10 +145,26 @@
                                 </a>
                             </td>
                             <td>{{ organization.org_type.fname|default:_("نامشخص") }}</td>
-                            <td class="text-end">{{ organization.budget_details.total_budget|floatformat:"0"|to_persian_number }}</td>
-                            <td class="text-end">{{ organization.budget_details.total_allocated|floatformat:"0"|to_persian_number }}</td>
+                            <td class="text-end">
+                                {% if organization.budget_details.total_budget %}
+                                    {{ organization.budget_details.total_budget| format_negative }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                {% if organization.budget_details.total_allocated %}
+                                    {{ organization.budget_details.total_allocated|floatformat:"0"|format_negative }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
                             <td class="text-end {% if organization.budget_details.remaining_budget < 0 %}text-danger{% endif %}">
-                                {{ organization.budget_details.remaining_budget|floatformat:"0"|to_persian_number }}
+                                {% if organization.budget_details.remaining_budget %}
+                                    {{ organization.budget_details.remaining_budget|floatformat:"0"|format_negative }}
+                                {% else %}
+                                    -
+                                {% endif %}
                             </td>
                             <td>
                                 <span class="badge bg-{% if organization.budget_details.status_message == 'فعال' %}success{% else %}secondary{% endif %}">
@@ -159,7 +175,15 @@
                                 <div class="budget-details">
                                     <div><small>{% trans "پروژه‌ها" %}: {{ organization.budget_details.project_count|to_persian_number }}</small></div>
                                     <div><small>{% trans "تخصیص‌ها" %}: {{ organization.budget_details.allocation_count|to_persian_number }}</small></div>
-                                    <div><small>{% trans "آخرین بروزرسانی" %}: {{ organization.budget_details.last_update|default:_("نامشخص") }}</small></div>
+                                    <div>
+                                        <small>{% trans "آخرین بروزرسانی" %}:
+                                            {% if organization.budget_details.last_update %}
+                                                {{ organization.budget_details.last_update|to_jalali:"%Y/%m/%d"|to_persian_number }}
+                                            {% else %}
+                                                {% trans "نامشخص" %}
+                                            {% endif %}
+                                        </small>
+                                    </div>
                                 </div>
                             </td>
                             <td>
@@ -189,10 +213,20 @@
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item"
-                                                   href="{% url 'project_budget_allocation_detail' organization.id %}">
-                                                    <i class="fas fa-chart-pie me-1"></i>{% trans "گزارش بودجه" %}
-                                                </a>
+                                                {#                                                <a class="dropdown-item"#}
+                                                {#                                                   href="{% url 'project_budget_allocation_detail' organization.id %}">#}
+                                                {#                                                    <i class="fas fa-chart-pie me-1"></i>{% trans "گزارش بودجه" %}#}
+                                                {#                                                </a>#}
+                                                {% with first_allocation=organization.budget_allocations.first.project_allocations.first %}
+                                                    {% if first_allocation %}
+                                                        <a class="dropdown-item"
+                                                           href="{% url 'project_budget_allocation_detail' first_allocation.id %}">
+                                                            <i class="fas fa-chart-pie me-1"></i>{% trans "گزارش بودجه" %}
+                                                        </a>
+                                                    {% else %}
+                                                        <span class="dropdown-item text-muted">{% trans "بدون تخصیص بودجه" %}</span>
+                                                    {% endif %}
+                                                {% endwith %}
                                             </li>
                                         </ul>
                                     </div>

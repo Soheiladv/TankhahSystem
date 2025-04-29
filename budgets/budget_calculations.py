@@ -92,13 +92,22 @@ def get_project_total_budget(project, filters=None):
         logger.debug(f"Returning cached project_total_budget for {cache_key}: {cached_result}")
         return cached_result
 
-    queryset = ProjectBudgetAllocation.objects.filter(project=project, subproject__isnull=True)
+        # تخصیص‌های مستقیم به پروژه
+    direct_allocations = ProjectBudgetAllocation.objects.filter(project=project, subproject__isnull=True)
     if filters:
-        queryset = apply_filters(queryset, filters)
-    total = queryset.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+        direct_allocations = apply_filters(direct_allocations, filters)
+    direct_total = direct_allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+
+    # تخصیص‌های زیرپروژه‌ها
+    subproject_allocations = ProjectBudgetAllocation.objects.filter(project=project, subproject__isnull=False)
+    if filters:
+        subproject_allocations = apply_filters(subproject_allocations, filters)
+    subproject_total = subproject_allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+
+    total = direct_total + subproject_total
     cache.set(cache_key, total, timeout=300)
-    logger.debug(f"get_project_total_budget: project={project}, total={total}")
     return total
+
 
 def get_project_used_budget(project, filters=None):
     """

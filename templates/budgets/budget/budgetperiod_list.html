@@ -173,6 +173,24 @@
     }
 
     /* اطمینان از نمایش بالای سایر المان‌ها */
+    .status-badge.archived {
+        background-color: var(--bs-secondary-bg-subtle); /* یا رنگ دلخواه دیگر */
+        color: var(--bs-secondary-text-emphasis);
+        border: 1px solid var(--bs-secondary-border-subtle);
+    }
+
+    .status-badge.upcoming {
+        background-color: var(--bs-info-bg-subtle);
+        color: var(--bs-info-text-emphasis);
+        border: 1px solid var(--bs-info-border-subtle);
+    }
+
+    .status-badge.expired {
+        background-color: var(--bs-warning-bg-subtle);
+        color: var(--bs-warning-text-emphasis);
+        border: 1px solid var(--bs-warning-border-subtle);
+    }
+
 </style>
 {% endblock %}
 
@@ -196,10 +214,7 @@
                         <i class="fas fa-user-graduate me-1"></i> {% trans "راهنمای کار بودجه کلان" %}
                     </a>
                 </div>
-
-
             </div>
-
             <!-- خلاصه وضعیت‌ها و تعداد نتایج -->
             <div class="card-body no-print">
                 <div class="alert alert-info d-flex justify-content-between align-items-center">
@@ -289,18 +304,29 @@
                         <td class="font-monospace">{{ budget_period.start_date|jformat:'%Y/%m/%d'|to_persian_number }}</td>
                         <td class="font-monospace">{{ budget_period.end_date|jformat:'%Y/%m/%d'|to_persian_number }}</td>
                         <td>
-                            {% if budget_period.status == 'active' %}
-                                <span class="status-badge active">{% trans "فعال" %}</span>
-                            {% elif budget_period.status == 'inactive' %}
-                                <span class="status-badge inactive">{% trans "غیرفعال" %}</span>
-                            {% elif budget_period.status == 'locked' %}
-                                <span class="status-badge locked">{% trans "قفل‌شده" %}</span>
-                            {% elif budget_period.status == 'completed' %}
-                                <span class="status-badge completed">{% trans "تمام‌شده" %}</span>
+                            {# --- نمایش وضعیت جدید --- #}
+                            <span class="status-badge {{ budget_period.status_css_class }}">
+                            {% if budget_period.display_status == 'active' %}
+                                {% trans "فعال" %}
+                            {% elif budget_period.display_status == 'inactive' %}
+                                {% trans "غیرفعال" %}
+                            {% elif budget_period.display_status == 'locked' %}
+                                {% trans "قفل‌شده" %}
+                            {% elif budget_period.display_status == 'completed' %}
+                                {% trans "تمام‌شده" %}
+                            {% elif budget_period.display_status == 'archived' %}
+                                {% trans "بایگانی" %}
+                            {% elif budget_period.display_status == 'upcoming' %}
+                                {% trans "آینده" %}
+                            {% elif budget_period.display_status == 'expired' %}
+                                {% trans "منقضی" %}
+                            {% else %}
+                                - {# نمایش برای وضعیت نامشخص #}
                             {% endif %}
-                            {% if budget_period.is_archived %}
-                                <span class="status-badge archived">{% trans "بایگانی" %}</span>
-                            {% endif %}
+                        </span>
+                            {# نمایش بایگانی به صورت جداگانه دیگر لازم نیست #}
+                            {# {% if budget_period.is_archived %} ... {% endif %} #}
+                            {# --- پایان نمایش وضعیت جدید --- #}
                         </td>
                             <td class="action-buttons no-print">
                                 <div class="btn-group btn-group-sm" role="group" aria-label="Budget Period Actions">
@@ -336,8 +362,25 @@
                     </tr>
                     {% endfor %}
                 </tbody>
-            </table>
+                    {# --- بخش جدید: جمع کل --- #}
+                    <tfoot>
+                    <tr class="table-light fw-bold"> {# استایل برای ردیف جمع کل #}
+                        <td colspan="3" class="text-center">{% trans "جمع کل نتایج" %}</td>
+                        {# ادغام 3 ستون اول #}
+                        <td class="text-numeric">{{ total_sum|format_negative }}</td>
+                        {# نمایش جمع مبلغ کل #}
+                        <td class="text-numeric {% if total_remaining < 0 %}text-danger{% endif %}">{{ total_remaining|format_negative }}</td>
+                        {# نمایش جمع باقی‌مانده #}
+                        <td colspan="3"></td>
+                        {# ادغام ستون‌های تاریخ و وضعیت #}
+                        <td class="no-print"></td>
+                        {# ستون اقدامات خالی #}
+                    </tr>
+                    </tfoot>
+                    {# --- پایان بخش جمع کل --- #}
+                </table>
             </div>
+
 
             {% if is_paginated %}
                 <div class="card-footer bg-light no-print">
@@ -458,27 +501,7 @@
     </script>
 
 
-    {##}
-    {#    <script>#}
-    {#    $('.jalali-datepicker').persianDatepicker({#}
-    {#    format: 'YYYY/MM/DD',#}
-    {#    autoClose: true,#}
-    {#    onSelect: function(unix) {#}
-    {#        var selectedDate = this.getState().selected;#}
-    {#        var otherPicker = $(this.element).attr('id') === 'date_from' ? '#date_to' : '#date_from';#}
-    {#        var otherDate = $(otherPicker).val();#}
-    {#        if (otherDate) {#}
-    {#            var from = $(this.element).attr('id') === 'date_from' ? selectedDate : otherDate;#}
-    {#            var to = $(this.element).attr('id') === 'date_to' ? selectedDate : otherDate;#}
-    {#            if (from > to) {#}
-    {#                alert('تاریخ شروع باید قبل از تاریخ پایان باشد');#}
-    {#                this.setDate(null);#}
-    {#            }#}
-    {#        }#}
-    {#    }#}
-    {#});#}
-    {##}
-    {#</script>#}
+
 
 
 {% endblock %}
