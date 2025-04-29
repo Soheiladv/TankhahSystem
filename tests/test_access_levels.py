@@ -152,7 +152,7 @@ def permissions():
         "core_userpost_add": Permission.objects.get(codename="UserPost_add", content_type__app_label="core"),
         "core_workflowstage_add": Permission.objects.get(codename="WorkflowStage_add", content_type__app_label="core"),
         "tankhah_add": Permission.objects.get(codename="Tankhah_add", content_type__app_label="tankhah"),
-        "factor_add": Permission.objects.get(codename="a_factor_add", content_type__app_label="tankhah"),
+        "factor_add": Permission.objects.get(codename="factor_add", content_type__app_label="tankhah"),
         "factor_approve": Permission.objects.get(codename="FactorItem_approve", content_type__app_label="tankhah"),
         "approval_add": Permission.objects.get(codename="Approval_add", content_type__app_label="tankhah"),
         "group_add": Permission.objects.get(codename="add_mygroup", content_type__app_label="accounts"),

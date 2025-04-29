@@ -1,0 +1,143 @@
+{% extends "tankhah/Factors/wizard/factor_wizard_base.html" %}
+{% load i18n static rcms_custom_filters%}
+
+{% block wizard_content %}
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {{ wizard.management_form }}
+
+        <div class="alert alert-secondary alert-sm mb-3">
+            <i class="fas fa-paperclip me-1"></i> {% trans "در این مرحله می‌توانید اسناد مربوط به خود فاکتور را بارگذاری کنید (اختیاری)." %}
+        </div>
+
+        {# Display Non-Field Errors #}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {% for error in form.non_field_errors %} {{ error }}<br> {% endfor %}
+            </div>
+        {% endif %}
+
+        {# --- Files Field --- #}
+        <div class="mb-3">
+            <label for="{{ form.files.id_for_label }}" class="form-label form-label-sm">{{ form.files.label }}</label>
+            <div class="file-upload-area" id="factor-dropzone">
+                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-2"></i>
+                <p class="mb-0">{% trans "فایل‌ها را اینجا بکشید یا برای انتخاب کلیک کنید" %}</p>
+                <small class="text-muted">{% blocktrans %}فقط فایل‌های {{ ALLOWED_EXTENSIONS_STR }} مجاز هستند.{% endblocktrans %}</small>
+                {# Render the actual input widget - it should be hidden by CSS/JS #}
+                {{ form.files }}
+            </div>
+             {% if form.files.help_text %}
+                 <div class="form-text">{{ form.files.help_text }}</div>
+             {% endif %}
+             {% if form.files.errors %}
+                  <div class="invalid-feedback d-block">
+                       {% for error in form.files.errors %}{{ error }}{% endfor %}
+                  </div>
+             {% endif %}
+        </div>
+
+        {# File List Display Area #}
+        <div class="mb-3">
+             <h6>{% trans "فایل‌های انتخاب شده:" %}</h6>
+             <ul id="file-list" class="list-unstyled">
+                 <li id="no-files-message" class="text-muted">{% trans "هنوز فایلی انتخاب نشده است." %}</li>
+             </ul>
+        </div>
+
+        {# Hidden fields #}
+         {% for hidden_field in form.hidden_fields %}
+              {{ hidden_field }}
+         {% endfor %}
+
+        {# Buttons are in base template #}
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+{# JS for file upload (code from previous response remains the same) #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropzone = document.getElementById('factor-dropzone');
+    // *** IMPORTANT: Adjust selector for the actual input field ***
+    // It might be #id_files or similar depending on the form rendering
+    const fileInput = document.querySelector('#id_files'); // Default ID, CHECK THIS
+    const fileList = document.getElementById('file-list');
+    const noFilesMsg = document.getElementById('no-files-message');
+
+    if (!dropzone || !fileInput || !fileList || !noFilesMsg) {
+         console.warn("Elements for Factor file upload not found.");
+         return; // Exit if elements aren't found
+    }
+    // ...(rest of the JS code for drag/drop, list update, formatFileSize)...
+     dropzone.addEventListener('click', () => fileInput.click());
+     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => dropzone.addEventListener(ev, preventDefaults, false));
+     dropzone.addEventListener('drop', handleDrop, false);
+     fileInput.addEventListener('change', handleFilesUpdate, false);
+     function preventDefaults(e){ e.preventDefault(); e.stopPropagation(); }
+     function handleDrop(e){ fileInput.files = e.dataTransfer.files; handleFilesUpdate(); }
+     function handleFilesUpdate(){ updateFileList(fileInput.files); }
+
+    function updateFileList(files) {
+         // Get the correct list element based on context (passed as argument or determined by ID)
+         // Example: Assuming fileList and noFilesMsg are defined in the outer scope for the current step
+         fileList.innerHTML = ''; // Clear current list
+         if (!files || files.length === 0) {
+             if (noFilesMsg) {
+                fileList.appendChild(noFilesMsg); // Re-add the 'no files' message
+                noFilesMsg.style.display = 'list-item';
+             }
+             return;
+         }
+
+         if (noFilesMsg) {
+            noFilesMsg.style.display = 'none'; // Hide the 'no files' message
+         }
+
+         Array.from(files).forEach((file, index) => {
+             const listItem = document.createElement('li');
+             listItem.classList.add('d-flex', 'justify-content-between', 'align-items-center', 'py-1');
+             // Use appropriate icon based on file type if desired (more complex)
+             const iconClass = 'fas fa-file me-2 text-muted'; // Default icon
+             listItem.innerHTML = `
+                 <span><i class="${iconClass}"></i> ${escapeHtml(file.name)}</span>
+                 <small class="text-muted">${formatFileSize(file.size)}</small>
+                 {# Add remove functionality here if needed (requires more logic) #}
+             `;
+             fileList.appendChild(listItem);
+         });
+     }
+
+     function formatFileSize(bytes) {
+         if (bytes === 0 || !bytes) return '0 Bytes';
+         const k = 1024;
+         const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+         // Handle potential non-numeric input or edge cases
+         try {
+             const i = Math.max(0, Math.floor(Math.log(bytes) / Math.log(k))); // Ensure i >= 0
+             // Ensure result is not NaN or Infinity
+             let size = parseFloat((bytes / Math.pow(k, i)).toFixed(1));
+             if (isNaN(size) || !isFinite(size)) return 'N/A';
+             return size + ' ' + sizes[i];
+         } catch (e) {
+             console.error("Error formatting file size:", e);
+             return 'N/A';
+         }
+     }
+
+     // Helper to prevent basic XSS in file names
+     function escapeHtml(unsafe) {
+         if (!unsafe) return '';
+         return unsafe
+              .replace(/&/g, "&")
+              .replace(/</g, "<")
+              .replace(/>/g, ">")
+              .replace(/"/g, """)
+              .replace(/'/g, "'");
+     }
+
+
+});
+</script>
+{% endblock %}

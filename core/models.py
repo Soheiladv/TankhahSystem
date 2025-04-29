@@ -74,6 +74,12 @@ class Organization(models.Model):
         self.full_clean()  # اجرای اعتبارسنجی
         super().save(*args, **kwargs)
 
+    def get_absolute_url(self):
+        # Assuming you have a URL pattern named 'organization_detail'
+        # that takes organization's pk or code
+        from django.urls import reverse
+        return reverse('organization_detail', kwargs={'pk': self.pk})
+
 
     class Meta:
         verbose_name = _("سازمان")

@@ -1,0 +1,235 @@
+{% extends "tankhah/Factors/wizard/factor_wizard_base.html" %}
+{% load i18n static jformat rcms_custom_filters humanize %}
+
+{% block wizard_content %}
+{# --- فرم مرحله تایید - فقط شامل مدیریت ویزارد است --- #}
+<form method="post" id="confirmation-form"> {# No action needed, handled by wizard #}
+    {% csrf_token %}
+    {{ wizard.management_form }}
+
+    <div class="alert alert-warning d-flex align-items-center mb-4 p-3" role="alert">
+        <i class="fas fa-exclamation-triangle fa-2x me-3 text-warning flex-shrink-0"></i>
+        <div>
+            <h5 class="alert-heading">{% trans "۶. بازبینی نهایی اطلاعات" %}</h5>
+            {% trans "لطفاً اطلاعات زیر را به دقت بررسی کنید. پس از کلیک بر روی دکمه 'ثبت نهایی فاکتور'، اطلاعات ذخیره خواهد شد." %}
+        </div>
+    </div>
+
+    {# --- Row for Main Details & Budgets --- #}
+    <div class="row g-3 mb-4">
+        {# --- Column 1: Tankhah & Factor Info --- #}
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm confirmation-section">
+                <div class="card-header bg-light py-2 fw-bold">
+                    <i class="fas fa-info-circle me-1 text-primary"></i>{% trans "اطلاعات کلی فاکتور" %}
+                </div>
+                <div class="card-body py-2 px-3">
+                    <dl class="row mb-0 dl-horizontal small">
+                        <dt class="col-sm-4">{% trans "تنخواه مرتبط" %}:</dt>
+                        <dd class="col-sm-8">
+                            {% if confirmation_tankhah %}
+                                {{ confirmation_tankhah.number }} ({{ confirmation_tankhah.description|default:confirmation_tankhah.project.name|default:'-' }})
+                            {% else %}
+                                <span class="text-danger">{% trans "خطا: تنخواه یافت نشد!" %}</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">{% trans "تاریخ فاکتور" %}:</dt>
+                        <dd class="col-sm-8">
+                            {% if confirmation_details.date %}
+                                {{ confirmation_details.date|jformat:'%Y/%m/%d' }}
+                                ({{ confirmation_details.date|naturalday }}) {# More user-friendly format #}
+                            {% else %}
+                                <span class="text-danger">{% trans "خطا: تاریخ یافت نشد!" %}</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">{% trans "مبلغ کل اولیه" %}:</dt>
+                        <dd class="col-sm-8">
+                           {{ confirmation_details.declared_amount|floatformat:0|to_persian_number_with_comma }} {% trans "ریال" %}
+                        </dd>
+
+                        <dt class="col-sm-4">{% trans "توضیحات کلی" %}:</dt>
+                        <dd class="col-sm-8">{{ confirmation_details.description|default:_("ندارد") }}</dd>
+
+                        <dt class="col-sm-4">{% trans "پروژه مرتبط" %}:</dt>
+                        <dd class="col-sm-8">
+                            {% if confirmation_tankhah.project %}
+                                {{ confirmation_tankhah.project.name }}
+                            {% elif confirmation_tankhah.subproject.project %}
+                                 {{ confirmation_tankhah.subproject.project.name }} ({{ confirmation_tankhah.subproject.name }})
+                             {% else %}
+                                {% trans "ندارد" %}
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        {# --- Column 2: Budget Summary --- #}
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm confirmation-section border-secondary">
+                 <div class="card-header bg-secondary-subtle text-secondary-emphasis py-2 fw-bold">
+                     <i class="fas fa-coins me-1"></i>{% trans "خلاصه وضعیت بودجه" %}
+                 </div>
+                <div class="card-body py-2 px-3">
+                     <div class="mb-2 pb-2 border-bottom">
+                         <h6 class="mb-1 small text-muted">{% trans "اعتبار تنخواه" %}</h6>
+                         <dl class="row mb-0 dl-horizontal small">
+                             <dt class="col-sm-5">{% trans "موجودی فعلی" %}:</dt>
+                             <dd class="col-sm-7 text-end">{{ final_available_tankhah_budget|floatformat:0|to_persian_number_with_comma }} {% trans "ریال" %}</dd>
+                             <dt class="col-sm-5">{% trans "مبلغ این فاکتور" %}:</dt>
+                             <dd class="col-sm-7 text-end">{{ confirmation_summary_total|floatformat:0|to_persian_number_with_comma }} {% trans "ریال" %}</dd>
+                             <dt class="col-sm-5">{% trans "مانده پس از ثبت" %}:</dt>
+                             <dd class="col-sm-7 text-end fw-bold fs-6 {% if final_remaining_tankhah_budget < 0 %}text-danger{% else %}text-success{% endif %}">
+                                 {{ final_remaining_tankhah_budget|floatformat:0|to_persian_number_with_comma }} {% trans "ریال" %}
+                             </dd>
+                         </dl>
+                         {% if final_remaining_tankhah_budget < 0 %}
+                             <small class="text-danger d-block text-center mt-1">{% trans "هشدار: اعتبار تنخواه کافی نیست!" %}</small>
+                         {% endif %}
+                     </div>
+                     <div>
+                         <h6 class="mb-1 small text-muted">{% trans "بودجه پروژه" %}</h6>
+                         {% if confirmation_tankhah.project or confirmation_tankhah.subproject.project %}
+                            <dl class="row mb-0 dl-horizontal small">
+                                <dt class="col-sm-5">{% trans "موجودی فعلی" %}:</dt>
+                                <dd class="col-sm-7 text-end">{{ final_available_project_budget|floatformat:0|to_persian_number_with_comma }} {% trans "ریال" %}</dd>
+                                <dt class="col-sm-5">{% trans "مبلغ این فاکتور" %}:</dt>
+                                <dd class="col-sm-7 text-end">{{ confirmation_summary_total|floatformat:0|to_persian_number_with_comma }} {% trans "ریال" %}</dd>
+                                <dt class="col-sm-5">{% trans "مانده پس از ثبت" %}:</dt>
+                                <dd class="col-sm-7 text-end fw-bold fs-6 {% if final_remaining_project_budget < 0 %}text-danger{% else %}text-success{% endif %}">
+                                    {{ final_remaining_project_budget|floatformat:0|to_persian_number_with_comma }} {% trans "ریال" %}
+                                </dd>
+                            </dl>
+                            {% if final_remaining_project_budget < 0 %}
+                                <small class="text-danger d-block text-center mt-1">{% trans "هشدار: بودجه پروژه کافی نیست!" %}</small>
+                            {% endif %}
+                         {% else %}
+                            <p class="text-muted mb-0 small">{% trans "پروژه‌ای یافت نشد." %}</p>
+                         {% endif %}
+                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# --- Factor Items Table --- #}
+    <div class="card mb-4 shadow-sm confirmation-section">
+        <div class="card-header bg-light py-2 fw-bold">
+            <i class="fas fa-list-ul me-1 text-primary"></i>{% trans "ردیف‌های فاکتور" %}
+            <span class="badge bg-secondary rounded-pill float-end">{{ confirmation_items|length }} {% trans "ردیف" %}</span>
+        </div>
+        <div class="card-body p-0">
+            {% if confirmation_items %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped mb-0 small align-middle table-confirmation">
+                        <thead>
+                            <tr>
+                                <th width="5%" class="text-center">#</th>
+                                <th>{% trans "شرح" %}</th>
+                                <th class="text-center" width="15%">{% trans "تعداد" %}</th>
+                                <th class="text-end" width="25%">{% trans "مبلغ واحد (ریال)" %}</th>
+                                <th class="text-end" width="25%">{% trans "جمع ردیف (ریال)" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in confirmation_items %}
+                                <tr>
+                                    <td class="text-center">{{ forloop.counter }}</td>
+                                    <td>{{ item.description|default:"-" }}</td>
+                                    <td class="text-center">{{ item.quantity|floatformat:0|to_persian_number }}</td>
+                                    <td class="text-end">{{ item.amount|floatformat:0|to_persian_number_with_comma }}</td>
+                                    <td class="text-end fw-bold">{{ item.total|floatformat:0|to_persian_number_with_comma }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light fw-bold">
+                                <td colspan="4" class="text-end fs-6 border-top pt-2">{% trans "مجموع کل آیتم‌ها:" %}</td>
+                                <td class="text-end fs-6 border-top pt-2">
+                                    {{ confirmation_summary_total|floatformat:0|to_persian_number_with_comma }} {% trans "ریال" %}
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted p-3 mb-0 small">{% trans "هیچ ردیفی برای این فاکتور ثبت نشده است." %}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {# --- Attached Documents --- #}
+    <div class="row g-3">
+        {# Factor Documents #}
+        <div class="col-md-6">
+            <div class="card shadow-sm confirmation-section h-100">
+                 <div class="card-header bg-light py-2 fw-bold">
+                     <i class="fas fa-paperclip me-1 text-primary"></i>{% trans "اسناد بارگذاری شده فاکتور" %}
+                 </div>
+                <div class="card-body py-2 px-3">
+                    {% if confirmation_factor_docs %}
+                        <ul class="list-unstyled mb-0 small file-list">
+                            {% for file in confirmation_factor_docs %}
+                                <li>
+                                    <span class="file-name" title="{{ file.name }}">
+                                        <i class="fas fa-file me-1 text-secondary"></i>{{ file.name }}
+                                    </span>
+                                    <span class="text-muted">({{ file.size|filesizeformat }})</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted mb-0 small">{% trans "سندی برای فاکتور بارگذاری نشده است." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {# Tankhah Documents #}
+        <div class="col-md-6">
+            <div class="card shadow-sm confirmation-section h-100">
+                 <div class="card-header bg-light py-2 fw-bold">
+                     <i class="fas fa-folder-open me-1 text-primary"></i>{% trans "اسناد جدید بارگذاری شده تنخواه" %}
+                 </div>
+                <div class="card-body py-2 px-3">
+                    {% if confirmation_tankhah_docs %}
+                        <ul class="list-unstyled mb-0 small file-list">
+                            {% for file in confirmation_tankhah_docs %}
+                                <li>
+                                    <span class="file-name" title="{{ file.name }}">
+                                        <i class="fas fa-file me-1 text-secondary"></i>{{ file.name }}
+                                    </span>
+                                    <span class="text-muted">({{ file.size|filesizeformat }})</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted mb-0 small">{% trans "سند جدیدی برای تنخواه بارگذاری نشده است." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Navigation buttons are in the base template footer #}
+</form>
+{% endblock %}
+
+{% block wizard_step_js %}
+    {# No specific JS needed for confirmation step by default #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Confirmation step JS block executed.");
+            // You could add JS here to double-check values or add warnings if needed
+
+            const form = document.getElementById('confirmation-form');
+            if (form) {
+                form.addEventListener('submit', function(event) {
+                    console.log('Confirmation form submitted');
+                });
+            }
+        });
+    </script>
+{% endblock %}

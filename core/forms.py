@@ -5,7 +5,7 @@ from Tanbakhsystem.utils import convert_jalali_to_gregorian, convert_gregorian_t
 from Tanbakhsystem.widgets import NumberToWordsWidget
 from accounts.models import TimeLockModel
 from budgets.models import BudgetAllocation, ProjectBudgetAllocation
-from core.models import Project, Organization, UserPost, Post, PostHistory, WorkflowStage, SubProject
+from core.models import Project, Organization, UserPost, Post, PostHistory, WorkflowStage, SubProject, OrganizationType
 from django import forms
 from .models import Project, Organization
 from django.utils.translation import gettext_lazy as _
@@ -13,6 +13,14 @@ from django_jalali.forms import jDateField
 from django.core.exceptions import ValidationError
 from jdatetime import datetime as jdatetime
 import jdatetime
+from django import forms
+from django.utils.translation import gettext_lazy as _
+from core.models import Organization, Project, SubProject
+from budgets.models import BudgetAllocation
+import jdatetime
+import re
+import logging
+logger = logging.getLogger(__name__)
 
 class TimeLockModelForm(forms.ModelForm):
     class Meta:
@@ -32,8 +40,6 @@ class TimeLockModelForm(forms.ModelForm):
             'is_active': _('وضعیت فعال'),
             'organization_name': _('نام مجموعه'),
         }
-
-
 class __ProjectForm(forms.ModelForm):
     has_subproject = forms.BooleanField(
         label=_("آیا ساب‌پروژه دارد؟"),
@@ -266,14 +272,6 @@ class __ProjectForm(forms.ModelForm):
                     )
 
         return instance
-
-from django import forms
-from django.utils.translation import gettext_lazy as _
-from core.models import Organization, Project, SubProject
-from budgets.models import BudgetAllocation
-import jdatetime
-import re
-
 class _ProjectForm(forms.ModelForm):
     has_subproject = forms.BooleanField(
         label=_("آیا ساب‌پروژه دارد؟"),
@@ -415,8 +413,7 @@ class _ProjectForm(forms.ModelForm):
                     )
 
             return instance
-import logging
-logger = logging.getLogger(__name__)
+
 class ProjectForm(forms.ModelForm):
     has_subproject = forms.BooleanField(
         label=_("آیا ساب‌پروژه دارد؟"),
@@ -767,3 +764,18 @@ class WorkflowStageForm(forms.ModelForm):
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input',  'placeholder': 'فعال'}),
             'is_final_stage': forms.CheckboxInput(attrs={'class': 'form-check-input', 'rows': 3, 'placeholder': 'مرحله نهایی تایید تنخواه'}),
         }
+
+class OrganizationTypeForm(forms.ModelForm):
+    class Meta:
+        model = OrganizationType
+        fields = ['fname', 'org_type', 'is_budget_allocatable']
+        labels = {
+            'fname': _("نام اصلی/رایج نوع سازمان"),
+            'org_type': _("نام جایگزین/کد نوع سازمان (اختیاری)"),
+            'is_budget_allocatable': _("قابل تخصیص بودجه؟"),
+        }
+        help_texts = {
+            'fname': _("مثلاً: مجتمع مسکونی، شعبه استانی، دفتر مرکزی."),
+            'org_type': _("در صورت نیاز به یک نام یا کد دیگر برای این نوع سازمان استفاده شود."),
+        }
+

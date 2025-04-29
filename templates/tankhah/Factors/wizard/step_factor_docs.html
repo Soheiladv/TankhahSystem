@@ -1,0 +1,117 @@
+{% extends "tankhah/Factors/wizard/factor_wizard_base.html" %} {# ارث‌بری از قالب پایه ویزارد #}
+{% load i18n static %}
+
+{% block wizard_content %}
+    <form method="post" enctype="multipart/form-data" novalidate> {# <--- enctype مهم است #}
+        {% csrf_token %}
+        {{ wizard.management_form }}
+
+        <div class="alert alert-secondary alert-sm mb-3 d-flex align-items-center">
+            <i class="fas fa-paperclip me-2 flex-shrink-0"></i>
+            <div>{% trans "بارگذاری اسناد مربوط به این فاکتور (مانند تصویر اسکن شده). این مرحله اختیاری است." %}</div>
+        </div>
+
+        {# Display Non-Field Errors #}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {% for error in form.non_field_errors %} {{ error }}<br> {% endfor %}
+            </div>
+        {% endif %}
+
+        {# --- Files Field --- #}
+        <div class="mb-3">
+            <label for="{{ form.files.id_for_label }}" class="form-label form-label-sm">{{ form.files.label }}</label>
+            <div class="file-upload-area" id="factor-doc-dropzone"> {# Unique ID #}
+                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-2"></i>
+                <p class="mb-0">{% trans "فایل‌ها را اینجا بکشید یا برای انتخاب کلیک کنید" %}</p>
+                <small class="text-muted">{% blocktrans %}فرمت‌های مجاز: {{ ALLOWED_EXTENSIONS_STR }}{% endblocktrans %}</small>
+                {# Render the actual input widget #}
+                {{ form.files }}
+            </div>
+             {% if form.files.help_text %}
+                 <div class="form-text">{{ form.files.help_text }}</div>
+             {% endif %}
+             {% if form.files.errors %}
+                  <div class="invalid-feedback d-block" style="font-size: 0.8em;">
+                       {% for error in form.files.errors %}{{ error }}{% endfor %}
+                  </div>
+             {% endif %}
+        </div>
+
+        {# File List Display Area #}
+        <div class="mb-3">
+             <h6>{% trans "فایل‌های انتخاب شده برای فاکتور:" %}</h6>
+             <ul id="factor-doc-file-list" class="list-unstyled"> {# Unique ID #}
+                 <li id="no-factor-doc-files-message" class="text-muted">{% trans "هنوز فایلی انتخاب نشده است." %}</li>
+             </ul>
+        </div>
+
+        {# Hidden fields #}
+         {% for hidden_field in form.hidden_fields %}{{ hidden_field }}{% endfor %}
+
+        {# Buttons are in base template #}
+         <input type="hidden" name="step_factor_docs_submitted" value="1">
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+{# JS for file upload - Needs unique IDs #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropzoneId = 'factor-doc-dropzone';
+    const inputId = '{{ form.files.id_for_label }}'; // Get ID from Django form
+    const listId = 'factor-doc-file-list';
+    const noFilesMsgId = 'no-factor-doc-files-message';
+
+    const dropzone = document.getElementById(dropzoneId);
+    const fileInput = document.getElementById(inputId);
+    const fileList = document.getElementById(listId);
+    const noFilesMsg = document.getElementById(noFilesMsgId);
+
+    if (!dropzone || !fileInput || !fileList || !noFilesMsg) {
+         console.warn("Elements for Factor Document file upload not found. Check IDs:", dropzoneId, inputId, listId, noFilesMsgId);
+         return;
+    }
+
+    // --- Functions (Copy from previous response or define here) ---
+    function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+    function formatFileSize(bytes) { /* ... */
+        if (bytes === 0 || !bytes) return '0 Bytes'; const k = 1024; const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']; try { const i = Math.max(0, Math.floor(Math.log(bytes) / Math.log(k))); let size = parseFloat((bytes / Math.pow(k, i)).toFixed(1)); if (isNaN(size) || !isFinite(size)) return 'N/A'; return size + ' ' + sizes[i]; } catch (e) { return 'N/A'; }
+    }
+    function escapeHtml(unsafe) { /* ... */
+         if (!unsafe) return ''; return unsafe.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, """).replace(/'/g, "'");
+    }
+
+    function updateFileList(files) {
+        fileList.innerHTML = ''; // Clear current list
+        if (!files || files.length === 0) {
+            fileList.appendChild(noFilesMsg);
+            noFilesMsg.style.display = 'list-item';
+            return;
+        }
+        noFilesMsg.style.display = 'none';
+        Array.from(files).forEach(file => {
+            const listItem = document.createElement('li');
+            listItem.classList.add('d-flex', 'justify-content-between', 'align-items-center','py-1');
+            listItem.innerHTML = `<span><i class="fas fa-file me-2 text-muted"></i> ${escapeHtml(file.name)}</span> <small class="text-muted">${formatFileSize(file.size)}</small>`;
+            fileList.appendChild(listItem);
+        });
+    }
+    function handleDrop(e) { fileInput.files = e.dataTransfer.files; handleFilesUpdate(); }
+    function handleFilesUpdate() { updateFileList(fileInput.files); }
+
+    // --- Attach Event Listeners ---
+    dropzone.addEventListener('click', () => fileInput.click());
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evName => {
+         dropzone.addEventListener(evName, preventDefaults, false);
+         document.body.addEventListener(evName, preventDefaults, false); // Prevent browser opening file
+    });
+    ['dragenter', 'dragover'].forEach(evName => dropzone.addEventListener(evName, () => dropzone.classList.add('bg-light'), false));
+    ['dragleave', 'drop'].forEach(evName => dropzone.addEventListener(evName, () => dropzone.classList.remove('bg-light'), false));
+    dropzone.addEventListener('drop', handleDrop, false);
+    fileInput.addEventListener('change', handleFilesUpdate, false);
+
+});
+</script>
+{% endblock %}

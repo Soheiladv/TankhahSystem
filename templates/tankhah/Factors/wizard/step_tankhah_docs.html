@@ -1,0 +1,109 @@
+{% extends "tankhah/Factors/wizard/factor_wizard_base.html" %} {# ارث‌بری از قالب پایه ویزارد #}
+{% load i18n static %}
+
+{% block wizard_content %}
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {{ wizard.management_form }}
+
+        <div class="alert alert-secondary alert-sm mb-3 d-flex align-items-center">
+            <i class="fas fa-folder-open me-2 flex-shrink-0"></i>
+           <div>{% trans "در صورت نیاز، مدارک جدید مرتبط با خود درخواست تنخواه (مانند نامه پیگیری) را بارگذاری کنید (اختیاری)." %}</div>
+        </div>
+
+        {# Display existing Tankhah documents #}
+        {% if tankhah_documents %}
+            <div class="mb-4">
+                 <h6>{% trans "مدارک قبلی بارگذاری شده برای این تنخواه:" %}</h6>
+                 <ul class="list-group list-group-flush list-group-sm">
+                     {% for doc in tankhah_documents %}
+                     <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-1 px-2">
+                          <a href="{{ doc.document.url }}" target="_blank"><i class="fas fa-file-alt me-2 text-primary"></i>{{ doc.get_filename }}</a>
+                          <small class="text-muted">{{ doc.uploaded_at|date:"Y/m/d" }}</small>
+                      </li>
+                     {% empty %}
+                      <li class="list-group-item text-muted">{% trans "سندی قبلاً بارگذاری نشده است." %}</li>
+                     {% endfor %}
+                 </ul>
+            </div>
+            <hr class="my-3">
+        {% endif %}
+
+        {# Display Non-Field Errors #}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">...</div>
+        {% endif %}
+
+        {# --- Documents Field --- #}
+        <div class="mb-3">
+            <label for="{{ form.documents.id_for_label }}" class="form-label form-label-sm">{{ form.documents.label }}</label>
+            <div class="file-upload-area" id="tankhah-doc-dropzone"> {# Unique ID #}
+                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-2"></i>
+                <p class="mb-0">{% trans "فایل‌ها را اینجا بکشید یا برای انتخاب کلیک کنید" %}</p>
+                 <small class="text-muted">{% blocktrans %}فرمت‌های مجاز: {{ ALLOWED_EXTENSIONS_STR }}{% endblocktrans %}</small>
+                 {{ form.documents }}
+            </div>
+            {% if form.documents.help_text %}<div class="form-text">...</div>{% endif %}
+            {% if form.documents.errors %}
+                 <div class="invalid-feedback d-block" style="font-size: 0.8em;">
+                      {% for error in form.documents.errors %}{{ error }}{% endfor %}
+                 </div>
+            {% endif %}
+        </div>
+
+        {# File List Display Area #}
+        <div class="mb-3">
+             <h6>{% trans "فایل‌های جدید انتخاب شده برای تنخواه:" %}</h6>
+             <ul id="tankhah-doc-file-list" class="list-unstyled"> {# Unique ID #}
+                 <li id="no-tankhah-doc-files-message" class="text-muted">{% trans "هنوز فایل جدیدی انتخاب نشده است." %}</li>
+             </ul>
+        </div>
+
+        {# Hidden fields #}
+        {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+
+        {# Buttons are in base template #}
+         <input type="hidden" name="step_tankhah_docs_submitted" value="1">
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+{# JS for file upload - Needs unique IDs #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropzoneId = 'tankhah-doc-dropzone';
+    const inputId = '{{ form.documents.id_for_label }}'; // Get ID from Django form
+    const listId = 'tankhah-doc-file-list';
+    const noFilesMsgId = 'no-tankhah-doc-files-message';
+
+    const dropzone = document.getElementById(dropzoneId);
+    const fileInput = document.getElementById(inputId);
+    const fileList = document.getElementById(listId);
+    const noFilesMsg = document.getElementById(noFilesMsgId);
+
+    if (!dropzone || !fileInput || !fileList || !noFilesMsg) {
+         console.warn("Elements for Tankhah Document file upload not found. Check IDs:", dropzoneId, inputId, listId, noFilesMsgId);
+         return;
+    }
+
+    // --- Functions (Copy from previous step or define here) ---
+    function preventDefaults(e) { /* ... */ e.preventDefault(); e.stopPropagation(); }
+    function formatFileSize(bytes) { /* ... */ if (bytes === 0 || !bytes) return '0 Bytes'; const k = 1024; const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']; try { const i = Math.max(0, Math.floor(Math.log(bytes) / Math.log(k))); let size = parseFloat((bytes / Math.pow(k, i)).toFixed(1)); if (isNaN(size) || !isFinite(size)) return 'N/A'; return size + ' ' + sizes[i]; } catch (e) { return 'N/A'; } }
+    function escapeHtml(unsafe) { /* ... */ if (!unsafe) return ''; return unsafe.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, """).replace(/'/g, "'"); }
+    function updateFileList(files) { /* ... (same as step_factor_docs) ... */
+        fileList.innerHTML = ''; if (!files || files.length === 0) { fileList.appendChild(noFilesMsg); noFilesMsg.style.display = 'list-item'; return; } noFilesMsg.style.display = 'none'; Array.from(files).forEach(file => { const li = document.createElement('li'); li.classList.add('d-flex', 'justify-content-between', 'align-items-center','py-1'); li.innerHTML = `<span><i class="fas fa-file me-2 text-muted"></i> ${escapeHtml(file.name)}</span> <small class="text-muted">${formatFileSize(file.size)}</small>`; fileList.appendChild(li); });
+     }
+    function handleDrop(e) { fileInput.files = e.dataTransfer.files; handleFilesUpdate(); }
+    function handleFilesUpdate() { updateFileList(fileInput.files); }
+
+    // --- Attach Event Listeners ---
+    dropzone.addEventListener('click', () => fileInput.click());
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evName => { dropzone.addEventListener(evName, preventDefaults, false); document.body.addEventListener(evName, preventDefaults, false); });
+    ['dragenter', 'dragover'].forEach(evName => dropzone.addEventListener(evName, () => dropzone.classList.add('bg-light'), false));
+    ['dragleave', 'drop'].forEach(evName => dropzone.addEventListener(evName, () => dropzone.classList.remove('bg-light'), false));
+    dropzone.addEventListener('drop', handleDrop, false);
+    fileInput.addEventListener('change', handleFilesUpdate, false);
+});
+</script>
+{% endblock %}

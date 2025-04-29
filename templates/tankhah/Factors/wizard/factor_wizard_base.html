@@ -1,0 +1,657 @@
+{% extends "base.html" %}
+{% comment %} templates/tankhah/Factors/wizard/factor_wizard_base.html {% endcomment %}
+{% load i18n static rcms_custom_filters humanize %}
+
+{% block title %}{{ wizard_title|default:_("ایجاد فاکتور") }}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    {# --- تمام استایل‌های CSS که در پاسخ قبلی ارائه شد، اینجا قرار می‌گیرند --- #}
+    {# --- یا بهتر است در یک فایل CSS جداگانه قرار گیرند و اینجا لینک شوند --- #}
+    {# <link rel="stylesheet" href="{% static 'css/factor_wizard.css' %}"> #}
+     <style>
+        /* --- Wizard Progress Bar --- */
+        .wizard-progress-container{margin-bottom:2rem;padding:0;list-style:none;display:flex;border:1px solid #dee2e6;border-radius:.375rem;overflow:hidden}
+        .wizard-progress-step{flex:1;padding:.8rem .5rem;font-size:.85rem;font-weight:500;text-align:center;color:#6c757d;background-color:#f8f9fa;border-right:1px solid #dee2e6;position:relative;cursor:default;transition:background-color .3s ease,color .3s ease;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .wizard-progress-step:last-child{border-right:none}
+        .wizard-progress-step.active{background-color:#0d6efd;color:#fff;font-weight:600}
+        .wizard-progress-step.completed{background-color:#198754;color:#fff}
+        /* --- General Wizard Styling --- */
+        .wizard-card{border:none;box-shadow:0 .5rem 1rem rgba(0,0,0,.1);border-radius:.5rem}
+        .wizard-card .card-header{background-color:var(--bs-light);border-bottom:1px solid var(--bs-border-color);font-weight:500}
+        .wizard-card .card-footer{background-color:var(--bs-light);border-top:1px solid var(--bs-border-color)}
+        /* --- Form Styling --- */
+        .form-label{font-weight:500;font-size:.9em;margin-bottom:.3rem}
+        .form-control,.form-select{transition:border-color .15s ease-in-out,box-shadow .15s ease-in-out}
+        .form-control-sm,.form-select-sm{font-size:.875em}
+        label.required::after{content:" *";color:var(--bs-danger);font-weight:bold}
+        /* --- File Upload Area --- */
+        .file-upload-area{border:2px dashed var(--bs-border-color-translucent);padding:2rem 1rem;text-align:center;background-color:var(--bs-tertiary-bg);cursor:pointer;transition:background-color .2s ease,border-color .2s ease;border-radius:.375rem}
+        .file-upload-area:hover{background-color:var(--bs-secondary-bg);border-color:var(--bs-secondary)}
+        .file-upload-area input[type=file]{display:none}
+        .file-upload-area .upload-icon{font-size:2rem;color:var(--bs-secondary-color);margin-bottom:.5rem}
+        .file-upload-area .upload-text{color:var(--bs-secondary-color);font-weight:500}
+        /* --- File List Display --- */
+        .file-list{list-style:none;padding-left:0;margin-top:1rem}
+        .file-list li{display:flex;align-items:center;justify-content:space-between;font-size:.9em;padding:.4rem .6rem;background-color:var(--bs-light);border:1px solid var(--bs-border-color);border-radius:.25rem;margin-bottom:.3rem}
+        .file-list .file-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80%}
+        .file-list .remove-file{cursor:pointer;color:var(--bs-danger);background:0 0;border:none;padding:0;margin-right:.5rem;font-size:1.1em;line-height:1} /* Adjusted margin for RTL */
+        .file-list .remove-file:hover{color:var(--bs-danger-text-emphasis)}
+        /* --- Formset Styling --- */
+        .formset-item{border:1px solid var(--bs-border-color);border-radius:.375rem;padding:.8rem;margin-bottom:.8rem;background-color:var(--bs-body-bg);position:relative;transition:opacity .3s ease,background-color .3s ease}
+        .formset-item.deleted-row{opacity:.6;background-color:var(--bs-danger-bg-subtle);border-color:var(--bs-danger-border-subtle)}
+        .formset-item-controls{position:absolute;top:.5rem;left:.5rem} /* Adjusted for RTL */
+        .btn-remove-formset-row{padding:.2rem .4rem;font-size:.8em;line-height:1}
+        /* --- Confirmation Page Specific --- */
+        .confirmation-section { margin-bottom: 1.5rem; }
+        .confirmation-section .card-header { font-size: 1rem; } /* Slightly larger header */
+        .dl-horizontal dt { text-align: right; font-weight: 500; color: #6c757d; } /* Style definition list */
+        .dl-horizontal dd { margin-right: 0; } /* Adjusted margin for RTL */
+        .table-confirmation th { background-color: var(--bs-light); font-weight: 500; }
+
+        @media (max-width: 768px){
+            .wizard-progress-step{font-size:.75rem;padding:.6rem .3rem}
+            .dl-horizontal dt { text-align: left; margin-bottom: 0.2rem; } /* Adjust dl on small screens */
+        }
+     </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="card wizard-card">
+        <div class="card-header">
+            <h5 class="mb-0">{{ wizard_title|default:_("ایجاد فاکتور") }}</h5>
+        </div>
+        <div class="card-body p-lg-4">
+
+            {# --- Progress Bar --- #}
+            <nav aria-label="Wizard navigation">
+                <ol class="wizard-progress-container">
+                    {% with current_step_index=wizard.steps.index %}
+                        {% for step_key in wizard.steps.all %}
+                            {% with loop_index=forloop.counter0 %}
+                                <li class="wizard-progress-step {% if loop_index == current_step_index %}active{% elif loop_index < current_step_index %}completed{% endif %}"
+                                    title="{{ step_titles_dict|get_item:step_key|default:step_key|title }}">
+                                    {{ step_titles_dict|get_item:step_key|default:step_key|title }}
+                                </li>
+                            {% endwith %}
+                        {% endfor %}
+                    {% endwith %}
+                </ol>
+            </nav>
+
+            {# --- Messages --- #}
+            {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show d-flex align-items-center gap-2 py-2" role="alert">
+                            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-times-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %} fa-fw me-2"></i>
+                            <div>{{ message }}</div>
+                            <button type="button" class="btn-close btn-sm ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {# --- Main Step Content Area --- #}
+            {# This container's content is replaced by child templates #}
+            <div id="wizard-form-container">
+                {% block wizard_content %}
+                    <p class="text-center text-muted py-5">{% trans "محتوای مرحله در حال بارگذاری است..." %}</p>
+                    {# Child templates MUST include the <form> tag here #}
+                {% endblock wizard_content %}
+            </div>
+
+        </div> {# --- End card-body --- #}
+
+        {# --- Navigation Footer --- #}
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <div>
+                {% if wizard.steps.prev %}
+                    <button onclick="submitWizardForm('{{ wizard.steps.prev }}')" type="button"
+                            class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-right me-1"></i> {% trans "مرحله قبل" %}
+                    </button>
+                {% else %}
+                    <button type="button" class="btn btn-outline-secondary" disabled>
+                        <i class="fas fa-arrow-right me-1"></i> {% trans "مرحله قبل" %}
+                    </button>
+                {% endif %}
+            </div>
+            <div>
+                {% if wizard.steps.current == wizard.steps.last %}
+                    {# Final Submit Button on Confirmation Step #}
+                    <button onclick="submitWizardForm()" type="button" class="btn btn-success px-4">
+                        <i class="fas fa-check-circle me-1"></i> {% trans "ثبت نهایی فاکتور" %}
+                    </button>
+                {% else %}
+                    {# Next Step Button #}
+                    <button onclick="submitWizardForm()" type="button" class="btn btn-primary px-4">
+                        {% trans "مرحله بعد" %} <i class="fas fa-arrow-left ms-1"></i>
+                    </button>
+                {% endif %}
+            </div>
+        </div> {# --- End card-footer --- #}
+    </div> {# --- End card --- #}
+</div> {# --- End container --- #}
+{% endblock content %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        // --- Wizard Navigation Logic ---
+        function getWizardFormElement() {
+            const container = document.getElementById('wizard-form-container');
+            if (!container) { console.error("Wizard form container '#wizard-form-container' not found!"); return null; }
+            const form = container.querySelector('form'); // Assumes only one form per step content
+            if (!form) { console.error("No <form> element found inside '#wizard-form-container'!"); return null; }
+            return form;
+        }
+
+        function submitWizardForm(gotoStep) {
+            const form = getWizardFormElement();
+            if (!form) return;
+            // Remove existing hidden input
+            const existingGotoInput = form.querySelector('input[name="wizard_goto_step"]');
+            if (existingGotoInput) existingGotoInput.remove();
+            // Add hidden input if navigating back
+            if (gotoStep) {
+                const gotoInput = document.createElement('input');
+                gotoInput.type = 'hidden';
+                gotoInput.name = 'wizard_goto_step';
+                gotoInput.value = gotoStep;
+                form.appendChild(gotoInput);
+                console.log(`Wizard: Submitting to go to step: ${gotoStep}`);
+            } else {
+                console.log("Wizard: Submitting for next step or final.");
+            }
+            // Ensure correct enctype ONLY IF files might be submitted from this step
+            // This should ideally be set in the <form> tag by the step template if needed
+            // if (form.querySelector('input[type="file"]')) {
+            //     form.enctype = 'multipart/form-data';
+            // }
+            form.submit();
+        }
+
+        // --- General Initializations ---
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Wizard base JS loaded.");
+            // Activate Bootstrap tooltips globally if used
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+               return new bootstrap.Tooltip(tooltipTriggerEl)
+             })
+        });
+    </script>
+
+    {# --- Placeholder for Step-Specific JavaScript --- #}
+    {# Child templates will insert their JS here #}
+    {% block wizard_step_js %}{% endblock wizard_step_js %}
+
+{% endblock extra_js %}
+
+
+<!--
+{#{% extends "base.html" %} {# Or your project's base template #}
+{#{% load i18n static rcms_custom_filters humanize %} {# Added humanize for potential future use #}
+{##}
+{#{% block title %}{{ wizard_title|default:_("ایجاد فاکتور") }}{% endblock %}#}
+{##}
+{#{% block page_title %}#}
+    {# Optional: Set a specific page title if your base template supports it #}
+    {# {{ wizard_title|default:_("ایجاد فاکتور") }} #}
+{#{% endblock %}#}
+{##}
+{#{% block extra_css %}#}
+{#    {{ block.super }} {# Include CSS from base template #}
+    {# <link rel="stylesheet" href="{% static 'css/your_wizard_styles.css' %}"> #}
+{#    <style>#}
+{#        /* --- Wizard Progress Bar --- */#}
+{#        .wizard-progress-container {#}
+{#            margin-bottom: 2rem;#}
+{#            padding: 0;#}
+{#            list-style: none;#}
+{#            display: flex;#}
+{#            border: 1px solid #dee2e6; /* Subtle border around */#}
+{#             border-radius: 0.375rem; /* Rounded corners like Bootstrap */#}
+{#             overflow: hidden; /* Keep contained */#}
+{#        }#}
+{#        .wizard-progress-step {#}
+{#            flex: 1; /* Equal width */#}
+{#            padding: 0.8rem 0.5rem;#}
+{#            font-size: 0.85rem; /* Slightly smaller font */#}
+{#            font-weight: 500;#}
+{#            text-align: center;#}
+{#            color: #6c757d; /* Default text color */#}
+{#            background-color: #f8f9fa; /* Light background */#}
+{#            border-right: 1px solid #dee2e6; /* Separator line */#}
+{#            position: relative;#}
+{#            cursor: default; /* Not clickable */#}
+{#            transition: background-color 0.3s ease, color 0.3s ease;#}
+{#            white-space: nowrap; /* Prevent wrapping */#}
+{#            overflow: hidden; /* Hide overflow */#}
+{#            text-overflow: ellipsis; /* Show ... if too long */#}
+{#        }#}
+{#        .wizard-progress-step:last-child {#}
+{#            border-right: none;#}
+{#        }#}
+{#        /* Active Step */#}
+{#        .wizard-progress-step.active {#}
+{#            background-color: #0d6efd; /* Bootstrap primary */#}
+{#            color: #fff;#}
+{#            font-weight: 600;#}
+{#        }#}
+{#        /* Completed Step */#}
+{#        .wizard-progress-step.completed {#}
+{#            background-color: #198754; /* Bootstrap success */#}
+{#            color: #fff;#}
+{#        }#}
+{#        /* Optional: Add a subtle glow or border to active step */#}
+{#        .wizard-progress-step.active {#}
+{#           /* box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1); */#}
+{#        }#}
+{##}
+{#        /* --- General Wizard Styling --- */#}
+{#        .wizard-card {#}
+{#            border: none; /* Remove default card border if using shadow */#}
+{#            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); /* Softer shadow */#}
+{#            border-radius: 0.5rem;#}
+{#        }#}
+{#        .wizard-card .card-header {#}
+{#            background-color: var(--bs-light); /* Use theme color */#}
+{#            border-bottom: 1px solid var(--bs-border-color);#}
+{#            font-weight: 500;#}
+{#        }#}
+{#         .wizard-card .card-footer {#}
+{#             background-color: var(--bs-light);#}
+{#             border-top: 1px solid var(--bs-border-color);#}
+{#         }#}
+{##}
+{#        /* --- Form Styling --- */#}
+{#        /* General form element improvements */#}
+{#        .form-label { font-weight: 500; font-size: 0.9em; margin-bottom: 0.3rem;}#}
+{#        .form-control, .form-select { transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out; }#}
+{#        .form-control-sm, .form-select-sm { font-size: 0.875em; } /* Consistency */#}
+{#        /* Required field indicator */#}
+{#        label.required::after { content: " *"; color: var(--bs-danger); font-weight: bold; }#}
+{##}
+{#        /* --- File Upload Area --- */#}
+{#        .file-upload-area {#}
+{#            border: 2px dashed var(--bs-border-color-translucent);#}
+{#            padding: 2rem 1rem;#}
+{#            text-align: center;#}
+{#            background-color: var(--bs-tertiary-bg);#}
+{#            cursor: pointer;#}
+{#            transition: background-color 0.2s ease, border-color 0.2s ease;#}
+{#            border-radius: 0.375rem;#}
+{#        }#}
+{#        .file-upload-area:hover {#}
+{#            background-color: var(--bs-secondary-bg);#}
+{#            border-color: var(--bs-secondary);#}
+{#        }#}
+{#        .file-upload-area input[type="file"] { display: none; } /* Hide default input */#}
+{#        .file-upload-area .upload-icon { font-size: 2rem; color: var(--bs-secondary-color); margin-bottom: 0.5rem; }#}
+{#        .file-upload-area .upload-text { color: var(--bs-secondary-color); font-weight: 500; }#}
+{##}
+{#        /* --- File List Display --- */#}
+{#        .file-list { list-style: none; padding-left: 0; margin-top: 1rem; }#}
+{#        .file-list li {#}
+{#            display: flex;#}
+{#            align-items: center;#}
+{#            justify-content: space-between;#}
+{#            font-size: 0.9em;#}
+{#            padding: 0.4rem 0.6rem;#}
+{#            background-color: var(--bs-light);#}
+{#            border: 1px solid var(--bs-border-color);#}
+{#            border-radius: 0.25rem;#}
+{#            margin-bottom: 0.3rem;#}
+{#        }#}
+{#        .file-list .file-name {#}
+{#            white-space: nowrap;#}
+{#            overflow: hidden;#}
+{#            text-overflow: ellipsis;#}
+{#            max-width: 80%; /* Adjust as needed */#}
+{#        }#}
+{#        .file-list .remove-file {#}
+{#            cursor: pointer;#}
+{#            color: var(--bs-danger);#}
+{#            background: none; border: none; padding: 0;#}
+{#            margin-left: 0.5rem; /* RTL: use margin-right */#}
+{#            font-size: 1.1em;#}
+{#            line-height: 1;#}
+{#        }#}
+{#        .file-list .remove-file:hover { color: var(--bs-danger-text-emphasis); }#}
+{##}
+{#        /* --- Formset Styling --- */#}
+{#        .formset-item {#}
+{#            border: 1px solid var(--bs-border-color);#}
+{#            border-radius: 0.375rem;#}
+{#            padding: 0.8rem;#}
+{#            margin-bottom: 0.8rem;#}
+{#            background-color: var(--bs-body-bg);#}
+{#            position: relative; /* For positioning delete button */#}
+{#            transition: opacity 0.3s ease, background-color 0.3s ease;#}
+{#        }#}
+{#        .formset-item.deleted-row {#}
+{#            opacity: 0.6;#}
+{#            background-color: var(--bs-danger-bg-subtle);#}
+{#            border-color: var(--bs-danger-border-subtle);#}
+{#        }#}
+{#         .formset-item-controls {#}
+{#             position: absolute;#}
+{#             top: 0.5rem;#}
+{#             left: 0.5rem; /* RTL: use right */#}
+{#         }#}
+{#         .btn-remove-formset-row {#}
+{#             padding: 0.2rem 0.4rem;#}
+{#             font-size: 0.8em;#}
+{#             line-height: 1;#}
+{#         }#}
+{##}
+{#         /* Responsive adjustments if needed */#}
+{#        @media (max-width: 768px) {#}
+{#            .wizard-progress-step { font-size: 0.75rem; padding: 0.6rem 0.3rem; }#}
+{#        }#}
+{##}
+{#    </style>#}
+{#{% endblock %}#}
+{##}
+{#{% block content %}#}
+{#<div class="container-fluid my-4"> {# Use container-fluid for wider layout, my-4 for margin #}
+{#    <div class="card wizard-card">#}
+{#        <div class="card-header">#}
+{#            <h5 class="mb-0">{{ wizard_title|default:_("ایجاد فاکتور") }}</h5>#}
+{#        </div>#}
+{#        <div class="card-body p-lg-4"> {# Add more padding on larger screens #}
+{##}
+            {# --- Progress Bar --- #}
+{#            <nav aria-label="Wizard navigation">#}
+{#                <ol class="wizard-progress-container">#}
+{#                    {% with current_step_index=wizard.steps.index %} {# Zero-based index #}
+{#                        {% for step_key in wizard.steps.all %}#}
+{#                            {% with loop_index=forloop.counter0 %}#}
+{#                                <li class="wizard-progress-step {% if loop_index == current_step_index %}active{% elif loop_index < current_step_index %}completed{% endif %}"#}
+{#                                    title="{{ step_titles_dict|get_item:step_key|default:step_key|title }}">#}
+                                    {# Display step title #}
+{#                                    {{ step_titles_dict|get_item:step_key|default:step_key|title }}#}
+{#                                </li>#}
+{#                            {% endwith %}#}
+{#                        {% endfor %}#}
+{#                    {% endwith %}#}
+{#                </ol>#}
+{#            </nav>#}
+{##}
+            {# --- Messages --- #}
+{#            {% if messages %}#}
+{#                <div class="mb-4"> {# More margin for messages #}
+{#                    {% for message in messages %}#}
+{#                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show d-flex align-items-center gap-2 py-2" role="alert">#}
+                            {# Add appropriate icons #}
+{#                            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-times-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %} fa-fw me-2"></i>#}
+{#                            <div>{{ message }}</div>#}
+{#                            <button type="button" class="btn-close btn-sm ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>#}
+{#                        </div>#}
+{#                    {% endfor %}#}
+{#                </div>#}
+{#            {% endif %}#}
+{##}
+            {# --- Main Step Content Area --- #}
+            {# This div will be targeted by JS to inject the form #}
+            {# The actual form is rendered by the step-specific template extending this one #}
+{#            <div id="wizard-form-container">#}
+                 {# Block for step-specific templates to insert their content AND form tag #}
+{#                {% block wizard_content %}#}
+                    {# Default content if block is empty #}
+{#                    <p class="text-center text-muted py-5">{% trans "محتوای مرحله در حال بارگذاری است..." %}</p>#}
+{##}
+                    {# IMPORTANT: Each step template (e.g., step_select_tankhah.html) #}
+                    {# MUST include the <form method="post"> tag and wizard management forms #}
+                    {# like this: #}
+                    {# {% block wizard_content %} #}
+                    {# <form method="post" enctype="multipart/form-data" novalidate> #}
+                    {#    {% csrf_token %} #}
+                    {#    {{ wizard.management_form }} #}
+{#                        {% if wizard.form.is_bound %}{# Display form errors {% endif %}#}
+                    {#    {{ wizard.form.as_p }} {# Or render fields manually #}
+                    {#    {# The navigation buttons below will handle submission #}
+                    {# </form> #}
+                    {# {% endblock %} #}
+{#                {% endblock wizard_content %}#}
+{#            </div>#}
+{##}
+{#        </div> {# --- End card-body --- #}
+{##}
+{#        <div class="card-footer d-flex justify-content-between align-items-center">#}
+            {# --- Navigation Buttons --- #}
+{#            <div>#}
+{#                {% if wizard.steps.prev %}#}
+{#                    <button onclick="submitWizardForm('{{ wizard.steps.prev }}')" type="button"#}
+{#                            class="btn btn-outline-secondary"> {# Less prominent 'Previous' button #}
+{#                        <i class="fas fa-arrow-right me-1"></i> {% trans "مرحله قبل" %}#}
+{#                    </button>#}
+{#                {% else %}#}
+{#                    <button type="button" class="btn btn-outline-secondary" disabled>#}
+{#                        <i class="fas fa-arrow-right me-1"></i> {% trans "مرحله قبل" %}#}
+{#                    </button>#}
+{#                {% endif %}#}
+{#            </div>#}
+{#            <div>#}
+{#                {% if wizard.steps.current == wizard.steps.last %}#}
+                    {# Final Submit Button #}
+{#                    <button onclick="submitWizardForm()" type="button" class="btn btn-success px-4"> {# Primary action: green #}
+{#                        <i class="fas fa-check-circle me-1"></i> {% trans "ثبت نهایی فاکتور" %}#}
+{#                    </button>#}
+{#                {% else %}#}
+                    {# Next Step Button #}
+{#                    <button onclick="submitWizardForm()" type="button" class="btn btn-primary px-4"> {# Primary action: blue #}
+{#                        {% trans "مرحله بعد" %} <i class="fas fa-arrow-left ms-1"></i>#}
+{#                    </button>#}
+{#                {% endif %}#}
+{#            </div>#}
+{#        </div> {# --- End card-footer --- #}
+{##}
+{#    </div> {# --- End card --- #}
+{#</div> {# --- End container --- #}
+{#{% endblock content %}#}
+{##}
+{#{% block extra_js %}#}
+{#    {{ block.super }} {# Include JS from base template #}
+{#    <script>#}
+{#        // Helper function to find the actual form within the wizard content area#}
+{#        function getWizardFormElement() {#}
+{#            // Target the container where step content is loaded#}
+{#            const container = document.getElementById('wizard-form-container');#}
+{#            if (!container) {#}
+{#                console.error("Wizard form container '#wizard-form-container' not found!");#}
+{#                return null;#}
+{#            }#}
+{#            // Find the first <form> element inside it#}
+{#            const form = container.querySelector('form');#}
+{#            if (!form) {#}
+{#                console.error("No <form> element found inside '#wizard-form-container'!");#}
+{#                return null;#}
+{#            }#}
+{#            return form;#}
+{#        }#}
+{##}
+{#        // Function to submit the wizard form, potentially navigating to a specific step#}
+{#        function submitWizardForm(gotoStep) {#}
+{#            const form = getWizardFormElement();#}
+{#            if (!form) return; // Exit if form not found#}
+{##}
+{#            // Remove any existing navigation input field#}
+{#            const existingGotoInput = form.querySelector('input[name="wizard_goto_step"]');#}
+{#            if (existingGotoInput) {#}
+{#                existingGotoInput.remove();#}
+{#            }#}
+{##}
+{#            // If navigating back (gotoStep is provided), add the hidden input#}
+{#            if (gotoStep) {#}
+{#                const gotoInput = document.createElement('input');#}
+{#                gotoInput.type = 'hidden';#}
+{#                gotoInput.name = 'wizard_goto_step';#}
+{#                gotoInput.value = gotoStep;#}
+{#                form.appendChild(gotoInput);#}
+{#                console.log(`Submitting wizard form to go to step: ${gotoStep}`);#}
+{#            } else {#}
+{#                console.log("Submitting wizard form for next step or final submission.");#}
+{#            }#}
+{##}
+{#            // Ensure the form has the correct enctype if file uploads are involved#}
+{#            // This should ideally be set in the step-specific template's <form> tag#}
+{#            // form.enctype = 'multipart/form-data'; // Uncomment if needed, but prefer setting in HTML#}
+{##}
+{#            // Submit the form#}
+{#            form.submit();#}
+{#        }#}
+{##}
+{#        // --- Document Ready ---#}
+{#        // Ensure DOM is ready before potentially adding JS specific to steps#}
+{#        document.addEventListener('DOMContentLoaded', function() {#}
+{#            console.log("Wizard base template JS loaded.");#}
+{#            // You can add event listeners or initializations here that apply to ALL steps#}
+{#            // Example: Initialize tooltips if used globally#}
+{#             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))#}
+{#             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {#}
+{#               return new bootstrap.Tooltip(tooltipTriggerEl)#}
+{#             })#}
+{#        });#}
+{##}
+{#    </script>#}
+{##}
+    {# --- Block for Step-Specific JavaScript --- #}
+    {# Each step template (e.g., step_factor_items.html) can add its #}
+    {# specific JS logic here, like formset handling, datepickers, etc. #}
+    {# Example for step_factor_items.html: #}
+    {# {% block wizard_step_js %} #}
+    {#   <script src="{% static 'js/your_formset_handler.js' %}"></script> #}
+    {#   <script> #}
+    {#     $(document).ready(function() { initializeFactorItemFormset(); }); #}
+    {#   </script> #}
+    {# {% endblock %} #}
+{#    {% block wizard_step_js %}#}
+        {# --- JS copied from previous template for formset, budget, local storage --- #}
+        {# It's better to move this to a separate file and include it in step_factor_items.html #}
+        {# But included here for completeness based on the previous structure #}
+{#        {% if step_name == 'factor_items' %} {# Conditionally include JS only for the items step #}
+{#        <script>#}
+{#           // --- Paste the full jQuery-based JS code for: ---#}
+{#           // - Formset add/remove row#}
+{#           // - Row total calculation#}
+{#           // - Grand total calculation#}
+{#           // - Budget comparison and display update#}
+{#           // - Local storage save/load#}
+{#           // --- (The lengthy JS block from the previous template response) ---#}
+{#           $(document).ready(function() {#}
+{#                const formsetPrefix = '{{ formset.prefix }}'; // Make sure formset is passed to context for this step#}
+{#                // ... (rest of the JS code for formset, calculations, local storage) ...#}
+{##}
+{#                // Example: Ensure initial budget display is correct using context variables#}
+{#                const initialAvailableBudget = parseFloat($('#project-budget-info').data('available-budget') || '0');#}
+{#                // Call initial update if needed#}
+{#                updateGrandTotal(); // This should trigger budget updates too#}
+{##}
+{#            });#}
+{#        </script>#}
+{#        {% endif %}#}
+{##}
+        {# Add similar conditional blocks for JS needed in other specific steps #}
+{#         {% if step_name == 'factor_docs' or step_name == 'tankhah_docs' %}#}
+             {# JS for file upload preview/handling #}
+{#             <script>#}
+{#             // Example File Upload JS (Simplified)#}
+{#             document.addEventListener('DOMContentLoaded', function() {#}
+{#                 function setupFileUpload(areaId, inputId, listId) {#}
+{#                     const uploadArea = document.getElementById(areaId);#}
+{#                     const fileInput = document.getElementById(inputId);#}
+{#                     const fileList = document.getElementById(listId);#}
+{#                     const storedFiles = new DataTransfer(); // To hold files for submission#}
+{##}
+{#                     if (!uploadArea || !fileInput || !fileList) return;#}
+{##}
+{#                     uploadArea.addEventListener('click', () => fileInput.click());#}
+{##}
+{#                     uploadArea.addEventListener('dragover', (e) => {#}
+{#                         e.preventDefault();#}
+{#                         uploadArea.classList.add('border-primary'); // Highlight on drag over#}
+{#                     });#}
+{#                     uploadArea.addEventListener('dragleave', () => {#}
+{#                         uploadArea.classList.remove('border-primary');#}
+{#                     });#}
+{#                     uploadArea.addEventListener('drop', (e) => {#}
+{#                         e.preventDefault();#}
+{#                         uploadArea.classList.remove('border-primary');#}
+{#                         handleFiles(e.dataTransfer.files);#}
+{#                     });#}
+{##}
+{#                     fileInput.addEventListener('change', (e) => {#}
+{#                         handleFiles(e.target.files);#}
+{#                     });#}
+{##}
+{#                     function handleFiles(files) {#}
+{#                         fileList.innerHTML = ''; // Clear current display list#}
+{#                         // storedFiles.items.clear(); // Clear previous DataTransfer items (if needed)#}
+{##}
+{#                         for (const file of files) {#}
+{#                             // Add to DataTransfer for potential submission handling#}
+{#                             storedFiles.items.add(file);#}
+{##}
+{#                             // Add to display list#}
+{#                             const listItem = document.createElement('li');#}
+{#                             listItem.innerHTML = `#}
+{#                                 <i class="fas fa-file me-2 text-secondary"></i>#}
+{#                                 <span class="file-name">${file.name}</span>#}
+{#                                 <span class="text-muted ms-2">(${(file.size / 1024).toFixed(1)} KB)</span>#}
+{#                                 <button type="button" class="remove-file" data-filename="${file.name}" title="{% trans 'حذف فایل' %}">#}
+{#                                     <i class="fas fa-times"></i>#}
+{#                                 </button>#}
+{#                             `;#}
+{#                             fileList.appendChild(listItem);#}
+{#                         }#}
+{#                         // Update the hidden input's files property#}
+{#                         fileInput.files = storedFiles.files;#}
+{#                     }#}
+{##}
+{#                     // Handle removing files from the list (and DataTransfer)#}
+{#                     fileList.addEventListener('click', function(e) {#}
+{#                         if (e.target.closest('.remove-file')) {#}
+{#                             const button = e.target.closest('.remove-file');#}
+{#                             const filenameToRemove = button.dataset.filename;#}
+{#                             const listItem = button.parentElement;#}
+{##}
+{#                             // Remove from display#}
+{#                             listItem.remove();#}
+{##}
+{#                             // Remove from DataTransfer object#}
+{#                             const newFiles = new DataTransfer();#}
+{#                             for (let i = 0; i < storedFiles.files.length; i++) {#}
+{#                                 if (storedFiles.files[i].name !== filenameToRemove) {#}
+{#                                     newFiles.items.add(storedFiles.files[i]);#}
+{#                                 }#}
+{#                             }#}
+{#                             storedFiles.items.clear(); // Clear old items first#}
+{#                              for(const file of newFiles.files){ // Add back the remaining items#}
+{#                                  storedFiles.items.add(file);#}
+{#                              }#}
+{##}
+{#                             // Update the input's files#}
+{#                             fileInput.files = storedFiles.files;#}
+{#                             console.log(`Removed ${filenameToRemove}, remaining files: ${fileInput.files.length}`);#}
+{#                         }#}
+{#                     });#}
+{#                 }#}
+{##}
+{#                 // Initialize for Factor Docs (Ensure IDs match your step_factor_docs.html)#}
+{#                 setupFileUpload('factor-doc-upload-area', '{{ form.files.id_for_label }}', 'factor-doc-file-list'); // Adjust IDs#}
+{##}
+{#                 // Initialize for Tankhah Docs (Ensure IDs match your step_tankhah_docs.html)#}
+{#                 setupFileUpload('tankhah-doc-upload-area', '{{ form.documents.id_for_label }}', 'tankhah-doc-file-list'); // Adjust IDs#}
+{##}
+{#             });#}
+{#             </script>#}
+{#         {% endif %}#}
+{##}
+{#    {% endblock wizard_step_js %}#}
+{##}
+{#{% endblock extra_js %}#}
+ -->

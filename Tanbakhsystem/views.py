@@ -82,8 +82,10 @@ class DashboardView( PermissionBaseView , TemplateView):
                 {'name': _('ایجاد تنخواه'), 'url': 'tankhah_create', 'permission': 'tankhah.Tankhah_add', 'icon': 'fas fa-plus'},
             ],
             'فاکتورها': [
-                {'name': _('فهرست فاکتورها'), 'url': 'factor_list', 'permission': 'tankhah.a_factor_view', 'icon': 'fas fa-file-invoice'},
-                {'name': _('ایجاد فاکتور'), 'url': 'factor_create', 'permission': 'tankhah.a_factor_add', 'icon': 'fas fa-plus'},
+                {'name': _('فهرست فاکتورها'), 'url': 'factor_list', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'},
+                {'name': _('ایجاد فاکتورold_factor_create '), 'url': 'old_factor_create', 'permission': 'tankhah.factor_add', 'icon': 'fas fa-plus'},
+                # {'name': _('ایجاد فاکتور'), 'url': 'factor_create', 'permission': 'tankhah.factor_add', 'icon': 'fas fa-plus'},
+                {'name': _('factor_wizard ایجاد فاکتور'), 'url': 'factor_wizard',   'icon': 'fas fa-plus'},
             ],
             'عنوان پروژه': [
                 {'name': _('فهرست پروژه‌ها'), 'url': 'project_list', 'permission': 'core.Project_view',

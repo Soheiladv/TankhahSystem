@@ -1,0 +1,525 @@
+{# templates/tankhah/Factors/wizard/step_factor_items.html #}
+{% extends "tankhah/Factors/wizard/factor_wizard_base.html" %}
+{% load i18n static rcms_custom_filters %} {# Load your custom filters #}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* استایل پایه برای ردیف آیتم */
+    .item-row.dynamic-form {
+        transition: opacity 0.3s ease-out, max-height 0.4s ease-out, transform 0.3s ease-out, margin-bottom 0.3s ease-out, padding-top 0.3s ease-out, padding-bottom 0.3s ease-out;
+        overflow: hidden;
+        border-bottom: 1px dashed #eee; /* جداکننده بصری بین ردیف‌ها */
+        margin-bottom: 0.25rem !important; /* mb-1 */
+        padding-top: 0.5rem !important;   /* py-2 */
+        padding-bottom: 0.5rem !important;/* py-2 */
+        max-height: 150px; /* ارتفاع کافی برای محتوای ردیف */
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    /* حالت اولیه برای انیمیشن اضافه شدن */
+    .item-row.row-adding {
+        opacity: 0;
+        max-height: 0;
+        transform: translateX(-20px);
+        margin-bottom: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        border-bottom: none;
+    }
+
+    /* حالت برای انیمیشن حذف شدن */
+    .item-row.row-removing {
+        opacity: 0;
+        max-height: 0;
+        transform: scale(0.95);
+        margin-bottom: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        border-bottom: none;
+    }
+
+    /* استایل برای ردیف‌هایی که حذف شده‌اند (سمت سرور) */
+    .item-row.is-deleting {
+        opacity: 0.5;
+        background-color: #ffebee; /* رنگ پس‌زمینه خیلی ملایم قرمز */
+        text-decoration: line-through; /* خط خورده */
+    }
+     .item-row.is-deleting input,
+     .item-row.is-deleting textarea {
+         background-color: #f1f1f1 !important; /* غیرفعال کردن ظاهری */
+     }
+
+
+    /* هایلایت برای تغییرات */
+    .highlight-change {
+        animation: highlight 0.7s ease-out;
+    }
+    @keyframes highlight {
+        0% { background-color: rgba(255, 255, 0, 0.5); transform: scale(1.05); } /* زرد */
+        100% { background-color: transparent; transform: scale(1); }
+    }
+     /* هایلایت ملایم‌تر برای جمع کل */
+    .highlight-total {
+        animation: highlight-subtle 0.7s ease-out;
+    }
+    @keyframes highlight-subtle {
+         0%, 100% { background-color: transparent; }
+         50% { background-color: rgba(200, 255, 200, 0.4); } /* سبز خیلی ملایم */
+    }
+
+
+    /* استایل برای فیلدهای نامعتبر */
+    .is-invalid {
+        border-color: #dc3545 !important;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+    }
+    .form-control.is-invalid:focus {
+         border-color: #dc3545 !important;
+         box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+    }
+    .text-danger { color: #dc3545 !important; }
+    .text-success { color: #198754 !important; }
+    .text-warning { color: #ffc107 !important; } /* برای مقایسه مبلغ */
+</style>
+{% endblock %}
+
+
+{% block wizard_content %}
+
+<form method="post" novalidate id="factor-item-form">
+    {% csrf_token %}
+    {{ wizard.management_form }}
+    {% if formset %}{{ formset.management_form }}{% endif %}
+
+    {% if form.non_field_errors or formset.non_form_errors %}
+        <div class="alert alert-danger alert-sm p-2" role="alert">
+            <strong>{% trans "خطا:" %}</strong><br>
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            {% for error in formset.non_form_errors %}{{ error }}{% endfor %}
+        </div>
+    {% endif %}
+
+    {# --- Budget Information --- #}
+    <div class="card card-body bg-light mb-3 p-2">
+        <div class="row gx-3 gy-2">
+            <div class="col-lg-4 col-md-6">
+                <div class="small text-muted">{% trans "مبلغ کل اولیه (مرحله قبل):" %}</div>
+                <strong id="initial-factor-amount" data-amount="{{ initial_factor_amount|default:0 }}">
+                    {{ initial_factor_amount|default:0|floatformat:0|to_persian_number_with_comma }} {% trans "ریال" %}
+                </strong>
+                <div class="mt-1 small">
+                    <span class="text-muted">{% trans "اختلاف با جمع:" %}</span>
+                    <span id="difference-amount" class="badge px-2 py-1 ms-1 fw-bold">۰</span>
+                </div>
+                 <div id="amount-comparison-result" class="mt-1 small fw-bold" style="min-height: 1.2em;"></div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="small text-muted">{% trans "بودجه پروژه" %} {% if selected_tankhah.project %}({{ selected_tankhah.project.name }}){% endif %}:</div>
+                <div id="project-budget-info"
+                     data-available-budget="{{ available_project_budget|default:0 }}"
+                     data-locked-percentage="{{ budget_locked_percentage|default:0 }}"
+                     data-warning-threshold="{{ budget_warning_threshold|default:10 }}"
+                     data-warning-action="{{ budget_warning_action|default:'NOTIFY' }}">
+                     <span class="small">{% trans "در دسترس:" %}</span>
+                     <strong><span id="available-project-budget-display">{{ available_project_budget|default:0|floatformat:0|to_persian_number_with_comma }} {% trans "ریال" %}</span></strong>
+                     <br>
+                     <span class="small">{% trans "مانده (پیش‌بینی):" %}</span>
+                     <strong><span id="remaining-project-budget" class="text-nowrap"></span></strong>
+                </div>
+                 <div id="budget-warning" class="alert alert-warning alert-sm p-1 small mt-1 mb-0" style="display: none;"></div>
+                 <div id="budget-lock-warning" class="alert alert-danger alert-sm p-1 small mt-1 mb-0" style="display: none;"></div>
+            </div>
+             <div class="col-lg-4 col-md-6">
+                <div class="small text-muted">{% trans "اعتبار تنخواه" %} {% if selected_tankhah %}({{ selected_tankhah.number }}){% endif %}:</div>
+                 <div id="tankhah-budget-info" data-available-tankhah-budget="{{ available_tankhah_budget|default:0 }}">
+                    <span class="small">{% trans "در دسترس:" %}</span>
+                    <strong><span id="available-tankhah-budget-display">{{ available_tankhah_budget|default:0|floatformat:0|to_persian_number_with_comma }} {% trans "ریال" %}</span></strong>
+                    <br>
+                    <span class="small">{% trans "مانده (پیش‌بینی):" %}</span>
+                    <strong><span id="remaining-tankhah-budget" class="text-nowrap"></span></strong>
+                </div>
+                 <div id="tankhah-budget-warning" class="alert alert-danger alert-sm p-1 small mt-1 mb-0" style="display: none;"></div> {# Warning specific to tankhah budget #}
+            </div>
+        </div>
+    </div>
+
+    {# --- Formset Container --- #}
+    <div id="{{ formset.prefix|default:'items' }}-formset">
+        <h6 class="mb-2 d-flex justify-content-between align-items-center">
+            <span>{% trans "آیتم‌های فاکتور" %} <small class="text-danger">({% trans "حداقل یک ردیف الزامی است" %})</small></span>
+             {# Button to add new rows #}
+             <button id="add-{{ formset.prefix|default:'items' }}-row" type="button" class="btn btn-success btn-sm py-1 px-2">
+                 <i class="fas fa-plus fa-xs me-1"></i> {% trans "افزودن ردیف" %}
+             </button>
+        </h6>
+
+        {# Header Row (Optional) #}
+         <div class="row gx-2 d-none d-md-flex mb-1 pb-1 border-bottom text-muted small fw-bold">
+            <div class="col-auto ps-1" style="width: 30px;">#</div>
+            <div class="col">{% trans "شرح" %}</div>
+            <div class="col-md-2 text-center">{% trans "تعداد" %}</div>
+            <div class="col-md-3 text-center">{% trans "مبلغ واحد (ریال)" %}</div>
+            <div class="col-md-2 text-center">{% trans "جمع ردیف (ریال)" %}</div>
+            <div class="col-auto pe-1" style="width: 40px;">{% trans "حذف" %}</div>
+        </div>
+
+        {# Loop through existing forms #}
+        {% if formset %}
+            {% for form in formset %}
+                <div class="item-row dynamic-form mb-1 py-1 {% if form.instance.pk and form.DELETE.value %}is-deleting{% endif %}" id="{{ formset.prefix }}-{{ forloop.counter0 }}">
+                    {% if form.non_field_errors %} <div class="alert alert-danger alert-sm p-1">{{ form.non_field_errors|join:", " }}</div> {% endif %}
+                    <div class="row gx-2 align-items-center">
+                        <div class="col-auto ps-1" style="width: 30px;"><span class="row-number fw-bold small text-muted"></span></div>
+                        <div class="col">
+                            {{ form.description }}
+                            {% if form.description.errors %}<div class="invalid-feedback d-block small">{{ form.description.errors|join:", "}}</div>{% endif %}
+                        </div>
+                        <div class="col-md-2">
+                            {{ form.quantity }}
+                            {% if form.quantity.errors %}<div class="invalid-feedback d-block small">{{ form.quantity.errors|join:", "}}</div>{% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form.amount }}
+                            {% if form.amount.errors %}<div class="invalid-feedback d-block small">{{ form.amount.errors|join:", "}}</div>{% endif %}
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <span class="item-total fw-bold small">۰</span>
+                        </div>
+                        <div class="col-auto pe-1" style="width: 40px;">
+                            {% if form.instance.pk %}<div style="display:none;">{{ form.DELETE }}</div>{% endif %} {# Hide checkbox, control via button #}
+                            <button type="button" class="btn btn-outline-danger btn-sm border-0 remove-form-row py-0 px-1" title="{% trans "حذف ردیف" %}">
+                                <i class="fas fa-times fa-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% for hidden in form.hidden_fields %}{% if hidden.name != 'DELETE' %}{{ hidden }}{% endif %}{% endfor %}
+                </div>
+            {% endfor %}
+        {% else %}
+             <p class="text-muted small">{% trans "فرم ست آیتم‌ها بارگذاری نشده است." %}</p>
+        {% endif %}
+
+        {# Summary Row #}
+        <div class="item-summary border-top mt-2 pt-2">
+            <div class="row fw-bold gx-2 small">
+                <div class="col-auto ps-1" style="width: 30px;"></div>
+                <div class="col">{% trans "مجموع کل" %} (<span id="total-items">۰</span> {% trans "ردیف" %})</div>
+                <div class="col-md-2 text-center"><span id="total-quantity">۰</span></div>
+                <div class="col-md-3 text-center"><span id="total-amount">۰</span> {% trans "ریال" %}</div>
+                <div class="col-md-2 text-center"><span id="total-items-amount" class="fs-6">۰</span> {% trans "ریال" %}</div> {# Larger total #}
+                <div class="col-auto pe-1" style="width: 40px;"></div>
+            </div>
+        </div>
+    </div>
+
+    {# --- Empty form template --- #}
+    <template id="{{ formset.prefix|default:'items' }}-empty-form">
+        <div class="item-row dynamic-form mb-1 py-1">
+             <div class="row gx-2 align-items-center">
+                 <div class="col-auto ps-1" style="width: 30px;"><span class="row-number fw-bold small text-muted"></span></div>
+                 <div class="col">{% if formset %}{{ formset.empty_form.description }}{% endif %}</div>
+                 <div class="col-md-2">{% if formset %}{{ formset.empty_form.quantity }}{% endif %}</div>
+                 <div class="col-md-3">{% if formset %}{{ formset.empty_form.amount }}{% endif %}</div>
+                 <div class="col-md-2 text-center"><span class="item-total fw-bold small">۰</span></div>
+                 <div class="col-auto pe-1" style="width: 40px;">
+                     <button type="button" class="btn btn-outline-danger btn-sm border-0 remove-form-row py-0 px-1" title="{% trans "حذف ردیف" %}"><i class="fas fa-times fa-sm"></i></button>
+                 </div>
+             </div>
+             {% if formset %}{% for hidden in formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}{% endif %}
+        </div>
+    </template>
+
+    {# Save Progress Button #}
+     <div class="mt-3 text-muted">
+         <button id="save-progress-button" type="button" class="btn btn-secondary btn-sm">{% trans "ذخیره موقت پیشرفت" %}</button>
+         <span id="save-progress-feedback" class="ms-2 small" style="display: none;"></span>
+     </div>
+
+</form>
+{% endblock wizard_content %}
+
+
+{% block extra_js %}
+{{ block.super }}
+
+{# Script to submit wizard form (no change) #}
+<script>
+    function submitWizardForm(gotoStep) {
+        const form = document.getElementById('factor-item-form');
+        if (!form) return;
+        // Ensure no accidental double submission
+        form.querySelectorAll('button[type="submit"]').forEach(btn => btn.disabled = true);
+        const stepInput = document.createElement('input');
+        stepInput.type = 'hidden';
+        stepInput.name = 'wizard_goto_step';
+        stepInput.value = gotoStep;
+        form.appendChild(stepInput);
+        form.submit();
+    }
+</script>
+
+
+{# --- Main Form могли Script --- #}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const formsetPrefix = "{{ formset.prefix|default:'items' }}";
+    const emptyFormTemplate = document.querySelector(`#${formsetPrefix}-empty-form`);
+    const formsetContainer = document.querySelector(`#${formsetPrefix}-formset`);
+    const addRowButton = document.getElementById(`add-${formsetPrefix}-row`);
+    const totalFormsInput = document.querySelector(`input[name="${formsetPrefix}-TOTAL_FORMS"]`);
+    const initialFactorAmount = parseFloat(document.getElementById("initial-factor-amount").dataset.amount || 0);
+    const availableProjectBudget = parseFloat(document.getElementById("project-budget-info").dataset.availableBudget || 0);
+    const availableTankhahBudget = parseFloat(document.getElementById("tankhah-budget-info").dataset.availableTankhahBudget || 0);
+    const warningThreshold = parseFloat(document.getElementById("project-budget-info").dataset.warningThreshold || 10);
+    const warningAction = document.getElementById("project-budget-info").dataset.warningAction;
+    const lockedPercentage = parseFloat(document.getElementById("project-budget-info").dataset.lockedPercentage || 0);
+
+    // تبدیل عدد به فرمت فارسی با جداکننده
+    function toPersianNumberWithComma(x) {
+        return (x || 0).toLocaleString("fa-IR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    // تبدیل عدد به فرمت فارسی
+    function toPersianDigits(num) {
+        const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        return num.toString().replace(/\d/g, d => persianDigits[d]);
+    }
+
+    // محاسبه مجموع ردیف (تعداد × مبلغ واحد)
+    function calculateRowTotal(row) {
+        const quantityInput = row.querySelector('input[name$="-quantity"]');
+        const amountInput = row.querySelector('input[name$="-amount"]');
+        const rowTotalSpan = row.querySelector('.item-total');
+
+        const quantity = parseFloat(quantityInput?.value.replace(/,/g, '') || 0);
+        const amount = parseFloat(amountInput?.value.replace(/,/g, '') || 0);
+
+        const rowTotal = isNaN(quantity) || isNaN(amount) ? 0 : quantity * amount;
+
+        if (rowTotalSpan) {
+            rowTotalSpan.innerText = toPersianNumberWithComma(rowTotal);
+        }
+
+        return rowTotal;
+    }
+
+    // به‌روزرسانی شماره ردیف‌ها
+    function updateRowNumbers() {
+        const rows = formsetContainer.querySelectorAll('.item-row:not(.is-deleting)');
+        rows.forEach((row, index) => {
+            const numberSpan = row.querySelector('.row-number');
+            if (numberSpan) numberSpan.innerText = toPersianDigits(index + 1);
+        });
+        document.getElementById("total-items").innerText = toPersianDigits(rows.length);
+    }
+
+    // به‌روزرسانی کل فرم
+    function updateSummary() {
+        let totalAmount = 0;
+        let totalQuantity = 0;
+
+        const rows = formsetContainer.querySelectorAll('.item-row:not(.is-deleting)');
+        rows.forEach(row => {
+            const rowTotal = calculateRowTotal(row);
+            totalAmount += rowTotal;
+            const quantity = parseFloat(row.querySelector('input[name$="-quantity"]')?.value.replace(/,/g, '') || 0);
+            totalQuantity += isNaN(quantity) ? 0 : quantity;
+        });
+
+        // به‌روزرسانی مقادیر مجموع
+        document.getElementById("total-quantity").innerText = toPersianNumberWithComma(totalQuantity);
+        document.getElementById("total-amount").innerText = toPersianNumberWithComma(totalAmount);
+        document.getElementById("total-items-amount").innerText = toPersianNumberWithComma(totalAmount);
+
+        // اختلاف با مبلغ اولیه
+        const diff = totalAmount - initialFactorAmount;
+        const diffEl = document.getElementById("difference-amount");
+        const resultEl = document.getElementById("amount-comparison-result");
+        diffEl.innerText = toPersianNumberWithComma(diff);
+
+        if (diff === 0) {
+            resultEl.innerText = "{% trans 'مطابقت دارد' %} ✅";
+            resultEl.className = "mt-1 small fw-bold text-success";
+        } else if (diff > 0) {
+            resultEl.innerText = `{% trans 'بیشتر از مبلغ اولیه به میزان' %} ${toPersianNumberWithComma(diff)} {% trans 'ریال' %}`;
+            resultEl.className = "mt-1 small fw-bold text-danger";
+        } else {
+            resultEl.innerText = `{% trans 'کمتر از مبلغ اولیه به میزان' %} ${toPersianNumberWithComma(-diff)} {% trans 'ریال' %}`;
+            resultEl.className = "mt-1 small fw-bold text-warning";
+        }
+
+        // بودجه پروژه
+        const remainingProjectBudget = availableProjectBudget - totalAmount;
+        const remainingProjectEl = document.getElementById("remaining-project-budget");
+        const projectWarnEl = document.getElementById("budget-warning");
+        const projectLockEl = document.getElementById("budget-lock-warning");
+        const budgetLimit = (lockedPercentage / 100) * availableProjectBudget;
+
+        remainingProjectEl.innerText = toPersianNumberWithComma(remainingProjectBudget) + " {% trans 'ریال' %}";
+        if (totalAmount > availableProjectBudget) {
+            projectLockEl.style.display = "block";
+            projectLockEl.innerText = "{% trans 'مبلغ واردشده بیش از بودجه پروژه است و مجاز نیست.' %}";
+            projectWarnEl.style.display = "none";
+        } else if (remainingProjectBudget < (warningThreshold / 100) * availableProjectBudget) {
+            projectWarnEl.style.display = "block";
+            projectWarnEl.innerText = "{% trans 'هشدار: بودجه در آستانه‌ی تمام شدن است.' %}";
+            projectLockEl.style.display = "none";
+        } else {
+            projectWarnEl.style.display = "none";
+            projectLockEl.style.display = "none";
+        }
+
+        // بودجه تنخواه
+        const remainingTankhah = availableTankhahBudget - totalAmount;
+        const tankhahWarnEl = document.getElementById("tankhah-budget-warning");
+        document.getElementById("remaining-tankhah-budget").innerText = toPersianNumberWithComma(remainingTankhah) + " {% trans 'ریال' %}";
+        if (totalAmount > availableTankhahBudget) {
+            tankhahWarnEl.style.display = "block";
+            tankhahWarnEl.innerText = "{% trans 'مبلغ واردشده بیش از اعتبار تنخواه است.' %}";
+        } else {
+            tankhahWarnEl.style.display = "none";
+        }
+    }
+
+    // اتصال Event Listenerها به ورودی‌ها
+    function bindInputs(row) {
+        const inputs = row.querySelectorAll('input[name$="-quantity"], input[name$="-amount"]');
+        inputs.forEach(input => {
+            input.addEventListener("input", () => {
+                // اعتبارسنجی مقدار
+                const value = parseFloat(input.value.replace(/,/g, '') || 0);
+                if (value <= 0) {
+                    input.classList.add("is-invalid");
+                } else {
+                    input.classList.remove("is-invalid");
+                }
+                updateSummary();
+            });
+
+            // افزودن ردیف جدید با کلید Enter
+            input.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    addRow();
+                }
+            });
+
+            // اعتبارسنجی هنگام خروج از فیلد
+            input.addEventListener("blur", () => {
+                const value = parseFloat(input.value.replace(/,/g, '') || 0);
+                if (value <= 0) {
+                    input.classList.add("is-invalid");
+                    alert("{% trans 'لطفاً مقدار معتبر (بزرگ‌تر از صفر) وارد کنید.' %}");
+                } else {
+                    input.classList.remove("is-invalid");
+                }
+            });
+        });
+
+        // دکمه حذف
+        const removeButton = row.querySelector(".remove-form-row");
+        if (removeButton) {
+            removeButton.addEventListener("click", () => {
+                row.classList.add("deleting");
+                setTimeout(() => {
+                    const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                    if (deleteCheckbox) {
+                        deleteCheckbox.checked = true;
+                        row.classList.add("is-deleting");
+                        row.style.display = "none";
+                    } else {
+                        row.remove();
+                        totalFormsInput.value = parseInt(totalFormsInput.value) - 1;
+                    }
+                    updateRowNumbers();
+                    updateSummary();
+                }, 300);
+            });
+        }
+    }
+
+    // افزودن ردیف جدید
+    function addRow() {
+        const formCount = parseInt(totalFormsInput.value || 0);
+        const newRow = document.createElement("div");
+        newRow.innerHTML = emptyFormTemplate.innerHTML.replace(/__prefix__/g, formCount);
+        newRow.classList.add("item-row", "dynamic-form", "mb-1", "py-1", "added");
+        newRow.id = `${formsetPrefix}-${formCount}`;
+
+        // تنظیم مقدار پیش‌فرض برای تعداد
+        const quantityInput = newRow.querySelector('input[name$="-quantity"]');
+        if (quantityInput) quantityInput.value = "1";
+
+        formsetContainer.insertBefore(newRow, formsetContainer.querySelector(".item-summary"));
+        totalFormsInput.value = formCount + 1;
+
+        bindInputs(newRow);
+        updateRowNumbers();
+        updateSummary();
+
+        // حذف کلاس انیمیشن پس از اتمام
+        setTimeout(() => newRow.classList.remove("added"), 300);
+
+        // فوکوس روی فیلد شرح
+        const descriptionInput = newRow.querySelector('input[name$="-description"]');
+        if (descriptionInput) descriptionInput.focus();
+    }
+
+    // اتصال Event Listenerها به ردیف‌های موجود
+    formsetContainer.querySelectorAll('.item-row').forEach(row => {
+        bindInputs(row);
+        const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+        if (deleteCheckbox && deleteCheckbox.checked) {
+            row.classList.add("is-deleting");
+            row.style.display = "none";
+        }
+    });
+
+    // دکمه افزودن ردیف
+    addRowButton.addEventListener("click", addRow);
+
+    // ذخیره پیشرفت
+    const saveBtn = document.getElementById("save-progress-button");
+    const feedbackEl = document.getElementById("save-progress-feedback");
+
+    saveBtn.addEventListener("click", function () {
+        const form = document.getElementById("factor-item-form");
+        const formData = new FormData(form);
+        formData.append("save_progress", "1");
+
+        fetch("", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                feedbackEl.innerText = "{% trans '✅ پیشرفت با موفقیت ذخیره شد' %}";
+                feedbackEl.style.display = "inline";
+                feedbackEl.className = "ms-2 small text-success";
+            } else {
+                feedbackEl.innerText = "{% trans '❌ خطا در ذخیره‌سازی پیشرفت' %}";
+                feedbackEl.style.display = "inline";
+                feedbackEl.className = "ms-2 small text-danger";
+            }
+            setTimeout(() => { feedbackEl.style.display = "none"; }, 2000);
+        })
+        .catch(error => {
+            feedbackEl.innerText = "{% trans '❌ خطا در ذخیره‌سازی پیشرفت' %}";
+            feedbackEl.style.display = "inline";
+            feedbackEl.className = "ms-2 small text-danger";
+            setTimeout(() => { feedbackEl.style.display = "none"; }, 2000);
+        });
+    });
+
+    // اجرای اولیه
+    updateRowNumbers();
+    updateSummary();
+});
+</script>
+
+{% endblock extra_js %}

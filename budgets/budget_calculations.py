@@ -1,8 +1,9 @@
 # budget_calculations.py
 import logging
 from decimal import Decimal
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Value
 from django.core.cache import cache
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from Tanbakhsystem.utils import parse_jalali_date
@@ -80,6 +81,83 @@ def get_organization_budget(organization) -> Decimal:
     total_budget = BudgetPeriod.objects.filter(organization=organization,is_active=True,is_completed=False).aggregate(total=Sum('total_amount'))['total'] or Decimal('0')
     return total_budget
 
+# === توابع بودجه تنخواه ===
+def get_tankhah_total_budget(tankhah, filters=None):
+    """
+    محاسبه بودجه کل تخصیص‌یافته به تنخواه
+    """
+    # اینجا فرض شده که مبلغ کل تنخواه در فیلد amount خود مدل ذخیره می‌شود
+    total = tankhah.amount
+    logger.debug(f"get_tankhah_total_budget: tankhah={tankhah.number}, total={total}")
+    return total
+
+"""    محاسبه بودجه مصرف‌شده تنخواه (بر اساس فاکتورهای پرداخت‌شده)"""
+def get_tankhah_used_budget(tankhah, filters=None):
+    """
+    محاسبه بودجه مصرف‌شده تنخواه (بر اساس فاکتورهای پرداخت‌شده)
+    """
+    from tankhah.models import Factor # Import مدل Factor در داخل تابع
+    cache_key = f"tankhah_used_budget_{tankhah.pk}_{hash(str(filters)) if filters else 'no_filters'}"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        logger.debug(f"Returning cached tankhah_used_budget for {cache_key}: {cached_result}")
+        return cached_result
+
+    # محاسبه مجموع فاکتورهای پرداخت شده مرتبط با این تنخواه
+    factors = Factor.objects.filter(tankhah=tankhah, status='PAID') # <<<--- فقط PAID؟ یا APPROVED هم؟
+    # اعمال فیلترهای زمانی روی تاریخ فاکتورها؟ (اگر filters شامل فیلتر تاریخ است)
+    # if filters:
+    #     if 'date_from' in filters: factors = factors.filter(date__gte=filters['date_from'])
+    #     if 'date_to' in filters: factors = factors.filter(date__lte=filters['date_to'])
+
+    total = factors.aggregate(
+        total=Coalesce(Sum('amount'), Value(Decimal('0.0'))) # استفاده از Coalesce
+    )['total'] or Decimal('0') # اطمینان از Decimal بودن خروجی
+
+    cache.set(cache_key, total, timeout=300) # ذخیره در کش
+    logger.debug(f"get_tankhah_used_budget: tankhah={tankhah.number}, total={total}")
+    return total
+
+""" محاسبه بودجه باقی‌مانده تنخواه  """
+def old___get_tankhah_remaining_budget(tankhah, filters=None):
+    """ محاسبه بودجه باقی‌مانده تنخواه  """
+    cache_key = f"tankhah_remaining_budget_{tankhah.pk}_{hash(str(filters)) if filters else 'no_filters'}"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        logger.debug(f"Returning cached tankhah_remaining_budget for {cache_key}: {cached_result}")
+        return cached_result
+
+    total_budget = get_tankhah_total_budget(tankhah, filters)
+    used_budget = get_tankhah_used_budget(tankhah, filters)
+    remaining = max(total_budget - used_budget, Decimal('0'))
+    cache.set(cache_key, remaining, timeout=300)
+    logger.debug(f"get_tankhah_remaining_budget: tankhah={tankhah.number}, remaining={remaining}")
+    return remaining
+
+def get_tankhah_remaining_budget(tankhah, filters=None):
+    """ محاسبه بودجه باقی‌مانده تنخواه """
+    cache_key = f"tankhah_remaining_budget_{tankhah.pk}_{hash(str(filters)) if filters else 'no_filters'}"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        logger.debug(f"Returning cached tankhah_remaining_budget for {cache_key}: {cached_result}")
+        return cached_result
+
+    # محاسبه با استفاده از دو تابع دیگر
+    total_budget = get_tankhah_total_budget(tankhah, filters)
+    # لاگ مقدار اولیه تنخواه
+    logger.debug(f"get_tankhah_remaining_budget({tankhah.number}): Initial Amount = {total_budget}")
+    used_budget = get_tankhah_used_budget(tankhah, filters)
+    # لاگ مقدار مصرف شده (فاکتورهای PAID)
+    logger.debug(f"get_tankhah_remaining_budget({tankhah.number}): Used Budget (Paid Factors) = {used_budget}")
+    remaining = max(total_budget - used_budget, Decimal('0')) # مانده منفی نمی شود
+    # ... (کش و لاگ نهایی) ...
+    logger.info(f"get_tankhah_remaining_budget({tankhah.number}): Calculated Remaining = {remaining}")
+
+    cache.set(cache_key, remaining, timeout=300) # ذخیره در کش
+    logger.debug(f"get_tankhah_remaining_budget: tankhah={tankhah.number}, remaining={remaining}")
+    return remaining
+
+
 # === توابع بودجه پروژه ===
 def get_project_total_budget(project, filters=None):
     """
@@ -107,6 +185,83 @@ def get_project_total_budget(project, filters=None):
     total = direct_total + subproject_total
     cache.set(cache_key, total, timeout=300)
     return total
+
+""" محاسبه بودجه *واقعی* باقی‌مانده پروژه."""
+def get_actual_project_remaining_budget(project, filters=None):
+    """
+    محاسبه بودجه *واقعی* باقی‌مانده پروژه.
+    این تابع مجموع کل تخصیص یافته به پروژه (از ProjectBudgetAllocation) را محاسبه کرده
+    و مجموع تراکنش‌های مصرفی (CONSUMPTION) و برگشتی (RETURN) ثبت شده در BudgetTransaction
+    که به تخصیص‌های بودجه (BudgetAllocation) مرتبط با این پروژه لینک هستند را از آن کم/زیاد می‌کند.
+    """
+    if not project:
+        logger.warning("get_actual_project_remaining_budget called with None project.")
+        return Decimal('0.0')
+
+    # استفاده از کش برای جلوگیری از محاسبات تکراری (اختیاری اما مفید)
+    # کلید کش باید شامل شناسه پروژه و فیلترها باشد
+    cache_key = f"actual_project_remaining_budget_{project.pk}"
+    # فیلترها ممکن است کش را پیچیده کنند، فعلا بدون فیلتر در کش
+    # if filters: cache_key += f"_{hash(str(filters))}"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        logger.debug(f"Returning cached actual_project_remaining_budget for {cache_key}: {cached_result}")
+        return cached_result
+
+    # 1. مجموع کل بودجه تخصیص یافته مستقیم به این پروژه
+    #    (از تابع موجود شما استفاده می‌کنیم)
+    #    توجه: اگر فیلترها روی تخصیص‌ها هم اثر دارند، آن‌ها را پاس دهید
+    total_allocated_to_project = get_project_total_budget(project, filters=filters)
+    # لاگ کل تخصیص یافته به پروژه
+    logger.debug(f"get_actual_project_remaining_budget({project.id}): Total Allocated = {total_allocated_to_project}")
+
+    # 2. مجموع کل مصرف‌ها (CONSUMPTION) مرتبط با این پروژه
+    #    تراکنش‌هایی که به BudgetAllocation هایی لینک هستند که آن BudgetAllocation ها
+    #    در ProjectBudgetAllocation های این پروژه استفاده شده‌اند.
+    from budgets.models import BudgetTransaction
+    consumptions_qs = BudgetTransaction.objects.filter(
+        allocation__project_allocations__project=project, # پیوند از طریق BudgetAllocation به ProjectBudgetAllocation
+        transaction_type='CONSUMPTION'
+    )
+    # اعمال فیلترهای زمانی بر روی تراکنش‌ها (اگر لازم است)
+    # if filters:
+    #     if 'date_from' in filters: consumptions_qs = consumptions_qs.filter(timestamp__date__gte=filters['date_from'])
+    #     if 'date_to' in filters: consumptions_qs = consumptions_qs.filter(timestamp__date__lte=filters['date_to'])
+
+    from django.db.models import Value
+    total_consumed = consumptions_qs.aggregate(
+        total=Coalesce(Sum('amount'), Value(Decimal('0.0'))) # استفاده از Coalesce برای مدیریت None
+    )['total']
+    # لاگ کل مصرف شده از BudgetTransaction
+    logger.debug(f"get_actual_project_remaining_budget({project.id}): Total Consumed (via BudgetTransaction) = {total_consumed}")
+
+    # 3. مجموع کل برگشتی‌ها (RETURN) مرتبط با این پروژه
+    returns_qs = BudgetTransaction.objects.filter(
+        allocation__project_allocations__project=project,
+        transaction_type='RETURN'
+    )
+    # اعمال فیلترهای زمانی بر روی تراکنش‌ها (اگر لازم است)
+    # if filters:
+    #     # ... اعمال فیلتر ...
+
+    total_returned = returns_qs.aggregate(
+        total=Coalesce(Sum('amount'), Value(Decimal('0.0')))
+    )['total']
+    # لاگ کل برگشتی از BudgetTransaction
+    logger.debug(f"get_actual_project_remaining_budget({project.id}): Total Returned (via BudgetTransaction) = {total_returned}")
+
+    # 4. محاسبه باقیمانده نهایی
+    remaining = total_allocated_to_project - total_consumed + total_returned
+    actual_remaining = max(remaining, Decimal('0.0')) # باقیمانده نمی‌تواند منفی باشد
+
+    # ذخیره نتیجه در کش برای مدت کوتاه (مثلاً ۲ دقیقه)
+    cache.set(cache_key, actual_remaining, timeout=120)
+
+    logger.info(f"Calculated actual remaining budget for Project {project.id}: Allocated={total_allocated_to_project}, Consumed={total_consumed}, Returned={total_returned}, Remaining={actual_remaining}")
+
+    return actual_remaining
+# --- اطمینان حاصل کنید که تابع get_project_total_budget در همین فایل یا قابل import است ---
+# تابع get_project_total_budget شما به نظر صحیح می آید و می تواند استفاده شود.
 
 
 def get_project_used_budget(project, filters=None):
@@ -278,23 +433,6 @@ def get_tankhah_used_budget(tankhah, filters=None):
     cache.set(cache_key, total, timeout=300)
     logger.debug(f"get_tankhah_used_budget: tankhah={tankhah.number}, total={total}")
     return total
-
-def get_tankhah_remaining_budget(tankhah, filters=None):
-    """
-    محاسبه بودجه باقی‌مانده تنخواه
-    """
-    cache_key = f"tankhah_remaining_budget_{tankhah.pk}_{hash(str(filters)) if filters else 'no_filters'}"
-    cached_result = cache.get(cache_key)
-    if cached_result is not None:
-        logger.debug(f"Returning cached tankhah_remaining_budget for {cache_key}: {cached_result}")
-        return cached_result
-
-    total_budget = get_tankhah_total_budget(tankhah, filters)
-    used_budget = get_tankhah_used_budget(tankhah, filters)
-    remaining = max(total_budget - used_budget, Decimal('0'))
-    cache.set(cache_key, remaining, timeout=300)
-    logger.debug(f"get_tankhah_remaining_budget: tankhah={tankhah.number}, remaining={remaining}")
-    return remaining
 
 # === توابع بودجه فاکتور ===
 def get_factor_total_budget(factor, filters=None):

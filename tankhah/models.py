@@ -518,6 +518,8 @@ class Factor(models.Model):
     locked_by_stage = models.ForeignKey(WorkflowStage, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("قفل شده توسط مرحله"))
     budget = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name=_("بودجه تخصیصی"))
     remaining_budget = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name=_("بودجه باقیمانده"))
+    created_by = models.ForeignKey('accounts.CustomUser',related_name='CustomUser_related', on_delete=models.SET_NULL, null=True, verbose_name=_("ایجادکننده"))
+
 
     def get_remaining_budget(self):
         return get_factor_remaining_budget(self)
@@ -544,14 +546,14 @@ class Factor(models.Model):
         total = self.total_amount()
         if self.pk and total > 0 and abs(self.amount - total) > 0.01:
             logger.warning(f"Factor {self.number}: amount ({self.amount}) != items total ({total})")
-        if total <= 0:
-            raise ValidationError(_("مبلغ فاکتور باید مثبت باشد."))
-        if self.tankhah:
-            tankhah_remaining = get_tankhah_remaining_budget(self.tankhah)
-            if total > tankhah_remaining:
-                raise ValidationError(
-                    _(f"مبلغ فاکتور ({total:,.0f} ریال) نمی‌تواند بیشتر از بودجه باقی‌مانده تنخواه ({tankhah_remaining:,.0f} ریال) باشد.")
-                )
+        # if total <= 0:
+        #     raise ValidationError(_("مبلغ فاکتور باید مثبت باشد."))
+        # if self.tankhah:
+        #     tankhah_remaining = get_tankhah_remaining_budget(self.tankhah)
+        #     if total > tankhah_remaining:
+        #         raise ValidationError(
+        #             _(f"مبلغ فاکتور ({total:,.0f} ریال) نمی‌تواند بیشتر از بودجه باقی‌مانده تنخواه ({tankhah_remaining:,.0f} ریال) باشد.")
+        #         )
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
@@ -589,7 +591,8 @@ class Factor(models.Model):
             super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.number} ({self.tankhah.number})"
+        # tankhah_number = getattr(self.tankhah, 'number', _('نامشخص')) if self.tankhah else _('نامشخص')
+        return f"Factor {self.id}"# for Tankhah {tankhah_number}"
 
     class Meta:
         verbose_name = _("فاکتور")
@@ -599,12 +602,12 @@ class Factor(models.Model):
         ]
         default_permissions = ()
         permissions = [
-            ('a_factor_add', _('افزودن فاکتور')),
-            ('a_factor_view', _('نمایش فاکتور')),
-            ('a_factor_update', _('بروزرسانی فاکتور')),
-            ('a_factor_delete', _('حذف فاکتور')),
-            ('a_factor_approve', _('تأیید فاکتور')),
-            ('a_factor_reject', _('رد فاکتور')),
+            ('factor_add', _('افزودن فاکتور')),
+            ('factor_view', _('نمایش فاکتور')),
+            ('factor_update', _('بروزرسانی فاکتور')),
+            ('factor_delete', _('حذف فاکتور')),
+            ('factor_approve', _('تأیید فاکتور')),
+            ('factor_reject', _('رد فاکتور')),
         ]
 
 class FactorItem(models.Model):
@@ -619,7 +622,7 @@ class FactorItem(models.Model):
 
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE, related_name='items', verbose_name=_("فاکتور"))
     description = models.CharField(max_length=255, verbose_name=_("شرح ردیف"))
-    amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ"))
+    amount = models.DecimalField(max_digits=25, default=0, decimal_places=2, verbose_name=_("مبلغ"))
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name=_("وضعیت"))
     quantity = models.DecimalField(max_digits=25, default=1, decimal_places=2, verbose_name=_("تعداد"))
     unit_price = models.DecimalField(max_digits=25, decimal_places=2, blank=True, null=True,
@@ -632,8 +635,7 @@ class FactorItem(models.Model):
 
     def clean(self):
         """اعتبارسنجی آیتم فاکتور"""
-        super().clean()
-
+        # super().clean()
         if self.amount <= 0:
             raise ValidationError(_('مبلغ ردیف باید بزرگ‌تر از صفر باشد.'))
         if self.quantity <= 0:

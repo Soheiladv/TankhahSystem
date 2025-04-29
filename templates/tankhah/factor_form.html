@@ -207,6 +207,11 @@
                             {% endif %}
                         </button>
                     </li>
+                    <li>
+                        <p>
+                            <strong>{% trans "بودجه باقی‌مانده تنخواه" %}:</strong> {{ budget_info.tankhah_remaining|floatformat:0|to_persian_number }} {% trans "ریال" %}
+                        </p>
+                    </li>
                 </ul>
 
                 <form method="post" enctype="multipart/form-data" id="factor-form">
@@ -218,8 +223,40 @@
                             <div class="row g-3 mb-4">
                                      <div class="budget-info">
                 <h5>{% trans "اطلاعات بودجه" %}</h5>
-                <p><strong>{% trans "بودجه باقی‌مانده تنخواه" %}:</strong> {{ tankhah_remaining_budget|floatformat:"0"|to_persian_number }} {% trans "ریال" %}</p>
-                <p><strong>{% trans "بودجه باقی‌مانده فاکتور" %}:</strong> {{ factor_remaining_budget|floatformat:"0"|to_persian_number }} {% trans "ریال" %}</p>
+                                         <!-- نمایش اطلاعات بودجه -->
+                                         {% if budget_info %}
+                                             <div class="alert alert-info mt-3 mx-4">
+                                                 <h4>{% trans "اطلاعات بودجه" %}</h4>
+                                                 <p><strong>{% trans "پروژه" %}:</strong> {{ budget_info.project_name }}
+                                                 </p>
+                                                 <p>
+                                                     <strong>{% trans "بودجه کل پروژه" %}:</strong> {{ budget_info.project_budget|floatformat:0|to_persian_number }} {% trans "ریال" %}
+                                                 </p>
+                                                 <p>
+                                                     <strong>{% trans "بودجه تنخواه" %}:</strong> {{ budget_info.tankhah_budget|floatformat:0|to_persian_number }} {% trans "ریال" %}
+                                                 </p>
+                                                 <p>
+                                                     <strong>{% trans "بودجه باقی‌مانده تنخواه" %}:</strong> {{ budget_info.tankhah_remaining|floatformat:0|to_persian_number }} {% trans "ریال" %}
+                                                 </p>
+                                                 {% if budget_info.tankhah_remaining and budget_info.tankhah_budget and budget_info.tankhah_remaining < budget_info.tankhah_budget|div:10 %}
+                                                     <div class="alert alert-danger mt-2">
+                                                         {% trans "هشدار: بودجه باقی‌مانده تنخواه کمتر از 10٪ است!" %}
+                                                     </div>
+
+                                                     <p><strong>{% trans "بودجه باقی‌مانده تنخواه" %}:</strong>
+                                                         {{ tankhah_remaining_budget|floatformat:"0"|to_persian_number }}
+                                                         {% trans "ریال" %}</p>
+                                                     <p><strong>{% trans "بودجه باقی‌مانده فاکتور" %}:</strong>
+                                                         {{ factor_remaining_budget|floatformat:"0"|to_persian_number }}
+                                                         {% trans "ریال" %}</p>
+                                                 {% endif %}
+                                             </div>
+                                         {% else %}
+                                             <div class="alert alert-warning mt-3 mx-4">
+                                                 {% trans "اطلاعات بودجه در دسترس نیست. لطفاً تنخواه را انتخاب کنید یا تخصیص بودجه را بررسی کنید." %}
+                                             </div>
+                                         {% endif %}
+
             </div>
                                 {% for field in form %}
                                     {% if field.name != 'amount' and field.name != 'description' %}
@@ -536,186 +573,179 @@
 
 
 {% block extra_js %}
-    <script>
-        $(document).ready(function () {
-            function toLatinDigits(str) {
-                const persianDigits = /[۰-۹]/g;
-                return str.replace(persianDigits, d => d.charCodeAt(0) - 1776);
-            }
+<script>
+    $(document).ready(function () {
+        function toLatinDigits(str) {
+            const persianDigits = /[۰-۹]/g;
+            return str.replace(persianDigits, d => d.charCodeAt(0) - 1776);
+        }
 
-            // --- مدیریت تب‌ها ---
-            const factorTabs = document.querySelectorAll('#factorTabs button[data-bs-toggle="tab"]');
-            factorTabs.forEach(tabEl => {
-                tabEl.addEventListener('shown.bs.tab', event => {
-                    localStorage.setItem('lastFactorTab', event.target.id);
-                });
+        // مدیریت تب‌ها
+        const factorTabs = document.querySelectorAll('#factorTabs button[data-bs-toggle="tab"]');
+        factorTabs.forEach(tabEl => {
+            tabEl.addEventListener('shown.bs.tab', event => {
+                localStorage.setItem('lastFactorTab', event.target.id);
             });
+        });
 
-            let lastTabId = localStorage.getItem('lastFactorTab');
-            if (lastTabId && document.querySelector(`#${lastTabId}`)) {
-                const lastTab = document.querySelector(`#${lastTabId}`);
-                if (typeof bootstrap !== 'undefined' && bootstrap.Tab) {
-                    const tabInstance = bootstrap.Tab.getInstance(lastTab) || new bootstrap.Tab(lastTab);
-                    tabInstance.show();
-                }
+        let lastTabId = localStorage.getItem('lastFactorTab');
+        if (lastTabId && document.querySelector(`#${lastTabId}`)) {
+            const lastTab = document.querySelector(`#${lastTabId}`);
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tab) {
+                const tabInstance = bootstrap.Tab.getInstance(lastTab) || new bootstrap.Tab(lastTab);
+                tabInstance.show();
             }
+        }
 
-            // --- مدیریت اقلام فاکتور ---
-            const itemFormsetContainer = document.getElementById('item-formset');
-            const addItemButton = document.getElementById('add-item');
-            const totalFormsInput = document.getElementById('id_form-TOTAL_FORMS');
-            let formCount = parseInt(totalFormsInput.value) || 0;
+        // مدیریت اقلام فاکتور
+        const itemFormsetContainer = document.getElementById('item-formset');
+        const addItemButton = document.getElementById('add-item');
+        const totalFormsInput = document.getElementById('id_form-TOTAL_FORMS');
+        let formCount = parseInt(totalFormsInput.value) || 0;
 
-            // استفاده از قالب خالی
-            const emptyFormTemplate = document.getElementById('empty-item-form').content;
+        const emptyFormTemplate = document.getElementById('empty-item-form').content;
 
-            if (addItemButton) {
-                addItemButton.addEventListener('click', function () {
-                    const newIndex = formCount;
-                    const newForm = emptyFormTemplate.cloneNode(true);
-                    const newFormElement = newForm.querySelector('.item-row');
+        if (addItemButton) {
+            addItemButton.addEventListener('click', function () {
+                const newIndex = formCount;
+                const newForm = emptyFormTemplate.cloneNode(true);
+                const newFormElement = newForm.querySelector('.item-row');
 
-                    // جایگزینی __prefix__ با شاخص جدید
-                    newFormElement.innerHTML = newFormElement.innerHTML.replace(/__prefix__/g, newIndex);
-                    // تنظیم شماره ردیف
-                    newFormElement.querySelector('.row-number').textContent = (formCount + 1).toLocaleString('fa-IR');
+                newFormElement.innerHTML = newFormElement.innerHTML.replace(/__prefix__/g, newIndex);
+                newFormElement.querySelector('.row-number').textContent = (formCount + 1).toLocaleString('fa-IR');
 
-                    // تنظیم مقادیر پیش‌فرض
-                    newFormElement.querySelector('[name$="-description"]').value = '';
-                    newFormElement.querySelector('[name$="-amount"]').value = '';
-                    newFormElement.querySelector('[name$="-quantity"]').value = '1';
-                    newFormElement.querySelector('.item-total').textContent = '۰';
+                newFormElement.querySelector('[name$="-description"]').value = '';
+                newFormElement.querySelector('[name$="-amount"]').value = '';
+                newFormElement.querySelector('[name$="-quantity"]').value = '1';
+                newFormElement.querySelector('.item-total').textContent = '۰';
 
-                    // افزودن ردیف جدید به فرم‌ست
-                    itemFormsetContainer.querySelector('.item-summary').before(newFormElement);
-                    formCount++;
-                    totalFormsInput.value = formCount;
+                itemFormsetContainer.querySelector('.item-summary').before(newFormElement);
+                formCount++;
+                totalFormsInput.value = formCount;
 
-                    // اتصال listenerها
-                    attachItemCalculationListeners(newFormElement);
-                    attachDeleteListener(newFormElement.querySelector('[name$="-DELETE"]'));
-                    calculateItemTotal(newFormElement);
+                attachItemCalculationListeners(newFormElement);
+                attachDeleteListener(newFormElement.querySelector('[name$="-DELETE"]'));
+                calculateItemTotal(newFormElement);
 
-                    const newDescriptionInput = newFormElement.querySelector('[name$="-description"]');
-                    if (newDescriptionInput) newDescriptionInput.focus();
-                });
-            }
-
-            function updateRowNumbers() {
-                const rows = itemFormsetContainer.querySelectorAll('.item-row');
-                rows.forEach((row, index) => {
-                    const rowNumSpan = row.querySelector('.row-number');
-                    if (rowNumSpan) rowNumSpan.textContent = (index + 1).toLocaleString('fa-IR');
-                });
-            }
-
-            function calculateItemTotal(rowElement) {
-                if (!rowElement) return;
-                const amountInput = rowElement.querySelector('[name$="-amount"]');
-                const quantityInput = rowElement.querySelector('[name$="-quantity"]');
-                const totalSpan = rowElement.querySelector('.item-total');
-
-                const amount = parseFloat(toLatinDigits(amountInput?.value || '0').replace(/,/g, '')) || 0;
-                const quantity = parseFloat(toLatinDigits(quantityInput?.value || '0').replace(/,/g, '')) || 0;
-                const total = Math.round(amount * quantity);
-
-                if (totalSpan) totalSpan.textContent = total.toLocaleString('fa-IR');
-                calculateTotals();
-            }
-
-            function calculateTotals() {
-                let itemsTotal = 0, totalAmount = 0, totalQuantity = 0;
-                const itemRows = itemFormsetContainer.querySelectorAll('.item-row');
-
-                itemRows.forEach(row => {
-                    const deleteCheckbox = row.querySelector('[name$="-DELETE"]');
-                    if (!deleteCheckbox || !deleteCheckbox.checked) {
-                        const amount = parseFloat(toLatinDigits(row.querySelector('[name$="-amount"]')?.value || '0').replace(/,/g, '')) || 0;
-                        const quantity = parseFloat(toLatinDigits(row.querySelector('[name$="-quantity"]')?.value || '0').replace(/,/g, '')) || 0;
-                        const total = Math.round(amount * quantity);
-                        totalAmount += amount;
-                        totalQuantity += quantity;
-                        itemsTotal += total;
-                    }
-                });
-
-                const factorAmountInput = document.getElementById('id_amount');
-                const factorAmount = parseFloat(toLatinDigits(factorAmountInput?.value || '0').replace(/,/g, '')) || 0;
-                const difference = Math.round(factorAmount - itemsTotal);
-
-                document.getElementById('total-items-amount').textContent = Math.round(itemsTotal).toLocaleString('fa-IR');
-                document.getElementById('factor-amount-display').textContent = Math.round(factorAmount).toLocaleString('fa-IR');
-                document.getElementById('difference-amount').textContent = difference.toLocaleString('fa-IR');
-                document.getElementById('total-amount').textContent = Math.round(totalAmount).toLocaleString('fa-IR');
-                document.getElementById('total-quantity').textContent = Math.round(totalQuantity).toLocaleString('fa-IR');
-                document.getElementById('total-items').textContent = Math.round(itemsTotal).toLocaleString('fa-IR');
-
-                const differenceEl = document.getElementById('difference-amount');
-                if (differenceEl) {
-                    differenceEl.classList.remove('bg-success', 'text-white', 'bg-danger', 'text-white', 'bg-warning', 'text-dark', 'bg-light', 'text-dark');
-                    if (difference === 0) differenceEl.classList.add('bg-success', 'text-white');
-                    else if (difference > 0) differenceEl.classList.add('bg-warning', 'text-dark');
-                    else differenceEl.classList.add('bg-danger', 'text-white');
-                }
-            }
-
-            function attachItemCalculationListeners(parentElement) {
-                const amountInputs = parentElement.querySelectorAll('[name$="-amount"]');
-                const quantityInputs = parentElement.querySelectorAll('[name$="-quantity"]');
-
-                amountInputs.forEach(input => {
-                    input.addEventListener('input', () => calculateItemTotal(input.closest('.item-row')));
-                });
-                quantityInputs.forEach(input => {
-                    input.addEventListener('input', () => calculateItemTotal(input.closest('.item-row')));
-                });
-            }
-
-            function attachDeleteListener(checkbox) {
-                if (checkbox) {
-                    checkbox.addEventListener('change', function () {
-                        const row = this.closest('.item-row');
-                        if (row) row.classList.toggle('is-deleting', this.checked);
-                        calculateTotals();
-                        updateRowNumbers();
-                    });
-                    const row = checkbox.closest('.item-row');
-                    if (row) row.classList.toggle('is-deleting', checkbox.checked);
-                }
-            }
-
-            const existingRows = itemFormsetContainer.querySelectorAll('.item-row');
-            existingRows.forEach(row => {
-                attachItemCalculationListeners(row);
-                attachDeleteListener(row.querySelector('[name$="-DELETE"]'));
-                calculateItemTotal(row);
+                const newDescriptionInput = newFormElement.querySelector('[name$="-description"]');
+                if (newDescriptionInput) newDescriptionInput.focus();
             });
+        }
 
-            const mainAmountInput = document.getElementById('id_amount');
-            if (mainAmountInput) {
-                mainAmountInput.addEventListener('input', calculateTotals);
-            }
+        function updateRowNumbers() {
+            const rows = itemFormsetContainer.querySelectorAll('.item-row');
+            rows.forEach((row, index) => {
+                const rowNumSpan = row.querySelector('.row-number');
+                if (rowNumSpan) rowNumSpan.textContent = (index + 1).toLocaleString('fa-IR');
+            });
+        }
 
+        function calculateItemTotal(rowElement) {
+            if (!rowElement) return;
+            const amountInput = rowElement.querySelector('[name$="-amount"]');
+            const quantityInput = rowElement.querySelector('[name$="-quantity"]');
+            const totalSpan = rowElement.querySelector('.item-total');
+
+            const amount = parseFloat(toLatinDigits(amountInput?.value || '0').replace(/,/g, '')) || 0;
+            const quantity = parseFloat(toLatinDigits(quantityInput?.value || '0').replace(/,/g, '')) || 0;
+            const total = Math.round(amount * quantity);
+
+            if (totalSpan) totalSpan.textContent = total.toLocaleString('fa-IR');
             calculateTotals();
-            updateRowNumbers();
+        }
 
-            // --- مدیریت اسناد و حذف ---
-            const deleteDocCheckboxes = document.querySelectorAll('.delete-doc-check');
-            deleteDocCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function () {
-                    const listItem = this.closest('.list-group-item');
-                    if (listItem) {
-                        listItem.style.textDecoration = this.checked ? 'line-through' : 'none';
-                        listItem.style.opacity = this.checked ? '0.6' : '1';
-                    }
-        });
-                const listItem = checkbox.closest('.list-group-item');
-                if (listItem) {
-                    listItem.style.textDecoration = checkbox.checked ? 'line-through' : 'none';
-                    listItem.style.opacity = checkbox.checked ? '0.6' : '1';
+        function calculateTotals() {
+            let itemsTotal = 0, totalAmount = 0, totalQuantity = 0, validRows = 0;
+            const itemRows = itemFormsetContainer.querySelectorAll('.item-row');
+
+            itemRows.forEach(row => {
+                const deleteCheckbox = row.querySelector('[name$="-DELETE"]');
+                if (!deleteCheckbox || !deleteCheckbox.checked) {
+                    const amount = parseFloat(toLatinDigits(row.querySelector('[name$="-amount"]')?.value || '0').replace(/,/g, '')) || 0;
+                    const quantity = parseFloat(toLatinDigits(row.querySelector('[name$="-quantity"]')?.value || '0').replace(/,/g, '')) || 0;
+                    const total = Math.round(amount * quantity);
+                    totalAmount += amount;
+                    totalQuantity += quantity;
+                    itemsTotal += total;
+                    validRows += 1;
                 }
             });
+
+            const factorAmountInput = document.getElementById('id_amount');
+            const factorAmount = parseFloat(toLatinDigits(factorAmountInput?.value || '0').replace(/,/g, '')) || 0;
+            const difference = Math.round(factorAmount - itemsTotal);
+
+            document.getElementById('total-items-amount').textContent = Math.round(itemsTotal).toLocaleString('fa-IR');
+            document.getElementById('factor-amount-display').textContent = Math.round(factorAmount).toLocaleString('fa-IR');
+            document.getElementById('difference-amount').textContent = difference.toLocaleString('fa-IR');
+            document.getElementById('total-amount').textContent = Math.round(totalAmount).toLocaleString('fa-IR');
+            document.getElementById('total-quantity').textContent = Math.round(totalQuantity).toLocaleString('fa-IR');
+            document.getElementById('total-items').textContent = validRows.toLocaleString('fa-IR'); // تعداد ردیف‌های معتبر
+
+            const differenceEl = document.getElementById('difference-amount');
+            if (differenceEl) {
+                differenceEl.classList.remove('bg-success', 'text-white', 'bg-danger', 'text-white', 'bg-warning', 'text-dark', 'bg-light', 'text-dark');
+                if (difference === 0) differenceEl.classList.add('bg-success', 'text-white');
+                else if (difference > 0) differenceEl.classList.add('bg-warning', 'text-dark');
+                else differenceEl.classList.add('bg-danger', 'text-white');
+            }
+        }
+
+        function attachItemCalculationListeners(parentElement) {
+            const amountInputs = parentElement.querySelectorAll('[name$="-amount"]');
+            const quantityInputs = parentElement.querySelectorAll('[name$="-quantity"]');
+
+            amountInputs.forEach(input => {
+                input.addEventListener('input', () => calculateItemTotal(input.closest('.item-row')));
+            });
+            quantityInputs.forEach(input => {
+                input.addEventListener('input', () => calculateItemTotal(input.closest('.item-row')));
+            });
+        }
+
+        function attachDeleteListener(checkbox) {
+            if (checkbox) {
+                checkbox.addEventListener('change', function () {
+                    const row = this.closest('.item-row');
+                    if (row) row.classList.toggle('is-deleting', this.checked);
+                    calculateTotals();
+                    updateRowNumbers();
+                });
+                const row = checkbox.closest('.item-row');
+                if (row) row.classList.toggle('is-deleting', checkbox.checked);
+            }
+        }
+
+        const existingRows = itemFormsetContainer.querySelectorAll('.item-row');
+        existingRows.forEach(row => {
+            attachItemCalculationListeners(row);
+            attachDeleteListener(row.querySelector('[name$="-DELETE"]'));
+            calculateItemTotal(row);
         });
 
-    </script>
+        const mainAmountInput = document.getElementById('id_amount');
+        if (mainAmountInput) {
+            mainAmountInput.addEventListener('input', calculateTotals);
+        }
+
+        // حذف فرم‌های خالی یا ناقص قبل از ارسال
+        document.querySelector('#factor-form').addEventListener('submit', function (event) {
+            document.querySelectorAll('.item-row').forEach(function (row) {
+                const description = row.querySelector('input[name$="-description"]').value;
+                const amount = row.querySelector('input[name$="-amount"]').value;
+                const quantity = row.querySelector('input[name$="-quantity"]').value;
+                const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+                if (!description || !amount || parseFloat(amount) <= 0 || !quantity || parseInt(quantity) < 1) {
+                    if (deleteCheckbox) {
+                        deleteCheckbox.checked = true; // علامت‌گذاری برای حذف
+                    }
+                }
+            });
+            calculateTotals();
+        });
+
+        calculateTotals();
+        updateRowNumbers();
+    });
+</script>
 {% endblock %}

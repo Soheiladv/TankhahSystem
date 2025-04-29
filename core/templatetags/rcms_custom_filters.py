@@ -311,3 +311,34 @@ def subtract(value, arg):
         return ''
 
 
+@register.filter(name='get_item')
+def get_item(dictionary, key):
+    """
+    Allows accessing dictionary values using a variable key in Django templates.
+    Usage: {{ my_dictionary|get_item:my_key_variable }}
+    Returns None if the key doesn't exist or the input is not a dictionary.
+    """
+    if isinstance(dictionary, dict):
+        return dictionary.get(key) # Using .get() is safer than dictionary[key]
+    return None
+
+
+# ... سایر فیلترها و رجیستر ...
+
+@register.simple_tag
+def calculate_row_total(quantity, amount):
+    """Calculates the row total (quantity * amount)."""
+    from decimal import InvalidOperation
+    try:
+        # استفاده از Decimal برای دقت بیشتر در محاسبات مالی
+        qty = Decimal(str(quantity)) if quantity is not None else Decimal('1')
+        amt = Decimal(str(amount)) if amount is not None else Decimal('0')
+        # اگر quantity صفر یا منفی بود، آن را 1 در نظر بگیر (مگر اینکه منطق دیگری لازم باشد)
+        effective_qty = qty if qty > 0 else Decimal('1')
+        total = effective_qty * amt
+        # گرد کردن به عدد صحیح برای نمایش ریال
+        return total.quantize(Decimal('0'))
+    except (ValueError, TypeError, InvalidOperation):
+        return Decimal('0')
+
+# ... بقیه فیلترها ...

@@ -71,7 +71,7 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'فاکتور',
                 'verbose_name_plural': 'فاکتورها',
-                'permissions': [('a_factor_add', 'افزودن فاکتور'), ('a_factor_view', 'نمایش فاکتور'), ('a_factor_update', 'بروزرسانی فاکتور'), ('a_factor_delete', 'حذف فاکتور'), ('a_factor_approve', 'تأیید فاکتور'), ('a_factor_reject', 'رد فاکتور')],
+                'permissions': [('factor_add', 'افزودن فاکتور'), ('factor_view', 'نمایش فاکتور'),                                 ('factor_update', 'بروزرسانی فاکتور'), ('factor_delete', 'حذف فاکتور'), ('factor_approve', 'تأیید فاکتور'),                                ('factor_reject', 'رد فاکتور')],
                 'default_permissions': (),
             },
         ),

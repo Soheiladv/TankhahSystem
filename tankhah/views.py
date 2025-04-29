@@ -32,41 +32,6 @@ from tankhah.forms import (
 logger = logging.getLogger(__name__)
 
 ###########################################
-class DashboardView(PermissionBaseView, TemplateView):
-    template_name = 'tankhah/Tankhah_dashboard.html'
-    extra_context = {'title': _('داشبورد مدیریت تنخواه')}
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-
-        # لینک‌ها بر اساس پرمیشن‌ها
-        context['links'] = {
-            'Tankhah': [
-                {'url': 'tankhah_list', 'label': _('لیست تنخواه‌ها'), 'icon': 'fas fa-list',
-                 'perm': 'Tankhah.tankhah_view'},
-                {'url': 'tankhah_create', 'label': _('ایجاد تنخواه'), 'icon': 'fas fa-plus',
-                 'perm': 'tankhah.tankhah_add'},
-            ],
-            'factor': [
-                {'url': 'factor_list', 'label': _('لیست فاکتورها'), 'icon': 'fas fa-file-invoice',
-                 'perm': 'tankhah.a_factor_view'},
-                {'url': 'factor_create', 'label': _('ایجاد فاکتور'), 'icon': 'fas fa-plus',
-                 'perm': 'tankhah.a_factor_add'},
-            ],
-            'approval': [
-                {'url': 'approval_list', 'label': _('لیست تأییدات'), 'icon': 'fas fa-check-circle',
-                 'perm': 'tankhah.Approval_view'},
-                {'url': 'approval_create', 'label': _('ثبت تأیید'), 'icon': 'fas fa-plus',
-                 'perm': 'tankhah.Approval_add'},
-            ],
-        }
-
-        # فیلتر کردن لینک‌ها بر اساس دسترسی کاربر
-        for section in context['links']:
-            context['links'][section] = [link for link in context['links'][section] if user.has_perm(link['perm'])]
-
-        return context
 # ثبت و ویرایش تنخواه
 def get_subprojects(request):
     logger.info('ورود به تابع get_subprojects')
@@ -139,143 +104,6 @@ def mark_approval_seen(request, tankhah):
         ).update(seen_by_higher=True, seen_at=timezone.now())
         logger.info(f"Approval logs for Tankhah {tankhah.id} marked as seen by {request.user.username}")
 #------------------------------------------------
-
-class FactorCreateView(PermissionBaseView, CreateView):
-    model = Factor
-    form_class = FactorForm
-    template_name = 'tankhah/factor_form.html'
-    success_url = reverse_lazy('factor_list')
-    context_object_name = 'factor'
-    permission_codenames = ['tankhah.a_factor_add']
-    permission_denied_message = 'متاسفانه دسترسی مجاز ندارید'
-    check_organization = True
-    FactorItemFormSet = get_factor_item_formset()
-
-    # def get_form_kwargs(self):
-    #     kwargs = super().get_form_kwargs()
-    #     kwargs['user'] = self.request.user
-    #     tankhah_id = self.kwargs.get('tankhah_id')
-    #     if tankhah_id:
-    #         kwargs['tankhah'] = Tankhah.objects.get(id=tankhah_id)
-    #     return kwargs
-    #
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        tankhah_id = self.kwargs.get('tankhah_id')
-        if tankhah_id in self.request.GET:
-            try:
-                kwargs['tankhah'] = Tankhah.objects.get(id=self.request.GET['tankhah_id'])
-            except Tankhah.DoesNotExist:
-                logger.error("Tankhah with specified ID not found")
-        logger.info(f"Form kwargs: {kwargs}")
-        return kwargs
-
-    def get_context_data(self, **kwargs):
-        FactorItemFormSet = get_factor_item_formset()
-        context = super().get_context_data(**kwargs)
-        tankhah_id = self.kwargs.get('tankhah_id')
-        tankhah = Tankhah.objects.filter(id=tankhah_id).first() if tankhah_id else None
-
-        if self.request.POST:
-            form = self.form_class(self.request.POST, user=self.request.user, tankhah=tankhah)
-            item_formset = FactorItemFormSet(self.request.POST, self.request.FILES, prefix='form')
-            document_form = FactorDocumentForm(self.request.POST, self.request.FILES)
-            tankhah_document_form = TankhahDocumentForm(self.request.POST, self.request.FILES)
-        else:
-            form = self.form_class(user=self.request.user, tankhah=tankhah)
-            item_formset = FactorItemFormSet(prefix='form')
-            document_form = FactorDocumentForm()
-            tankhah_document_form = TankhahDocumentForm()
-
-        context.update({
-            'form': form,
-            'item_formset': item_formset,
-            'document_form': document_form,
-            'tankhah_document_form': tankhah_document_form,
-            'title': 'ایجاد فاکتور جدید',
-            'tankhah': tankhah,
-            'tankhah_documents': tankhah.documents.all() if tankhah else [],
-        })
-        return context
-
-    # def post(self, request, *args, **kwargs):
-    #     form = self.form_class(request.POST, user=request.user)
-    #     FactorItemFormSet = get_factor_item_formset()
-    #     formset = FactorItemFormSet(request.POST, instance=form.instance)
-    #     if form.is_valid() and formset.is_valid():
-    #         logger.info("فرم و فرم‌ست معتبر هستند")
-    #         instance = form.save()
-    #         formset.instance = instance
-    #         formset.save()
-    #         return self.form_valid(form)
-    #     else:
-    #         logger.error(f"خطاها: فرم={form.errors}, فرم‌ست={formset.errors}")
-    #         return self.form_invalid(form)
-
-
-    def form_valid(self, form):
-        FactorItemFormSet = get_factor_item_formset()
-        tankhah = form.cleaned_data['tankhah']
-        initial_stage_order = WorkflowStage.objects.order_by('order').first().order
-
-        logger.info(f"Tankhah status: {tankhah.status}, stage order: {tankhah.current_stage.order}, initial stage: {initial_stage_order}")
-
-        if tankhah.current_stage.order != initial_stage_order:
-            messages.error(self.request, 'فقط در مرحله اولیه می‌توانید فاکتور ثبت کنید.')
-            logger.warning(f"Invalid stage order for tankhah {tankhah.number}: {tankhah.current_stage.order}")
-            return self.form_invalid(form)
-
-        if tankhah.status not in ['DRAFT', 'PENDING']:
-            messages.error(self.request, 'فقط برای تنخواه‌های پیش‌نویس یا در انتظار می‌توانید فاکتور ثبت کنید.')
-            logger.warning(f"Invalid status for tankhah {tankhah.number}: {tankhah.status}")
-            return self.form_invalid(form)
-
-
-        item_formset = FactorItemFormSet(self.request.POST, self.request.FILES, prefix='form')
-        document_form = FactorDocumentForm(self.request.POST, self.request.FILES)
-        tankhah_document_form = TankhahDocumentForm(self.request.POST, self.request.FILES)
-
-        logger.info(f"POST data: {self.request.POST}")
-        logger.info(f"Files: {self.request.FILES}")
-        logger.info(f"Item formset valid: {item_formset.is_valid()}")
-        logger.info(f"Document form valid: {document_form.is_valid()}")
-        logger.info(f"Tankhah document form valid: {tankhah_document_form.is_valid()}")
-
-        if item_formset.is_valid() and document_form.is_valid() and tankhah_document_form.is_valid():
-            with transaction.atomic():
-                self.object = form.save()
-                item_formset.instance = self.object
-                item_formset.save()
-
-                self.object.status = 'PENDING'
-                self.object.save()
-
-                # ذخیره اسناد فاکتور
-                factor_files = self.request.FILES.getlist('files')
-                for file in factor_files:
-                    FactorDocument.objects.create(factor=self.object, file=file)
-
-                # ذخیره اسناد تنخواه
-                tankhah_files = self.request.FILES.getlist('documents')
-                for file in tankhah_files:
-                    TankhahDocument.objects.create(tankhah=tankhah, document=file)
-
-            messages.success(self.request, 'فاکتور با موفقیت ثبت شد و آماده بررسی است.')
-            logger.info(f"Factor {self.object.number} created successfully by user {self.request.user}")
-            return super().form_valid(form)
-        else:
-            logger.error(f"Formset errors: {item_formset.errors}")
-            logger.error(f"Formset non-form errors: {item_formset.non_form_errors()}")
-            logger.error(f"Document form errors: {document_form.errors}")
-            logger.error(f"Tankhah document form errors: {tankhah_document_form.errors}")
-            messages.error(self.request, 'لطفاً خطاهای فرم را بررسی و اصلاح کنید.')
-            return self.render_to_response(self.get_context_data(form=form, item_formset=item_formset))
-
-    def handle_no_permission(self):
-        messages.error(self.request, self.permission_denied_message)
-        logger.warning(f"Permission denied for user {self.request.user}")
-        return super().handle_no_permission()
 
 class FactorUpdateView(PermissionBaseView, UpdateView):
     model = Factor
@@ -435,7 +263,7 @@ class FactorListView(PermissionBaseView, ListView):
     paginate_by = 10
     extra_context = {'title': _('لیست فاکتورها')}
     permission_codenames = [
-    'tankhah.a_factor_view'
+    'tankhah.factor_view'
     #     'Tankhah.Tankhah_view', 'Tankhah.Tankhah_update', 'Tankhah.Tankhah_add',
     #     'Tankhah.Tankhah_approve', 'Tankhah.Tankhah_part_approve', 'Tankhah.FactorItem_approve',
     #     'Tankhah.edit_full_Tankhah', 'Tankhah.Tankhah_hq_view', 'Tankhah.Tankhah_hq_approve',
@@ -512,7 +340,7 @@ class FactorDetailView(PermissionBaseView, DetailView):
     template_name = 'tankhah/factor_detail.html'  # تمپلیت نمایشی جدید
     context_object_name = 'factor'
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
-    permission_codename = 'tankhah.a_factor_view'
+    permission_codename = 'tankhah.factor_view'
     check_organization = True
 
     def get_context_data(self, **kwargs):
@@ -545,7 +373,7 @@ class FactorApproveView(UpdateView):
     form_class = 'tankhah.forms.FactorApprovalForm'  # فرض بر وجود این فرم
     template_name = 'tankhah/factor_approval.html'
     success_url = reverse_lazy('factor_list')
-    permission_codenames = ['tankhah.a_factor_view', 'tankhah.a_factor_update']
+    permission_codenames = ['tankhah.factor_view', 'tankhah.factor_update']
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
