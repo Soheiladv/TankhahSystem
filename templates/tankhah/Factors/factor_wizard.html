@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block extra_css %}
+
+<style>
+    .wizard-step { display: none; }
+    .wizard-step.active { display: block; }
+    .wizard-nav .nav-link { padding: 10px 20px; font-size: 14px; }
+    .wizard-nav .nav-link.active { background-color: #007bff; color: white; }
+    .budget-info { background-color: #f8f9fa; padding: 15px; border-radius: 5px; }
+    .item-row.is-deleting { background-color: #f8d7da; }
+    .form-control-sm { font-size: 0.875rem; }
+    .ltr-input { direction: ltr; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">{% trans "ایجاد فاکتور جدید" %}</h2>
+
+    <!-- Wizard Navigation -->
+    <ul class="nav nav-tabs wizard-nav mb-4">
+        {% for step in wizard_steps %}
+        <li class="nav-item">
+            <a class="nav-link {% if wizard_step == forloop.counter0|add:'tankhah' %}active{% endif %}" href="#">
+                {{ step }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Budget Info -->
+    {% if budget_info %}
+    <div class="budget-info mb-4">
+        <h5>{% trans "اطلاعات بودجه" %}</h5>
+        <p><strong>{% trans "پروژه" %}:</strong> {{ budget_info.project_name }}</p>
+        <p><strong>{% trans "بودجه پروژه" %}:</strong> {{ budget_info.project_budget|floatformat:0|intcomma }} {% trans "تومان" %}</p>
+        <p><strong>{% trans "بودجه تنخواه" %}:</strong> {{ budget_info.tankhah_budget|floatformat:0|intcomma }} {% trans "تومان" %}</p>
+        <p><strong>{% trans "باقی‌مانده تنخواه" %}:</strong> {{ budget_info.tankhah_remaining|floatformat:0|intcomma }} {% trans "تومان" %}</p>
+    </div>
+    {% endif %}
+
+    <!-- Wizard Form -->
+    <form method="post" enctype="multipart/form-data" id="factor-form">
+        {% csrf_token %}
+        {{ wizard.management_form }}
+
+        <!-- Step 1: Tankhah Selection -->
+        <div class="wizard-step {% if wizard_step == 'tankhah' %}active{% endif %}">
+            <h4>{% trans "انتخاب تنخواه" %}</h4>
+            {{ form.as_p }}
+        </div>
+
+        <!-- Step 2: Factor Details -->
+        <div class="wizard-step {% if wizard_step == 'factor' %}active{% endif %}">
+            <h4>{% trans "اطلاعات فاکتور" %}</h4>
+            {{ form.as_p }}
+        </div>
+
+        <!-- Step 3: Items -->
+        <div class="wizard-step {% if wizard_step == 'items' %}active{% endif %}">
+            <h4>{% trans "آیتم‌های فاکتور" %}</h4>
+            <div id="item-formset">
+                {{ form.management_form }}
+                {% for item_form in form %}
+                <div class="item-row mb-2">
+                    <div class="row align-items-center">
+                        <div class="col-1">
+                            <span class="row-number">{{ forloop.counter }}</span>
+                        </div>
+                        <div class="col-4">{{ item_form.description }}</div>
+                        <div class="col-2">{{ item_form.amount }}</div>
+                        <div class="col-2">{{ item_form.quantity }}</div>
+                        <div class="col-2">
+                            <span class="item-total">0</span> {% trans "تومان" %}
+                        </div>
+                        <div class="col-1">
+                            {{ item_form.DELETE }}
+                        </div>
+                    </div>
+                {% endfor %}
+                <div class="item-summary mt-3">
+                    <p><strong>{% trans "جمع کل" %}:</strong> <span id="total-items-amount">0</span> {% trans "تومان" %}</p>
+                    <p><strong>{% trans "تعداد ردیف‌ها" %}:</strong> <span id="total-items">0</span></p>
+                </div>
+            </div>
+            <button type="button" id="add-item" class="btn btn-outline-primary btn-sm mt-2">{% trans "افزودن ردیف" %}</button>
+        </div>
+
+        <!-- Step 4: Documents -->
+        <div class="wizard-step {% if wizard_step == 'documents' %}active{% endif %}">
+            <h4>{% trans "اسناد" %}</h4>
+            {{ form.as_p }}
+            <h5 class="mt-4">{% trans "اسناد تنخواه" %}</h5>
+            {{ tankhah_document_form.as_p }}
+        </div>
+
+        <!-- Step 5: Confirmation -->
+        <div class="wizard-step {% if wizard_step == 'done' %}active{% endif %}">
+            <h4>{% trans "تأیید نهایی" %}</h4>
+            <p>{% trans "لطفاً اطلاعات واردشده را بررسی کنید و یکی از گزینه‌های زیر را انتخاب کنید:" %}</p>
+            <button type="submit" name="save_draft" class="btn btn-outline-secondary">{% trans "ذخیره پیش‌نویس" %}</button>
+            <button type="submit" class="btn btn-primary">{% trans "ثبت نهایی" %}</button>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="mt-4">
+            {% if wizard.steps.prev %}
+            <button type="submit" name="wizard_goto_step" value="{{ wizard.steps.prev }}" class="btn btn-outline-secondary">
+                {% trans "قبلی" %}
+            </button>
+            {% endif %}
+            {% if wizard.steps.next %}
+            <button type="submit" name="wizard_goto_step" value="{{ wizard.steps.next }}" class="btn btn-primary">
+                {% trans "بعدی" %}
+            </button>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Empty Item Form Template -->
+<template id="empty-item-form">
+    <div class="item-row mb-2">
+        <div class="row align-items-center">
+            <div class="col-1"><span class="row-number"></span></div>
+            <div class="col-4"><input type="text" name="form-__prefix__-description" class="form-control form-control-sm"></div>
+            <div class="col-2"><input type="number" name="form-__prefix__-amount" class="form-control form-control-sm ltr-input amount-field"></div>
+            <div class="col-2"><input type="number" name="form-__prefix__-quantity" class="form-control form-control-sm ltr-input quantity-field" value="1"></div>
+            <div class="col-2"><span class="item-total">0</span> {% trans "تومان" %}</div>
+            <div class="col-1"><input type="checkbox" name="form-__prefix__-DELETE" class="form-check-input"></div>
+        </div>
+    </div>
+</template>
+
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+    $(document).ready(function () {
+        // Initialize Jalali Datepicker
+        $('[data-jdp]').each(function () {
+            jalaliDatepicker.startWatch({
+                time: false,
+                separator: '/',
+                dateFormat: 'YYYY/MM/DD',
+            });
+        });
+
+        // Item Formset Management
+        const itemFormsetContainer = $('#item-formset');
+        const addItemButton = $('#add-item');
+        const totalFormsInput = $('#id_form-TOTAL_FORMS');
+        let formCount = parseInt(totalFormsInput.val()) || 0;
+
+        function toLatinDigits(str) {
+            const persianDigits = /[۰-۹]/g;
+            return str.replace(persianDigits, d => d.charCodeAt(0) - 1776);
+        }
+
+        function updateRowNumbers() {
+            itemFormsetContainer.find('.item-row').each((index, row) => {
+                $(row).find('.row-number').text((index + 1).toLocaleString('fa-IR'));
+            });
+        }
+
+        function calculateItemTotal(rowElement) {
+            const amountInput = rowElement.find('[name$="-amount"]');
+            const quantityInput = rowElement.find('[name$="-quantity"]');
+            const totalSpan = rowElement.find('.item-total');
+
+            const amount = parseFloat(toLatinDigits(amountInput.val() || '0').replace(/,/g, '')) || 0;
+            const quantity = parseFloat(toLatinDigits(quantityInput.val() || '0').replace(/,/g, '')) || 0;
+            const total = Math.round(amount * quantity);
+
+            totalSpan.text(total.toLocaleString('fa-IR'));
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let itemsTotal = 0, totalAmount = 0, totalQuantity = 0, validRows = 0;
+            itemFormsetContainer.find('.item-row').each(function () {
+                const deleteCheckbox = $(this).find('[name$="-DELETE"]');
+                if (!deleteCheckbox.is(':checked')) {
+                    const amount = parseFloat(toLatinDigits($(this).find('[name$="-amount"]').val() || '0').replace(/,/g, '')) || 0;
+                    const quantity = parseFloat(toLatinDigits($(this).find('[name$="-quantity"]').val() || '0').replace(/,/g, '')) || 0;
+                    const total = Math.round(amount * quantity);
+                    totalAmount += amount;
+                    totalQuantity += quantity;
+                    itemsTotal += total;
+                    validRows += 1;
+                }
+            });
+
+            $('#total-items-amount').text(Math.round(itemsTotal).toLocaleString('fa-IR'));
+            $('#total-items').text(validRows.toLocaleString('fa-IR'));
+        }
+
+        function attachItemCalculationListeners(rowElement) {
+            rowElement.find('[name$="-amount"], [name$="-quantity"]').on('input', function () {
+                calculateItemTotal(rowElement);
+            });
+            rowElement.find('[name$="-DELETE"]').on('change', function () {
+                rowElement.toggleClass('is-deleting', this.checked);
+                calculateTotals();
+                updateRowNumbers();
+            });
+        }
+
+        addItemButton.on('click', function () {
+            const newIndex = formCount;
+            const newForm = $('#empty-item-form').contents().clone();
+            newForm.find('input').each(function () {
+                const name = $(this).attr('name').replace('__prefix__', newIndex);
+                $(this).attr('name', name);
+            });
+            newForm.find('.row-number').text((formCount + 1).toLocaleString('fa-IR'));
+            itemFormsetContainer.find('.item-summary').before(newForm);
+            formCount++;
+            totalFormsInput.val(formCount);
+            attachItemCalculationListeners(newForm);
+            calculateItemTotal(newForm);
+            updateRowNumbers();
+        });
+
+        itemFormsetContainer.find('.item-row').each(function () {
+            attachItemCalculationListeners($(this));
+            calculateItemTotal($(this));
+        });
+
+        calculateTotals();
+        updateRowNumbers();
+
+        // Form Submission Cleanup
+        $('#factor-form').on('submit', function () {
+            itemFormsetContainer.find('.item-row').each(function () {
+                const description = $(this).find('[name$="-description"]').val();
+                const amount = $(this).find('[name$="-amount"]').val();
+                const quantity = $(this).find('[name$="-quantity"]').val();
+                if (!description || !amount || parseFloat(amount) <= 0 || !quantity || parseInt(quantity) < 1) {
+                    $(this).find('[name$="-DELETE"]').prop('checked', true);
+                }
+            });
+            calculateTotals();
+        });
+    });
+</script>
+{% endblock %}

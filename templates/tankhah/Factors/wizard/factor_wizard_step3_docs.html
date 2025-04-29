@@ -1,0 +1,133 @@
+{% extends "tankhah/Factors/wizard/factor_wizard_base.html" %}
+{% load i18n crispy_forms_tags static %}
+
+{% block wizard_content %}
+    <form method="post" enctype="multipart/form-data" novalidate> {# Need enctype #}
+        {% csrf_token %}
+        {{ wizard.management_form }}
+
+        <div class="alert alert-secondary alert-sm mb-3">
+            <i class="fas fa-paperclip me-1"></i> {% trans "در این مرحله می‌توانید اسناد مربوط به خود فاکتور (مانند تصویر فاکتور، پیش‌فاکتور و غیره) را بارگذاری کنید. این مرحله اختیاری است." %}
+        </div>
+
+        {# Display form errors first #}
+         {% if form.non_field_errors %}
+             <div class="alert alert-danger" role="alert">
+                 {% for error in form.non_field_errors %} {{ error }}<br> {% endfor %}
+             </div>
+         {% endif %}
+         {% if form.files.errors %}
+              <div class="alert alert-danger alert-sm py-1 px-2" role="alert">
+                   {% for error in form.files.errors %} {{ error }}<br> {% endfor %}
+              </div>
+         {% endif %}
+
+        {# Custom Upload Area #}
+        <div class="mb-3">
+            <label class="form-label">{% trans "انتخاب یا کشیدن فایل‌ها" %}</label>
+            <div class="file-upload-area" id="factor-dropzone">
+                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-2"></i>
+                <p class="mb-0">{% trans "فایل‌ها را اینجا بکشید یا برای انتخاب کلیک کنید" %}</p>
+                <small class="text-muted">{% blocktrans %}فقط فایل‌های {{ ALLOWED_EXTENSIONS_STR }} مجاز هستند.{% endblocktrans %}</small>
+                 {{ form.files }} {# Hidden actual input field #}
+            </div>
+        </div>
+
+        {# File List Display Area #}
+        <div class="mb-3">
+             <h6>{% trans "فایل‌های انتخاب شده:" %}</h6>
+             <ul id="file-list" class="list-unstyled">
+                 <li id="no-files-message" class="text-muted">{% trans "هنوز فایلی انتخاب نشده است." %}</li>
+             </ul>
+        </div>
+
+
+        {# Wizard buttons are in base template #}
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+// Simple JS for file upload area and list (replace with Dropzone.js for better UX)
+document.addEventListener('DOMContentLoaded', function() {
+    const dropzone = document.getElementById('factor-dropzone');
+    const fileInput = document.querySelector('#factor-dropzone input[type="file"]'); // Adjust selector if needed
+    const fileList = document.getElementById('file-list');
+    const noFilesMsg = document.getElementById('no-files-message');
+
+    if (!dropzone || !fileInput || !fileList || !noFilesMsg) return;
+
+    // Trigger file input click when dropzone is clicked
+    dropzone.addEventListener('click', () => fileInput.click());
+
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false); // Prevent browser default for whole page
+    });
+
+    // Highlight drop zone when item is dragged over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, () => dropzone.classList.add('bg-light'), false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, () => dropzone.classList.remove('bg-light'), false);
+    });
+
+    // Handle dropped files
+    dropzone.addEventListener('drop', handleDrop, false);
+
+    // Handle files selected via input click
+    fileInput.addEventListener('change', handleFilesUpdate, false);
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function handleDrop(e) {
+        let dt = e.dataTransfer;
+        let files = dt.files;
+        fileInput.files = files; // Assign dropped files to the input element
+        handleFilesUpdate(); // Update the list display
+    }
+
+    function handleFilesUpdate() {
+        const files = fileInput.files;
+        updateFileList(files);
+    }
+
+    function updateFileList(files) {
+         fileList.innerHTML = ''; // Clear current list
+         if (files.length === 0) {
+             fileList.appendChild(noFilesMsg);
+             noFilesMsg.style.display = 'list-item';
+             return;
+         }
+
+         noFilesMsg.style.display = 'none';
+
+         Array.from(files).forEach((file, index) => {
+             const listItem = document.createElement('li');
+             listItem.classList.add('d-flex', 'justify-content-between', 'align-items-center');
+             listItem.innerHTML = `
+                 <span><i class="fas fa-file me-2 text-muted"></i> ${file.name}</span>
+                 <small class="text-muted">${formatFileSize(file.size)}</small>
+                 {# Add remove functionality if needed (more complex with FileList) #}
+             `;
+             fileList.appendChild(listItem);
+         });
+     }
+
+     function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+     }
+
+});
+</script>
+{% endblock %}

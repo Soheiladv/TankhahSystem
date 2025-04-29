@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load i18n static %} {# Removed crispy_forms_tags #}
+
+{% block title %}{{ wizard_title|default:_("ایجاد فاکتور") }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+{# <link rel="stylesheet" href="{% static 'css/wizard_styles.css' %}"> #}
+<style>
+    /* Styles from previous version (progress bar, formset rows, upload area) */
+     .wizard-progress { display: flex; margin-bottom: 2rem; background-color: #e9ecef; border-radius: 0.25rem; overflow: hidden; }
+     .wizard-progress-step { flex: 1; text-align: center; padding: 0.75rem 0.5rem; font-size: 0.85rem; font-weight: 500; color: #6c757d; border-right: 1px solid #dee2e6; position: relative; transition: background-color 0.3s ease, color 0.3s ease; }
+     .wizard-progress-step:last-child { border-right: none; }
+     .wizard-progress-step.active { background-color: #0d6efd; color: #fff; font-weight: 600; }
+     .wizard-progress-step.completed { background-color: #198754; color: #fff; }
+     .wizard-progress-step.active::after { content: ''; position: absolute; top: 50%; right: -10px; margin-top: -10px; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 10px solid #0d6efd; z-index: 1; }
+     .wizard-progress-step.completed::after { content: ''; position: absolute; top: 50%; right: -10px; margin-top: -10px; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 10px solid #198754; z-index: 1; }
+     .factor-item-row { border-bottom: 1px dashed #eee; padding-bottom: 0.75rem; margin-bottom: 0.75rem; }
+     .factor-item-row:last-of-type { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+     .formset-add-button i { vertical-align: middle; margin-right: 0.25rem; }
+     .delete-item-btn { padding: 0.25rem 0.5rem; font-size: 0.8rem; line-height: 1; }
+     .delete-item-btn i { vertical-align: middle; }
+     .file-upload-area { border: 2px dashed #ced4da; padding: 2rem; text-align: center; background-color: #f8f9fa; cursor: pointer; transition: background-color 0.2s ease; }
+     .file-upload-area:hover { background-color: #e9ecef; }
+     .file-upload-area input[type="file"] { display: none; }
+     #file-list li, #tankhah-file-list li { font-size: 0.9em; padding: 0.3rem 0; }
+     #file-list .remove-file, #tankhah-file-list .remove-file { cursor: pointer; margin-right: 0.5rem; color: #dc3545; }
+     /* Ensure form controls inherit size */
+     .form-control-sm { padding: 0.25rem 0.5rem; font-size: 0.875rem; border-radius: 0.2rem; }
+     .form-select-sm { padding: 0.25rem 1.5rem 0.25rem 0.5rem; font-size: .875rem; border-radius: 0.2rem; }
+     .form-label-sm { font-size: .875rem; margin-bottom: 0.25rem; }
+     .invalid-feedback { font-size: 0.8em; }
+     .form-text { font-size: 0.8em; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h4 class="mb-0">{{ wizard_title }}</h4>
+        </div>
+        <div class="card-body">
+
+            {# Progress Bar - CORRECTED LOGIC #}
+            <div class="wizard-progress">
+                {% for step_key in wizard.steps.all %}
+                    {% with current_loop_index=forloop.counter0 wizard_current_index=wizard.steps.index %}
+                        <div class="wizard-progress-step {% if current_loop_index == wizard_current_index %}active{% elif current_loop_index < wizard_current_index %}completed{% endif %}">
+                            {% if step_key == "step1" %}{% trans "۱. اطلاعات اصلی" %}
+                            {% elif step_key == "step2" %}{% trans "۲. ردیف‌های فاکتور" %}
+                            {% elif step_key == "step3_docs" %}{% trans "۳. اسناد فاکتور" %}
+                            {% elif step_key == "step3_tankhah_docs" %}{% trans "۴. اسناد تنخواه" %}
+                            {% elif step_key == "step4_review" %}{% trans "۵. بازبینی نهایی" %}
+                            {% else %}{{ step_key|title }}{% endif %}
+                        </div>
+                    {% endwith %}
+                {% endfor %}
+            </div>
+
+            {# Display Non-Field Errors (handled per step template now) #}
+
+            {# Main Content Block #}
+            {% block wizard_content %}
+            {% endblock %}
+
+        </div>
+
+        <div class="card-footer bg-light d-flex justify-content-between align-items-center">
+            <div>
+                {% if wizard.steps.prev %}
+                    <button name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}" class="btn btn-secondary btn-sm"> {# Added btn-sm #}
+                        <i class="fas fa-arrow-right me-1"></i> {% trans "مرحله قبل" %}
+                    </button>
+                {% endif %}
+            </div>
+            <div>
+                 {# Use the wizard's step data to determine if it's the last form step #}
+                 {% if wizard.steps.current != wizard.steps.last %}
+                     <button type="submit" class="btn btn-primary btn-sm"> {# Added btn-sm #}
+                          {% trans "مرحله بعد" %} <i class="fas fa-arrow-left ms-1"></i>
+                     </button>
+                 {% else %}
+                     {# Final Step Button #}
+                     <button type="submit" class="btn btn-success btn-sm"> {# Added btn-sm #}
+                         <i class="fas fa-check-circle me-1"></i> {% trans "ثبت نهایی فاکتور" %}
+                     </button>
+                 {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+{% endblock %}

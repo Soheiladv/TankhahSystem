@@ -83,7 +83,8 @@ class DashboardView( PermissionBaseView , TemplateView):
             ],
             'فاکتورها': [
                 {'name': _('فهرست فاکتورها'), 'url': 'factor_list', 'permission': 'tankhah.a_factor_view', 'icon': 'fas fa-file-invoice'},
-                {'name': _('ایجاد فاکتور'), 'url': 'factor_create', 'permission': 'tankhah.a_factor_add', 'icon': 'fas fa-plus'},
+                {'name': _('ایجاد فاکتور'), 'url': 'w_factor_create', 'permission': 'tankhah.a_factor_add', 'icon': 'fas fa-plus'},
+                {'name': _('factor_wizard ایجاد فاکتور'), 'url': 'factor_wizard', 'permission': 'tankhah.a_factor_add', 'icon': 'fas fa-plus'},
             ],
             'عنوان پروژه': [
                 {'name': _('فهرست پروژه‌ها'), 'url': 'project_list', 'permission': 'core.Project_view',

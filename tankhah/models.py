@@ -518,6 +518,8 @@ class Factor(models.Model):
     locked_by_stage = models.ForeignKey(WorkflowStage, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("قفل شده توسط مرحله"))
     budget = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name=_("بودجه تخصیصی"))
     remaining_budget = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name=_("بودجه باقیمانده"))
+    created_by = models.ForeignKey('accounts.CustomUser',related_name='CustomUser_related', on_delete=models.SET_NULL, null=True, verbose_name=_("ایجادکننده"))
+
 
     def get_remaining_budget(self):
         return get_factor_remaining_budget(self)
@@ -619,7 +621,7 @@ class FactorItem(models.Model):
 
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE, related_name='items', verbose_name=_("فاکتور"))
     description = models.CharField(max_length=255, verbose_name=_("شرح ردیف"))
-    amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ"))
+    amount = models.DecimalField(max_digits=25, default=0, decimal_places=2, verbose_name=_("مبلغ"))
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name=_("وضعیت"))
     quantity = models.DecimalField(max_digits=25, default=1, decimal_places=2, verbose_name=_("تعداد"))
     unit_price = models.DecimalField(max_digits=25, decimal_places=2, blank=True, null=True,
@@ -632,8 +634,7 @@ class FactorItem(models.Model):
 
     def clean(self):
         """اعتبارسنجی آیتم فاکتور"""
-        super().clean()
-
+        # super().clean()
         if self.amount <= 0:
             raise ValidationError(_('مبلغ ردیف باید بزرگ‌تر از صفر باشد.'))
         if self.quantity <= 0:

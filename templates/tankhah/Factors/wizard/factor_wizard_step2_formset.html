@@ -1,0 +1,149 @@
+{% extends "tankhah/Factors/wizard/factor_wizard_base.html" %}
+{% load i18n crispy_forms_tags static %}
+
+{% block wizard_content %}
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ wizard.management_form }} {# Wizard state #}
+
+        <div class="alert alert-info alert-sm mb-3">
+            <i class="fas fa-info-circle me-1"></i> {% trans "حداقل یک ردیف فاکتور الزامی است. برای افزودن ردیف جدید از دکمه '+' و برای حذف از دکمه '×' استفاده کنید." %}
+        </div>
+
+        {# Render the formset #}
+        {{ formset.management_form }} {# Formset management fields #}
+
+        <div id="factor-items-container">
+            {% for form in formset %}
+                <div class="factor-item-row" id="{{ form.prefix }}-row">
+                     {# Display hidden ID field if editing #}
+                     {% if form.instance.pk %}{{ form.id }}{% endif %}
+
+                     {# Render form fields horizontally using crispy or manually #}
+                     <div class="row align-items-end gx-2">
+                         <div class="col-md-5 mb-2">
+                            {% if forloop.first %}<label class="form-label form-label-sm">{{ form.description.label }}</label>{% endif %}
+                             {% crispy_field form.description 'class' 'form-control-sm' %}
+                         </div>
+                         <div class="col-md-3 mb-2">
+                              {% if forloop.first %}<label class="form-label form-label-sm">{{ form.amount.label }}</label>{% endif %}
+                             {% crispy_field form.amount 'class' 'form-control-sm' %}
+                         </div>
+                         <div class="col-md-2 mb-2">
+                             {% if forloop.first %}<label class="form-label form-label-sm">{{ form.quantity.label }}</label>{% endif %}
+                             {% crispy_field form.quantity 'class' 'form-control-sm' %}
+                         </div>
+                         <div class="col-md-1 mb-2 text-end">
+                            {% if formset.can_delete %}
+                                {% if forloop.first and formset.forms|length == 1 %}
+                                    {# Don't show delete for the only required row #}
+                                {% else %}
+                                    <div class="form-check" style="padding-top: 20px;"> {# Align with fields #}
+                                       {{ form.DELETE }}
+                                       <label for="{{ form.DELETE.id_for_label }}" class="btn btn-outline-danger delete-item-btn" title="{% trans 'حذف این ردیف' %}">
+                                           <i class="fas fa-times"></i>
+                                       </label>
+                                   </div>
+                                {% endif %}
+                             {% endif %}
+                         </div>
+                     </div>
+                      {# Display field errors for the row #}
+                       {% if form.errors %}
+                           <div class="row gx-2">
+                               <div class="col-12">
+                                   <div class="alert alert-danger alert-sm py-1 px-2 mt-1" style="font-size: 0.8em;">
+                                       {% for field, errors in form.errors.items %}
+                                           {% for error in errors %}{{ error }} {% endfor %}
+                                       {% endfor %}
+                                   </div>
+                               </div>
+                           </div>
+                       {% endif %}
+                 </div>
+            {% endfor %}
+        </div>
+
+        {# Empty form template for adding new rows (hidden) #}
+        <div id="empty-form-template" style="display: none;">
+            <div class="factor-item-row" id="__prefix__-row">
+                 <div class="row align-items-end gx-2">
+                     <div class="col-md-5 mb-2">{% crispy_field formset.empty_form.description 'class' 'form-control-sm' %}</div>
+                     <div class="col-md-3 mb-2">{% crispy_field formset.empty_form.amount 'class' 'form-control-sm' %}</div>
+                     <div class="col-md-2 mb-2">{% crispy_field formset.empty_form.quantity 'class' 'form-control-sm' %}</div>
+                     <div class="col-md-1 mb-2 text-end">
+                        <div class="form-check" style="padding-top: 20px;">
+                            {{ formset.empty_form.DELETE }}
+                            <label for="{{ formset.empty_form.DELETE.id_for_label }}" class="btn btn-outline-danger delete-item-btn" title="{% trans 'حذف این ردیف' %}">
+                               <i class="fas fa-times"></i>
+                            </label>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+        </div>
+
+        {# Button to add new rows #}
+        <button type="button" id="add-item-button" class="btn btn-outline-success btn-sm mt-3 formset-add-button">
+            <i class="fas fa-plus"></i> {% trans "افزودن ردیف جدید" %}
+        </button>
+
+        {# Wizard buttons are in base template #}
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+{# Simple JS for adding/managing formset rows (replace with library if needed) #}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const container = document.getElementById('factor-items-container');
+    const addButton = document.getElementById('add-item-button');
+    const template = document.getElementById('empty-form-template').innerHTML;
+    const totalFormsInput = document.querySelector('input[name="form-TOTAL_FORMS"]');
+    let formNum = parseInt(totalFormsInput.value); // Get initial number of forms
+
+    if (addButton) {
+        addButton.addEventListener('click', function () {
+            // Clone the template
+            let newFormHtml = template.replace(/__prefix__/g, formNum);
+            let newFormElement = document.createElement('div');
+            newFormElement.innerHTML = newFormHtml;
+            // Append the actual row content
+            container.appendChild(newFormElement.firstElementChild);
+
+            // Update total forms count
+            totalFormsInput.value = formNum + 1;
+            formNum++; // Increment for the next add
+
+            // Optional: Initialize datepickers or other widgets in the new row if needed
+        });
+    }
+
+    // Optional: Handle delete button styling (hiding/showing checkbox)
+    container.addEventListener('change', function (e) {
+        if (e.target.matches('input[type="checkbox"][name$="-DELETE"]')) {
+            const row = e.target.closest('.factor-item-row');
+            if (row) {
+                row.style.opacity = e.target.checked ? '0.5' : '1';
+                row.style.textDecoration = e.target.checked ? 'line-through' : 'none';
+                // Disable inputs in deleted row?
+                // row.querySelectorAll('input:not([type="checkbox"]), select, textarea').forEach(el => el.disabled = e.target.checked);
+            }
+        }
+    });
+
+    // Initial setup for delete buttons
+    document.querySelectorAll('.factor-item-row input[type="checkbox"][name$="-DELETE"]').forEach(checkbox => {
+        const row = checkbox.closest('.factor-item-row');
+         if (row && checkbox.checked) {
+             row.style.opacity = '0.5';
+             row.style.textDecoration = 'line-through';
+         }
+        // Hide the checkbox itself, use the label button
+        checkbox.style.display = 'none';
+     });
+
+});
+</script>
+{% endblock %}

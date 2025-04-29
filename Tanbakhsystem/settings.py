@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'notifications',
     'core.templatetags.file_tags', # تمپلیت برای تگ تصاویر
     'budgets.apps.BudgetsConfig',
+    'formtools',
 
 ]
 
@@ -179,69 +180,6 @@ CSRF_COOKIE_SECURE = False  # برای لوکال
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-
-# لاگینگ
-LOG_DIR = os.path.join(BASE_DIR, 'logs')
-if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR)
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {funcName} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'file': {
-            'level': 'ERROR',  # فقط خطاها در فایل ذخیره می‌شوند
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'MyLog.log'),
-            'maxBytes': 1024 * 1024 * 5,  # 5 MB
-            'backupCount': 5,
-            'formatter': 'verbose',
-            'encoding': 'utf-8',
-        },
-        'console': {
-            'level': 'ERROR',  # فقط خطاها در کنسول نمایش داده می‌شوند
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-    },
-    'loggers': {
-        # 'django': {
-        #     'handlers': ['file', 'console'],
-        #     'level': 'INFO',  # این سطح را تغییر ندهید، مگر اینکه بخواهید لاگ‌های Django را نیز محدود کنید
-        #     'propagate': False,
-        # },
-        'django.db.backends': {
-            'handlers': ['file'],
-            'level': 'DEBUG',  # این سطح را برای دیباگ پایگاه داده تغییر ندهید، مگر اینکه مطمئن باشید
-            'propagate': False,
-        },
-        # 'budgets': {  # برای اپ budgets
-        #     'handlers': ['file', 'console'],
-        #     'level': 'DEBUG',  # سطح لاگ برای این logger را در صورت نیاز تغییر دهید
-        #     'propagate': False,
-        # },
-        # '': {
-        #     'handlers': ['file', 'console'],
-        #     'level': 'DEBUG',  # سطح لاگ برای logger ریشه را در صورت نیاز تغییر دهید
-        # },
-    },
-}
-import logging.config
-import os
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # یا هر روش دیگری برای تعریف BASE_DIR
-
-logging.config.dictConfig(LOGGING)
-logger = logging.getLogger(__name__)
 
 # بقیه تنظیمات
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
@@ -553,3 +491,117 @@ MAX_ACTIVE_USERS = 5
 #         'LOCATION': 'unique-snowflake',
 #     }
 # }
+
+
+
+# لاگینگ
+LOG_DIR = os.path.join(BASE_DIR, 'logs')
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
+LOGGINGA = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {funcName} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'ERROR',  # فقط خطاها در فایل ذخیره می‌شوند
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'MyLog.log'),
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+        },
+        'console': {
+            'level': 'ERROR',  # فقط خطاها در کنسول نمایش داده می‌شوند
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        # 'django': {
+        #     'handlers': ['file', 'console'],
+        #     'level': 'INFO',  # این سطح را تغییر ندهید، مگر اینکه بخواهید لاگ‌های Django را نیز محدود کنید
+        #     'propagate': False,
+        # },
+        'django.db.backends': {
+            'handlers': ['file'],
+            'level': 'DEBUG',  # این سطح را برای دیباگ پایگاه داده تغییر ندهید، مگر اینکه مطمئن باشید
+            'propagate': False,
+        },
+        # 'budgets': {  # برای اپ budgets
+        #     'handlers': ['file', 'console'],
+        #     'level': 'DEBUG',  # سطح لاگ برای این logger را در صورت نیاز تغییر دهید
+        #     'propagate': False,
+        # },
+        # '': {
+        #     'handlers': ['file', 'console'],
+        #     'level': 'DEBUG',  # سطح لاگ برای logger ریشه را در صورت نیاز تغییر دهید
+        # },
+    },
+}
+import logging.config
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # یا هر روش دیگری برای تعریف BASE_DIR
+logging.config.dictConfig(LOGGINGA)
+logger = logging.getLogger(__name__)
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {funcName} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',  # ذخیره تمام پیام‌های DEBUG و بالاتر
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'MyLog.log'),
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+        },
+        'console': {
+            'level': 'DEBUG',  # نمایش تمام پیام‌های DEBUG و بالاتر در کنسول
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',  # لاگ‌های Django در سطح INFO
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['file'],
+            'level': 'DEBUG',  # برای دیباگ کوئری‌های دیتابیس
+            'propagate': False,
+        },
+        'tankhah': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',  # لاگ‌های اپ tankhah در سطح DEBUG
+            'propagate': False,
+        },
+        '': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',  # لاگ‌های کلی در سطح DEBUG
+        },
+    },
+}

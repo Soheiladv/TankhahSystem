@@ -1,3 +1,4 @@
+from django import views
 from django.urls import path
 from budgets.views import get_budget_info
 from tankhah.TankhahTrackingView import TankhahTrackingView
@@ -7,15 +8,16 @@ from tankhah.view_folder_tankhah.view_tankhah import (
 )
 from tankhah.views import (
     ApprovalListView, ApprovalCreateView, ApprovalDetailView, ApprovalUpdateView, ApprovalDeleteView,
-    DashboardView, FactorItemApproveView, FactorApproveView, FactorItemRejectView,
+      FactorItemApproveView, FactorApproveView, FactorItemRejectView,
     upload_tankhah_documents, ApprovalLogListView, FactorStatusUpdateView, mark_notification_as_read,
-    get_subprojects, FactorListView, FactorDetailView, FactorUpdateView, FactorCreateView, FactorDeleteView
+    get_subprojects, FactorListView, FactorDetailView, FactorUpdateView, FactorDeleteView
 )
-
+from tankhah.Factor.view_Factor import (FactorCreateView, FactorCreateWizard, FactorWizardView,
+                                        TankhahBudgetInfoAjaxView)
 # app_name = 'tankhah'
 
 urlpatterns = [
-    path('', DashboardView.as_view(), name='dashboard'),
+    # path('', DashboardView.as_view(), name='dashboard'),
     path('tankhah_list/', TankhahListView.as_view(), name='tankhah_list'),
     path('<int:pk>/', TankhahDetailView.as_view(), name='tankhah_detail'),
     path('create/', TankhahCreateView.as_view(), name='tankhah_create'),
@@ -24,15 +26,18 @@ urlpatterns = [
     path('<int:pk>/approve/', TankhahApproveView.as_view(), name='tankhah_approve'),
     path('<int:pk>/reject/', TankhahRejectView.as_view(), name='tankhah_reject'),
     path('tankhah/<int:pk>/tracking/', TankhahTrackingView.as_view(), name='tankhah_tracking'),
+
     path('factors/', FactorListView.as_view(), name='factor_list'),
     path('factor/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'),
     path('factor/create/', FactorCreateView.as_view(), name='factor_create'),
+    path('factor/create/', FactorCreateWizard.as_view(), name='w_factor_create'),
     path('factor/<int:pk>/update/', FactorUpdateView.as_view(), name='factor_update'),
     path('factor/<int:pk>/delete/', FactorDeleteView.as_view(), name='factor_delete'),
     path('factor/<int:pk>/approve/', FactorApproveView.as_view(), name='factor_approve'),
     path('factor-item/<int:pk>/approve/', FactorItemApproveView.as_view(), name='factor_item_approve'),
     path('factor-item/<int:pk>/reject/', FactorItemRejectView.as_view(), name='factor_item_reject'),
     path('factor/<int:pk>/status-update/', FactorStatusUpdateView.as_view(), name='factor_status_update'),
+
     path('approvals/', ApprovalListView.as_view(), name='approval_list'),
     path('tankhah/<str:tankhah_number>/approvals/', ApprovalLogListView.as_view(), name='approval_log_list'),
     path('approval/<int:pk>/', ApprovalDetailView.as_view(), name='approval_detail'),
@@ -41,10 +46,17 @@ urlpatterns = [
     path('approval/<int:pk>/delete/', ApprovalDeleteView.as_view(), name='approval_delete'),
     path('<int:tankhah_id>/upload/', upload_tankhah_documents, name='upload_tankhah_documents'),
     path('notifications/mark-as-read/<int:notif_id>/', mark_notification_as_read, name='mark_notification_as_read'),
+
     path('get_subprojects/', get_subprojects, name='get_subprojects'),
     path('get-budget-info/', get_budget_info, name='get_budget_info'),
 ]
-
+urlpatterns += [
+    # ... other urls ...
+    path('factor/create/wizard/',  FactorWizardView.as_view(views.FACTOR_FORMS), name='factor_wizard'), # Wizard URL
+    path('ajax/tankhah-budget-info/<int:tankhah_id>/',  TankhahBudgetInfoAjaxView.as_view(), name='tankhah_budget_info_ajax'), # AJAX URL
+    path('factor/list/',  FactorListView.as_view(), name='factor_list'), # Example success URL
+    # ... other factor related urls ...
+]
 
 # from django.urls import path
 #

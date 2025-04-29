@@ -315,19 +315,32 @@ class FactorItemForm(forms.ModelForm):
         model = FactorItem
         fields = ['description', 'amount', 'quantity']
         widgets = {
-            'description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('شرح ردیف')}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'مبلغ را وارد کنید'}),
+            'description': forms.TextInput(
+                attrs={'class': 'form-control form-control-sm', 'placeholder': _('شرح ردیف')}),
+            'amount': forms.NumberInput(
+                attrs={'class': 'form-control form-control-sm ltr-input amount-field', 'step': '1', 'min': '0', 'placeholder': 'مبلغ را وارد کنید'}),
             'quantity': forms.NumberInput(
-                attrs={'class': 'form-control quantity-field', 'placeholder': _('تعداد'), 'min': '1'}),
+                attrs={'class': 'form-control form-control-sm ltr-input quantity-field', 'placeholder': _('تعداد'), 'min': '1'}),
         }
 
     def clean(self):
         cleaned_data = super().clean()
         amount = cleaned_data.get('amount')
         quantity = cleaned_data.get('quantity')
-        if amount is not None and amount <= 0:
+        description = cleaned_data.get('description')
+
+        # اگه فرم خالیه (بدون توضیحات و مبلغ)، قبولش کن و نادیده بگیر
+        # نادیده گرفتن فرم‌های خالی
+        if not description and (amount is None or amount == 0) and (quantity is None or quantity == 1):
+            self.cleaned_data['DELETE'] = True
+            return cleaned_data
+
+        # اعتبارسنجی برای فرم‌های پرشده
+        if not description:
+            raise forms.ValidationError(_('شرح ردیف الزامی است.'))
+        if amount is None or amount <= 0:
             raise forms.ValidationError(_('مبلغ باید بزرگ‌تر از صفر باشد.'))
-        if quantity is not None and quantity < 1:
+        if quantity is None or quantity < 1:
             raise forms.ValidationError(_('تعداد باید حداقل ۱ باشد.'))
         return cleaned_data
 
