@@ -2,6 +2,7 @@ from django import views
 from django import views
 from django.urls import path
 from budgets.views import get_budget_info
+from tankhah.Factor.view_FactorItemApprove import FactorItemApproveView
 from tankhah.TankhahTrackingView import TankhahTrackingView
 from tankhah.view_folder_tankhah.view_tankhah import (
     TankhahDetailView, TankhahCreateView, TankhahDeleteView,
@@ -9,7 +10,7 @@ from tankhah.view_folder_tankhah.view_tankhah import (
 )
 from tankhah.views import (
     ApprovalListView, ApprovalCreateView, ApprovalDetailView, ApprovalUpdateView, ApprovalDeleteView,
-      FactorItemApproveView, FactorApproveView, FactorItemRejectView,
+       FactorApproveView, FactorItemRejectView,
     upload_tankhah_documents, ApprovalLogListView, FactorStatusUpdateView, mark_notification_as_read,
     get_subprojects, FactorListView, FactorDetailView, FactorUpdateView, FactorDeleteView
 )

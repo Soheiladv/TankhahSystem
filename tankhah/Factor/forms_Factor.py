@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 import jdatetime
 
-from tankhah.forms import MultipleFileField, MultipleFileInput
+from tankhah.forms import MultipleFileField, MultipleFileInput, FactorItemApprovalForm
 from tankhah.models import Factor, Tankhah, FactorItem
 from core.models import WorkflowStage, Project,SubProject
 from django.db.models import Q
@@ -746,3 +746,4 @@ class WizardTankhahDocumentForm(forms.Form):
 class WizardConfirmationForm(forms.Form):
     # confirm = forms.BooleanField(label=_('تأیید نهایی'), required=True)
     pass
+

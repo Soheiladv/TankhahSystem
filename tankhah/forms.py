@@ -37,6 +37,37 @@ class FactorItemApprovalForm(forms.Form):
         required=False,
         label=_("توضیحات")
     )
+    class Meta:
+        model = FactorItem
+        # Fields to include in the form (that the user interacts with OR needed for processing)
+        # We don't include 'status' directly if we use 'action' field
+        fields = ['action', 'comment']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set initial value for 'action' based on the instance's current status
+        if self.instance and self.instance.pk:
+             # Map DB status to form action choices
+             # Adjust this mapping if your ACTION_CHOICES differ from STATUS_CHOICES
+            current_status_upper = str(self.instance.status).upper()
+            # Find the matching choice value
+            matching_choice = current_status_upper if current_status_upper in dict(self.ACTION_CHOICES) else 'PENDING' # Default to PENDING if no match
+            self.fields['action'].initial = matching_choice
+            # Alternatively, keep initial blank and let JS set dropdown text based on item.status
+            # self.fields['action'].initial = ''
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+        action = cleaned_data.get('action')
+        comment = cleaned_data.get('comment')
+
+        # Require comment only if action is REJECT
+        if action == 'REJECTED' and not comment:
+            self.add_error('comment', _('لطفاً دلیل رد کردن این ردیف را بنویسید.'))
+
+        return cleaned_data
+
 
 class FactorApprovalForm(forms.ModelForm):
     comment = forms.CharField(

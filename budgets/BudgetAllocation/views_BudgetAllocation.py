@@ -389,7 +389,7 @@ class BudgetAllocationDetailView(PermissionBaseView, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from budgets.budget_calculations import get_budget_details
+        from budgets.get_budget_details import get_budget_details
         context['budget_details'] = get_budget_details(self.object)
         logger.debug(f"BudgetAllocationDetailView context: {context}")
         return context

@@ -485,7 +485,7 @@ class FactorApproveView1(PermissionBaseView,UpdateView):
         messages.error(self.request, _('شما مجوز لازم برای تأیید این فاکتور را ندارید.'))
         return redirect('factor_list')
 """تأیید آیتم‌های فاکتور"""
-class FactorItemApproveView(PermissionBaseView, DetailView):
+class old__FactorItemApproveView(PermissionBaseView, DetailView):
     model = Factor
     template_name = 'tankhah/factor_item_approve.html'
     permission_codenames = ['tankhah.FactorItem_approve']

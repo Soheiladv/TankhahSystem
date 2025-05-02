@@ -16205,3 +16205,626 @@ INFO 2025-05-02 14:17:40,434 views get_context_data Factor Item Statuses: []
 DEBUG 2025-05-02 14:17:40,462 rcms_custom_filters format_negative Manually formatted number: 0
 INFO 2025-05-02 14:17:40,465 middleware __call__ پاسخ برای /tankhah/factor-item/16/approve/ - کد وضعیت: 200
 INFO 2025-05-02 14:17:40,475 basehttp log_message "GET /tankhah/factor-item/16/approve/ HTTP/1.1" 200 30460
+INFO 2025-05-02 14:25:34,118 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:25:34,122 middleware __call__ درخواست به: /tankhah/factor-item/16/approve/, کاربر: jj
+INFO 2025-05-02 14:25:34,136 PermissionBase dispatch شروع dispatch در FactorItemApproveView برای کاربر: jj
+INFO 2025-05-02 14:25:34,783 views mark_approval_seen Approval logs for Tankhah 15 marked as seen by jj
+INFO 2025-05-02 14:25:34,803 fun_can_edit_approval can_edit_approval can_edit_approval: user_level=2, max_change_level=2, stage_order=1, higher_approval=None, higher_approval_seen=False
+INFO 2025-05-02 14:25:34,817 views get_context_data Factor Item IDs: []
+INFO 2025-05-02 14:25:34,817 views get_context_data Current Tankhah ID: 15
+INFO 2025-05-02 14:25:34,821 views get_context_data Approval Logs Count: 0
+INFO 2025-05-02 14:25:34,824 views get_context_data Factor Item Statuses: []
+DEBUG 2025-05-02 14:25:34,869 rcms_custom_filters format_negative Manually formatted number: 0
+INFO 2025-05-02 14:25:34,874 middleware __call__ پاسخ برای /tankhah/factor-item/16/approve/ - کد وضعیت: 200
+INFO 2025-05-02 14:25:34,885 basehttp log_message "GET /tankhah/factor-item/16/approve/ HTTP/1.1" 200 30460
+INFO 2025-05-02 14:25:37,858 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:25:37,862 middleware __call__ درخواست به: /dashboard/flows/, کاربر: jj
+INFO 2025-05-02 14:25:54,672 middleware __call__ پاسخ برای /dashboard/flows/ - کد وضعیت: 200
+INFO 2025-05-02 14:25:54,678 basehttp log_message "GET /dashboard/flows/ HTTP/1.1" 200 28806
+INFO 2025-05-02 14:26:25,529 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:26:25,534 middleware __call__ درخواست به: /budgets/budgetallocation/, کاربر: jj
+INFO 2025-05-02 14:26:25,553 PermissionBase dispatch شروع dispatch در BudgetAllocationListView برای کاربر: jj
+INFO 2025-05-02 14:26:25,565 views_BudgetAllocation get_queryset BudgetAllocationListView queryset: 3 records
+DEBUG 2025-05-02 14:26:25,707 views_BudgetAllocation get_context_data BudgetAllocationListView context: {'paginator': <django.core.paginator.Paginator object at 0x000002186FA10950>, 'page_obj': <Page 1 of 1>, 'is_paginated': False, 'object_list': <QuerySet [<BudgetAllocation: دفتر مرکزی شرکت توسعه گردشگری ایران - تجهیز - 1404/02/01 - 100,000,000 ریال>, <BudgetAllocation: دفتر مرکزی شرکت توسعه گردشگری ایران - پژوهشی مرکزی - 1404/01/31 - 21,250,000,000 ریال>, <BudgetAllocation: هتل لاله سرعین - تجهیز - 1404/01/30 - 100,000,000 ریال>]>, 'budget_allocations': <QuerySet [<BudgetAllocation: دفتر مرکزی شرکت توسعه گردشگری ایران - تجهیز - 1404/02/01 - 100,000,000 ریال>, <BudgetAllocation: دفتر مرکزی شرکت توسعه گردشگری ایران - پژوهشی مرکزی - 1404/01/31 - 21,250,000,000 ریال>, <BudgetAllocation: هتل لاله سرعین - تجهیز - 1404/01/30 - 100,000,000 ریال>]>, 'view': <budgets.BudgetAllocation.views_BudgetAllocation.BudgetAllocationListView object at 0x000002186CA8DD30>, 'total_budget': Decimal('95000000000'), 'remaining_budget': Decimal('64250000000.00'), 'total_allocated': Decimal('21450000000.00'), 'allocated_percentage': Decimal('22.57894736842105263157894737'), 'remaining_percentage': Decimal('67.63157894736842105263157895'), 'budget_item_data': {}, 'project_data': {}, 'budget_items': <QuerySet [<BudgetItem: عملیاتی 1404-مجموعه ها - تجهیز - دفتر مرکزی شرکت توسعه گردشگری ایران>, <BudgetItem: پژوهشی دفتر مرکزی (زیرساخت IT ) - عمرانی - دفتر مرکزی شرکت توسعه گردشگری ایران>, <BudgetItem: عملیاتی 1404-مجموعه ها - تجهیز - هتل لاله سرعین>, <BudgetItem: پژوهشی دفتر مرکزی (زیرساخت IT ) - پژوهشی مرکزی - دفتر مرکزی شرکت توسعه گردشگری ایران>]>, 'organizations': <QuerySet [<Organization: HSarein - هتل لاله سرعین (هتل)>, <Organization: Htehran - هتل لاله تهران (هتل)>, <Organization: Hcha - هتل لاله چابهار (هتل)>, <Organization: Hkan - هتل لاله کندوان (هتل)>, <Organization: Hbis - هتل لاله بیستون (هتل)>, <Organization: ComplexSHC - مجتمع آبدرمانی سبلان (هتل)>, <Organization: HQ_ITDC - دفتر مرکزی شرکت توسعه گردشگری ایران (دفتر مرکزی)>]>, 'budget_periods': <QuerySet [<BudgetPeriod: عملیاتی 1404-مجموعه ها (HQ_ITDC)>, <BudgetPeriod: پژوهشی دفتر مرکزی (زیرساخت IT ) (HQ_ITDC)>]>, 'projects': <QuerySet [<Project: HQ-P001 - اجرای اتاق سرور دفتر مرکزی (فعال)>]>, 'status': 'filtered', 'status_message': 'نمایش تخصیص\u200cهای فیلترشده', 'query': '', 'date_from': '', 'date_to': '', 'selected_budget_item': None, 'selected_organization': None, 'selected_budget_period': None, 'selected_project': None}
+DEBUG 2025-05-02 14:26:26,491 rcms_custom_filters format_negative Manually formatted number: 95,000,000,000
+DEBUG 2025-05-02 14:26:26,492 rcms_custom_filters format_negative Manually formatted number: 21,450,000,000
+DEBUG 2025-05-02 14:26:26,493 rcms_custom_filters format_negative Manually formatted number: 64,250,000,000
+DEBUG 2025-05-02 14:26:26,500 rcms_custom_filters format_negative Manually formatted number: 100,000,000
+DEBUG 2025-05-02 14:26:27,499 rcms_custom_filters format_negative Manually formatted number: 21,250,000,000
+DEBUG 2025-05-02 14:26:28,415 rcms_custom_filters format_negative Manually formatted number: 100,000,000
+INFO 2025-05-02 14:26:29,465 middleware __call__ پاسخ برای /budgets/budgetallocation/ - کد وضعیت: 200
+INFO 2025-05-02 14:26:29,474 basehttp log_message "GET /budgets/budgetallocation/?current_stage=1 HTTP/1.1" 200 27119
+INFO 2025-05-02 14:26:35,836 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:26:35,840 middleware __call__ درخواست به: /budgets/budgetallocation/56/, کاربر: jj
+INFO 2025-05-02 14:26:35,859 PermissionBase dispatch شروع dispatch در BudgetAllocationDetailView برای کاربر: jj
+ERROR 2025-05-02 14:26:35,928 log log_response Internal Server Error: /budgets/budgetallocation/56/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\core\PermissionBase.py", line 120, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\detail.py", line 109, in get
+    context = self.get_context_data(object=self.object)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\BudgetAllocation\views_BudgetAllocation.py", line 392, in get_context_data
+    from budgets.budget_calculations import get_budget_details
+ImportError: cannot import name 'get_budget_details' from 'budgets.budget_calculations' (D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\budget_calculations.py)
+INFO 2025-05-02 14:26:35,937 middleware __call__ پاسخ برای /budgets/budgetallocation/56/ - کد وضعیت: 500
+ERROR 2025-05-02 14:26:35,939 basehttp log_message "GET /budgets/budgetallocation/56/ HTTP/1.1" 500 102083
+INFO 2025-05-02 14:26:36,205 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:26:36,210 middleware __call__ درخواست به: /favicon.ico, کاربر: jj
+INFO 2025-05-02 14:26:36,226 middleware __call__ پاسخ برای /favicon.ico - کد وضعیت: 302
+INFO 2025-05-02 14:26:36,242 basehttp log_message "GET /favicon.ico HTTP/1.1" 302 0
+INFO 2025-05-02 14:27:50,977 autoreload trigger_reload D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\budget_calculations.py changed, reloading.
+INFO 2025-05-02 14:27:54,025 autoreload run_with_reloader Watching for file changes with StatReloader
+INFO 2025-05-02 14:27:54,738 view_Factor <module> [ویزارد] مسیر ذخیره‌سازی فایل ایجاد شد: D:\Design & Source Code\Source Coding\Tanbakhsystem\media\temp_wizard_files
+INFO 2025-05-02 14:27:55,118 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:27:55,122 middleware __call__ درخواست به: /budgets/budgetallocation/56/, کاربر: jj
+INFO 2025-05-02 14:27:55,225 PermissionBase dispatch شروع dispatch در BudgetAllocationDetailView برای کاربر: jj
+ERROR 2025-05-02 14:27:55,334 log log_response Internal Server Error: /budgets/budgetallocation/56/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\core\PermissionBase.py", line 120, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\detail.py", line 109, in get
+    context = self.get_context_data(object=self.object)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\BudgetAllocation\views_BudgetAllocation.py", line 392, in get_context_data
+    from budgets.budget_calculations import get_budget_details
+ImportError: cannot import name 'get_budget_details' from 'budgets.budget_calculations' (D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\budget_calculations.py)
+INFO 2025-05-02 14:27:55,350 middleware __call__ پاسخ برای /budgets/budgetallocation/56/ - کد وضعیت: 500
+ERROR 2025-05-02 14:27:55,355 basehttp log_message "GET /budgets/budgetallocation/56/ HTTP/1.1" 500 102220
+INFO 2025-05-02 14:27:55,804 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:27:55,807 middleware __call__ درخواست به: /favicon.ico, کاربر: jj
+INFO 2025-05-02 14:27:55,818 middleware __call__ پاسخ برای /favicon.ico - کد وضعیت: 302
+INFO 2025-05-02 14:27:55,832 basehttp log_message "GET /favicon.ico HTTP/1.1" 302 0
+INFO 2025-05-02 14:28:12,043 autoreload trigger_reload D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\budget_calculations.py changed, reloading.
+INFO 2025-05-02 14:28:14,529 autoreload run_with_reloader Watching for file changes with StatReloader
+INFO 2025-05-02 14:28:16,781 view_Factor <module> [ویزارد] مسیر ذخیره‌سازی فایل ایجاد شد: D:\Design & Source Code\Source Coding\Tanbakhsystem\media\temp_wizard_files
+INFO 2025-05-02 14:28:57,327 autoreload trigger_reload D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\BudgetAllocation\views_BudgetAllocation.py changed, reloading.
+INFO 2025-05-02 14:28:59,619 autoreload run_with_reloader Watching for file changes with StatReloader
+INFO 2025-05-02 14:29:00,179 view_Factor <module> [ویزارد] مسیر ذخیره‌سازی فایل ایجاد شد: D:\Design & Source Code\Source Coding\Tanbakhsystem\media\temp_wizard_files
+INFO 2025-05-02 14:29:00,984 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:29:00,987 middleware __call__ درخواست به: /budgets/budgetallocation/56/, کاربر: jj
+INFO 2025-05-02 14:29:01,030 PermissionBase dispatch شروع dispatch در BudgetAllocationDetailView برای کاربر: jj
+ERROR 2025-05-02 14:29:01,038 get_budget_details get_budget_details Error in get_budget_details for organization دفتر مرکزی شرکت توسعه گردشگری ایران - تجهیز - 1404/02/01 - 100,000,000 ریال: Cannot query "دفتر مرکزی شرکت توسعه گردشگری ایران - تجهیز - 1404/02/01 - 100,000,000 ریال": Must be "Organization" instance.
+DEBUG 2025-05-02 14:29:01,038 views_BudgetAllocation get_context_data BudgetAllocationDetailView context: {'object': <BudgetAllocation: دفتر مرکزی شرکت توسعه گردشگری ایران - تجهیز - 1404/02/01 - 100,000,000 ریال>, 'budget_allocation': <BudgetAllocation: دفتر مرکزی شرکت توسعه گردشگری ایران - تجهیز - 1404/02/01 - 100,000,000 ریال>, 'view': <budgets.BudgetAllocation.views_BudgetAllocation.BudgetAllocationDetailView object at 0x000001B04F848050>, 'budget_details': {'total_budget': Decimal('0'), 'total_allocated': Decimal('0'), 'remaining_budget': Decimal('0'), 'project_count': 0, 'allocation_count': 0, 'last_update': None, 'status_message': 'نامشخص'}}
+DEBUG 2025-05-02 14:29:01,083 rcms_custom_filters format_negative Manually formatted number: 100,000,000
+ERROR 2025-05-02 14:29:01,084 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+INFO 2025-05-02 14:29:01,091 middleware __call__ پاسخ برای /budgets/budgetallocation/56/ - کد وضعیت: 200
+INFO 2025-05-02 14:29:01,101 basehttp log_message "GET /budgets/budgetallocation/56/ HTTP/1.1" 200 12002
+INFO 2025-05-02 14:35:46,003 autoreload trigger_reload D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\forms.py changed, reloading.
+INFO 2025-05-02 14:35:48,692 autoreload run_with_reloader Watching for file changes with StatReloader
+INFO 2025-05-02 14:35:49,608 view_Factor <module> [ویزارد] مسیر ذخیره‌سازی فایل ایجاد شد: D:\Design & Source Code\Source Coding\Tanbakhsystem\media\temp_wizard_files
+INFO 2025-05-02 14:39:26,621 autoreload trigger_reload D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\views.py changed, reloading.
+INFO 2025-05-02 14:39:28,968 autoreload run_with_reloader Watching for file changes with StatReloader
+INFO 2025-05-02 14:41:53,452 autoreload trigger_reload D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\urls.py changed, reloading.
+INFO 2025-05-02 14:41:54,723 autoreload run_with_reloader Watching for file changes with StatReloader
+INFO 2025-05-02 14:41:55,048 view_Factor <module> [ویزارد] مسیر ذخیره‌سازی فایل ایجاد شد: D:\Design & Source Code\Source Coding\Tanbakhsystem\media\temp_wizard_files
+INFO 2025-05-02 14:41:57,626 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:41:57,634 middleware __call__ درخواست به: /tankhah/factor-item/16/approve/, کاربر: jj
+INFO 2025-05-02 14:41:57,673 PermissionBase dispatch شروع dispatch در FactorItemApproveView برای کاربر: jj
+INFO 2025-05-02 14:41:57,682 view_FactorItemApprove get_context_data [ApproveView-Context] شروع get_context_data برای فاکتور 16
+ERROR 2025-05-02 14:41:57,754 log log_response Internal Server Error: /tankhah/factor-item/16/approve/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\core\PermissionBase.py", line 120, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\detail.py", line 109, in get
+    context = self.get_context_data(object=self.object)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py", line 60, in get_context_data
+    formset = FactorItemApprovalFormSet(
+        self.request.POST or None,
+        instance=factor,
+        prefix='items' # Use a prefix for the formset fields
+    )
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\forms\models.py", line 1115, in __init__
+    if self.form._meta.fields and self.fk.name not in self.form._meta.fields:
+       ^^^^^^^^^^^^^^^
+AttributeError: type object 'FactorItemForm' has no attribute '_meta'. Did you mean: 'Meta'?
+INFO 2025-05-02 14:41:57,760 middleware __call__ پاسخ برای /tankhah/factor-item/16/approve/ - کد وضعیت: 500
+ERROR 2025-05-02 14:41:57,761 basehttp log_message "GET /tankhah/factor-item/16/approve/ HTTP/1.1" 500 108299
+INFO 2025-05-02 14:41:57,932 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:41:57,933 middleware __call__ درخواست به: /favicon.ico, کاربر: jj
+INFO 2025-05-02 14:41:57,939 middleware __call__ پاسخ برای /favicon.ico - کد وضعیت: 302
+INFO 2025-05-02 14:41:57,944 basehttp log_message "GET /favicon.ico HTTP/1.1" 302 0
+INFO 2025-05-02 14:42:39,543 autoreload trigger_reload D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py changed, reloading.
+INFO 2025-05-02 14:42:41,188 autoreload run_with_reloader Watching for file changes with StatReloader
+INFO 2025-05-02 14:42:41,913 view_Factor <module> [ویزارد] مسیر ذخیره‌سازی فایل ایجاد شد: D:\Design & Source Code\Source Coding\Tanbakhsystem\media\temp_wizard_files
+INFO 2025-05-02 14:42:43,505 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:42:43,507 middleware __call__ درخواست به: /tankhah/factor-item/16/approve/, کاربر: jj
+INFO 2025-05-02 14:42:43,570 PermissionBase dispatch شروع dispatch در FactorItemApproveView برای کاربر: jj
+INFO 2025-05-02 14:42:43,582 PermissionBase _has_organization_access سازمان‌های کاربر: {<Organization: HQ_ITDC - دفتر مرکزی شرکت توسعه گردشگری ایران (دفتر مرکزی)>}
+INFO 2025-05-02 14:42:43,583 PermissionBase _has_organization_access کاربر HQ است، دسترسی کامل
+INFO 2025-05-02 14:42:43,596 view_FactorItemApprove get_context_data [ApproveView-Context] شروع get_context_data برای فاکتور 16
+ERROR 2025-05-02 14:42:43,646 log log_response Internal Server Error: /tankhah/factor-item/16/approve/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\core\PermissionBase.py", line 120, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\detail.py", line 109, in get
+    context = self.get_context_data(object=self.object)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py", line 62, in get_context_data
+    formset = FactorItemApprovalFormSet(
+        self.request.POST or None,
+        instance=factor,
+        prefix='items' # Use a prefix for the formset fields
+    )
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\forms\models.py", line 1115, in __init__
+    if self.form._meta.fields and self.fk.name not in self.form._meta.fields:
+       ^^^^^^^^^^^^^^^
+AttributeError: type object 'FactorItemForm' has no attribute '_meta'. Did you mean: 'Meta'?
+INFO 2025-05-02 14:42:43,649 middleware __call__ پاسخ برای /tankhah/factor-item/16/approve/ - کد وضعیت: 500
+ERROR 2025-05-02 14:42:43,650 basehttp log_message "GET /tankhah/factor-item/16/approve/ HTTP/1.1" 500 108299
+INFO 2025-05-02 14:42:43,728 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:42:43,729 middleware __call__ درخواست به: /favicon.ico, کاربر: jj
+INFO 2025-05-02 14:42:43,735 middleware __call__ پاسخ برای /favicon.ico - کد وضعیت: 302
+INFO 2025-05-02 14:42:43,740 basehttp log_message "GET /favicon.ico HTTP/1.1" 302 0
+INFO 2025-05-02 14:42:44,922 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:42:44,925 middleware __call__ درخواست به: /tankhah/factor-item/16/approve/, کاربر: jj
+INFO 2025-05-02 14:42:44,934 PermissionBase dispatch شروع dispatch در FactorItemApproveView برای کاربر: jj
+INFO 2025-05-02 14:42:44,950 PermissionBase _has_organization_access سازمان‌های کاربر: {<Organization: HQ_ITDC - دفتر مرکزی شرکت توسعه گردشگری ایران (دفتر مرکزی)>}
+INFO 2025-05-02 14:42:44,950 PermissionBase _has_organization_access کاربر HQ است، دسترسی کامل
+INFO 2025-05-02 14:42:44,961 view_FactorItemApprove get_context_data [ApproveView-Context] شروع get_context_data برای فاکتور 16
+ERROR 2025-05-02 14:42:45,001 log log_response Internal Server Error: /tankhah/factor-item/16/approve/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\core\PermissionBase.py", line 120, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\detail.py", line 109, in get
+    context = self.get_context_data(object=self.object)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py", line 62, in get_context_data
+    formset = FactorItemApprovalFormSet(
+        self.request.POST or None,
+        instance=factor,
+        prefix='items' # Use a prefix for the formset fields
+    )
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\forms\models.py", line 1115, in __init__
+    if self.form._meta.fields and self.fk.name not in self.form._meta.fields:
+       ^^^^^^^^^^^^^^^
+AttributeError: type object 'FactorItemForm' has no attribute '_meta'. Did you mean: 'Meta'?
+INFO 2025-05-02 14:42:45,006 middleware __call__ پاسخ برای /tankhah/factor-item/16/approve/ - کد وضعیت: 500
+ERROR 2025-05-02 14:42:45,008 basehttp log_message "GET /tankhah/factor-item/16/approve/ HTTP/1.1" 500 108427
+INFO 2025-05-02 14:42:45,125 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:42:45,126 middleware __call__ درخواست به: /favicon.ico, کاربر: jj
+INFO 2025-05-02 14:42:45,133 middleware __call__ پاسخ برای /favicon.ico - کد وضعیت: 302
+INFO 2025-05-02 14:42:45,140 basehttp log_message "GET /favicon.ico HTTP/1.1" 302 0
+INFO 2025-05-02 14:43:26,456 autoreload trigger_reload D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py changed, reloading.
+INFO 2025-05-02 14:43:28,506 autoreload run_with_reloader Watching for file changes with StatReloader
+INFO 2025-05-02 14:43:29,114 view_Factor <module> [ویزارد] مسیر ذخیره‌سازی فایل ایجاد شد: D:\Design & Source Code\Source Coding\Tanbakhsystem\media\temp_wizard_files
+INFO 2025-05-02 14:43:29,531 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:43:29,533 middleware __call__ درخواست به: /tankhah/factor-item/16/approve/, کاربر: jj
+INFO 2025-05-02 14:43:29,588 PermissionBase dispatch شروع dispatch در FactorItemApproveView برای کاربر: jj
+INFO 2025-05-02 14:43:29,597 PermissionBase _has_organization_access سازمان‌های کاربر: {<Organization: HQ_ITDC - دفتر مرکزی شرکت توسعه گردشگری ایران (دفتر مرکزی)>}
+INFO 2025-05-02 14:43:29,598 PermissionBase _has_organization_access کاربر HQ است، دسترسی کامل
+INFO 2025-05-02 14:43:29,606 view_FactorItemApprove get_context_data [ApproveView-Context] شروع get_context_data برای فاکتور 16
+ERROR 2025-05-02 14:43:29,643 log log_response Internal Server Error: /tankhah/factor-item/16/approve/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\core\PermissionBase.py", line 120, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\detail.py", line 109, in get
+    context = self.get_context_data(object=self.object)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py", line 63, in get_context_data
+    formset = FactorItemApprovalFormSet(
+        self.request.POST or None,
+        instance=factor,
+        prefix='items' # Use a prefix for the formset fields
+    )
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\forms\models.py", line 1115, in __init__
+    if self.form._meta.fields and self.fk.name not in self.form._meta.fields:
+       ^^^^^^^^^^^^^^^
+AttributeError: type object 'FactorItemForm' has no attribute '_meta'. Did you mean: 'Meta'?
+INFO 2025-05-02 14:43:29,650 middleware __call__ پاسخ برای /tankhah/factor-item/16/approve/ - کد وضعیت: 500
+ERROR 2025-05-02 14:43:29,651 basehttp log_message "GET /tankhah/factor-item/16/approve/ HTTP/1.1" 500 108037
+INFO 2025-05-02 14:43:29,756 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:43:29,759 middleware __call__ درخواست به: /favicon.ico, کاربر: jj
+INFO 2025-05-02 14:43:29,769 middleware __call__ پاسخ برای /favicon.ico - کد وضعیت: 302
+INFO 2025-05-02 14:43:29,774 basehttp log_message "GET /favicon.ico HTTP/1.1" 302 0
+INFO 2025-05-02 14:43:32,125 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:43:32,128 middleware __call__ درخواست به: /tankhah/factor-item/16/approve/, کاربر: jj
+INFO 2025-05-02 14:43:32,144 PermissionBase dispatch شروع dispatch در FactorItemApproveView برای کاربر: jj
+INFO 2025-05-02 14:43:32,162 PermissionBase _has_organization_access سازمان‌های کاربر: {<Organization: HQ_ITDC - دفتر مرکزی شرکت توسعه گردشگری ایران (دفتر مرکزی)>}
+INFO 2025-05-02 14:43:32,162 PermissionBase _has_organization_access کاربر HQ است، دسترسی کامل
+INFO 2025-05-02 14:43:32,176 view_FactorItemApprove get_context_data [ApproveView-Context] شروع get_context_data برای فاکتور 16
+ERROR 2025-05-02 14:43:32,206 log log_response Internal Server Error: /tankhah/factor-item/16/approve/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\core\PermissionBase.py", line 120, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\detail.py", line 109, in get
+    context = self.get_context_data(object=self.object)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py", line 63, in get_context_data
+    formset = FactorItemApprovalFormSet(
+        self.request.POST or None,
+        instance=factor,
+        prefix='items' # Use a prefix for the formset fields
+    )
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\forms\models.py", line 1115, in __init__
+    if self.form._meta.fields and self.fk.name not in self.form._meta.fields:
+       ^^^^^^^^^^^^^^^
+AttributeError: type object 'FactorItemForm' has no attribute '_meta'. Did you mean: 'Meta'?
+INFO 2025-05-02 14:43:32,208 middleware __call__ پاسخ برای /tankhah/factor-item/16/approve/ - کد وضعیت: 500
+ERROR 2025-05-02 14:43:32,209 basehttp log_message "GET /tankhah/factor-item/16/approve/ HTTP/1.1" 500 108037
+INFO 2025-05-02 14:43:32,270 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:43:32,271 middleware __call__ درخواست به: /favicon.ico, کاربر: jj
+INFO 2025-05-02 14:43:32,275 middleware __call__ پاسخ برای /favicon.ico - کد وضعیت: 302
+INFO 2025-05-02 14:43:32,282 basehttp log_message "GET /favicon.ico HTTP/1.1" 302 0
+INFO 2025-05-02 14:44:19,839 autoreload trigger_reload D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py changed, reloading.
+INFO 2025-05-02 14:44:21,734 autoreload run_with_reloader Watching for file changes with StatReloader
+INFO 2025-05-02 14:44:57,326 autoreload trigger_reload D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\forms_Factor.py changed, reloading.
+INFO 2025-05-02 14:44:58,378 autoreload run_with_reloader Watching for file changes with StatReloader
+INFO 2025-05-02 14:44:58,711 view_Factor <module> [ویزارد] مسیر ذخیره‌سازی فایل ایجاد شد: D:\Design & Source Code\Source Coding\Tanbakhsystem\media\temp_wizard_files
+INFO 2025-05-02 14:45:05,624 autoreload trigger_reload D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py changed, reloading.
+INFO 2025-05-02 14:45:06,988 autoreload run_with_reloader Watching for file changes with StatReloader
+INFO 2025-05-02 14:45:07,623 view_Factor <module> [ویزارد] مسیر ذخیره‌سازی فایل ایجاد شد: D:\Design & Source Code\Source Coding\Tanbakhsystem\media\temp_wizard_files
+INFO 2025-05-02 14:45:08,814 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:45:08,817 middleware __call__ درخواست به: /tankhah/factor-item/16/approve/, کاربر: jj
+INFO 2025-05-02 14:45:08,862 PermissionBase dispatch شروع dispatch در FactorItemApproveView برای کاربر: jj
+INFO 2025-05-02 14:45:08,869 PermissionBase _has_organization_access سازمان‌های کاربر: {<Organization: HQ_ITDC - دفتر مرکزی شرکت توسعه گردشگری ایران (دفتر مرکزی)>}
+INFO 2025-05-02 14:45:08,870 PermissionBase _has_organization_access کاربر HQ است، دسترسی کامل
+INFO 2025-05-02 14:45:08,879 view_FactorItemApprove get_context_data [ApproveView-Context] شروع get_context_data برای فاکتور 16
+ERROR 2025-05-02 14:45:08,910 log log_response Internal Server Error: /tankhah/factor-item/16/approve/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\core\PermissionBase.py", line 120, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\detail.py", line 109, in get
+    context = self.get_context_data(object=self.object)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py", line 55, in get_context_data
+    formset = FactorItemApprovalFormSet(
+        self.request.POST or None,
+        instance=factor,
+        prefix='items' # Use a prefix for the formset fields
+    )
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\forms\models.py", line 1115, in __init__
+    if self.form._meta.fields and self.fk.name not in self.form._meta.fields:
+       ^^^^^^^^^^^^^^^
+AttributeError: type object 'FactorItemForm' has no attribute '_meta'. Did you mean: 'Meta'?
+INFO 2025-05-02 14:45:08,913 middleware __call__ پاسخ برای /tankhah/factor-item/16/approve/ - کد وضعیت: 500
+ERROR 2025-05-02 14:45:08,914 basehttp log_message "GET /tankhah/factor-item/16/approve/ HTTP/1.1" 500 108249
+INFO 2025-05-02 14:45:09,040 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:45:09,041 middleware __call__ درخواست به: /favicon.ico, کاربر: jj
+INFO 2025-05-02 14:45:09,046 middleware __call__ پاسخ برای /favicon.ico - کد وضعیت: 302
+INFO 2025-05-02 14:45:09,049 basehttp log_message "GET /favicon.ico HTTP/1.1" 302 0
+INFO 2025-05-02 14:45:09,907 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:45:09,909 middleware __call__ درخواست به: /tankhah/factor-item/16/approve/, کاربر: jj
+INFO 2025-05-02 14:45:09,920 PermissionBase dispatch شروع dispatch در FactorItemApproveView برای کاربر: jj
+INFO 2025-05-02 14:45:09,934 PermissionBase _has_organization_access سازمان‌های کاربر: {<Organization: HQ_ITDC - دفتر مرکزی شرکت توسعه گردشگری ایران (دفتر مرکزی)>}
+INFO 2025-05-02 14:45:09,934 PermissionBase _has_organization_access کاربر HQ است، دسترسی کامل
+INFO 2025-05-02 14:45:09,946 view_FactorItemApprove get_context_data [ApproveView-Context] شروع get_context_data برای فاکتور 16
+ERROR 2025-05-02 14:45:09,985 log log_response Internal Server Error: /tankhah/factor-item/16/approve/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\core\PermissionBase.py", line 120, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\detail.py", line 109, in get
+    context = self.get_context_data(object=self.object)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py", line 55, in get_context_data
+    formset = FactorItemApprovalFormSet(
+        self.request.POST or None,
+        instance=factor,
+        prefix='items' # Use a prefix for the formset fields
+    )
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\forms\models.py", line 1115, in __init__
+    if self.form._meta.fields and self.fk.name not in self.form._meta.fields:
+       ^^^^^^^^^^^^^^^
+AttributeError: type object 'FactorItemForm' has no attribute '_meta'. Did you mean: 'Meta'?
+INFO 2025-05-02 14:45:09,989 middleware __call__ پاسخ برای /tankhah/factor-item/16/approve/ - کد وضعیت: 500
+ERROR 2025-05-02 14:45:09,990 basehttp log_message "GET /tankhah/factor-item/16/approve/ HTTP/1.1" 500 108249
+INFO 2025-05-02 14:45:10,060 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:45:10,061 middleware __call__ درخواست به: /favicon.ico, کاربر: jj
+INFO 2025-05-02 14:45:10,067 middleware __call__ پاسخ برای /favicon.ico - کد وضعیت: 302
+INFO 2025-05-02 14:45:10,073 basehttp log_message "GET /favicon.ico HTTP/1.1" 302 0
+INFO 2025-05-02 14:45:10,824 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:45:10,828 middleware __call__ درخواست به: /tankhah/factor-item/16/approve/, کاربر: jj
+INFO 2025-05-02 14:45:10,841 PermissionBase dispatch شروع dispatch در FactorItemApproveView برای کاربر: jj
+INFO 2025-05-02 14:45:10,857 PermissionBase _has_organization_access سازمان‌های کاربر: {<Organization: HQ_ITDC - دفتر مرکزی شرکت توسعه گردشگری ایران (دفتر مرکزی)>}
+INFO 2025-05-02 14:45:10,858 PermissionBase _has_organization_access کاربر HQ است، دسترسی کامل
+INFO 2025-05-02 14:45:10,869 view_FactorItemApprove get_context_data [ApproveView-Context] شروع get_context_data برای فاکتور 16
+ERROR 2025-05-02 14:45:10,902 log log_response Internal Server Error: /tankhah/factor-item/16/approve/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\core\PermissionBase.py", line 120, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\detail.py", line 109, in get
+    context = self.get_context_data(object=self.object)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py", line 55, in get_context_data
+    formset = FactorItemApprovalFormSet(
+        self.request.POST or None,
+        instance=factor,
+        prefix='items' # Use a prefix for the formset fields
+    )
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\forms\models.py", line 1115, in __init__
+    if self.form._meta.fields and self.fk.name not in self.form._meta.fields:
+       ^^^^^^^^^^^^^^^
+AttributeError: type object 'FactorItemForm' has no attribute '_meta'. Did you mean: 'Meta'?
+INFO 2025-05-02 14:45:10,904 middleware __call__ پاسخ برای /tankhah/factor-item/16/approve/ - کد وضعیت: 500
+ERROR 2025-05-02 14:45:10,905 basehttp log_message "GET /tankhah/factor-item/16/approve/ HTTP/1.1" 500 108249
+INFO 2025-05-02 14:45:10,978 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:45:10,979 middleware __call__ درخواست به: /favicon.ico, کاربر: jj
+INFO 2025-05-02 14:45:10,985 middleware __call__ پاسخ برای /favicon.ico - کد وضعیت: 302
+INFO 2025-05-02 14:45:10,991 basehttp log_message "GET /favicon.ico HTTP/1.1" 302 0
+INFO 2025-05-02 14:45:38,957 autoreload trigger_reload D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\forms_Factor.py changed, reloading.
+INFO 2025-05-02 14:45:40,452 autoreload run_with_reloader Watching for file changes with StatReloader
+INFO 2025-05-02 14:45:40,875 view_Factor <module> [ویزارد] مسیر ذخیره‌سازی فایل ایجاد شد: D:\Design & Source Code\Source Coding\Tanbakhsystem\media\temp_wizard_files
+INFO 2025-05-02 14:45:41,145 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:45:41,147 middleware __call__ درخواست به: /tankhah/factor-item/16/approve/, کاربر: jj
+INFO 2025-05-02 14:45:41,177 PermissionBase dispatch شروع dispatch در FactorItemApproveView برای کاربر: jj
+INFO 2025-05-02 14:45:41,182 PermissionBase _has_organization_access سازمان‌های کاربر: {<Organization: HQ_ITDC - دفتر مرکزی شرکت توسعه گردشگری ایران (دفتر مرکزی)>}
+INFO 2025-05-02 14:45:41,183 PermissionBase _has_organization_access کاربر HQ است، دسترسی کامل
+INFO 2025-05-02 14:45:41,187 view_FactorItemApprove get_context_data [ApproveView-Context] شروع get_context_data برای فاکتور 16
+ERROR 2025-05-02 14:45:41,210 log log_response Internal Server Error: /tankhah/factor-item/16/approve/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\core\PermissionBase.py", line 120, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\detail.py", line 109, in get
+    context = self.get_context_data(object=self.object)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py", line 61, in get_context_data
+    from tankhah.Factor.forms_Factor import FactorItemApprovalFormSet
+ImportError: cannot import name 'FactorItemApprovalFormSet' from 'tankhah.Factor.forms_Factor' (D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\forms_Factor.py)
+INFO 2025-05-02 14:45:41,212 middleware __call__ پاسخ برای /tankhah/factor-item/16/approve/ - کد وضعیت: 500
+ERROR 2025-05-02 14:45:41,213 basehttp log_message "GET /tankhah/factor-item/16/approve/ HTTP/1.1" 500 103060
+INFO 2025-05-02 14:45:41,321 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:45:41,323 middleware __call__ درخواست به: /favicon.ico, کاربر: jj
+INFO 2025-05-02 14:45:41,328 middleware __call__ پاسخ برای /favicon.ico - کد وضعیت: 302
+INFO 2025-05-02 14:45:41,333 basehttp log_message "GET /favicon.ico HTTP/1.1" 302 0
+INFO 2025-05-02 14:46:08,624 autoreload trigger_reload D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py changed, reloading.
+INFO 2025-05-02 14:46:10,316 autoreload run_with_reloader Watching for file changes with StatReloader
+INFO 2025-05-02 14:46:10,904 view_Factor <module> [ویزارد] مسیر ذخیره‌سازی فایل ایجاد شد: D:\Design & Source Code\Source Coding\Tanbakhsystem\media\temp_wizard_files
+INFO 2025-05-02 14:46:11,238 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:46:11,239 middleware __call__ درخواست به: /tankhah/factor-item/16/approve/, کاربر: jj
+INFO 2025-05-02 14:46:11,268 PermissionBase dispatch شروع dispatch در FactorItemApproveView برای کاربر: jj
+INFO 2025-05-02 14:46:11,274 PermissionBase _has_organization_access سازمان‌های کاربر: {<Organization: HQ_ITDC - دفتر مرکزی شرکت توسعه گردشگری ایران (دفتر مرکزی)>}
+INFO 2025-05-02 14:46:11,274 PermissionBase _has_organization_access کاربر HQ است، دسترسی کامل
+INFO 2025-05-02 14:46:11,281 view_FactorItemApprove get_context_data [ApproveView-Context] شروع get_context_data برای فاکتور 16
+ERROR 2025-05-02 14:46:11,307 log log_response Internal Server Error: /tankhah/factor-item/16/approve/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\core\PermissionBase.py", line 120, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\detail.py", line 109, in get
+    context = self.get_context_data(object=self.object)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py", line 62, in get_context_data
+    formset = FactorItemApprovalFormSet(
+        self.request.POST or None,
+        instance=factor,
+        prefix='items' # Use a prefix for the formset fields
+    )
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\forms\models.py", line 1115, in __init__
+    if self.form._meta.fields and self.fk.name not in self.form._meta.fields:
+       ^^^^^^^^^^^^^^^
+AttributeError: type object 'FactorItemForm' has no attribute '_meta'. Did you mean: 'Meta'?
+INFO 2025-05-02 14:46:11,311 middleware __call__ پاسخ برای /tankhah/factor-item/16/approve/ - کد وضعیت: 500
+ERROR 2025-05-02 14:46:11,312 basehttp log_message "GET /tankhah/factor-item/16/approve/ HTTP/1.1" 500 108299
+INFO 2025-05-02 14:46:11,535 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:46:11,538 middleware __call__ درخواست به: /favicon.ico, کاربر: jj
+INFO 2025-05-02 14:46:11,553 middleware __call__ پاسخ برای /favicon.ico - کد وضعیت: 302
+INFO 2025-05-02 14:46:11,566 basehttp log_message "GET /favicon.ico HTTP/1.1" 302 0
+INFO 2025-05-02 14:46:24,740 autoreload trigger_reload D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\forms_Factor.py changed, reloading.
+INFO 2025-05-02 14:46:26,336 autoreload run_with_reloader Watching for file changes with StatReloader
+INFO 2025-05-02 14:46:26,773 view_Factor <module> [ویزارد] مسیر ذخیره‌سازی فایل ایجاد شد: D:\Design & Source Code\Source Coding\Tanbakhsystem\media\temp_wizard_files
+INFO 2025-05-02 14:47:01,819 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:47:01,821 middleware __call__ درخواست به: /tankhah/factor-item/16/approve/, کاربر: jj
+INFO 2025-05-02 14:47:01,852 PermissionBase dispatch شروع dispatch در FactorItemApproveView برای کاربر: jj
+INFO 2025-05-02 14:47:01,857 PermissionBase _has_organization_access سازمان‌های کاربر: {<Organization: HQ_ITDC - دفتر مرکزی شرکت توسعه گردشگری ایران (دفتر مرکزی)>}
+INFO 2025-05-02 14:47:01,857 PermissionBase _has_organization_access کاربر HQ است، دسترسی کامل
+INFO 2025-05-02 14:47:01,867 view_FactorItemApprove get_context_data [ApproveView-Context] شروع get_context_data برای فاکتور 16
+ERROR 2025-05-02 14:47:01,888 log log_response Internal Server Error: /tankhah/factor-item/16/approve/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\core\PermissionBase.py", line 120, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\detail.py", line 109, in get
+    context = self.get_context_data(object=self.object)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py", line 62, in get_context_data
+    formset = FactorItemApprovalFormSet(
+        self.request.POST or None,
+        instance=factor,
+        prefix='items' # Use a prefix for the formset fields
+    )
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\forms\models.py", line 1115, in __init__
+    if self.form._meta.fields and self.fk.name not in self.form._meta.fields:
+       ^^^^^^^^^^^^^^^
+AttributeError: type object 'FactorItemForm' has no attribute '_meta'. Did you mean: 'Meta'?
+INFO 2025-05-02 14:47:01,891 middleware __call__ پاسخ برای /tankhah/factor-item/16/approve/ - کد وضعیت: 500
+ERROR 2025-05-02 14:47:01,892 basehttp log_message "GET /tankhah/factor-item/16/approve/ HTTP/1.1" 500 108299
+INFO 2025-05-02 14:47:02,017 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:47:02,018 middleware __call__ درخواست به: /favicon.ico, کاربر: jj
+INFO 2025-05-02 14:47:02,025 middleware __call__ پاسخ برای /favicon.ico - کد وضعیت: 302
+INFO 2025-05-02 14:47:02,029 basehttp log_message "GET /favicon.ico HTTP/1.1" 302 0
+INFO 2025-05-02 14:47:03,497 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:47:03,498 middleware __call__ درخواست به: /tankhah/factor-item/16/approve/, کاربر: jj
+INFO 2025-05-02 14:47:03,504 PermissionBase dispatch شروع dispatch در FactorItemApproveView برای کاربر: jj
+INFO 2025-05-02 14:47:03,509 PermissionBase _has_organization_access سازمان‌های کاربر: {<Organization: HQ_ITDC - دفتر مرکزی شرکت توسعه گردشگری ایران (دفتر مرکزی)>}
+INFO 2025-05-02 14:47:03,509 PermissionBase _has_organization_access کاربر HQ است، دسترسی کامل
+INFO 2025-05-02 14:47:03,515 view_FactorItemApprove get_context_data [ApproveView-Context] شروع get_context_data برای فاکتور 16
+ERROR 2025-05-02 14:47:03,532 log log_response Internal Server Error: /tankhah/factor-item/16/approve/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\core\PermissionBase.py", line 120, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\detail.py", line 109, in get
+    context = self.get_context_data(object=self.object)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\view_FactorItemApprove.py", line 62, in get_context_data
+    formset = FactorItemApprovalFormSet(
+        self.request.POST or None,
+        instance=factor,
+        prefix='items' # Use a prefix for the formset fields
+    )
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\forms\models.py", line 1115, in __init__
+    if self.form._meta.fields and self.fk.name not in self.form._meta.fields:
+       ^^^^^^^^^^^^^^^
+AttributeError: type object 'FactorItemForm' has no attribute '_meta'. Did you mean: 'Meta'?
+INFO 2025-05-02 14:47:03,534 middleware __call__ پاسخ برای /tankhah/factor-item/16/approve/ - کد وضعیت: 500
+ERROR 2025-05-02 14:47:03,535 basehttp log_message "GET /tankhah/factor-item/16/approve/ HTTP/1.1" 500 108299
+INFO 2025-05-02 14:47:03,658 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-05-02 14:47:03,659 middleware __call__ درخواست به: /favicon.ico, کاربر: jj
+INFO 2025-05-02 14:47:03,665 middleware __call__ پاسخ برای /favicon.ico - کد وضعیت: 302
+INFO 2025-05-02 14:47:03,669 basehttp log_message "GET /favicon.ico HTTP/1.1" 302 0
