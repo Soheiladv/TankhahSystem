@@ -1347,3 +1347,25 @@ DEBUG 2025-04-29 16:55:32,967 utils debug_sql (0.002) SELECT `version_tracker_ap
 DEBUG 2025-04-29 16:55:32,968 utils debug_transaction (0.001) BEGIN; args=None; alias=default
 DEBUG 2025-04-29 16:55:32,970 utils debug_sql (0.001) SELECT `version_tracker_appversion`.`id` FROM `version_tracker_appversion` INNER JOIN `version_tracker_finalversion_app_versions` ON (`version_tracker_appversion`.`id` = `version_tracker_finalversion_app_versions`.`appversion_id`) WHERE `version_tracker_finalversion_app_versions`.`finalversion_id` = 1 ORDER BY `version_tracker_appversion`.`major` DESC, `version_tracker_appversion`.`minor` DESC, `version_tracker_appversion`.`patch` DESC, `version_tracker_appversion`.`build` DESC; args=(1,); alias=default
 DEBUG 2025-04-29 16:55:32,971 utils debug_transaction (0.001) COMMIT; args=None; alias=default
+INFO 2025-05-04 10:21:16,800 autoreload run_with_reloader Watching for file changes with StatReloader
+DEBUG 2025-05-04 10:21:17,050 utils debug_sql (0.008) 
+                SELECT VERSION(),
+                       @@sql_mode,
+                       @@default_storage_engine,
+                       @@sql_auto_is_null,
+                       @@lower_case_table_names,
+                       CONVERT_TZ('2001-01-01 01:00:00', 'UTC', 'UTC') IS NOT NULL
+            ; args=None; alias=default
+DEBUG 2025-05-04 10:21:17,051 utils debug_sql (0.001) SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED; args=None; alias=default
+DEBUG 2025-05-04 10:21:17,102 utils debug_sql (0.051) SELECT MAX(`version_tracker_appversion`.`major`) AS `max_major` FROM `version_tracker_appversion`; args=(); alias=default
+DEBUG 2025-05-04 10:21:17,108 utils debug_sql (0.005) SELECT MAX(`version_tracker_appversion`.`minor`) AS `max_minor` FROM `version_tracker_appversion` WHERE `version_tracker_appversion`.`major` = 3; args=(3,); alias=default
+DEBUG 2025-05-04 10:21:17,114 utils debug_sql (0.004) SELECT MAX(`version_tracker_appversion`.`patch`) AS `max_patch` FROM `version_tracker_appversion` WHERE (`version_tracker_appversion`.`major` = 3 AND `version_tracker_appversion`.`minor` = 0); args=(3, 0); alias=default
+DEBUG 2025-05-04 10:21:17,120 utils debug_sql (0.005) SELECT MAX(`version_tracker_appversion`.`build`) AS `max_build` FROM `version_tracker_appversion` WHERE (`version_tracker_appversion`.`major` = 3 AND `version_tracker_appversion`.`minor` = 0 AND `version_tracker_appversion`.`patch` = 0); args=(3, 0, 0); alias=default
+DEBUG 2025-05-04 10:21:17,122 utils debug_transaction (0.001) BEGIN; args=None; alias=default
+DEBUG 2025-05-04 10:21:17,127 utils debug_sql (0.004) SELECT `version_tracker_finalversion`.`id`, `version_tracker_finalversion`.`version_number`, `version_tracker_finalversion`.`release_date`, `version_tracker_finalversion`.`is_active` FROM `version_tracker_finalversion` WHERE `version_tracker_finalversion`.`is_active` = 1 LIMIT 21 FOR UPDATE; args=(True,); alias=default
+DEBUG 2025-05-04 10:21:17,130 utils debug_sql (0.002) UPDATE `version_tracker_finalversion` SET `version_number` = '3.0.0.98', `release_date` = '2025-05-04 06:51:17.121395' WHERE `version_tracker_finalversion`.`id` = 1; args=('3.0.0.98', '2025-05-04 06:51:17.121395', 1); alias=default
+DEBUG 2025-05-04 10:21:17,134 utils debug_transaction (0.004) COMMIT; args=None; alias=default
+DEBUG 2025-05-04 10:21:17,141 utils debug_sql (0.004) SELECT `version_tracker_appversion`.`id`, `version_tracker_appversion`.`app_name`, `version_tracker_appversion`.`version_number`, `version_tracker_appversion`.`version_type`, `version_tracker_appversion`.`release_date`, `version_tracker_appversion`.`code_hash`, `version_tracker_appversion`.`changed_files`, `version_tracker_appversion`.`system_info`, `version_tracker_appversion`.`author_id`, `version_tracker_appversion`.`major`, `version_tracker_appversion`.`minor`, `version_tracker_appversion`.`patch`, `version_tracker_appversion`.`build`, `version_tracker_appversion`.`previous_version_id`, `version_tracker_appversion`.`is_final`, `version_tracker_appversion`.`is_active` FROM `version_tracker_appversion` WHERE `version_tracker_appversion`.`version_number` = '3.0.0.98' ORDER BY `version_tracker_appversion`.`major` DESC, `version_tracker_appversion`.`minor` DESC, `version_tracker_appversion`.`patch` DESC, `version_tracker_appversion`.`build` DESC; args=('3.0.0.98',); alias=default
+DEBUG 2025-05-04 10:21:17,142 utils debug_transaction (0.001) BEGIN; args=None; alias=default
+DEBUG 2025-05-04 10:21:17,146 utils debug_sql (0.003) SELECT `version_tracker_appversion`.`id` FROM `version_tracker_appversion` INNER JOIN `version_tracker_finalversion_app_versions` ON (`version_tracker_appversion`.`id` = `version_tracker_finalversion_app_versions`.`appversion_id`) WHERE `version_tracker_finalversion_app_versions`.`finalversion_id` = 1 ORDER BY `version_tracker_appversion`.`major` DESC, `version_tracker_appversion`.`minor` DESC, `version_tracker_appversion`.`patch` DESC, `version_tracker_appversion`.`build` DESC; args=(1,); alias=default
+DEBUG 2025-05-04 10:21:17,147 utils debug_transaction (0.001) COMMIT; args=None; alias=default
