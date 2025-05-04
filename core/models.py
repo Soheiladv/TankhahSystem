@@ -190,6 +190,7 @@ class SubProject(models.Model):
             ('SubProject_Branch','تخصیص  زیر مجموعه پروژه(شعبه)🏠'),
         ]
 
+
 class Post(models.Model):
     """مدل پست سازمانی برای تعریف سلسله مراتب"""
     BRANCH_CHOICES = (

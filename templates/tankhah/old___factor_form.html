@@ -1,0 +1,751 @@
+{% extends 'base.html' %}
+{% load i18n static rcms_custom_filters file_tags %}
+
+{% block extra_head %}
+    <style>
+        .form-label {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        .form-control:disabled, .form-select:disabled {
+            background-color: #e9ecef;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .number-to-words-output {
+            display: block;
+            padding: 0.5rem 0.75rem;
+            margin-top: 0.25rem;
+            background-color: #e9f5ff;
+            border: 1px solid #b3d7f8;
+            border-radius: var(--bs-border-radius);
+            color: #0a58ca;
+            font-weight: bold;
+            min-height: calc(1.5em + 1rem + 2px);
+            line-height: 1.6;
+            direction: rtl;
+            text-align: right;
+            font-size: 0.9em;
+        }
+
+        .number-to-words-output:empty::before {
+            content: "-";
+            color: #999;
+            font-weight: normal;
+            font-style: italic;
+        }
+
+        .factor-tabs .nav-link {
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--bs-secondary-color);
+            font-weight: 500;
+            padding: 0.8rem 1.2rem;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .factor-tabs .nav-link i {
+            width: 1.2em;
+            text-align: center;
+        }
+
+        .factor-tabs .nav-link:hover {
+            color: var(--bs-primary);
+        }
+
+        .factor-tabs .nav-link.active {
+            color: var(--bs-primary);
+            background-color: transparent;
+            border-bottom-color: var(--bs-primary);
+            font-weight: 600;
+        }
+
+        .tab-pane {
+            padding-top: 1.5rem;
+        }
+
+        .item-row {
+            border: 1px solid var(--bs-border-color-translucent);
+            border-radius: var(--bs-border-radius-lg);
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background-color: var(--bs-light-bg-subtle);
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .item-row:hover {
+            background-color: var(--bs-primary-bg-subtle);
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        .item-row.is-deleting {
+            opacity: 0.6;
+            background-color: var(--bs-danger-bg-subtle) !important;
+            border-color: var(--bs-danger-border-subtle);
+        }
+
+        .item-total {
+            font-weight: bold;
+            font-size: 0.95em;
+            padding: 0.5rem 0.75rem;
+            background-color: var(--bs-success-bg-subtle);
+            border: 1px solid var(--bs-success-border-subtle);
+            color: var(--bs-success-text-emphasis);
+            border-radius: var(--bs-border-radius);
+        }
+
+        .delete-item-label {
+            cursor: pointer;
+            padding: 0.5rem;
+            color: var(--bs-danger);
+            transition: color 0.2s ease;
+        }
+
+        .delete-item-label:hover {
+            color: var(--bs-danger-text-emphasis);
+        }
+
+        .delete-item-check:checked + .delete-item-label {
+            color: var(--bs-danger-text-emphasis);
+            font-weight: bold;
+        }
+
+        .summary-section {
+            background-color: var(--bs-tertiary-bg);
+            border-radius: var(--bs-border-radius-lg);
+            padding: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .summary-section strong {
+            color: var(--bs-emphasis-color);
+        }
+
+        .summary-value {
+            font-weight: bold;
+            font-size: 1.1em;
+            padding: 0.3em 0.6em;
+            border-radius: var(--bs-border-radius-pill);
+            min-width: 80px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        @media (max-width: 767px) {
+            .factor-tabs .nav-link {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            .item-row .col-md-1, .item-row .col-md-2, .item-row .col-md-5 {
+                margin-bottom: 0.75rem;
+            }
+
+            .item-row .col-auto {
+                width: 100%;
+                text-align: right !important;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container my-4">
+        <div class="card shadow-lg border-0 animate__animated animate__fadeIn"
+             style="border-radius: 15px; overflow: hidden;">
+            <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center py-3 px-4">
+                <h4 class="card-title mb-0 d-flex align-items-center">
+                    <i class="fas fa-edit me-3"></i>{{ title|to_persian_number }}
+                </h4>
+                <a href="{{ request.META.HTTP_REFERER|default:'#' }}"
+                   class="btn btn-sm btn-outline-light rounded-pill px-3">
+                    <i class="fas fa-arrow-left me-1"></i>{% trans "بازگشت" %}
+                </a>
+            </div>
+            <div id="item-formset">
+                {% if item_formset.non_form_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in item_formset.non_form_errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+            <div class="card-body p-0">
+                <ul class="nav nav-tabs factor-tabs px-4 pt-3" id="factorTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="main-tab" data-bs-toggle="tab"
+                                data-bs-target="#main-tab-pane" type="button" role="tab" aria-controls="main-tab-pane"
+                                aria-selected="true">
+                            <i class="fas fa-file-invoice me-1"></i>
+                            {% trans "اطلاعات اصلی" %}
+                            {% if tankhah_count %}
+                                <span class="badge bg-light text-dark rounded-pill ms-2 animate__animated animate__bounceIn">{{ tankhah_count|to_persian_number }}</span>
+                            {% endif %}
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="items-tab" data-bs-toggle="tab" data-bs-target="#items-tab-pane"
+                                type="button" role="tab" aria-controls="items-tab-pane" aria-selected="false">
+                            <i class="fas fa-list-ol me-1"></i>
+                            {% trans "اقلام فاکتور" %}
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="documents-tab" data-bs-toggle="tab"
+                                data-bs-target="#documents-tab-pane" type="button" role="tab"
+                                aria-controls="documents-tab-pane" aria-selected="false">
+                            <i class="fas fa-paperclip me-1"></i>
+                            {% trans "اسناد" %}
+                            {% if documents_count %}
+                                <span class="badge bg-light text-dark rounded-pill ms-2 animate__animated animate__bounceIn">{{ documents_count|to_persian_number }}</span>
+                            {% endif %}
+                        </button>
+                    </li>
+                    <li>
+                        <p>
+                            <strong>{% trans "بودجه باقی‌مانده تنخواه" %}:</strong> {{ budget_info.tankhah_remaining|floatformat:0|to_persian_number }} {% trans "ریال" %}
+                        </p>
+                    </li>
+                </ul>
+
+                <form method="post" enctype="multipart/form-data" id="factor-form">
+                    {% csrf_token %}
+                    <div class="tab-content p-4" id="factorTabsContent">
+                        <!-- تب اطلاعات اصلی -->
+                        <div class="tab-pane fade show active" id="main-tab-pane" role="tabpanel"
+                             aria-labelledby="main-tab" tabindex="0">
+                            <div class="row g-3 mb-4">
+                                     <div class="budget-info">
+                <h5>{% trans "اطلاعات بودجه" %}</h5>
+                                         <!-- نمایش اطلاعات بودجه -->
+                                         {% if budget_info %}
+                                             <div class="alert alert-info mt-3 mx-4">
+                                                 <h4>{% trans "اطلاعات بودجه" %}</h4>
+                                                 <p><strong>{% trans "پروژه" %}:</strong> {{ budget_info.project_name }}
+                                                 </p>
+                                                 <p>
+                                                     <strong>{% trans "بودجه کل پروژه" %}:</strong> {{ budget_info.project_budget|floatformat:0|to_persian_number }} {% trans "ریال" %}
+                                                 </p>
+                                                 <p>
+                                                     <strong>{% trans "بودجه تنخواه" %}:</strong> {{ budget_info.tankhah_budget|floatformat:0|to_persian_number }} {% trans "ریال" %}
+                                                 </p>
+                                                 <p>
+                                                     <strong>{% trans "بودجه باقی‌مانده تنخواه" %}:</strong> {{ budget_info.tankhah_remaining|floatformat:0|to_persian_number }} {% trans "ریال" %}
+                                                 </p>
+                                                 {% if budget_info.tankhah_remaining and budget_info.tankhah_budget and budget_info.tankhah_remaining < budget_info.tankhah_budget|div:10 %}
+                                                     <div class="alert alert-danger mt-2">
+                                                         {% trans "هشدار: بودجه باقی‌مانده تنخواه کمتر از 10٪ است!" %}
+                                                     </div>
+
+                                                     <p><strong>{% trans "بودجه باقی‌مانده تنخواه" %}:</strong>
+                                                         {{ tankhah_remaining_budget|floatformat:"0"|to_persian_number }}
+                                                         {% trans "ریال" %}</p>
+                                                     <p><strong>{% trans "بودجه باقی‌مانده فاکتور" %}:</strong>
+                                                         {{ factor_remaining_budget|floatformat:"0"|to_persian_number }}
+                                                         {% trans "ریال" %}</p>
+                                                 {% endif %}
+                                             </div>
+                                         {% else %}
+                                             <div class="alert alert-warning mt-3 mx-4">
+                                                 {% trans "اطلاعات بودجه در دسترس نیست. لطفاً تنخواه را انتخاب کنید یا تخصیص بودجه را بررسی کنید." %}
+                                             </div>
+                                         {% endif %}
+
+            </div>
+                                {% for field in form %}
+                                    {% if field.name != 'amount' and field.name != 'description' %}
+                                        <div class="col-md-6 animate__animated animate__fadeInUp"
+                                             style="animation-delay: {{ forloop.counter0 }}s;">
+                                            <label for="{{ field.id_for_label }}"
+                                                   class="form-label">{{ field.label }}</label>
+                                            {{ field }}
+                                            {% if field.help_text %}
+                                                <div class="form-text">{{ field.help_text|safe }}</div>
+                                            {% endif %}
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                                <div class="col-md-6 animate__animated animate__fadeInUp"
+                                     style="animation-delay: 0.3s;">
+                                    {{ form.unitprice }}
+                                    {% if form.unitprice.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.amount.errors|join:", " }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-12 animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+                                    <label for="{{ form.description.id_for_label }}"
+                                           class="form-label">{{ form.description.label }}</label>
+                                    {{ form.description }}
+                                    {% if form.description.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.description.errors|join:", " }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="summary-section animate__animated animate__fadeInUp"
+                                 style="animation-delay: 0.5s;">
+                                <h5 class="mb-3 text-center"><i
+                                        class="fas fa-calculator me-2"></i>{% trans "خلاصه محاسبات" %}</h5>
+                                <div class="row text-center gy-2">
+                                    <div class="col-md-4">
+                                        <strong>{% trans "جمع کل اقلام:" %}</strong>
+                                        <span id="total-items-amount" class="summary-value bg-light text-dark">۰</span>
+                                        <small class="text-muted">{% trans "ریال" %}</small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>{% trans "مبلغ فاکتور:" %}</strong>
+                                        <span id="factor-amount-display"
+                                              class="summary-value bg-light text-dark">۰</span>
+                                        <small class="text-muted">{% trans "ریال" %}</small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>{% trans "تفاوت:" %}</strong>
+                                        <span id="difference-amount" class="summary-value bg-light text-dark">۰</span>
+                                        <small class="text-muted">{% trans "ریال" %}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- تب اقلام فاکتور -->
+                        <div class="tab-pane fade" id="items-tab-pane" role="tabpanel" aria-labelledby="items-tab"
+                             tabindex="0">
+                            <div class="animate__animated animate__fadeIn">
+                                {{ item_formset.management_form }}
+                                <div id="item-formset">
+                                    <div class="table-header bg-gradient-primary text-white p-3 rounded-top shadow-sm animate__animated animate__slideInDown">
+                                        <div class="row g-2 align-items-center fw-bold">
+                                            <div class="col-auto text-center"><i
+                                                    class="fas fa-hashtag me-1"></i>{% trans "ردیف" %}</div>
+                                            <div class="col-md-5"><i
+                                                    class="fas fa-align-right me-1"></i>{% trans "شرح" %}</div>
+                                            <div class="col-md-2 col-6 text-center"><i
+                                                    class="fas fa-coins me-1"></i>{% trans "مبلغ" %}</div>
+                                            <div class="col-md-1 col-6 text-center"><i
+                                                    class="fas fa-sort-numeric-up me-1"></i>{% trans "تعداد" %}</div>
+                                            <div class="col-md-2 text-center"><i
+                                                    class="fas fa-calculator me-1"></i>{% trans "جمع" %}</div>
+                                            <div class="col-auto ms-md-auto text-center"><i
+                                                    class="fas fa-trash-alt me-1"></i>{% trans "حذف" %}</div>
+                                        </div>
+                                    </div>
+                                    {% for item_form in item_formset %}
+                                        <div class="item-row bg-light p-3 mb-2 rounded shadow-sm animate__animated animate__fadeInUp"
+                                             data-id="{{ forloop.counter0 }}"
+                                             style="animation-delay: {{ forloop.counter0 }}s;">
+                                            {{ item_form.id }}
+                                            <div class="row g-2 align-items-center">
+                                                <div class="col-auto">
+                                                    <span class="row-number badge bg-secondary rounded-pill">{{ forloop.counter|to_persian_number }}</span>
+                                                </div>
+                                                <div class="col-md-5">
+                                                    <label for="{{ item_form.description.id_for_label }}"
+                                                           class="form-label visually-hidden">{% trans "شرح قلم" %}</label>
+                                                    {{ item_form.description  }}
+                                                </div>
+                                                <div class="col-md-2 col-6">
+                                                    <label for="{{ item_form.amount.id_for_label }}"
+                                                           class="form-label visually-hidden">{% trans "مبلغ قلم" %}</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <span class="input-group-text"><i
+                                                                class="fas fa-dollar-sign"></i></span>
+                                                        {{ item_form.amount  }}
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-1 col-6">
+                                                    <label for="{{ item_form.quantity.id_for_label }}"
+                                                           class="form-label visually-hidden">{% trans "تعداد قلم" %}</label>
+                                                    {{ item_form.quantity|add_class:"form-control form-control-sm ltr-input" }}
+                                                </div>
+                                                <div class="col-md-2 text-center">
+                                                    <span class="item-total badge bg-success text-white rounded-pill px-3 py-2">۰</span>
+                                                </div>
+                                                <div class="col-auto ms-md-auto text-center">
+                                                    {% if item_formset.can_delete %}
+                                                        <div class="form-check form-switch d-inline-block">
+                                                            {{ item_form.DELETE|add_class:"form-check-input delete-item-check" }}
+                                                            <label class="delete-item-label text-danger"
+                                                                   for="{{ item_form.DELETE.id_for_label }}"
+                                                                   title="{% trans 'حذف این ردیف' %}">
+                                                                <i class="fas fa-trash-alt fa-lg"></i>
+                                                            </label>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            {% if item_form.errors %}
+                                                <div class="alert alert-danger alert-sm mt-2 py-1 px-2">{{ item_form.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                    <div class="item-summary mt-3 p-3 bg-light rounded shadow-sm animate__animated animate__fadeInUp">
+                                        <div class="row g-2 align-items-center fw-bold">
+                                            <div class="col-auto text-center"><strong>{% trans "جمع کل" %}</strong>
+                                            </div>
+                                            <div class="col-md-5"></div>
+                                            <div class="col-md-2 col-6 text-center">
+                                                <span id="total-amount"
+                                                      class="badge bg-primary text-white rounded-pill px-3 py-2">۰</span>
+                                            </div>
+                                            <div class="col-md-1 col-6 text-center">
+                                                <span id="total-quantity"
+                                                      class="badge bg-primary text-white rounded-pill px-3 py-2">۰</span>
+                                            </div>
+                                            <div class="col-md-2 text-center">
+                                                <span id="total-items"
+                                                      class="badge bg-primary text-white rounded-pill px-3 py-2">۰</span>
+                                            </div>
+                                            <div class="col-auto ms-md-auto"></div>
+                                        </div>
+                                    </div>
+                                    <button type="button"
+                                            class="btn btn-outline-primary mt-3 animate__animated animate__pulse animate__infinite animate__slower"
+                                            id="add-item">
+                                        <i class="fas fa-plus-circle me-2"></i>{% trans "افزودن ردیف جدید" %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- تب اسناد -->
+                        <div class="tab-pane fade" id="documents-tab-pane" role="tabpanel"
+                             aria-labelledby="documents-tab" tabindex="0">
+                            <div class="row g-4 animate__animated animate__fadeIn">
+                                <div class="col-md-12">
+                                    <div class="card h-100 border-0 shadow-sm">
+                                        <div class="card-header bg-light border-bottom">
+                                            <h5 class="mb-0 d-flex align-items-center">
+                                                <i class="fas fa-file-invoice text-info me-2"></i>{% trans "اسناد فاکتور" %}
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label for="{{ document_form.files.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-upload me-1"></i>{{ document_form.files.label }}
+                                                </label>
+                                                {{ document_form.files }}
+                                                <div class="form-text">{% trans "می‌توانید چند فایل را همزمان انتخاب کنید." %}</div>
+                                                {% if document_form.files.errors %}
+                                                    <div class="invalid-feedback d-block">{{ document_form.files.errors|striptags }}</div>
+                                                {% endif %}
+                                            </div>
+                                            {% with factor_documents=object.documents.all %}
+                                                {% if factor_documents.exists %}
+                                                    <hr>
+                                                    <h6 class="mb-3">{% trans "اسناد موجود" %}</h6>
+                                                    <ul class="list-group list-group-flush existing-documents">
+                                                        {% for doc in factor_documents %}
+                                                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                                                                <div class="d-flex align-items-center flex-grow-1 me-3">
+                                                                    <i class="fas {{ doc.file.name|get_file_icon }} fa-lg text-secondary me-3"></i>
+                                                                    <a href="{{ doc.file.url }}" target="_blank"
+                                                                       class="text-dark text-decoration-none text-truncate"
+                                                                       title="{{ doc.file.name }}">
+                                                                        {{ doc.file.name }}
+                                                                    </a>
+                                                                    <span class="badge bg-light text-dark rounded-pill ms-2">{{ doc.file.size|filesizeformat }}</span>
+                                                                </div>
+                                                                <div class="form-check form-switch">
+                                                                    <input class="form-check-input delete-doc-check"
+                                                                           type="checkbox"
+                                                                           name="delete_factor_doc_{{ doc.pk }}"
+                                                                           id="del_fdoc_{{ doc.pk }}"
+                                                                           value="{{ doc.pk }}">
+                                                                    <label class="form-check-label visually-hidden"
+                                                                           for="del_fdoc_{{ doc.pk }}">{% trans "حذف" %}</label>
+                                                                </div>
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="card h-100 border-0 shadow-lg">
+                                        {% if tankhah_documents %}
+                                            <hr>
+                                            <h6 class="mb-3">{% trans "اسناد موجود" %}</h6>
+                                            <ul class="list-group list-group-flush existing-documents">
+                                                {% for doc in tankhah_documents %}
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                                                        <div class="d-flex align-items-center flex-grow-1 me-3">
+                                                            <i class="fas {{ doc.document.name|get_file_icon }} fa-lg text-secondary me-3"></i>
+                                                            <a href="{{ doc.document.url }}" target="_blank"
+                                                               class="text-dark text-decoration-none text-truncate"
+                                                               title="{{ doc.document.name }}">
+                                                                {{ doc.document.name }}
+                                                            </a>
+                                                            <span class="badge bg-light text-dark rounded-pill ms-2">{{ doc.document.size|filesizeformat }}</span>
+                                                        </div>
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input delete-doc-check"
+                                                                   type="checkbox"
+                                                                   name="delete_tankhah_doc_{{ doc.pk }}"
+                                                                   id="del_tdoc_{{ doc.pk }}" value="{{ doc.pk }}">
+                                                            <label class="form-check-label visually-hidden"
+                                                                   for="del_tdoc_{{ doc.pk }}">{% trans "حذف" %}</label>
+                                                        </div>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                            <p class="text-muted small mt-3">{% trans "اسناد با کلیک دانلود خواهد شد." %}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4 pt-4 border-top">
+                            <a href="{{ request.META.HTTP_REFERER|default:'#' }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>{% trans "انصراف" %}
+                            </a>
+                            <button type="submit" class="btn btn-lg btn-primary px-5">
+                                <i class="fas fa-save me-2"></i>{% trans "ذخیره" %}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+        <!-- تمپلیت خالی برای ردیف جدید -->
+        <template id="empty-item-form">
+        <div class="item-row bg-light p-3 mb-2 rounded shadow-sm animate__animated animate__fadeInUp" data-id="__prefix__">
+            <div class="row g-2 align-items-center">
+                <div class="col-auto">
+                    <span class="row-number badge bg-secondary rounded-pill">__row_num__</span>
+                </div>
+                <div class="col-md-5">
+                    <label for="id_form-__prefix__-description"
+                           class="form-label small text-muted">{% trans "شرح قلم" %}</label>
+                    <input type="text" name="form-__prefix__-description" class="form-control form-control-sm"
+                           maxlength="200"
+                           id="id_form-__prefix__-description">
+                </div>
+                <div class="col-md-2 col-6">
+                    <label for="id_form-__prefix__-amount"
+                           class="form-label small text-muted">{% trans "مبلغ قلم" %}</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                        <input type="number" name="form-__prefix__-amount"
+                               class="form-control form-control-sm ltr-input amount-field" step="1" min="0"
+                               id="id_form-__prefix__-amount">
+                    </div>
+                </div>
+                <div class="col-md-1 col-6">
+                    <label for="id_form-__prefix__-quantity"
+                           class="form-label small text-muted">{% trans "تعداد قلم" %}</label>
+                    <input type="number" name="form-__prefix__-quantity" value="1"
+                           class="form-control form-control-sm ltr-input quantity-field" min="1"
+                           id="id_form-__prefix__-quantity">
+                </div>
+                <div class="col-md-2 text-center">
+                    <span class="item-total">۰</span>
+                </div>
+                <div class="col-auto ms-md-auto text-center">
+                    {% if item_formset.can_delete %}
+                        <div class="form-check form-switch d-inline-block">
+                            <input type="checkbox" name="form-__prefix__-DELETE"
+                                   class="form-check-input delete-item-check" id="id_form-__prefix__-DELETE">
+                            <label class="delete-item-label" for="id_form-__prefix__-DELETE"
+                                   title="{% trans 'حذف این ردیف' %}">
+                                <i class="fas fa-trash-alt fa-lg"></i>
+                            </label>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        </template>
+    </div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    $(document).ready(function () {
+        function toLatinDigits(str) {
+            const persianDigits = /[۰-۹]/g;
+            return str.replace(persianDigits, d => d.charCodeAt(0) - 1776);
+        }
+
+        // مدیریت تب‌ها
+        const factorTabs = document.querySelectorAll('#factorTabs button[data-bs-toggle="tab"]');
+        factorTabs.forEach(tabEl => {
+            tabEl.addEventListener('shown.bs.tab', event => {
+                localStorage.setItem('lastFactorTab', event.target.id);
+            });
+        });
+
+        let lastTabId = localStorage.getItem('lastFactorTab');
+        if (lastTabId && document.querySelector(`#${lastTabId}`)) {
+            const lastTab = document.querySelector(`#${lastTabId}`);
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tab) {
+                const tabInstance = bootstrap.Tab.getInstance(lastTab) || new bootstrap.Tab(lastTab);
+                tabInstance.show();
+            }
+        }
+
+        // مدیریت اقلام فاکتور
+        const itemFormsetContainer = document.getElementById('item-formset');
+        const addItemButton = document.getElementById('add-item');
+        const totalFormsInput = document.getElementById('id_form-TOTAL_FORMS');
+        let formCount = parseInt(totalFormsInput.value) || 0;
+
+        const emptyFormTemplate = document.getElementById('empty-item-form').content;
+
+        if (addItemButton) {
+            addItemButton.addEventListener('click', function () {
+                const newIndex = formCount;
+                const newForm = emptyFormTemplate.cloneNode(true);
+                const newFormElement = newForm.querySelector('.item-row');
+
+                newFormElement.innerHTML = newFormElement.innerHTML.replace(/__prefix__/g, newIndex);
+                newFormElement.querySelector('.row-number').textContent = (formCount + 1).toLocaleString('fa-IR');
+
+                newFormElement.querySelector('[name$="-description"]').value = '';
+                newFormElement.querySelector('[name$="-amount"]').value = '';
+                newFormElement.querySelector('[name$="-quantity"]').value = '1';
+                newFormElement.querySelector('.item-total').textContent = '۰';
+
+                itemFormsetContainer.querySelector('.item-summary').before(newFormElement);
+                formCount++;
+                totalFormsInput.value = formCount;
+
+                attachItemCalculationListeners(newFormElement);
+                attachDeleteListener(newFormElement.querySelector('[name$="-DELETE"]'));
+                calculateItemTotal(newFormElement);
+
+                const newDescriptionInput = newFormElement.querySelector('[name$="-description"]');
+                if (newDescriptionInput) newDescriptionInput.focus();
+            });
+        }
+
+        function updateRowNumbers() {
+            const rows = itemFormsetContainer.querySelectorAll('.item-row');
+            rows.forEach((row, index) => {
+                const rowNumSpan = row.querySelector('.row-number');
+                if (rowNumSpan) rowNumSpan.textContent = (index + 1).toLocaleString('fa-IR');
+            });
+        }
+
+        function calculateItemTotal(rowElement) {
+            if (!rowElement) return;
+            const amountInput = rowElement.querySelector('[name$="-amount"]');
+            const quantityInput = rowElement.querySelector('[name$="-quantity"]');
+            const totalSpan = rowElement.querySelector('.item-total');
+
+            const amount = parseFloat(toLatinDigits(amountInput?.value || '0').replace(/,/g, '')) || 0;
+            const quantity = parseFloat(toLatinDigits(quantityInput?.value || '0').replace(/,/g, '')) || 0;
+            const total = Math.round(amount * quantity);
+
+            if (totalSpan) totalSpan.textContent = total.toLocaleString('fa-IR');
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let itemsTotal = 0, totalAmount = 0, totalQuantity = 0, validRows = 0;
+            const itemRows = itemFormsetContainer.querySelectorAll('.item-row');
+
+            itemRows.forEach(row => {
+                const deleteCheckbox = row.querySelector('[name$="-DELETE"]');
+                if (!deleteCheckbox || !deleteCheckbox.checked) {
+                    const amount = parseFloat(toLatinDigits(row.querySelector('[name$="-amount"]')?.value || '0').replace(/,/g, '')) || 0;
+                    const quantity = parseFloat(toLatinDigits(row.querySelector('[name$="-quantity"]')?.value || '0').replace(/,/g, '')) || 0;
+                    const total = Math.round(amount * quantity);
+                    totalAmount += amount;
+                    totalQuantity += quantity;
+                    itemsTotal += total;
+                    validRows += 1;
+                }
+            });
+
+            const factorAmountInput = document.getElementById('id_amount');
+            const factorAmount = parseFloat(toLatinDigits(factorAmountInput?.value || '0').replace(/,/g, '')) || 0;
+            const difference = Math.round(factorAmount - itemsTotal);
+
+            document.getElementById('total-items-amount').textContent = Math.round(itemsTotal).toLocaleString('fa-IR');
+            document.getElementById('factor-amount-display').textContent = Math.round(factorAmount).toLocaleString('fa-IR');
+            document.getElementById('difference-amount').textContent = difference.toLocaleString('fa-IR');
+            document.getElementById('total-amount').textContent = Math.round(totalAmount).toLocaleString('fa-IR');
+            document.getElementById('total-quantity').textContent = Math.round(totalQuantity).toLocaleString('fa-IR');
+            document.getElementById('total-items').textContent = validRows.toLocaleString('fa-IR'); // تعداد ردیف‌های معتبر
+
+            const differenceEl = document.getElementById('difference-amount');
+            if (differenceEl) {
+                differenceEl.classList.remove('bg-success', 'text-white', 'bg-danger', 'text-white', 'bg-warning', 'text-dark', 'bg-light', 'text-dark');
+                if (difference === 0) differenceEl.classList.add('bg-success', 'text-white');
+                else if (difference > 0) differenceEl.classList.add('bg-warning', 'text-dark');
+                else differenceEl.classList.add('bg-danger', 'text-white');
+            }
+        }
+
+        function attachItemCalculationListeners(parentElement) {
+            const amountInputs = parentElement.querySelectorAll('[name$="-amount"]');
+            const quantityInputs = parentElement.querySelectorAll('[name$="-quantity"]');
+
+            amountInputs.forEach(input => {
+                input.addEventListener('input', () => calculateItemTotal(input.closest('.item-row')));
+            });
+            quantityInputs.forEach(input => {
+                input.addEventListener('input', () => calculateItemTotal(input.closest('.item-row')));
+            });
+        }
+
+        function attachDeleteListener(checkbox) {
+            if (checkbox) {
+                checkbox.addEventListener('change', function () {
+                    const row = this.closest('.item-row');
+                    if (row) row.classList.toggle('is-deleting', this.checked);
+                    calculateTotals();
+                    updateRowNumbers();
+                });
+                const row = checkbox.closest('.item-row');
+                if (row) row.classList.toggle('is-deleting', checkbox.checked);
+            }
+        }
+
+        const existingRows = itemFormsetContainer.querySelectorAll('.item-row');
+        existingRows.forEach(row => {
+            attachItemCalculationListeners(row);
+            attachDeleteListener(row.querySelector('[name$="-DELETE"]'));
+            calculateItemTotal(row);
+        });
+
+        const mainAmountInput = document.getElementById('id_amount');
+        if (mainAmountInput) {
+            mainAmountInput.addEventListener('input', calculateTotals);
+        }
+
+        // حذف فرم‌های خالی یا ناقص قبل از ارسال
+        document.querySelector('#factor-form').addEventListener('submit', function (event) {
+            document.querySelectorAll('.item-row').forEach(function (row) {
+                const description = row.querySelector('input[name$="-description"]').value;
+                const amount = row.querySelector('input[name$="-amount"]').value;
+                const quantity = row.querySelector('input[name$="-quantity"]').value;
+                const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+                if (!description || !amount || parseFloat(amount) <= 0 || !quantity || parseInt(quantity) < 1) {
+                    if (deleteCheckbox) {
+                        deleteCheckbox.checked = true; // علامت‌گذاری برای حذف
+                    }
+                }
+            });
+            calculateTotals();
+        });
+
+        calculateTotals();
+        updateRowNumbers();
+    });
+</script>
+{% endblock %}

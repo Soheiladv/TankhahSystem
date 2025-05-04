@@ -2,102 +2,28 @@
 {% extends "tankhah/Factors/wizard/factor_wizard_base.html" %}
 {% load i18n static rcms_custom_filters %} {# Load your custom filters #}
 
-{% block extra_css %}
-{{ block.super }}
-<style>
-    /* استایل پایه برای ردیف آیتم */
-    .item-row.dynamic-form {
-        transition: opacity 0.3s ease-out, max-height 0.4s ease-out, transform 0.3s ease-out, margin-bottom 0.3s ease-out, padding-top 0.3s ease-out, padding-bottom 0.3s ease-out;
-        overflow: hidden;
-        border-bottom: 1px dashed #eee; /* جداکننده بصری بین ردیف‌ها */
-        margin-bottom: 0.25rem !important; /* mb-1 */
-        padding-top: 0.5rem !important;   /* py-2 */
-        padding-bottom: 0.5rem !important;/* py-2 */
-        max-height: 150px; /* ارتفاع کافی برای محتوای ردیف */
-        opacity: 1;
-        transform: translateX(0);
-    }
-
-    /* حالت اولیه برای انیمیشن اضافه شدن */
-    .item-row.row-adding {
-        opacity: 0;
-        max-height: 0;
-        transform: translateX(-20px);
-        margin-bottom: 0 !important;
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-        border-bottom: none;
-    }
-
-    /* حالت برای انیمیشن حذف شدن */
-    .item-row.row-removing {
-        opacity: 0;
-        max-height: 0;
-        transform: scale(0.95);
-        margin-bottom: 0 !important;
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-        border-bottom: none;
-    }
-
-    /* استایل برای ردیف‌هایی که حذف شده‌اند (سمت سرور) */
-    .item-row.is-deleting {
-        opacity: 0.5;
-        background-color: #ffebee; /* رنگ پس‌زمینه خیلی ملایم قرمز */
-        text-decoration: line-through; /* خط خورده */
-    }
-     .item-row.is-deleting input,
-     .item-row.is-deleting textarea {
-         background-color: #f1f1f1 !important; /* غیرفعال کردن ظاهری */
-     }
-
-
-    /* هایلایت برای تغییرات */
-    .highlight-change {
-        animation: highlight 0.7s ease-out;
-    }
-    @keyframes highlight {
-        0% { background-color: rgba(255, 255, 0, 0.5); transform: scale(1.05); } /* زرد */
-        100% { background-color: transparent; transform: scale(1); }
-    }
-     /* هایلایت ملایم‌تر برای جمع کل */
-    .highlight-total {
-        animation: highlight-subtle 0.7s ease-out;
-    }
-    @keyframes highlight-subtle {
-         0%, 100% { background-color: transparent; }
-         50% { background-color: rgba(200, 255, 200, 0.4); } /* سبز خیلی ملایم */
-    }
-
-
-    /* استایل برای فیلدهای نامعتبر */
-    .is-invalid {
-        border-color: #dc3545 !important;
-        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
-    }
-    .form-control.is-invalid:focus {
-         border-color: #dc3545 !important;
-         box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
-    }
-    .text-danger { color: #dc3545 !important; }
-    .text-success { color: #198754 !important; }
-    .text-warning { color: #ffc107 !important; } /* برای مقایسه مبلغ */
-</style>
-{% endblock %}
-
-
 {% block wizard_content %}
-
 <form method="post" novalidate id="factor-item-form">
     {% csrf_token %}
     {{ wizard.management_form }}
     {% if formset %}{{ formset.management_form }}{% endif %}
 
-    {% if form.non_field_errors or formset.non_form_errors %}
+    {% if formset.errors or formset.non_form_errors %}
         <div class="alert alert-danger alert-sm p-2" role="alert">
-            <strong>{% trans "خطا:" %}</strong><br>
-            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
-            {% for error in formset.non_form_errors %}{{ error }}{% endfor %}
+            <strong>{% trans "خطا در آیتم‌های فاکتور:" %}</strong><br>
+            {% for error in formset.non_form_errors %}
+                {{ error }}<br>
+            {% endfor %}
+            {% for form in formset %}
+                {% if form.errors %}
+                    <strong>ردیف {{ forloop.counter }}:</strong><br>
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            {{ field.label|default:"خطای کلی" }}: {{ error }}<br>
+                        {% endfor %}
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
         </div>
     {% endif %}
 
@@ -169,34 +95,44 @@
         {% if formset %}
             {% for form in formset %}
                 <div class="item-row dynamic-form mb-1 py-1 {% if form.instance.pk and form.DELETE.value %}is-deleting{% endif %}" id="{{ formset.prefix }}-{{ forloop.counter0 }}">
-                    {% if form.non_field_errors %} <div class="alert alert-danger alert-sm p-1">{{ form.non_field_errors|join:", " }}</div> {% endif %}
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-sm p-1">{{ form.non_field_errors|join:", " }}</div> {% endif %}
                     <div class="row gx-2 align-items-center">
-                        <div class="col-auto ps-1" style="width: 30px;"><span class="row-number fw-bold small text-muted"></span></div>
+                        <div class="col-auto ps-1" style="width: 30px;"><span
+                                class="row-number fw-bold small text-muted"></span></div>
                         <div class="col">
                             {{ form.description }}
-                            {% if form.description.errors %}<div class="invalid-feedback d-block small">{{ form.description.errors|join:", "}}</div>{% endif %}
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block small">{{ form.description.errors|join:", " }}</div>{% endif %}
                         </div>
                         <div class="col-md-2">
                             {{ form.quantity }}
-                            {% if form.quantity.errors %}<div class="invalid-feedback d-block small">{{ form.quantity.errors|join:", "}}</div>{% endif %}
+                            {% if form.quantity.errors %}
+                                <div class="invalid-feedback d-block small">{{ form.quantity.errors|join:", " }}</div>{% endif %}
                         </div>
                         <div class="col-md-3">
-                            {{ form.amount }}
-                            {% if form.amount.errors %}<div class="invalid-feedback d-block small">{{ form.amount.errors|join:", "}}</div>{% endif %}
+                            {{ form.unit_price }} {# تغییر amount به unit_price #}
+                            {% if form.unit_price.errors %}
+                                <div class="invalid-feedback d-block small">{{ form.unit_price.errors|join:", " }}</div>{% endif %}
                         </div>
                         <div class="col-md-2 text-center">
                             <span class="item-total fw-bold small">۰</span>
                         </div>
                         <div class="col-auto pe-1" style="width: 40px;">
-                            {% if form.instance.pk %}<div style="display:none;">{{ form.DELETE }}</div>{% endif %} {# Hide checkbox, control via button #}
-                            <button type="button" class="btn btn-outline-danger btn-sm border-0 remove-form-row py-0 px-1" title="{% trans "حذف ردیف" %}">
-                                <i class="fas fa-times fa-sm"></i>
+                            {% if form.instance.pk %}
+                                <div style="display:none;">{{ form.DELETE }}</div>{% endif %}
+                            <button type="button"
+                                    class="btn btn-outline-danger btn-sm border-0 remove-form-row py-0 px-1"
+                                    title="{% trans "حذف ردیف" %}">
+                                <i class="fas facpy fa-sm"></i>
                             </button>
                         </div>
                     </div>
-                    {% for hidden in form.hidden_fields %}{% if hidden.name != 'DELETE' %}{{ hidden }}{% endif %}{% endfor %}
+                    {% for hidden in form.hidden_fields %}{% if hidden.name != 'DELETE' %}{{ hidden }}
+                    {% endif %}{% endfor %}
                 </div>
             {% endfor %}
+
         {% else %}
              <p class="text-muted small">{% trans "فرم ست آیتم‌ها بارگذاری نشده است." %}</p>
         {% endif %}
@@ -217,17 +153,20 @@
     {# --- Empty form template --- #}
     <template id="{{ formset.prefix|default:'items' }}-empty-form">
         <div class="item-row dynamic-form mb-1 py-1">
-             <div class="row gx-2 align-items-center">
-                 <div class="col-auto ps-1" style="width: 30px;"><span class="row-number fw-bold small text-muted"></span></div>
-                 <div class="col">{% if formset %}{{ formset.empty_form.description }}{% endif %}</div>
-                 <div class="col-md-2">{% if formset %}{{ formset.empty_form.quantity }}{% endif %}</div>
-                 <div class="col-md-3">{% if formset %}{{ formset.empty_form.amount }}{% endif %}</div>
-                 <div class="col-md-2 text-center"><span class="item-total fw-bold small">۰</span></div>
-                 <div class="col-auto pe-1" style="width: 40px;">
-                     <button type="button" class="btn btn-outline-danger btn-sm border-0 remove-form-row py-0 px-1" title="{% trans "حذف ردیف" %}"><i class="fas fa-times fa-sm"></i></button>
-                 </div>
-             </div>
-             {% if formset %}{% for hidden in formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}{% endif %}
+            <div class="row gx-2 align-items-center">
+                <div class="col-auto ps-1" style="width: 30px;"><span
+                        class="row-number fw-bold small text-muted"></span></div>
+                <div class="col">{% if formset %}{{ formset.empty_form.description }}{% endif %}</div>
+                <div class="col-md-2">{% if formset %}{{ formset.empty_form.quantity }}{% endif %}</div>
+                <div class="col-md-3">{% if formset %}{{ formset.empty_form.unit_price }}{% endif %}</div>
+                {# تغییر amount به unit_price #}
+                <div class="col-md-2 text-center"><span class="item-total fw-bold small">۰</span></div>
+                <div class="col-auto pe-1" style="width: 40px;">
+                    <button type="button" class="btn btn-outline-danger btn-sm border-0 remove-form-row py-0 px-1"
+                            title="{% trans "حذف ردیف" %}"><i class="fas fa-times fa-sm"></i></button>
+                </div>
+            </div>
+            {% if formset %}{% for hidden in formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}{% endif %}
         </div>
     </template>
 
@@ -248,278 +187,307 @@
 <script>
     function submitWizardForm(gotoStep) {
         const form = document.getElementById('factor-item-form');
-        if (!form) return;
-        // Ensure no accidental double submission
-        form.querySelectorAll('button[type="submit"]').forEach(btn => btn.disabled = true);
-        const stepInput = document.createElement('input');
-        stepInput.type = 'hidden';
-        stepInput.name = 'wizard_goto_step';
-        stepInput.value = gotoStep;
-        form.appendChild(stepInput);
+        if (!form) {
+            console.error('Form with ID factor-item-form not found');
+            return;
+        }
+        // تنظیم مقدار مرحله (step) در صورت نیاز
+        const stepField = form.querySelector('input[name="wizard_goto_step"]');
+        if (stepField) {
+            stepField.value = gotoStep || '';
+        }
+        // ارسال فرم
         form.submit();
     }
+
 </script>
 
-
-{# --- Main Form могли Script --- #}
+    {# --- Main Formset Script --- #}
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const formsetPrefix = "{{ formset.prefix|default:'items' }}";
-    const emptyFormTemplate = document.querySelector(`#${formsetPrefix}-empty-form`);
-    const formsetContainer = document.querySelector(`#${formsetPrefix}-formset`);
-    const addRowButton = document.getElementById(`add-${formsetPrefix}-row`);
-    const totalFormsInput = document.querySelector(`input[name="${formsetPrefix}-TOTAL_FORMS"]`);
-    const initialFactorAmount = parseFloat(document.getElementById("initial-factor-amount").dataset.amount || 0);
-    const availableProjectBudget = parseFloat(document.getElementById("project-budget-info").dataset.availableBudget || 0);
-    const availableTankhahBudget = parseFloat(document.getElementById("tankhah-budget-info").dataset.availableTankhahBudget || 0);
-    const warningThreshold = parseFloat(document.getElementById("project-budget-info").dataset.warningThreshold || 10);
-    const warningAction = document.getElementById("project-budget-info").dataset.warningAction;
-    const lockedPercentage = parseFloat(document.getElementById("project-budget-info").dataset.lockedPercentage || 0);
+    document.addEventListener('DOMContentLoaded', function () {
+        const formsetPrefix = '{{ formset.prefix|default:"items" }}';
+        const itemFormsetContainer = document.getElementById(`${formsetPrefix}-formset`);
+        const addItemButton = document.getElementById(`add-${formsetPrefix}-row`);
+        const totalFormsInput = document.getElementById(`id_${formsetPrefix}-TOTAL_FORMS`);
+        const emptyFormTemplateEl = document.getElementById(`${formsetPrefix}-empty-form`);
+        const storageKey = `factorItems_${formsetPrefix}_${window.location.pathname}`;
 
-    // تبدیل عدد به فرمت فارسی با جداکننده
-    function toPersianNumberWithComma(x) {
-        return (x || 0).toLocaleString("fa-IR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        // تابع تبدیل ارقام فارسی به لاتین
+        function toLatinDigits(str) {
+            if (!str) return '';
+            return String(str).replace(/[۰-۹]/g, d => '0123456789'[d.charCodeAt(0) - 1776]);
     }
 
-    // تبدیل عدد به فرمت فارسی
+        // تابع تبدیل ارقام لاتین به فارسی
     function toPersianDigits(num) {
-        const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-        return num.toString().replace(/\d/g, d => persianDigits[d]);
+        if (num === null || num === undefined) return '۰';
+        return String(num).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
     }
 
-    // محاسبه مجموع ردیف (تعداد × مبلغ واحد)
-    function calculateRowTotal(row) {
-        const quantityInput = row.querySelector('input[name$="-quantity"]');
-        const amountInput = row.querySelector('input[name$="-amount"]');
-        const rowTotalSpan = row.querySelector('.item-total');
-
-        const quantity = parseFloat(quantityInput?.value.replace(/,/g, '') || 0);
-        const amount = parseFloat(amountInput?.value.replace(/,/g, '') || 0);
-
-        const rowTotal = isNaN(quantity) || isNaN(amount) ? 0 : quantity * amount;
-
-        if (rowTotalSpan) {
-            rowTotalSpan.innerText = toPersianNumberWithComma(rowTotal);
+        // تابع فرمت‌دهی مبلغ به صورت مالی
+        function formatCurrency(value) {
+            if (isNaN(value)) return '۰';
+            const num = parseInt(value) || 0;
+            return toPersianDigits(num.toLocaleString('en-US')) + ' ریال';
         }
 
-        return rowTotal;
+        // تابع دریافت مقدار عددی از فیلدها
+        function getNumericValue(inputElement) {
+            if (!inputElement) return 0;
+            const value = toLatinDigits(inputElement.value);
+            return parseFloat(value) || 0;
+        }
+
+        // تابع محاسبه جمع هر ردیف
+        function calculateRowTotal(rowElement) {
+            if (!rowElement) return 0;
+
+            const unitPriceInput = rowElement.querySelector('[name$="-unit_price"]'); // تغییر amount به unit_price
+            const quantityInput = rowElement.querySelector('[name$="-quantity"]');
+            const totalSpan = rowElement.querySelector('.item-total');
+
+            const unitPrice = getNumericValue(unitPriceInput);
+            const quantity = getNumericValue(quantityInput);
+            const total = Math.round(unitPrice * (quantity > 0 ? quantity : 1));
+
+            if (totalSpan) {
+                totalSpan.textContent = formatCurrency(total);
+                totalSpan.classList.add('highlight-change');
+                setTimeout(() => totalSpan.classList.remove('highlight-change'), 500);
     }
 
-    // به‌روزرسانی شماره ردیف‌ها
-    function updateRowNumbers() {
-        const rows = formsetContainer.querySelectorAll('.item-row:not(.is-deleting)');
-        rows.forEach((row, index) => {
-            const numberSpan = row.querySelector('.row-number');
-            if (numberSpan) numberSpan.innerText = toPersianDigits(index + 1);
-        });
-        document.getElementById("total-items").innerText = toPersianDigits(rows.length);
-    }
-
-    // به‌روزرسانی کل فرم
-    function updateSummary() {
-        let totalAmount = 0;
-        let totalQuantity = 0;
-
-        const rows = formsetContainer.querySelectorAll('.item-row:not(.is-deleting)');
-        rows.forEach(row => {
-            const rowTotal = calculateRowTotal(row);
-            totalAmount += rowTotal;
-            const quantity = parseFloat(row.querySelector('input[name$="-quantity"]')?.value.replace(/,/g, '') || 0);
-            totalQuantity += isNaN(quantity) ? 0 : quantity;
-        });
-
-        // به‌روزرسانی مقادیر مجموع
-        document.getElementById("total-quantity").innerText = toPersianNumberWithComma(totalQuantity);
-        document.getElementById("total-amount").innerText = toPersianNumberWithComma(totalAmount);
-        document.getElementById("total-items-amount").innerText = toPersianNumberWithComma(totalAmount);
-
-        // اختلاف با مبلغ اولیه
-        const diff = totalAmount - initialFactorAmount;
-        const diffEl = document.getElementById("difference-amount");
-        const resultEl = document.getElementById("amount-comparison-result");
-        diffEl.innerText = toPersianNumberWithComma(diff);
-
-        if (diff === 0) {
-            resultEl.innerText = "{% trans 'مطابقت دارد' %} ✅";
-            resultEl.className = "mt-1 small fw-bold text-success";
-        } else if (diff > 0) {
-            resultEl.innerText = `{% trans 'بیشتر از مبلغ اولیه به میزان' %} ${toPersianNumberWithComma(diff)} {% trans 'ریال' %}`;
-            resultEl.className = "mt-1 small fw-bold text-danger";
-        } else {
-            resultEl.innerText = `{% trans 'کمتر از مبلغ اولیه به میزان' %} ${toPersianNumberWithComma(-diff)} {% trans 'ریال' %}`;
-            resultEl.className = "mt-1 small fw-bold text-warning";
+            return total;
         }
 
-        // بودجه پروژه
-        const remainingProjectBudget = availableProjectBudget - totalAmount;
-        const remainingProjectEl = document.getElementById("remaining-project-budget");
-        const projectWarnEl = document.getElementById("budget-warning");
-        const projectLockEl = document.getElementById("budget-lock-warning");
-        const budgetLimit = (lockedPercentage / 100) * availableProjectBudget;
 
-        remainingProjectEl.innerText = toPersianNumberWithComma(remainingProjectBudget) + " {% trans 'ریال' %}";
-        if (totalAmount > availableProjectBudget) {
-            projectLockEl.style.display = "block";
-            projectLockEl.innerText = "{% trans 'مبلغ واردشده بیش از بودجه پروژه است و مجاز نیست.' %}";
-            projectWarnEl.style.display = "none";
-        } else if (remainingProjectBudget < (warningThreshold / 100) * availableProjectBudget) {
-            projectWarnEl.style.display = "block";
-            projectWarnEl.innerText = "{% trans 'هشدار: بودجه در آستانه‌ی تمام شدن است.' %}";
-            projectLockEl.style.display = "none";
-        } else {
-            projectWarnEl.style.display = "none";
-            projectLockEl.style.display = "none";
-        }
+        // تابع محاسبه کل فاکتور
+        function calculateTotals() {
+            let itemsGrandTotal = 0;
+            let totalUnitPriceSum = 0; // تغییر amount به unitPrice
+            let totalQuantitySum = 0;
 
-        // بودجه تنخواه
-        const remainingTankhah = availableTankhahBudget - totalAmount;
-        const tankhahWarnEl = document.getElementById("tankhah-budget-warning");
-        document.getElementById("remaining-tankhah-budget").innerText = toPersianNumberWithComma(remainingTankhah) + " {% trans 'ریال' %}";
-        if (totalAmount > availableTankhahBudget) {
-            tankhahWarnEl.style.display = "block";
-            tankhahWarnEl.innerText = "{% trans 'مبلغ واردشده بیش از اعتبار تنخواه است.' %}";
-        } else {
-            tankhahWarnEl.style.display = "none";
-        }
-    }
+            itemFormsetContainer.querySelectorAll('.item-row.dynamic-form').forEach(row => {
+                if (!row.classList.contains('is-deleting')) {
+                    const rowTotal = calculateRowTotal(row);
+                    itemsGrandTotal += rowTotal;
 
-    // اتصال Event Listenerها به ورودی‌ها
-    function bindInputs(row) {
-        const inputs = row.querySelectorAll('input[name$="-quantity"], input[name$="-amount"]');
-        inputs.forEach(input => {
-            input.addEventListener("input", () => {
-                // اعتبارسنجی مقدار
-                const value = parseFloat(input.value.replace(/,/g, '') || 0);
-                if (value <= 0) {
-                    input.classList.add("is-invalid");
-                } else {
-                    input.classList.remove("is-invalid");
-                }
-                updateSummary();
-            });
+                    const unitPrice = getNumericValue(row.querySelector('[name$="-unit_price"]')); // تغییر amount به unit_price
+                    const quantity = getNumericValue(row.querySelector('[name$="-quantity"]'));
 
-            // افزودن ردیف جدید با کلید Enter
-            input.addEventListener("keypress", (e) => {
-                if (e.key === "Enter") {
-                    e.preventDefault();
-                    addRow();
+                    totalUnitPriceSum += unitPrice;
+                    totalQuantitySum += (quantity > 0 ? quantity : 1);
                 }
             });
 
-            // اعتبارسنجی هنگام خروج از فیلد
-            input.addEventListener("blur", () => {
-                const value = parseFloat(input.value.replace(/,/g, '') || 0);
-                if (value <= 0) {
-                    input.classList.add("is-invalid");
-                    alert("{% trans 'لطفاً مقدار معتبر (بزرگ‌تر از صفر) وارد کنید.' %}");
-                } else {
-                    input.classList.remove("is-invalid");
-                }
-            });
-        });
 
-        // دکمه حذف
-        const removeButton = row.querySelector(".remove-form-row");
-        if (removeButton) {
-            removeButton.addEventListener("click", () => {
-                row.classList.add("deleting");
-                setTimeout(() => {
-                    const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
-                    if (deleteCheckbox) {
-                        deleteCheckbox.checked = true;
-                        row.classList.add("is-deleting");
-                        row.style.display = "none";
-                    } else {
-                        row.remove();
-                        totalFormsInput.value = parseInt(totalFormsInput.value) - 1;
+            // به‌روزرسانی نمایش جمع‌کل
+            const totalItemsEl = document.getElementById('total-items');
+            const totalUnitPriceEl = document.getElementById('total-amount'); // تغییر نام متغیر
+            const totalQuantityEl = document.getElementById('total-quantity');
+            const totalItemsAmountEl = document.getElementById('total-items-amount');
+
+            if (totalItemsEl) totalItemsEl.textContent = toPersianDigits(
+                itemFormsetContainer.querySelectorAll('.item-row.dynamic-form:not(.is-deleting)').length
+            );
+
+            if (totalUnitPriceEl) totalUnitPriceEl.textContent = formatCurrency(totalUnitPriceSum);
+            if (totalQuantityEl) totalQuantityEl.textContent = toPersianDigits(totalQuantitySum);
+            if (totalItemsAmountEl) {
+                totalItemsAmountEl.textContent = formatCurrency(itemsGrandTotal);
+                totalItemsAmountEl.classList.add('highlight-total');
+                setTimeout(() => totalItemsAmountEl.classList.remove('highlight-total'), 500);
+            }
+
+            updateTankhahBudget(itemsGrandTotal);
+            compareWithInitialAmount(itemsGrandTotal);
+        }
+
+        // تابع به‌روزرسانی اعتبار تنخواه
+        function updateTankhahBudget(currentTotal) {
+            const tankhahBudgetInfo = document.getElementById('tankhah-budget-info');
+            const remainingBudgetEl = document.getElementById('remaining-tankhah-budget');
+            const warningEl = document.getElementById('tankhah-budget-warning');
+
+            if (!tankhahBudgetInfo || !remainingBudgetEl) return;
+
+            const availableBudget = parseFloat(tankhahBudgetInfo.dataset.availableTankhahBudget || '0');
+            const remainingBudget = availableBudget - currentTotal;
+
+            remainingBudgetEl.textContent = formatCurrency(remainingBudget);
+
+            if (remainingBudget < 0) {
+                remainingBudgetEl.classList.add('text-danger');
+                if (warningEl) {
+                    warningEl.textContent = 'اعتبار تنخواه کافی نیست!';
+                    warningEl.style.display = 'block';
+                }
+        } else {
+                remainingBudgetEl.classList.remove('text-danger');
+                remainingBudgetEl.classList.add('text-success');
+                if (warningEl) warningEl.style.display = 'none';
+            }
+        }
+
+        // تابع مقایسه با مبلغ اولیه
+        function compareWithInitialAmount(currentTotal) {
+            const initialAmountEl = document.getElementById('initial-factor-amount');
+            const differenceEl = document.getElementById('difference-amount');
+            const comparisonEl = document.getElementById('amount-comparison-result');
+
+            if (!initialAmountEl || !differenceEl || !comparisonEl) return;
+
+            const initialAmount = parseFloat(initialAmountEl.dataset.amount || '0');
+            const difference = initialAmount - currentTotal;
+
+            differenceEl.textContent = formatCurrency(Math.abs(difference));
+
+            if (Math.abs(difference) < 1) {
+                differenceEl.className = 'badge bg-success px-2 py-1 ms-1 fw-bold';
+                comparisonEl.textContent = 'مبلغ با جمع آیتم‌ها مطابقت دارد';
+                comparisonEl.className = 'text-success';
+            } else if (difference < 0) {
+                differenceEl.className = 'badge bg-danger px-2 py-1 ms-1 fw-bold';
+                comparisonEl.textContent = 'جمع آیتم‌ها بیشتر از مبلغ اولیه است!';
+                comparisonEl.className = 'text-danger';
+        } else {
+                differenceEl.className = 'badge bg-warning px-2 py-1 ms-1 fw-bold';
+                comparisonEl.textContent = 'جمع آیتم‌ها کمتر از مبلغ اولیه است';
+                comparisonEl.className = 'text-warning';
+            }
+        }
+
+        // تابع اضافه کردن ردیف جدید
+        function addRow() {
+            const formCount = parseInt(totalFormsInput.value);
+            const newForm = emptyFormTemplateEl.content.cloneNode(true);
+            const newRow = newForm.querySelector('.item-row');
+
+            // جایگزینی پیشوندها
+            newRow.querySelectorAll('[name], [id], [for]').forEach(el => {
+                ['name', 'id', 'for'].forEach(attr => {
+                    if (el.hasAttribute(attr)) {
+                        el.setAttribute(attr, el.getAttribute(attr).replace(/__prefix__/g, formCount));
                     }
-                    updateRowNumbers();
-                    updateSummary();
-                }, 300);
+                });
+            });
+
+            // تنظیم مقدار پیش‌فرض برای تعداد
+            const quantityInput = newRow.querySelector('[name$="-quantity"]');
+            if (quantityInput) quantityInput.value = '1';
+
+            // اضافه کردن ردیف جدید قبل از ردیف جمع‌کل
+            const summaryRow = itemFormsetContainer.querySelector('.item-summary');
+            if (summaryRow) {
+                itemFormsetContainer.insertBefore(newRow, summaryRow);
+        } else {
+                itemFormsetContainer.appendChild(newRow);
+            }
+
+            // به‌روزرسانی شماره ردیف‌ها
+            updateRowNumbers();
+
+            // افزایش شمارنده فرم‌ها
+            totalFormsInput.value = formCount + 1;
+
+            // افزودن رویدادها به ردیف جدید
+            attachEventListeners(newRow);
+
+            // انیمیشن اضافه شدن ردیف جدید
+            newRow.style.opacity = '0';
+            newRow.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                newRow.style.transition = 'all 0.3s ease';
+                newRow.style.opacity = '1';
+                newRow.style.transform = 'translateY(0)';
+            }, 10);
+
+            // فوکوس روی فیلد شرح
+            setTimeout(() => {
+                const descInput = newRow.querySelector('[name$="-description"]');
+                if (descInput) descInput.focus();
+            }, 50);
+        }
+
+        // تابع به‌روزرسانی شماره ردیف‌ها
+        function updateRowNumbers() {
+            itemFormsetContainer.querySelectorAll('.item-row.dynamic-form:not(.is-deleting)').forEach((row, index) => {
+                const rowNum = row.querySelector('.row-number');
+                if (rowNum) rowNum.textContent = toPersianDigits(index + 1);
             });
         }
-    }
 
-    // افزودن ردیف جدید
-    function addRow() {
-        const formCount = parseInt(totalFormsInput.value || 0);
-        const newRow = document.createElement("div");
-        newRow.innerHTML = emptyFormTemplate.innerHTML.replace(/__prefix__/g, formCount);
-        newRow.classList.add("item-row", "dynamic-form", "mb-1", "py-1", "added");
-        newRow.id = `${formsetPrefix}-${formCount}`;
+// تابع اتصال رویدادها به ردیف
+        function attachEventListeners(row) {
+            // رویدادهای محاسبه
+            row.querySelectorAll('[name$="-unit_price"], [name$="-quantity"]').forEach(input => { // تغییر amount به unit_price
+                input.addEventListener('input', calculateTotals);
 
-        // تنظیم مقدار پیش‌فرض برای تعداد
-        const quantityInput = newRow.querySelector('input[name$="-quantity"]');
-        if (quantityInput) quantityInput.value = "1";
+                input.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addRow();
+                    }
+                });
 
-        formsetContainer.insertBefore(newRow, formsetContainer.querySelector(".item-summary"));
-        totalFormsInput.value = formCount + 1;
+                input.addEventListener('blur', function () {
+                    const value = getNumericValue(this);
+                    if (value < 0) {
+                        this.classList.add('is-invalid');
+                        this.value = '';
+                        calculateTotals();
+                    } else {
+                        this.classList.remove('is-invalid');
+                    }
+                });
+            });
 
-        bindInputs(newRow);
-        updateRowNumbers();
-        updateSummary();
 
-        // حذف کلاس انیمیشن پس از اتمام
-        setTimeout(() => newRow.classList.remove("added"), 300);
+            // رویداد حذف ردیف
+            const removeBtn = row.querySelector('.remove-form-row');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    row.style.transition = 'all 0.3s ease';
+                    row.style.opacity = '0';
+                    row.style.maxHeight = '0';
+                    row.style.paddingTop = '0';
+                    row.style.paddingBottom = '0';
+                    row.style.marginBottom = '0';
+                    row.style.overflow = 'hidden';
 
-        // فوکوس روی فیلد شرح
-        const descriptionInput = newRow.querySelector('input[name$="-description"]');
-        if (descriptionInput) descriptionInput.focus();
-    }
-
-    // اتصال Event Listenerها به ردیف‌های موجود
-    formsetContainer.querySelectorAll('.item-row').forEach(row => {
-        bindInputs(row);
-        const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
-        if (deleteCheckbox && deleteCheckbox.checked) {
-            row.classList.add("is-deleting");
-            row.style.display = "none";
+                    setTimeout(() => {
+                        const deleteCheckbox = row.querySelector('[name$="-DELETE"]');
+                        if (deleteCheckbox) {
+                            deleteCheckbox.checked = true;
+                            row.classList.add('is-deleting');
+                            row.style.display = 'none';
+                        } else {
+                            row.remove();
+                        }
+                        calculateTotals();
+                        updateRowNumbers();
+                    }, 300);
+                });
+            }
         }
+
+
+        // رویداد کلیک برای اضافه کردن ردیف
+        if (addItemButton) {
+            addItemButton.addEventListener('click', function (e) {
+                e.preventDefault();
+                addRow();
+            });
+    }
+
+        // بارگذاری اولیه و اتصال رویدادها
+        itemFormsetContainer.querySelectorAll('.item-row.dynamic-form').forEach(row => {
+            attachEventListeners(row);
+            calculateRowTotal(row);
     });
 
-    // دکمه افزودن ردیف
-    addRowButton.addEventListener("click", addRow);
-
-    // ذخیره پیشرفت
-    const saveBtn = document.getElementById("save-progress-button");
-    const feedbackEl = document.getElementById("save-progress-feedback");
-
-    saveBtn.addEventListener("click", function () {
-        const form = document.getElementById("factor-item-form");
-        const formData = new FormData(form);
-        formData.append("save_progress", "1");
-
-        fetch("", {
-            method: "POST",
-            body: formData,
-            headers: {
-                "X-CSRFToken": document.querySelector('input[name="csrfmiddlewaretoken"]').value,
-            }
-        })
-        .then(response => {
-            if (response.ok) {
-                feedbackEl.innerText = "{% trans '✅ پیشرفت با موفقیت ذخیره شد' %}";
-                feedbackEl.style.display = "inline";
-                feedbackEl.className = "ms-2 small text-success";
-            } else {
-                feedbackEl.innerText = "{% trans '❌ خطا در ذخیره‌سازی پیشرفت' %}";
-                feedbackEl.style.display = "inline";
-                feedbackEl.className = "ms-2 small text-danger";
-            }
-            setTimeout(() => { feedbackEl.style.display = "none"; }, 2000);
-        })
-        .catch(error => {
-            feedbackEl.innerText = "{% trans '❌ خطا در ذخیره‌سازی پیشرفت' %}";
-            feedbackEl.style.display = "inline";
-            feedbackEl.className = "ms-2 small text-danger";
-            setTimeout(() => { feedbackEl.style.display = "none"; }, 2000);
-        });
-    });
-
-    // اجرای اولیه
-    updateRowNumbers();
-    updateSummary();
+        // محاسبه اولیه
+        calculateTotals();
 });
 </script>
-
 {% endblock extra_js %}

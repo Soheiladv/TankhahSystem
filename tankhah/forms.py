@@ -3,6 +3,7 @@ import os
 from decimal import Decimal
 from django import forms
 from django.core.exceptions import ValidationError
+from django.forms import inlineformset_factory
 from django.utils.translation import gettext_lazy as _
 from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget
 from .utils import restrict_to_user_organization
@@ -111,6 +112,9 @@ class FactorApprovalForm(forms.ModelForm):
                     item.comment = self.cleaned_data[comment_field]
                     item.save()
         return instance
+
+
+
 
 class TankhahForm(JalaliDateForm):
     date = forms.CharField(
@@ -360,6 +364,11 @@ class FactorItemForm(forms.ModelForm):
         quantity = cleaned_data.get('quantity')
         description = cleaned_data.get('description')
 
+        unit_price = cleaned_data.get('unit_price')
+        if unit_price is not None and unit_price <= 0:
+            raise forms.ValidationError(_("قیمت واحد باید مثبت باشد."))
+        return cleaned_data
+
         # اگه فرم خالیه (بدون توضیحات و مبلغ)، قبولش کن و نادیده بگیر
         # نادیده گرفتن فرم‌های خالی
         if not description and (amount is None or amount == 0) and (quantity is None or quantity == 1):
@@ -374,6 +383,15 @@ class FactorItemForm(forms.ModelForm):
         if quantity is None or quantity < 1:
             raise forms.ValidationError(_('تعداد باید حداقل ۱ باشد.'))
         return cleaned_data
+
+# --- ایجاد Inline Formset ---
+FactorItemApprovalFormSet = inlineformset_factory(
+    Factor,  # Parent model
+    FactorItem,  # Child model
+    form=FactorItemApprovalForm,  # Your approval form
+    extra=0,  # Don't show extra forms
+    can_delete=False  # Don't allow deleting items here
+)
 
 class ApprovalForm(forms.ModelForm):
     action = forms.ChoiceField(choices=[

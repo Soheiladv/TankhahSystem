@@ -544,81 +544,235 @@ class WizardFactorDetailsForm(forms.Form):
 
 # --- فرم مرحله ۳: آیتم‌های فاکتور (Formset) ---
 class WizardFactorItemForm(forms.ModelForm):
-    description = forms.CharField(
-        label=_('شرح'),
-        max_length=255,
-        required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control form-control-sm'})
-    )
-    quantity = forms.DecimalField(
-        label=_('تعداد'),
-        decimal_places=2,
-        max_digits=10,
-        required=True,
-        widget=forms.NumberInput(attrs={'class': 'form-control form-control-sm'})
-    )
-    amount = forms.DecimalField(
-        label=_('مبلغ واحد'),
-        decimal_places=2,
-        max_digits=15,
-        required=True,
-        widget=forms.NumberInput(attrs={'class': 'form-control form-control-sm'})
-    )
-
+    # description = forms.CharField(
+    #     label=_('شرح'),
+    #     max_length=255,
+    #     required=True,
+    #     widget=forms.TextInput(attrs={'class': 'form-control form-control-sm', 'placeholder': _('شرح کالا/خدمت')})
+    # )
+    # quantity = forms.DecimalField(
+    #     label=_('تعداد'),
+    #     required=True,
+    #     min_value=Decimal('0.01'),  # یا ۱ اگر تعداد نمی‌تواند اعشاری باشد
+    #     max_digits=15,  # متناسب با نیاز
+    #     decimal_places=2,  # متناسب با نیاز
+    #     localize=False,
+    #     widget=forms.NumberInput(attrs={'class': 'form-control form-control-sm ltr-input quantity-field', 'step': 'any',
+    #                                     'placeholder': _('تعداد')})
+    # )
+    # amount = forms.DecimalField(
+    #     label=_('مبلغ واحد'),
+    #     decimal_places=2,
+    #     max_digits=15,
+    #     required=True,
+    #     widget=forms.NumberInput(attrs={'class': 'form-control form-control-sm'})
+    # )
+    # unit_price = forms.DecimalField(
+    #     label=_('مبلغ واحد'),  # تغییر لیبل
+    #     required=True,
+    #     min_value=Decimal('0.01'),
+    #     max_digits=20,  # متناسب با نیاز
+    #     decimal_places=2,
+    #     localize=False,
+    #     widget=forms.NumberInput(
+    #         attrs={'class': 'form-control form-control-sm ltr-input unit-price-field', 'step': 'any',
+    #                'placeholder': _('مبلغ واحد (ریال)')})  # کلاس جدید
+    # )
 
     class Meta:
         model = FactorItem
-        fields = ['description', 'amount', 'quantity']
+        # fields = ['description', 'amount', 'quantity']
+        fields = ['description', 'quantity', 'unit_price', 'transaction_type'] # 'amount' حذف شد
         widgets = {
-            'description': forms.TextInput(attrs={'class': 'form-control form-control-sm', 'placeholder': _('شرح')}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control form-control-sm ltr-input amount-field', 'step': '1', 'min': '1', 'placeholder': _('مبلغ واحد')}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control form-control-sm ltr-input quantity-field', 'min': '1', 'placeholder': _('تعداد')}),
+            'description': forms.TextInput(attrs={
+                'class': 'form-control form-control-sm',
+                'placeholder': _('شرح کالا/خدمت'),
+                'required': 'required'  # افزودن required به HTML
+            }),
+            'quantity': forms.NumberInput(attrs={
+                'class': 'form-control form-control-sm ltr-input quantity-field',  # کلاس برای JS
+                'step': 'any',  # یا '1' اگر اعشاری نیست
+                'min': '0.01',  # یا '1' - حداقل مقدار
+                'placeholder': _('تعداد'),
+                'required': 'required'
+            }),
+            'unit_price': forms.NumberInput(attrs={
+                'class': 'form-control form-control-sm ltr-input unit-price-field',  # کلاس برای JS
+                'step': 'any',  # یا '0.01'
+                'min': '0.01',  # حداقل مقدار
+                'placeholder': _('مبلغ واحد (ریال)'),
+                'required': 'required'
+            }),
+            'transaction_type': forms.Select(attrs={
+                'class': 'form-control form-control-sm',
+                'required': 'required'}),
         }
+        labels = {
+            'description': _('شرح'),
+            'quantity': _('تعداد'),
+            'unit_price': _('مبلغ واحد'),
+        }
+        # --- پیام‌های خطا (اختیاری) ---
+        error_messages = {
+            'description': {'required': _('وارد کردن شرح الزامی است.')},
+            'quantity': {
+                'required': _('وارد کردن تعداد الزامی است.'),
+                'min_value': _('تعداد باید بزرگتر از صفر باشد.'),
+            },
+            'unit_price': {
+                'required': _('وارد کردن مبلغ واحد الزامی است.'),
+                'min_value': _('مبلغ واحد باید بزرگتر از صفر باشد.'),
+            },
+        }
+            # 'description': forms.TextInput(attrs={'class': 'form-control form-control-sm', 'placeholder': _('شرح')}),
+            # 'amount': forms.NumberInput(attrs={'class': 'form-control form-control-sm ltr-input amount-field', 'step': '1', 'min': '1', 'placeholder': _('مبلغ واحد')}),
+            # 'quantity': forms.NumberInput(attrs={'class': 'form-control form-control-sm ltr-input quantity-field', 'min': '1', 'placeholder': _('تعداد')}),
 
+
+    # def clean(self):
+    #     # (Validation logic remains the same as previous FactorItemWizardForm)
+    #     cleaned_data = super().clean()
+    #     amount = cleaned_data.get('amount')
+    #     quantity = cleaned_data.get('quantity')
+    #     description = cleaned_data.get('description', '').strip()
+    #     if self.prefix and cleaned_data.get(f'{self.prefix}-DELETE', False): return cleaned_data
+    #     is_empty = not description and (amount is None or amount == 0) and (quantity is None or quantity == 1)
+    #     if is_empty:
+    #         if not self.instance or not self.instance.pk: cleaned_data['DELETE'] = True
+    #         return cleaned_data
+    #     errors = {}
+    #     if not description: errors['description'] = ValidationError(_('شرح الزامی است.'))
+    #     if amount is None or amount <= 0: errors['amount'] = ValidationError(_('مبلغ باید بزرگ‌تر از صفر باشد.'))
+    #     if quantity is None or quantity < 1: errors['quantity'] = ValidationError(_('تعداد باید حداقل ۱ باشد.'))
+    #     if errors: raise ValidationError(errors)
+    #
+    #     # حذف کلید factor از داده‌های تمیز شده
+    #     cleaned_data.pop('factor', None)
+    #
+    #     return cleaned_data
     def clean(self):
-        # (Validation logic remains the same as previous FactorItemWizardForm)
         cleaned_data = super().clean()
-        amount = cleaned_data.get('amount')
         quantity = cleaned_data.get('quantity')
+        unit_price = cleaned_data.get('unit_price')
         description = cleaned_data.get('description', '').strip()
-        if self.prefix and cleaned_data.get(f'{self.prefix}-DELETE', False): return cleaned_data
-        is_empty = not description and (amount is None or amount == 0) and (quantity is None or quantity == 1)
-        if is_empty:
-            if not self.instance or not self.instance.pk: cleaned_data['DELETE'] = True
-            return cleaned_data
-        errors = {}
-        if not description: errors['description'] = ValidationError(_('شرح الزامی است.'))
-        if amount is None or amount <= 0: errors['amount'] = ValidationError(_('مبلغ باید بزرگ‌تر از صفر باشد.'))
-        if quantity is None or quantity < 1: errors['quantity'] = ValidationError(_('تعداد باید حداقل ۱ باشد.'))
-        if errors: raise ValidationError(errors)
 
-        # حذف کلید factor از داده‌های تمیز شده
-        cleaned_data.pop('factor', None)
+        prefix = self.prefix
+        # اگر ردیف برای حذف علامت‌گذاری شده، اعتبارسنجی را رد کن
+        if cleaned_data.get('DELETE', False):
+            logger.debug(f"Form {prefix} marked for deletion, skipping validation.")
+            return cleaned_data
+
+        # بررسی خالی بودن ردیف
+        is_empty = not description and (unit_price is None or unit_price <= 0) and (quantity is None or quantity <= 0)
+        if is_empty:
+            if not self.instance or not self.instance.pk:
+                logger.debug(f"Form {prefix} is new and empty, marking for deletion.")
+                cleaned_data['DELETE'] = True
+            return cleaned_data
+
+        # اعتبارسنجی ردیف‌های غیرخالی
+        errors = {}
+        if not description:
+            errors['description'] = ValidationError(_('شرح ردیف الزامی است.'))
+        elif description.isdigit():
+            errors['description'] = ValidationError(_('شرح باید متن معنادار باشد، نه عدد.'))
+        if unit_price is None or unit_price <= 0:
+            errors['unit_price'] = ValidationError(_('مبلغ واحد باید بزرگ‌تر از صفر باشد.'))
+        if quantity is None or quantity <= 0:
+            errors['quantity'] = ValidationError(_('تعداد باید بزرگ‌تر از صفر باشد.'))
+
+        if errors:
+            logger.warning(f"Validation errors for form {prefix}: {errors}")
+            raise ValidationError(errors)
 
         return cleaned_data
 
-# Define the Formset using the correct item form
-# WizardFactorItemFormSet = inlineformset_factory(
-#     Factor,
-#     FactorItem,
-#     form=WizardFactorItemForm, # Use the correct form
-#     extra=1,
-#     can_delete=True,
-#     min_num=1,
-#     validate_min=True,
-# )
 
+from django.forms import inlineformset_factory, BaseInlineFormSet
+class WizardFactorItemFormSet(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        valid_forms = [
+            form for form in self.forms
+            if form.is_valid() and not form.cleaned_data.get('DELETE', False)
+        ]
+        if not valid_forms:
+            raise ValidationError(_('حداقل یک ردیف معتبر مورد نیاز است.'))
+        logger.debug(f"Formset validated with {len(valid_forms)} valid forms.")
+
+
+# forms.py or forms_Factor.py
+from django.forms import BaseInlineFormSet
+
+class BaseFactorItemFormSet(BaseInlineFormSet):
+    def is_valid(self):
+        """Checks if the formset is valid, ignoring extra empty forms."""
+        logger.debug(f"[FormSet] شروع is_valid برای {self.prefix}. Total forms: {self.total_form_count()}")
+        # Run standard validation first
+        is_super_valid = super().is_valid()
+        logger.debug(f"[FormSet] نتیجه super().is_valid(): {is_super_valid}")
+        logger.debug(f"[FormSet] خطاهای فرم‌ست: {self.errors}")
+        logger.debug(f"[FormSet] خطاهای غیر فرم: {self.non_form_errors()}")
+
+        if is_super_valid:
+            logger.debug(f"[FormSet] فرم‌ست در ابتدا معتبر است.")
+            return True
+
+        # If invalid, check if it's ONLY because of empty extra forms
+        # Django >= 4.0 has self.initial_form_count()
+        # For older versions, use self.initial_forms
+        try:
+            initial_forms_count = self.initial_form_count()
+        except AttributeError:
+            initial_forms_count = len(self.initial_forms)
+
+        logger.debug(f"[FormSet] تعداد فرم‌های اولیه: {initial_forms_count}")
+
+        # Check errors only on extra forms
+        for i in range(initial_forms_count, self.total_form_count()):
+            form = self.forms[i]
+            logger.debug(f"[FormSet] بررسی فرم اضافی {i}: errors={form.errors}, has_changed={form.has_changed()}")
+            if form.errors and form.has_changed(): # If an extra form has data AND errors
+                logger.warning(f"[FormSet] فرم اضافی {i} داده دارد ولی نامعتبر است.")
+                return False # It's a real error
+
+        # If we are here, errors might only be on empty extra forms, consider it valid
+        # *UNLESS* min_num validation failed
+        if self.non_form_errors() and any('Please submit 1 or more forms.' in str(e) for e in self.non_form_errors()):
+             logger.warning(f"[FormSet] خطای min_num وجود دارد.")
+             return False # min_num failed, so invalid
+
+        logger.info(f"[FormSet] خطاها فقط مربوط به فرم‌های اضافی خالی یا min_num نبود. فرم‌ست معتبر در نظر گرفته می‌شود.")
+        # Clear errors from empty extra forms if needed? Maybe not necessary.
+        # self._errors = None # Reset formset errors
+        # self.non_form_errors().clear() # Reset non-form errors
+        return True # Consider it valid if errors are only on empty extra forms
+
+# Use this custom formset in the factory
 WizardFactorItemFormSet = inlineformset_factory(
-    parent_model=Factor,
-    model=FactorItem,
+    Factor,
+    FactorItem,
     form=WizardFactorItemForm,
-    fields=('description', 'quantity', 'amount'),
-    extra=1,
+    fields=('description', 'quantity', 'unit_price'),
+    formset=BaseFactorItemFormSet, # <--- Use custom formset class
+    extra=0,
     can_delete=True,
     min_num=1,
-    validate_min=True,
-    exclude=('factor',)  # حذف فیلد factor
+    validate_min=True, # Keep this True
 )
+#
+# WizardFactorItemFormSet = inlineformset_factory(
+#     parent_model=Factor,
+#     model=FactorItem,
+#     form=WizardFactorItemForm,
+#     fields=('description', 'quantity', 'unit_price'),
+#     formset=WizardFactorItemFormSet,
+#     extra=1,  # نمایش یک فرم خالی برای افزودن
+#     can_delete=True,
+#     min_num=1,  # حداقل یک ردیف الزامی است
+#     validate_min=True,  # فعال کردن اعتبارسنجی min_num
+# )
+
 
 ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.xls', '.xlsx']
 ALLOWED_EXTENSIONS_STR = ", ".join(ALLOWED_EXTENSIONS)
@@ -746,4 +900,5 @@ class WizardTankhahDocumentForm(forms.Form):
 class WizardConfirmationForm(forms.Form):
     # confirm = forms.BooleanField(label=_('تأیید نهایی'), required=True)
     pass
+
 

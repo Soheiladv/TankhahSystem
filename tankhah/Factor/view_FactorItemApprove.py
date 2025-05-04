@@ -7,7 +7,7 @@ from django.views.generic import DetailView
 
 from core.PermissionBase import PermissionBaseView
 from core.models import UserPost, WorkflowStage
-from tankhah.forms import FactorItemApprovalForm
+from tankhah.forms import FactorItemApprovalForm, FactorItemApprovalFormSet
 from tankhah.fun_can_edit_approval import can_edit_approval
 from tankhah.models import Factor, FactorItem, ApprovalLog
 from django.utils.translation import gettext_lazy as _
@@ -15,7 +15,14 @@ from django.utils.translation import gettext_lazy as _
 import logging
 logger = logging.getLogger(__name__)
 """تأیید آیتم‌های فاکتور"""
-
+# --- ایجاد Inline Formset ---
+# FactorItemApprovalFormSet = inlineformset_factory(
+#     Factor,  # Parent model
+#     FactorItem,  # Child model
+#     form=FactorItemApprovalForm,  # Your approval form
+#     extra=0,  # Don't show extra forms
+#     can_delete=False  # Don't allow deleting items here
+# )
 class FactorItemApproveView(PermissionBaseView, DetailView):
     model = Factor
     template_name = 'tankhah/factor_item_approve.html'
@@ -47,18 +54,11 @@ class FactorItemApproveView(PermissionBaseView, DetailView):
         #          logger.error(f"[ApproveView-Context] خطا در mark_approval_seen: {e}")
         # ---
 
-        # --- ایجاد Inline Formset ---
-        FactorItemApprovalFormSet = inlineformset_factory(
-            Factor,           # Parent model
-            FactorItem,       # Child model
-            form=FactorItemApprovalForm, # Your approval form
-            extra=0,          # Don't show extra forms
-            can_delete=False  # Don't allow deleting items here
-        )
 
         # Instantiate the formset
         # Pass POST data if it's a POST request, otherwise None
         # Crucially, pass instance=factor to link it to the parent
+        # from tankhah.Factor.forms_Factor import FactorItemApprovalFormSet
         formset = FactorItemApprovalFormSet(
             self.request.POST or None,
             instance=factor,

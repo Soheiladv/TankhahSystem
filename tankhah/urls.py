@@ -3,6 +3,7 @@ from django import views
 from django.urls import path
 from budgets.views import get_budget_info
 from tankhah.Factor.view_FactorItemApprove import FactorItemApproveView
+from tankhah.Factor.view_FactorUpdate import FactorWizardUpdateView
 from tankhah.TankhahTrackingView import TankhahTrackingView
 from tankhah.view_folder_tankhah.view_tankhah import (
     TankhahDetailView, TankhahCreateView, TankhahDeleteView,
@@ -33,6 +34,8 @@ urlpatterns = [
     path('factor/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'),
     path('factor/create/', FactorCreateView.as_view(), name='old_factor_create'),
     path('factor/create/wizard/', FactorCreateWizardView.as_view(), name='factor_wizard'),
+    path('factor/<int:pk>/update/wizard/', FactorWizardUpdateView.as_view(), name='update_factor_wizard'),
+
     # path('factor/create/', FactorCreateWizard.as_view(), name='factor_create'),
     path('factor/<int:pk>/update/', FactorUpdateView.as_view(), name='factor_update'),
     path('factor/<int:pk>/delete/', FactorDeleteView.as_view(), name='factor_delete'),
