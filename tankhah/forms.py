@@ -3,7 +3,6 @@ import os
 from decimal import Decimal
 from django import forms
 from django.core.exceptions import ValidationError
-from django.forms import inlineformset_factory
 from django.utils.translation import gettext_lazy as _
 from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget
 from .utils import restrict_to_user_organization
@@ -38,37 +37,6 @@ class FactorItemApprovalForm(forms.Form):
         required=False,
         label=_("توضیحات")
     )
-    class Meta:
-        model = FactorItem
-        # Fields to include in the form (that the user interacts with OR needed for processing)
-        # We don't include 'status' directly if we use 'action' field
-        fields = ['action', 'comment']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Set initial value for 'action' based on the instance's current status
-        if self.instance and self.instance.pk:
-             # Map DB status to form action choices
-             # Adjust this mapping if your ACTION_CHOICES differ from STATUS_CHOICES
-            current_status_upper = str(self.instance.status).upper()
-            # Find the matching choice value
-            matching_choice = current_status_upper if current_status_upper in dict(self.ACTION_CHOICES) else 'PENDING' # Default to PENDING if no match
-            self.fields['action'].initial = matching_choice
-            # Alternatively, keep initial blank and let JS set dropdown text based on item.status
-            # self.fields['action'].initial = ''
-
-
-    def clean(self):
-        cleaned_data = super().clean()
-        action = cleaned_data.get('action')
-        comment = cleaned_data.get('comment')
-
-        # Require comment only if action is REJECT
-        if action == 'REJECTED' and not comment:
-            self.add_error('comment', _('لطفاً دلیل رد کردن این ردیف را بنویسید.'))
-
-        return cleaned_data
-
 
 class FactorApprovalForm(forms.ModelForm):
     comment = forms.CharField(
@@ -112,9 +80,6 @@ class FactorApprovalForm(forms.ModelForm):
                     item.comment = self.cleaned_data[comment_field]
                     item.save()
         return instance
-
-
-
 
 class TankhahForm(JalaliDateForm):
     date = forms.CharField(
@@ -350,48 +315,21 @@ class FactorItemForm(forms.ModelForm):
         model = FactorItem
         fields = ['description', 'amount', 'quantity']
         widgets = {
-            'description': forms.TextInput(
-                attrs={'class': 'form-control form-control-sm', 'placeholder': _('شرح ردیف')}),
-            'amount': forms.NumberInput(
-                attrs={'class': 'form-control form-control-sm ltr-input amount-field', 'step': '1', 'min': '0', 'placeholder': 'مبلغ را وارد کنید'}),
+            'description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('شرح ردیف')}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'مبلغ را وارد کنید'}),
             'quantity': forms.NumberInput(
-                attrs={'class': 'form-control form-control-sm ltr-input quantity-field', 'placeholder': _('تعداد'), 'min': '1'}),
+                attrs={'class': 'form-control quantity-field', 'placeholder': _('تعداد'), 'min': '1'}),
         }
 
     def clean(self):
         cleaned_data = super().clean()
         amount = cleaned_data.get('amount')
         quantity = cleaned_data.get('quantity')
-        description = cleaned_data.get('description')
-
-        unit_price = cleaned_data.get('unit_price')
-        if unit_price is not None and unit_price <= 0:
-            raise forms.ValidationError(_("قیمت واحد باید مثبت باشد."))
-        return cleaned_data
-
-        # اگه فرم خالیه (بدون توضیحات و مبلغ)، قبولش کن و نادیده بگیر
-        # نادیده گرفتن فرم‌های خالی
-        if not description and (amount is None or amount == 0) and (quantity is None or quantity == 1):
-            self.cleaned_data['DELETE'] = True
-            return cleaned_data
-
-        # اعتبارسنجی برای فرم‌های پرشده
-        if not description:
-            raise forms.ValidationError(_('شرح ردیف الزامی است.'))
-        if amount is None or amount <= 0:
+        if amount is not None and amount <= 0:
             raise forms.ValidationError(_('مبلغ باید بزرگ‌تر از صفر باشد.'))
-        if quantity is None or quantity < 1:
+        if quantity is not None and quantity < 1:
             raise forms.ValidationError(_('تعداد باید حداقل ۱ باشد.'))
         return cleaned_data
-
-# --- ایجاد Inline Formset ---
-FactorItemApprovalFormSet = inlineformset_factory(
-    Factor,  # Parent model
-    FactorItem,  # Child model
-    form=FactorItemApprovalForm,  # Your approval form
-    extra=0,  # Don't show extra forms
-    can_delete=False  # Don't allow deleting items here
-)
 
 class ApprovalForm(forms.ModelForm):
     action = forms.ChoiceField(choices=[

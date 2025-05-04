@@ -589,11 +589,11 @@ LOGGING = {
             'level': 'INFO',  # لاگ‌های Django در سطح INFO
             'propagate': False,
         },
-        # 'django.db.backends': {
-        #     'handlers': ['file'],
-        #     'level': 'DEBUG',  # برای دیباگ کوئری‌های دیتابیس
-        #     'propagate': False,
-        # },
+        'django.db.backends': {
+            'handlers': ['file'],
+            'level': 'DEBUG',  # برای دیباگ کوئری‌های دیتابیس
+            'propagate': False,
+        },
         'tankhah': {
             'handlers': ['file', 'console'],
             'level': 'DEBUG',  # لاگ‌های اپ tankhah در سطح DEBUG

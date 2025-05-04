@@ -1,11 +1,10 @@
-import datetime
 import os
 from decimal import Decimal
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
-from django.db import models, transaction, IntegrityError
+from django.db import models, transaction
 from django.db.models import Sum, Max
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -16,7 +15,7 @@ from budgets.budget_calculations import get_subproject_remaining_budget, get_pro
     get_factor_remaining_budget, get_tankhah_remaining_budget
 import logging
 
-from budgets.models import TransactionType, ProjectBudgetAllocation
+from budgets.models import TransactionType
 from core.models import WorkflowStage, Post
 
 logger = logging.getLogger(__name__)
@@ -497,26 +496,7 @@ class FactorDocument(models.Model):
             ('FactorDocument_view','نمایش سند فاکتور'),
             ('FactorDocument_delete','حــذف سند فاکتور'),
         ]
-#----
-class FactorSequence(models.Model):
-    """مدلی برای نگهداری آخرین شماره سریال فاکتور برای یک کلید خاص (مثلا تاریخ یا تاریخ-تنخواه)."""
-    key = models.CharField(
-        max_length=100,
-        unique=True,
-        db_index=True,
-        verbose_name=_("کلید شمارنده")
-        # مثال کلید: "DATE-14040213" یا "TANKHAH-15-DATE-14040213"
-    )
-    last_serial = models.PositiveIntegerField(default=0, verbose_name=_("آخرین شماره سریال"))
 
-    class Meta:
-        verbose_name = _("شمارنده سریال فاکتور")
-        verbose_name_plural = _("شمارنده‌های سریال فاکتور")
-
-    def __str__(self):
-        return f"{self.key}: {self.last_serial}"
-
-#----
 class Factor(models.Model):
     STATUS_CHOICES = (
         ('DRAFT', _('پیش‌نویس')),
@@ -555,187 +535,63 @@ class Factor(models.Model):
             return self.get_items_total()
         return Decimal('0')
 
-    # def generate_number(self):
-    #     from jdatetime import date as jdate
-    #     date_str = jdate.fromgregorian(date=self.date).strftime('%Y%m%d')
-    #     serial = Factor.objects.filter(date=self.date).count() + 1
-    #     return f"FAC-{self.tankhah.number}-{date_str}-{serial:03d}"
     def generate_number(self):
-        """تولید شماره فاکتور یکتا با استفاده از مدل شمارنده و قفل."""
         from jdatetime import date as jdate
-        from django.db import transaction
-
-        if not self.date:
-            logger.error("[Factor-GenerateNum] تاریخ فاکتور برای تولید شماره وجود ندارد.")
-            return None
-        if not self.tankhah or not self.tankhah.pk:  # نیاز به ID تنخواه داریم
-            logger.error("[Factor-GenerateNum] تنخواه معتبر برای تولید شماره وجود ندارد.")
-            return None
-
-        factor_date_obj = self.date.date() if isinstance(self.date, datetime.datetime) else self.date
-        date_str = jdate.fromgregorian(date=factor_date_obj).strftime('%Y%m%d')
-
-        # --- تعریف کلید شمارنده ---
-        # گزینه ۱: سریال روزانه کلی (همه فاکتورهای یک روز سریال پشت سر هم دارند)
-        # sequence_key = f"DATE-{date_str}"
-        # گزینه ۲: سریال روزانه برای هر تنخواه (پیشنهادی - احتمال تداخل کمتر)
-        sequence_key = f"TANKHAH-{self.tankhah.pk}-DATE-{date_str}"
-        logger.debug(f"[Factor-GenerateNum] کلید شمارنده: {sequence_key}")
-
-        try:
-            # --- شروع تراکنش اتمیک برای قفل و افزایش ---
-            with transaction.atomic():
-                # دریافت یا ایجاد رکورد شمارنده و قفل کردن آن
-                # get_or_create اتمیک نیست، select_for_update ضروری است
-                sequence, created = FactorSequence.objects.select_for_update().get_or_create(
-                    key=sequence_key,
-                    defaults={'last_serial': 0}  # اگر وجود نداشت، با ۰ شروع کن
-                )
-                logger.debug(f"[Factor-GenerateNum] رکورد شمارنده: {sequence}, ایجاد شده: {created}")
-
-                # افزایش شماره سریال
-                sequence.last_serial += 1
-                new_serial = sequence.last_serial
-                sequence.save()  # ذخیره شماره جدید
-                logger.info(f"[Factor-GenerateNum] سریال جدید برای کلید '{sequence_key}': {new_serial}")
-
-            # ساخت شماره نهایی فاکتور
-            # اطمینان از وجود شماره تنخواه
-            if not self.tankhah.number:
-                logger.error(f"[Factor-GenerateNum] شماره تنخواه برای {self.tankhah} یافت نشد.")
-                # برگرداندن None یا raise خطا
-                return None
-
-            return f"FAC-{self.tankhah.number}-{date_str}-{new_serial:03d}"
-
-        except Exception as e:
-            # لاگ خطا و برگرداندن None تا ذخیره اصلی متوقف شود
-            logger.error(f"[Factor-GenerateNum] خطا در تولید شماره برای کلید '{sequence_key}': {e}", exc_info=True)
-            return None
+        date_str = jdate.fromgregorian(date=self.date).strftime('%Y%m%d')
+        serial = Factor.objects.filter(date=self.date).count() + 1
+        return f"FAC-{self.tankhah.number}-{date_str}-{serial:03d}"
 
     def clean(self):
         super().clean()
         total = self.total_amount()
         if self.pk and total > 0 and abs(self.amount - total) > 0.01:
             logger.warning(f"Factor {self.number}: amount ({self.amount}) != items total ({total})")
-        # if total <= 0:
-        #     raise ValidationError(_("مبلغ فاکتور باید مثبت باشد."))
-        # if self.tankhah:
-        #     tankhah_remaining = get_tankhah_remaining_budget(self.tankhah)
-        #     if total > tankhah_remaining:
-        #         raise ValidationError(
-        #             _(f"مبلغ فاکتور ({total:,.0f} ریال) نمی‌تواند بیشتر از بودجه باقی‌مانده تنخواه ({tankhah_remaining:,.0f} ریال) باشد.")
-        #         )
+        if total <= 0:
+            raise ValidationError(_("مبلغ فاکتور باید مثبت باشد."))
+        if self.tankhah:
+            tankhah_remaining = get_tankhah_remaining_budget(self.tankhah)
+            if total > tankhah_remaining:
+                raise ValidationError(
+                    _(f"مبلغ فاکتور ({total:,.0f} ریال) نمی‌تواند بیشتر از بودجه باقی‌مانده تنخواه ({tankhah_remaining:,.0f} ریال) باشد.")
+                )
 
-    # def save(self, *args, **kwargs):
-    #     with transaction.atomic():
-    #         if not self.number:
-    #             self.number = self.generate_number()
-    #         self.full_clean()
-    #
-    #         if self.pk:
-    #             original = Factor.objects.get(pk=self.pk)
-    #             from budgets.models import BudgetTransaction
-    #             if self.status != original.status:
-    #                 if self.status == 'PAID':
-    #                     BudgetTransaction.objects.create(
-    #                         allocation=self.tankhah.budget_allocation,
-    #                         transaction_type='CONSUMPTION',
-    #                         amount=self.total_amount(),
-    #                         related_factor=self,
-    #                         created_by=self.tankhah.created_by,
-    #                         description=f"مصرف بودجه توسط فاکتور {self.number}",
-    #                         transaction_id=f"TX-FAC-{self.number}"
-    #                     )
-    #                     self.locked = True
-    #                 elif self.status == 'REJECTED' and original.status in ['APPROVED', 'PAID']:
-    #                     BudgetTransaction.objects.create(
-    #                         allocation=self.tankhah.budget_allocation,
-    #                         transaction_type='RETURN',
-    #                         amount=self.total_amount(),
-    #                         related_factor=self,
-    #                         created_by=self.tankhah.created_by,
-    #                         description=f"بازگشت بودجه به دلیل رد فاکتور {self.number}",
-    #                         transaction_id=f"TX-FAC-RET-{self.number}"
-    #                     )
-    #                     self.locked = False
-    #
-    #         super().save(*args, **kwargs)
-    # --- اصلاح متد save برای اطمینان از اجرای generate_number داخل تراکنش ---
     def save(self, *args, **kwargs):
-        with transaction.atomic():  # اطمینان از وجود تراکنش
-            is_new = self.pk is None  # آیا فاکتور جدید است؟
-            if is_new and not self.number:
-                # تولید شماره فقط برای فاکتورهای جدید و بدون شماره
-                generated_number = self.generate_number()
-                if generated_number:
-                    self.number = generated_number
-                else:
-                    # اگر تولید شماره شکست خورد، اجازه ذخیره ندهید یا شماره پیش‌فرض بگذارید
-                    logger.error(f"[Factor-Save] تولید شماره برای فاکتور جدید شکست خورد.")
-                    raise IntegrityError("امکان تولید شماره فاکتور وجود ندارد.")
+        with transaction.atomic():
+            if not self.number:
+                self.number = self.generate_number()
+            self.full_clean()
 
-            # self.full_clean() # اجرای full_clean قبل از ذخیره نهایی خوب است
-
-            # --- منطق قبلی برای وضعیت PAID/REJECTED ---
-            original_status = None
-            if not is_new:  # فقط برای فاکتورهای موجود وضعیت قبلی را بگیر
-                try:
-                    original_status = Factor.objects.get(pk=self.pk).status
-                except Factor.DoesNotExist:
-                    pass
+            if self.pk:
+                original = Factor.objects.get(pk=self.pk)
+                from budgets.models import BudgetTransaction
+                if self.status != original.status:
+                    if self.status == 'PAID':
+                        BudgetTransaction.objects.create(
+                            allocation=self.tankhah.budget_allocation,
+                            transaction_type='CONSUMPTION',
+                            amount=self.total_amount(),
+                            related_factor=self,
+                            created_by=self.tankhah.created_by,
+                            description=f"مصرف بودجه توسط فاکتور {self.number}",
+                            transaction_id=f"TX-FAC-{self.number}"
+                        )
+                        self.locked = True
+                    elif self.status == 'REJECTED' and original.status in ['APPROVED', 'PAID']:
+                        BudgetTransaction.objects.create(
+                            allocation=self.tankhah.budget_allocation,
+                            transaction_type='RETURN',
+                            amount=self.total_amount(),
+                            related_factor=self,
+                            created_by=self.tankhah.created_by,
+                            description=f"بازگشت بودجه به دلیل رد فاکتور {self.number}",
+                            transaction_id=f"TX-FAC-RET-{self.number}"
+                        )
+                        self.locked = False
 
             super().save(*args, **kwargs)
-            logger.debug(f"[Factor-Save] فاکتور (ID: {self.pk}) ذخیره شد.")
-
-            # --- ایجاد تراکنش بودجه فقط اگر وضعیت تغییر کرده و آبجکت ذخیره شده ---
-            if not is_new and original_status is not None and self.status != original_status:
-                logger.info(f"[Factor-Save] وضعیت فاکتور {self.pk} از {original_status} به {self.status} تغییر کرد.")
-                from budgets.models import BudgetTransaction  # Import here
-                total_amount = self.amount  # یا self.get_items_total() اگر دقیق‌تر است
-
-                # بررسی وجود budget_allocation در تنخواه
-                budget_allocation = getattr(self.tankhah, 'budget_allocation', None)
-                if not budget_allocation:
-                    # تلاش برای یافتن از طریق ProjectBudgetAllocation
-                    proj_alloc = ProjectBudgetAllocation.objects.filter(project=self.tankhah.project).first()
-                    if proj_alloc: budget_allocation = proj_alloc.budget_allocation
-
-                if budget_allocation:
-                    logger.debug(f"[Factor-Save] تخصیص بودجه یافت شد: {budget_allocation.id}")
-                    if self.status == 'PAID':
-                        logger.info(f"[Factor-Save] ایجاد تراکنش مصرف بودجه برای فاکتور {self.number}...")
-                        BudgetTransaction.objects.create(
-                            allocation=budget_allocation,
-                            transaction_type='CONSUMPTION',
-                            amount=total_amount,
-                            related_factor=self,
-                            # created_by=... # چه کسی باید ایجاد کننده باشد؟
-                            description=f"پرداخت فاکتور {self.number}",
-                            # transaction_id=... # تولید ID یکتا
-                        )
-                        self.locked = True  # قفل کردن فاکتور پس از پرداخت
-                        super().save(update_fields=['locked'])  # ذخیره فیلد قفل
-                    elif self.status == 'REJECTED' and original_status in ['APPROVED', 'PAID']:
-                        logger.info(f"[Factor-Save] ایجاد تراکنش بازگشت بودجه برای فاکتور {self.number}...")
-                        BudgetTransaction.objects.create(
-                            allocation=budget_allocation,
-                            transaction_type='RETURN',
-                            amount=total_amount,
-                            related_factor=self,
-                            # created_by=...
-                            description=f"بازگشت بودجه (رد فاکتور {self.number})",
-                            # transaction_id=...
-                        )
-                        self.locked = False  # باز کردن قفل در صورت رد شدن
-                        super().save(update_fields=['locked'])
-                else:
-                    logger.error(
-                        f"[Factor-Save] تخصیص بودجه (BudgetAllocation) برای تنخواه {self.tankhah.pk} جهت ثبت تراکنش بودجه یافت نشد.")
 
     def __str__(self):
-        # tankhah_number = getattr(self.tankhah, 'number', _('نامشخص')) if self.tankhah else _('نامشخص')
-        return f"Factor {self.id}"# for Tankhah {tankhah_number}"
+        return f"{self.number} ({self.tankhah.number})"
 
     class Meta:
         verbose_name = _("فاکتور")
@@ -745,12 +601,12 @@ class Factor(models.Model):
         ]
         default_permissions = ()
         permissions = [
-            ('factor_add', _('افزودن فاکتور')),
-            ('factor_view', _('نمایش فاکتور')),
-            ('factor_update', _('بروزرسانی فاکتور')),
-            ('factor_delete', _('حذف فاکتور')),
-            ('factor_approve', _('تأیید فاکتور')),
-            ('factor_reject', _('رد فاکتور')),
+            ('a_factor_add', _('افزودن فاکتور')),
+            ('a_factor_view', _('نمایش فاکتور')),
+            ('a_factor_update', _('بروزرسانی فاکتور')),
+            ('a_factor_delete', _('حذف فاکتور')),
+            ('a_factor_approve', _('تأیید فاکتور')),
+            ('a_factor_reject', _('رد فاکتور')),
         ]
 
 class FactorItem(models.Model):
@@ -772,31 +628,26 @@ class FactorItem(models.Model):
                                      verbose_name=_("قیمت واحد"))
     category = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("دسته‌بندی"))
     transaction_type = models.ForeignKey(TransactionType, on_delete=models.SET_NULL, null=True,
-                                         verbose_name=_("نوع تراکنش"),default=1)
+                                         verbose_name=_("نوع تراکنش"))
     min_stage_order = models.IntegerField(default=1, verbose_name=_("حداقل ترتیب مرحله"),
                                           help_text=_("این نوع تراکنش فقط در این مرحله یا بالاتر مجاز است"))
 
     def clean(self):
         """اعتبارسنجی آیتم فاکتور"""
         # super().clean()
-        # if self.amount <= 0:
-        #     raise ValidationError(_('مبلغ ردیف باید بزرگ‌تر از صفر باشد.'))
+        if self.amount <= 0:
+            raise ValidationError(_('مبلغ ردیف باید بزرگ‌تر از صفر باشد.'))
         if self.quantity <= 0:
             raise ValidationError(_('تعداد باید بزرگ‌تر از صفر باشد.'))
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
             # فقط اگر unit_price تنظیم شده باشد، amount را بازنویسی کن
-            if self.quantity is not None and self.unit_price is not None:
-                self.amount = (self.quantity * self.unit_price).quantize(Decimal('0.01'))
-            else:
-                # اگر تعداد یا قیمت واحد null باشد (که نباید اتفاق بیفتد)
-                self.amount = Decimal('0.00')
-                logger.warning(f"Item {self.pk}: Cannot calculate amount due to null quantity/unit_price.")
-                # calculated_amount = self.unit_price * self.quantity
-                # if abs(self.amount - calculated_amount) > 0.01:
-                #     logger.warning(f"Amount mismatch: entered={self.amount}, calculated={calculated_amount}")
-                #     self.amount = calculated_amount
+            if self.unit_price is not None:
+                calculated_amount = self.unit_price * self.quantity
+                if abs(self.amount - calculated_amount) > 0.01:
+                    logger.warning(f"Amount mismatch: entered={self.amount}, calculated={calculated_amount}")
+                    self.amount = calculated_amount
 
             factor_remaining = get_factor_remaining_budget(self.factor)
             if self.amount > factor_remaining:
