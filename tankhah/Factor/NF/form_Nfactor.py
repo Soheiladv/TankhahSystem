@@ -271,25 +271,6 @@ class FactorDocumentForm(forms.Form):
                 raise ValidationError(error_msg)
         return files
 
-# class FactorDocumentForm(forms.Form):
-#     # Use prefix='factor_docs' in the view
-#     files = forms.FileField(
-#         label=_("پیوست‌های فاکتور"),
-#         required=False, # Uploading is optional
-#         widget=forms.ClearableFileInput(attrs={
-#             'multiple': True,
-#             'class': 'form-control form-control-sm'
-#             })
-#     )
-#
-#     def clean_files(self):
-#         files = self.files.getlist('factor_docs-files') # Use prefix!
-#         # Add any validation for file size, type, etc. here if needed
-#         # for f in files:
-#         #    if f.size > MAX_UPLOAD_SIZE:
-#         #        raise forms.ValidationError(f"File '{f.name}' is too large.")
-#         return files # Return the list of files
-
 # --- Form for Tankhah Documents (Multiple Upload) ---
 class TankhahDocumentForm(forms.Form):
     documents = MultipleFileField(

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+<h2>فرم دسته‌بندی</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">ذخیره</button>
+</form>
+<a href="{% url 'itemcategory_list' %}">بازگشت</a>
+
+
+{% endblock %}

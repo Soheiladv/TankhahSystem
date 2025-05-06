@@ -4,289 +4,367 @@
 {% block extra_head %}
     {# --- استایل‌های پایه و بهبودهای ظاهری --- #}
     <style>
-        /* نمایش لیبل‌ها */
-        .form-label {
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            font-weight: 500;
-            margin-bottom: 0.3rem;
-            font-size: 0.9em;
-        }
-
-        .form-control-sm {
-            font-size: 0.875rem;
-            padding: 0.25rem 0.5rem;
-        }
-
-        .form-select-sm {
-            font-size: 0.875rem;
-            padding: 0.25rem 1.5rem 0.25rem 0.5rem;
-        }
-
-        /* Adjust padding for select arrow */
-        .form-control:disabled, .form-select:disabled {
-            background-color: #e9ecef;
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-
-        /* استایل تب‌ها */
-        .factor-tabs .nav-link {
-            border: none;
-            border-bottom: 3px solid transparent;
-            color: var(--bs-secondary-color);
-            font-weight: 500;
-            padding: 0.7rem 1rem;
-            transition: all 0.2s ease-in-out;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.95em;
-        }
-
-        .factor-tabs .nav-link i {
-            width: 1.1em;
-            text-align: center;
-        }
-
-        .factor-tabs .nav-link:hover {
-            color: var(--bs-primary);
-        }
-
-        .factor-tabs .nav-link.active {
-            color: var(--bs-primary);
-            background-color: transparent;
-            border-bottom-color: var(--bs-primary);
-            font-weight: 600;
-        }
-
-        .tab-pane {
-            padding-top: 1.5rem;
-        }
-
-        /* استایل ردیف‌های آیتم */
-        .item-row {
-            border: 1px solid #dee2e6;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-            padding: 1rem;
-            background-color: #f8f9fa;
-            transition: background-color 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease, transform 0.3s ease, max-height 0.4s ease-out, padding 0.3s ease-out, margin 0.3s ease-out;
-            overflow: hidden;
-            max-height: 500px; /* Start with enough height */
-        }
-
-        .item-row:hover {
-            background-color: #eef;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        }
-
-        .item-row.is-deleting {
-            opacity: 0;
-            transform: scale(0.9);
-            pointer-events: none;
-            max-height: 0 !important;
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
-            margin-bottom: 0 !important;
-            border-width: 0;
-        }
-
-        .item-total {
-            font-weight: bold;
-            font-size: 0.9em;
-            padding: 0.4rem 0.6rem;
-            background-color: #e9ecef;
-            border: 1px solid #ced4da;
-            color: #212529;
-            border-radius: 0.25rem;
-            white-space: nowrap;
-            min-width: 90px;
-            display: inline-block;
-            text-align: center;
-        }
-
-        .delete-item-btn {
-            cursor: pointer;
-            color: var(--bs-danger);
-            transition: color 0.2s ease;
-            padding: 0.2rem 0.4rem;
-        }
-
-        .delete-item-btn:hover {
-            color: #a00;
-        }
-
-        /* بخش خلاصه محاسبات (بالای تب‌ها) */
-        .calculation-summary-panel {
-            background-color: #f1f3f5;
-            border: 1px solid #dee2e6;
-            border-radius: 0.5rem;
-            padding: 1rem 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-
-        .summary-item {
-            text-align: center;
-        }
-
-        .summary-item strong {
-            display: block;
-            font-size: 0.8em;
-            color: #6c757d;
-            margin-bottom: 0.2rem;
-            text-transform: uppercase;
-        }
-
-        .summary-value {
-            font-weight: 600;
-            font-size: 1.05em;
-            padding: 0.3em 0.6em;
-            border-radius: 0.25rem;
-            min-width: 100px;
-            display: inline-block;
-            background-color: #fff;
-            border: 1px solid #ced4da;
-            transition: all 0.3s ease;
-        }
-
-        .summary-value.positive {
-            background-color: #d1e7dd;
-            border-color: #badbcc;
-            color: #0f5132;
-        }
-
-        .summary-value.negative {
-            background-color: #f8d7da;
-            border-color: #f5c6cb;
-            color: #842029;
-        }
-
-        .summary-value.warning {
-            background-color: #fff3cd;
-            border-color: #ffecb5;
-            color: #664d03;
-        }
-
-        /* هشدار بودجه */
-        #tankhah-budget-warning {
-            display: none;
-            color: var(--bs-danger);
-            font-weight: bold;
-            margin-top: 0.5rem;
-            text-align: center;
-            animation: pulse 1.5s infinite;
-            font-size: 0.9em;
-        }
-
-        @keyframes pulse {
-            0% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.6;
-            }
-            100% {
-                opacity: 1;
-            }
-        }
-
-        /* نوار پیشرفت بودجه */
-        .budget-progress-bar {
-            height: 8px;
-            background-color: #e9ecef;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-top: 0.6rem;
-        }
-
-        .budget-progress-bar .progress-bar {
-            background-color: #198754;
-            transition: width 0.3s ease-in-out;
-        }
-
-        .budget-progress-bar .progress-bar.bg-warning {
-            background-color: #ffc107;
-        }
-
-        .budget-progress-bar .progress-bar.bg-danger {
-            background-color: #dc3545;
-        }
-
-        /* هایلایت تغییر */
-        .highlight-change {
-            background-color: #fff3cd !important;
-            transition: background-color 0.5s ease-out;
-        }
-
-        /* خطاهای فرم ست */
-        .formset-errors ul {
-            list-style: none;
-            padding-left: 0;
-            margin-bottom: 0;
-            color: #dc3545;
-            font-size: 0.9em;
-        }
-
-        /* نمایش / عدم نمایش بخش بودجه */
-        #tankhah-budget-info-display.loading,
-        #tankhah-budget-info-display.error {
-            display: none;
-        }
-
-        #tankhah-budget-loading,
-        #tankhah-budget-error {
-            display: none;
-        }
-
-        #tankhah-budget-loading.active,
-        #tankhah-budget-error.active {
-            display: block;
-            padding: 1rem 0;
-        }
-
-        /* استایل فیلدهای نامعتبر */
-        .form-control.is-invalid, .form-select.is-invalid {
-            border-color: #dc3545 !important;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right calc(.375em + .1875rem) center;
-            background-size: calc(.75em + .375rem) calc(.75em + .375rem);
-        }
-
-        .invalid-feedback {
-            display: none;
-            width: 100%;
-            margin-top: .25rem;
-            font-size: .875em;
-            color: #dc3545;
-        }
-
-        /* نمایش پیام خطا */
-        .is-invalid ~ .invalid-feedback,
-        .form-control.is-invalid + .invalid-feedback,
-        .form-select.is-invalid + .invalid-feedback,
-        .input-group > .form-control.is-invalid ~ .invalid-feedback, /* For inputs in input-groups */
-        .input-group > .form-select.is-invalid ~ .invalid-feedback {
-            display: block;
-        }
-
-        .is-invalid + .form-text + .invalid-feedback {
-            display: block;
-        }
-
-        /* استایل پیش‌نمایش فایل */
         .file-preview-item {
             background-color: #fff;
             border-radius: 0.25rem;
+            transition: all 0.2s ease;
         }
 
-        .existing-documents li {
-            font-size: 0.9em;
+        .file-preview-item:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-1px);
         }
+
+        .file-image-preview {
+            border-radius: 0.2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            width: 20px;
+            height: 20px;
+            object-fit: cover;
+            display: none;
+        }
+
+        .file-image-preview {
+            width: 40px; /* افزایش اندازه برای وضوح */
+            height: 40px;
+            border-radius: 0.3rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            object-fit: cover; /* اطمینان از پر شدن کادر بدون اعوجاج */
+            display: none;
+            transition: opacity 0.3s ease, transform 0.2s ease; /* برای انیمیشن‌ها */
+        }
+
+        .file-image-preview.image-loaded {
+            transform: scale(1); /* افکت کوچک برای ورود */
+        }
+
+        .file-preview-item:hover .file-image-preview {
+            transform: scale(1.05); /* بزرگ‌نمایی هنگام هاور */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .file-preview-item {
+            background-color: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .file-preview-item:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-1px);
+        }
+
+        .remove-preview-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .remove-preview-btn:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+            transform: scale(1.1);
+        }
+
+        .remove-preview-btn {
+            transition: all 0.2s ease;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .remove-preview-btn:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+            transform: scale(1.1);
+        }
+
+        /* در تگ <style> یا فایل CSS شما */
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+        }
+
+        @keyframes slideOutRight { /* یا هر انیمیشن دیگری که می‌خواهید */
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(100%);
+            }
+        }
+
+        .item-row.is-deleting {
+            /* animation: fadeOut 0.4s ease-out forwards, slideOutRight 0.4s ease-out 0.2s forwards; */ /* ترکیب دو انیمیشن */
+            animation: fadeOut 0.4s ease-out forwards; /* یا فقط محو شدن */
+            pointer-events: none;
+            /* نیازی به max-height و padding و margin صفر نیست اگر display:none بعد از انیمیشن اعمال شود */
+        }
+
+        /* انیمیشن‌های جدید */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            20%, 60% {
+                transform: translateX(-5px);
+            }
+            40%, 80% {
+                transform: translateX(5px);
+            }
+        }
+
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(25, 135, 84, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(25, 135, 84, 0);
+            }
+        }
+
+        /* بهبود استایل ردیف‌ها */
+        .item-row {
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        .item-row.is-deleting {
+            transform: translateX(100%) rotate(5deg);
+            opacity: 0;
+            margin-bottom: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            border-width: 0;
+        }
+
+        .item-row.highlight {
+            animation: pulse-glow 1.5s ease-out;
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+
+        .item-row.error-shake {
+            animation: shake 0.5s ease-in-out;
+            border-color: #dc3545 !important;
+        }
+
+        /* دکمه حذف بهبود یافته */
+        .delete-item-btn {
+            transition: all 0.3s ease;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid transparent;
+        }
+
+        .delete-item-btn:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+            border-color: rgba(220, 53, 69, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* افکت hover برای ردیف‌ها */
+        .item-row:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            z-index: 1;
+        }
+
+        /* بهبود ظاهر جمع کل */
+        .item-total {
+            transition: all 0.3s ease;
+            font-weight: 600;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6 !important;
+        }
+
+        .item-row:hover .item-total {
+            background-color: #e9ecef;
+            border-color: #ced4da !important;
+        }
+
+        /* افکت تغییر مقدار */
+        .value-change {
+            animation: highlight-change 1.5s ease-out;
+        }
+
+        @keyframes highlight-change {
+            0% {
+                background-color: rgba(255, 193, 7, 0.3);
+            }
+            100% {
+                background-color: transparent;
+            }
+        }
+
+        /* افکت hover برای دکمه‌ها:*/
+        .btn {
+            transition: all 0.2s ease;
+            transform: translateY(0);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        /*استایل برای تب‌های فعال:*/
+        .factor-tabs .nav-link.active {
+            position: relative;
+            color: var(--bs-primary);
+            font-weight: 600;
+        }
+
+        .factor-tabs .nav-link.active:after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: var(--bs-primary);
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* انیمیشن‌های جدید */
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(100%);
+            }
+        }
+
+        .item-row {
+            transition: all 0.3s ease-out;
+        }
+
+        .item-row.is-deleting {
+            animation: fadeOut 0.4s ease-out forwards, slideOutRight 0.4s ease-out forwards;
+            pointer-events: none;
+        }
+
+        .highlight-change {
+            animation: highlightChange 1.5s ease-out;
+        }
+
+        @keyframes highlightChange {
+            0% {
+                background-color: rgba(255, 235, 59, 0.3);
+            }
+            100% {
+                background-color: transparent;
+            }
+        }
+
+        .delete-item-btn {
+            transition: all 0.2s ease;
+        }
+
+        .delete-item-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 8px rgba(220, 53, 69, 0.3);
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(100%);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            20%, 60% {
+                transform: translateX(-5px);
+            }
+            40%, 80% {
+                transform: translateX(5px);
+            }
+        }
+
+        .item-row.is-deleting {
+            animation: fadeOut 0.4s ease-out forwards, slideOutRight 0.4s ease-out forwards;
+            pointer-events: none;
+        }
+
+        .item-row.error-shake {
+            animation: shake 0.5s ease-in-out;
+            border-color: #dc3545 !important;
+        }
+
+        .delete-item-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 8px rgba(220, 53, 69, 0.3);
+            animation: pulse-glow 1.5s ease-out;
+        }
+
     </style>
+
 {% endblock %}
 
 {% block content %}
@@ -422,11 +500,14 @@
                         </div>
 
                         {# --- تب اقلام فاکتور --- #}
+                        {# --- تب اقلام فاکتور --- #}
                         <div class="tab-pane fade" id="items-tab-pane" role="tabpanel" aria-labelledby="items-tab"
                              tabindex="0">
-                            {{ formset.management_form }}
+                            {{ formset.management_form }} {# فرم‌های مدیریتی فرم‌ست جنگو (ضروری) #}
+
+                            {# **مهم:** این کانتینر اصلی فرم‌ست است که در JS به آن ارجاع می‌دهیم #}
                             <div id="items-formset-container">
-                                {# Header for desktop #}
+                                {# Header for desktop (اختیاری، برای نمایش عنوان ستون‌ها) #}
                                 <div class="d-none d-md-flex row g-2 mb-2 small text-muted fw-bold text-uppercase border-bottom pb-1">
                                     <div class="col-md-1 text-center">#</div>
                                     <div class="col-md-5">{% trans "شرح" %}</div>
@@ -436,19 +517,28 @@
                                     <div class="col-md-1 text-center">{% trans "حذف" %}</div>
                                 </div>
 
+                                {# **اینجا باید کانتینر داخلی برای خود ردیف‌ها باشد که با JS کار می‌کند** #}
+                                {# در کد JS شما به 'items-formset-container' برای افزودن ردیف اشاره شده، #}
+                                {# اما بهتر است ردیف‌ها در یک کانتینر داخلی‌تر باشند اگر هدر هم داخل کانتینر اصلی است. #}
+                                {# اگر هدر بیرون از items-formset-container باشد، مشکلی نیست. #}
+                                {# فرض می‌کنیم ردیف‌ها مستقیماً داخل items-formset-container اضافه می‌شوند. #}
+
                                 {% for item_form in formset %}
+                                    {# **مهم:** شناسه هر ردیف باید یکتا باشد و با prefix فرم‌ست همخوانی داشته باشد #}
+                                    {# item_form.prefix همان items-0، items-1 و ... است #}
                                     <div id="{{ item_form.prefix }}-row"
                                          class="item-row {% if item_form.DELETE.value %}is-deleting d-none{% endif %}">
-                                        {{ item_form.id }}
+                                        {{ item_form.id }} {# فیلد ID برای فرم‌های موجود #}
                                         <div class="row g-2 align-items-center">
                                             <div class="col-12 col-md-1 text-center mb-2 mb-md-0">
                                                 <span class="row-number badge bg-secondary rounded-pill fs-6"></span>
-                                                {# JS fills this #}
+                                                {# JS این را پر می‌کند #}
                                             </div>
                                             <div class="col-12 col-md-5 mb-2 mb-md-0">
                                                 <label for="{{ item_form.description.id_for_label }}"
                                                        class="form-label d-md-none">{% trans "شرح" %}</label>
                                                 {{ item_form.description }}
+                                                {# ویجت‌ها باید کلاس‌های form-control form-control-sm را از forms.py بگیرند #}
                                                 <div class="invalid-feedback">{{ item_form.description.errors|first }}</div>
                                             </div>
                                             <div class="col-6 col-md-2 mb-2 mb-md-0">
@@ -456,19 +546,20 @@
                                                        class="form-label d-md-none">{% trans "قیمت واحد" %}</label>
                                                 <div class="input-group input-group-sm">
                                                     <span class="input-group-text"><i class="fas fa-coins"></i></span>
-                                                    {{ item_form.unit_price }}
+                                                    {{ item_form.unit_price }} {# ویجت با کلاس unit-price-field #}
                                                 </div>
                                                 <div class="invalid-feedback">{{ item_form.unit_price.errors|first }}</div>
                                             </div>
                                             <div class="col-6 col-md-1 mb-2 mb-md-0">
                                                 <label for="{{ item_form.quantity.id_for_label }}"
                                                        class="form-label d-md-none">{% trans "تعداد" %}</label>
-                                                {{ item_form.quantity }}
+                                                {{ item_form.quantity }} {# ویجت با کلاس quantity-field #}
                                                 <div class="invalid-feedback">{{ item_form.quantity.errors|first }}</div>
                                             </div>
                                             <div class="col-6 col-md-2 text-center mb-2 mb-md-0">
                                                 <label class="form-label d-md-none">{% trans "جمع" %}</label>
                                                 <span class="item-total">۰ {% trans "ریال" %}</span>
+                                                {# JS این را آپدیت می‌کند #}
                                             </div>
                                             <div class="col-6 col-md-1 text-center">
                                                 {% if formset.can_delete %}
@@ -477,8 +568,9 @@
                                                             title="{% trans 'حذف ردیف' %}">
                                                         <i class="fas fa-trash-alt fa-sm"></i>
                                                     </button>
-                                                    {# Checkbox مخفی #}
+                                                    {# چک‌باکس مخفی برای حذف در جنگو #}
                                                     {{ item_form.DELETE }}
+                                                    {# کلاس d-none باید از forms.py یا اینجا اضافه شود #}
                                                 {% endif %}
                                             </div>
                                         </div>
@@ -488,12 +580,14 @@
                                     </div>
                                 {% endfor %}
                             </div>
-                            {# End formset container #}
+                            {# End items-formset-container #}
 
                             <button type="button" class="btn btn-sm btn-outline-success mt-2" id="add-item-row-button">
+                                {# ID صحیح برای دکمه افزودن #}
                                 <i class="fas fa-plus me-1"></i>{% trans "افزودن ردیف" %}
                             </button>
                         </div>
+
 
                         {# --- تب اسناد --- #}
                         <div class="tab-pane fade" id="documents-tab-pane" role="tabpanel"
@@ -507,15 +601,15 @@
                                         </h6></div>
                                         <div class="card-body">
                                             <div class="mb-3">
-                                                <label for="{{ document_form.files.id_for_label }}"
-                                                       class="form-label">{{ document_form.files.label }}</label>
-                                                {{ document_form.files }}
-                                                <div class="form-text small">{% trans "می‌توانید چند فایل انتخاب کنید." %}</div>
-                                                <div class="invalid-feedback"
-                                                     id="error-{{ document_form.files.id_for_label }}">
-                                                    {% if document_form.files.errors %}
-                                                        {{ document_form.files.errors|first }}{% endif %}
-                                                </div>
+                                                    <label for="{{ document_form.files.id_for_label }}"
+                                                           class="form-label">{{ document_form.files.label }}</label>
+                                                    {{ document_form.files|add_class:"form-control"   }}
+                                                    <div class="form-text small">{% trans "فقط فایل‌های تصویری (JPG، PNG، GIF) مجاز هستند." %}</div>
+                                                    <div class="invalid-feedback"
+                                                         id="error-{{ document_form.files.id_for_label }}">
+                                                        {% if document_form.files.errors %}
+                                                            {{ document_form.files.errors|first }}{% endif %}
+                                                    </div>
                                             </div>
                                             {# کانتینر پیش‌نمایش فایل‌های فاکتور #}
                                             <div id="factor-doc-previews" class="mt-3 border-top pt-2">
@@ -698,22 +792,26 @@
 
     {# --- تمپلیت پیش‌نمایش فایل برای JS --- #}
     <template id="file-preview-template">
-        <div class="file-preview-item d-flex justify-content-between align-items-center border-bottom py-1 mb-1 small">
-            <div class="d-flex align-items-center flex-grow-1 me-2 text-truncate">
+        <div class="file-preview-item d-flex justify-content-between align-items-center mb-1 small" role="listitem">
+            <div class="d-flex align-items-center flex-grow-1 me-3 text-truncate">
                 <i class="fas fa-file-alt text-secondary me-2 file-icon"></i>
-                <img src="" alt="Preview" class="file-image-preview me-2"
-                     style="width: 20px; height: 20px; object-fit: cover; display: none;">
-                <span class="file-name text-dark" style="font-size: 0.9em;"></span>
-                <span class="badge bg-light text-dark rounded-pill ms-2 file-size" style="font-size: 0.8em;"></span>
+                <img src="" alt="" class="file-image-preview me-2"
+                     style="display: none;"> <!-- حذف استایل‌های inline، CSS مدیریت می‌کند -->
+                <span class="file-name text-dark"></span>
+                <span class="badge bg-light text-dark rounded-pill ms-2 file-size"></span>
             </div>
-            <button type="button" class="btn btn-sm btn-outline-danger p-0 px-1 remove-preview-btn"
-                    title="{% trans 'پاک کردن انتخاب فایل(ها)' %}">
+            <button type="button" class="btn btn-sm btn-outline-danger p-0 remove-preview-btn"
+                    aria-label="{% trans 'حذف فایل' %}">
                 <i class="fas fa-times fa-xs"></i>
             </button>
         </div>
     </template>
 {% endblock %}
 
+<!-- SweetAlert2 برای پیام‌های زیبا -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<!-- اسکریپت SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 {% block extra_js %}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -1002,14 +1100,35 @@
             }
 
             // آپدیت شماره ردیف‌ها
+            {#function updateRowNumbers() {#}
+            {#    let visibleRowIndex = 1;#}
+            {#    formsetContainer.querySelectorAll('.item-row').forEach(row => {#}
+            {#        if (!row.classList.contains('is-deleting')) {#}
+            {#            row.querySelector('.row-number').textContent = toPersianDigits(visibleRowIndex++);#}
+            {#        }#}
+            {#    });#}
+
             function updateRowNumbers() {
                 let visibleRowIndex = 1;
-                formsetContainer.querySelectorAll('.item-row').forEach(row => {
-                    if (!row.classList.contains('is-deleting')) {
-                        row.querySelector('.row-number').textContent = toPersianDigits(visibleRowIndex++);
-                    }
-                });
+                if (formsetContainer) { // اطمینان از وجود کانتینر
+                    formsetContainer.querySelectorAll('.item-row').forEach(row => { // دیگر نیازی به .dynamic-form نیست اگر همه item-row هستند
+                        const deleteCheckbox = row.querySelector('.delete-item-checkbox');
+                        const rowNumSpan = row.querySelector('.row-number');
+                        if (rowNumSpan) { // اطمینان از وجود span
+                            if (!deleteCheckbox || !deleteCheckbox.checked) {
+                                // اگر ردیف برای حذف علامت نخورده، آن را نمایش بده و شماره‌گذاری کن
+                                row.style.display = ''; // یا حذف کلاس d-none اگر از آن استفاده می‌کنید
+                                row.classList.remove('is-deleting'); // اطمینان از حذف کلاس در صورت undo (اگر پیاده‌سازی شود)
+                                rowNumSpan.textContent = toPersianDigits(visibleRowIndex++);
+                            } else {
+                                // اگر برای حذف علامت خورده، همچنان مخفی بماند یا استایل is-deleting را داشته باشد
+                                // نیازی به انجام کاری نیست، CSS باید .is-deleting را مدیریت کند
+                            }
+                        }
+                    });
+                }
             }
+
 
             // --- مدیریت ردیف‌های فرم‌ست ---
             {#function addFormsetRow() { /* ... کد قبلی بدون تغییر ... */ }#}
@@ -1018,7 +1137,13 @@
             function attachRowEventListeners(rowElement) {
                 // Attach listeners for input changes
                 rowElement.querySelectorAll('.unit-price-field, .quantity-field').forEach(input => {
-                    input.addEventListener('input', updateAllCalculations);
+                    input.addEventListener('input', function () {
+                        // Highlight row on change
+                        rowElement.classList.add('highlight-change');
+                        setTimeout(() => rowElement.classList.remove('highlight-change'), 1000);
+                        updateAllCalculations();
+                    });
+
                     if (input.classList.contains('quantity-field')) {
                         input.addEventListener('keydown', e => {
                             if (e.key === 'Enter') {
@@ -1028,29 +1153,85 @@
                         });
                     }
                 });
-                // Attach listener for delete button
+
+                // Attach listener for delete button with animation and confirmation
                 const deleteButton = rowElement.querySelector('.delete-item-btn');
                 const deleteCheckbox = rowElement.querySelector('.delete-item-checkbox');
+
                 if (deleteButton && deleteCheckbox) {
-                    deleteButton.addEventListener('click', () => {
-                        deleteCheckbox.checked = true;
-                        rowElement.classList.add('is-deleting');
-                        // Update calculations and numbering immediately
+                    deleteButton.addEventListener('click', function (e) {
+                        e.stopPropagation();
+
+                        // Add shake animation before confirmation
+                        rowElement.classList.add('error-shake');
+                        setTimeout(() => rowElement.classList.remove('error-shake'), 500);
+
+                        // Check if SweetAlert2 is available
+                        if (typeof Swal === 'undefined') {
+                            console.warn('SweetAlert2 is not loaded, falling back to native confirm');
+                            if (confirm('{% trans "آیا مطمئن هستید که می‌خواهید این ردیف را حذف کنید؟" %}')) {
+                                rowElement.classList.add('is-deleting');
+                                deleteCheckbox.checked = true;
+                                setTimeout(() => {
+                                    rowElement.style.display = 'none';
+                                    updateAllCalculations();
+                                    updateRowNumbers();
+                                }, 400);
+                            }
+                            return;
+                        }
+
+                        // Show confirmation dialog with SweetAlert2
+                        Swal.fire({
+                            title: '{% trans "آیا مطمئن هستید؟" %}',
+                            text: '{% trans "این ردیف حذف خواهد شد." %}',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#dc3545',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: '{% trans "حذف" %}',
+                            cancelButtonText: '{% trans "انصراف" %}',
+                            customClass: {
+                                popup: 'animate__animated animate__zoomIn',
+                                confirmButton: 'btn btn-danger',
+                                cancelButton: 'btn btn-secondary'
+                            },
+                            buttonsStyling: false
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Apply deletion animation
+                                rowElement.classList.add('is-deleting');
+                                deleteCheckbox.checked = true;
+
+                                // Update UI after animation
+                                setTimeout(() => {
+                                    rowElement.style.display = 'none';
                         updateAllCalculations();
                         updateRowNumbers();
+
+                                    // Show success toast
+                                    Swal.fire({
+                                        toast: true,
+                                        position: 'top-end',
+                                        icon: 'success',
+                                        title: '{% trans "ردیف با موفقیت حذف شد" %}',
+                                        showConfirmButton: false,
+                                        timer: 2000,
+                                        timerProgressBar: true,
+                                        customClass: {
+                                            popup: 'animate__animated animate__fadeInRight'
+                                        }
+                                    });
+                                }, 400);
+                            }
+                        });
                     });
                 }
             }
 
+
             // --- مدیریت پیش‌نمایش فایل‌ها ---
-            function createFileIconClass(fileName) { /* ... کد قبلی ... */
-            }
 
-            function formatFileSize(bytes) { /* ... کد قبلی ... */
-            }
-
-            function displayFilePreviews(inputElement, previewContainer, titleElement) { /* ... کد قبلی ... */
-            }
 
             // --- راه‌اندازی اولیه ---
             if (formsetContainer) {
@@ -1074,12 +1255,40 @@
                 resetBudgetDisplay();
             }
             // File preview setup
-            if (factorFileInput && factorPreviewContainer && factorPreviewTitle) {
-                factorFileInput.addEventListener('change', (e) => displayFilePreviews(e.target, factorPreviewContainer, factorPreviewTitle));
-            }
-            if (tankhahFileInput && tankhahPreviewContainer && tankhahPreviewTitle) {
-                tankhahFileInput.addEventListener('change', (e) => displayFilePreviews(e.target, tankhahPreviewContainer, tankhahPreviewTitle));
-            }
+if (factorFileInput && factorPreviewContainer && factorPreviewTitle) {
+    factorFileInput.addEventListener('change', (e) => {
+        displayFilePreviews(e.target, factorPreviewContainer, factorPreviewTitle);
+        if (e.target.files.length > 0) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: `{% trans "فایل(های) با موفقیت انتخاب شدند" %}`,
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+            });
+        }
+    });
+}
+if (tankhahFileInput && tankhahPreviewContainer && tankhahPreviewTitle) {
+    tankhahFileInput.addEventListener('change', (e) => {
+        displayFilePreviews(e.target, tankhahPreviewContainer, tankhahPreviewTitle);
+        if (e.target.files.length > 0) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: `{% trans "فایل(های) با موفقیت انتخاب شدند" %}`,
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+            });
+        }
+    });
+}
+
+
 
             // Run initial calculations and numbering *after* potential initial budget fetch
             setTimeout(() => {
@@ -1136,5 +1345,121 @@
             }
 
         }); // End DOMContentLoaded
+    </script>
+    <script>
+        function createFileIconClass(fileName) {
+            if (!fileName) return 'fa-file';
+            const extension = fileName.split('.').pop().toLowerCase();
+            const iconMap = {
+                'pdf': 'fa-file-pdf',
+                'jpg': 'fa-file-image',
+                'jpeg': 'fa-file-image',
+                'png': 'fa-file-image',
+                'gif': 'fa-file-image',
+                'doc': 'fa-file-word',
+                'docx': 'fa-file-word',
+                'xls': 'fa-file-excel',
+                'xlsx': 'fa-file-excel',
+                'zip': 'fa-file-archive',
+                'txt': 'fa-file-alt'
+            };
+            return iconMap[extension] || 'fa-file';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function displayFilePreviews(inputElement, previewContainer, titleElement) {
+            if (!inputElement || !previewContainer || !titleElement) {
+                console.error('Missing required elements for file preview');
+                return;
+            }
+
+            // Clear previous previews
+            previewContainer.innerHTML = '';
+            titleElement.classList.add('d-none');
+
+            const files = inputElement.files;
+            if (files.length === 0) return;
+
+            // Show preview title
+            titleElement.classList.remove('d-none');
+
+            Array.from(files).forEach((file, index) => {
+                const previewFragment = document.importNode(filePreviewTemplate, true);
+                const previewItem = previewFragment.querySelector('.file-preview-item');
+                const fileNameSpan = previewItem.querySelector('.file-name');
+                const fileSizeSpan = previewItem.querySelector('.file-size');
+                const fileIcon = previewItem.querySelector('.file-icon');
+                const imagePreview = previewItem.querySelector('.file-image-preview');
+                const removeButton = previewItem.querySelector('.remove-preview-btn');
+
+                // Set file details
+                fileNameSpan.textContent = file.name;
+                fileSizeSpan.textContent = formatFileSize(file.size);
+                fileIcon.className = `fas ${createFileIconClass(file.name)} text-secondary me-2 file-icon`;
+
+                // Show image preview for image files
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        imagePreview.src = e.target.result;
+                        imagePreview.alt = `پیش‌نمایش ${file.name}`;
+                        imagePreview.style.display = 'block';
+                        imagePreview.classList.add('image-loaded'); // برای انیمیشن
+                        fileIcon.style.display = 'none';
+                        // افزودن افکت انیمیشن
+                        imagePreview.style.opacity = '0';
+                        setTimeout(() => {
+                            imagePreview.style.transition = 'opacity 0.3s ease';
+                            imagePreview.style.opacity = '1';
+                        }, 10);
+                    };
+                    reader.onerror = () => {
+                        console.error(`Error reading file: ${file.name}`);
+                        imagePreview.style.display = 'none';
+                        fileIcon.style.display = 'inline-block';
+                        // نمایش پیام خطا به کاربر
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'error',
+                            title: `{% trans "خطا در بارگذاری تصویر: " %} ${file.name}`,
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    // برای فایل‌های غیرتصویری
+                    imagePreview.style.display = 'none';
+                    fileIcon.style.display = 'inline-block';
+                }
+
+                // Add remove button functionality
+                removeButton.addEventListener('click', () => {
+                    const newFileList = new DataTransfer();
+                    Array.from(files).forEach((f, i) => {
+                        if (i !== index) newFileList.items.add(f);
+                    });
+                    inputElement.files = newFileList.files;
+                    displayFilePreviews(inputElement, previewContainer, titleElement);
+                });
+
+                // بهبود دسترسی‌پذیری
+                removeButton.setAttribute('aria-label', `{% trans "حذف فایل " %} ${file.name}`);
+                previewItem.setAttribute('role', 'listitem');
+
+                previewContainer.appendChild(previewItem);
+            });
+        }
+
+
     </script>
 {% endblock %}
