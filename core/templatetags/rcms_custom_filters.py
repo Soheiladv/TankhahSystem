@@ -341,4 +341,19 @@ def calculate_row_total(quantity, amount):
     except (ValueError, TypeError, InvalidOperation):
         return Decimal('0')
 
-# ... بقیه فیلترها ...
+
+@register.filter
+def get_field_label(form, field_name):
+    """Returns the label of a form field."""
+    try:
+        return form.fields[field_name].label
+    except KeyError:
+        return field_name
+
+@register.filter
+def get_item(list_obj, index):
+    """Returns an item from a list by index."""
+    try:
+        return list_obj[int(index)]
+    except (IndexError, TypeError, ValueError):
+        return None

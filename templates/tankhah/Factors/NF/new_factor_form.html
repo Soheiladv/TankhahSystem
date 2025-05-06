@@ -305,8 +305,8 @@
             {# --- بدنه کارت --- #}
             <div class="card-body p-lg-4 p-3">
 
-                {# --- نمایش خطاهای کلی --- #}
-                {#            {% include "partials/_form_errors.html" with form=form formset=formset %}#}
+            {# --- نمایش خطاهای کلی --- #}
+            {% include "partials/_form_errors.html" with form=form formset=formset %}
 
                 {# --- پنل خلاصه محاسبات و بودجه --- #}
                 <div class="calculation-summary-panel" id="calculation-summary">
@@ -314,11 +314,11 @@
                         <div class="col-lg-4 border-end-lg">
                             <div id="tankhah-budget-info-display" data-initial-budget="0">
                                 <div class="summary-item mb-2">
-                                    <strong>{% trans "   باقیمانده اولیه تنخواه   " %}</strong>
+                                    <strong>{% trans "باقیمانده اولیه تنخواه" %}</strong>
                                     <span class="summary-value" id="display-initial-budget">۰</span> <small
                                         class="text-muted">{% trans "ریال" %}</small>
                                 </div>
-                                <div class="summary-item">
+                                <div class="summary-item " style="color: red">
                                     <strong>{% trans "باقیمانده پس از این فاکتور" %}</strong>
                                     <span class="summary-value" id="display-remaining-budget">۰</span> <small
                                         class="text-muted">{% trans "ریال" %}</small>
@@ -327,7 +327,7 @@
                                     <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0"
                                          aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
-                                <div id="tankhah-budget-warning"><i
+                                <div id="tankhah-budget-warning" style="color: red"><i
                                         class="fas fa-exclamation-circle me-1"></i>{% trans "هشدار: اعتبار تنخواه کافی نیست!" %}
                                 </div>
                             </div>
