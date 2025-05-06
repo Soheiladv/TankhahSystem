@@ -7,7 +7,7 @@ from django.views.generic import DetailView
 
 from core.PermissionBase import PermissionBaseView
 from core.models import UserPost, WorkflowStage
-from tankhah.forms import FactorItemApprovalForm, FactorItemApprovalFormSet
+from tankhah.forms import FactorItemApprovalForm
 from tankhah.fun_can_edit_approval import can_edit_approval
 from tankhah.models import Factor, FactorItem, ApprovalLog
 from django.utils.translation import gettext_lazy as _

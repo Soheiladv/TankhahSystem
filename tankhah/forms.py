@@ -4,7 +4,8 @@ from decimal import Decimal
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget
+from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget, \
+    get_tankhah_remaining_budget
 from .utils import restrict_to_user_organization
 import jdatetime
 from django.utils import timezone
@@ -189,7 +190,7 @@ class TanbakhApprovalForm(forms.ModelForm):
         model = Tankhah
         fields = []
 
-class FactorForm(forms.ModelForm):
+class old__FactorForm(forms.ModelForm):
     date = forms.CharField(
         label=_('تاریخ'),
         widget=forms.TextInput(attrs={
@@ -228,7 +229,8 @@ class FactorForm(forms.ModelForm):
                 self.fields['tankhah'].queryset = Tankhah.objects.filter(
                     status__in=['DRAFT', 'PENDING'],
                     current_stage__order=initial_stage_order
-                )
+                ).select_related('project', 'subproject')
+                self.fields['tankhah'].required = True # فیلد تنخواه اجباری
             else:
                 projects = Project.objects.filter(organizations__in=user_orgs)
                 subprojects = SubProject.objects.filter(project__in=projects)
@@ -245,7 +247,8 @@ class FactorForm(forms.ModelForm):
                 logger.info(f"Tankhah queryset: {list(queryset.values('number', 'project__name', 'subproject__name'))}")
 
         if self.instance.pk:
-            self.fields['tankhah'].queryset = Tankhah.objects.filter(id=self.instance.tankhah.id)
+            self.fields['tankhah'].queryset = Tankhah.objects.filter(id=self.instance.tankhah.id).select_related(
+                'project')
             self.fields['tankhah'].initial = self.instance.tankhah
             if self.instance.date:
                 j_date = jdatetime.date.fromgregorian(date=self.instance.date)
@@ -290,6 +293,25 @@ class FactorForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         logger.info(f"داده‌های اعتبارسنجی‌شده: {cleaned_data}")
+
+        amount = cleaned_data.get('amount')
+        tankhah = cleaned_data.get('tankhah')
+
+        if not tankhah:
+            logger.error("Validation error: Tankhah is required")
+            raise forms.ValidationError(_('انتخاب تنخواه الزامی است.'))
+
+        if amount is None or amount <= 0:
+            logger.error("Validation error: Amount must be positive")
+            raise forms.ValidationError(_('مبلغ فاکتور باید بزرگ‌تر از صفر باشد.'))
+        if tankhah:
+            remaining = get_tankhah_remaining_budget(tankhah)
+            if amount > remaining:
+                logger.error(f"Validation error: Amount ({amount}) exceeds tankhah remaining budget ({remaining})")
+                raise forms.ValidationError(
+                    _('مبلغ فاکتور از بودجه باقی‌مانده تنخواه ({}) بیشتر است.').format(remaining)
+                )
+        logger.info("FactorForm cleaned successfully")
         return cleaned_data
 
     def save(self, commit=True):
@@ -310,26 +332,116 @@ class FactorForm(forms.ModelForm):
             logger.info(f"Factor saved: ID={instance.pk}, number={instance.number}")
         return instance
 
-class FactorItemForm(forms.ModelForm):
+class old__FactorItemForm(forms.ModelForm):
     class Meta:
         model = FactorItem
-        fields = ['description', 'amount', 'quantity']
+        # fields = ['description', 'amount', 'quantity']
+        # fields = ['description', 'unit_price', 'quantity']
+        fields = ['description', 'quantity', 'unit_price']
         widgets = {
             'description': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('شرح ردیف')}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'مبلغ را وارد کنید'}),
+             'unit_price': forms.NumberInput(
+                attrs={'class': 'form-control form-control-sm ltr-input unit-price-field', 'step': '1', 'min': '0', 'placeholder': 'مبلغ واحد'}),
             'quantity': forms.NumberInput(
-                attrs={'class': 'form-control quantity-field', 'placeholder': _('تعداد'), 'min': '1'}),
+                attrs={'class': 'form-control form-control-sm ltr-input quantity-field', 'placeholder': _('تعداد'), 'min': '1'}),
+        }
+        labels = {
+            'description': _('شرح'),
+            'unit_price': _('مبلغ واحد'),
+            'quantity': _('تعداد'),
         }
 
     def clean(self):
         cleaned_data = super().clean()
-        amount = cleaned_data.get('amount')
+        description = cleaned_data.get('description')
+        unit_price = cleaned_data.get('unit_price')
         quantity = cleaned_data.get('quantity')
-        if amount is not None and amount <= 0:
-            raise forms.ValidationError(_('مبلغ باید بزرگ‌تر از صفر باشد.'))
-        if quantity is not None and quantity < 1:
-            raise forms.ValidationError(_('تعداد باید حداقل ۱ باشد.'))
+        logger.debug(f"Cleaning FactorItemForm: description={description}, unit_price={unit_price}, quantity={quantity}")
+
+        # بررسی فرم خالی یا در حال حذف
+        is_potentially_empty = not description and (unit_price is None or unit_price == 0) and (quantity is None or quantity == 1)
+        is_marked_for_deletion = cleaned_data.get('DELETE', False)
+
+        if is_potentially_empty or is_marked_for_deletion:
+            cleaned_data['DELETE'] = True
+            logger.info("Empty or marked for deletion FactorItemForm. Skipping validation.")
+            return cleaned_data
+
+        errors_found = False
+        # اعتبارسنجی‌های پایه‌ای فرم
+        if not description:
+            logger.error("FactorItemForm Validation error: Description is required")
+            self.add_error('description', _('شرح ردیف الزامی است.'))
+            errors_found = True
+        if unit_price is None or not isinstance(unit_price, Decimal) or unit_price <= Decimal('0'):
+            logger.error(f"FactorItemForm Validation error: Unit price invalid. Value={repr(unit_price)}")
+            self.add_error('unit_price', _('مبلغ واحد باید بزرگ‌تر از صفر باشد.'))
+            errors_found = True
+        if quantity is None or not isinstance(quantity, Decimal) or quantity <= Decimal('0'): # بررسی quantity هم مهم است
+            logger.error(f"FactorItemForm Validation error: Quantity invalid. Value={repr(quantity)}")
+            self.add_error('quantity', _('تعداد باید بزرگ‌تر از صفر باشد.'))
+            errors_found = True
+
+
+        # اگر خطاهای پایه‌ای وجود نداشت، مبلغ را محاسبه کن
+        if not errors_found:
+            try:
+                calculated_amount = unit_price * quantity
+                if calculated_amount <= 0:
+                     logger.error(f"FactorItemForm Validation error: Calculated amount is not positive. Amount={calculated_amount}")
+                     # خطای کلی فرم، چون نتیجه محاسبه است
+                     self.add_error(None, _('مبلغ محاسبه شده ردیف (قیمت * تعداد) باید بزرگ‌تر از صفر باشد.'))
+                     errors_found = True
+                else:
+                     # مبلغ محاسبه شده را در cleaned_data ذخیره کن
+                     cleaned_data['amount'] = calculated_amount
+                     logger.info(f"FactorItemForm: Calculated and stored amount in cleaned_data: {calculated_amount}")
+            except TypeError:
+                 logger.error("FactorItemForm Validation error: Cannot calculate amount due to invalid types for unit_price or quantity.")
+                 self.add_error(None, _('خطا در محاسبه مبلغ ردیف. مقادیر قیمت و تعداد را بررسی کنید.'))
+                 errors_found = True
+        else:
+             # اگر خطای پایه‌ای بود، amount را در cleaned_data نگذار
+             logger.warning("FactorItemForm: Skipping amount calculation due to base validation errors.")
+
+
+        if not self.errors: # بررسی کنید آیا خطایی توسط add_error اضافه شده است
+            logger.info("FactorItemForm cleaned successfully (No errors added)")
+        else:
+            logger.warning(f"FactorItemForm cleaned with errors: {self.errors}")
+
         return cleaned_data
+
+
+    # def clean(self):
+    #     cleaned_data = super().clean()
+    #     description = cleaned_data.get('description')
+    #     unit_price = cleaned_data.get('unit_price')
+    #     quantity = cleaned_data.get('quantity')
+    #     logger.debug(f"Cleaning FactorItemForm: description={description}, unit_price={unit_price}, quantity={quantity}")
+    #
+    #     # نادیده گرفتن فرم‌های خالی
+    #     if not description and (unit_price is None or unit_price == 0) and (quantity is None or quantity == 1):
+    #         cleaned_data['DELETE'] = True
+    #         logger.info("Empty form marked for deletion")
+    #         return cleaned_data
+    #
+    #     # اعتبارسنجی برای فرم‌های پرشده
+    #     if not description:
+    #         raise forms.ValidationError(_('شرح ردیف الزامی است.'))
+    #     if unit_price is None or unit_price <= 0:
+    #         raise forms.ValidationError(_('مبلغ واحد باید بزرگ‌تر از صفر باشد.'))
+    #     if quantity is None or quantity <= 0:
+    #         raise forms.ValidationError(_('تعداد باید بزرگ‌تر از صفر باشد.'))
+    #
+    #     # محاسبه amount
+    #     amount = unit_price * quantity
+    #     if amount <= 0:
+    #         raise forms.ValidationError(_('مبلغ ردیف باید بزرگ‌تر از صفر باشد.'))
+    #     cleaned_data['amount'] = amount
+    #
+    #     logger.info("FactorItemForm cleaned successfully")
+    #     return cleaned_data
 
 class ApprovalForm(forms.ModelForm):
     action = forms.ChoiceField(choices=[
@@ -482,9 +594,25 @@ class TankhahDocumentForm(forms.Form):
 
 def get_factor_item_formset():
     from django.forms import inlineformset_factory
+    from tankhah.Factor.forms_Factor import FactorItemForm
     return inlineformset_factory(
         Factor, FactorItem, form=FactorItemForm,
         fields=['description', 'amount', 'quantity'],
         # extra=1, can_delete=True, min_num=1, validate_min=True, max_num=100
         extra=1, can_delete=True, min_num=1, validate_min=True, max_num=100
     )
+
+#---
+from .models import ItemCategory
+class ItemCategoryForm(forms.ModelForm):
+    class Meta:
+        model = ItemCategory
+        fields = ['name', 'min_stage_order', 'description']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+        }
+        labels = {
+            'name': 'نام دسته‌بندی',
+            'min_stage_order': 'حداقل ترتیب مرحله',
+            'description': 'توضیحات',
+        }

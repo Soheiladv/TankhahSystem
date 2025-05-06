@@ -1,6 +1,8 @@
 from django import views
 from django.urls import path
 from budgets.views import get_budget_info
+from tankhah.Factor.NF.view_Nfactor import New_FactorCreateView
+from tankhah.Factor.view_FactorItemApprove import FactorItemApproveView
 from tankhah.TankhahTrackingView import TankhahTrackingView
 from tankhah.view_folder_tankhah.view_tankhah import (
     TankhahDetailView, TankhahCreateView, TankhahDeleteView,
@@ -8,12 +10,13 @@ from tankhah.view_folder_tankhah.view_tankhah import (
 )
 from tankhah.views import (
     ApprovalListView, ApprovalCreateView, ApprovalDetailView, ApprovalUpdateView, ApprovalDeleteView,
-      FactorItemApproveView, FactorApproveView, FactorItemRejectView,
+    FactorApproveView, FactorItemRejectView,
     upload_tankhah_documents, ApprovalLogListView, FactorStatusUpdateView, mark_notification_as_read,
     get_subprojects, FactorListView, FactorDetailView, FactorUpdateView, FactorDeleteView
 )
-from tankhah.Factor.view_Factor import (FactorCreateView, FactorCreateWizard, FactorWizardView,
-                                        TankhahBudgetInfoAjaxView)
+from tankhah.Factor.view_Factor import (FactorCreateView,
+                                        TankhahBudgetInfoAjaxView, get_tankhah_budget_info, BudgetCheckView)
+
 # app_name = 'tankhah'
 
 urlpatterns = [
@@ -30,7 +33,10 @@ urlpatterns = [
     path('factors/', FactorListView.as_view(), name='factor_list'),
     path('factor/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'),
     path('factor/create/', FactorCreateView.as_view(), name='factor_create'),
-    path('factor/create/', FactorCreateWizard.as_view(), name='w_factor_create'),
+    path('factor/create/new/', New_FactorCreateView.as_view(), name='Nfactor_create'),
+    path('get-tankhah-budget-info/',  get_tankhah_budget_info, name='get_tankhah_budget_info'),
+
+    # path('factor/create/', FactorCreateWizard.as_view(), name='w_factor_create'),
     path('factor/<int:pk>/update/', FactorUpdateView.as_view(), name='factor_update'),
     path('factor/<int:pk>/delete/', FactorDeleteView.as_view(), name='factor_delete'),
     path('factor/<int:pk>/approve/', FactorApproveView.as_view(), name='factor_approve'),
@@ -49,14 +55,25 @@ urlpatterns = [
 
     path('get_subprojects/', get_subprojects, name='get_subprojects'),
     path('get-budget-info/', get_budget_info, name='get_budget_info'),
+    path('get_budget_info/', BudgetCheckView.as_view(), name='budget_check'),
 ]
 urlpatterns += [
     # ... other urls ...
-    path('factor/create/wizard/',  FactorWizardView.as_view(views.FACTOR_FORMS), name='factor_wizard'), # Wizard URL
+    # path('factor/create/wizard/',  FactorWizardView.as_view(views.FACTOR_FORMS), name='factor_wizard'), # Wizard URL
     path('ajax/tankhah-budget-info/<int:tankhah_id>/',  TankhahBudgetInfoAjaxView.as_view(), name='tankhah_budget_info_ajax'), # AJAX URL
     path('factor/list/',  FactorListView.as_view(), name='factor_list'), # Example success URL
     # ... other factor related urls ...
 ]
+
+from tankhah.views import (itemcategory_list,itemcategory_create,itemcategory_update,itemcategory_delete
+)
+urlpatterns += [
+    path('categories/',  itemcategory_list, name='itemcategory_list'),
+    path('categories/add/',  itemcategory_create, name='itemcategory_create'),
+    path('categories/<int:pk>/edit/', itemcategory_update, name='itemcategory_update'),
+    path('categories/<int:pk>/delete/', itemcategory_delete, name='itemcategory_delete'),
+] #categories
+
 
 # from django.urls import path
 #

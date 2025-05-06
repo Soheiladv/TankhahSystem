@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+<h2>لیست دسته‌بندی‌ها</h2>
+<a href="{% url 'itemcategory_create' %}">افزودن</a>
+<table>
+    <tr>
+        <th>نام</th><th>حداقل ترتیب</th><th>عملیات</th>
+    </tr>
+    {% for item in categories %}
+    <tr>
+        <td>{{ item.name }}</td>
+        <td>{{ item.min_stage_order }}</td>
+        <td>
+            <a href="{% url 'itemcategory_update' item.id %}">ویرایش</a> |
+            <a href="{% url 'itemcategory_delete' item.id %}">حذف</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

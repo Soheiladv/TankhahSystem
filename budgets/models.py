@@ -20,6 +20,10 @@ from accounts.models import CustomUser
 # from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget
 # from core.models import Organization, Project, SubProject, WorkflowStage
  # -- New
+
+def get_current_date():
+    return timezone.now().date()
+
 """ مدل نوع بودجه """# ------------------------------------
 """BudgetPeriod (دوره بودجه کلان):"""
 class BudgetPeriod(models.Model):
@@ -164,8 +168,6 @@ class BudgetAllocation(models.Model):
     project = models.ForeignKey('core.Project', on_delete=models.CASCADE, related_name='allocations',
                                 verbose_name=_("پروژه"), null=True, blank=True)  # اختیاری کردن پروژه
     allocated_amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ تخصیص"))
-    # remaining_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0,
-    #                                        verbose_name=_("باقی‌مانده تخصیص"))
     allocation_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ تخصیص"))
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
                                    related_name='budget_allocations_created', verbose_name=_("ایجادکننده"))
@@ -277,7 +279,6 @@ class BudgetAllocation(models.Model):
 
 
     def __get_remaining_amount(self):
-
         consumption_total = self.transactions.filter(transaction_type='CONSUMPTION').aggregate(
             total=Coalesce(Sum('amount'), Value(Decimal('0')))
         )['total']
@@ -291,10 +292,36 @@ class BudgetAllocation(models.Model):
         )
 
     def get_remaining_amount(self):
-        consumption_total = BudgetTransaction.objects.filter(allocation=self, transaction_type='CONSUMPTION' ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
-        return_total = BudgetTransaction.objects.filter(allocation=self, transaction_type='RETURN' ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
-        project_consumed = ProjectBudgetAllocation.objects.filter( budget_allocation=self ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
-        return self.allocated_amount - consumption_total - project_consumed + return_total
+        """
+        محاسبه بودجه باقی‌مانده تخصیص با در نظر گرفتن تراکنش‌های مصرف و بازگشت.
+        Returns:
+             Decimal: بودجه باقی‌مانده (غیرمنفی)
+        """
+        # Import BudgetTransaction inside the method to avoid potential circular imports
+
+        try:
+            # جمع تراکنش‌های مصرف (CONSUMPTION) مرتبط با این تخصیص
+            consumed_qs = BudgetTransaction.objects.filter(allocation=self, transaction_type='CONSUMPTION')
+            consumed = consumed_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
+            # جمع تراکنش‌های بازگشت (RETURN) مرتبط با این تخصیص
+            returned_qs = BudgetTransaction.objects.filter(allocation=self, transaction_type='RETURN')
+            returned = returned_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
+            # **نقطه کلیدی اصلاح:** استفاده از فیلد صحیح مدل
+            initial_allocation = self.allocated_amount if self.allocated_amount is not None else Decimal('0.00')
+            # محاسبه باقی‌مانده
+            remaining = initial_allocation - consumed + returned
+            # لاگ برای دیباگ
+            logger.debug(f"BudgetAllocation {self.pk}: Initial Allocated={initial_allocation}, Consumed={consumed}, Returned={returned}, Calculated Remaining={remaining}")
+            # اطمینان از غیرمنفی بودن
+            return max(remaining, Decimal('0.00'))
+        except Exception as e:
+            logger.error(
+                f"Error calculating remaining amount for BudgetAllocation {self.pk}: {str(e)}",
+                exc_info=True
+            )
+            return Decimal('0.00') # بازگشت مقدار امن در صورت خطا
+
+
 
     def get_actual_remaining_amount(self):
         # این متد باید همیشه از دیتابیس بخواند و نباید به فیلد ذخیره شده تکیه کند
@@ -442,26 +469,37 @@ class BudgetItem(models.Model):
 
 """ BudgetTransaction (تراکنش بودجه):"""
 class BudgetTransaction(models.Model):
-    """توضیح: هر تغییر در بودجه (مثل مصرف توسط تنخواه) رو ثبت می‌کنه و remaining_amount تخصیص رو آپدیت می‌کنه."""
     TRANSACTION_TYPES = (
         ('ALLOCATION', _('تخصیص اولیه')),
         ('CONSUMPTION', _('مصرف')),
         ('ADJUSTMENT_INCREASE', _('افزایش تخصیص')),
         ('ADJUSTMENT_DECREASE', _('کاهش تخصیص')),
+        ('RETURN', _('بازگشت')),
     )
-    allocation = models.ForeignKey(BudgetAllocation, on_delete=models.CASCADE,
+    allocation = models.ForeignKey('BudgetAllocation', on_delete=models.CASCADE,
                                    related_name='transactions', verbose_name=_("تخصیص بودجه"))
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES,
-                                        verbose_name=_("نوع تراکنش"))
+                                       verbose_name=_("نوع تراکنش"))
     amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ"))
     related_tankhah = models.ForeignKey('tankhah.Tankhah', on_delete=models.SET_NULL, null=True, blank=True,
                                         verbose_name=_("تنخواه مرتبط"))
     timestamp = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان"))
-    created_by  = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
-                             verbose_name=_("کاربر"))
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
+                                   verbose_name=_("کاربر"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+    transaction_id = models.CharField(max_length=50, unique=True, verbose_name=_("شناسه تراکنش"))
 
-    transaction_id = models.CharField(max_length=50, unique=True, verbose_name=_("شناسه تراکنش"))#یک شناسه منحصربه‌فرد برای هر تراکنش:
+    class Meta:
+        verbose_name = _("تراکنش بودجه")
+        verbose_name_plural = _("تراکنش‌های بودجه")
+        default_permissions = ()
+        permissions = [
+            ('BudgetTransaction_add', 'افزودن تراکنش بودجه'),
+            ('BudgetTransaction_update', 'بروزرسانی تراکنش بودجه'),
+            ('BudgetTransaction_delete', 'حــذف تراکنش بودجه'),
+            ('BudgetTransaction_view', _('نمایش تراکنش بودجه')),
+            ('BudgetTransaction_return', _('برگشت تراکنش بودجه')),
+        ]
 
     def validate_return(self):
         """اعتبارسنجی تراکنش بازگشت"""
@@ -469,105 +507,92 @@ class BudgetTransaction(models.Model):
             return True, None
         consumed = BudgetTransaction.objects.filter(
             allocation=self.allocation,
-            allocation__project=self.allocation.project_allocations.first().project,
             transaction_type='CONSUMPTION'
         ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
         returned = BudgetTransaction.objects.filter(
             allocation=self.allocation,
-            allocation__project=self.allocation.project_allocations.first().project,
             transaction_type='RETURN'
         ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
         total_consumed = consumed - returned
         if self.amount > total_consumed:
             return False, _(f"مبلغ بازگشت ({self.amount:,.0f} ریال) نمی‌تواند بیشتر از مصرف خالص ({total_consumed:,.0f} ریال) باشد.")
-        remaining_budget = get_project_remaining_budget(self.allocation.project_allocations.first().project)
+        remaining_budget = self.allocation.get_remaining_amount()
         if self.amount > remaining_budget:
             return False, _(f"مبلغ بازگشت ({self.amount:,.0f} ریال) نمی‌تواند بیشتر از بودجه باقی‌مانده ({remaining_budget:,.0f} ریال) باشد.")
         return True, None
 
     def save(self, *args, **kwargs):
+        from django.core.exceptions import ValidationError
+        from django.contrib.contenttypes.models import ContentType
+        from django.db import transaction
+
+        # 1. Generate transaction ID if missing
+        if not self.transaction_id:
+            timestamp_str = timezone.now().strftime('%Y%m%d%H%M%S%f')
+            self.transaction_id = f"TX-{self.transaction_type[:3]}-{self.allocation_id}-{timestamp_str}"
+            logger.info(f"Generated transaction_id: {self.transaction_id}")
+
+        # 2. اعتبارسنجی تراکنش بازگشت
         if self.transaction_type == 'RETURN':
             is_valid, error_message = self.validate_return()
             if not is_valid:
+                logger.error(f"Validation failed for RETURN transaction: {error_message}")
                 raise ValidationError(error_message)
-        super().save(*args, **kwargs)
-        # به‌روزرسانی وضعیت و اعلان
-        status, message = check_budget_status(self.allocation.budget_period)
-        if status in ('warning', 'locked', 'completed', 'stopped'):
-            self.allocation.send_notification(status, message)
-        if self.transaction_type == 'RETURN':
-            self.allocation.send_notification(
-                'return',
-                f"مبلغ {self.amount:,.0f} ریال از تخصیص {self.allocation.id} برگشت داده شد."
-            )
 
-
-    def save(self, *args, **kwargs):
-        from django.core.exceptions import ValidationError
-        from django.contrib.contenttypes.models import ContentType
-
-        if not self.transaction_id:
-            self.transaction_id = f"TX-{self.allocation.id}-{timezone.now().timestamp()}"
-
+        # 3. بررسی بودجه برای تراکنش CONSUMPTION
         if self.transaction_type == 'CONSUMPTION':
-            if self.amount > self.allocation.remaining_amount:
+            remaining = self.allocation.get_remaining_amount()
+            if self.amount > remaining:
+                logger.error(f"CONSUMPTION transaction amount {self.amount} exceeds remaining {remaining}")
                 raise ValidationError(_("مبلغ مصرف بیشتر از باقی‌مانده تخصیص است."))
-        elif self.transaction_type == 'RETURN':
-            if self.amount > self.allocation.allocated_amount:
-                raise ValidationError(_("مبلغ برگشتی نمی‌تواند بیشتر از مبلغ تخصیص‌یافته باشد."))
-            if not self.allocation.budget_period.is_active:
-                raise ValidationError(_("نمی‌توان از دوره غیرفعال بودجه برگشت داد."))
 
-            self.allocation.remaining_amount += self.amount  # remaining_amount تخصیص افزایش یابد.
-            self.allocation.allocated_amount -= self.amount  # کاهش مبلغ تخصیص
-            self.allocation.returned_amount += self.amount
+        try:
+            with transaction.atomic():
+                # 4. به‌روزرسانی تخصیص برای تراکنش‌های RETURN
+                if self.transaction_type == 'RETURN':
+                    if not self.allocation.budget_period.is_active:
+                        logger.error(f"Cannot return from inactive budget period: {self.allocation.budget_period.id}")
+                        raise ValidationError(_("نمی‌توان از دوره غیرفعال بودجه برگشت داد."))
 
-            self.allocation.budget_period.total_allocated -= self.amount
-            self.allocation.budget_period.returned_amount += self.amount
+                    self.allocation.allocated_amount -= self.amount
+                    self.allocation.returned_amount += self.amount
+                    self.allocation.budget_period.total_allocated -= self.amount
+                    self.allocation.budget_period.returned_amount += self.amount
 
-            self.allocation.save(update_fields=['remaining_amount', 'allocated_amount', 'returned_amount'])
-            self.allocation.budget_period.save(update_fields=['total_allocated', 'returned_amount'])
+                    self.allocation.save(update_fields=['allocated_amount', 'returned_amount'])
+                    self.allocation.budget_period.save(update_fields=['total_allocated', 'returned_amount'])
 
-            # self.allocation.budget_period.save(update_fields=['total_allocated'])
-            # ثبت در BudgetHistory
-            BudgetHistory.objects.create(
-                content_type=ContentType.objects.get_for_model(BudgetAllocation),
-                object_id=self.allocation.id,
-                action='RETURN',
-                amount=self.amount,
-                created_by=self.created_by,
-                details=f"برگشت {self.amount:,} از تخصیص {self.allocation.id} به دوره بودجه {self.allocation.budget_period.name}",
-                transaction_type='RETURN',
-                transaction_id=f"RET-{self.transaction_id}"
-            )
+                    BudgetHistory.objects.create(
+                        content_type=ContentType.objects.get_for_model(BudgetAllocation),
+                        object_id=self.allocation.id,
+                        action='RETURN',
+                        amount=self.amount,
+                        created_by=self.created_by,
+                        details=f"برگشت {self.amount:,} از تخصیص {self.allocation.id} به دوره بودجه {self.allocation.budget_period.name}",
+                        transaction_type='RETURN',
+                        transaction_id=f"RET-{self.transaction_id}"
+                    )
 
-        elif self.transaction_type in ['CONSUMPTION', 'ADJUSTMENT_DECREASE']:
-            self.allocation.remaining_amount -= self.amount
-        elif self.transaction_type in ['ALLOCATION', 'ADJUSTMENT_INCREASE']:
-            self.allocation.remaining_amount += self.amount
+                    self.allocation.send_notification(
+                        'return',
+                        f"مبلغ {self.amount:,.0f} ریال از تخصیص {self.allocation.id} برگشت داده شد."
+                    )
 
-        self.allocation.save(update_fields=['remaining_amount', 'allocated_amount'])
-        super().save(*args, **kwargs)
+                # 5. ذخیره تراکنش
+                super().save(*args, **kwargs)
+                logger.debug(f"BudgetTransaction {self.pk} ({self.transaction_id}) saved.")
+
+                # 6. به‌روزرسانی وضعیت و ارسال اعلان
+                status, message = check_budget_status(self.allocation.budget_period)
+                if status in ('warning', 'locked', 'completed', 'stopped'):
+                    self.allocation.send_notification(status, message)
+
+        except Exception as e:
+            logger.error(f"Error saving BudgetTransaction {self.transaction_id}: {str(e)}", exc_info=True)
+            raise
 
     def __str__(self):
-        return f"{self.transaction_type} - {self.amount:,} ({self.timestamp})"
-
-    class Meta:
-        verbose_name = _("تراکنش بودجه")
-        verbose_name_plural = _("تراکنش‌های بودجه")
-        default_permissions = ()
-
-        permissions = [
-            ('BudgetTransaction_add', 'افزودن تراکنش بودجه'),
-            ('BudgetTransaction_update', 'بروزرسانی تراکنش بودجه'),
-            ('BudgetTransaction_delete', 'حــذف تراکنش بودجه'),
-            ('BudgetTransaction_view', _('نمایش تراکنش بودجه')),
-            ('BudgetTransaction_return', _('برگشت تراکنش بودجه')),  # جدید
-            # add/update/delete معمولاً توسط سیستم انجام می‌شه، نه کاربر
-        ]
-
-def get_current_date():
-    return timezone.now().date()
+        return f"{self.get_transaction_type_display()} - {self.amount:,.0f} - {self.timestamp.strftime('%Y/%m/%d')}"
 
 """تخصیص بودجه به پروژه و زیر پروژه """
 class ProjectBudgetAllocation(models.Model):
@@ -585,25 +610,21 @@ class ProjectBudgetAllocation(models.Model):
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
     is_active= models.BooleanField(default=True,verbose_name=_('فعال'))
 
-    # def get_remaining_amount(self):
-    #     from budgets.budget_calculations import get_subproject_remaining_budget
-    #     if self.subproject:
-    #         return get_subproject_remaining_budget(self.subproject)
-    #     from budgets.budget_calculations import get_project_remaining_budget
-    #     return get_project_remaining_budget(self.project)
-
     def get_remaining_amount(self):
         """محاسبه بودجه باقی‌مانده تخصیص پروژه"""
-
-        consumed = BudgetTransaction.objects.filter(
-            allocation=self.budget_allocation,
-            transaction_type='CONSUMPTION'
-        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
-        returned = BudgetTransaction.objects.filter(
-            allocation=self.budget_allocation,
-            transaction_type='RETURN'
-        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
-        return self.allocated_amount - consumed + returned
+        try:
+            consumed_qs = BudgetTransaction.objects.filter(allocation=self, transaction_type='CONSUMPTION')
+            consumed = consumed_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
+            returned_qs = BudgetTransaction.objects.filter(allocation=self, transaction_type='RETURN')
+            returned = returned_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
+            initial_allocation = self.allocated_amount if self.allocated_amount is not None else Decimal('0.00')
+            remaining = initial_allocation - consumed + returned
+            logger.debug(
+                f"BudgetAllocation {self.pk}: Initial Allocated={initial_allocation}, Consumed={consumed}, Returned={returned}, Calculated Remaining={remaining}")
+            return max(remaining, Decimal('0.00'))
+        except Exception as e:
+            logger.error(f"Error calculating remaining amount for BudgetAllocation {self.pk}: {str(e)}", exc_info=True)
+            return Decimal('0.00')
 
 
     def clean(self):

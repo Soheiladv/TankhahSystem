@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 from accounts.models import CustomUser
 from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, get_subproject_remaining_budget
 
-
 class OrganizationType(models.Model):
     fname = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name=_('نام شعبه/مجتمع/اداره'))
     org_type = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name=_('نام شعبه/مجتمع/اداره'))
@@ -29,7 +28,6 @@ class OrganizationType(models.Model):
             ('OrganizationType_update', 'ویرایش شعبه/اداره/مجتمع/سازمان'),
             ('OrganizationType_delete', 'حــذف شعبه/اداره/مجتمع/سازمان'),
          ]
-
 class Organization(models.Model):
     """مدل سازمان برای تعریف مجتمع‌ها و دفتر مرکزی"""
     code = models.CharField(max_length=10, unique=True, verbose_name=_("کد سازمان"))
@@ -94,7 +92,6 @@ class Organization(models.Model):
         indexes = [
             models.Index(fields=['code', 'org_type']),
         ]
-
 class Project(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("نام پروژه"))
     code = models.CharField(max_length=80, unique=True, verbose_name=_("کد پروژه"))
@@ -136,7 +133,6 @@ class Project(models.Model):
             # ('Project_Budget_allocation_Head_Office', 'تخصیص بودجه مجموعه پروژه(دفتر مرکزی)'),
             # ('Project_Budget_allocation_Branch', 'تخصیص بودجه مجموعه پروژه(شعبه)'),
         ]
-
 class SubProject(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='subprojects', verbose_name=_("پروژه اصلی"))
     name = models.CharField(max_length=200, verbose_name=_("نام ساب‌پروژه"))
@@ -189,8 +185,6 @@ class SubProject(models.Model):
             ('SubProject_Head_Office','تخصیص زیر مجموعه پروژه(دفتر مرکزی)🏠'),
             ('SubProject_Branch','تخصیص  زیر مجموعه پروژه(شعبه)🏠'),
         ]
-
-
 class Post(models.Model):
     """مدل پست سازمانی برای تعریف سلسله مراتب"""
     BRANCH_CHOICES = (
@@ -411,21 +405,18 @@ class Dashboard_Core(models.Model):
         permissions = [
             ('Dashboard_Core_view','دسترسی به داشبورد Core پایه')
         ]
-
 class DashboardView_flows(models.Model):
     class Meta:
         default_permissions = ()
         permissions = [
             ('DashboardView_flows_view','دسترسی به روند تنخواه گردانی ')
         ]
-
 class DashboardView(models.Model):
     class Meta:
         default_permissions = ()
         permissions = [
             ('Dashboard__view','دسترسی به داشبورد اصلی 💻')
         ]
-
 class OrganizationChartAPIView(models.Model):
     class Meta:
         default_permissions = ()
@@ -433,7 +424,6 @@ class OrganizationChartAPIView(models.Model):
             ('OrganizationChartAPIView_view','دسترسی به داشبورد چارت سازمانی 💻'),
 
         ]
-
 class OrganizationChartView(models.Model):
     class Meta:
         default_permissions = ()

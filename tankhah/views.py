@@ -11,6 +11,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from accounts.models import CustomUser
 from core.models import UserPost, WorkflowStage, SubProject, Project
+from .Factor.forms_Factor import FactorForm
 from .fun_can_edit_approval import can_edit_approval
 from tankhah.models import ApprovalLog, Tankhah, StageApprover, Factor, FactorItem, FactorDocument, TankhahDocument
 from .utils import restrict_to_user_organization
@@ -27,7 +28,7 @@ from budgets.budget_calculations import get_tankhah_remaining_budget, get_factor
 from core.PermissionBase import PermissionBaseView, get_lowest_access_level
 
 from tankhah.forms import (
-    FactorForm, FactorItemForm, FactorDocumentForm, TankhahDocumentForm, get_factor_item_formset
+     FactorDocumentForm, TankhahDocumentForm, get_factor_item_formset
 )
 logger = logging.getLogger(__name__)
 
@@ -236,7 +237,7 @@ class FactorDeleteView(PermissionBaseView, DeleteView):
     model =  Factor
     template_name = 'tankhah/factor_confirm_delete.html'
     success_url = reverse_lazy('factor_list')
-    permission_codenames = ['tankhah.a_factor_delete']
+    permission_codenames = ['tankhah.factor_delete']
     check_organization = True
 
     def dispatch(self, request, *args, **kwargs):
@@ -1065,6 +1066,43 @@ class ApprovalDeleteView(PermissionBaseView, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('تأیید با موفقیت حذف شد.'))
         return super().delete(request, *args, **kwargs)
+
+#---------------------
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import permission_required
+from .models import ItemCategory
+from .forms import ItemCategoryForm
+
+@permission_required('tankhah.ItemCategory_view')
+def itemcategory_list(request):
+    categories = ItemCategory.objects.all()
+    return render(request, 'tankhah/itemcategory/list.html', {'categories': categories})
+
+@permission_required('tankhah.ItemCategory_add')
+def itemcategory_create(request):
+    form = ItemCategoryForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        return redirect('itemcategory_list')
+    return render(request, 'tankhah/itemcategory/form.html', {'form': form})
+
+@permission_required('tankhah.ItemCategory_update')
+def itemcategory_update(request, pk):
+    category = get_object_or_404(ItemCategory, pk=pk)
+    form = ItemCategoryForm(request.POST or None, instance=category)
+    if form.is_valid():
+        form.save()
+        return redirect('itemcategory_list')
+    return render(request, 'tankhah/itemcategory/form.html', {'form': form})
+
+@permission_required('tankhah.ItemCategory_delete')
+def itemcategory_delete(request, pk):
+    category = get_object_or_404(ItemCategory, pk=pk)
+    if request.method == 'POST':
+        category.delete()
+        return redirect('itemcategory_list')
+    return render(request, 'tankhah/itemcategory/confirm_delete.html', {'category': category})
+
 # -- وضعیت تنخواه
 @login_required
 def upload_tankhah_documents(request, tankhah_id):

@@ -1,14 +1,19 @@
 # tankhah/forms.py
 import logging
+from decimal import Decimal
+
 from django import forms
 from django.core.exceptions import ValidationError
+from django.forms import formset_factory, modelformset_factory, inlineformset_factory
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 import jdatetime
 
+from Tanbakhsystem.utils import convert_to_farsi_numbers
+from budgets.budget_calculations import get_tankhah_remaining_budget
 from tankhah.forms import MultipleFileField, MultipleFileInput
-from tankhah.models import Factor, Tankhah, FactorItem
-from core.models import WorkflowStage, Project,SubProject
+from tankhah.models import Factor, Tankhah, FactorItem, ItemCategory
+from core.models import WorkflowStage, Project, SubProject, Post
 from django.db.models import Q
 
 from tankhah.utils import restrict_to_user_organization
@@ -148,45 +153,9 @@ class W_FactorItemForm(forms.ModelForm):
 def get_factor_item_formset():
     return forms.formset_factory(W_FactorForm , extra=1, can_delete=True)
 
-
-
-# from multiupload.fields import MultipleFileField, MultipleFileInput # Assuming this is used
-
-
 # Assuming ALLOWED_EXTENSIONS and ALLOWED_EXTENSIONS_STR are defined elsewhere
 ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.xls', '.xlsx']
 ALLOWED_EXTENSIONS_STR = ", ".join(ALLOWED_EXTENSIONS)
-
-
-# --- Document Forms (Unchanged unless needed) ---
-class FactorDocumentForm(forms.Form):
-    files = MultipleFileField(
-        label=_("بارگذاری اسناد فاکتور (فقط {} مجاز است)".format(ALLOWED_EXTENSIONS_STR)),
-        required=False,
-        widget=MultipleFileInput(
-            attrs={
-                'multiple': True,
-                'class': 'form-control form-control-sm',
-                'accept': ",".join(ALLOWED_EXTENSIONS)
-            }
-        )
-    )
-    # clean_files method remains the same
-
-
-class TankhahDocumentForm(forms.Form):
-    documents = MultipleFileField(
-        label=_("بارگذاری مدارک تنخواه (فقط {} مجاز است)".format(ALLOWED_EXTENSIONS_STR)),
-        required=False,
-        widget=MultipleFileInput(
-            attrs={
-                'multiple': True,
-                'class': 'form-control form-control-sm',
-                'accept': ",".join(ALLOWED_EXTENSIONS)
-            }
-        )
-    )
-    # clean_documents method remains the same
 
 
 # --- Factor Form (Main form for Step 1) ---
@@ -298,8 +267,6 @@ class FactorWizardStep1Form(forms.ModelForm): # Renamed for clarity
          if tankhah.status not in ['DRAFT', 'PENDING'] or (initial_stage and tankhah.current_stage.order != initial_stage.order):
                raise forms.ValidationError(_("تنخواه انتخاب شده در وضعیت یا مرحله معتبری برای ثبت فاکتور نیست."))
          return tankhah
-
-
 # --- Factor Item Form (For Step 2 Formset) ---
 class FactorItemWizardForm(forms.ModelForm): # Renamed for clarity
     class Meta:
@@ -351,7 +318,6 @@ class FactorItemWizardForm(forms.ModelForm): # Renamed for clarity
             raise ValidationError(errors)
 
         return cleaned_data
-
 # Create the Formset for Step 2
 FactorItemWizardFormSet = forms.inlineformset_factory(
     Factor, # Parent model
@@ -362,4 +328,183 @@ FactorItemWizardFormSet = forms.inlineformset_factory(
     min_num=1, # Require at least one item
     validate_min=True, # Enforce min_num validation
 )
+
+
+class FactorForm(forms.ModelForm):
+    date = forms.CharField(
+        label=_('تاریخ'),
+        widget=forms.TextInput(attrs={
+            'data-jdp': '',
+            'class': 'form-control',
+            'placeholder': _('1404/01/17'),
+        })
+    )
+
+    class Meta:
+        model = Factor
+        fields = ['tankhah', 'date', 'amount', 'description', 'is_emergency', 'category']
+        widgets = {
+            'tankhah': forms.Select(attrs={'class': 'form-control'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'description': forms.Textarea(
+                attrs={'class': 'form-control', 'rows': 4, 'placeholder': _('توضیحات فاکتور')}),
+            'is_emergency': forms.CheckboxInput(
+                attrs={'class': 'form-check-input', 'style': 'width: 20px; height: 20px;'}),
+            'category': forms.Select(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'tankhah': _('تنخواه'),
+            'date': _('تاریخ'),
+            'amount': _('مبلغ کل'),
+            'description': _('توضیحات'),
+            'category': _('دسته‌بندی'),
+            'is_emergency': _('اضطراری'),
+        }
+
+    def clean_date(self):
+        date_str = self.cleaned_data.get('date')
+        if not date_str:
+            raise forms.ValidationError(_('تاریخ فاکتور اجباری است.'))
+        try:
+            j_date = jdatetime.datetime.strptime(date_str, '%Y/%m/%d')
+            gregorian_date = j_date.togregorian()
+            return timezone.make_aware(gregorian_date)
+        except ValueError:
+            raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        self.tankhah = kwargs.pop('tankhah', None)
+        self.formset = kwargs.pop('formset', None)
+        super().__init__(*args, **kwargs)
+        if self.tankhah:
+            self.fields['tankhah'].initial = self.tankhah
+            self.fields['tankhah'].queryset = Tankhah.objects.filter(id=self.tankhah.id)
+        else:
+            self.fields['tankhah'].queryset = Tankhah.objects.filter(status__in=['DRAFT', 'PENDING'])
+        self.fields['category'].queryset = ItemCategory.objects.all()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        amount = cleaned_data.get('amount')
+        formset = self.formset
+
+        if not formset:
+            raise forms.ValidationError(_('فرم‌ست آیتم‌ها در دسترس نیست.'))
+
+        items_total = Decimal('0')
+        item_errors = []
+        for i, form in enumerate(formset):
+            if not form.is_valid():
+                item_errors.append(f"آیتم {i+1}: {form.errors}")
+                logger.warning(f"Invalid item form {i+1}: {form.errors}")
+                continue
+            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                unit_price = form.cleaned_data.get('unit_price', Decimal('0'))
+                quantity = form.cleaned_data.get('quantity', 0)
+                item_total = unit_price * Decimal(quantity)
+                items_total += item_total
+                logger.info(f"FactorItemForm: Calculated amount: {item_total}")
+
+        if item_errors:
+            raise forms.ValidationError(item_errors)
+
+        if amount is not None and abs(amount - items_total) > 0.01:
+            logger.warning(f"Factor: amount ({amount}) != items total ({items_total})")
+            raise forms.ValidationError(
+                _("مبلغ فاکتور (%(amount)s) با مجموع آیتم‌ها (%(items_total)s) همخوانی ندارد."),
+                params={'amount': amount, 'items_total': items_total}
+            )
+
+        tankhah = cleaned_data.get('tankhah')
+        if tankhah and amount:
+            remaining_budget = get_tankhah_remaining_budget(tankhah)
+            if amount > remaining_budget:
+                raise forms.ValidationError(
+                    _("مبلغ فاکتور (%(amount)s) بیشتر از بودجه باقی‌مانده تنخواه (%(remaining)s) است."),
+                    params={'amount': amount, 'remaining': remaining_budget}
+                )
+
+        return cleaned_data
+
+class FactorItemForm(forms.ModelForm):
+    class Meta:
+        model = FactorItem
+        fields = ['description', 'unit_price', 'quantity']
+        widgets = {
+            'description': forms.TextInput(attrs={'class': 'form-control'}),
+            'unit_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        unit_price = cleaned_data.get('unit_price')
+        quantity = cleaned_data.get('quantity')
+        description = cleaned_data.get('description')
+
+        if not description:
+            raise forms.ValidationError({"description": _("شرح ردیف اجباری است.")})
+        if unit_price is None or unit_price < 0:
+            raise forms.ValidationError({"unit_price": _("قیمت واحد باید وارد شود و نمی‌تواند منفی باشد.")})
+        if quantity is None or quantity <= 0:
+            raise forms.ValidationError({"quantity": _("تعداد باید وارد شود و باید مثبت باشد.")})
+
+        cleaned_data['amount'] = unit_price * Decimal(str(quantity))
+        logger.info(f"FactorItemForm: Calculated amount: {cleaned_data['amount']}")
+        return cleaned_data
+
+
+FactorItemFormSet = forms.inlineformset_factory(
+    Factor, # Parent model
+    FactorItem, # Child model
+    form=FactorItemWizardForm,
+    extra=1, # Start with one extra empty form
+    can_delete=True, # Allow deleting rows
+    min_num=1, # Require at least one item
+    validate_min=True, # Enforce min_num validation
+    # inlineformset_factory(
+    # prefix='items'
+)
+
+
+#
+# FactorItemFormSet = modelformset_factory(
+#     FactorItem,
+#     form=FactorItemForm,
+#     extra=1,
+#     min_num=1,
+#     validate_min=True,
+#     can_delete=True  # اگر بخواهی حذف آیتم را هم فعال کنی
+# )
+# --- Document Forms (Unchanged unless needed) ---
+class FactorDocumentForm(forms.Form):
+    files = MultipleFileField(
+        label=_("بارگذاری اسناد فاکتور (فقط {} مجاز است)".format(ALLOWED_EXTENSIONS_STR)),
+        required=False,
+        widget=MultipleFileInput(
+            attrs={
+                'multiple': True,
+                'class': 'form-control form-control-sm',
+                'accept': ",".join(ALLOWED_EXTENSIONS)
+            }
+        )
+    )
+    # clean_files method remains the same
+
+class TankhahDocumentForm(forms.Form):
+    documents = MultipleFileField(
+        label=_("بارگذاری مدارک تنخواه (فقط {} مجاز است)".format(ALLOWED_EXTENSIONS_STR)),
+        required=False,
+        widget=MultipleFileInput(
+            attrs={
+                'multiple': True,
+                'class': 'form-control form-control-sm',
+                'accept': ",".join(ALLOWED_EXTENSIONS)
+            }
+        )
+    )
+    # clean_documents method remains the same
+
+
 

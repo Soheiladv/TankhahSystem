@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
 
-from tankhah.models import Tankhah, Factor, ApprovalLog
+from tankhah.models import Tankhah, Factor, ApprovalLog, ItemCategory
 
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -184,3 +184,11 @@ class ApprovalAdmin(admin.ModelAdmin):
         if not obj.pk and not obj.user:
             obj.user = request.user
         super().save_model(request, obj, form, change)
+
+admin.site.register(ItemCategory)
+
+from .models import ItemCategory
+admin.register(ItemCategory)
+class ItemCategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'min_stage_order')
+    search_fields = ('name',)

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+
+    <h2>حذف دسته‌بندی</h2>
+    <p>آیا مطمئن هستید که "{{ category.name }}" حذف شود؟</p>
+    <form method="post">{% csrf_token %}
+        <button type="submit">بله، حذف شود</button>
+    </form>
+    <a href="{% url 'itemcategory_list' %}">انصراف</a>
+
+
+{% endblock %}

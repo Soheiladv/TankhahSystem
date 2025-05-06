@@ -15,7 +15,7 @@ from budgets.budget_calculations import get_subproject_remaining_budget, get_pro
     get_factor_remaining_budget, get_tankhah_remaining_budget
 import logging
 
-from budgets.models import TransactionType
+from budgets.models import TransactionType, BudgetTransaction, BudgetHistory, BudgetAllocation
 from core.models import WorkflowStage, Post
 
 logger = logging.getLogger(__name__)
@@ -58,7 +58,6 @@ class TankhahDocument(models.Model):
             ('TankhahDocument_update','بروزرسانی اسناد فاکتور منتهی به تنخواه'),
             ('TankhahDocument_delete','حــذف اسناد فاکتور منتهی به تنخواه'),
         ]
-
 class Tankhah(models.Model):
     """مدل تنخواه برای ثبت و مدیریت درخواست‌های مالی"""
     STATUS_CHOICES = (
@@ -149,17 +148,22 @@ class Tankhah(models.Model):
 
         if self.amount <= 0:
             raise ValidationError(_("مبلغ تنخواه باید مثبت باشد."))
+        if self.subproject and self.subproject.project != self.project:
+            raise ValidationError(_("زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد."))
+
         remaining = self.get_remaining_budget()
         if self.amount > remaining:
             raise ValidationError(
                 _(f"مبلغ تنخواه ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining:,.0f} ریال) است.")
             )
+            # حذف اعتبارسنجی سخت‌گیرانه budget_allocation اگر اختیاری است
+        if not self.budget_allocation and not self.project_budget_allocation:
+            logger.warning("Neither budget_allocation nor project_budget_allocation is set.")
+            raise ValidationError({"budget_allocation": _("حداقل یکی از تخصیص‌های بودجه باید تنظیم شود.")})
+
         if self.subproject and self.subproject.project != self.project:
             raise ValidationError(_("زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد."))
 
-
-        import logging
-        logger = logging.getLogger(__name__)
         if not self.budget_allocation:
             logger.warning("budget_allocation مقدار ندارد. این ممکن است باعث مشکلاتی در مراحل بعدی شود.")
             # اگر نمی‌خواهید این فیلد اجباری باشد، خطا اضافه نکنید
@@ -168,10 +172,12 @@ class Tankhah(models.Model):
 
     def get_remaining_budget(self):
             """محاسبه بودجه باقی‌مانده برای تنخواه"""
-            if self.subproject:
+            if self.project_budget_allocation:
+                return self.project_budget_allocation.get_remaining_amount()
+            elif self.budget_allocation:
+                return self.budget_allocation.get_remaining_amount()
+            elif self.subproject:
                 return get_subproject_remaining_budget(self.subproject)
-            elif self.project:
-                return get_project_remaining_budget(self.project)
             return Decimal('0')
 
     # def save(self, *args, **kwargs):
@@ -264,10 +270,22 @@ class Tankhah(models.Model):
     #
     #     super().save(*args, **kwargs)
     def save(self, *args, **kwargs):
+        from budgets.models import ProjectBudgetAllocation
         with transaction.atomic():
             if not self.number:
                 self.number = self.generate_number()
             self.full_clean()
+
+            # دریافت تخصیص بودجه
+            allocation = self.project_budget_allocation or ProjectBudgetAllocation.objects.filter(
+                budget_allocation=self.budget_allocation,
+                project=self.project,
+                subproject=self.subproject
+            ).first()
+            if not allocation:
+                raise ValidationError(_("تخصیص بودجه معتبر برای این پروژه/زیرپروژه یافت نشد."))
+
+
             # ثبت تراکنش در صورت ایجاد یا تغییر وضعیت
             if self.status in ['APPROVED', 'REJECTED', 'PAID'] and not self.is_locked:
                 if self.budget_allocation:  # چک کردن وجود budget_allocation
@@ -278,7 +296,6 @@ class Tankhah(models.Model):
                     )
                 self.is_locked = True
 
-            from budgets.models import ProjectBudgetAllocation
 
             if not self.pk:  # فقط موقع ایجاد
                 # پیدا کردن تخصیص بودجه پروژه/زیرپروژه
@@ -329,10 +346,13 @@ class Tankhah(models.Model):
                 self.is_locked = False
 
         super().save(*args, **kwargs)
+
+
     def __str__(self):
         project_str = self.project.name if self.project else 'بدون پروژه'
         subproject_str = f" ({self.subproject.name})" if self.subproject else ''
         return f"{self.number} - {project_str}{subproject_str} - {self.amount:,.0f} ({self.get_status_display()})"
+
     class Meta:
         verbose_name = _("تنخواه")
         verbose_name_plural = _("تنخواه‌ها")
@@ -385,7 +405,6 @@ class Tankhah(models.Model):
 
     def get_factor_used_budget_display(self):
         return f"{self.factor_used_budget:,.0f}" if hasattr(self, 'factor_used_budget') and self.factor_used_budget else '-'
-
 class TankhActionType(models.Model):
     action_type = models.CharField(max_length=25, verbose_name=_('انواع  اقدام'))
     class Meta:
@@ -400,7 +419,6 @@ class TankhActionType(models.Model):
         ]
     def __str__(self):
         return self.action_type
-
 class TankhahAction(models.Model):
     # ACTION_TYPES = (
     #     ('ISSUE_PAYMENT_ORDER', _('صدور دستور پرداخت')),
@@ -451,7 +469,6 @@ class TankhahAction(models.Model):
             ('TankhahAction_update', 'بروزرسانی اقدامات تنخواه'),
             ('TankhahAction_delete', 'حذف اقدامات تنخواه'),
         ]
-
 def factor_document_upload_path(instance, filename):
     """
     مسیر آپلود فایل برای FactorDocument را بر اساس شماره تنخواه و ID فاکتور تعیین می‌کند.
@@ -470,13 +487,13 @@ def factor_document_upload_path(instance, filename):
         # یک مسیر پیش‌فرض در صورتی که فاکتور یا تنخواه هنوز ذخیره نشده باشند (که نباید اتفاق بیفتد)
         # یا فاکتور به تنخواه لینک نباشد
         return f'factors/orphaned/{filename}'
-
 class FactorDocument(models.Model):
     factor = models.ForeignKey('Factor', on_delete=models.CASCADE, related_name='documents', verbose_name=_("فاکتور"))
     # file = models.FileField(upload_to='factors/documents/%Y/%m/%d/', verbose_name=_("فایل پیوست"))
     file = models.FileField(upload_to=factor_document_upload_path, verbose_name=_("فایل پیوست"))
     file_size = models.IntegerField(null=True, blank=True, verbose_name=_("حجم فایل (بایت)"))
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ بارگذاری"))
+    uploaded_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, verbose_name=_("آپلود شده توسط"))
 
     def save(self, *args, **kwargs):
         if self.file:
@@ -496,7 +513,6 @@ class FactorDocument(models.Model):
             ('FactorDocument_view','نمایش سند فاکتور'),
             ('FactorDocument_delete','حــذف سند فاکتور'),
         ]
-
 class Factor(models.Model):
     STATUS_CHOICES = (
         ('DRAFT', _('پیش‌نویس')),
@@ -519,7 +535,9 @@ class Factor(models.Model):
     budget = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name=_("بودجه تخصیصی"))
     remaining_budget = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name=_("بودجه باقیمانده"))
     created_by = models.ForeignKey('accounts.CustomUser',related_name='CustomUser_related', on_delete=models.SET_NULL, null=True, verbose_name=_("ایجادکننده"))
-
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    is_emergency = models.BooleanField(default=False, verbose_name=_("اضطراری"))
+    category = models.ForeignKey('ItemCategory', on_delete=models.SET_NULL, null=True, blank=False, verbose_name=_("دسته‌بندی"))
 
     def get_remaining_budget(self):
         return get_factor_remaining_budget(self)
@@ -534,81 +552,328 @@ class Factor(models.Model):
         if self.pk:
             return self.get_items_total()
         return Decimal('0')
-
+    #
+    # def generate_number(self):
+    #     from jdatetime import date as jdate
+    #     date_str = jdate.fromgregorian(date=self.date).strftime('%Y%m%d')
+    #     serial = Factor.objects.filter(date=self.date).count() + 1
+    #     return f"FAC-{self.tankhah.number}-{date_str}-{serial:03d}"
     def generate_number(self):
+        """تولید شماره یکتا برای فاکتور با استفاده از تاریخ شمسی"""
+        sep = '-'  # استفاده از جداکننده ثابت
         from jdatetime import date as jdate
         date_str = jdate.fromgregorian(date=self.date).strftime('%Y%m%d')
-        serial = Factor.objects.filter(date=self.date).count() + 1
-        return f"FAC-{self.tankhah.number}-{date_str}-{serial:03d}"
+        org_code = self.tankhah.organization.code if self.tankhah and self.tankhah.organization else 'NOORG'
+        tankhah_number = self.tankhah.number if self.tankhah else 'NOTNKH'
+
+        with transaction.atomic():
+            max_serial = Factor.objects.filter(
+                tankhah__organization=self.tankhah.organization,
+                date=self.date
+            ).aggregate(models.Max('number'))['number__max']
+
+            serial = 1
+            if max_serial:
+                last_number = max_serial.split(sep)[-1]
+                try:
+                    serial = int(last_number) + 1
+                except ValueError:
+                    pass
+
+            new_number = f"FAC{sep}{tankhah_number}{sep}{date_str}{sep}{org_code}{sep}{serial:04d}"
+            while Factor.objects.filter(number=new_number).exists():
+                serial += 1
+                new_number = f"FAC{sep}{tankhah_number}{sep}{date_str}{sep}{org_code}{sep}{serial:04d}"
+            return new_number
 
     def clean(self):
         super().clean()
-        total = self.total_amount()
-        if self.pk and total > 0 and abs(self.amount - total) > 0.01:
-            logger.warning(f"Factor {self.number}: amount ({self.amount}) != items total ({total})")
-        if total <= 0:
-            raise ValidationError(_("مبلغ فاکتور باید مثبت باشد."))
-        if self.tankhah:
-            tankhah_remaining = get_tankhah_remaining_budget(self.tankhah)
-            if total > tankhah_remaining:
-                raise ValidationError(
-                    _(f"مبلغ فاکتور ({total:,.0f} ریال) نمی‌تواند بیشتر از بودجه باقی‌مانده تنخواه ({tankhah_remaining:,.0f} ریال) باشد.")
-                )
+        if self.amount < 0:
+            raise ValidationError(_("مبلغ فاکتور نمی‌تواند منفی باشد."))
+        if not self.category:
+            raise ValidationError(_("دسته‌بندی الزامی است."))
+        if self.tankhah and (
+                self.tankhah.status not in ['DRAFT', 'PENDING'] ): #or not self.tankhah.workflow_stage.is_initial
+            raise ValidationError(_("تنخواه انتخاب‌شده در وضعیت یا مرحله مجاز نیست."))
+
+        #
+        # total = self.total_amount()
+        # errors = {}
+        # if self.pk and total <= 0:
+        #     raise ValidationError(_("مبلغ فاکتور باید مثبت باشد."))
+        #
+        # if abs(self.amount - total) > 0.01:
+        #     logger.warning(f"Factor {self.number}: amount ({self.amount}) != items total ({total})")
+        #     raise ValidationError(_("مبلغ فاکتور با مجموع آیتم‌ها همخوانی ندارد."))
+        #
+        # if self.tankhah:
+        #     tankhah_remaining = get_tankhah_remaining_budget(self.tankhah)
+        #     if total > tankhah_remaining:
+        #         raise ValidationError(
+        #             _(f"مبلغ فاکتور ({total:,.0f} ریال) نمی‌تواند بیشتر از بودجه باقی‌مانده تنخواه ({tankhah_remaining:,.0f} ریال) باشد.")
+        #         )
+        #
+        # if not self.category:
+        #     errors['category'] = ValidationError(_('دسته‌بندی الزامی است.'), code='category_required')
+        # if errors:
+        #     raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
+        """ذخیره فاکتور با مدیریت تراکنش‌ها، اعلان‌ها و تاریخچه تغییرات"""
+        from budgets.models import BudgetTransaction
         with transaction.atomic():
             if not self.number:
                 self.number = self.generate_number()
-            self.full_clean()
 
+            # فقط در صورت نیاز به اعتبارسنجی خاص مدل، clean را فراخوانی کنید
+            original = None
             if self.pk:
                 original = Factor.objects.get(pk=self.pk)
-                from budgets.models import BudgetTransaction
-                if self.status != original.status:
-                    if self.status == 'PAID':
-                        BudgetTransaction.objects.create(
-                            allocation=self.tankhah.budget_allocation,
-                            transaction_type='CONSUMPTION',
-                            amount=self.total_amount(),
-                            related_factor=self,
-                            created_by=self.tankhah.created_by,
-                            description=f"مصرف بودجه توسط فاکتور {self.number}",
-                            transaction_id=f"TX-FAC-{self.number}"
-                        )
-                        self.locked = True
-                    elif self.status == 'REJECTED' and original.status in ['APPROVED', 'PAID']:
-                        BudgetTransaction.objects.create(
-                            allocation=self.tankhah.budget_allocation,
-                            transaction_type='RETURN',
-                            amount=self.total_amount(),
-                            related_factor=self,
-                            created_by=self.tankhah.created_by,
-                            description=f"بازگشت بودجه به دلیل رد فاکتور {self.number}",
-                            transaction_id=f"TX-FAC-RET-{self.number}"
-                        )
-                        self.locked = False
+
+            # به‌روزرسانی بودجه و وضعیت قفل
+            if original and self.status != original.status:
+                if self.status == 'PAID' and not self.is_locked:
+                    create_budget_transaction(
+                        allocation=self.tankhah.budget_allocation,
+                        transaction_type='CONSUMPTION',
+                        amount=self.amount,  # استفاده از self.amount به جای total_amount()
+                        related_obj=self,
+                        created_by=self.created_by,
+                        description=f"مصرف بودجه توسط فاکتور {self.number}",
+                        transaction_id=f"TX-FAC-{self.number}"
+                    )
+                    self.is_locked = True
+                    Notification.objects.create(
+                        user=self.created_by,
+                        message=f"فاکتور {self.number} پرداخت شد.",
+                        tankhah=self.tankhah
+                    )
+                elif self.status == 'REJECTED' and original.status in ['APPROVED', 'PAID'] and self.is_locked:
+                    create_budget_transaction(
+                        allocation=self.tankhah.budget_allocation,
+                        transaction_type='RETURN',
+                        amount=self.amount,
+                        related_obj=self,
+                        created_by=self.created_by,
+                        description=f"بازگشت بودجه به دلیل رد فاکتور {self.number}",
+                        transaction_id=f"TX-FAC-RET-{self.number}"
+                    )
+                    self.is_locked = False
+                    Notification.objects.create(
+                        user=self.created_by,
+                        message=f"فاکتور {self.number} رد شد.",
+                        tankhah=self.tankhah
+                    )
 
             super().save(*args, **kwargs)
+            # ثبت لاگ تأیید/رد
+            if original and self.status != original.status:
+                ApprovalLog.objects.create(
+                    factor=self,
+                    action='APPROVE' if self.status in ['APPROVED', 'PAID'] else 'REJECT',
+                    stage=self.locked_by_stage or self.tankhah.current_stage,
+                    user=self.created_by,
+                    comment=f"تغییر وضعیت فاکتور به {self.get_status_display()}",
+                    content_type=ContentType.objects.get_for_model(self),
+                    object_id=self.pk
+                )
+
+            # ثبت تاریخچه تغییرات
+            if original:
+                changed_fields = []
+                for field in self._meta.fields:
+                    field_name = field.name
+                    if getattr(original, field_name) != getattr(self, field_name):
+                        changed_fields.append(field_name)
+                if changed_fields:
+                    ApprovalLog.objects.create(
+                        factor=self,
+                        action='STAGE_CHANGE',
+                        stage=self.locked_by_stage or self.tankhah.current_stage,
+                        user=self.created_by,
+                        comment=f"تغییر فیلدهای {', '.join(changed_fields)}",
+                        content_type=ContentType.objects.get_for_model(self),
+                        object_id=self.pk,
+                        changed_field=', '.join(changed_fields)
+                    )
+
+
 
     def __str__(self):
-        return f"{self.number} ({self.tankhah.number})"
+        # اصلاح متد __str__ برای مدیریت tankhah=None
+        tankhah_number = self.tankhah.number if self.tankhah else "تنخواه ندارد"
+        return f"{self.number} ({tankhah_number})"
 
     class Meta:
         verbose_name = _("فاکتور")
         verbose_name_plural = _("فاکتورها")
         indexes = [
-            models.Index(fields=['number', 'date', 'status']),
+            models.Index(fields=['number', 'date', 'status', 'tankhah']),
         ]
         default_permissions = ()
         permissions = [
-            ('a_factor_add', _('افزودن فاکتور')),
-            ('a_factor_view', _('نمایش فاکتور')),
-            ('a_factor_update', _('بروزرسانی فاکتور')),
-            ('a_factor_delete', _('حذف فاکتور')),
-            ('a_factor_approve', _('تأیید فاکتور')),
-            ('a_factor_reject', _('رد فاکتور')),
+            ('factor_add', _('افزودن فاکتور')),
+            ('factor_view', _('نمایش فاکتور')),
+            ('factor_update', _('بروزرسانی فاکتور')),
+            ('factor_delete', _('حذف فاکتور')),
+            ('factor_approve', _('تأیید فاکتور')),
+            ('factor_reject', _('رد فاکتور')),
+            ('Factor_full_edit', _('دسترسی کامل به فاکتور')),
         ]
+# --- تابع اصلاح شده ---
+def create_budget_transaction(allocation, transaction_type, amount, related_obj, created_by, description,
+                             transaction_id):
+    """
+    ایجاد تراکنش بودجه با اعتبارسنجی مبلغ و بدون ارسال فیلدهای مربوط به فاکتور/آیتم.
 
+    Args:
+        allocation (BudgetAllocation): تخصیص بودجه مرتبط.
+        transaction_type (str): نوع تراکنش ('CONSUMPTION', 'RETURN', ...).
+        amount (Decimal): مبلغ تراکنش.
+        related_obj: شیء مرتبط (Tankhah, Factor, FactorItem) برای تعیین related_tankhah.
+        created_by (CustomUser): کاربر ایجادکننده.
+        description (str): توضیحات تراکنش.
+        transaction_id (str): شناسه منحصربه‌فرد تراکنش.
+
+    Raises:
+        ValidationError: اگر مبلغ مصرف بیشتر از باقیمانده باشد یا مبلغ برگشتی نامعتبر باشد.
+        Exception: برای سایر خطاهای دیتابیس یا پیش‌بینی نشده.
+    """
+    # Import models needed within the function
+    from budgets.models import BudgetTransaction, BudgetHistory  # Adjust import path
+    from tankhah.models import Tankhah, Factor, FactorItem  # Adjust import path
+
+    # Validate input types (optional but good practice)
+    if not hasattr(allocation, 'get_remaining_amount'):
+        msg = "شیء 'allocation' ارسال شده متد get_remaining_amount را ندارد."
+        logger.error(msg)
+        raise TypeError(msg)
+    if not isinstance(amount, Decimal):
+        try:
+            amount = Decimal(amount)
+        except Exception:
+            msg = f"مقدار 'amount' ({amount}) قابل تبدیل به Decimal نیست."
+            logger.error(msg)
+            raise TypeError(msg)
+
+    try:
+        with transaction.atomic():
+            # 1. تعیین related_tankhah بر اساس related_obj
+            related_tankhah = None
+            if isinstance(related_obj, Tankhah):
+                related_tankhah = related_obj
+            elif isinstance(related_obj, Factor):
+                related_tankhah = related_obj.tankhah
+            elif isinstance(related_obj, FactorItem):
+                related_tankhah = related_obj.factor.tankhah
+            else:
+                logger.warning(
+                    f"Invalid related_obj type '{type(related_obj)}' for BudgetTransaction. related_tankhah will be NULL.")
+                # Decide if you want to raise an error here instead
+                # raise ValidationError(_("نوع شیء مرتبط برای تراکنش بودجه نامعتبر است."))
+
+            # 2. اعتبارسنجی مبلغ تراکنش
+            remaining = allocation.get_remaining_amount()  # Call the method
+            logger.debug(
+                f"create_budget_transaction check: allocation={allocation.pk}, remaining={remaining}, amount={amount}, type={transaction_type}")
+
+            if transaction_type == 'CONSUMPTION':
+                if amount <= Decimal('0'):
+                    raise ValidationError(_("مبلغ مصرف باید مثبت باشد."))
+                if amount > remaining:
+                    logger.error(
+                        f"Consumption amount {amount} exceeds remaining allocation {remaining} for allocation {allocation.pk}")
+                    raise ValidationError(
+                        _("مبلغ مصرف ({:,}) بیشتر از بودجه باقی‌مانده تخصیص ({:,}) است.").format(amount, remaining))
+
+            elif transaction_type == 'RETURN':
+                if amount <= Decimal('0'):
+                    raise ValidationError(_("مبلغ برگشتی باید مثبت باشد."))
+                # Calculate net consumed to validate return amount ceiling
+                if hasattr(allocation, 'get_consumed_amount') and hasattr(allocation, 'get_returned_amount'):
+                    consumed = allocation.get_consumed_amount()
+                    returned_so_far = allocation.get_returned_amount()
+                    net_consumed = consumed - returned_so_far
+                    if amount > net_consumed:
+                        logger.error(
+                            f"Return amount {amount} exceeds net consumed {net_consumed} for allocation {allocation.pk}")
+                        raise ValidationError(
+                            _("مبلغ برگشتی ({:,}) نمی‌تواند بیشتر از مبلغ خالص مصرف شده ({:,}) باشد.").format(amount,
+                                                                                                              net_consumed))
+                else:
+                    logger.warning(
+                        f"Cannot validate RETURN amount ceiling for allocation {allocation.pk} due to missing methods.")
+
+            # بررسی بودجه باقی‌مانده
+            remaining = allocation.get_remaining_amount()
+            if transaction_type == 'CONSUMPTION' and amount > remaining:
+                logger.error(f"Insufficient budget: Amount {amount} exceeds remaining {remaining}")
+                raise ValueError(f"مبلغ {amount} بیشتر از بودجه باقی‌مانده {remaining} است.")
+
+            # تولید transaction_id اگر ارائه نشده باشد
+            if not transaction_id:
+                timestamp_str = timezone.now().strftime('%Y%m%d%H%M%S%f')
+                transaction_id = f"TX-FACTOR-NEW-{transaction_type[:3]}-{allocation.id}-{timestamp_str}"
+                logger.debug(f"Generated transaction_id: {transaction_id}")
+
+
+            # 3. ایجاد تراکنش بودجه (بدون فیلدهای related_factor/related_factor_item)
+            budget_transaction = BudgetTransaction.objects.create(
+                allocation=allocation,
+                transaction_type=transaction_type,
+                amount=amount,
+                related_tankhah=related_tankhah,  # فقط فیلدی که در مدل BudgetTransaction وجود دارد
+                created_by=created_by,
+                description=description,
+                transaction_id=transaction_id  # اطمینان از ارسال شناسه یکتا
+            )
+            logger.info(
+                f"BudgetTransaction created successfully: ID={budget_transaction.pk}, TxID={transaction_id}, amount={amount}, type={transaction_type}, allocation={allocation.pk}")
+
+            # 4. (اختیاری) ثبت تاریخچه بودجه
+            try:
+                # ثبت تاریخچه بودجه
+                history_transaction_id = f"HIST-{transaction_id}"
+
+                BudgetHistory.objects.create(
+                    content_type=ContentType.objects.get_for_model(allocation),
+                    object_id=allocation.id,
+                    action=transaction_type,
+                    amount=amount,
+                    created_by=created_by,
+                    details=f"{transaction_type} {amount:,.0f} for allocation {allocation.id}: {description}",
+                    transaction_id=history_transaction_id
+                )
+                logger.info(f"BudgetHistory recorded for transaction: {transaction_id}")
+            except NameError:
+                logger.warning("BudgetHistory model not found or not imported, skipping history recording.")
+            except Exception as hist_exc:
+                logger.error(f"Error recording BudgetHistory for transaction {transaction_id}: {hist_exc}",
+                             exc_info=True)
+
+            # 5. (مهم - اختیاری) آپدیت کردن فیلد باقیمانده در خود Allocation؟
+            # اگر مدل BudgetAllocation فیلدی مثل 'remaining_amount' برای ذخیره باقیمانده دارد،
+            # باید آن را اینجا آپدیت کنید تا با get_remaining_amount() هماهنگ باشد.
+            # allocation.remaining_amount = remaining - amount # یا + amount برای RETURN
+            # allocation.save(update_fields=['remaining_amount'])
+            # logger.info(f"Updated remaining_amount on BudgetAllocation {allocation.pk}")
+
+            # Return the created transaction object
+            return budget_transaction
+
+    except ValidationError as ve:
+        # Log validation errors clearly
+        error_message = str(ve.message_dict) if hasattr(ve, 'message_dict') else str(ve)
+        logger.error(
+            f"Validation Error creating BudgetTransaction: {error_message} (Allocation: {allocation.pk}, Amount: {amount}, Type: {transaction_type})",
+            exc_info=False)  # exc_info=False for cleaner logs
+        raise  # Re-raise to be handled by the caller (e.g., the view)
+    except Exception as e:
+        # Log other unexpected errors
+        logger.error(
+            f"Unexpected Error creating BudgetTransaction: {str(e)} (Allocation: {allocation.pk}, Amount: {amount}, Type: {transaction_type})",
+            exc_info=True)
+        raise  # Re-raise unexpected errors
 class FactorItem(models.Model):
     """  اقلام فاکتور """
 
@@ -624,85 +889,101 @@ class FactorItem(models.Model):
     amount = models.DecimalField(max_digits=25, default=0, decimal_places=2, verbose_name=_("مبلغ"))
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name=_("وضعیت"))
     quantity = models.DecimalField(max_digits=25, default=1, decimal_places=2, verbose_name=_("تعداد"))
-    unit_price = models.DecimalField(max_digits=25, decimal_places=2, blank=True, null=True,
-                                     verbose_name=_("قیمت واحد"))
-    category = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("دسته‌بندی"))
-    transaction_type = models.ForeignKey(TransactionType, on_delete=models.SET_NULL, null=True,
-                                         verbose_name=_("نوع تراکنش"))
-    min_stage_order = models.IntegerField(default=1, verbose_name=_("حداقل ترتیب مرحله"),
-                                          help_text=_("این نوع تراکنش فقط در این مرحله یا بالاتر مجاز است"))
+    unit_price = models.DecimalField(max_digits=25, decimal_places=2, blank=True, null=True,verbose_name=_("قیمت واحد"))
+    min_stage_order = models.IntegerField(default=1, verbose_name=_("حداقل ترتیب مرحله"),help_text=_("این نوع تراکنش فقط در این مرحله یا بالاتر مجاز است")  , editable=False)
+    # Optional: Timestamps for tracking
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان ایجاد"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("زمان آخرین ویرایش"))
+
 
     def clean(self):
-        """اعتبارسنجی آیتم فاکتور"""
-        # super().clean()
-        if self.amount <= 0:
-            raise ValidationError(_('مبلغ ردیف باید بزرگ‌تر از صفر باشد.'))
-        if self.quantity <= 0:
-            raise ValidationError(_('تعداد باید بزرگ‌تر از صفر باشد.'))
+        """
+        Basic model-level validation. Avoid complex calculations here that rely
+        on related models or states that might not be fully set yet.
+        Focus on individual field constraints.
+        """
+        super().clean() # Call parent clean method first
+
+        errors = {}
+
+        # 1. Validate Quantity
+        if self.quantity is not None and self.quantity <= Decimal('0'):
+            errors['quantity'] = ValidationError(
+                _('تعداد/مقدار باید بزرگ‌تر از صفر باشد.'), code='quantity_not_positive'
+            )
+
+        # 2. Validate Unit Price (if provided)
+        if self.unit_price is not None and self.unit_price < Decimal('0'):
+            # Allow zero unit price? Maybe. Disallow negative.
+            errors['unit_price'] = ValidationError(
+                _('قیمت واحد نمی‌تواند منفی باشد.'), code='unit_price_negative'
+            )
+            # Note: We don't raise 'unit_price must be positive' here,
+            # because the final 'amount' validation in save() is more robust.
+
+        # 3. Validate Amount (basic check for negative, final check in save)
+        if self.amount is not None and self.amount < Decimal('0'):
+             errors['amount'] = ValidationError(
+                 _('مبلغ کل ردیف نمی‌تواند منفی باشد.'), code='amount_negative'
+             )
+
+        # Raise all collected errors at once
+        if errors:
+            raise ValidationError(errors)
+
+        # Note: Comparison between amount, unit_price, and quantity is *not* done here
+        # because self.amount might still hold its default value (0) before save calculates it.
+
 
     def save(self, *args, **kwargs):
-        with transaction.atomic():
-            # فقط اگر unit_price تنظیم شده باشد، amount را بازنویسی کن
-            if self.unit_price is not None:
-                calculated_amount = self.unit_price * self.quantity
-                if abs(self.amount - calculated_amount) > 0.01:
-                    logger.warning(f"Amount mismatch: entered={self.amount}, calculated={calculated_amount}")
-                    self.amount = calculated_amount
+        """ذخیره آیتم با محاسبه مبلغ و اعتبارسنجی ساده"""
+        logger.debug(f"Starting FactorItem save for pk={self.pk}. Qty={self.quantity}, UnitPrice={self.unit_price}, Amount={self.amount}")
 
-            factor_remaining = get_factor_remaining_budget(self.factor)
-            if self.amount > factor_remaining:
-                raise ValidationError(
-                    _(f"مبلغ ردیف ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده فاکتور ({factor_remaining:,.0f} ریال) است.")
-                )
-            if self.factor.tankhah.current_stage.order < self.min_stage_order:
-                raise ValidationError(
-                    _(f"تراکنش نوع {self.transaction_type} فقط در مرحله {self.min_stage_order} یا بالاتر مجاز است.")
-                )
+        # محاسبه مبلغ
+        if self.unit_price is not None and self.quantity is not None:
+            self.amount = self.quantity * self.unit_price
+            logger.info(f"Calculated amount for FactorItem pk={self.pk}: {self.amount}")
+        elif self.amount is None:
+            logger.warning(f"Amount not provided and cannot be calculated for FactorItem pk={self.pk}")
+            self.amount = Decimal('0')
+         # اعتبارسنجی
+        self.clean()
 
-            if self.pk:
-                from budgets.models import BudgetTransaction
+        # ذخیره
+        super().save(*args, **kwargs)
+        logger.info(f"FactorItem saved successfully (pk={self.pk}). Amount={self.amount}, Status={self.status}")
 
-                original = FactorItem.objects.get(pk=self.pk)
-                if self.status != original.status:
-                    if self.status in ['APPROVED', 'PAID']:
-                       BudgetTransaction.objects.create(
-                            allocation=self.factor.tankhah.budget_allocation,
-                            transaction_type='CONSUMPTION',
-                            amount=self.amount,
-                            related_factor_item=self,
-                            created_by=self.factor.tankhah.created_by,
-                            description=f"مصرف بودجه توسط ردیف فاکتور {self.factor.number}",
-                            transaction_id=f"TX-FAC-ITEM-{self.factor.number}-{self.pk}"
-                        )
-                    elif self.status == 'REJECTED' and original.status in ['APPROVED', 'PAID']:
-                        BudgetTransaction.objects.create(
-                            allocation=self.factor.tankhah.budget_allocation,
-                            transaction_type='RETURN',
-                            amount=self.amount,
-                            related_factor_item=self,
-                            created_by=self.factor.tankhah.created_by,
-                            description=f"بازگشت بودجه به دلیل رد ردیف فاکتور {self.factor.number}",
-                            transaction_id=f"TX-FAC-ITEM-RET-{self.factor.number}-{self.pk}"
-                        )
 
-            super().save(*args, **kwargs)
-            self.factor.remaining_budget = get_factor_remaining_budget(self.factor)
-            self.factor.tankhah.remaining_budget = get_tankhah_remaining_budget(self.factor.tankhah)
-            self.factor.save()
-            self.factor.tankhah.save()
 
     def __str__(self):
-        return f"{self.description} - {self.amount:,}"
+        """String representation of the FactorItem."""
+        # Format amount with commas for readability
+        try:
+            # Ensure amount is a Decimal before formatting
+            amount_str = f"{self.amount:,.2f}" if isinstance(self.amount, Decimal) else str(self.amount)
+        except (TypeError, ValueError):
+            amount_str = str(self.amount) # Fallback if formatting fails
+
+        return f"{self.description or _('بدون شرح')} - {amount_str}"
 
     class Meta:
         verbose_name = _("ردیف فاکتور")
         verbose_name_plural = _("ردیف‌های فاکتور")
-        default_permissions = ()
+        ordering = ['factor', 'pk'] # Order by parent factor, then by creation order (pk)
+        indexes = [
+            models.Index(fields=['factor', 'status']), # Index for common filtering
+        ]
+        # Using standard Django permissions unless specific needs arise
+        # default_permissions = ('add', 'change', 'delete', 'view')
+        default_permissions = () # Disable default if using custom perms exclusively
         permissions = [
-            ('FactorItem_add', 'افزودن اقلام فاکتور'),
-            ('FactorItem_update', 'ویرایش اقلام فاکتور'),
-            ('FactorItem_view', 'نمایش اقلام فاکتور'),
-            ('FactorItem_delete', 'حذف اقلام فاکتور'),
+            ('FactorItem_add', _('افزودن ردیف فاکتور')),
+            ('FactorItem_update', _('ویرایش ردیف فاکتور')),
+            ('FactorItem_view', _('نمایش ردیف فاکتور')),
+            ('FactorItem_delete', _('حذف ردیف فاکتور')),
+            # Add specific permissions for status changes if needed
+            ('FactorItem_approve', _('تأیید ردیف فاکتور')),
+            ('FactorItem_reject', _('رد ردیف فاکتور')),
         ]
 #--------------
 class ApprovalLog(models.Model):
@@ -808,14 +1089,28 @@ class StageApprover(models.Model):
             ('stageapprover__Update','بروزرسانی تأییدکننده مرحله'),
             ('stageapprover__delete','حــذف تأییدکننده مرحله'),
         ]
-
 class TankhahFinalApproval(models.Model):
     class Meta:
         default_permissions = ()
         permissions = [
             ('TankhahFinalApproval_view','دسترسی تایید یا رد تنخواه گردان ')
         ]
-
+class ItemCategory(models.Model):
+    """مقداردهی بر اساس دسته‌بندی (category):"""
+    name = models.CharField(max_length=100, verbose_name=_("نام دسته‌بندی"))
+    min_stage_order = models.IntegerField(default=1, verbose_name=_("حداقل ترتیب مرحله"))
+    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+    def __str__(self):
+        return self.name
+    class Meta:
+        verbose_name= "دسته بندی نوع هزینه کرد"
+        verbose_name_plural= "دسته بندی نوع هزینه کرد"
+        permissions = [
+            ('ItemCategory_add','افزودن دسته بندی نوع هزینه کرد'),
+            ('ItemCategory_update','ویرایش دسته بندی نوع هزینه کرد'),
+            ('ItemCategory_view','نمایش دسته بندی نوع هزینه کرد'),
+            ('ItemCategory_delete','حــذف دسته بندی نوع هزینه کرد'),
+        ]
 class Notification(models.Model):
     user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, verbose_name="کاربر")
     message = models.TextField(verbose_name="پیام")
