@@ -15,6 +15,42 @@ Tankhah.objects.all().delete()
 print("All Tankhah deleted.")
 
 
+# مثال: ارسال اعلان در یک ویو
+from django.contrib.auth.models import User
+from notifications.signals import notify
+
+def create_project(request):
+    # فرض کنید کاربر یک پروژه جدید ایجاد کرده است
+    if request.method == 'POST':
+        # منطق ثبت پروژه
+        project_creator = request.user  # کاربری که پروژه را ایجاد کرده
+        recipient = User.objects.get(username='admin')  # کاربری که اعلان را دریافت می‌کند
+        verb = 'یک پروژه جدید ایجاد کرد'
+        description = f'{project_creator.username} پروژه‌ای با نام "پروژه جدید" ایجاد کرد.'
+
+        # ارسال اعلان
+        notify.send(
+            sender=project_creator,  # فرستنده اعلان
+            recipient=recipient,     # گیرنده اعلان
+            verb=verb,               # فعل اعلان
+            description=description  # توضیحات اضافی
+        )
+        # ادامه منطق ویو
+    return render(request, 'some_template.html')
+
+from notifications.signals import notify
+from accounts.models import CustomUser
+
+user = CustomUser.objects.get(username='your_username')  # کاربر فعلی
+admin = CustomUser.objects.get(username='admin')  # گیرنده اعلان
+
+notify.send(
+sender=user,
+recipient=admin,
+verb='یک پیام تست ارسال کرد',
+description='این یک اعلان آزمایشی است.'
+)
+
 
 
 

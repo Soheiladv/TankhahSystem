@@ -8,7 +8,8 @@ from core.models import Organization
 logger = logging.getLogger(__name__)
 from django.contrib.contenttypes.models import ContentType
 
-from budgets.budget_calculations import check_budget_status, get_project_remaining_budget
+from budgets.budget_calculations import check_budget_status, get_project_remaining_budget, calculate_remaining_amount, \
+    calculate_threshold_amount, send_notification
 
 import jdatetime
 from django.db import models, transaction
@@ -28,35 +29,79 @@ def get_current_date():
 """BudgetPeriod (دوره بودجه کلان):"""
 class BudgetPeriod(models.Model):
 
-    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("دفتر مرکزی"),
-                                     related_name='budget_periods')
+    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("دفتر مرکزی"),related_name='budget_periods')
     name = models.CharField(max_length=100, unique=True, verbose_name=_("نام دوره بودجه"))
     start_date = models.DateField(verbose_name=_("تاریخ شروع"))
     end_date = models.DateField(verbose_name=_("تاریخ پایان"))
     total_amount = models.DecimalField(max_digits=25, decimal_places=0, verbose_name=_("مبلغ کل"))
     total_allocated = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("مجموع تخصیص‌ها"))
-    returned_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0,
-                                          verbose_name=_("مجموع بودجه برگشتی"))
+    returned_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0,verbose_name=_("مجموع بودجه برگشتی"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
     is_archived = models.BooleanField(default=False, verbose_name=_("بایگانی شده"))
     is_completed = models.BooleanField(default=False, verbose_name=_("تمام‌شده"))
-    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
-                                   related_name='budget_periods_created', verbose_name=_("ایجادکننده"))
-    locked_percentage = models.IntegerField(default=0, verbose_name=_("درصد قفل‌شده"),
-                                            help_text=_("درصد بودجه که قفل می‌شود (0-100)"))
-    warning_threshold = models.DecimalField(max_digits=5, decimal_places=2, default=10, verbose_name=_("آستانه اخطار"),
-                                            help_text=_("درصدی که هشدار نمایش داده می‌شود (0-100)"))
-    lock_condition = models.CharField(max_length=50,
-                                      choices=[('AFTER_DATE', _("بعد از تاریخ پایان")), ('MANUAL', _("دستی")),
-                                               ('ZERO_REMAINING', _("باقی‌مانده صفر")), ], default='AFTER_DATE',
-                                      verbose_name=_("شرط قفل"))
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,related_name='budget_periods_created', verbose_name=_("ایجادکننده"))
+    locked_percentage = models.IntegerField(default=0, verbose_name=_("درصد قفل‌شده"),help_text=_("درصد بودجه که قفل می‌شود (0-100)"))
+    warning_threshold = models.DecimalField(max_digits=5, decimal_places=2, default=10, verbose_name=_("آستانه اخطار"),help_text=_("درصدی که هشدار نمایش داده می‌شود (0-100)"))
     warning_action = models.CharField(max_length=50, choices=[('NOTIFY', _("فقط اعلان")), ('LOCK', _("قفل کردن")),
-                                                              ('RESTRICT', _("محدود کردن ثبت")), ], default='NOTIFY',
-                                      verbose_name=_("اقدام هشدار"),
+                                                              ('RESTRICT', _("محدود کردن ثبت")), ], default='NOTIFY',verbose_name=_("اقدام هشدار"),
                                       help_text=_("رفتار سیستم هنگام رسیدن به آستانه هشدار"))
     allocation_phase = models.CharField(max_length=50, blank=True, verbose_name=_("فاز تخصیص"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
 
+    lock_condition = models.CharField(max_length=50,choices=[('AFTER_DATE', _("بعد از تاریخ پایان")), ('MANUAL', _("دستی")),
+                                               ('ZERO_REMAINING', _("باقی‌مانده صفر")), ], default='AFTER_DATE',verbose_name=_("شرط قفل"))
+
+    is_locked = models.BooleanField(default=False, verbose_name=_("قفل‌شده"))  # فیلد جدید
+
+    def validate_allocation(self, allocation_amount):
+        """اعتبارسنجی تخصیص با در نظر گرفتن درصد قفل"""
+        remaining = self.get_remaining_amount()
+        locked_amount = self.get_locked_amount()
+        available_for_allocation = remaining - locked_amount
+
+        if allocation_amount > available_for_allocation:
+            raise ValidationError(
+                _(
+                    f"نمی‌توان تخصیص داد. مبلغ تخصیص ({allocation_amount:,.0f} ریال) بیشتر از مقدار مجاز ({available_for_allocation:,.0f} ریال) است."
+                    f"حداقل {self.locked_percentage}% از بودجه باید قفل بماند."
+                )
+            )
+
+    def update_lock_status(self):
+        """به‌روزرسانی خودکار وضعیت قفل بر اساس شرایط"""
+        now_date = timezone.now().date()
+        remaining_amount = self.get_remaining_amount()
+
+        # بررسی شرایط قفل
+        if self.lock_condition == 'AFTER_DATE' and self.end_date < now_date:
+            self.is_locked = True
+        elif self.lock_condition == 'MANUAL':
+            # قفل دستی توسط کاربر اعمال می‌شود
+            pass
+        elif self.lock_condition == 'ZERO_REMAINING' and remaining_amount <= 0:
+            self.is_locked = True
+        elif self.lock_condition == 'COMBINED':
+            # ترکیبی: اگر تاریخ گذشته یا باقی‌مانده صفر باشد
+            self.is_locked = (self.end_date < now_date) or (remaining_amount <= 0)
+        else:
+            self.is_locked = False
+
+        # به‌روزرسانی وضعیت فعال بودن
+        if self.is_locked:
+            self.is_active = False
+        self.save(update_fields=['is_locked', 'is_active'])
+
+    def get_lock_message(self):
+        """پیام مناسب برای وضعیت قفل"""
+        if self.lock_condition == 'AFTER_DATE' and self.is_locked:
+            return _("تاریخ دوره بودجه به پایان رسیده و قفل شده است.")
+        elif self.lock_condition == 'ZERO_REMAINING' and self.is_locked:
+            return _("بودجه باقیمانده دوره صفر یا کمتر است و دوره قفل شده است.")
+        elif self.lock_condition == 'COMBINED' and self.is_locked:
+            return _("دوره بودجه به دلیل پایان تاریخ یا اتمام بودجه قفل شده است.")
+        elif self.lock_condition == 'MANUAL' and self.is_locked:
+            return _("دوره بودجه به صورت دستی قفل شده است.")
+        return _("دوره بودجه فعال و باز است.")
 
     class Meta:
         verbose_name = _("دوره بودجه")
@@ -97,6 +142,7 @@ class BudgetPeriod(models.Model):
 
     def get_remaining_amount(self):
         """محاسبه بودجه باقی‌مانده دوره"""
+        """منطق متفاوت است (بر اساس تخصیص‌ها و نه تراکنش‌ها محاسبه می‌شود)."""
         from django.db.models import Sum
         from decimal import Decimal
         total_allocated = self.allocations.aggregate(
@@ -104,40 +150,12 @@ class BudgetPeriod(models.Model):
         )['total'] or Decimal('0')
         return max(self.total_amount - total_allocated + self.returned_amount, Decimal('0'))
 
-    def get_locked_amount(self):
-        return (self.total_amount * self.locked_percentage) / Decimal('100')
-
-    def get_warning_amount(self):
-        return (self.total_amount * self.warning_threshold) / Decimal('100')
-
     def send_notification(self, status, message):
-        """
-        Send notification to relevant users (e.g., Financial Manager, Budget Manager).
-        """
-        try:
-            # فرض می‌کنیم CustomUser از طریق رابطه organizations به سازمان متصل است
-            recipients = CustomUser.objects.filter(
-                organizations=self.organization,  # اصلاح فیلد به رابطه صحیح
-                roles__name__in=['Financial Manager', 'Budget Manager']
-            ).distinct()
-
-            if not recipients.exists():
-                logger.warning(f"No recipients found for notification: {message}")
-                return
-
-            for recipient in recipients:
-                from tankhah.models import Notification
-                Notification.objects.create(
-                    recipient=recipient,
-                    actor=recipient,  # یا کاربر دیگری مثل created_by
-                    verb=status,
-                    description=message,
-                    target=self,
-                    level=status.lower()
-                )
-            logger.info(f"Notification sent to {recipients.count()} users: {message}")
-        except Exception as e:
-            logger.error(f"Error sending notification: {str(e)}", exc_info=True)
+        recipients = CustomUser.objects.filter(
+            organizations=self.organization,
+            roles__name__in=['Financial Manager', 'Budget Manager']
+        ).distinct()
+        send_notification(self, status, message, recipients)
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -149,8 +167,108 @@ class BudgetPeriod(models.Model):
         # ).aggregate(Sum('allocated_amount'))['allocated_amount__sum'] or Decimal('0')
         # self.budget_period.save(update_fields=['total_allocated'])
 
+        # بررسی آستانه اخطار هنگام ذخیره
+        self.check_warning_threshold()
+
+        # """اجرای اقدام هشدار"""
+        self.apply_warning_action()
+
         if status in ('warning', 'locked', 'completed'):
             self.send_notification(status, message)
+
+    def check_warning_threshold(self):
+        """Checks if the remaining budget has reached the warning threshold."""
+        if self.warning_threshold <= 0 or self.total_amount <= 0: # No warning if threshold or total is zero
+            return False, None
+
+        remaining_percentage = (self.get_remaining_amount() / self.total_amount) * Decimal('100')
+        if remaining_percentage <= self.warning_threshold:
+            warning_message = _("هشدار: بودجه باقیمانده دوره به آستانه {}% رسیده است (باقیمانده: {:,}).").format(
+                self.warning_threshold, self.get_remaining_amount()
+            )
+            return True, warning_message
+        return False, None
+    def get_locked_amount(self):
+        """    محاسبه مقدار بر اساس درصد (برای قفل یا هشدار)."""
+        return calculate_threshold_amount(self.total_amount, self.locked_percentage)
+
+    def get_warning_amount(self):
+        """    محاسبه مقدار بر اساس درصد (برای قفل یا هشدار)."""
+        return calculate_threshold_amount(self.total_amount, self.warning_threshold)
+    # @property
+    # def is_period_locked(self):
+    #     self.update_lock_status()  # به‌روزرسانی خودکار وضعیت
+    #     return self.is_locked, self.get_lock_message()
+
+    @property # Use property for easy access like a field
+    def is_period_locked(self):
+        """Checks if the budget period is currently locked based on conditions."""
+        now_date = timezone.now().date()
+
+        # Condition 1: Manual Lock (Assuming you add an 'is_manually_locked' field)
+        # if self.is_manually_locked:
+        #    return True, _("دوره بودجه به صورت دستی قفل شده است.")
+
+        # Condition 2: After End Date
+        if self.lock_condition == 'AFTER_DATE' and self.end_date < now_date:
+            # Optionally update is_active here if not done elsewhere
+            # if self.is_active:
+            #     self.is_active = False
+            #     self.save(update_fields=['is_active'])
+            return True, _("تاریخ دوره بودجه به پایان رسیده و قفل شده است.")
+
+        # Condition 3: Zero Remaining (or below zero)
+        # We need the *actual* remaining amount here
+        if self.lock_condition == 'ZERO_REMAINING' and self.get_remaining_amount() <= 0:
+             # Optionally update is_completed/is_active here
+             # if not self.is_completed:
+             #    self.is_completed = True
+             #    self.is_active = False
+             #    self.save(update_fields=['is_completed', 'is_active'])
+            return True, _("بودجه باقیمانده دوره صفر یا کمتر است و دوره قفل شده است.")
+
+        # Condition 4: Locked Percentage (Based on *allocated* amount, not remaining)
+        # This interpretation means you cannot allocate more than (100 - locked_percentage)%
+        # It usually doesn't prevent spending the allocated amount.
+        # If the intention is to lock *spending* when remaining is below locked percentage:
+        # remaining = self.get_remaining_amount()
+        # locked_threshold_amount = (self.total_amount * self.locked_percentage) / Decimal('100')
+        # if remaining <= locked_threshold_amount:
+        #     return True, _("بودجه باقیمانده به حد درصد قفل شده ({}) رسیده است.").format(self.locked_percentage)
+
+        return False, _("دوره بودجه فعال و باز است.")
+
+    def apply_warning_action(self):
+        """اجرای اقدام هشدار"""
+        is_warning, message = self.check_warning_threshold()
+        if not is_warning:
+            return
+
+        if self.warning_action == 'NOTIFY':
+            self.log_action("WARNING", message)
+        elif self.warning_action == 'LOCK':
+            self.is_locked = True
+            self.is_active = False
+            self.save(update_fields=['is_locked', 'is_active'])
+            self.log_action("LOCK", _("دوره بودجه به دلیل رسیدن به آستانه اخطار قفل شد."))
+            self.send_notification("locked", _("دوره بودجه به دلیل رسیدن به آستانه اخطار قفل شد."))
+        elif self.warning_action == 'RESTRICT':
+            self.is_active = False
+            self.save(update_fields=['is_active'])
+            self.log_action("RESTRICT", _("ثبت تراکنش‌های جدید برای این دوره بودجه محدود شد."))
+            self.send_notification("restricted", _("ثبت تراکنش‌های جدید برای این دوره بودجه محدود شد."))
+
+    def log_action(self, action, message):
+        BudgetHistory.objects.create(
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id,
+            action=action,
+            created_by=self.created_by,
+            details=message,
+            transaction_type='SYSTEM',
+            transaction_id=f"SYS-{timezone.now().strftime('%Y%m%d%H%M%S%f')}"
+        )
+
 # ------------------------------------
 # ------------------------------------
 """ BudgetAllocation (تخصیص بودجه):"""
@@ -277,51 +395,41 @@ class BudgetAllocation(models.Model):
     #                self.transactions.filter(transaction_type='CONSUMPTION').aggregate(total=Sum('amount'))['total'] or Decimal('0') +
     #                self.returned_amount, Decimal('0'))
 
-
-    def __get_remaining_amount(self):
-        consumption_total = self.transactions.filter(transaction_type='CONSUMPTION').aggregate(
-            total=Coalesce(Sum('amount'), Value(Decimal('0')))
-        )['total']
-        return_total = self.transactions.filter(transaction_type='RETURN').aggregate(
-            total=Coalesce(Sum('amount'), Value(Decimal('0')))
-        )['total']
-
-        return max(
-            self.allocated_amount - consumption_total + return_total,
-            Decimal('0')
-        )
+        # چک کردن درصد قفل‌شده دوره بودجه
+        self.budget_period.validate_allocation(self.allocated_amount)
+    # def get_remaining_amount(self):
+    #     """
+    #     محاسبه بودجه باقی‌مانده تخصیص با در نظر گرفتن تراکنش‌های مصرف و بازگشت.
+    #     Returns:
+    #          Decimal: بودجه باقی‌مانده (غیرمنفی)
+    #     """
+    #     # Import BudgetTransaction inside the method to avoid potential circular imports
+    #
+    #     try:
+    #         # جمع تراکنش‌های مصرف (CONSUMPTION) مرتبط با این تخصیص
+    #         consumed_qs = BudgetTransaction.objects.filter(allocation=self, transaction_type='CONSUMPTION')
+    #         consumed = consumed_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
+    #         # جمع تراکنش‌های بازگشت (RETURN) مرتبط با این تخصیص
+    #         returned_qs = BudgetTransaction.objects.filter(allocation=self, transaction_type='RETURN')
+    #         returned = returned_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
+    #         # **نقطه کلیدی اصلاح:** استفاده از فیلد صحیح مدل
+    #         initial_allocation = self.allocated_amount if self.allocated_amount is not None else Decimal('0.00')
+    #         # محاسبه باقی‌مانده
+    #         remaining = initial_allocation - consumed + returned
+    #         # لاگ برای دیباگ
+    #         logger.debug(f"BudgetAllocation {self.pk}: Initial Allocated={initial_allocation}, Consumed={consumed}, Returned={returned}, Calculated Remaining={remaining}")
+    #         # اطمینان از غیرمنفی بودن
+    #         return max(remaining, Decimal('0.00'))
+    #     except Exception as e:
+    #         logger.error(
+    #             f"Error calculating remaining amount for BudgetAllocation {self.pk}: {str(e)}",
+    #             exc_info=True
+    #         )
+    #         return Decimal('0.00') # بازگشت مقدار امن در صورت خطا
 
     def get_remaining_amount(self):
-        """
-        محاسبه بودجه باقی‌مانده تخصیص با در نظر گرفتن تراکنش‌های مصرف و بازگشت.
-        Returns:
-             Decimal: بودجه باقی‌مانده (غیرمنفی)
-        """
-        # Import BudgetTransaction inside the method to avoid potential circular imports
-
-        try:
-            # جمع تراکنش‌های مصرف (CONSUMPTION) مرتبط با این تخصیص
-            consumed_qs = BudgetTransaction.objects.filter(allocation=self, transaction_type='CONSUMPTION')
-            consumed = consumed_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
-            # جمع تراکنش‌های بازگشت (RETURN) مرتبط با این تخصیص
-            returned_qs = BudgetTransaction.objects.filter(allocation=self, transaction_type='RETURN')
-            returned = returned_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
-            # **نقطه کلیدی اصلاح:** استفاده از فیلد صحیح مدل
-            initial_allocation = self.allocated_amount if self.allocated_amount is not None else Decimal('0.00')
-            # محاسبه باقی‌مانده
-            remaining = initial_allocation - consumed + returned
-            # لاگ برای دیباگ
-            logger.debug(f"BudgetAllocation {self.pk}: Initial Allocated={initial_allocation}, Consumed={consumed}, Returned={returned}, Calculated Remaining={remaining}")
-            # اطمینان از غیرمنفی بودن
-            return max(remaining, Decimal('0.00'))
-        except Exception as e:
-            logger.error(
-                f"Error calculating remaining amount for BudgetAllocation {self.pk}: {str(e)}",
-                exc_info=True
-            )
-            return Decimal('0.00') # بازگشت مقدار امن در صورت خطا
-
-
+        """محاسبه بودجه باقی‌مانده تخصیص پروژه"""
+        return calculate_remaining_amount(self, amount_field='allocated_amount', model_name='BudgetAllocation')
 
     def get_actual_remaining_amount(self):
         # این متد باید همیشه از دیتابیس بخواند و نباید به فیلد ذخیره شده تکیه کند
@@ -347,10 +455,12 @@ class BudgetAllocation(models.Model):
         return self.remaining_amount  # تکیه بر فیلد آپدیت شده
 
     def get_locked_amount(self):
-        return (self.allocated_amount * self.locked_percentage) / Decimal('100')
+        """    محاسبه مقدار بر اساس درصد (برای قفل یا هشدار)."""
+        return calculate_threshold_amount(self.allocated_amount, self.locked_percentage)
 
     def get_warning_amount(self):
-        return (self.allocated_amount * self.warning_threshold) / Decimal('100')
+        """    محاسبه مقدار بر اساس درصد (برای قفل یا هشدار)."""
+        return calculate_threshold_amount(self.allocated_amount, self.warning_threshold)
 
     def check_allocation_status(self):
         remaining = self.get_remaining_amount()
@@ -369,41 +479,12 @@ class BudgetAllocation(models.Model):
         return 'normal', _('وضعیت عادی')
 
     def send_notification(self, status, message):
-        """
-        Send notification to users with roles 'Financial Manager' or 'Budget Manager'
-        who are associated with the organization or its parent organization.
-        """
-        try:
-            # انتخاب کاربرانی که از طریق پست‌های سازمانی به سازمان یا سازمان والد مرتبط هستند
-            from django.db.models import Q
-            recipients = CustomUser.objects.filter(
-                Q(userpost__post__organization=self.organization) |
-                Q(userpost__post__organization__parent=self.organization),
-                # Q(roles__name__in=['Financial Manager', 'Budget Manager']) |
-                # Q(groups__roles__name__in=['Financial Manager', 'Budget Manager']),
-                is_active=True
-            ).distinct()
-
-            if not recipients.exists():
-                logger.warning(f"No recipients found for notification: {message} (organization_id={self.organization_id})")
-                return
-
-            for recipient in recipients:
-                # from tankhah.models import Notification
-                from notifications.models import Notification
-                Notification.objects.create(
-                    recipient=recipient,
-                    actor=self.created_by or recipient,  # استفاده از created_by اگر وجود داشته باشد
-                    verb=status,
-                    description=message,
-                    target=self,
-                    level=status.lower()
-                )
-            logger.info(f"Notification sent to {recipients.count()} users for BudgetAllocation {self.id}: {message}")
-        except Exception as e:
-            logger.error(f"Error sending notification for BudgetAllocation {self.id}: {str(e)}", exc_info=True)
-            # جلوگیری از خرابی تراکنش در صورت خطا
-            return
+        recipients = CustomUser.objects.filter(
+            Q(userpost__post__organization=self.organization) |
+            Q(userpost__post__organization__parent=self.organization),
+            is_active=True
+        ).distinct()
+        send_notification(self, status, message, recipients)
 
     def save(self, *args, **kwargs):
         logger.debug(f"Starting save for BudgetAllocation (pk={self.pk}, allocated_amount={self.allocated_amount})")
@@ -591,6 +672,12 @@ class BudgetTransaction(models.Model):
             logger.error(f"Error saving BudgetTransaction {self.transaction_id}: {str(e)}", exc_info=True)
             raise
 
+    def clean(self):
+        super().clean()
+        # اگر دوره بودجه محدود شده باشد، از ثبت تراکنش جلوگیری شود
+        if self.allocation.budget_period.warning_action == 'RESTRICT' and self.allocation.budget_period.is_active == False:
+            raise ValidationError(_("ثبت تراکنش جدید به دلیل محدودیت دوره بودجه ممکن نیست."))
+
     def __str__(self):
         return f"{self.get_transaction_type_display()} - {self.amount:,.0f} - {self.timestamp.strftime('%Y/%m/%d')}"
 
@@ -612,20 +699,23 @@ class ProjectBudgetAllocation(models.Model):
 
     def get_remaining_amount(self):
         """محاسبه بودجه باقی‌مانده تخصیص پروژه"""
-        try:
-            consumed_qs = BudgetTransaction.objects.filter(allocation=self, transaction_type='CONSUMPTION')
-            consumed = consumed_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
-            returned_qs = BudgetTransaction.objects.filter(allocation=self, transaction_type='RETURN')
-            returned = returned_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
-            initial_allocation = self.allocated_amount if self.allocated_amount is not None else Decimal('0.00')
-            remaining = initial_allocation - consumed + returned
-            logger.debug(
-                f"BudgetAllocation {self.pk}: Initial Allocated={initial_allocation}, Consumed={consumed}, Returned={returned}, Calculated Remaining={remaining}")
-            return max(remaining, Decimal('0.00'))
-        except Exception as e:
-            logger.error(f"Error calculating remaining amount for BudgetAllocation {self.pk}: {str(e)}", exc_info=True)
-            return Decimal('0.00')
+        return calculate_remaining_amount(self, amount_field='allocated_amount', model_name='BudgetAllocation')
 
+    # def get_remaining_amount(self):
+    #     """محاسبه بودجه باقی‌مانده تخصیص پروژه"""
+    #     try:
+    #         consumed_qs = BudgetTransaction.objects.filter(allocation=self, transaction_type='CONSUMPTION')
+    #         consumed = consumed_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
+    #         returned_qs = BudgetTransaction.objects.filter(allocation=self, transaction_type='RETURN')
+    #         returned = returned_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
+    #         initial_allocation = self.allocated_amount if self.allocated_amount is not None else Decimal('0.00')
+    #         remaining = initial_allocation - consumed + returned
+    #         logger.debug(
+    #             f"BudgetAllocation {self.pk}: Initial Allocated={initial_allocation}, Consumed={consumed}, Returned={returned}, Calculated Remaining={remaining}")
+    #         return max(remaining, Decimal('0.00'))
+    #     except Exception as e:
+    #         logger.error(f"Error calculating remaining amount for BudgetAllocation {self.pk}: {str(e)}", exc_info=True)
+    #         return Decimal('0.00')
 
     def clean(self):
         remaining = self.budget_allocation.get_remaining_amount()
@@ -663,24 +753,23 @@ class ProjectBudgetAllocation(models.Model):
         # self.remaining_amount = self.get_remaining_amount()
         # super().save(update_fields=['remaining_amount'])
 
-    @property
-    def remaining_amount(self):
-        """
-        محاسبه مقدار باقی‌مانده با کسر مجموع تراکنش‌های مصرفی از مبلغ تخصیص‌شده
-        """
-        consumed = BudgetTransaction.objects.filter(
-            allocation=self.budget_allocation,
-            transaction_type='CONSUMPTION'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-
-        returned = BudgetTransaction.objects.filter(
-            allocation=self.budget_allocation,
-            transaction_type='RETURN'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-
-        return self.allocated_amount - consumed + returned
-
-
+    # @property
+    # def remaining_amount(self):
+    #     """
+    #     محاسبه مقدار باقی‌مانده با کسر مجموع تراکنش‌های مصرفی از مبلغ تخصیص‌شده
+    #     """
+    #     consumed = BudgetTransaction.objects.filter(
+    #         allocation=self.budget_allocation,
+    #         transaction_type='CONSUMPTION'
+    #     ).aggregate(total=Sum('amount'))['total'] or 0
+    #
+    #     returned = BudgetTransaction.objects.filter(
+    #         allocation=self.budget_allocation,
+    #         transaction_type='RETURN'
+    #     ).aggregate(total=Sum('amount'))['total'] or 0
+    #
+    #     return self.allocated_amount - consumed + returned
+    #
     def __str__(self):
         target = self.subproject.name if self.subproject else self.project.name
         jalali_date = jdatetime.date.fromgregorian(date=self.allocation_date).strftime('%Y/%m/%d')

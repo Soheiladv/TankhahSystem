@@ -13,7 +13,8 @@ from accounts.models import CustomUser
 from core.models import UserPost, WorkflowStage, SubProject, Project
 from .Factor.forms_Factor import FactorForm
 from .fun_can_edit_approval import can_edit_approval
-from tankhah.models import ApprovalLog, Tankhah, StageApprover, Factor, FactorItem, FactorDocument, TankhahDocument
+from tankhah.models import ApprovalLog, Tankhah, StageApprover, Factor, FactorItem, FactorDocument, TankhahDocument, \
+    Notification
 from .utils import restrict_to_user_organization
 from persiantools.jdatetime import JalaliDate
 from django.db.models import Q
@@ -259,7 +260,7 @@ class FactorDeleteView(PermissionBaseView, DeleteView):
 
 class FactorListView(PermissionBaseView, ListView):
     model = Factor
-    template_name = 'tankhah/factor_list.html'
+    template_name = 'tankhah/factor_list__2.html'
     context_object_name = 'factors'
     paginate_by = 10
     extra_context = {'title': _('لیست فاکتورها')}
@@ -1199,3 +1200,32 @@ def mark_notification_as_read(request, notif_id):
     return JsonResponse({'status': 'success'})
 
 
+@login_required
+def get_unread_notifications(request):
+    # دریافت اعلان‌های خوانده نشده کاربر
+    unread_notifications = Notification.objects.filter(
+        user=request.user,
+        is_read=False
+    ).order_by('-created_at')[:10]  # 10 اعلان آخر خوانده نشده
+
+    # سریالایز کردن داده‌ها
+    serialized_notifications = []
+    for notification in unread_notifications:
+        serialized_notifications.append({
+            'id': notification.id,
+            'message': notification.message,
+            'tankhah_id': notification.tankhah.id if notification.tankhah else None,
+            'tankhah_number': notification.tankhah.number if notification.tankhah else None,
+            'created_at': notification.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            'is_read': notification.is_read
+        })
+
+    # ساخت پاسخ JSON
+    response_data = {
+        'status': 'success',
+        'count': unread_notifications.count(),
+        'notifications': serialized_notifications,
+        'unread_count': request.user.notifications.filter(is_read=False).count()
+    }
+
+    return JsonResponse(response_data)

@@ -7,9 +7,11 @@ from django.views.generic.base import RedirectView
 from django.views.i18n import JavaScriptCatalog
 
 from Tanbakhsystem import views
-from Tanbakhsystem.views import TanbakhWorkflowView, DashboardView, GuideView, pdate
+from Tanbakhsystem.views import TanbakhWorkflowView, DashboardView, GuideView, pdate, test_unread_count, \
+    notifications_inbox, delete_notification, unread_notifications, get_notifications
 from accounts.views import SetTimeLockView, TimeLockListView, LockStatusView
 from accounts.RCMS_Lock.views import lock_status
+
 
 urlpatterns = [
                   path('admin/', admin.site.urls),
@@ -26,6 +28,7 @@ urlpatterns = [
                   path('budgets/', include('budgets.urls')),  # اضافه کردن اپلیکیشن بودجه
                   path('workflow/', TanbakhWorkflowView.as_view(), name='workflow'),  # help workflow
 
+                  #
                   path('about/', views.about, name='about'),
                   path("lock-status/", lock_status, name="lock_status"),
                   path('set-lock/', SetTimeLockView.as_view(), name='set_time_lock'),
@@ -41,6 +44,17 @@ urlpatterns = [
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+
+urlpatterns += [
+    path('inbox/notifications/', include('notifications.urls', namespace='notifications')),
+    path('notifications/inbox/', notifications_inbox, name='notifications_inbox'),
+    path('notifications/delete/<int:notification_id>/', delete_notification, name='delete_notification'),
+    path('notifications/unread/', unread_notifications, name='unread'),
+    #
+    path('notifications/get-notifications/', get_notifications, name='get_notifications'),
+
+]
 
 # path('tanbakhs/',  DashboardView.as_view(), name='dashboard'),
 # path('', Tanbakhsystem_DashboardView.as_view(), name='dashboard'),  # داشبورد به عنوان صفحه اصلی

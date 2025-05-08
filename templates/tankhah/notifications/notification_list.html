@@ -1,0 +1,107 @@
+<!-- templates/notifications/notification_list.html -->
+{% extends 'base.html' %}
+{% load i18n static humanize jalali_tags %}
+
+{% block title %}{% trans "لیست اعلان‌ها" %}{% endblock %}
+
+{% block content %}
+<div class="card shadow-lg">
+    <div class="card-header bg-primary text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="card-title mb-0">
+                <i class="fas fa-bell me-2"></i> {% trans "اعلان‌ها" %}
+            </h3>
+            <div>
+                <a href="{% url 'notification_create' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-plus me-1"></i> {% trans "اعلان جدید" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>{% trans "پیام" %}</th>
+                        <th>{% trans "مرتبط با" %}</th>
+                        <th>{% trans "تاریخ" %}</th>
+                        <th>{% trans "وضعیت" %}</th>
+                        <th>{% trans "عملیات" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for notification in notifications %}
+                    <tr class="{% if not notification.is_read %}table-primary{% endif %}">
+                        <td>{{ notification.message }}</td>
+                        <td>
+                            {% if notification.tankhah %}
+                            <a href="{% url 'tankhah_tracking' notification.tankhah.pk %}" class="badge bg-info">
+                                {{ notification.tankhah.number }}
+                            </a>
+                            {% else %}
+                            <span class="badge bg-secondary">{% trans "عمومی" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ notification.created_at|jformat:"%Y/%m/%d %H:%M" }}</td>
+                        <td>
+                            <span class="badge {% if notification.is_read %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                {% if notification.is_read %}{% trans "خوانده شده" %}{% else %}{% trans "جدید" %}{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'notification_update' notification.pk %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'notification_delete' notification.pk %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="fas fa-bell-slash fa-2x mb-3"></i>
+                            <p>{% trans "هیچ اعلانی یافت نشد." %}</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

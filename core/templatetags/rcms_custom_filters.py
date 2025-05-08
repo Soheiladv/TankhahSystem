@@ -357,3 +357,43 @@ def get_item(list_obj, index):
         return list_obj[int(index)]
     except (IndexError, TypeError, ValueError):
         return None
+
+IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg']
+ICON_MAP = {
+    'pdf': 'fa-file-pdf text-danger',
+    'doc': 'fa-file-word text-primary',
+    'docx': 'fa-file-word text-primary',
+    'xls': 'fa-file-excel text-success',
+    'xlsx': 'fa-file-excel text-success',
+    'ppt': 'fa-file-powerpoint text-warning',
+    'pptx': 'fa-file-powerpoint text-warning',
+    'zip': 'fa-file-archive text-secondary',
+    'rar': 'fa-file-archive text-secondary',
+    'txt': 'fa-file-alt text-secondary',
+    'csv': 'fa-file-csv text-success',
+    # Add more as needed
+}
+import  os
+@register.filter
+def get_file_icon(filename):
+    if not filename:
+        return 'fa-file text-muted'
+    try:
+        ext = os.path.splitext(str(filename))[1].lower().strip('.')
+        # Check if it's a known image type first
+        if f'.{ext}' in IMAGE_EXTENSIONS:
+            return 'fa-file-image text-info' # Default icon for images if preview fails
+        return ICON_MAP.get(ext, 'fa-file text-muted') # Get specific icon or default
+    except Exception:
+        return 'fa-file text-muted'
+
+@register.filter
+def is_image_file(filename):
+     if not filename:
+         return False
+     try:
+         ext = os.path.splitext(str(filename))[1].lower()
+         return ext in IMAGE_EXTENSIONS
+     except Exception:
+         return False
+

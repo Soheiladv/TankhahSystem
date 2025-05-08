@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'notifications',
     'core.apps.CoreConfig',
     'reports.apps.ReportsConfig',
     'django_jalali',
@@ -51,7 +52,6 @@ INSTALLED_APPS = [
     'version_tracker.apps.VersionTrackerConfig',
     'tankhah.apps.TankhahConfig',
     'accounts.apps.AccountsConfig',
-    'notifications',
     'core.templatetags.file_tags', # تمپلیت برای تگ تصاویر
     'budgets.apps.BudgetsConfig',
     'formtools',
@@ -605,3 +605,12 @@ logger = logging.getLogger(__name__)
 #         },
 #     },
 # }
+
+# === استفده از نوت جانگو
+DJANGO_NOTIFICATIONS_CONFIG = {
+    'USE_JSONFIELD': True,  # برای استفاده از JSONField
+    'SOFT_DELETE': True,    # برای فعال کردن حذف نرم
+}
+# تنظیمات اختیاری notifications
+NOTIFICATIONS_USE_JSONFIELD = True
+NOTIFICATIONS_SOFT_DELETE = True

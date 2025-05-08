@@ -18,6 +18,71 @@ logger = logging.getLogger(__name__)
 فاکتورها: توابع جدید برای محاسبه بودجه فاکتورها و آیتم‌های آن‌ها.
 سازگاری: استفاده از مدل‌های موجود و ادغام توابع شما (مانند get_project_remaining_budget).
 """
+# === محاسبات بودجه ===
+def calculate_remaining_amount(allocation, amount_field='allocated_amount', model_name='Allocation'):
+    """
+    محاسبه بودجه باقی‌مانده تخصیص با در نظر گرفتن تراکنش‌های مصرف و بازگشت.
+    Args:
+        allocation: نمونه مدل (مانند BudgetAllocation یا ProjectBudgetAllocation)
+        amount_field: نام فیلد مقدار اولیه (مانند 'allocated_amount')
+        model_name: نام مدل برای لاگ‌گذاری
+    Returns:
+        Decimal: بودجه باقی‌مانده
+    """
+    try:
+        from budgets.models import BudgetTransaction
+        consumed_qs = BudgetTransaction.objects.filter(allocation=allocation, transaction_type='CONSUMPTION')
+        consumed = consumed_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
+        returned_qs = BudgetTransaction.objects.filter(allocation=allocation, transaction_type='RETURN')
+        returned = returned_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
+        initial_amount = getattr(allocation, amount_field) if getattr(allocation, amount_field) is not None else Decimal('0.00')
+        remaining = initial_amount - consumed + returned
+        logger.debug(
+            f"{model_name} {allocation.pk}: Initial Amount={initial_amount}, Consumed={consumed}, Returned={returned}, Calculated Remaining={remaining}"
+        )
+        return max(remaining, Decimal('0.00'))
+    except Exception as e:
+        logger.error(f"Error calculating remaining amount for {model_name} {allocation.pk}: {str(e)}", exc_info=True)
+        return Decimal('0.00')
+
+def calculate_threshold_amount(base_amount, percentage):
+    """
+    محاسبه مقدار بر اساس درصد (برای قفل یا هشدار).
+    Args:
+        base_amount: مقدار پایه (مانند total_amount یا allocated_amount)
+        percentage: درصد (مانند locked_percentage یا warning_threshold)
+    Returns:
+        Decimal: مقدار محاسبه‌شده
+    """
+    return (base_amount * percentage) / Decimal('100')
+# === تابع ارسال نوت ===
+def send_notification(target, status, message, recipients_queryset):
+    """
+    ارسال اعلان به کاربران.
+    Args:
+        target: نمونه مدل (مانند BudgetPeriod یا BudgetAllocation)
+        status: وضعیت اعلان
+        message: پیام اعلان
+        recipients_queryset: کوئری‌ست گیرندگان
+    """
+    try:
+        if not recipients_queryset.exists():
+            logger.warning(f"No recipients found for notification: {message}")
+            return
+        for recipient in recipients_queryset:
+            from notifications.models import Notification
+            Notification.objects.create(
+                recipient=recipient,
+                actor=target.created_by or recipient,
+                verb=status,
+                description=message,
+                target=target,
+                level=status.lower()
+            )
+        logger.info(f"Notification sent to {recipients_queryset.count()} users: {message}")
+    except Exception as e:
+        logger.error(f"Error sending notification: {str(e)}", exc_info=True)
+
 # === توابع عمومی ===
 def apply_filters(queryset, filters=None):
     """
@@ -89,7 +154,7 @@ def get_tankhah_total_budget(tankhah, filters=None):
     # اینجا فرض شده که مبلغ کل تنخواه در فیلد amount خود مدل ذخیره می‌شود
     total = tankhah.amount
     logger.debug(f"get_tankhah_total_budget: tankhah={tankhah.number}, total={total}")
-    return total
+    return total or Decimal('0')
 
 """    محاسبه بودجه مصرف‌شده تنخواه (بر اساس فاکتورهای پرداخت‌شده)"""
 
@@ -174,6 +239,7 @@ def get_project_total_budget(project, filters=None):
 
     total = direct_total + subproject_total
     cache.set(cache_key, total, timeout=300)
+    logger.debug(f"Project {project.id} total budget: {total}")
     return total
 
 """ محاسبه بودجه *واقعی* باقی‌مانده پروژه."""
@@ -290,6 +356,7 @@ def get_project_used_budget(project, filters=None):
     total = tankhah_budget + subproject_budget + consumptions
     cache.set(cache_key, total, timeout=300)
     logger.debug(f"get_project_used_budget: project={project}, tankhah={tankhah_budget}, subproject={subproject_budget}, total={total}")
+    logger.debug(f"Project {project.id} used budget: {total}")
     return total
 
 def get_project_remaining_budget(project, filters=None):
@@ -426,7 +493,8 @@ def get_tankhah_used_budget(tankhah, filters=None):
     total = factors.aggregate(total=Coalesce(Sum('amount'), Value(Decimal('0'))))['total'] or Decimal('0')
     cache.set(cache_key, total, timeout=300)
     logger.debug(f"get_tankhah_used_budget: tankhah={tankhah.number}, total={total}")
-    return total
+    return total if total is not None else Decimal('0')
+
 
 # === توابع بودجه فاکتور ===
 def get_factor_total_budget(factor, filters=None):

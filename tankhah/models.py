@@ -721,7 +721,7 @@ class Factor(models.Model):
             ('Factor_full_edit', _('دسترسی کامل به فاکتور')),
         ]
 # --- تابع اصلاح شده ---
-def create_budget_transaction(allocation, transaction_type, amount, related_obj, created_by, description,
+def Ok__create_budget_transaction(allocation, transaction_type, amount, related_obj, created_by, description,
                              transaction_id):
     """
     ایجاد تراکنش بودجه با اعتبارسنجی مبلغ و بدون ارسال فیلدهای مربوط به فاکتور/آیتم.
@@ -874,6 +874,215 @@ def create_budget_transaction(allocation, transaction_type, amount, related_obj,
             f"Unexpected Error creating BudgetTransaction: {str(e)} (Allocation: {allocation.pk}, Amount: {amount}, Type: {transaction_type})",
             exc_info=True)
         raise  # Re-raise unexpected errors
+#-----------------------------------------------
+def create_budget_transaction(allocation, transaction_type, amount, related_obj, created_by, description, transaction_id):
+    """
+    ایجاد تراکنش بودجه با اعتبارسنجی مبلغ، ثبت تاریخچه و بررسی هشدار/قفل دوره بودجه.
+
+    Args:
+        allocation (BudgetAllocation): تخصیص بودجه مرتبط که تراکنش روی آن اعمال می‌شود.
+        transaction_type (str): نوع تراکنش ('CONSUMPTION', 'RETURN', ...).
+        amount (Decimal): مبلغ تراکنش (باید مثبت باشد).
+        related_obj: شیء مرتبط (Tankhah, Factor, FactorItem) که باعث این تراکنش شده.
+        created_by (CustomUser): کاربر ایجادکننده تراکنش.
+        description (str): توضیحات تراکنش.
+        transaction_id (str): شناسه منحصربه‌فرد برای BudgetTransaction (معمولاً از ویو می‌آید).
+
+    Returns:
+        BudgetTransaction: نمونه تراکنش ایجاد شده.
+
+    Raises:
+        ValidationError: اگر اعتبارسنجی‌ها (مبلغ منفی، عدم بودجه کافی، ...) ناموفق باشند.
+        TypeError: اگر نوع ورودی‌ها نامعتبر باشد.
+        AttributeError: اگر متدهای لازم روی allocation یا budget_period وجود نداشته باشند.
+        Exception: برای سایر خطاهای پیش‌بینی نشده.
+    """
+    # --- ۰. اعتبارسنجی ورودی‌های اولیه ---
+    # بررسی وجود متد لازم در allocation
+    if not hasattr(allocation, 'get_remaining_amount'):
+        msg = "شیء 'allocation' ارسال شده متد get_remaining_amount را ندارد."
+        logger.error(msg + f" (Allocation PK: {allocation.pk if allocation else 'None'})")
+        raise AttributeError(msg) # استفاده از AttributeError واضح‌تر است
+
+    # اطمینان از Decimal بودن مبلغ و مثبت بودن آن
+    if not isinstance(amount, Decimal):
+        try:
+            amount = Decimal(str(amount)) # تبدیل امن‌تر
+        except Exception:
+            msg = f"مقدار 'amount' ({amount}) قابل تبدیل به Decimal معتبر نیست."
+            logger.error(msg)
+            raise TypeError(msg)
+    if amount <= Decimal('0'):
+        raise ValidationError(_("مبلغ تراکنش ({}) باید مثبت باشد.").format(amount))
+
+    # اطمینان از وجود کاربر ایجاد کننده
+    if not created_by:
+        logger.error("کاربر ایجاد کننده (created_by) برای تراکنش بودجه مشخص نشده است.")
+        # بسته به سیاست شما، می‌توانید خطا ایجاد کنید یا یک کاربر پیش‌فرض در نظر بگیرید
+        raise ValueError("created_by cannot be None for BudgetTransaction.")
+
+    try:
+        # استفاده از تراکنش اتمی برای اطمینان از اجرای کامل یا هیچ‌کدام
+        with transaction.atomic():
+
+            # --- ۱. تعیین اشیاء مرتبط (برای ذخیره در BudgetTransaction) ---
+            related_tankhah = None
+            related_factor = None
+            related_factor_item = None
+
+            if isinstance(related_obj, Tankhah):
+                related_tankhah = related_obj
+            elif isinstance(related_obj, Factor):
+                related_factor = related_obj
+                # دریافت تنخواه از فاکتور (فرض می‌شود هر فاکتور تنخواه دارد)
+                if hasattr(related_obj, 'tankhah'):
+                    related_tankhah = related_obj.tankhah
+                else:
+                    logger.warning(f"Factor object (pk={related_obj.pk}) does not have 'tankhah' attribute.")
+            elif isinstance(related_obj, FactorItem):
+                related_factor_item = related_obj
+                # دریافت فاکتور و سپس تنخواه از آیتم
+                if hasattr(related_obj, 'factor') and related_obj.factor:
+                    related_factor = related_obj.factor
+                    if hasattr(related_obj.factor, 'tankhah'):
+                        related_tankhah = related_obj.factor.tankhah
+                    else:
+                         logger.warning(f"Factor object (pk={related_obj.factor.pk}) related to FactorItem (pk={related_obj.pk}) does not have 'tankhah' attribute.")
+                else:
+                    logger.warning(f"FactorItem object (pk={related_obj.pk}) does not have 'factor' attribute.")
+            else:
+                # اگر نوع شیء مرتبط متفاوت است یا نمی‌خواهید لینک کنید
+                logger.info(f"BudgetTransaction related_obj type '{type(related_obj)}' is not explicitly handled for linking.")
+
+            # --- ۲. بررسی وضعیت قفل بودن دوره بودجه ---
+            budget_period = allocation.budget_period
+            if hasattr(budget_period, 'is_period_locked'):
+                is_locked, lock_message = budget_period.is_period_locked
+                if is_locked and transaction_type == 'CONSUMPTION': # فقط مصرف را محدود کن
+                    logger.warning(f"Attempted transaction on locked budget period {budget_period.pk}: {lock_message}")
+                    raise ValidationError(_("امکان ثبت هزینه وجود ندارد: {}").format(lock_message))
+            else:
+                 logger.warning(f"Method 'is_period_locked' not found on BudgetPeriod model (pk={budget_period.pk}). Lock check skipped.")
+
+
+            # --- ۳. اعتبارسنجی مبلغ نسبت به بودجه باقیمانده ---
+            remaining_on_allocation = allocation.get_remaining_amount() # فراخوانی متد محاسبه باقیمانده
+            logger.debug(f"Budget check: allocation_pk={allocation.pk}, remaining={remaining_on_allocation}, tx_amount={amount}, tx_type={transaction_type}")
+
+            if transaction_type == 'CONSUMPTION':
+                # بررسی اینکه آیا مبلغ مصرف از باقیمانده بیشتر است
+                if amount > remaining_on_allocation:
+                    logger.error(f"Insufficient funds: Consumption amount {amount} exceeds remaining allocation {remaining_on_allocation} for allocation {allocation.pk}")
+                    raise ValidationError(
+                        _("مبلغ مصرف ({:,}) بیشتر از بودجه باقی‌مانده تخصیص ({:,}) است.").format(amount, remaining_on_allocation)
+                    )
+            elif transaction_type == 'RETURN':
+                # (اختیاری) بررسی سقف بازگشت بر اساس مصرف خالص
+                if hasattr(allocation, 'get_consumed_amount') and hasattr(allocation, 'get_returned_amount'):
+                    consumed = allocation.get_consumed_amount()
+                    returned_so_far = allocation.get_returned_amount()
+                    net_consumed = consumed - returned_so_far
+                    if amount > net_consumed:
+                        logger.error(f"Invalid return: Return amount {amount} exceeds net consumed {net_consumed} for allocation {allocation.pk}")
+                        raise ValidationError(
+                            _("مبلغ برگشتی ({:,}) نمی‌تواند بیشتر از مبلغ خالص مصرف شده ({:,}) باشد.").format(amount, net_consumed)
+                        )
+                else:
+                    logger.warning(f"Cannot validate RETURN ceiling for allocation {allocation.pk} due to missing check methods.")
+
+            # --- ۴. ایجاد رکورد BudgetTransaction ---
+            # **مهم:** مطمئن شوید مدل BudgetTransaction شما فقط فیلدهای زیر را دارد
+            # (یا اگر فیلدهای related_factor/item را دارد، آنها را هم اینجا مقداردهی کنید)
+            budget_tx = BudgetTransaction.objects.create(
+                allocation=allocation,                 # تخصیص مرتبط
+                transaction_type=transaction_type,     # نوع تراکنش
+                amount=amount,                         # مبلغ
+                related_tankhah=related_tankhah,       # تنخواه مرتبط (اگر وجود دارد)
+                created_by=created_by,                 # کاربر ایجاد کننده
+                description=description,               # توضیحات
+                transaction_id=transaction_id          # شناسه یکتای تراکنش (از ویو)
+            )
+            logger.info(f"BudgetTransaction created: ID={budget_tx.pk}, TxID={transaction_id}, amount={amount}, type={transaction_type}, allocation_pk={allocation.pk}")
+
+            # --- ۵. ثبت تاریخچه بودجه (اختیاری) ---
+            try:
+                 # **اصلاح:** اطمینان از وجود و مقداردهی فیلدهای لازم در BudgetHistory
+                 # فرض می‌کنیم BudgetHistory فیلد transaction_id (برای شناسه اصلی) و action دارد
+                 if hasattr(BudgetHistory._meta, 'get_field'): # Check if model has fields before accessing
+                      history_data = {
+                          'content_type': ContentType.objects.get_for_model(allocation),
+                          'object_id': allocation.id,
+                          'action': transaction_type, # استفاده از نوع تراکنش به عنوان اکشن
+                          'amount': amount,
+                          'created_by': created_by,
+                          'details': f"{transaction_type} {amount:,.0f} for allocation {allocation.id}: {description}",
+                      }
+                      # فقط اگر فیلد transaction_id در BudgetHistory وجود دارد، آن را اضافه کن
+                      if 'transaction_id' in [f.name for f in BudgetHistory._meta.get_fields()]:
+                           history_data['transaction_id'] = transaction_id # استفاده از شناسه اصلی تراکنش
+                      # فقط اگر فیلد transaction_type در BudgetHistory وجود دارد، آن را اضافه کن
+                      if 'transaction_type' in [f.name for f in BudgetHistory._meta.get_fields()]:
+                           history_data['transaction_type'] = transaction_type
+
+                      BudgetHistory.objects.create(**history_data)
+                      logger.info(f"BudgetHistory recorded for TxID: {transaction_id}")
+                 else:
+                      logger.warning("BudgetHistory model structure seems incorrect. Skipping history.")
+
+            except NameError:
+                 logger.warning("BudgetHistory model not found or not imported, skipping history recording.")
+            except Exception as hist_exc:
+                 logger.error(f"Error recording BudgetHistory for transaction {transaction_id}: {hist_exc}", exc_info=True)
+                 # در صورت بروز خطا در ثبت تاریخچه، تراکنش اصلی رول‌بک *نمی‌شود* مگر اینکه raise کنید
+
+
+            # --- ۶. بررسی آستانه هشدار و اقدام لازم (بعد از ثبت موفق تراکنش) ---
+            if hasattr(budget_period, 'check_warning_threshold') and callable(budget_period.check_warning_threshold):
+                # دوباره باقیمانده را محاسبه کن *بعد* از ثبت تراکنش جدید
+                # Note: This might cause an extra query if get_remaining_amount is not cached efficiently
+                # remaining_after_tx = allocation.get_remaining_amount()
+                # Alternatively, calculate it directly: remaining_after_tx = remaining - amount (for CONSUMPTION) or + amount (for RETURN)
+                remaining_after_tx = remaining_on_allocation  + (amount * Decimal('-1.0') if transaction_type == 'CONSUMPTION' else amount)
+
+                # حالا وضعیت هشدار را با مقدار جدید چک کن
+                # reached_warning, warning_message = budget_period.check_warning_threshold(current_remaining=remaining_after_tx) # Pass current remaining if method accepts it
+                reached_warning, warning_message = budget_period.check_warning_threshold()
+
+                if reached_warning:
+                    logger.warning(f"Budget Period {budget_period.pk} reached warning threshold AFTER Tx {transaction_id}: {warning_message}")
+                    warning_action = getattr(budget_period, 'warning_action', 'NOTIFY') # Get action, default to NOTIFY
+
+                    if warning_action == 'LOCK':
+                        # قفل کردن دوره
+                        if hasattr(budget_period, 'is_locked_due_to_warning'):
+                             if not budget_period.is_locked_due_to_warning:
+                                 budget_period.is_locked_due_to_warning = True
+                                 budget_period.save(update_fields=['is_locked_due_to_warning'])
+                                 logger.info(f"Budget Period {budget_period.pk} LOCKED due to warning threshold.")
+                                 # ارسال اعلان قفل
+                                 if hasattr(budget_period, 'send_notification'): budget_period.send_notification('locked', _("بودجه دوره به دلیل رسیدن به آستانه هشدار قفل شد."))
+                        else: logger.error("Cannot LOCK period: 'is_locked_due_to_warning' field missing.")
+
+                    elif warning_action == 'RESTRICT' or warning_action == 'NOTIFY':
+                        # ارسال اعلان (برای هر دو حالت Notify و Restrict در این مرحله)
+                        restrict_msg_part = _(" ثبت هزینه‌های جدید ممکن است محدود شود.") if warning_action == 'RESTRICT' else ""
+                        if hasattr(budget_period, 'send_notification'): budget_period.send_notification('warning', warning_message + restrict_msg_part)
+
+            else:
+                logger.warning(f"Method 'check_warning_threshold' not found on BudgetPeriod model (pk={budget_period.pk}). Warning check skipped.")
+
+            # --- ۷. بازگرداندن تراکنش ایجاد شده ---
+            return budget_tx
+
+    # --- مدیریت خطا ---
+    except ValidationError as ve:
+        error_message = str(ve.message_dict) if hasattr(ve, 'message_dict') else str(ve)
+        logger.error(f"Validation Error in create_budget_transaction: {error_message} (Allocation: {allocation.pk}, Amount: {amount}, Type: {transaction_type})", exc_info=False)
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected Error in create_budget_transaction: {str(e)} (Allocation: {allocation.pk}, Amount: {amount}, Type: {transaction_type})", exc_info=True)
+        raise
+#-----------------------------------------------
 class FactorItem(models.Model):
     """  اقلام فاکتور """
 

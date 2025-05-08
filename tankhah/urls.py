@@ -4,6 +4,8 @@ from budgets.views import get_budget_info
 from tankhah.Factor.NF.view_Nfactor import New_FactorCreateView
 from tankhah.Factor.view_FactorItemApprove import FactorItemApproveView
 from tankhah.TankhahTrackingView import TankhahTrackingView
+# from tankhah.view.view_Notification import NotificationListView, NotificationCreateView, NotificationUpdateView, \
+#     NotificationDeleteView
 from tankhah.view_folder_tankhah.view_tankhah import (
     TankhahDetailView, TankhahCreateView, TankhahDeleteView,
     TankhahListView, TankhahApproveView, TankhahUpdateView, TankhahRejectView
@@ -12,7 +14,7 @@ from tankhah.views import (
     ApprovalListView, ApprovalCreateView, ApprovalDetailView, ApprovalUpdateView, ApprovalDeleteView,
     FactorApproveView, FactorItemRejectView,
     upload_tankhah_documents, ApprovalLogListView, FactorStatusUpdateView, mark_notification_as_read,
-    get_subprojects, FactorListView, FactorDetailView, FactorUpdateView, FactorDeleteView
+    get_subprojects, FactorListView, FactorDetailView, FactorUpdateView, FactorDeleteView, get_unread_notifications
 )
 from tankhah.Factor.view_Factor import (FactorCreateView,
                                         TankhahBudgetInfoAjaxView, get_tankhah_budget_info, BudgetCheckView)
@@ -51,7 +53,9 @@ urlpatterns = [
     path('approval/<int:pk>/update/', ApprovalUpdateView.as_view(), name='approval_update'),
     path('approval/<int:pk>/delete/', ApprovalDeleteView.as_view(), name='approval_delete'),
     path('<int:tankhah_id>/upload/', upload_tankhah_documents, name='upload_tankhah_documents'),
-    path('notifications/mark-as-read/<int:notif_id>/', mark_notification_as_read, name='mark_notification_as_read'),
+    # path('notifications/mark-as-read/<int:notif_id>/', mark_notification_as_read, name='mark_notification_as_read'),
+    # path('notification/<int:pk>/mark-as-read/', views.mark_as_read_view, name='tankhah_mark_as_read'),
+
 
     path('get_subprojects/', get_subprojects, name='get_subprojects'),
     path('get-budget-info/', get_budget_info, name='get_budget_info'),
@@ -74,6 +78,25 @@ urlpatterns += [
     path('categories/<int:pk>/delete/', itemcategory_delete, name='itemcategory_delete'),
 ] #categories
 
+# urlpatterns += [
+#     # لیست تمام اعلان‌ها
+#     path('notification_list/',  NotificationListView.as_view(), name='notification_list'),
+#
+#     # ایجاد اعلان جدید
+#     path('notification/create/',  NotificationCreateView.as_view(), name='notification_create'),
+#
+#     # ویرایش اعلان
+#     path('notification/<int:pk>/edit/',  NotificationUpdateView.as_view(), name='notification_update'),
+#
+#     # حذف اعلان
+#     path('notification/<int:pk>/delete/',  NotificationDeleteView.as_view(), name='notification_delete'),
+#
+#     # علامت گذاری به عنوان خوانده شده (AJAX)
+#     path('notification/<int:pk>/mark-as-read/',  mark_notification_as_read, name='mark_as_read'),
+#
+#     # API برای دریافت اعلان‌های خوانده نشده (اختیاری)
+#     path('api/unread/',  get_unread_notifications, name='unread_notifications_api'),
+# ]
 
 # from django.urls import path
 #

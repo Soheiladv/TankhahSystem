@@ -12,6 +12,7 @@ from django.views.generic.base import TemplateView
 
 from core.PermissionBase import PermissionBaseView
 from core.models import WorkflowStage, Project, Organization, OrganizationType
+from core.tests import CustomUser
 from tankhah.models import Tankhah, ApprovalLog, Notification, Factor
 from version_tracker.models import FinalVersion, AppVersion
 
@@ -129,6 +130,7 @@ class DashboardView( PermissionBaseView , TemplateView):
         }
     }
 
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
@@ -149,7 +151,7 @@ class DashboardView( PermissionBaseView , TemplateView):
         context['user'] = user
         context['title'] = _('داشبورد مدیریت تنخواه')
         final_version = FinalVersion.calculate_final_version()
-        context['version'] = final_version#'1.2.3'
+        context['version'] = final_version  # '1.2.3'
 
         # تعداد تنخواه فعال
         context['active_tankhah_count'] = Tankhah.objects.filter(
@@ -187,8 +189,8 @@ class DashboardView( PermissionBaseView , TemplateView):
         context['quarterly_report_data'] = {'labels': json.dumps(quarterly_data['labels']),
                                             'values': json.dumps(quarterly_data['values'])}
 
-        #تعداد فاکتورهای ردشده
-        context['rejected_factors']  = Factor.objects.filter(status='REJECTED').count()
+        # تعداد فاکتورهای ردشده
+        context['rejected_factors'] = Factor.objects.filter(status='REJECTED').count()
 
         # فعالیت‌های اخیر (از ApprovalLog)
         context['recent_activities'] = ApprovalLog.objects.filter(
@@ -196,9 +198,9 @@ class DashboardView( PermissionBaseView , TemplateView):
         ).order_by('-timestamp')[:5]
 
         # اعلان‌ها
-        context['notifications'] = Notification.objects.filter(user=user, is_read=False).order_by('-created_at')[:5]
+        # context['notifications'] = Notification.objects.filter(recipient=user, unread=False).order_by('-created_at')[:5]
 
-        # # آمار کلی تنخواه و فاکتورها (با دسترسی)
+        # آمار کلی تنخواه و فاکتورها (با دسترسی)
         if user.has_perm('core.Dashboard_Stats_view'):
             tankhah_stats = self.get_tankhah_statistics()
             context.update(tankhah_stats)
@@ -276,7 +278,11 @@ class DashboardView( PermissionBaseView , TemplateView):
 
         return stats
 
-
+# notifications/views.py
+from django.contrib.auth.decorators import login_required
+@login_required
+def test_unread_count(request):
+    return JsonResponse({"unread_count": 42})
 ############################################
 
 # class Tanbakhsystem_DashboardView(LoginRequiredMixin, TemplateView):
@@ -408,7 +414,85 @@ class DashboardView( PermissionBaseView , TemplateView):
 #
 #         context["cards"] = filtered_cards
 #         return context
+#============ اعلان ها
+from notifications.models import Notification
+from django.core.paginator import Paginator
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
+def notifications_inbox(request):
+    # دریافت تمام اعلان‌های کاربر
+    notifications = request.user.notifications.all().order_by('-timestamp')  # مرتب‌سازی بر اساس تاریخ
+
+    # فیلتر بر اساس وضعیت (اختیاری)
+    status = request.GET.get('status', 'all')
+    if status == 'unread':
+        notifications = notifications.unread()
+    elif status == 'read':
+        notifications = notifications.read()
+
+    # صفحه‌بندی اعلان‌ها (۱۰ مورد در هر صفحه)
+    paginator = Paginator(notifications, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'title': 'صندوق دریافتی اعلان‌ها',
+        'unread_count': request.user.notifications.unread().count(),
+        'status': status,
+    }
+    return render(request, 'notifications/inbox.html', context)
+
+
+@require_POST
+def delete_notification(request, notification_id):
+    try:
+        notification = request.user.notifications.get(id=notification_id)
+        notification.delete()
+        from django.contrib import messages
+        messages.success(request, 'اعلان با موفقیت حذف شد.')
+        return JsonResponse({'status': 'success'})
+    except Notification.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'اعلان یافت نشد'}, status=404)
+
+
+@login_required
+def unread_notifications(request):
+    # دریافت اعلان‌های خوانده‌نشده کاربر فعلی
+    unread_notifications = request.user.notifications.unread().order_by('-timestamp')
+
+    # صفحه‌بندی اعلان‌ها (۱۰ مورد در هر صفحه)
+    paginator = Paginator(unread_notifications, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'title': 'اعلان‌های خوانده‌نشده',
+    }
+    return render(request, 'notifications/unread.html', context)
+
+@login_required
+def get_notifications(request):
+    notifications = request.user.notifications.all().order_by('-timestamp')[:10]
+    data = {
+        'notifications': [],
+        'unread_count': request.user.notifications.unread().count(),
+    }
+    for notice in notifications:
+        data['notifications'].append({
+            'id': notice.id,
+            'actor': notice.actor.username if notice.actor else '',
+            'verb': notice.verb,
+            'description': notice.description,
+            'target': str(notice.target) if notice.target else '',
+            'timestamp': notice.timestamp.strftime('%Y/%m/%d %H:%M'),
+            'unread': notice.unread,
+        })
+    return JsonResponse(data)
+
+#-- ==============================
 class TanbakhWorkflowView(TemplateView): #help
     template_name =  'help/run_tankhahSystem.html'
 

@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load i18n static jformat %}
+
+{% block title %}{% trans "همه اعلان‌ها" %}{% endblock %}
+
+{% block content %}
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-inbox me-2"></i> {% trans "همه اعلان‌ها" %}
+                </h3>
+                <div>
+                    <span class="badge bg-light text-dark">
+                        {% trans "تعداد اعلان‌های خوانده نشده:" %} {{ request.user.notifications.unread.count }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            {% if notifications %}
+                <div class="list-group">
+                    {% for notice in notifications %}
+                        <div class="list-group-item list-group-item-action {% if notice.unread %}list-group-item-primary{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="me-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-{% if notice.unread %}envelope{% else %}envelope-open-text{% endif %} me-2 text-{% if notice.unread %}danger{% else %}success{% endif %}"></i>
+                                        <h5 class="mb-0">{{ notice.verb }}</h5>
+                                    </div>
+                                    {% if notice.description %}
+                                        <p class="mb-2 text-muted">{{ notice.description }}</p>
+                                    {% endif %}
+                                    <small class="text-muted">
+                                        <i class="far fa-clock me-1"></i>
+                                        {{ notice.timestamp|jformat:"%Y/%m/%d - %H:%M" }}
+                                    </small>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                            id="dropdownMenuButton{{ notice.id }}" data-bs-toggle="dropdown"
+                                            aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ notice.id }}">
+                                        <li>
+                                            <a class="dropdown-item"
+                                               href="{% url 'notifications:mark_as_read' notice.id %}">
+                                                <i class="fas fa-check me-2"></i> {% trans "علامت به عنوان خوانده شده" %}
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#"
+                                               onclick="deleteNotification({{ notice.id }})">
+                                                <i class="fas fa-trash me-2"></i> {% trans "حذف اعلان" %}
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            {% if notice.target %}
+                                <div class="mt-2">
+                                    <a href="{{ notice.target.get_absolute_url }}"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-external-link-alt me-1"></i> {% trans "مشاهده جزئیات" %}
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-4x text-muted mb-4"></i>
+                    <h4 class="text-muted">{% trans "هیچ اعلانی وجود ندارد" %}</h4>
+                    <p class="text-muted">{% trans "شما هیچ اعلانی دریافت نکرده‌اید" %}</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="card-footer bg-light">
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'notifications:mark_all_as_read' %}" class="btn btn-success">
+                    <i class="fas fa-check-double me-2"></i> {% trans "خواندن همه اعلان‌ها" %}
+                </a>
+                <a href="{% url 'notifications:inbox' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-inbox me-2"></i> {% trans "بازگشت به صندوق ورودی" %}
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        // حذف اعلان با AJAX
+        function deleteNotification(notificationId) {
+            if (confirm('{% trans "آیا از حذف این اعلان اطمینان دارید؟" %}')) {
+                fetch(`/inbox/notifications/delete/${notificationId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            location.reload();
+                        } else {
+                            alert('{% trans "خطایی در حذف اعلان رخ داد" %}');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('{% trans "خطایی در حذف اعلان رخ داد" %}');
+                    });
+            }
+        }
+
+        // به‌روزرسانی شمارنده اعلان‌ها
+        function updateNotificationCount() {
+            fetch("{% url 'notifications:live_unread_notification_count' %}")
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.querySelector('.notification-badge');
+                    if (badge) {
+                        if (data.unread_count > 0) {
+                            badge.textContent = data.unread_count;
+                            badge.style.display = 'inline-block';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => console.error('Error fetching notification count:', error));
+        }
+
+        // هر 30 ثانیه شمارنده را به‌روزرسانی کن
+        setInterval(updateNotificationCount, 30000);
+    </script>
+{% endblock %}

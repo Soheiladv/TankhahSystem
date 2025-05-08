@@ -351,14 +351,15 @@ class TankhahListView(PermissionBaseView, ListView):
         is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
 
         # فیلتر اولیه تنخواه‌ها
+        from tankhah.models import Tankhah
         if is_hq_user:
-            queryset = 'tankhah.Tankhah'.objects.all()
+            queryset =   Tankhah.objects.all()
             logger.info("کاربر HQ هست، همه تنخواه‌ها را می‌بیند")
         elif user_orgs:
-            queryset = 'tankhah.Tankhah'.objects.filter(organization__in=user_orgs)
+            queryset =   Tankhah.objects.filter(organization__in=user_orgs)
             logger.info(f"فیلتر تنخواه‌ها برای سازمان‌های کاربر: {[org.name for org in user_orgs]}")
         else:
-            queryset = 'tankhah.Tankhah'.objects.none()
+            queryset =  Tankhah.objects.none()
             logger.info("کاربر هیچ سازمانی ندارد، queryset خالی برمی‌گردد")
 
         # فیلتر آرشیو
@@ -389,10 +390,11 @@ class TankhahListView(PermissionBaseView, ListView):
         #     'project', 'subproject', 'organization', 'current_stage', 'budget_allocation'
         # ).prefetch_related('factors').order_by('-date') #
         from django.db.models import Prefetch
+        from tankhah.models import Factor
         final_queryset = queryset.select_related(
             'project', 'subproject', 'organization', 'current_stage', 'budget_allocation'
         ).prefetch_related(
-            Prefetch('factors', queryset='tankhah.Factor'.objects.filter(status__in=['APPROVED', 'PAID']))
+            Prefetch('factors', queryset= Factor.objects.filter(status__in=['APPROVED', 'PAID']))
         ).order_by('-date') #کوئری بهینه تر
 
         logger.info(f"تعداد تنخواه‌های نهایی: {final_queryset.count()}")
@@ -470,7 +472,7 @@ class TankhahListView(PermissionBaseView, ListView):
                 tankhah.branch_total_budget = Decimal('0')
                 tankhah.tankhah_used_budget = Decimal('0')
                 tankhah.factor_used_budget = Decimal('0')
-                context['errors'].append(f"خطا در تنخواه {tankhah.number}: {str(e)}")
+                # context['errors'].append(f"خطا در تنخواه {tankhah.number}: {str(e)}")
 
         return context
 

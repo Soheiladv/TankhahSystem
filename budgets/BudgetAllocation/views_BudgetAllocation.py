@@ -121,6 +121,14 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
     def form_valid(self, form):
         logger.debug("Form is valid, starting save process")
         try:
+            budget_period = form.cleaned_data['budget_period']
+            is_locked, lock_message = budget_period.is_period_locked
+            if is_locked:
+                from django.http import request
+                messages.error(request, lock_message)
+                # Prevent saving the allocation
+                return self.form_invalid(form)
+
             with transaction.atomic():
                 response = super().form_valid(form)
                 logger.info(f"BudgetAllocation created with ID: {self.object.pk}")
@@ -173,6 +181,15 @@ class BudgetAllocationUpdateView(PermissionBaseView, UpdateView):
         new_amount = form.instance.allocated_amount
         difference = new_amount - old_amount
         remaining = self.get_object().budget_period.get_remaining_amount() + old_amount
+
+        budget_period = form.cleaned_data['budget_period']
+        is_locked, lock_message = budget_period.is_period_locked
+        if is_locked:
+            from django.http import request
+            messages.error(request, lock_message)
+            # Prevent saving the allocation
+            return self.form_invalid(form)
+
         if new_amount > remaining:
             messages.error(self.request, f'مبلغ تخصیص بیشتر از باقی‌مانده بودجه ({remaining:,.0f} ریال) است.')
             return self.form_invalid(form)

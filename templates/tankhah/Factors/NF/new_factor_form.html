@@ -4,6 +4,139 @@
 {% block extra_head %}
     {# --- استایل‌های پایه و بهبودهای ظاهری --- #}
     <style>
+    /* استایل‌های پیش‌نمایش فایل */
+.file-preview-item {
+    background-color: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.file-preview-item:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.file-preview-content {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.file-icon-container {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+}
+
+.file-icon {
+    font-size: 1.25rem;
+}
+
+.file-image-preview {
+    width: 40px;
+    height: 40px;
+    border-radius: 0.25rem;
+    object-fit: cover;
+    display: none;
+    border: 1px solid #dee2e6;
+}
+
+.file-image-preview.image-loaded {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.file-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.file-name {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.875rem;
+    color: #212529;
+}
+
+.file-size {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+.remove-preview-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    border: none;
+    color: #dc3545;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    margin-left: 0.5rem;
+}
+
+.remove-preview-btn:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+    transform: scale(1.1);
+}
+
+.file-preview-item.removing {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.95); }
+}
+
+        /* در بخش style موجود */
+        .file-preview-item.removing {
+            animation: fadeOut 0.3s ease-out forwards;
+        }
+
+        .existing-documents li {
+            transition: all 0.3s ease;
+        }
+
+        .existing-documents li:hover {
+            background-color: #f8f9fa;
+        }
+
+        .file-preview-item[data-existing] {
+            background-color: #f8f9fa;
+            border-left: 3px solid #6c757d;
+        }
+
+        .file-image-preview {
+            max-width: 60px;
+            max-height: 60px;
+            border: 1px solid #dee2e6;
+        }
+
+
         .file-preview-item {
             background-color: #fff;
             border-radius: 0.25rem;
@@ -601,55 +734,78 @@
                                         </h6></div>
                                         <div class="card-body">
                                             <div class="mb-3">
-                                                    <label for="{{ document_form.files.id_for_label }}"
-                                                           class="form-label">{{ document_form.files.label }}</label>
-                                                    {{ document_form.files|add_class:"form-control"   }}
-                                                    <div class="form-text small">{% trans "فقط فایل‌های تصویری (JPG، PNG، GIF) مجاز هستند." %}</div>
-                                                    <div class="invalid-feedback"
-                                                         id="error-{{ document_form.files.id_for_label }}">
-                                                        {% if document_form.files.errors %}
-                                                            {{ document_form.files.errors|first }}{% endif %}
-                                                    </div>
+                                                <label for="{{ document_form.files.id_for_label }}"
+                                                       class="form-label">{{ document_form.files.label }}</label>
+                                                {# **مهم:** اطمینان از وجود ID صحیح برای input فایل #}
+                                                {{ document_form.files }}
+                                                <div class="form-text small">{% trans "فرمت‌های مجاز: PDF, Word, Excel, JPG, PNG, ..." %}</div>
+                                                <div class="invalid-feedback"
+                                                     id="error-{{ document_form.files.id_for_label }}">
+                                                    {% if document_form.files.errors %}
+                                                        {{ document_form.files.errors|first }}{% endif %}</div>
                                             </div>
                                             {# کانتینر پیش‌نمایش فایل‌های فاکتور #}
                                             <div id="factor-doc-previews" class="mt-3 border-top pt-2">
-                                                <h6 class="mb-2 small text-muted d-none"
-                                                    id="factor-preview-title">{% trans "فایل‌های انتخاب شده:" %}</h6>
-                                                {# JS fills this #}
-                                            </div>
-                                            {# Existing Factor Documents #}
-                                            {% with factor_documents=object.documents.all %}
-                                                {# Note: object might be None on create view #}
-                                                {% if factor_documents.exists %}
-                                                    <hr>
-                                                    <h6 class="mb-2 small text-muted">{% trans "پیوست‌های موجود:" %}</h6>
-                                                    <ul class="list-unstyled existing-documents small">
-                                                        {% for doc in factor_documents %}
-                                                            <li class="d-flex justify-content-between align-items-center border-bottom py-1">
-                                                                <div class="d-flex align-items-center flex-grow-1 me-2 text-truncate">
-                                                                    <i class="fas {{ doc.file.name|get_file_icon }} text-secondary me-2"></i>
-                                                                    <a href="{{ doc.file.url }}" target="_blank"
-                                                                       class="text-decoration-none text-dark"
-                                                                       title="{{ doc.file.name }}">{{ doc.file.name|truncatechars:30 }}</a>
-                                                                    <span class="badge bg-light text-dark rounded-pill ms-2">{{ doc.file.size|filesizeformat }}</span>
-                                                                </div>
-                                                                <div class="form-check form-switch form-check-inline m-0 p-0">
-                                                                    <input class="form-check-input delete-doc-check"
-                                                                           type="checkbox"
+                                                <h6 class="mb-2 small text-muted {% if not document_form.files.value and not factor_documents %}d-none{% endif %}"
+                                                    id="factor-preview-title">{% trans "فایل‌های انتخاب/موجود:" %}</h6>
+                                                {# پیش‌نمایش فایل‌های تازه انتخاب شده اینجا اضافه می‌شود #}
+                                                <div id="new-factor-previews"></div>
+                                                {# نمایش اسناد موجود قبلی #}
+                                                {% with factor_documents=object.documents.all %}
+                                                    {% if factor_documents.exists %}
+                                                        <ul class="list-unstyled existing-documents small mt-2">
+                                                            {% for doc in factor_documents %}
+                                                                <li class="d-flex justify-content-between align-items-center border-bottom py-2 file-preview-item"
+                                                                    data-existing="true" data-file-id="{{ doc.pk }}">
+                                                                    <div class="d-flex align-items-center flex-grow-1 me-3 text-truncate">
+                                                                        {# کانتینر برای آیکن یا تصویر موجود #}
+                                                                        <div class="me-2 flex-shrink-0"
+                                                                             style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                                                            {% if doc.file.name|is_image_file %}
+                                                                                <img src="{{ doc.file.url }}"
+                                                                                     alt="{{ doc.file.name }}"
+                                                                                     class="file-image-preview existing"
+                                                                                     style="display: inline-block;">
+                                                                                <i class="fas {{ doc.file.name|get_file_icon }} text-secondary fa-lg file-icon"
+                                                                                   style="display: none;"></i>
+                                                                            {% else %}
+                                                                                <img src="" alt=""
+                                                                                     class="file-image-preview existing"
+                                                                                     style="display: none;">
+                                                                                <i class="fas {{ doc.file.name|get_file_icon }} text-secondary fa-lg file-icon"></i>
+                                                                            {% endif %}
+                                                                        </div>
+                                                                        <div class="flex-grow-1 text-truncate">
+                                                                            <a href="{{ doc.file.url }}" target="_blank"
+                                                                               class="file-name text-dark d-block text-decoration-none"
+                                                                               title="{{ doc.file.name }}">{{ doc.file.name|truncatechars:35 }}</a>
+                                                                            <span class="badge bg-light text-dark rounded-pill file-size">{{ doc.file_size|default:doc.file.size|filesizeformat }}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    {# دکمه حذف برای فایل‌های موجود #}
+                                                                    <button type="button"
+                                                                            class="btn btn-sm btn-outline-danger p-0 delete-existing-file"
+                                                                            data-doc-id="{{ doc.pk }}"
+                                                                            data-doc-type="factor"
+                                                                            title="{% trans 'حذف این فایل' %}">
+                                                                        <i class="fas fa-trash-alt fa-xs"></i>
+                                                                    </button>
+                                                                    {# چک‌باکس مخفی برای حذف فایل موجود #}
+                                                                    <input type="checkbox"
                                                                            name="delete_factor_doc_{{ doc.pk }}"
-                                                                           id="del_fdoc_{{ doc.pk }}"
-                                                                           value="{{ doc.pk }}"
-                                                                           title="{% trans 'حذف' %}">
-                                                                </div>
-                                                            </li>
-                                                        {% endfor %}
-                                                    </ul>
-                                                {% endif %}
-                                            {% endwith %}
+                                                                           id="delete_factor_doc_{{ doc.pk }}"
+                                                                           class="d-none delete-doc-checkbox"
+                                                                           value="{{ doc.pk }}">
+                                                                </li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                {# Tankhah Documents #}
+                                {# Tankhah Documents (ساختار مشابه بالا) #}
                                 <div class="col-md-6">
                                     <div class="card h-100 border-light shadow-sm">
                                         <div class="card-header bg-light"><h6 class="mb-0"><i
@@ -660,46 +816,66 @@
                                                 <label for="{{ tankhah_document_form.documents.id_for_label }}"
                                                        class="form-label">{{ tankhah_document_form.documents.label }}</label>
                                                 {{ tankhah_document_form.documents }}
-                                                <div class="form-text small">{% trans "پیوست‌های کلی مربوط به تنخواه." %}</div>
+                                                <div class="form-text small">{% trans "فرمت‌های مجاز: PDF, Word, Excel, JPG, PNG, ..." %}</div>
                                                 <div class="invalid-feedback"
                                                      id="error-{{ tankhah_document_form.documents.id_for_label }}">
                                                     {% if tankhah_document_form.documents.errors %}
-                                                        {{ tankhah_document_form.documents.errors|first }}{% endif %}
-                                                </div>
+                                                        {{ tankhah_document_form.documents.errors|first }}{% endif %}</div>
                                             </div>
                                             {# کانتینر پیش‌نمایش فایل‌های تنخواه #}
                                             <div id="tankhah-doc-previews" class="mt-3 border-top pt-2">
-                                                <h6 class="mb-2 small text-muted d-none"
-                                                    id="tankhah-preview-title">{% trans "فایل‌های انتخاب شده:" %}</h6>
-                                                {# JS fills this #}
-                                            </div>
-                                            {# Existing Tankhah Documents #}
-                                            {% if tankhah_documents.exists %}
-                                                <hr>
-                                                <h6 class="mb-2 small text-muted">{% trans "پیوست‌های موجود:" %}</h6>
-                                                <ul class="list-unstyled existing-documents small">
-                                                    {% for doc in tankhah_documents %}
-                                                        <li class="d-flex justify-content-between align-items-center border-bottom py-1">
-                                                            <div class="d-flex align-items-center flex-grow-1 me-2 text-truncate">
-                                                                <i class="fas {{ doc.document.name|get_file_icon }} text-secondary me-2"></i>
-                                                                <a href="{{ doc.document.url }}" target="_blank"
-                                                                   class="text-decoration-none text-dark"
-                                                                   title="{{ doc.document.name }}">{{ doc.document.name|truncatechars:30 }}</a>
-                                                                <span class="badge bg-light text-dark rounded-pill ms-2">{{ doc.document.size|filesizeformat }}</span>
-                                                            </div>
-                                                            <div class="form-check form-switch form-check-inline m-0 p-0">
-                                                                <input class="form-check-input delete-doc-check"
-                                                                       type="checkbox"
+                                                <h6 class="mb-2 small text-muted {% if not tankhah_document_form.documents.value and not tankhah_documents %}d-none{% endif %}"
+                                                    id="tankhah-preview-title">{% trans "فایل‌های انتخاب/موجود:" %}</h6>
+                                                <div id="new-tankhah-previews"></div>
+                                                {# Existing Tankhah Documents #}
+                                                {% if tankhah_documents.exists %}
+                                                    <ul class="list-unstyled existing-documents small mt-2">
+                                                        {% for doc in tankhah_documents %}
+                                                            <li class="d-flex justify-content-between align-items-center border-bottom py-2 file-preview-item"
+                                                                data-existing="true" data-file-id="{{ doc.pk }}">
+                                                                <div class="d-flex align-items-center flex-grow-1 me-3 text-truncate">
+                                                                    <div class="me-2 flex-shrink-0"
+                                                                         style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                                                        {% if doc.document.name|is_image_file %}
+                                                                            <img src="{{ doc.document.url }}"
+                                                                                 alt="{{ doc.document.name }}"
+                                                                                 class="file-image-preview existing"
+                                                                                 style="display: inline-block;">
+                                                                            <i class="fas {{ doc.document.name|get_file_icon }} text-secondary fa-lg file-icon"
+                                                                               style="display: none;"></i>
+                                                                        {% else %}
+                                                                            <img src="" alt=""
+                                                                                 class="file-image-preview existing"
+                                                                                 style="display: none;">
+                                                                            <i class="fas {{ doc.document.name|get_file_icon }} text-secondary fa-lg file-icon"></i>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                    <div class="flex-grow-1 text-truncate">
+                                                                        <a href="{{ doc.document.url }}" target="_blank"
+                                                                           class="file-name text-dark d-block text-decoration-none"
+                                                                           title="{{ doc.document.name }}">{{ doc.document.name|truncatechars:35 }}</a>
+                                                                        <span class="badge bg-light text-dark rounded-pill file-size">{{ doc.file_size|default:doc.document.size|filesizeformat }}</span>
+                                                                    </div>
+                                                                </div>
+                                                                <button type="button"
+                                                                        class="btn btn-sm btn-outline-danger p-0 delete-existing-file"
+                                                                        data-doc-id="{{ doc.pk }}"
+                                                                        data-doc-type="tankhah"
+                                                                        title="{% trans 'حذف این فایل' %}">
+                                                                    <i class="fas fa-trash-alt fa-xs"></i>
+                                                                </button>
+                                                                <input type="checkbox"
                                                                        name="delete_tankhah_doc_{{ doc.pk }}"
-                                                                       id="del_tdoc_{{ doc.pk }}" value="{{ doc.pk }}"
-                                                                       title="{% trans 'حذف' %}">
-                                                            </div>
-                                                        </li>
-                                                    {% endfor %}
-                                                </ul>
-                                            {% elif tankhah %}
-                                                <p class="text-muted small fst-italic mt-3">{% trans "سندی برای این تنخواه ثبت نشده." %}</p>
-                                            {% endif %}
+                                                                       id="delete_tankhah_doc_{{ doc.pk }}"
+                                                                       class="d-none delete-doc-checkbox"
+                                                                       value="{{ doc.pk }}">
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% elif tankhah %}
+                                                    <p class="text-muted small fst-italic mt-3">{% trans "سندی برای این تنخواه ثبت نشده." %}</p>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -792,26 +968,52 @@
 
     {# --- تمپلیت پیش‌نمایش فایل برای JS --- #}
     <template id="file-preview-template">
-        <div class="file-preview-item d-flex justify-content-between align-items-center mb-1 small" role="listitem">
-            <div class="d-flex align-items-center flex-grow-1 me-3 text-truncate">
-                <i class="fas fa-file-alt text-secondary me-2 file-icon"></i>
-                <img src="" alt="" class="file-image-preview me-2"
-                     style="display: none;"> <!-- حذف استایل‌های inline، CSS مدیریت می‌کند -->
-                <span class="file-name text-dark"></span>
-                <span class="badge bg-light text-dark rounded-pill ms-2 file-size"></span>
+    <div class="file-preview-item" role="listitem">
+        <div class="file-preview-content">
+            <div class="file-icon-container">
+                <i class="fas file-icon"></i>
+                <img src="" alt="" class="file-image-preview">
             </div>
-            <button type="button" class="btn btn-sm btn-outline-danger p-0 remove-preview-btn"
-                    aria-label="{% trans 'حذف فایل' %}">
-                <i class="fas fa-times fa-xs"></i>
-            </button>
+            <div class="file-info">
+                <span class="file-name"></span>
+                <span class="badge bg-light text-dark file-size"></span>
+            </div>
         </div>
-    </template>
+        <button type="button" class="btn btn-sm remove-preview-btn" aria-label="{% trans 'حذف فایل' %}">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</template>
+
+{#    <template id="file-preview-template">#}
+{#        <div class="file-preview-item d-flex justify-content-between align-items-center mb-1 small" role="listitem">#}
+{#            <div class="d-flex align-items-center flex-grow-1 me-3 text-truncate">#}
+                {# کانتینر برای آیکن یا تصویر #}
+{#                <div class="me-2 flex-shrink-0"#}
+{#                     style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">#}
+{#                    <i class="fas fa-file-alt text-secondary fa-lg file-icon"></i> {# آیکن پیش‌فرض #}
+{#                    <img src="" alt="" class="file-image-preview" style="display: none;">#}
+                    {# حذف استایل inline، CSS مدیریت می‌کند #}
+{#                </div>#}
+                {# نام و اندازه فایل #}
+{#                <div class="flex-grow-1 text-truncate">#}
+{#                    <span class="file-name text-dark d-block"></span>#}
+{#                    <span class="badge bg-light text-dark rounded-pill file-size"></span>#}
+{#            </div>#}
+{#            </div>#}
+{#            <button type="button" class="btn btn-sm btn-outline-danger p-0 remove-preview-btn"#}
+{#                    aria-label="{% trans 'حذف فایل' %}">#}
+{#                <i class="fas fa-times fa-xs"></i>#}
+{#            </button>#}
+{#        </div>#}
+{#    </template>#}
+
 {% endblock %}
 
 <!-- SweetAlert2 برای پیام‌های زیبا -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<link href="{% static 'admin/css/sweetalert2.min.css' %}" rel="stylesheet">
 <!-- اسکریپت SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+<link href="{% static 'admin/js/sweetalert2.all.min.js' %}" rel="stylesheet">
 {% block extra_js %}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -1255,39 +1457,49 @@
                 resetBudgetDisplay();
             }
             // File preview setup
+// Setup file previews (اطمینان از وجود عناصر قبل از اتصال listener)
+// در DOMContentLoaded، بعد از تعریف متغیرها
 if (factorFileInput && factorPreviewContainer && factorPreviewTitle) {
-    factorFileInput.addEventListener('change', (e) => {
+    factorFileInput.addEventListener('change', function(e) {
         displayFilePreviews(e.target, factorPreviewContainer, factorPreviewTitle);
         if (e.target.files.length > 0) {
             Swal.fire({
                 toast: true,
                 position: 'top-end',
                 icon: 'success',
-                title: `{% trans "فایل(های) با موفقیت انتخاب شدند" %}`,
+                title: '{% trans "فایل(های) با موفقیت انتخاب شدند" %}',
                 showConfirmButton: false,
-                timer: 2000,
-                timerProgressBar: true,
+                timer: 2000
             });
         }
     });
+
+    // نمایش پیش‌نمایش اولیه اگر فایلی از قبل انتخاب شده
+    if (factorFileInput.files.length > 0) {
+        displayFilePreviews(factorFileInput, factorPreviewContainer, factorPreviewTitle);
+    }
 }
+
 if (tankhahFileInput && tankhahPreviewContainer && tankhahPreviewTitle) {
-    tankhahFileInput.addEventListener('change', (e) => {
+    tankhahFileInput.addEventListener('change', function(e) {
         displayFilePreviews(e.target, tankhahPreviewContainer, tankhahPreviewTitle);
         if (e.target.files.length > 0) {
             Swal.fire({
                 toast: true,
                 position: 'top-end',
                 icon: 'success',
-                title: `{% trans "فایل(های) با موفقیت انتخاب شدند" %}`,
+                title: '{% trans "فایل(های) با موفقیت انتخاب شدند" %}',
                 showConfirmButton: false,
-                timer: 2000,
-                timerProgressBar: true,
+                timer: 2000
             });
         }
     });
-}
 
+    // نمایش پیش‌نمایش اولیه اگر فایلی از قبل انتخاب شده
+    if (tankhahFileInput.files.length > 0) {
+        displayFilePreviews(tankhahFileInput, tankhahPreviewContainer, tankhahPreviewTitle);
+    }
+}
 
 
             // Run initial calculations and numbering *after* potential initial budget fetch
@@ -1348,118 +1560,78 @@ if (tankhahFileInput && tankhahPreviewContainer && tankhahPreviewTitle) {
     </script>
     <script>
         function createFileIconClass(fileName) {
-            if (!fileName) return 'fa-file';
-            const extension = fileName.split('.').pop().toLowerCase();
+            if (!fileName) return 'fa-file'; // آیکن پیش‌فرض
             const iconMap = {
-                'pdf': 'fa-file-pdf',
-                'jpg': 'fa-file-image',
-                'jpeg': 'fa-file-image',
-                'png': 'fa-file-image',
-                'gif': 'fa-file-image',
-                'doc': 'fa-file-word',
-                'docx': 'fa-file-word',
-                'xls': 'fa-file-excel',
-                'xlsx': 'fa-file-excel',
-                'zip': 'fa-file-archive',
-                'txt': 'fa-file-alt'
+                'pdf': 'fa-file-pdf text-danger',
+                'jpg': 'fa-file-image text-info',
+                'jpeg': 'fa-file-image text-info',
+                'png': 'fa-file-image text-info',
+                'gif': 'fa-file-image text-info',
+                'bmp': 'fa-file-image text-info',
+                'svg': 'fa-file-image text-info', // Add SVG
+                'doc': 'fa-file-word text-primary',
+                'docx': 'fa-file-word text-primary',
+                'xls': 'fa-file-excel text-success',
+                'xlsx': 'fa-file-excel text-success',
+                'ppt': 'fa-file-powerpoint text-warning',
+                'pptx': 'fa-file-powerpoint text-warning',
+                'zip': 'fa-file-archive text-secondary',
+                'rar': 'fa-file-archive text-secondary',
+                'txt': 'fa-file-alt text-secondary',
+                'csv': 'fa-file-csv text-success', // Add CSV
             };
-            return iconMap[extension] || 'fa-file';
+            const extension = fileName.split('.').pop()?.toLowerCase() || ''; // Handle no extension
+            {#return iconMap[extension] || 'fa-file text-muted'; // Fallback icon#}
+            return extensionMap[extension] || 'fa-file text-secondary';
         }
 
+
         function formatFileSize(bytes) {
-            if (bytes === 0) return '0 B';
+            if (bytes === 0 || !isFinite(bytes)) return '0 B';
             const k = 1024;
             const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            // Use max 1 decimal place for KB and above
+            const decimals = i === 0 ? 0 : 1;
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + sizes[i];
         }
 
+
+        // --- تابع اصلی نمایش پیش‌نمایش فایل‌ها (تکمیل شده) ---
         function displayFilePreviews(inputElement, previewContainer, titleElement) {
-            if (!inputElement || !previewContainer || !titleElement) {
-                console.error('Missing required elements for file preview');
-                return;
-            }
 
-            // Clear previous previews
-            previewContainer.innerHTML = '';
-            titleElement.classList.add('d-none');
 
-            const files = inputElement.files;
-            if (files.length === 0) return;
+        // بعد از تابع displayFilePreviews
+        function setupExistingFileDeletions() {
+            document.querySelectorAll('.delete-existing-file').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const fileId = this.dataset.fileId;
+                    const listItem = this.closest('li');
+                    const checkbox = document.querySelector(`input[name="delete_factor_doc_${fileId}"]`);
 
-            // Show preview title
-            titleElement.classList.remove('d-none');
+                    // Animate removal
+                    listItem.style.transition = 'all 0.3s ease';
+                    listItem.style.opacity = '0';
+                    listItem.style.transform = 'translateX(100%)';
 
-            Array.from(files).forEach((file, index) => {
-                const previewFragment = document.importNode(filePreviewTemplate, true);
-                const previewItem = previewFragment.querySelector('.file-preview-item');
-                const fileNameSpan = previewItem.querySelector('.file-name');
-                const fileSizeSpan = previewItem.querySelector('.file-size');
-                const fileIcon = previewItem.querySelector('.file-icon');
-                const imagePreview = previewItem.querySelector('.file-image-preview');
-                const removeButton = previewItem.querySelector('.remove-preview-btn');
+                    setTimeout(() => {
+                        listItem.remove();
+                        checkbox.checked = true;
 
-                // Set file details
-                fileNameSpan.textContent = file.name;
-                fileSizeSpan.textContent = formatFileSize(file.size);
-                fileIcon.className = `fas ${createFileIconClass(file.name)} text-secondary me-2 file-icon`;
-
-                // Show image preview for image files
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        imagePreview.src = e.target.result;
-                        imagePreview.alt = `پیش‌نمایش ${file.name}`;
-                        imagePreview.style.display = 'block';
-                        imagePreview.classList.add('image-loaded'); // برای انیمیشن
-                        fileIcon.style.display = 'none';
-                        // افزودن افکت انیمیشن
-                        imagePreview.style.opacity = '0';
-                        setTimeout(() => {
-                            imagePreview.style.transition = 'opacity 0.3s ease';
-                            imagePreview.style.opacity = '1';
-                        }, 10);
-                    };
-                    reader.onerror = () => {
-                        console.error(`Error reading file: ${file.name}`);
-                        imagePreview.style.display = 'none';
-                        fileIcon.style.display = 'inline-block';
-                        // نمایش پیام خطا به کاربر
                         Swal.fire({
                             toast: true,
                             position: 'top-end',
-                            icon: 'error',
-                            title: `{% trans "خطا در بارگذاری تصویر: " %} ${file.name}`,
+                            icon: 'success',
+                            title: '{% trans "فایل برای حذف علامت گذاری شد" %}',
                             showConfirmButton: false,
-                            timer: 3000,
-                            timerProgressBar: true,
+                            timer: 2000
                         });
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    // برای فایل‌های غیرتصویری
-                    imagePreview.style.display = 'none';
-                    fileIcon.style.display = 'inline-block';
-                }
-
-                // Add remove button functionality
-                removeButton.addEventListener('click', () => {
-                    const newFileList = new DataTransfer();
-                    Array.from(files).forEach((f, i) => {
-                        if (i !== index) newFileList.items.add(f);
-                    });
-                    inputElement.files = newFileList.files;
-                    displayFilePreviews(inputElement, previewContainer, titleElement);
+                    }, 300);
                 });
-
-                // بهبود دسترسی‌پذیری
-                removeButton.setAttribute('aria-label', `{% trans "حذف فایل " %} ${file.name}`);
-                previewItem.setAttribute('role', 'listitem');
-
-                previewContainer.appendChild(previewItem);
             });
         }
 
-
+        // در DOMContentLoaded بعد از رویدادهای دیگر
+        setupExistingFileDeletions();
     </script>
 {% endblock %}
