@@ -52,7 +52,6 @@ urlpatterns = [
     path('posts/create/', PostCreateView.as_view(), name='post_create'),
     path('posts/<int:pk>/update/', PostUpdateView.as_view(), name='post_update'),
     path('posts/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),
-
     # اتصال کاربر به پست
     path('userposts/', UserPostListView.as_view(), name='userpost_list'),
     path('userposts/create/', UserPostCreateView.as_view(), name='userpost_create'),

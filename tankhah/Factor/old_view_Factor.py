@@ -14,7 +14,6 @@ from django.utils import timezone
 from budgets.models import ProjectBudgetAllocation, BudgetTransaction
 from core.models import WorkflowStage
 
-
 from django.urls import reverse_lazy, reverse
 from django.views.generic import CreateView, View
 from core.PermissionBase import PermissionBaseView

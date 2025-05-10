@@ -852,6 +852,8 @@ class PostDeleteView(PermissionBaseView, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('پست سازمانی با موفقیت حذف شد.'))
         return super().delete(request, *args, **kwargs)
+
+
 # --- UserPost Views ---
 class UserPostListView(PermissionBaseView, ListView):
     model = UserPost

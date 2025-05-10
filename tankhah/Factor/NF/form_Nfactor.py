@@ -1,20 +1,18 @@
 import logging
 from decimal import Decimal
+
+import jdatetime  # Assuming jdatetime is installed
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django.utils import timezone
-import jdatetime # Assuming jdatetime is installed
 
+from Tanbakhsystem.utils import format_jalali_date, to_english_digits, parse_jalali_date
 # Assuming models are in the same app or imported correctly
 # from tankhah.models import Factor, FactorItem, FactorDocument, Tankhah, ItemCategory, TankhahDocument
 # Assuming utility functions/models exist
-from core.models import WorkflowStage, Project, SubProject # Example paths
-from accounts.models import CustomUser # Example path
-
+from core.models import WorkflowStage, Project, SubProject  # Example paths
 # Assuming budget functions exist
-from budgets.budget_calculations import get_tankhah_remaining_budget
 from tankhah.models import ItemCategory, Tankhah, Factor, FactorItem
 from tankhah.utils import restrict_to_user_organization
 
@@ -63,29 +61,44 @@ class FactorForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
-        # tankhah instance can be passed for initial selection
         self.tankhah_instance = kwargs.pop('tankhah', None)
         super().__init__(*args, **kwargs)
 
-        # --- Filter Tankhah Choices ---
+        # غیرفعال کردن فیلد تنخواه در حالت ویرایش
+        if self.instance and self.instance.pk:
+            if 'tankhah' in self.fields:
+                self.fields['tankhah'].disabled = True
+                self.fields['tankhah'].widget.attrs['readonly'] = True
+                self.fields['tankhah'].help_text = 'تنخواه قابل ویرایش نیست.'
+
+            # تنظیم تاریخ جلالی برای حالت ویرایش
+            if self.instance.date and not self.initial.get('date'):
+                try:
+                    self.initial['date'] = format_jalali_date(self.instance.date)
+                    logger.debug(f"Set initial date: date={self.initial['date']}")
+                except Exception as e:
+                    logger.error(f"Error setting initial date for Factor {self.instance.pk}: {e}")
+
+        # فیلتر کردن تنخواه‌ها
         try:
             initial_stage = WorkflowStage.objects.order_by('order').first()
             initial_stage_order = initial_stage.order if initial_stage else 0
         except Exception as e:
             logger.error(f"Error getting initial workflow stage: {e}")
-            initial_stage_order = 0 # Default or handle appropriately
+            initial_stage_order = 0
 
-        tankhah_queryset = Tankhah.objects.none() # Default to empty
+        tankhah_queryset = Tankhah.objects.none()
         if self.user:
-            user_orgs = restrict_to_user_organization(self.user) # Returns list of org IDs or None
+
+            user_orgs = restrict_to_user_organization(self.user)
             base_filter = models.Q(
                 status__in=['DRAFT', 'PENDING'],
                 current_stage__order=initial_stage_order
             )
-            if user_orgs is None: # Superuser or no org restriction?
+            if user_orgs is None:
                 tankhah_queryset = Tankhah.objects.filter(base_filter)
             else:
-                # Filter by user's orgs, projects in those orgs, or subprojects in those projects
+                from core.models import Project, SubProject
                 projects = Project.objects.filter(organizations__id__in=user_orgs)
                 subprojects = SubProject.objects.filter(project__in=projects)
                 org_filter = models.Q(organization__id__in=user_orgs)
@@ -95,44 +108,41 @@ class FactorForm(forms.ModelForm):
                     base_filter & (org_filter | project_filter | subproject_filter)
                 ).distinct()
 
-            # Optimize query
             tankhah_queryset = tankhah_queryset.select_related('organization', 'project', 'subproject', 'current_stage')
             self.fields['tankhah'].queryset = tankhah_queryset
             logger.info(f"User {self.user.username}: Tankhah queryset count = {tankhah_queryset.count()}")
 
-        # Set initial value if passed
+        # تنظیم مقدار اولیه تنخواه
         if self.tankhah_instance:
-            # Ensure the instance is part of the valid queryset
             if tankhah_queryset.filter(pk=self.tankhah_instance.pk).exists():
-                 self.initial['tankhah'] = self.tankhah_instance
+                self.initial['tankhah'] = self.tankhah_instance
             else:
-                 logger.warning(f"Passed tankhah instance (pk={self.tankhah_instance.pk}) is not in the valid queryset for user {self.user.username}")
+                logger.warning(
+                    f"Passed tankhah instance (pk={self.tankhah_instance.pk}) is not in the valid queryset for user {self.user.username}")
 
-        # Set initial date to today (Jalali) if not already set (e.g., on error)
+        # تنظیم تاریخ پیش‌فرض به امروز (جلالی) اگر مقدار اولیه وجود نداشته باشد
         if not self.initial.get('date'):
             try:
-                 today_jalali = jdatetime.date.today().strftime('%Y/%m/%d')
-                 self.initial['date'] = today_jalali
+                today_jalali = jdatetime.date.today().strftime('%Y/%m/%d')
+                self.initial['date'] = today_jalali
+                logger.debug(f"Set default date to today: {today_jalali}")
             except Exception as e:
-                 logger.error(f"Error setting initial Jalali date: {e}")
+                logger.error(f"Error setting default Jalali date: {e}")
 
     def clean_date(self):
-        """Convert Jalali date string to Gregorian date object."""
+        """تبدیل تاریخ جلالی به میلادی."""
         date_str = self.cleaned_data.get('date')
         if not date_str:
-            # This should be caught by required=True, but double-check
-            raise forms.ValidationError(_('وارد کردن تاریخ الزامی است.'))
+            logger.error("Date is empty")
+            raise forms.ValidationError('وارد کردن تاریخ الزامی است.')
         try:
-            # Remove potential Farsi digits
-            date_str_latin = date_str.translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹', '0123456789'))
-            j_date = jdatetime.datetime.strptime(date_str_latin, '%Y/%m/%d').date()
-            gregorian_date = j_date.togregorian()
-            logger.debug(f"Date cleaned: Jalali='{date_str}', Gregorian='{gregorian_date}'")
-            # Return just the date part, as the model field is DateField
-            return gregorian_date
-        except (ValueError, TypeError) as e:
-            logger.error(f"Invalid date format submitted: '{date_str}'. Error: {e}")
-            raise forms.ValidationError(_('فرمت تاریخ نامعتبر است. لطفاً از فرمت YYYY/MM/DD استفاده کنید (مثال: 1403/01/17).'))
+            date_str = to_english_digits(date_str)
+            parsed_date = parse_jalali_date(date_str, field_name='تاریخ')
+            logger.debug(f"Parsed date: Jalali='{date_str}', Gregorian='{parsed_date}'")
+            return parsed_date
+        except Exception as e:
+            logger.error(f"Error parsing date: {date_str}, Error: {e}")
+            raise forms.ValidationError('فرمت تاریخ نامعتبر است. از فرمت YYYY/MM/DD استفاده کنید (مثال: 1403/01/17).')
 
     def clean_amount(self):
         """Validate that the amount is positive."""
@@ -156,7 +166,141 @@ class FactorForm(forms.ModelForm):
         # if category and category.name == 'Other' and not description:
         #    self.add_error('description', _('Description required for "Other" category.'))
         return cleaned_data
+# ====
+class Update_FactorForm(forms.ModelForm):
+    date = forms.CharField(
+        label='تاریخ فاکتور',
+        required=True,
+        widget=forms.TextInput(attrs={
+            'data-jdp': '',  # برای فعال‌سازی Jalali date picker
+            'class': 'form-control form-control-sm',
+            'placeholder': 'مثال: 1403/01/17'
+        })
+    )
+    category = forms.ModelChoiceField(
+        queryset=ItemCategory.objects.all(),
+        label="دسته‌بندی هزینه",
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select form-select-sm'}),
+        empty_label=None
+    )
 
+    class Meta:
+        model = Factor
+        fields = ['tankhah', 'category', 'date', 'amount', 'description']
+        widgets = {
+            'tankhah': forms.Select(attrs={'class': 'form-select form-select-sm'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control form-control-sm ltr-input'}),
+            'description': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': 2}),
+        }
+        labels = {
+            'tankhah': 'تنخواه مرتبط',
+            'date': 'تاریخ فاکتور',
+            'amount': 'مبلغ کل فاکتور (ریال)',
+            'description': 'شرح کلی فاکتور',
+            'category': 'دسته‌بندی اصلی هزینه',
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        self.tankhah_instance = kwargs.pop('tankhah', None)
+        super().__init__(*args, **kwargs)
+
+        # غیرفعال کردن فیلد تنخواه در حالت ویرایش
+        if self.instance and self.instance.pk:
+            if 'tankhah' in self.fields:
+                self.fields['tankhah'].disabled = True
+                self.fields['tankhah'].widget.attrs['readonly'] = True
+                self.fields['tankhah'].help_text = 'تنخواه قابل ویرایش نیست.'
+
+        # تنظیم تاریخ جلالی برای حالت ویرایش
+        # if self.instance.date and not self.initial.get('date'):
+            try:
+                self.initial['date'] = format_jalali_date(self.instance.date)
+                logger.debug(f"Set initial date for Factor {self.instance.pk}: {self.initial['date']}")
+            except Exception as e:
+                logger.error(f"Error setting initial date for Factor {self.instance.pk}: {e}")
+                self.initial['date'] = ''
+
+        # فیلتر کردن تنخواه‌ها
+        try:
+            initial_stage = WorkflowStage.objects.order_by('order').first()
+            initial_stage_order = initial_stage.order if initial_stage else 0
+        except Exception as e:
+            logger.error(f"Error getting initial workflow stage: {e}")
+            initial_stage_order = 0
+
+        tankhah_queryset = Tankhah.objects.none()
+        if self.user:
+            user_orgs = restrict_to_user_organization(self.user)
+            base_filter = models.Q(
+                status__in=['DRAFT', 'PENDING'],
+                current_stage__order=initial_stage_order
+            )
+            if user_orgs is None:
+                tankhah_queryset = Tankhah.objects.filter(base_filter)
+            else:
+                projects = Project.objects.filter(organizations__id__in=user_orgs)
+                subprojects = SubProject.objects.filter(project__in=projects)
+                org_filter = models.Q(organization__id__in=user_orgs)
+                project_filter = models.Q(project__in=projects)
+                subproject_filter = models.Q(subproject__in=subprojects)
+                tankhah_queryset = Tankhah.objects.filter(
+                    base_filter & (org_filter | project_filter | subproject_filter)
+                ).distinct()
+
+            tankhah_queryset = tankhah_queryset.select_related('organization', 'project', 'subproject', 'current_stage')
+            self.fields['tankhah'].queryset = tankhah_queryset
+            logger.info(f"User {self.user.username}: Tankhah queryset count = {tankhah_queryset.count()}")
+
+        # تنظیم مقدار اولیه تنخواه
+        if self.tankhah_instance:
+            if tankhah_queryset.filter(pk=self.tankhah_instance.pk).exists():
+                self.initial['tankhah'] = self.tankhah_instance
+            else:
+                logger.warning(
+                    f"Passed tankhah instance (pk={self.tankhah_instance.pk}) is not in the valid queryset for user {self.user.username}")
+
+        # تنظیم تاریخ پیش‌فرض به امروز (جلالی) اگر مقدار اولیه وجود نداشته باشد
+        if not self.initial.get('date'):
+            try:
+                today_jalali = jdatetime.date.today().strftime('%Y/%m/%d')
+                self.initial['date'] = today_jalali
+                logger.debug(f"Set default date to today: {today_jalali}")
+            except Exception as e:
+                logger.error(f"Error setting default Jalali date: {e}")
+
+    def clean_date(self):
+        """تبدیل تاریخ جلالی به میلادی."""
+        date_str = self.cleaned_data.get('date')
+        if not date_str:
+            logger.error("Date is empty")
+            raise forms.ValidationError('وارد کردن تاریخ الزامی است.')
+        try:
+            date_str = to_english_digits(date_str)
+            parsed_date = parse_jalali_date(date_str, field_name='تاریخ')
+            logger.debug(f"Parsed date: Jalali='{date_str}', Gregorian='{parsed_date}'")
+            return parsed_date
+        except Exception as e:
+            logger.error(f"Error parsing date: {date_str}, Error: {e}")
+            raise forms.ValidationError('فرمت تاریخ نامعتبر است. از فرمت YYYY/MM/DD استفاده کنید (مثال: 1403/01/17).')
+
+    def clean_amount(self):
+        """اعتبارسنجی مبلغ."""
+        amount = self.cleaned_data.get('amount')
+        if amount is None:
+            raise forms.ValidationError('وارد کردن مبلغ کل فاکتور الزامی است.')
+        if not isinstance(amount, Decimal):
+            raise forms.ValidationError('مقدار نامعتبر برای مبلغ.')
+        # if amount <= Decimal('0'):
+        #     raise forms.ValidationError('مبلغ کل فاکتور باید بزرگتر از صفر باشد.')
+        return amount
+
+    def clean(self):
+        """اعتبارسنجی کلی فرم."""
+        cleaned_data = super().clean()
+        return cleaned_data
+# ====
 # --- Form for Factor Items (used in Formset) ---
 class FactorItemForm(forms.ModelForm):
     class Meta:

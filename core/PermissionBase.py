@@ -145,6 +145,19 @@ class PermissionBaseView(LoginRequiredMixin, View):
     def _has_organization_access(self, request, **kwargs):
         """بررسی دسترسی کاربر به سازمان"""
         try:
+            # cache_key = f"user_orgs_{request.user.id}"
+            # from django.core.cache import cache
+            # user_orgs = cache.get(cache_key)
+            # if not user_orgs:
+            #     user_orgs = set(up.post.organization for up in request.user.userpost_set.filter(is_active=True))
+            #     for up in request.user.userpost_set.filter(is_active=True):
+            #         org = up.post.organization
+            #         user_orgs.add(org)
+            #         while org.parent_organization:
+            #             org = org.parent_organization
+            #             user_orgs.add(org)
+            #     cache.set(cache_key, user_orgs, 300)  # 5 دقیقه
+
             # استخراج سازمان‌های کاربر از UserPost
             user_orgs = set()
             if request.user.userpost_set.exists():
@@ -565,9 +578,6 @@ class New_Version_PermissionBaseView(View):
 #         kwargs = super().get_form_kwargs()
 #         kwargs['user'] = self.request.user
 #         return kwargs
-
-
-
 
 """
 کلاس پایه برای ویوها با چک مجوز و سازمان.

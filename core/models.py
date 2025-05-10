@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from django.db import models
 from django.db.models import Sum
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -219,6 +220,9 @@ class Post(models.Model):
             self.max_change_level = self.level
         super().save(*args, **kwargs)
 
+    def get_absolute_url(self):
+        return reverse('post_detail', kwargs={'pk': self.pk})
+
     class Meta:
         verbose_name = _("پست سازمانی")
         verbose_name_plural = _("پست‌های سازمانی")
@@ -229,6 +233,7 @@ class Post(models.Model):
             ('Post_view','نمایش  پست سازمانی برای تعریف سلسله مراتب'),
             ('Post_delete','حــذف  پست سازمانی برای تعریف سلسله مراتب'),
             ]
+
 class UserPost(models.Model):
     """مدل اتصال کاربر به پست"""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name=_("کاربر"))
@@ -367,9 +372,11 @@ class PostAction(models.Model):
         ('APPROVE', _('تأیید')),
         ('REJECT', _('رد')),
         ('FINALIZE', _('اتمام')),
+        ('STAGE_CHANGE', _('تغییروضعیت')),
         ('CUSTOM', _('سفارشی')),
     )
     ENTITY_TYPES = (
+        ('FACTOR',  _('فاکتور')),
         ('TANKHAH', _('تنخواه')),
         ('BUDGET_ALLOCATION', _('تخصیص بودجه')),
         ('BUDGET_RETURN', _('تخصیص بودجه')),

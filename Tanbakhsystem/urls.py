@@ -7,11 +7,10 @@ from django.views.generic.base import RedirectView
 from django.views.i18n import JavaScriptCatalog
 
 from Tanbakhsystem import views
-from Tanbakhsystem.views import TanbakhWorkflowView, DashboardView, GuideView, pdate, test_unread_count, \
-    notifications_inbox, delete_notification, unread_notifications, get_notifications
+from Tanbakhsystem.view.views_notifications import   notifications_inbox, delete_notification, unread_notifications, get_notifications
+from Tanbakhsystem.views import TanbakhWorkflowView, DashboardView, GuideView, pdate
 from accounts.views import SetTimeLockView, TimeLockListView, LockStatusView
 from accounts.RCMS_Lock.views import lock_status
-
 
 urlpatterns = [
                   path('admin/', admin.site.urls),

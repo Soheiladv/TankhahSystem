@@ -56,7 +56,6 @@ class BudgetPeriodCreateView(PermissionBaseView,CreateView):
         messages.error(self.request, _('لطفاً خطاهای فرم را بررسی کنید.'))
         return self.render_to_response(self.get_context_data(form=form))
 
-
 class BudgetPeriodUpdateView(PermissionBaseView,UpdateView):
     model = BudgetPeriod
     form_class = BudgetPeriodForm

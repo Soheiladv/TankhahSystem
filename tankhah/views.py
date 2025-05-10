@@ -13,8 +13,7 @@ from accounts.models import CustomUser
 from core.models import UserPost, WorkflowStage, SubProject, Project
 from .Factor.forms_Factor import FactorForm
 from .fun_can_edit_approval import can_edit_approval
-from tankhah.models import ApprovalLog, Tankhah, StageApprover, Factor, FactorItem, FactorDocument, TankhahDocument, \
-    Notification
+from tankhah.models import ApprovalLog, Tankhah, StageApprover, Factor, FactorItem, FactorDocument, TankhahDocument
 from .utils import restrict_to_user_organization
 from persiantools.jdatetime import JalaliDate
 from django.db.models import Q
@@ -107,7 +106,7 @@ def mark_approval_seen(request, tankhah):
         logger.info(f"Approval logs for Tankhah {tankhah.id} marked as seen by {request.user.username}")
 #------------------------------------------------
 
-class FactorUpdateView(PermissionBaseView, UpdateView):
+class oldd__FactorUpdateView(PermissionBaseView, UpdateView):
     model = Factor
     form_class = FactorForm
     template_name = 'tankhah/factor_form.html'

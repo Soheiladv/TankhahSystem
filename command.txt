@@ -51,7 +51,22 @@ verb='یک پیام تست ارسال کرد',
 description='این یک اعلان آزمایشی است.'
 )
 
+#========== به کاربر
+# فرض می‌کنیم یک کاربر و یک پست داریم
+sender = CustomUser.objects.get(username='your_username')
+post = Post.objects.get(id=1)  # فرض می‌کنیم پستی با id=1 وجود دارد
 
+# ارسال اعلان
+send_notification_to_post(
+    sender=sender,
+    post=post,
+    verb='یک پیام تست ارسال کرد',
+    description='این یک اعلان آزمایشی است.'
+)
+
+3#------------------------------
+user = CustomUser.objects.get(username='admin')  # کاربر فعلی
+admin = CustomUser.objects.get(username='jj')  # گیرنده اعلان
 
 
     # amount = forms.DecimalField(

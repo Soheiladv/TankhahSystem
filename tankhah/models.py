@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 
 from accounts.models import CustomUser
+from accounts.templatetags import access_filter
 from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget, \
     get_factor_remaining_budget, get_tankhah_remaining_budget
 import logging
@@ -285,7 +286,6 @@ class Tankhah(models.Model):
             if not allocation:
                 raise ValidationError(_("تخصیص بودجه معتبر برای این پروژه/زیرپروژه یافت نشد."))
 
-
             # ثبت تراکنش در صورت ایجاد یا تغییر وضعیت
             if self.status in ['APPROVED', 'REJECTED', 'PAID'] and not self.is_locked:
                 if self.budget_allocation:  # چک کردن وجود budget_allocation
@@ -320,6 +320,17 @@ class Tankhah(models.Model):
                         _(f"مبلغ تنخواه ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده تخصیص ({remaining:,.0f} ریال) است.")
                     )
 
+            # بررسی بازگشت به مرحله اولیه پس از رد شدن
+            initial_stage = WorkflowStage.objects.order_by('order').first()
+            if self.status == 'REJECTED' and self.current_stage == initial_stage:
+                logger.info(f"تنخواه {self.number} به مرحله اولیه ({initial_stage.name}) بازگشته است.")
+                # اقدامات اضافی: مثلاً باز کردن قفل فاکتورها برای ویرایش
+                from tankhah.models import Factor
+                factors = Factor.objects.filter(tankhah=self, is_finalized=True)
+                updated = factors.update(is_finalized=False, locked=False)
+                if updated:
+                    logger.info(f"{updated} فاکتور برای تنخواه {self.number} برای ویرایش باز شدند.")
+
             # به‌روزرسانی بودجه در صورت تغییر وضعیت
             if self.status == 'PAID':
                 self.is_locked = True
@@ -329,21 +340,49 @@ class Tankhah(models.Model):
                         f"تنخواه {self.number} پرداخت شد."
                     )
             elif self.status == 'REJECTED' and self.is_locked:
-                # بازگشت بودجه در صورت رد شدن
                 if allocation and self.budget_allocation:
-                    allocation.remaining_amount += self.amount
-                    allocation.save()
-                    from budgets.models import BudgetTransaction
-                    BudgetTransaction.objects.create(
-                        allocation=self.budget_allocation,
-                        transaction_type='RETURN',
-                        amount=self.amount,
-                        related_tankhah=self,
-                        created_by=self.created_by,
-                        description=f"بازگشت بودجه به دلیل رد تنخواه {self.number}",
-                        transaction_id=f"TX-TNK-RET-{self.number}"
-                    )
+                    # انتقال بودجه به تخصیص دیگر (مثلاً تخصیص HQ)
+                    target_allocation = BudgetAllocation.objects.filter(organization__is_core=True).first()
+                    if target_allocation:
+                        create_budget_transaction(
+                            allocation=self.budget_allocation,
+                            transaction_type='TRANSFER',
+                            amount=self.amount,
+                            related_obj=self,
+                            created_by=self.created_by,
+                            description=f"انتقال بودجه به دلیل رد تنخواه {self.number}",
+                            transaction_id=f"TX-TNK-XFER-{self.number}",
+                            target_allocation=target_allocation
+                        )
+                    else:
+                        # بازگشت بودجه به تخصیص فعلی
+                        allocation.remaining_amount += self.amount
+                        allocation.save()
+                        BudgetTransaction.objects.create(
+                            allocation=self.budget_allocation,
+                            transaction_type='RETURN',
+                            amount=self.amount,
+                            related_tankhah=self,
+                            created_by=self.created_by,
+                            description=f"بازگشت بودجه به دلیل رد تنخواه {self.number}",
+                            transaction_id=f"TX-TNK-RET-{self.number}"
+                        )
                 self.is_locked = False
+                # بازگشت بودجه در صورت رد شدن
+                # if allocation and self.budget_allocation:
+                #     allocation.remaining_amount += self.amount
+                #     allocation.save()
+                #     from budgets.models import BudgetTransaction
+                #     BudgetTransaction.objects.create(
+                #         allocation=self.budget_allocation,
+                #         transaction_type='RETURN',
+                #         amount=self.amount,
+                #         related_tankhah=self,
+                #         created_by=self.created_by,
+                #         description=f"بازگشت بودجه به دلیل رد تنخواه {self.number}",
+                #         transaction_id=f"TX-TNK-RET-{self.number}"
+                #     )
+                # self.is_locked = False
 
         super().save(*args, **kwargs)
 
@@ -643,11 +682,21 @@ class Factor(models.Model):
                         transaction_id=f"TX-FAC-{self.number}"
                     )
                     self.is_locked = True
-                    Notification.objects.create(
-                        user=self.created_by,
-                        message=f"فاکتور {self.number} پرداخت شد.",
-                        tankhah=self.tankhah
-                    )
+
+                    # post = Post.objects.get(id=1)
+                    # from Tanbakhsystem.view.views_notifications import send_notification
+                    # send_notification(
+                    #     sender=sender,
+                    #     posts=post,
+                    #     verb='یک پیام تست برای پست ارسال کرد',
+                    #     description='این یک اعلان آزمایشی است.',
+                    #     target=post
+                    # )
+                    # Notification.objects.create(
+                    #     user=self.created_by,
+                    #     message=f"فاکتور {self.number} پرداخت شد.",
+                    #     tankhah=self.tankhah
+                    # )
                 elif self.status == 'REJECTED' and original.status in ['APPROVED', 'PAID'] and self.is_locked:
                     create_budget_transaction(
                         allocation=self.tankhah.budget_allocation,
@@ -658,46 +707,78 @@ class Factor(models.Model):
                         description=f"بازگشت بودجه به دلیل رد فاکتور {self.number}",
                         transaction_id=f"TX-FAC-RET-{self.number}"
                     )
-                    self.is_locked = False
-                    Notification.objects.create(
-                        user=self.created_by,
-                        message=f"فاکتور {self.number} رد شد.",
-                        tankhah=self.tankhah
-                    )
-
             super().save(*args, **kwargs)
+            # ثبت ApprovalLog فقط در صورت تغییر وضعیت یا فیلدها
+            if original:
+                changed_fields = [field.name for field in self._meta.fields if
+                                  getattr(original, field.name) != getattr(self, field.name)]
+                if changed_fields or self.status != original.status:
+                    from django.contrib.contenttypes.models import ContentType
+                    user_post = self.created_by.userpost_set.filter(is_active=True).first()
+                    if user_post:
+                        ApprovalLog.objects.create(
+                            factor=self,
+                            action='STAGE_CHANGE' if changed_fields else (
+                                'APPROVE' if self.status in ['APPROVED', 'PAID'] else 'REJECT'),
+                            stage=self.tankhah.current_stage,
+                            user=self.created_by,
+                            post=user_post.post,
+                            content_type=ContentType.objects.get_for_model(self),
+                            object_id=self.id,
+                            comment=f"تغییر {'فیلدها' if changed_fields else 'وضعیت'} فاکتور به {self.get_status_display()}",
+                            changed_field=', '.join(changed_fields) if changed_fields else None
+                        )
+
+                    # self.is_locked = False
+                    # Notification.objects.create(
+                    #     user=self.created_by,
+                    #     message=f"فاکتور {self.number} رد شد.",
+                    #     tankhah=self.tankhah
+                    # )
+            # if self.pk and self.status == 'PENDING':
+            #     # from django.contrib.contenttypes.models import ContentType
+            #     user_post = self.created_by.userpost_set.filter(is_active=True).first()
+            #     if user_post:
+            #         ApprovalLog.objects.create(
+            #             factor=self,
+            #             action='STAGE_CHANGE',
+            #             stage=self.tankhah.current_stage,
+            #             user=self.created_by,
+            #             post=user_post.post,
+            #             content_type=ContentType.objects.get_for_model(self),
+            #             object_id=self.id
+            #         )
+
             # ثبت لاگ تأیید/رد
-            if original and self.status != original.status:
-                ApprovalLog.objects.create(
-                    factor=self,
-                    action='APPROVE' if self.status in ['APPROVED', 'PAID'] else 'REJECT',
-                    stage=self.locked_by_stage or self.tankhah.current_stage,
-                    user=self.created_by,
-                    comment=f"تغییر وضعیت فاکتور به {self.get_status_display()}",
-                    content_type=ContentType.objects.get_for_model(self),
-                    object_id=self.pk
-                )
+            # if original and self.status != original.status:
+            #     ApprovalLog.objects.create(
+            #         factor=self,
+            #         action='APPROVE' if self.status in ['APPROVED', 'PAID'] else 'REJECT',
+            #         stage=self.locked_by_stage or self.tankhah.current_stage,
+            #         user=self.created_by,
+            #         comment=f"تغییر وضعیت فاکتور به {self.get_status_display()}",
+            #         content_type=ContentType.objects.get_for_model(self),
+            #         object_id=self.pk
+            #     )
 
             # ثبت تاریخچه تغییرات
-            if original:
-                changed_fields = []
-                for field in self._meta.fields:
-                    field_name = field.name
-                    if getattr(original, field_name) != getattr(self, field_name):
-                        changed_fields.append(field_name)
-                if changed_fields:
-                    ApprovalLog.objects.create(
-                        factor=self,
-                        action='STAGE_CHANGE',
-                        stage=self.locked_by_stage or self.tankhah.current_stage,
-                        user=self.created_by,
-                        comment=f"تغییر فیلدهای {', '.join(changed_fields)}",
-                        content_type=ContentType.objects.get_for_model(self),
-                        object_id=self.pk,
-                        changed_field=', '.join(changed_fields)
-                    )
-
-
+            # if original:
+            #     changed_fields = []
+            #     for field in self._meta.fields:
+            #         field_name = field.name
+            #         if getattr(original, field_name) != getattr(self, field_name):
+            #             changed_fields.append(field_name)
+            #     if changed_fields:
+            #         ApprovalLog.objects.create(
+            #             factor=self,
+            #             action='STAGE_CHANGE',
+            #             stage=self.locked_by_stage or self.tankhah.current_stage,
+            #             user=self.created_by,
+            #             comment=f"تغییر فیلدهای {', '.join(changed_fields)}",
+            #             content_type=ContentType.objects.get_for_model(self),
+            #             object_id=self.pk,
+            #             changed_field=', '.join(changed_fields)
+            #         )
 
     def __str__(self):
         # اصلاح متد __str__ برای مدیریت tankhah=None
@@ -720,6 +801,29 @@ class Factor(models.Model):
             ('factor_reject', _('رد فاکتور')),
             ('Factor_full_edit', _('دسترسی کامل به فاکتور')),
         ]
+class FactorHistory(models.Model):
+    class ChangeType(models.TextChoices):
+        CREATION = 'CREATION', _('ایجاد')
+        UPDATE = 'UPDATE', _('ویرایش')
+        STATUS_CHANGE = 'STATUS_CHANGE', _('تغییر وضعیت')
+        DELETION = 'DELETION', _('حذف')
+
+    factor = models.ForeignKey('Factor', on_delete=models.CASCADE, related_name='history', verbose_name=_('فاکتور'))
+    change_type = models.CharField(max_length=20, choices=ChangeType.choices, verbose_name=_('نوع تغییر'))
+    changed_by = models.ForeignKey( CustomUser, on_delete=models.SET_NULL, null=True, verbose_name=_('تغییر توسط'))
+    change_timestamp = models.DateTimeField(default=timezone.now, verbose_name=_('زمان تغییر'))
+    old_data = models.JSONField(null=True, blank=True, verbose_name=_('داده‌های قبلی'))
+    new_data = models.JSONField(null=True, blank=True, verbose_name=_('داده‌های جدید'))
+    description = models.TextField(blank=True, verbose_name=_('توضیحات'))
+
+    class Meta:
+        verbose_name = _('تاریخچه فاکتور')
+        verbose_name_plural = _('تاریخچه‌های فاکتور')
+        ordering = ['-change_timestamp']
+
+    def __str__(self):
+        return f"{self.get_change_type_display()} برای فاکتور {self.factor.number} در {self.change_timestamp}"
+
 # --- تابع اصلاح شده ---
 def Ok__create_budget_transaction(allocation, transaction_type, amount, related_obj, created_by, description,
                              transaction_id):
@@ -1213,17 +1317,13 @@ class ApprovalLog(models.Model):
     date = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
     post = models.ForeignKey('core.Post', on_delete=models.SET_NULL, null=True, verbose_name=_("پست تأییدکننده"))
     changed_field = models.CharField(max_length=50, blank=True, null=True, verbose_name="فیلد تغییر یافته")
-
     seen_by_higher = models.BooleanField(default=False, verbose_name=_("دیده‌شده توسط رده بالاتر"))
     seen_at = models.DateTimeField(null=True, blank=True, verbose_name=_("زمان دیده شدن"))
-
     action_type = models.CharField(max_length=50, blank=True, verbose_name=_("نوع اقدام"))
-
     # پشتیبانی از چندین نوع موجودیت با استفاده از GenericForeignKey
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, verbose_name=_("نوع موجودیت"))
     object_id = models.PositiveIntegerField(verbose_name=_("شناسه موجودیت"))
     content_object = GenericForeignKey('content_type', 'object_id')
-
 
     # -- برای بودجه
     def save(self, *args, **kwargs):
@@ -1232,7 +1332,11 @@ class ApprovalLog(models.Model):
         if not user_post:
             raise ValueError("کاربر هیچ پست فعالی ندارد.")
         from core.models import PostAction
-        if user_post and not PostAction.objects.filter(
+        # نادیده گرفتن بررسی PostAction برای کاربران HQ
+        if user_post.post.organization.is_core:
+            super().save(*args, **kwargs)
+            return
+        if not PostAction.objects.filter(
                 post=user_post.post,
                 stage=self.stage,
                 action_type=self.action,
@@ -1240,8 +1344,20 @@ class ApprovalLog(models.Model):
                 is_active=True
         ).exists():
             raise ValueError(
-                f"پست {user_post.post} مجاز به {self.action} در این مرحله برای {self.content_type.model} نیست")
+                f"پست {user_post.post} مجاز به {self.action} در این مرحله برای {self.content_type.model} نیست"
+            )
         super().save(*args, **kwargs)
+
+        # if user_post and not PostAction.objects.filter(
+        #         post=user_post.post,
+        #         stage=self.stage,
+        #         action_type=self.action,
+        #         entity_type=self.content_type.model.upper(),
+        #         is_active=True
+        # ).exists():
+        #     raise ValueError(
+        #         f"پست {user_post.post} مجاز به {self.action} در این مرحله برای {self.content_type.model} نیست")
+        # super().save(*args, **kwargs)
 
         # old
         # if user_post and self.action_type:
@@ -1250,8 +1366,6 @@ class ApprovalLog(models.Model):
         #     ).exists():
         #         raise ValueError(f"پست {user_post.post} مجاز به {self.action_type} در این مرحله نیست")
         # super().save(*args, **kwargs)
-
-
 
     def __str__(self):
         return f"{self.user.username} - {self.action} ({self.date})"
@@ -1320,19 +1434,19 @@ class ItemCategory(models.Model):
             ('ItemCategory_view','نمایش دسته بندی نوع هزینه کرد'),
             ('ItemCategory_delete','حــذف دسته بندی نوع هزینه کرد'),
         ]
-class Notification(models.Model):
-    user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, verbose_name="کاربر")
-    message = models.TextField(verbose_name="پیام")
-    tankhah = models.ForeignKey('Tankhah', on_delete=models.CASCADE, null=True, verbose_name="تنخواه")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
-    is_read = models.BooleanField(default=False, verbose_name="خوانده شده")
-
-    class Meta:
-        verbose_name = "اعلان"
-        verbose_name_plural = "اعلان‌ها"
-
-    def __str__(self):
-        return f"{self.user.username} - {self.message[:50]}"
+# class Notification(models.Model):
+#     user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, verbose_name="کاربر")
+#     message = models.TextField(verbose_name="پیام")
+#     tankhah = models.ForeignKey('Tankhah', on_delete=models.CASCADE, null=True, verbose_name="تنخواه")
+#     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+#     is_read = models.BooleanField(default=False, verbose_name="خوانده شده")
+#
+#     class Meta:
+#         verbose_name = "اعلان"
+#         verbose_name_plural = "اعلان‌ها"
+#
+#     def __str__(self):
+#         return f"{self.user.username} - {self.message[:50]}"
 
 #---------------------- End Models ----------------------------------##########
 class DashboardView(TemplateView):
@@ -1366,7 +1480,6 @@ class DashboardView(TemplateView):
         context['recent_approvals'] = ApprovalLog.objects.order_by('-timestamp')[:5]
 
         return context
-
 class Dashboard_Tankhah(models.Model):
     class Meta:
         default_permissions = ()

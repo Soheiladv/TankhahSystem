@@ -181,14 +181,25 @@
                 <i class="fas fa-building"></i>{% trans "سازمان‌ها" %}
             </a>
         </li>
+         <li class="nav-item">
+            <a href="{% url 'project_list' %}" class="nav-link animate__animated animate__fadeInRight">
+                <i class="fas fa-project-diagram"></i>{% trans "بودجه بندی " %}
+            </a>
+        </li>
+
         <li class="nav-item">
             <a href="{% url 'project_list' %}" class="nav-link animate__animated animate__fadeInRight">
-                <i class="fas fa-project-diagram"></i>{% trans "پروژه‌ها" %}
+                <i class="fas fa-project-diagram"></i>{% trans "مرکز هزینه (پروژه)" %}
             </a>
         </li>
         <li class="nav-item">
             <a href="{% url 'dashboard_flows' %}" class="nav-link animate__animated animate__fadeInRight">
                 <i class="fas fa-file-invoice"></i>{% trans "تنخواه‌ها" %}
+            </a>
+        </li>
+         <li class="nav-item">
+            <a href="{% url 'dashboard_flows' %}" class="nav-link animate__animated animate__fadeInRight">
+                <i class="fas fa-file-invoice"></i>{% trans "فاکتور" %}
             </a>
         </li>
         <li class="nav-item">
@@ -377,7 +388,16 @@
         {% endif %}
     });
 </script>
-
+<script>
+    $(document).ready(function() {
+        $('[data-jdp]').pDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            initialValue: false,
+            persianDigit: true
+        });
+    });
+</script>
 {% block extra_js %}{% endblock %}
 
 </body>

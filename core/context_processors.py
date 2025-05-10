@@ -1,5 +1,5 @@
 # core/context_processors.py
-from tankhah.models import Notification
+
 from version_tracker.models import AppVersion  # فرض می‌کنم مدلت اینه
 
 def version_info(request):
@@ -11,10 +11,18 @@ def version_info(request):
 
 
 
-
 def notifications(request):
     if request.user.is_authenticated:
-        unread_notifications = Notification.objects.filter(user=request.user, is_read=False)
+        from notifications.models import Notification  # مدل را مستقیماً از پکیج وارد کنید
+        unread_notifications = Notification.objects.filter(recipient=request.user, unread=True)
     else:
         unread_notifications = []
     return {'unread_notifications': unread_notifications}
+
+# def notifications(request):
+#     if request.user.is_authenticated:
+#         from notifications.views import Notification
+#         unread_notifications = Notification.objects.filter(user=request.user, unread=False)
+#     else:
+#         unread_notifications = []
+#     return {'unread_notifications': unread_notifications}

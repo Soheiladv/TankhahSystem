@@ -17,7 +17,7 @@ from django.db.models import Sum
 from core.views import PermissionBaseView # Your permission checking base view
 from tankhah.Factor.NF.form_Nfactor import FactorItemForm, FactorForm, FactorDocumentForm, TankhahDocumentForm
 from tankhah.models import ItemCategory, Tankhah, Factor, FactorItem, FactorDocument, TankhahDocument, \
-    create_budget_transaction
+    create_budget_transaction, FactorHistory
 from accounts.models import CustomUser # Your user model
 from core.models import WorkflowStage # Your workflow stage model
 from budgets.models import ProjectBudgetAllocation, BudgetTransaction
@@ -583,7 +583,32 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
                 # # Let the model's save() handle number generation and full_clean
                 # self.object.save()
                 # logger.info(f"Factor object saved: pk={self.object.pk}, number={self.object.number}")
-
+                #ذخیره تاریخچه فاکتور
+                # در بخش form_valid پس از ذخیره فاکتور
+                FactorHistory.objects.create(
+                    factor=self.object,
+                    change_type=FactorHistory.ChangeType.CREATION,
+                    changed_by=self.request.user,
+                    new_data={
+                        'amount': str(self.object.amount),
+                        'status': self.object.status,
+                        'items': [
+                            {
+                                'id': item.id,
+                                'description': item.description,
+                                'quantity': str(item.quantity),
+                                'unit_price': str(item.unit_price),
+                                'amount': str(item.amount),
+                            } for item in self.object.items.all()
+                        ],
+                        'documents': [
+                            {'id': doc.id, 'file': str(doc.file)} for doc in self.object.documents.all()
+                        ],
+                    },
+                    description=f"ایجاد فاکتور {self.object.number} توسط {self.request.user.username}."
+                )
+                logger.info(f"Factor history recorded for creation of Factor pk={self.object.pk}.")
+                # ---
                 # 2. Save factor items             # 2. ذخیره آیتم‌ها (برای هر دو نوع ذخیره)
                 items_saved_count = 0
                 for item_form in valid_item_forms:
@@ -684,7 +709,6 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
 
         messages.success(self.request, _('فاکتور با موفقیت به‌صورت پیش‌نویس ذخیره شد.'))
         return redirect(self.get_success_url())
-
 
     def form_invalid(self, form):
         """Handle cases where the main FactorForm is invalid."""
