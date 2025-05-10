@@ -170,16 +170,16 @@
                                     <div class="flex-grow-1">
                                         <p class="mb-0 small fw-medium">
                                             {% if activity.tankhah %}
-                                                {% trans "اقدام روی تنخواه" %} <strong class="text-primary">{{ activity.tankhah.number }}</strong>: {{ activity.get_action_display }}
+                                                {% trans "اقدام روی تنخواه" %} <strong class="text-primary">{{ activity.tankhah.number }}</strong>: {{ activity.get_action_display   }}
                                             {% elif activity.factor %}
-                                                {% trans "اقدام روی فاکتور" %} <strong class="text-primary">{{ activity.factor.number }}</strong>: {{ activity.get_action_display }}
+                                                {% trans "اقدام روی فاکتور" %} <strong class="text-primary">{{ activity.factor.number   |to_persian_number  }}</strong>: {{ activity.get_action_display |to_persian_number   }}
                                              {% elif activity.factor_item %}
-                                                 {% trans "اقدام روی ردیف فاکتور" %} <strong class="text-primary">({{ activity.factor_item.description|truncatechars:20 }})</strong>: {{ activity.get_action_display }}
+                                                 {% trans "اقدام روی ردیف فاکتور" %} <strong class="text-primary">({{ activity.factor_item.description|truncatechars:20 |to_persian_number }})</strong>: {{ activity.get_action_display|format_negative  }}
                                             {% else %}
-                                                {{ activity.get_action_display }}
+                                                {{ activity.get_action_display |to_persian_number  }}
                                             {% endif %}
                                         </p>
-                                        <small class="text-muted">{{ activity.timestamp|jformat:"%d %b %Y، %H:%M" }}</small>
+                                        <small class="text-muted">{{ activity.timestamp|jformat:"%Y/%m/%d، %H:%M" |to_persian_number  }}</small>
                                     </div>
                                     <i class="fas fa-chevron-left text-muted small ms-2 flex-shrink-0"></i>
                                 </a>
