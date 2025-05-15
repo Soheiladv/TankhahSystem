@@ -1,0 +1,1943 @@
+
+class BudgetPeriod(models.Model):
+
+    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("دفتر مرکزی"),related_name='budget_periods')
+    name = models.CharField(max_length=100, unique=True, verbose_name=_("نام دوره بودجه"))
+    start_date = models.DateField(verbose_name=_("تاریخ شروع"))
+    end_date = models.DateField(verbose_name=_("تاریخ پایان"))
+    total_amount = models.DecimalField(max_digits=25, decimal_places=0, verbose_name=_("مبلغ کل"))
+    total_allocated = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("مجموع تخصیص‌ها"))
+    returned_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0,verbose_name=_("مجموع بودجه برگشتی"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    is_archived = models.BooleanField(default=False, verbose_name=_("بایگانی شده"))
+    is_completed = models.BooleanField(default=False, verbose_name=_("تمام‌شده"))
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,related_name='budget_periods_created', verbose_name=_("ایجادکننده"))
+    locked_percentage = models.IntegerField(default=0, verbose_name=_("درصد قفل‌شده"),help_text=_("درصد بودجه که قفل می‌شود (0-100)"))
+    warning_threshold = models.DecimalField(max_digits=5, decimal_places=2, default=10, verbose_name=_("آستانه اخطار"),help_text=_("درصدی که هشدار نمایش داده می‌شود (0-100)"))
+    warning_action = models.CharField(max_length=50,choices=[('NOTIFY', _("فقط اعلان")), ('LOCK', _("قفل کردن")),('RESTRICT', _("محدود کردن ثبت"))],default='NOTIFY',verbose_name=_("اقدام هشدار") ,
+                                      help_text=_("رفتار سیستم هنگام رسیدن به آستانه هشدار"))
+    allocation_phase = models.CharField(max_length=50, blank=True, verbose_name=_("فاز تخصیص"))
+    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+
+    lock_condition = models.CharField(max_length=50,choices=[('AFTER_DATE', _("بعد از تاریخ پایان")), ('MANUAL', _("دستی")),
+                                               ('ZERO_REMAINING', _("باقی‌مانده صفر")), ], default='AFTER_DATE',verbose_name=_("شرط قفل"))
+
+    is_locked = models.BooleanField(default=False, verbose_name=_("قفل‌شده"))  # فیلد جدید
+
+    class Meta:
+        verbose_name = _("دوره بودجه")
+        verbose_name_plural = _("دوره‌های بودجه")
+        default_permissions = ()
+        permissions = [
+            ('budgetperiod_add', _("افزودن دوره بودجه")),
+            ('budgetperiod_update', _("بروزرسانی دوره بودجه")),
+            ('budgetperiod_view', _("نمایش دوره بودجه")),
+            ('budgetperiod_delete', _("حذف دوره بودجه")),
+            ('budgetperiod_archive', _("بایگانی دوره بودجه")),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.organization.code})"
+
+    def clean(self):
+        # super().clean()
+        # if self.total_allocated > self.total_amount:
+        #     raise ValidationError(_("مجموع تخصیص‌ها نمی‌تواند از مبلغ کل بیشتر باشد."))
+        if not self.start_date or not self.end_date:
+            raise ValidationError(_("تاریخ شروع و پایان نمی‌توانند خالی باشند."))
+        if self.end_date <= self.start_date:
+            raise ValidationError(_("تاریخ پایان باید بعد از تاریخ شروع باشد."))
+        if not (0 <= self.locked_percentage <= 100):
+            raise ValidationError(_("درصد قفل‌شده باید بین 0 تا 100 باشد."))
+        if not (0 <= self.warning_threshold <= 100):
+            raise ValidationError(_("آستانه هشدار باید بین 0 تا 100 باشد."))
+        if self.is_completed and self.is_active:
+            raise ValidationError(_("دوره تمام‌شده نمی‌تواند فعال باشد."))
+
+    def validate_allocation(self, allocation_amount):
+        """اعتبارسنجی تخصیص با در نظر گرفتن درصد قفل"""
+        remaining = self.get_remaining_amount()
+        locked_amount = self.get_locked_amount()
+        available_for_allocation = remaining - locked_amount
+
+        if allocation_amount > available_for_allocation:
+            raise ValidationError(
+                _(
+                    f"نمی‌توان تخصیص داد. مبلغ تخصیص ({allocation_amount:,.0f} ریال) بیشتر از مقدار مجاز ({available_for_allocation:,.0f} ریال) است."
+                    f"حداقل {self.locked_percentage}% از بودجه باید قفل بماند."
+                )
+            )
+
+    def update_lock_status(self):
+        """به‌روزرسانی وضعیت قفل بر اساس میزان بودجه"""
+        remaining_amount = self.get_remaining_amount()
+        locked_amount = self.get_locked_amount()
+        now_date = timezone.now().date()
+
+        if self.lock_condition == 'ZERO_REMAINING' and remaining_amount <= locked_amount:
+            self.is_locked = True
+            self.is_active = False
+            # بررسی شرایط قفل
+        elif self.lock_condition == 'AFTER_DATE' and self.end_date < now_date:
+            self.is_locked = True
+            self.is_active = False
+        elif self.lock_condition == 'MANUAL':
+        # قفل دستی توسط کاربر اعمال می‌شود
+            pass
+        elif self.lock_condition == 'COMBINED':
+            # ترکیبی: اگر تاریخ گذشته یا باقی‌مانده صفر باشد
+            self.is_locked = (self.end_date < now_date) or (remaining_amount <= 0)
+        else:
+            self.is_locked = False
+
+        self.save(update_fields=['is_locked', 'is_active'])
+
+        # قفل کردن تنخواه‌ها و تخصیص‌ها
+        if self.is_locked:
+            self.allocations.update(is_locked=True, is_active=False)
+            Tankhah.objects.filter(allocation__budget_period=self).update(is_active=False)
+
+    def get_lock_message(self):
+        """پیام مناسب برای وضعیت قفل"""
+        if self.lock_condition == 'AFTER_DATE' and self.is_locked:
+            return _("تاریخ دوره بودجه به پایان رسیده و قفل شده است.")
+        elif self.lock_condition == 'ZERO_REMAINING' and self.is_locked:
+            return _("بودجه باقیمانده دوره صفر یا کمتر است و دوره قفل شده است.")
+        elif self.lock_condition == 'COMBINED' and self.is_locked:
+            return _("دوره بودجه به دلیل پایان تاریخ یا اتمام بودجه قفل شده است.")
+        elif self.lock_condition == 'MANUAL' and self.is_locked:
+            return _("دوره بودجه به صورت دستی قفل شده است.")
+        return _("دوره بودجه فعال و باز است.")
+
+    def get_remaining_amount(self):
+        """محاسبه بودجه باقی‌مانده دوره"""
+        """منطق متفاوت است (بر اساس تخصیص‌ها و نه تراکنش‌ها محاسبه می‌شود)."""
+        from django.db.models import Sum
+        from decimal import Decimal
+        total_allocated = self.allocations.aggregate(
+            total=Sum('allocated_amount')
+        )['total'] or Decimal('0')
+        return max(self.total_amount - total_allocated + self.returned_amount, Decimal('0'))
+
+    def send_notification(self, status, message):
+        recipients = CustomUser.objects.filter(
+            organizations=self.organization,
+            roles__name__in=['Financial Manager', 'Budget Manager']
+        ).distinct()
+        send_notification(self, status, message, recipients)
+
+    def get_locked_amount(self):
+        """    محاسبه مقدار بر اساس درصد (برای قفل یا هشدار)."""
+        return calculate_threshold_amount(self.total_amount, self.locked_percentage)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+        status, message = check_budget_status(self)
+
+        # self.budget_period.total_allocated = BudgetAllocation.objects.filter(
+        #     budget_period=self
+        # ).aggregate(Sum('allocated_amount'))['allocated_amount__sum'] or Decimal('0')
+        # self.budget_period.save(update_fields=['total_allocated'])
+
+        # بررسی آستانه اخطار هنگام ذخیره
+        self.check_warning_threshold()
+
+        # """اجرای اقدام هشدار"""
+        self.apply_warning_action()
+
+        if status in ('warning', 'locked', 'completed'):
+            self.send_notification(status, message)
+
+    def check_warning_threshold(self):
+        """Checks if the remaining budget has reached the warning threshold."""
+        if self.warning_threshold <= 0 or self.total_amount <= 0: # No warning if threshold or total is zero
+            return False, None
+
+        remaining_percentage = (self.get_remaining_amount() / self.total_amount) * Decimal('100')
+        if remaining_percentage <= self.warning_threshold:
+            warning_message = _("هشدار: بودجه باقیمانده دوره به آستانه {}% رسیده است (باقیمانده: {:,}).").format(
+                self.warning_threshold, self.get_remaining_amount()
+            )
+            return True, warning_message
+        return False, None
+
+    def get_warning_amount(self):
+        """    محاسبه مقدار بر اساس درصد (برای قفل یا هشدار)."""
+        return calculate_threshold_amount(self.total_amount, self.warning_threshold)
+
+    @property # Use property for easy access like a field
+    def is_period_locked(self):
+        """Checks if the budget period is currently locked based on conditions."""
+        now_date = timezone.now().date()
+
+        # Condition 1: Manual Lock (Assuming you add an 'is_manually_locked' field)
+        # if self.is_manually_locked:
+        #    return True, _("دوره بودجه به صورت دستی قفل شده است.")
+
+        # Condition 2: After End Date
+        if self.lock_condition == 'AFTER_DATE' and self.end_date < now_date:
+            # Optionally update is_active here if not done elsewhere
+            # if self.is_active:
+            #     self.is_active = False
+            #     self.save(update_fields=['is_active'])
+            return True, _("تاریخ دوره بودجه به پایان رسیده و قفل شده است.")
+
+        # Condition 3: Zero Remaining (or below zero)
+        # We need the *actual* remaining amount here
+        if self.lock_condition == 'ZERO_REMAINING' and self.get_remaining_amount() <= 0:
+             # Optionally update is_completed/is_active here
+             # if not self.is_completed:
+             #    self.is_completed = True
+             #    self.is_active = False
+             #    self.save(update_fields=['is_completed', 'is_active'])
+            return True, _("بودجه باقیمانده دوره صفر یا کمتر است و دوره قفل شده است.")
+
+        # Condition 4: Locked Percentage (Based on *allocated* amount, not remaining)
+        # This interpretation means you cannot allocate more than (100 - locked_percentage)%
+        # It usually doesn't prevent spending the allocated amount.
+        # If the intention is to lock *spending* when remaining is below locked percentage:
+        # remaining = self.get_remaining_amount()
+        # locked_threshold_amount = (self.total_amount * self.locked_percentage) / Decimal('100')
+        # if remaining <= locked_threshold_amount:
+        #     return True, _("بودجه باقیمانده به حد درصد قفل شده ({}) رسیده است.").format(self.locked_percentage)
+
+        return False, _("دوره بودجه فعال و باز است.")
+
+    def apply_warning_action(self):
+        """اجرای اقدام هشدار"""
+        is_warning, message = self.check_warning_threshold()
+        if not is_warning:
+            return
+
+        if self.warning_action == 'NOTIFY':
+            self.log_action("WARNING", message)
+        elif self.warning_action == 'LOCK':
+            self.is_locked = True
+            self.is_active = False
+            self.save(update_fields=['is_locked', 'is_active'])
+            self.log_action("LOCK", _("دوره بودجه به دلیل رسیدن به آستانه اخطار قفل شد."))
+            self.send_notification("locked", _("دوره بودجه به دلیل رسیدن به آستانه اخطار قفل شد."))
+        elif self.warning_action == 'RESTRICT':
+            self.is_active = False
+            self.save(update_fields=['is_active'])
+            self.log_action("RESTRICT", _("ثبت تراکنش‌های جدید برای این دوره بودجه محدود شد."))
+            self.send_notification("restricted", _("ثبت تراکنش‌های جدید برای این دوره بودجه محدود شد."))
+
+    def log_action(self, action, message):
+        BudgetHistory.objects.create(
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id,
+            action=action,
+            created_by=self.created_by,
+            details=message,
+            transaction_type='SYSTEM',
+            transaction_id=f"SYS-{timezone.now().strftime('%Y%m%d%H%M%S%f')}"
+        )
+# ------------------------------------
+# ------------------------------------
+""" BudgetAllocation (تخصیص بودجه):"""
+class BudgetAllocation(models.Model):
+    """
+    تخصیص بودجه به سازمان‌ها (شعبات یا ادارات) و پروژه‌ها.
+    قابلیت‌ها: تخصیص چندباره، توقف بودجه، و ردیابی هزینه‌ها.
+    """
+    budget_period = models.ForeignKey('BudgetPeriod', on_delete=models.CASCADE, related_name='allocations',
+                                      verbose_name=_("دوره بودجه"))
+    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, related_name='budget_allocations',
+                                     verbose_name=_("سازمان دریافت‌کننده"))
+    budget_item = models.ForeignKey('BudgetItem', on_delete=models.PROTECT, related_name='allocations',
+                                    verbose_name=_("ردیف بودجه"))
+    project = models.ForeignKey('core.Project', on_delete=models.CASCADE, related_name='allocations',
+                                verbose_name=_("پروژه"), null=True, blank=True)  # اختیاری کردن پروژه
+    allocated_amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ تخصیص"))
+    allocation_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ تخصیص"))
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
+                                   related_name='budget_allocations_created', verbose_name=_("ایجادکننده"))
+    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    is_stopped = models.BooleanField(default=False, verbose_name=_("متوقف‌شده"))
+
+    ALLOCATION_TYPES = (('amount', _("مبلغ ثابت")), ('percent', _("درصد")), ('returned', _("برگشتی")),)
+    allocation_type = models.CharField(max_length=20, choices=ALLOCATION_TYPES, default='amount',
+                                       verbose_name=_("نوع تخصیص"))
+    locked_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده"),
+                                            help_text=_("درصد تخصیص که قفل می‌شود (0-100)"))
+    warning_threshold = models.DecimalField(max_digits=5, decimal_places=2, default=10, verbose_name=_("آستانه اخطار"),
+                                            help_text=_("درصدی که هشدار نمایش داده می‌شود (0-100)"))
+    warning_action = models.CharField(
+        max_length=50,
+        choices=[('NOTIFY', _("فقط اعلان")), ('LOCK', _("قفل کردن")), ('RESTRICT', _("محدود کردن ثبت")), ],
+        default='NOTIFY',
+        verbose_name=_("اقدام هشدار"),
+        help_text=_("رفتار سیستم هنگام رسیدن به آستانه هشدار")
+    )
+    allocation_number = models.IntegerField(default=1, verbose_name=_("شماره تخصیص"))
+
+    returned_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0,verbose_name=_("مجموع بودجه برگشتی"))
+
+    class Meta:
+        verbose_name = _("تخصیص بودجه")
+        verbose_name_plural = _("تخصیص‌های بودجه")
+        default_permissions = ()
+        permissions = [
+            ('budgetallocation_add', _("افزودن تخصیص بودجه")),
+            ('budgetallocation_view', _("نمایش تخصیص بودجه")),
+            ('budgetallocation_update', _("بروزرسانی تخصیص بودجه")),
+            ('budgetallocation_delete', _("حذف تخصیص بودجه")),
+            ('budgetallocation_adjust', _("تنظیم تخصیص بودجه (افزایش/کاهش)")),
+            ('budgetallocation_stop', _("توقف تخصیص بودجه")),
+            ('budgetallocation_return', _("برگشت تخصیص بودجه")),  # جدید
+            ('BudgetAllocation_approve', 'می‌تواند تخصیص بودجه را تأیید کند'),
+            ('BudgetAllocation_reject', 'می‌تواند تخصیص بودجه را رد کند'),
+
+        ]
+        indexes = [
+            models.Index(fields=['budget_period', 'allocation_date']),
+            models.Index(fields=['organization', 'allocated_amount']),
+        ]
+
+    def __str__(self):
+        try:
+            jalali_date = jdatetime.date.fromgregorian(date=self.allocation_date).strftime('%Y/%m/%d')
+            if jalali_date:
+                org_name = self.organization.name if self.organization else 'بدون سازمان/بدون شعبه'
+                item_name = self.budget_item.name if self.budget_item else 'بدون ردیف'
+                return f"{org_name} - {item_name} - {jalali_date} - {self.allocated_amount:,.0f} ریال"
+            else:
+                 return f"{self.budget_period.name} - {self.allocated_amount:,} ریال ({jalali_date})"
+        except (AttributeError, TypeError) as e:
+            logger.error(f"Error in BudgetAllocation.__str__: {str(e)}")
+            return f"تخصیص {self.organization.name}:{self.allocated_amount}{self.project.name} "
+
+    def get_percentage(self):
+        if self.budget_item.total_amount and self.budget_item.total_amount != 0:
+            return (self.allocated_amount / self.budget_item.total_amount) * 100
+        return Decimal('0')
+
+    def clean(self):
+        super().clean()
+        logger.debug(f"Cleaning BudgetAllocation: allocated_amount={self.allocated_amount}, allocation_type={self.allocation_type}")
+
+        if not self.budget_item:
+            raise ValidationError(_("ردیف بودجه اجباری است."))
+
+        if self.allocated_amount is None:
+            raise ValidationError(_("مبلغ تخصیص نمی‌تواند خالی باشد."))
+        if self.allocated_amount <= 0:
+            raise ValidationError(_("مبلغ تخصیص باید مثبت باشد."))
+
+        # چک کردن باقی‌مانده دوره به‌جای ردیف بودجه
+        remaining_budget = self.budget_period.get_remaining_amount()
+        if self.pk:  # برای ویرایش، تخصیص فعلی رو حساب نکن
+            current_allocation = BudgetAllocation.objects.filter(pk=self.pk).aggregate(
+                total=Sum('allocated_amount')
+            )['total'] or Decimal('0')
+            remaining_budget += current_allocation
+        if self.allocated_amount > remaining_budget:
+            raise ValidationError(_(
+                f"مبلغ تخصیص ({self.allocated_amount:,.0f} ریال) بیشتر از باقی‌مانده دوره بودجه ({remaining_budget:,.0f} ریال) است."
+            ))
+
+        if self.budget_period and self.budget_item:
+            if self.budget_item.budget_period != self.budget_period:
+                raise ValidationError(_("ردیف بودجه باید متعلق به دوره بودجه انتخاب‌شده باشد."))
+
+        if self.budget_period and self.allocation_date:
+            allocation_date = self.allocation_date
+            if hasattr(allocation_date, "date"):
+                allocation_date = allocation_date.date()
+            if not (self.budget_period.start_date <= allocation_date <= self.budget_period.end_date):
+                raise ValidationError(_("تاریخ تخصیص باید در بازه دوره بودجه باشد."))
+
+        if self.warning_threshold is not None and not (0 <= self.warning_threshold <= 100):
+            raise ValidationError(_("آستانه اخطار باید بین ۰ تا ۱۰۰ باشد."))
+
+        logger.debug("Clean validation passed")
+    #
+    # def get_remaining_amount(self):
+    #     return max(self.allocated_amount -
+    #                self.transactions.filter(transaction_type='CONSUMPTION').aggregate(total=Sum('amount'))['total'] or Decimal('0') +
+    #                self.returned_amount, Decimal('0'))
+
+        # چک کردن درصد قفل‌شده دوره بودجه
+        self.budget_period.validate_allocation(self.allocated_amount)
+    # def get_remaining_amount(self):
+    #     """
+    #     محاسبه بودجه باقی‌مانده تخصیص با در نظر گرفتن تراکنش‌های مصرف و بازگشت.
+    #     Returns:
+    #          Decimal: بودجه باقی‌مانده (غیرمنفی)
+    #     """
+    #     # Import BudgetTransaction inside the method to avoid potential circular imports
+    #
+    #     try:
+    #         # جمع تراکنش‌های مصرف (CONSUMPTION) مرتبط با این تخصیص
+    #         consumed_qs = BudgetTransaction.objects.filter(allocation=self, transaction_type='CONSUMPTION')
+    #         consumed = consumed_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
+    #         # جمع تراکنش‌های بازگشت (RETURN) مرتبط با این تخصیص
+    #         returned_qs = BudgetTransaction.objects.filter(allocation=self, transaction_type='RETURN')
+    #         returned = returned_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
+    #         # **نقطه کلیدی اصلاح:** استفاده از فیلد صحیح مدل
+    #         initial_allocation = self.allocated_amount if self.allocated_amount is not None else Decimal('0.00')
+    #         # محاسبه باقی‌مانده
+    #         remaining = initial_allocation - consumed + returned
+    #         # لاگ برای دیباگ
+    #         logger.debug(f"BudgetAllocation {self.pk}: Initial Allocated={initial_allocation}, Consumed={consumed}, Returned={returned}, Calculated Remaining={remaining}")
+    #         # اطمینان از غیرمنفی بودن
+    #         return max(remaining, Decimal('0.00'))
+    #     except Exception as e:
+    #         logger.error(
+    #             f"Error calculating remaining amount for BudgetAllocation {self.pk}: {str(e)}",
+    #             exc_info=True
+    #         )
+    #         return Decimal('0.00') # بازگشت مقدار امن در صورت خطا
+
+    def get_remaining_amount(self):
+        """محاسبه بودجه باقی‌مانده تخصیص پروژه"""
+        return calculate_remaining_amount(self, amount_field='allocated_amount', model_name='BudgetAllocation')
+
+    def get_locked_amount(self):
+        """    محاسبه مقدار بر اساس درصد (برای قفل یا هشدار)."""
+        return calculate_threshold_amount(self.allocated_amount, self.locked_percentage)
+
+    def get_actual_remaining_amount(self):
+        # این متد باید همیشه از دیتابیس بخواند و نباید به فیلد ذخیره شده تکیه کند
+        # مگر اینکه فیلد ذخیره شده با دقت بسیار بالا آپدیت شود
+        transactions_sum = self.transactions.aggregate(
+            consumption=Sum('amount', filter=Q(transaction_type='CONSUMPTION')),
+            adjustment_decrease=Sum('amount', filter=Q(transaction_type='ADJUSTMENT_DECREASE')),
+            returns=Sum('amount', filter=Q(transaction_type='RETURN')),
+            adjustment_increase=Sum('amount', filter=Q(transaction_type='ADJUSTMENT_INCREASE')),
+            # ALLOCATION اولیه جزو allocated_amount است و نباید اینجا محاسبه شود
+        )
+        consumed = (transactions_sum['consumption'] or Decimal('0')) + \
+                   (transactions_sum['adjustment_decrease'] or Decimal('0'))
+        added_back = (transactions_sum['returns'] or Decimal('0')) + \
+                     (transactions_sum['adjustment_increase'] or Decimal('0'))
+
+        # remaining = self.allocated_amount - consumed + added_back
+        # **اصلاح مهم:** allocated_amount با برگشت کم می‌شود، پس مبنای محاسبه remaining
+        # باید allocated_amount فعلی باشد و فقط مصرف‌ها از آن کم شوند.
+        # یا: مبنا allocated_amount اولیه باشد و برگشت‌ها اضافه شوند.
+        # روش صحیح‌تر: تکیه بر فیلد remaining_amount که توسط تراکنش‌ها آپدیت می‌شود.
+        # بنابراین این متد بیشتر برای نمایش یا چک کردن است:
+        return self.remaining_amount  # تکیه بر فیلد آپدیت شده
+
+    def get_warning_amount(self):
+        """    محاسبه مقدار بر اساس درصد (برای قفل یا هشدار)."""
+        return calculate_threshold_amount(self.allocated_amount, self.warning_threshold)
+
+    def check_allocation_status(self):
+        remaining = self.get_remaining_amount()
+        locked = self.get_locked_amount()
+        warning = self.get_warning_amount()
+        if not self.is_active:
+            return 'inactive', _('تخصیص غیرفعال است.')
+        if self.is_stopped:
+            return 'stopped', _('تخصیص متوقف شده است.')
+        if remaining <= 0:
+            return 'completed', _('تخصیص تمام‌شده است.')
+        if remaining <= locked:
+            return 'locked', _('تخصیص به حد قفل‌شده رسیده است.')
+        if remaining <= warning:
+            return 'warning', _('تخصیص به آستانه هشدار رسیده است.')
+        return 'normal', _('وضعیت عادی')
+
+    def send_notification(self, status, message):
+        recipients = CustomUser.objects.filter(
+            Q(userpost__post__organization=self.organization) |
+            Q(userpost__post__organization__parent=self.organization),
+            is_active=True
+        ).distinct()
+        send_notification(self, status, message, recipients)
+
+    @property
+    def project_allocations(self):
+        return ProjectBudgetAllocation.objects.filter(budget_allocation=self)
+
+    def update_lock_status(self):
+        """قفل شدن بر اساس بودجه باقی‌مانده و تنظیم فلگ‌ها"""
+        remaining_amount = self.get_remaining_amount()
+        locked_amount = self.get_locked_amount()
+        if remaining_amount <= locked_amount:
+            self.is_locked = True
+            self.is_active = False
+            Tankhah.objects.filter(allocation=self).update(is_active=False)
+        return self.is_locked, self.is_active
+
+    def save(self, *args, **kwargs):
+        logger.debug(f"Starting save for BudgetAllocation (pk={self.pk}, allocated_amount={self.allocated_amount})")
+        try:
+            with transaction.atomic():
+                self.clean()
+                if not self.pk:
+                    self.remaining_amount = self.allocated_amount
+                    logger.debug(f"New instance, set remaining_amount={self.remaining_amount}")
+
+                # بررسی و تنظیم وضعیت قفل
+                is_locked, is_active = self.update_lock_status()
+                self.is_locked = is_locked
+                self.is_active = is_active
+
+                super().save(*args, **kwargs)
+                logger.info(f"BudgetAllocation saved with ID: {self.pk}")
+
+                total_allocated = BudgetAllocation.objects.filter(
+                    budget_period=self.budget_period
+                ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+                logger.debug(f"Calculated total_allocated={total_allocated} for BudgetPeriod {self.budget_period.id}")
+
+                self.budget_period.total_allocated = total_allocated
+                self.budget_period.save(update_fields=['total_allocated'])
+                logger.info(f"Updated BudgetPeriod {self.budget_period.id} with total_allocated={total_allocated}")
+
+                status, message = self.check_allocation_status()
+                logger.debug(f"Allocation status: {status}, message: {message}")
+                if status in ('warning', 'completed', 'stopped'):
+                    self.send_notification(status, message)
+                    logger.info(f"Sent notification for status: {status}")
+
+        except Exception as e:
+            logger.error(f"Error saving BudgetAllocation: {str(e)}", exc_info=True)
+            raise
+
+
+
+    # def save(self, *args, **kwargs):
+    #     logger.debug(f"Starting save for BudgetAllocation (pk={self.pk}, allocated_amount={self.allocated_amount})")
+    #     try:
+    #         with transaction.atomic():
+    #             self.clean()
+    #             if not self.pk:
+    #                 self.remaining_amount = self.allocated_amount
+    #                 logger.debug(f"New instance, set remaining_amount={self.remaining_amount}")
+    #
+    #             self.update_lock_status()
+    #             super().save(*args, **kwargs)
+    #             logger.info(f"BudgetAllocation saved with ID: {self.pk}")
+    #
+    #             total_allocated = BudgetAllocation.objects.filter(
+    #                 budget_period=self.budget_period
+    #             ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+    #             logger.debug(f"Calculated total_allocated={total_allocated} for BudgetPeriod {self.budget_period.id}")
+    #
+    #             self.budget_period.total_allocated = total_allocated
+    #             self.budget_period.save(update_fields=['total_allocated'])
+    #             logger.info(f"Updated BudgetPeriod {self.budget_period.id} with total_allocated={total_allocated}")
+    #
+    #             status, message = self.check_allocation_status()
+    #             logger.debug(f"Allocation status: {status}, message: {message}")
+    #             if status in ('warning', 'completed', 'stopped'):
+    #                 self.send_notification(status, message)
+    #                 logger.info(f"Sent notification for status: {status}")
+    #
+    #     except Exception as e:
+    #         logger.error(f"Error saving BudgetAllocation: {str(e)}", exc_info=True)
+    #         raise
+
+""" BudgetItem (نوع ردیف بودجه):"""
+class BudgetItem(models.Model):
+    budget_period = models.ForeignKey('BudgetPeriod', on_delete=models.CASCADE, related_name='budget_items',
+                                      verbose_name=_("دوره بودجه"))
+    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, related_name='budget_items',
+                                     verbose_name=_("شعبه"))
+    name = models.CharField(max_length=100, verbose_name=_("نام ردیف بودجه"), null=True, blank=True)
+    code = models.CharField(max_length=50, unique=True, verbose_name=_("کد ردیف"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    create_at = models.DateTimeField(auto_now_add=True, verbose_name=_('تاریخ ثبت '), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("ردیف بودجه")
+        verbose_name_plural = _("ردیف‌های بودجه")
+        unique_together = ('budget_period', 'organization', 'code')
+
+    def __str__(self):
+        if self.budget_period.name:
+            return f"{self.budget_period.name} - {self.name} - {self.organization.name}"
+        else:
+            return f"{self.name} - {self.organization.name}-بدون ردیف بودجه"
+
+    def clean(self):
+        super().clean()
+        if not self.name:
+            raise ValidationError(_("نام ردیف بودجه نمی‌تواند خالی باشد."))
+
+""" BudgetTransaction (تراکنش بودجه):"""
+class BudgetTransaction(models.Model):
+    TRANSACTION_TYPES = (
+        ('ALLOCATION', _('تخصیص اولیه')),
+        ('CONSUMPTION', _('مصرف')),
+        ('ADJUSTMENT_INCREASE', _('افزایش تخصیص')),
+        ('ADJUSTMENT_DECREASE', _('کاهش تخصیص')),
+        ('RETURN', _('بازگشت')),
+    )
+    allocation = models.ForeignKey('BudgetAllocation', on_delete=models.CASCADE,
+                                   related_name='transactions', verbose_name=_("تخصیص بودجه"))
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES,
+                                       verbose_name=_("نوع تراکنش"))
+    amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ"))
+    related_tankhah = models.ForeignKey('tankhah.Tankhah', on_delete=models.SET_NULL, null=True, blank=True,
+                                        verbose_name=_("تنخواه مرتبط"))
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان"))
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
+                                   verbose_name=_("کاربر"))
+    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+    transaction_id = models.CharField(max_length=50, unique=True, verbose_name=_("شناسه تراکنش"))
+
+    class Meta:
+        verbose_name = _("تراکنش بودجه")
+        verbose_name_plural = _("تراکنش‌های بودجه")
+        default_permissions = ()
+        permissions = [
+            ('BudgetTransaction_add', 'افزودن تراکنش بودجه'),
+            ('BudgetTransaction_update', 'بروزرسانی تراکنش بودجه'),
+            ('BudgetTransaction_delete', 'حــذف تراکنش بودجه'),
+            ('BudgetTransaction_view', _('نمایش تراکنش بودجه')),
+            ('BudgetTransaction_return', _('برگشت تراکنش بودجه')),
+        ]
+
+    def validate_return(self):
+        """اعتبارسنجی تراکنش بازگشت"""
+        if self.transaction_type != 'RETURN':
+            return True, None
+        consumed = BudgetTransaction.objects.filter(
+            allocation=self.allocation,
+            transaction_type='CONSUMPTION'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        returned = BudgetTransaction.objects.filter(
+            allocation=self.allocation,
+            transaction_type='RETURN'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        total_consumed = consumed - returned
+        if self.amount > total_consumed:
+            return False, _(f"مبلغ بازگشت ({self.amount:,.0f} ریال) نمی‌تواند بیشتر از مصرف خالص ({total_consumed:,.0f} ریال) باشد.")
+        remaining_budget = self.allocation.get_remaining_amount()
+        if self.amount > remaining_budget:
+            return False, _(f"مبلغ بازگشت ({self.amount:,.0f} ریال) نمی‌تواند بیشتر از بودجه باقی‌مانده ({remaining_budget:,.0f} ریال) باشد.")
+        return True, None
+
+    def save(self, *args, **kwargs):
+        from django.core.exceptions import ValidationError
+        from django.contrib.contenttypes.models import ContentType
+        from django.db import transaction
+
+        # 1. Generate transaction ID if missing
+        if not self.transaction_id:
+            timestamp_str = timezone.now().strftime('%Y%m%d%H%M%S%f')
+            self.transaction_id = f"TX-{self.transaction_type[:3]}-{self.allocation_id}-{timestamp_str}"
+            logger.info(f"Generated transaction_id: {self.transaction_id}")
+
+        # 2. اعتبارسنجی تراکنش بازگشت
+        if self.transaction_type == 'RETURN':
+            is_valid, error_message = self.validate_return()
+            if not is_valid:
+                logger.error(f"Validation failed for RETURN transaction: {error_message}")
+                raise ValidationError(error_message)
+
+        # 3. بررسی بودجه برای تراکنش CONSUMPTION
+        if self.transaction_type == 'CONSUMPTION':
+            remaining = self.allocation.get_remaining_amount()
+            if self.amount > remaining:
+                logger.error(f"CONSUMPTION transaction amount {self.amount} exceeds remaining {remaining}")
+                raise ValidationError(_("مبلغ مصرف بیشتر از باقی‌مانده تخصیص است."))
+
+        try:
+            with transaction.atomic():
+                # 4. به‌روزرسانی تخصیص برای تراکنش‌های RETURN
+                if self.transaction_type == 'RETURN':
+                    if not self.allocation.budget_period.is_active:
+                        logger.error(f"Cannot return from inactive budget period: {self.allocation.budget_period.id}")
+                        raise ValidationError(_("نمی‌توان از دوره غیرفعال بودجه برگشت داد."))
+
+                    self.allocation.allocated_amount -= self.amount
+                    self.allocation.returned_amount += self.amount
+                    self.allocation.budget_period.total_allocated -= self.amount
+                    self.allocation.budget_period.returned_amount += self.amount
+
+                    self.allocation.save(update_fields=['allocated_amount', 'returned_amount'])
+                    self.allocation.budget_period.save(update_fields=['total_allocated', 'returned_amount'])
+
+                    BudgetHistory.objects.create(
+                        content_type=ContentType.objects.get_for_model(BudgetAllocation),
+                        object_id=self.allocation.id,
+                        action='RETURN',
+                        amount=self.amount,
+                        created_by=self.created_by,
+                        details=f"برگشت {self.amount:,} از تخصیص {self.allocation.id} به دوره بودجه {self.allocation.budget_period.name}",
+                        transaction_type='RETURN',
+                        transaction_id=f"RET-{self.transaction_id}"
+                    )
+
+                    self.allocation.send_notification(
+                        'return',
+                        f"مبلغ {self.amount:,.0f} ریال از تخصیص {self.allocation.id} برگشت داده شد."
+                    )
+
+                # 5. ذخیره تراکنش
+                super().save(*args, **kwargs)
+                logger.debug(f"BudgetTransaction {self.pk} ({self.transaction_id}) saved.")
+
+                # 6. به‌روزرسانی وضعیت و ارسال اعلان
+                status, message = check_budget_status(self.allocation.budget_period)
+                if status in ('warning', 'locked', 'completed', 'stopped'):
+                    self.allocation.send_notification(status, message)
+
+        except Exception as e:
+            logger.error(f"Error saving BudgetTransaction {self.transaction_id}: {str(e)}", exc_info=True)
+            raise
+
+    def clean(self):
+        super().clean()
+        # اگر دوره بودجه محدود شده باشد، از ثبت تراکنش جلوگیری شود
+        if self.allocation.budget_period.warning_action == 'RESTRICT' and self.allocation.budget_period.is_active == False:
+            raise ValidationError(_("ثبت تراکنش جدید به دلیل محدودیت دوره بودجه ممکن نیست."))
+
+    def __str__(self):
+        return f"{self.get_transaction_type_display()} - {self.amount:,.0f} - {self.timestamp.strftime('%Y/%m/%d')}"
+
+"""تخصیص بودجه به پروژه و زیر پروژه """
+class ProjectBudgetAllocation(models.Model):
+    """
+    تخصیص بودجه از BudgetAllocation شعبه به پروژه یا زیرپروژه.
+    توضیح: این مدل بودجه شعبه رو به پروژه یا زیرپروژه وصل می‌کنه و تاریخچه تخصیص رو نگه می‌داره.
+    """
+    budget_allocation = models.ForeignKey('budgets.BudgetAllocation', on_delete=models.CASCADE, related_name='project_allocations', verbose_name=_("تخصیص بودجه شعبه"))
+    project = models.ForeignKey('core.Project', on_delete=models.CASCADE, related_name='budget_allocations', verbose_name=_("پروژه"))
+    subproject = models.ForeignKey('core.SubProject', on_delete=models.CASCADE, null=True, blank=True, related_name='budget_allocations', verbose_name=_("زیرپروژه"))
+    allocated_amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ تخصیص"))
+    allocation_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ تخصیص"))
+    returned_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("مجموع بودجه برگشتی"))
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, related_name='project_budget_allocations_created', verbose_name=_("ایجادکننده"))
+    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+    is_active = models.BooleanField(default=True, verbose_name=_('فعال'))
+    is_locked = models.BooleanField(default=False, verbose_name=_("قفل‌شده"))
+    locked_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده"))
+
+    def __str__(self):
+        target = self.subproject.name if self.subproject else self.project.name
+        jalali_date = jdatetime.date.fromgregorian(date=self.allocation_date).strftime('%Y/%m/%d')
+        return f"{target} - {self.allocated_amount:,} ({jalali_date})"
+
+    class Meta:
+        verbose_name = _("تخصیص بودجه پروژه")
+        verbose_name_plural = _("تخصیص‌های بودجه پروژه")
+        default_permissions = ()
+        permissions = [
+            ('ProjectBudgetAllocation_add', _('افزودن تخصیص بودجه پروژه')),
+            ('ProjectBudgetAllocation_view', _('نمایش تخصیص بودجه پروژه')),
+            ('ProjectBudgetAllocation_update', _('بروزرسانی تخصیص بودجه پروژه')),
+            ('ProjectBudgetAllocation_delete', _('حذف تخصیص بودجه پروژه')),
+            ('ProjectBudgetAllocation_Head_Office', 'تخصیص بودجه مجموعه پروژه(دفتر مرکزی)🏠'),
+            ('ProjectBudgetAllocation_Branch', 'تخصیص بودجه مجموعه پروژه(شعبه)🏠'),
+        ]
+        indexes = [
+            models.Index(fields=['project']),
+            models.Index(fields=['subproject']),
+        ]
+
+    def get_remaining_amount(self):
+        """محاسبه بودجه باقی‌مانده تخصیص پروژه"""
+        return calculate_remaining_amount(self, amount_field='allocated_amount', model_name='BudgetAllocation')
+
+    def get_locked_amount(self):
+        """محاسبه مقدار قفل‌شده بر اساس درصد"""
+        return calculate_threshold_amount(self.allocated_amount, self.locked_percentage)
+
+    def update_lock_status(self):
+        """قفل شدن بر اساس بودجه باقی‌مانده"""
+        remaining_amount = self.get_remaining_amount()
+        locked_amount = self.get_locked_amount()
+        logger.debug(
+            f"Checking lock status for ProjectBudgetAllocation {self.pk}: remaining={remaining_amount}, locked={locked_amount}"
+        )
+        if remaining_amount <= locked_amount:
+            self.is_locked = True
+            self.is_active = False
+            if self.pk:  # فقط اگر شیء قبلاً ذخیره شده باشد، save را فراخوانی کن
+                self.save(update_fields=['is_locked', 'is_active'], skip_lock_status_update=True)
+                Tankhah.objects.filter(project_allocation=self).update(is_active=False)
+            else:
+                logger.debug(f"New object (pk=None), setting is_locked={self.is_locked}, is_active={self.is_active} without saving")
+
+    def get_free_budget(self):
+        cache_key = f"free_budget_{self.pk}"
+        from django.core import cache
+        free_budget = cache.get(cache_key)
+        if free_budget is None:
+            transactions = BudgetTransaction.objects.filter(
+                allocation=self.budget_allocation
+            ).aggregate(
+                consumed=Sum('amount', filter=Q(transaction_type='CONSUMPTION')),
+                returned=Sum('amount', filter=Q(transaction_type='RETURN'))
+            )
+            consumed = transactions['consumed'] or Decimal('0')
+            returned = transactions['returned'] or Decimal('0')
+            # tankhah_consumed = Tankhah.objects.filter(
+            #     project_budget_allocation=self
+            # ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            # free_budget = self.allocated_amount - consumed + returned - tankhah_consumed
+            # cache.set(cache_key, free_budget, timeout=300)
+            tankhah_consumed = Tankhah.objects.filter(
+                project_budget_allocation=self,
+                status='APPROVED'
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            free_budget = self.allocated_amount - consumed + returned - tankhah_consumed
+            cache.set(cache_key, free_budget, timeout=300)
+        return free_budget
+
+
+    def clean(self):
+        remaining = self.budget_allocation.get_remaining_amount()
+        if self.allocated_amount > remaining:
+            raise ValidationError(_("مبلغ تخصیص بیشتر از بودجه باقی‌مانده شعبه است"))
+        if self.subproject and self.subproject.project != self.project:
+            raise ValidationError(_("زیرپروژه باید به پروژه انتخاب‌شده تعلق داشته باشد"))
+        if self.allocated_amount < 0:
+            raise ValidationError(_("مبلغ تخصیص نمی‌تواند منفی باشد"))
+        if self.budget_allocation and self.allocation_date:
+            start_date = self.budget_allocation.budget_period.start_date
+            end_date = self.budget_allocation.budget_period.end_date
+            logger.info(
+                f"start_date: {start_date} ({type(start_date)}), end_date: {end_date} ({type(end_date)}), allocation_date: {self.allocation_date} ({type(self.allocation_date)})"
+            )
+            # از آنجا که allocation_date یک DateField است، باید همیشه datetime.date باشد
+            allocation_date = self.allocation_date
+            if not isinstance(allocation_date, date):
+                raise ValidationError(_("تاریخ تخصیص باید یک تاریخ معتبر باشد"))
+            if not (start_date <= allocation_date <= end_date):
+                raise ValidationError(_("تاریخ تخصیص باید در بازه دوره بودجه باشد"))
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        self.full_clean()
+        if not kwargs.get('skip_lock_status_update', False):
+            self.update_lock_status()
+        kwargs.pop('skip_lock_status_update', None)
+        super().save(*args, **kwargs)
+        if self.subproject:
+            self.subproject.save()  # به‌روزرسانی بودجه زیرپروژه
+        logger.info(f"ProjectBudgetAllocation {self.pk} saved successfully")
+
+"""PaymentOrder (دستور پرداخت):"""
+class PaymentOrder(models.Model):
+    """توضیح: مدل جدا برای دستور پرداخت با لینک به تنخواه و فاکتورها. min_signatures برای کنترل تعداد امضا و شماره‌گذاری پویا با تاریخ شمسی."""
+    STATUS_CHOICES = (
+        ('DRAFT', _('پیش‌نویس')),
+        ('PENDING_SIGNATURES', _('در انتظار امضا')),
+        ('ISSUED', _('صادر شده')),
+        ('PAID', _('پرداخت شده')),
+        ('CANCELED', _('لغو شده')),
+    )
+    tankhah = models.ForeignKey('tankhah.Tankhah', on_delete=models.CASCADE,
+                                related_name='payment_orders', verbose_name=_("تنخواه"))
+    order_number = models.CharField(max_length=50, unique=True, blank=True,
+                                    verbose_name=_("شماره دستور پرداخت"))
+    issue_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ صدور"))
+    amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ"))
+    payee = models.ForeignKey('Payee', on_delete=models.SET_NULL, null=True,
+                              verbose_name=_("دریافت‌کننده"))
+    description = models.TextField(verbose_name=_("شرح پرداخت"))
+    related_factors = models.ManyToManyField('tankhah.Factor', blank=True,
+                                             verbose_name=_("فاکتورهای مرتبط"))
+    payment_id = models.CharField(max_length=50, blank=True, null=True,
+                                  verbose_name=_("شناسه پرداخت"))
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT',
+                              verbose_name=_("وضعیت"))
+    created_by_post = models.ForeignKey('core.Post', on_delete=models.SET_NULL, null=True,
+                                        verbose_name=_("پست ایجادکننده"))
+    min_signatures = models.IntegerField(default=1, verbose_name=_("حداقل تعداد امضا"))
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
+                                   related_name='payment_orders_created', verbose_name=_("ایجادکننده"))
+
+    payment_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پرداخت"))
+    def generate_order_number(self):
+        sep = "-"
+        date_str = jdatetime.date.fromgregorian(date=self.issue_date).strftime('%Y%m%d')
+        serial = PaymentOrder.objects.filter(issue_date=self.issue_date).count() + 1
+        return f"PO{sep}{date_str}{sep}{serial:03d}"
+
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            self.order_number = self.generate_order_number()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.order_number} - {self.amount}"
+
+    class Meta:
+        verbose_name = _("دستور پرداخت")
+        verbose_name_plural = _("دستورهای پرداخت")
+        default_permissions = ()
+        permissions = [
+            ('PaymentOrder_add', _('افزودن دستور پرداخت')),
+            ('PaymentOrder_view', _('نمایش دستور پرداخت')),
+            ('PaymentOrder_update', _('بروزرسانی دستور پرداخت')),
+            ('PaymentOrder_delete', _('حذف دستور پرداخت')),
+            ('PaymentOrder_sign', _('امضای دستور پرداخت')),
+            ('PaymentOrder_issue', _('صدور دستور پرداخت')),
+        ]
+
+"""Payee (دریافت‌کننده):"""
+class Payee(models.Model):
+    """توضیح: اطلاعات دریافت‌کننده پرداخت با نوع مشخص (فروشنده، کارمند، دیگر)."""
+    PAYEE_TYPES = (
+        ('VENDOR', _('فروشنده')),
+        ('EMPLOYEE', _('کارمند')),
+        ('OTHER', _('دیگر')),
+    )
+    name = models.CharField(max_length=100, verbose_name=_("نام"))
+    family = models.CharField(max_length=100, verbose_name=_("نام خانوادگی"))
+    payee_type = models.CharField(max_length=20, choices=PAYEE_TYPES, verbose_name=_("نوع"))
+    national_id = models.CharField(max_length=20, blank=True, null=True,
+                                   verbose_name=_("کد ملی/اقتصادی"))
+    account_number = models.CharField(max_length=50, blank=True, null=True,
+                                      verbose_name=_("شماره حساب"))
+    iban = models.CharField(max_length=34, blank=True, null=True, verbose_name=_("شبا"))
+    address = models.TextField(blank=True, null=True, verbose_name=_("آدرس"))
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name=_("تلفن"))
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
+                                   related_name='payees_created', verbose_name=_("ایجادکننده"))
+    is_active= models.BooleanField(verbose_name=_('فعال'))
+    def __str__(self):
+        return f"{self.name} ({self.payee_type})"
+
+    class Meta:
+        verbose_name = _("دریافت‌کننده")
+        verbose_name_plural = _("دریافت‌کنندگان")
+        default_permissions = ()
+        permissions = [
+            ('Payee_add', _('افزودن دریافت‌کننده')),
+            ('Payee_view', _('نمایش دریافت‌کننده')),
+            ('Payee_update', _('بروزرسانی دریافت‌کننده')),
+            ('Payee_delete', _('حذف دریافت‌کننده')),
+        ]
+
+"""TransactionType (نوع تراکنش):"""
+class TransactionType(models.Model):
+    """توضیح: تعریف پویا نوع تراکنش‌ها (مثل بیمه، جریمه) با امکان نیاز به تأیید اضافی."""
+    name = models.CharField(max_length=250, unique=True, verbose_name=_("نام"))
+    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+    requires_extra_approval = models.BooleanField(default=False,
+                                                  verbose_name=_("نیاز به تأیید اضافی"))
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
+                                   related_name='transaction_types_created', verbose_name=_("ایجادکننده"))
+    category = models.CharField(max_length=50, blank=True, null=True,verbose_name=_('گروه بندی تراکنش‌ها '))
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _("نوع تراکنش")
+        verbose_name_plural = _("انواع تراکنش")
+        default_permissions = ()
+        permissions = [
+            ('TransactionType_add', _('افزودن نوع تراکنش')),
+            ('TransactionType_view', _('نمایش نوع تراکنش')),
+            ('TransactionType_update', _('بروزرسانی نوع تراکنش')),
+            ('TransactionType_delete', _('حذف نوع تراکنش')),
+        ]
+
+"""مدل BudgetReallocation برای انتقال باقی‌مانده بودجه متوقف‌شده."""
+class BudgetReallocation(models.Model):
+    source_allocation = models.ForeignKey('BudgetAllocation', on_delete=models.CASCADE, related_name='reallocations_from')
+    target_allocation = models.ForeignKey('BudgetAllocation', on_delete=models.CASCADE, null=True, related_name='reallocations_to')
+    amount = models.DecimalField(max_digits=25, decimal_places=2)
+    reallocation_date = models.DateField(default=timezone.now)
+    reason = models.TextField()
+    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+
+"""یه جدول تنظیمات (BudgetSettings) برای مدیریت قفل و هشدار در سطوح مختلف:"""
+class BudgetSettings(models.Model):
+    level = models.CharField(max_length=50, choices=[('PERIOD', 'دوره بودجه'), ('ALLOCATION', 'تخصیص'), ('PROJECT', 'پروژه')])
+    locked_percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    warning_threshold = models.DecimalField(max_digits=5, decimal_places=2)
+    warning_action = models.CharField(max_length=50, choices=[('NOTIFY', 'اعلان'), ('LOCK', 'قفل'), ('RESTRICT', 'محدود')])
+    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, null=True)
+    budget_period = models.ForeignKey('BudgetPeriod', on_delete=models.CASCADE, null=True, verbose_name=_("دوره بودجه"))
+
+    # ردیابی مدل
+    # content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    # object_id = models.PositiveIntegerField()
+    # content_object = GenericForeignKey('content_type', 'object_id')
+
+"""مدل BudgetHistory برای لاگ کردن تغییرات بودجه و تخصیص‌ها:"""
+# ------------------------------------
+"""تاریخچه برای هر بودجه کلان"""
+class BudgetHistory(models.Model):
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    # content_object = GenericForeignKey('content_type', 'object_id')
+    action = models.CharField(max_length=50, choices=[
+        ('CREATE', _('ایجاد')),
+        ('UPDATE', _('بروزرسانی')),
+        ('STOP', _('توقف')),
+        ('REALLOCATE', _('انتقال')),
+        ('RETURN', _('برگشت'))  # جدید
+    ])
+    amount = models.DecimalField(max_digits=25, decimal_places=2, null=True, verbose_name=_('رقم عدد'))
+    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, verbose_name=_('کاربر ثبت کننده'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('اکشن در تاریخ و ساعت'))
+    details = models.TextField(blank=True, verbose_name=_('جزئیات'))
+    transaction_type = models.CharField(max_length=20, choices=[('ALLOCATION', _('تخصیص')), ('CONSUMPTION', _('مصرف')), ('RETURN', _('برگشت'))],verbose_name=_("نوع تراکنش"))
+    transaction_id = models.CharField(max_length=50, unique=True, verbose_name=_("شناسه تراکنش"))
+
+
+    def __str__(self):
+        return f"{self.action} - {self.amount:,} ({self.created_at})"
+
+    class Meta:
+        verbose_name = _("تاریخچه بودجه")
+        verbose_name_plural = _("تاریخچه‌های بودجه")
+        default_permissions = ()
+        permissions = [
+            ('BudgetHistory_add','افزودن تاریخچه برای هر بودجه کلان'),
+            ('BudgetHistory_view',' نمایش تاریخچه هر بودجه کلان'),
+            ('BudgetHistory_update','بروزرسانی تاریخچه برای هر بودجه کلان'),
+            ('BudgetHistory_delete',' حــذف تاریخچه برای هر بودجه کلان'),
+        ]
+class Factor(models.Model):
+    STATUS_CHOICES = (
+        ('DRAFT', _('پیش‌نویس')),
+        ('PENDING', _('در انتظار تأیید')),
+        ('APPROVED', _('تأیید شده')),
+        ('REJECTED', _('رد شده')),
+        ('PAID', _('پرداخت شده')),
+    )
+
+    number = models.CharField(max_length=60, blank=True, verbose_name=_("شماره فاکتور"))
+    tankhah = models.ForeignKey('Tankhah', on_delete=models.PROTECT, related_name='factors', verbose_name=_("تنخواه"))
+    date = models.DateField(default=timezone.now, verbose_name=_("تاریخ"))
+    amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name=_('مبلغ فاکتور'), default=0)
+    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name=_("وضعیت"))
+    approved_by = models.ManyToManyField(CustomUser, blank=True, verbose_name=_("تأییدکنندگان"))
+    is_finalized = models.BooleanField(default=False, verbose_name=_("نهایی شده"))
+    locked = models.BooleanField(default=False, verbose_name="قفل شده")
+    locked_by_stage = models.ForeignKey(WorkflowStage, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("قفل شده توسط مرحله"))
+    budget = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name=_("بودجه تخصیصی"))
+    remaining_budget = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name=_("بودجه باقیمانده"))
+    created_by = models.ForeignKey('accounts.CustomUser',related_name='CustomUser_related', on_delete=models.SET_NULL, null=True, verbose_name=_("ایجادکننده"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    is_emergency = models.BooleanField(default=False, verbose_name=_("اضطراری"))
+    category = models.ForeignKey('ItemCategory', on_delete=models.SET_NULL, null=True, blank=False, verbose_name=_("دسته‌بندی"))
+
+    def get_remaining_budget(self):
+        return get_factor_remaining_budget(self)
+
+    def get_items_total(self):
+        if self.pk:
+            total = self.items.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            return total
+        return Decimal('0')
+
+    def total_amount(self):
+        if self.pk:
+            return self.get_items_total()
+        return Decimal('0')
+    #
+    # def generate_number(self):
+    #     from jdatetime import date as jdate
+    #     date_str = jdate.fromgregorian(date=self.date).strftime('%Y%m%d')
+    #     serial = Factor.objects.filter(date=self.date).count() + 1
+    #     return f"FAC-{self.tankhah.number}-{date_str}-{serial:03d}"
+    def generate_number(self):
+        """تولید شماره یکتا برای فاکتور با استفاده از تاریخ شمسی"""
+        sep = '-'  # استفاده از جداکننده ثابت
+        from jdatetime import date as jdate
+        date_str = jdate.fromgregorian(date=self.date).strftime('%Y%m%d')
+        org_code = self.tankhah.organization.code if self.tankhah and self.tankhah.organization else 'NOORG'
+        tankhah_number = self.tankhah.number if self.tankhah else 'NOTNKH'
+
+        with transaction.atomic():
+            max_serial = Factor.objects.filter(
+                tankhah__organization=self.tankhah.organization,
+                date=self.date
+            ).aggregate(models.Max('number'))['number__max']
+
+            serial = 1
+            if max_serial:
+                last_number = max_serial.split(sep)[-1]
+                try:
+                    serial = int(last_number) + 1
+                except ValueError:
+                    pass
+
+            new_number = f"FAC{sep}{tankhah_number}{sep}{date_str}{sep}{org_code}{sep}{serial:04d}"
+            while Factor.objects.filter(number=new_number).exists():
+                serial += 1
+                new_number = f"FAC{sep}{tankhah_number}{sep}{date_str}{sep}{org_code}{sep}{serial:04d}"
+            return new_number
+
+    def clean(self):
+        super().clean()
+        if self.amount < 0:
+            raise ValidationError(_("مبلغ فاکتور نمی‌تواند منفی باشد."))
+        if not self.category:
+            raise ValidationError(_("دسته‌بندی الزامی است."))
+        if self.tankhah and (
+                self.tankhah.status not in ['DRAFT', 'PENDING'] ): #or not self.tankhah.workflow_stage.is_initial
+            raise ValidationError(_("تنخواه انتخاب‌شده در وضعیت یا مرحله مجاز نیست."))
+
+        #
+        # total = self.total_amount()
+        # errors = {}
+        # if self.pk and total <= 0:
+        #     raise ValidationError(_("مبلغ فاکتور باید مثبت باشد."))
+        #
+        # if abs(self.amount - total) > 0.01:
+        #     logger.warning(f"Factor {self.number}: amount ({self.amount}) != items total ({total})")
+        #     raise ValidationError(_("مبلغ فاکتور با مجموع آیتم‌ها همخوانی ندارد."))
+        #
+        # if self.tankhah:
+        #     tankhah_remaining = get_tankhah_remaining_budget(self.tankhah)
+        #     if total > tankhah_remaining:
+        #         raise ValidationError(
+        #             _(f"مبلغ فاکتور ({total:,.0f} ریال) نمی‌تواند بیشتر از بودجه باقی‌مانده تنخواه ({tankhah_remaining:,.0f} ریال) باشد.")
+        #         )
+        #
+        # if not self.category:
+        #     errors['category'] = ValidationError(_('دسته‌بندی الزامی است.'), code='category_required')
+        # if errors:
+        #     raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        """ذخیره فاکتور با مدیریت تراکنش‌ها، اعلان‌ها و تاریخچه تغییرات"""
+        from budgets.models import BudgetTransaction
+        with transaction.atomic():
+            if not self.number:
+                self.number = self.generate_number()
+
+            # فقط در صورت نیاز به اعتبارسنجی خاص مدل، clean را فراخوانی کنید
+            original = None
+            if self.pk:
+                original = Factor.objects.get(pk=self.pk)
+
+            # به‌روزرسانی بودجه و وضعیت قفل
+            if original and self.status != original.status:
+                if self.status == 'PAID' and not self.is_locked:
+                    create_budget_transaction(
+                        allocation=self.tankhah.budget_allocation,
+                        transaction_type='CONSUMPTION',
+                        amount=self.amount,  # استفاده از self.amount به جای total_amount()
+                        related_obj=self,
+                        created_by=self.created_by,
+                        description=f"مصرف بودجه توسط فاکتور {self.number}",
+                        transaction_id=f"TX-FAC-{self.number}"
+                    )
+                    self.is_locked = True
+
+                    # post = Post.objects.get(id=1)
+                    # from Tanbakhsystem.view.views_notifications import send_notification
+                    # send_notification(
+                    #     sender=sender,
+                    #     posts=post,
+                    #     verb='یک پیام تست برای پست ارسال کرد',
+                    #     description='این یک اعلان آزمایشی است.',
+                    #     target=post
+                    # )
+                    # Notification.objects.create(
+                    #     user=self.created_by,
+                    #     message=f"فاکتور {self.number} پرداخت شد.",
+                    #     tankhah=self.tankhah
+                    # )
+                elif self.status == 'REJECTED' and original.status in ['APPROVED', 'PAID'] and self.is_locked:
+                    create_budget_transaction(
+                        allocation=self.tankhah.budget_allocation,
+                        transaction_type='RETURN',
+                        amount=self.amount,
+                        related_obj=self,
+                        created_by=self.created_by,
+                        description=f"بازگشت بودجه به دلیل رد فاکتور {self.number}",
+                        transaction_id=f"TX-FAC-RET-{self.number}"
+                    )
+            super().save(*args, **kwargs)
+            # بررسی قفل شدن تخصیص یا دوره
+            if self.transaction.allocation.is_locked or self.transaction.allocation.budget_period.is_locked:
+                if self.status != 'PAID':
+                    raise ValidationError(_("نمی‌توان فاکتور جدید ثبت کرد، تخصیص یا دوره قفل شده است."))
+            # ثبت ApprovalLog فقط در صورت تغییر وضعیت یا فیلدها
+            if original:
+                changed_fields = [field.name for field in self._meta.fields if
+                                  getattr(original, field.name) != getattr(self, field.name)]
+                if changed_fields or self.status != original.status:
+                    from django.contrib.contenttypes.models import ContentType
+                    user_post = self.created_by.userpost_set.filter(is_active=True).first()
+                    if user_post:
+                        ApprovalLog.objects.create(
+                            factor=self,
+                            action='STAGE_CHANGE' if changed_fields else (
+                                'APPROVE' if self.status in ['APPROVED', 'PAID'] else 'REJECT'),
+                            stage=self.tankhah.current_stage,
+                            user=self.created_by,
+                            post=user_post.post,
+                            content_type=ContentType.objects.get_for_model(self),
+                            object_id=self.id,
+                            comment=f"تغییر {'فیلدها' if changed_fields else 'وضعیت'} فاکتور به {self.get_status_display()}",
+                            changed_field=', '.join(changed_fields) if changed_fields else None
+                        )
+
+                    # self.is_locked = False
+                    # Notification.objects.create(
+                    #     user=self.created_by,
+                    #     message=f"فاکتور {self.number} رد شد.",
+                    #     tankhah=self.tankhah
+                    # )
+            # if self.pk and self.status == 'PENDING':
+            #     # from django.contrib.contenttypes.models import ContentType
+            #     user_post = self.created_by.userpost_set.filter(is_active=True).first()
+            #     if user_post:
+            #         ApprovalLog.objects.create(
+            #             factor=self,
+            #             action='STAGE_CHANGE',
+            #             stage=self.tankhah.current_stage,
+            #             user=self.created_by,
+            #             post=user_post.post,
+            #             content_type=ContentType.objects.get_for_model(self),
+            #             object_id=self.id
+            #         )
+
+            # ثبت لاگ تأیید/رد
+            # if original and self.status != original.status:
+            #     ApprovalLog.objects.create(
+            #         factor=self,
+            #         action='APPROVE' if self.status in ['APPROVED', 'PAID'] else 'REJECT',
+            #         stage=self.locked_by_stage or self.tankhah.current_stage,
+            #         user=self.created_by,
+            #         comment=f"تغییر وضعیت فاکتور به {self.get_status_display()}",
+            #         content_type=ContentType.objects.get_for_model(self),
+            #         object_id=self.pk
+            #     )
+
+            # ثبت تاریخچه تغییرات
+            # if original:
+            #     changed_fields = []
+            #     for field in self._meta.fields:
+            #         field_name = field.name
+            #         if getattr(original, field_name) != getattr(self, field_name):
+            #             changed_fields.append(field_name)
+            #     if changed_fields:
+            #         ApprovalLog.objects.create(
+            #             factor=self,
+            #             action='STAGE_CHANGE',
+            #             stage=self.locked_by_stage or self.tankhah.current_stage,
+            #             user=self.created_by,
+            #             comment=f"تغییر فیلدهای {', '.join(changed_fields)}",
+            #             content_type=ContentType.objects.get_for_model(self),
+            #             object_id=self.pk,
+            #             changed_field=', '.join(changed_fields)
+            #         )
+
+    def __str__(self):
+        # اصلاح متد __str__ برای مدیریت tankhah=None
+        tankhah_number = self.tankhah.number if self.tankhah else "تنخواه ندارد"
+        return f"{self.number} ({tankhah_number})"
+
+    class Meta:
+        verbose_name = _("فاکتور")
+        verbose_name_plural = _("فاکتورها")
+        indexes = [
+            models.Index(fields=['number', 'date', 'status', 'tankhah']),
+        ]
+        default_permissions = ()
+        permissions = [
+            ('factor_add', _('افزودن فاکتور')),
+            ('factor_view', _('نمایش فاکتور')),
+            ('factor_update', _('بروزرسانی فاکتور')),
+            ('factor_delete', _('حذف فاکتور')),
+            ('factor_approve', _('تأیید فاکتور')),
+            ('factor_reject', _('رد فاکتور')),
+            ('Factor_full_edit', _('دسترسی کامل به فاکتور')),
+        ]
+class Tankhah(models.Model):
+    """مدل تنخواه برای ثبت و مدیریت درخواست‌های مالی"""
+    STATUS_CHOICES = (
+        ('DRAFT', _('پیش‌نویس')),
+        ('PENDING', _('در حال بررسی')),
+        ('APPROVED', _('تأییدشده')),
+        ('SENT_TO_HQ', _('ارسال‌شده به HQ')),
+        ('HQ_OPS_PENDING', _('در حال بررسی - بهره‌برداری')),
+        ('HQ_OPS_APPROVED', _('تأییدشده - بهره‌برداری')),
+        ('HQ_FIN_PENDING', _('در حال بررسی - مالی')),
+        ('PAID', _('پرداخت‌شده')),
+        ('REJECTED', _('ردشده')),
+    )
+    number = models.CharField(max_length=50, unique=True, blank=True, verbose_name=_("شماره تنخواه"))
+    amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ"))
+    date = models.DateTimeField(default=timezone.now, verbose_name=_("تاریخ"))
+    due_date = models.DateTimeField(null=True, blank=True, verbose_name=_('مهلت زمانی'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد")) # اجبار در توقف
+    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_('مجموعه/شعبه'))
+    # project = models.ForeignKey('core.Project', on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('پروژه'))
+    project = models.ForeignKey('core.Project', on_delete=models.SET_NULL, null=True, blank=True, related_name='tankhah_set', verbose_name=_('پروژه'))
+    project_budget_allocation = models.ForeignKey('budgets.ProjectBudgetAllocation', on_delete=models.CASCADE,
+                                                  related_name='tankhahs', verbose_name=_("تخصیص بودجه پروژه"),
+                                                  null=True, blank=True)
+    subproject = models.ForeignKey('core.SubProject', on_delete=models.CASCADE, null=True, blank=True, verbose_name=_("زیر مجموعه پروژه"))
+    letter_number = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("شماره نامه"))
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, related_name='tankhah_created', verbose_name=_("ایجادکننده"))
+    approved_by = models.ManyToManyField('accounts.CustomUser', blank=True, verbose_name=_('تأییدکنندگان'))
+    description = models.TextField(verbose_name=_("توضیحات"))
+    current_stage = models.ForeignKey('core.WorkflowStage', on_delete=models.SET_NULL, null=True,
+                                      default=get_default_workflow_stage, verbose_name="مرحله فعلی")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES,  default='DRAFT', verbose_name=_("وضعیت"))
+    hq_status = models.CharField(max_length=20, default='PENDING',
+                                 choices=STATUS_CHOICES, null=True, blank=True,
+                                 verbose_name=_("وضعیت در HQ"))
+    last_stopped_post = models.ForeignKey('core.Post', null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("آخرین پست متوقف‌شده"))
+
+    is_archived = models.BooleanField(default=False, verbose_name=_("آرشیو شده"))
+
+    payment_number = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("شماره پرداخت"))
+    is_locked = models.BooleanField(default=False, verbose_name=_("قفل شده"))
+    archived_at = models.DateTimeField(null=True, blank=True, verbose_name="زمان آرشیو")
+    canceled = models.BooleanField(default=False, verbose_name="لغو شده")
+    remaining_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("بودجه باقیمانده"))
+
+    budget_allocation = models.ForeignKey('budgets.BudgetAllocation', on_delete=models.SET_NULL, null=True,
+                                          verbose_name=_("تخصیص بودجه"))
+    is_emergency = models.BooleanField(default=False, verbose_name=_("اضطراری"))
+    """توضیح: لینک به BudgetAllocation برای مصرف بودجه و اضافه شدن is_emergency."""
+    request_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ درخواست"))
+
+    def generate_number(self):
+        """تولید شماره یکتا برای تنخواه با تاریخ شمسی"""
+        sep = NUMBER_SEPARATOR
+
+        # تبدیل تاریخ میلادی به شمسی
+        import jdatetime
+        jalali_date = jdatetime.datetime.fromgregorian(datetime=self.date)
+        date_str = jalali_date.strftime('%Y%m%d')  # فرمت YYYYMMDD شمسی
+
+        org_code = self.organization.code
+        project_code = self.project.code if self.project else 'NOPRJ'
+
+        # پیدا کردن بالاترین شماره سریال برای این تاریخ و سازمان
+        with transaction.atomic():
+            max_serial = Tankhah.objects.filter(
+                organization=self.organization,
+                date__date=self.date.date()  # همچنان از تاریخ میلادی برای فیلتر استفاده می‌کنیم
+            ).aggregate(Max('number'))['number__max']
+
+            if max_serial:
+                # استخراج شماره سریال از آخرین شماره موجود
+                last_number = max_serial.split(sep)[-1]
+                serial = int(last_number) + 1
+            else:
+                serial = 1
+
+            new_number = f"TNKH{sep}{date_str}{sep}{org_code}{sep}{project_code}{sep}{serial:03d}"
+            # چک کردن یکتایی و افزایش سریال در صورت نیاز
+            while Tankhah.objects.filter(number=new_number).exists():
+                serial += 1
+                new_number = f"TNKH{sep}{date_str}{sep}{org_code}{sep}{project_code}{sep}{serial:03d}"
+            return new_number
+
+    def clean(self):
+        """اعتبارسنجی تنخواه"""
+        super().clean()
+
+        if self.amount <= 0:
+            raise ValidationError(_("مبلغ تنخواه باید مثبت باشد."))
+        if self.subproject and self.subproject.project != self.project:
+            raise ValidationError(_("زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد."))
+
+        remaining = self.get_remaining_budget()
+        if self.amount > remaining:
+            raise ValidationError(
+                _(f"مبلغ تنخواه ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining:,.0f} ریال) است.")
+            )
+            # حذف اعتبارسنجی سخت‌گیرانه budget_allocation اگر اختیاری است
+        if not self.budget_allocation and not self.project_budget_allocation:
+            logger.warning("Neither budget_allocation nor project_budget_allocation is set.")
+            raise ValidationError({"budget_allocation": _("حداقل یکی از تخصیص‌های بودجه باید تنظیم شود.")})
+
+        if self.subproject and self.subproject.project != self.project:
+            raise ValidationError(_("زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد."))
+
+        if not self.budget_allocation:
+            logger.warning("budget_allocation مقدار ندارد. این ممکن است باعث مشکلاتی در مراحل بعدی شود.")
+            # اگر نمی‌خواهید این فیلد اجباری باشد، خطا اضافه نکنید
+            # اگر اجباری است، خطا اضافه کنید:
+            raise ValidationError({"budget_allocation": _("این فیلد نمی‌تواند خالی باشد.")})
+
+    def get_remaining_budget(self):
+            """محاسبه بودجه باقی‌مانده برای تنخواه"""
+            if self.project_budget_allocation:
+                return self.project_budget_allocation.get_remaining_amount()
+            elif self.budget_allocation:
+                return self.budget_allocation.get_remaining_amount()
+            elif self.subproject:
+                return get_subproject_remaining_budget(self.subproject)
+            return Decimal('0')
+
+    def save(self, *args, **kwargs):
+        from budgets.models import ProjectBudgetAllocation
+        with transaction.atomic():
+            if not self.number:
+                self.number = self.generate_number()
+            self.full_clean()
+
+            # دریافت تخصیص بودجه
+            allocation = self.project_budget_allocation or ProjectBudgetAllocation.objects.filter(
+                budget_allocation=self.budget_allocation,
+                project=self.project,
+                subproject=self.subproject
+            ).first()
+            if not allocation:
+                raise ValidationError(_("تخصیص بودجه معتبر برای این پروژه/زیرپروژه یافت نشد."))
+
+            # ثبت تراکنش در صورت ایجاد یا تغییر وضعیت
+            if self.status in ['APPROVED', 'REJECTED', 'PAID'] and not self.is_locked:
+                if self.budget_allocation:  # چک کردن وجود budget_allocation
+                    print('  چک کردن وجود budget_allocation')
+                    self.budget_allocation.send_notification(
+                        self.status.lower(),
+                        f"تنخواه {self.number} به وضعیت {self.get_status_display()} تغییر کرد."
+                    )
+                self.is_locked = True
+
+            if not self.pk:  # فقط موقع ایجاد
+                # پیدا کردن تخصیص بودجه پروژه/زیرپروژه
+                if self.subproject:
+                    allocation = ProjectBudgetAllocation.objects.filter(
+                        budget_allocation=self.budget_allocation if self.budget_allocation else None,
+                        subproject=self.subproject
+                    ).first()
+                    remaining = allocation.remaining_amount if allocation else self.subproject.get_remaining_budget()
+                elif self.project:
+                    allocation = ProjectBudgetAllocation.objects.filter(
+                        budget_allocation=self.budget_allocation if self.budget_allocation else None,
+                        project=self.project,
+                        subproject__isnull=True
+                    ).first()
+                    remaining = allocation.remaining_amount if allocation else self.project.get_remaining_budget()
+                else:
+                    raise ValueError("تنخواه باید به پروژه یا ساب‌پروژه وصل باشد.")
+
+                if self.amount > remaining:
+                    raise ValidationError(
+                        _(f"مبلغ تنخواه ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده تخصیص ({remaining:,.0f} ریال) است.")
+                    )
+
+            # بررسی بازگشت به مرحله اولیه پس از رد شدن
+            initial_stage = WorkflowStage.objects.order_by('order').first()
+            if self.status == 'REJECTED' and self.current_stage == initial_stage:
+                logger.info(f"تنخواه {self.number} به مرحله اولیه ({initial_stage.name}) بازگشته است.")
+                # اقدامات اضافی: مثلاً باز کردن قفل فاکتورها برای ویرایش
+                from tankhah.models import Factor
+                factors = Factor.objects.filter(tankhah=self, is_finalized=True)
+                updated = factors.update(is_finalized=False, locked=False)
+                if updated:
+                    logger.info(f"{updated} فاکتور برای تنخواه {self.number} برای ویرایش باز شدند.")
+
+            # به‌روزرسانی بودجه در صورت تغییر وضعیت
+            if self.status == 'PAID':
+                self.is_locked = True
+                if self.budget_allocation:  # چک کردن وجود budget_allocation
+                    self.budget_allocation.send_notification(
+                        'paid',
+                        f"تنخواه {self.number} پرداخت شد."
+                    )
+            elif self.status == 'REJECTED' and self.is_locked:
+                if allocation and self.budget_allocation:
+                    # انتقال بودجه به تخصیص دیگر (مثلاً تخصیص HQ)
+                    from budgets.models import   BudgetAllocation
+                    target_allocation = BudgetAllocation.objects.filter(organization__is_core=True).first()
+                    if target_allocation:
+                        create_budget_transaction(
+                            allocation=self.budget_allocation,
+                            transaction_type='TRANSFER',
+                            amount=self.amount,
+                            related_obj=self,
+                            created_by=self.created_by,
+                            description=f"انتقال بودجه به دلیل رد تنخواه {self.number}",
+                            transaction_id=f"TX-TNK-XFER-{self.number}",
+                            target_allocation=target_allocation
+                        )
+                    else:
+                        # بازگشت بودجه به تخصیص فعلی
+                        allocation.remaining_amount += self.amount
+                        allocation.save()
+                        from budgets.models import  BudgetTransaction
+                        BudgetTransaction.objects.create(
+                            allocation=self.budget_allocation,
+                            transaction_type='RETURN',
+                            amount=self.amount,
+                            related_tankhah=self,
+                            created_by=self.created_by,
+                            description=f"بازگشت بودجه به دلیل رد تنخواه {self.number}",
+                            transaction_id=f"TX-TNK-RET-{self.number}"
+                        )
+                self.is_locked = False
+                # بازگشت بودجه در صورت رد شدن
+                # if allocation and self.budget_allocation:
+                #     allocation.remaining_amount += self.amount
+                #     allocation.save()
+                #     from budgets.models import BudgetTransaction
+                #     BudgetTransaction.objects.create(
+                #         allocation=self.budget_allocation,
+                #         transaction_type='RETURN',
+                #         amount=self.amount,
+                #         related_tankhah=self,
+                #         created_by=self.created_by,
+                #         description=f"بازگشت بودجه به دلیل رد تنخواه {self.number}",
+                #         transaction_id=f"TX-TNK-RET-{self.number}"
+                #     )
+                # self.is_locked = False
+
+        super().save(*args, **kwargs)
+        # بررسی قفل شدن تخصیص یا دوره
+        if self.allocation.is_locked or self.allocation.budget_period.is_locked:
+            self.is_active = False
+            self.save(update_fields=['is_active'])
+
+    def __str__(self):
+        project_str = self.project.name if self.project else 'بدون پروژه'
+        subproject_str = f" ({self.subproject.name})" if self.subproject else ''
+        return f"{self.number} - {project_str}{subproject_str} - {self.amount:,.0f} ({self.get_status_display()})"
+
+    class Meta:
+        verbose_name = _("تنخواه")
+        verbose_name_plural = _("تنخواه‌ها")
+        indexes = [
+            models.Index(fields=['number', 'date', 'status' ,'organization'])]
+        default_permissions =()
+        permissions = [
+            ('Tankhah_add', _(' + افزودن تنخواه')),
+            ('Tankhah_view', _('نمایش تنخواه')),
+            ('Tankhah_update', _('🆙بروزرسانی تنخواه')),
+            ('Tankhah_delete', _('⛔حذف تنخواه')),
+            ('Tankhah_approve', _('👍تأیید تنخواه')),
+            ('Tankhah_reject', _('رد تنخواه👎')),
+
+            ('Tankhah_part_approve', '👍تأیید رئیس قسمت'),
+
+            ('Tankhah_hq_view', 'رصد دفتر مرکزی'),
+            ('Tankhah_hq_approve', '👍تأیید رده بالا در دفتر مرکزی'),
+
+            ('Tankhah_HQ_OPS_PENDING', _('در حال بررسی - بهره‌برداری')),
+            ('Tankhah_HQ_OPS_APPROVED', _('👍تأییدشده - بهره‌برداری')),
+            ('Tankhah_HQ_FIN_PENDING', _('در حال بررسی - مالی')),
+            ('Tankhah_PAID', _('پرداخت‌شده')),
+
+            ("FactorItem_approve", "👍تایید/رد ردیف فاکتور (تایید ردیف فاکتور*استفاده در مراحل تایید*)"),
+            ('edit_full_tankhah','👍😊تغییرات کاربری در فاکتور /تایید یا رد ردیف ها '),
+
+            ('Dashboard_Core_view', 'دسترسی به داشبورد Core پایه'),
+            ('DashboardView_flows_view', 'دسترسی به روند تنخواه گردانی'),
+            ('Dashboard__view', 'دسترسی به داشبورد اصلی 💻'),
+
+            ('Dashboard_Stats_view', 'دسترسی به آمار کلی داشبورد💲'),
+        ]
+ #-------- فرمت نمایشی خاص
+    def get_project_total_budget_display(self):
+        return f"{self.project_total_budget:,.0f}" if hasattr(self,
+                                                              'project_total_budget') and self.project_total_budget else '-'
+
+    def get_project_remaining_budget_display(self):
+        return f"{self.project_remaining_budget:,.0f}" if hasattr(self,
+                                                                  'project_remaining_budget') and self.project_remaining_budget else '-'
+
+    def get_branch_total_budget_display(self):
+        return f"{self.branch_total_budget:,.0f}" if hasattr(self,
+                                                             'branch_total_budget') and self.branch_total_budget else '-'
+
+    def get_tankhah_used_budget_display(self):
+        return f"{self.tankhah_used_budget:,.0f}" if hasattr(self,
+                                                             'tankhah_used_budget') and self.tankhah_used_budget else '-'
+
+    def get_factor_used_budget_display(self):
+        return f"{self.factor_used_budget:,.0f}" if hasattr(self, 'factor_used_budget') and self.factor_used_budget else '-'
+
+
+class OrganizationType(models.Model):
+    fname = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name=_('نام شعبه/مجتمع/اداره'))
+    org_type = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name=_('نام شعبه/مجتمع/اداره'))
+    is_budget_allocatable = models.BooleanField(default=False, verbose_name=_("قابل استفاده برای تخصیص بودجه"))
+    def __str__(self):
+        return f"{self.fname} - {self.org_type} "or _("نامشخص")
+
+    class Meta:
+        verbose_name = _('عنوان مرکز/شعبه/اداره/سازمان')
+        verbose_name_plural = _('عنوان مرکز/شعبه/اداره/سازمان')
+        default_permissions = ()
+        permissions = [
+            ('OrganizationType_add', 'افزودن شعبه/اداره/مجتمع/سازمان'),
+            ('OrganizationType_view', 'نمایش شعبه/اداره/مجتمع/سازمان'),
+            ('OrganizationType_update', 'ویرایش شعبه/اداره/مجتمع/سازمان'),
+            ('OrganizationType_delete', 'حــذف شعبه/اداره/مجتمع/سازمان'),
+         ]
+class Organization(models.Model):
+    """مدل سازمان برای تعریف مجتمع‌ها و دفتر مرکزی"""
+    code = models.CharField(max_length=10, unique=True, verbose_name=_("کد سازمان"))
+    name = models.CharField(max_length=100, verbose_name=_("نام سازمان"))
+    org_type = models.ForeignKey('OrganizationType', on_delete=models.SET_NULL, null=True, blank=True,
+                                 verbose_name=_("نوع سازمان"),
+                                 related_name='organizations')  # اضافه کردن related_name برای وضوح
+
+    description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
+    parent_organization = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
+                                            verbose_name=_("سازمان والد"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    is_core = models.BooleanField(default=False, verbose_name=_("دفتر مرکزی سازمان"))  # تغییر پیش‌فرض به False
+
+    def clean(self):
+        """اعتبارسنجی مدل برای اطمینان از منطق دفتر مرکزی"""
+        from django.core.exceptions import ValidationError
+        if self.is_core and self.parent_organization:
+            raise ValidationError(_('دفتر مرکزی نمی‌تواند سازمان والد داشته باشد.'))
+        if self.is_core:
+            # بررسی وجود تنها یک دفتر مرکزی فعال
+            existing_core = Organization.objects.filter(is_core=True, is_active=True).exclude(pk=self.pk)
+            if existing_core.exists():
+                raise ValidationError(_('فقط یک سازمان می‌تواند به‌عنوان دفتر مرکزی فعال باشد.'))
+
+    def __str__(self):
+        org_type_str = self.org_type.fname if self.org_type else _("نامشخص")
+        return f"{self.code} - {self.name} ({org_type_str})"
+
+    @property
+    def org_type_code(self):
+        return self.org_type.fname if self.org_type else None
+
+    @property
+    def budget_allocations(self):
+        from budgets.models import BudgetAllocation
+        return BudgetAllocation.objects.filter(organization=self)
+
+
+    def save(self, *args, **kwargs):
+        """اجرای clean قبل از ذخیره"""
+        self.full_clean()  # اجرای اعتبارسنجی
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        # Assuming you have a URL pattern named 'organization_detail'
+        # that takes organization's pk or code
+        from django.urls import reverse
+        return reverse('organization_detail', kwargs={'pk': self.pk})
+
+
+    class Meta:
+        verbose_name = _("سازمان")
+        verbose_name_plural = _("سازمان‌ها")
+        default_permissions = ()
+        permissions = [
+            ('Organization_add', 'افزودن سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
+            ('Organization_update', 'بروزرسانی سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
+            ('Organization_delete', 'حــذف سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
+            ('Organization_view', 'نمایش سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
+        ]
+        indexes = [
+            models.Index(fields=['code', 'org_type']),
+        ]
+class Project(models.Model):
+    name = models.CharField(max_length=100, verbose_name=_("نام پروژه"))
+    code = models.CharField(max_length=80, unique=True, verbose_name=_("کد پروژه"))
+    # organizations = models.ManyToManyField(Organization, limit_choices_to={'org_type': 'COMPLEX'}, verbose_name=_("مجتمع‌های مرتبط"))
+    organizations = models.ManyToManyField(
+        Organization,
+        limit_choices_to={'org_type__is_budget_allocatable': True},  # سازمان‌هایی که می‌توانند بودجه دریافت کنند
+        verbose_name=_("سازمان‌های مرتبط")
+    )
+    # allocations = models.ManyToManyField('budgets.BudgetAllocation', blank=True, verbose_name=_("تخصیص‌های بودجه مرتبط"))
+    start_date = models.DateField(verbose_name=_("تاریخ شروع"))
+    end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))
+    description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
+    is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
+    PRIORITY_CHOICES = (('LOW', _('کم')), ('MEDIUM', _('متوسط')), ('HIGH', _('زیاد')),)
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='MEDIUM', verbose_name=_("اولویت"))
+    # total_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("بودجه کل تخصیص‌یافته"))  # فیلد جدید
+
+    def get_total_budget(self):
+        """محاسبه کل بودجه تخصیص‌یافته به پروژه"""
+        return get_project_total_budget(self)
+
+    def get_remaining_budget(self):
+        return get_project_remaining_budget(self)
+
+    def __str__(self):
+        status = "فعال" if self.is_active else "غیرفعال"
+        return f"{self.code} - {self.name} ({status})"
+
+    class Meta:
+        verbose_name = _("پروژه")
+        verbose_name_plural = _("پروژه")
+        default_permissions = ()
+        permissions = [
+            ('Project_add', 'افزودن  مجموعه پروژه'),
+            ('Project_update', 'ویرایش مجموعه پروژه'),
+            ('Project_view', 'نمایش مجموعه پروژه'),
+            ('Project_delete', 'حــذف مجموعه پروژه'),
+            # ('Project_Budget_allocation_Head_Office', 'تخصیص بودجه مجموعه پروژه(دفتر مرکزی)'),
+            # ('Project_Budget_allocation_Branch', 'تخصیص بودجه مجموعه پروژه(شعبه)'),
+        ]
+class SubProject(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='subprojects', verbose_name=_("پروژه اصلی"))
+    name = models.CharField(max_length=200, verbose_name=_("نام ساب‌پروژه"))
+    description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
+    allocated_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0,
+                                           verbose_name=_("بودجه تخصیص‌یافته"))
+    # allocations = models.ManyToManyField('budgets.ProjectBudgetAllocation',
+    #                                     related_name='budget_allocations_set' ,blank=True, verbose_name=_("تخصیص‌های بودجه مرتبط"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+
+    def get_remaining_budget(self):
+        return get_subproject_remaining_budget(self)
+
+    # def get_remaining_budget(self):
+    #     total_allocated = self.budget_allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+    #     consumed = BudgetTransaction.objects.filter(
+    #         allocation__in=self.budget_allocations.all(),
+    #         transaction_type='CONSUMPTION'
+    #     ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    #     returned = BudgetTransaction.objects.filter(
+    #         allocation__in=self.budget_allocations.all(),
+    #         transaction_type='RETURN'
+    #     ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    #     return total_allocated - consumed + returned
+    #
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # به‌روزرسانی بودجه تخصیص‌یافته
+        total_allocated = self.budget_allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+        self.allocated_budget = total_allocated
+        super().save(update_fields=['allocated_budget'])
+        if not self.pk:
+            total_allocated = sum([alloc.amount for alloc in self.allocations.all()])
+            if total_allocated > self.project.get_remaining_budget():
+                raise ValueError("بودجه تخصیص‌یافته بیشتر از بودجه باقی‌مانده پروژه است.")
+
+
+    def __str__(self):
+        return f"{self.name} ({self.project.name})"
+
+    class Meta:
+        verbose_name = _("ساب‌پروژه")
+        verbose_name_plural = _("ساب‌پروژه‌ها")
+        default_permissions =()
+        permissions = [
+            ('SubProject_add','افزودن زیر مجموعه پروژه'),
+            ('SubProject_update','ویرایش زیر مجموعه پروژه'),
+            ('SubProject_view','نمایش زیر مجموعه پروژه'),
+            ('SubProject_delete','حــذف زیر مجموعه پروژه'),
+            ('SubProject_Head_Office','تخصیص زیر مجموعه پروژه(دفتر مرکزی)🏠'),
+            ('SubProject_Branch','تخصیص  زیر مجموعه پروژه(شعبه)🏠'),
+        ]
+class Post(models.Model):
+    """مدل پست سازمانی برای تعریف سلسله مراتب"""
+    BRANCH_CHOICES = (
+        ('OPS', _('بهره‌برداری')),
+        ('FIN', _('مالی و اداری')),
+        (None, _('بدون شاخه')),
+    )
+    name = models.CharField(max_length=100, verbose_name=_("نام پست"))
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, verbose_name=_("سازمان"))
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("پست والد"))
+    level = models.IntegerField(default=1, verbose_name=_("سطح"))
+    branch = models.CharField(max_length=3, choices=BRANCH_CHOICES, null=True, blank=True, verbose_name=_("شاخه"))
+    description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
+    is_active = models.BooleanField(default=True, verbose_name=_("وضعیت فعال"))
+    max_change_level = models.IntegerField(default=1, verbose_name=_("حداکثر سطح تغییر(ارجاع به مرحله قبل تر)"), help_text=_("حداکثر مرحله‌ای که این پست می‌تواند تغییر دهد"))
+
+    is_payment_order_signer = models.BooleanField(default=False,
+                                                  verbose_name=_("مجاز به امضای دستور پرداخت"))
+
+
+    def __str__(self):
+        branch = self.branch or "بدون شاخه"
+        return f"{self.name} ({self.organization.code}) - {branch}"
+
+    def save(self, *args, **kwargs):
+        if self.parent:
+            self.level = self.parent.level + 1
+        else:
+            self.level = 1
+        # مطمئن می‌شیم max_change_level از level کمتر نباشه
+        if self.max_change_level < self.level:
+            self.max_change_level = self.level
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse('post_detail', kwargs={'pk': self.pk})
+
+    class Meta:
+        verbose_name = _("پست سازمانی")
+        verbose_name_plural = _("پست‌های سازمانی")
+        default_permissions =()
+        permissions = [
+            ('Post_add','افزودن  پست سازمانی برای تعریف سلسله مراتب'),
+            ('Post_update','بروزرسانی پست سازمانی برای تعریف سلسله مراتب'),
+            ('Post_view','نمایش  پست سازمانی برای تعریف سلسله مراتب'),
+            ('Post_delete','حــذف  پست سازمانی برای تعریف سلسله مراتب'),
+            ]
+class UserPost(models.Model):
+    """مدل اتصال کاربر به پست"""
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name=_("کاربر"))
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name=_("پست"))
+    # ردیابی تاریخ
+    start_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ شروع"))
+    end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+
+    class Meta:
+        unique_together = ('user', 'post')
+        verbose_name = _("اتصال کاربر به پست")
+        verbose_name_plural = _("اتصالات کاربر به پست‌ها")
+
+        default_permissions = ()
+        permissions = [
+            ('UserPost_add', 'افزودن  اتصال کاربر به پست'),
+            ('UserPost_update', 'بروزرسانی  اتصال کاربر به پست'),
+            ('UserPost_view', 'نمایش   اتصال کاربر به پست'),
+            ('UserPost_delete', 'حــذف  اتصال کاربر به پست'),
+        ]
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            'chart_updates', {
+                'type': 'chart_update',
+                'message': 'UserPost updated, reload chart'
+            }
+        )
+
+    def __str__(self):
+        return f"{self.user.username} - {self.post.name} (از {self.start_date})"
+class PostHistory(models.Model):
+    """
+    مدل تاریخچه تغییرات پست‌های سازمانی
+    برای ثبت تغییرات اعمال‌شده روی پست‌ها (مثل تغییر نام، والد یا شاخه)
+    """
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        verbose_name=_("پست سازمانی"),
+        help_text=_("پستی که تغییر کرده است")
+    )
+    changed_field = models.CharField(
+        max_length=50,
+        verbose_name=_("فیلد تغییر یافته"),
+        help_text=_("نام فیلدی که تغییر کرده (مثل name یا parent)")
+    )
+    old_value = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name=_("مقدار قبلی"),
+        help_text=_("مقدار قبلی فیلد قبل از تغییر")
+    )
+    new_value = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name=_("مقدار جدید"),
+        help_text=_("مقدار جدید فیلد بعد از تغییر")
+    )
+    changed_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_("تاریخ و زمان تغییر"),
+        help_text=_("زمان ثبت تغییر به صورت خودکار")
+    )
+    changed_by = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name=_("تغییر دهنده"),
+        help_text=_("کاربری که این تغییر را اعمال کرده")
+    )
+
+    # غیرفعال کردن مجوزهای پیش‌فرض (add, change, delete, view)
+    default_permissions = ()
+    # تعریف مجوزهای سفارشی
+    permissions = [
+        ("view_posthistory", _("می‌تواند تاریخچه پست‌ها را مشاهده کند")),
+        ("add_posthistory", _("می‌تواند تاریخچه پست‌ها را اضافه کند")),
+        ("delete_posthistory", _("می‌تواند تاریخچه پست‌ها را حذف کند")),
+    ]
+
+    def __str__(self):
+        return f"{self.post} - {self.changed_field} ({self.changed_at})"
+
+    class Meta:
+        verbose_name = _("تاریخچه پست")
+        verbose_name_plural = _("تاریخچه پست‌ها")
+        # مرتب‌سازی بر اساس زمان تغییر (جدیدترین اول)
+        ordering = ['-changed_at']
+        # ایندکس برای بهینه‌سازی جستجو
+        permissions = [
+            ("posthistory_view", _("می‌تواند تاریخچه پست‌ها را مشاهده کند")),
+            ("posthistory_add", _("می‌تواند تاریخچه پست‌ها را اضافه کند")),
+            ("posthistory_update", _("می‌تواند تاریخچه پست‌ها را ویرایش کند")),
+            ("posthistory_delete", _("می‌تواند تاریخچه پست‌ها را حذف کند")),
+        ]
+
+        indexes = [
+            models.Index(fields=['post', 'changed_at']),
+        ]
+#--
+class WorkflowStage(models.Model):
+    name = models.CharField(max_length=100, verbose_name=_('نام مرحله'))
+    order = models.IntegerField(verbose_name=_('ترتیب'))
+    description = models.TextField(blank=True, verbose_name=_('توضیحات'))
+    is_active = models.BooleanField(default=True, verbose_name=_("وضعیت فعال"))
+    is_final_stage = models.BooleanField(default=False, help_text="آیا این مرحله نهایی برای تکمیل تنخواه است؟", verbose_name=_("تعیین مرحله آخر"))
+
+    def save(self, *args, **kwargs):
+        if WorkflowStage.objects.exclude(pk=self.pk).filter(order=self.order).exists():
+            raise ValueError("ترتیب مرحله نمی‌تواند تکراری باشد")
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} (مرحله {self.order})"
+
+    class Meta:
+        verbose_name = _('مرحله گردش کار')
+        verbose_name_plural = _('مراحل گردش کار')
+        ordering = ['order']
+        default_permissions = ()
+        permissions = [
+            ('WorkflowStage_view','نمایش مرحله گردش کار'),
+            ('WorkflowStage_add','افزودن مرحله گردش کار'),
+            ('WorkflowStage_update','بروزرسانی مرحله گردش کار'),
+            ('WorkflowStage_delete','حــذف مرحله گردش کار'),
+        ]
+#--- New Bugde
+class PostAction(models.Model):
+    ACTION_TYPES = (
+        ('APPROVE', _('تأیید')),
+        ('REJECT', _('رد')),
+        ('FINALIZE', _('اتمام')),
+        ('STAGE_CHANGE', _('تغییروضعیت')),
+        ('CUSTOM', _('سفارشی')),
+    )
+    ENTITY_TYPES = (
+        ('FACTOR',  _('فاکتور')),
+        ('TANKHAH', _('تنخواه')),
+        ('BUDGET_ALLOCATION', _('تخصیص بودجه')),
+        ('BUDGET_RETURN', _('تخصیص بودجه')),
+        ('ISSUE_PAYMENT_ORDER', _('صدور دستور پرداخت')),
+    )
+
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name=_("پست"))
+    stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_("مرحله"))
+    action_type = models.CharField(max_length=50, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
+    entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, default='TANKHAH', verbose_name=_("نوع موجودیت"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+
+
+    def __str__(self):
+        return f"{self.post} - {self.action_type} برای {self.get_entity_type_display()} در {self.stage}"
+        # return f"{self.post} - {self.action_type} در {self.stage}"
+
+    class Meta:
+        verbose_name = _("اقدام مجاز پست")
+        verbose_name_plural = _("اقدامات مجاز پست‌ها")
+        unique_together = ('post', 'stage', 'action_type', 'entity_type')  # اضافه کردن entity_type به unique_together
+        permissions = [
+            ('PostAction_view', 'نمایش اقدامات مجاز پست'),
+            ('PostAction_add', 'افزودن اقدامات مجاز پست'),
+            ('PostAction_update', 'بروزرسانی اقدامات مجاز پست'),
+            ('PostAction_delete', 'حذف اقدامات مجاز پست'),
+        ]

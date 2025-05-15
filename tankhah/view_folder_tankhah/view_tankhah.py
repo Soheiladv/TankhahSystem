@@ -1,8 +1,9 @@
 import logging
 import jdatetime
+from django.contrib.contenttypes.models import ContentType
 
-from tankhah.forms import TankhahForm
-from tankhah.models import Tankhah
+from tankhah.forms import TankhahForm, TankhahStatusForm
+from tankhah.models import Tankhah, ApprovalLog
 
 logger = logging.getLogger(__name__)
 from decimal import Decimal
@@ -505,10 +506,22 @@ class TankhahListView(PermissionBaseView, ListView):
 
         return context
 
-class TankhahDetailView(PermissionBaseView, PermissionRequiredMixin, DetailView):
-    model = 'tankhah.Tankhah'
-    template_name = 'tankhah/Tankhah_detail.html'
-    context_object_name = 'Tankhah'
+from django.shortcuts import get_object_or_404, redirect
+from django.views.generic import DetailView
+from django.contrib import messages
+from django.db.models import Q
+from django.core.exceptions import PermissionDenied
+from jalali_date import date2jalali
+from tankhah.models import Tankhah, ApprovalLog
+from tankhah.forms import TankhahStatusForm
+from django.contrib.contenttypes.models import ContentType
+import jdatetime
+from decimal import Decimal
+
+class TankhahDetailView(PermissionBaseView, DetailView):
+    model = Tankhah
+    template_name = 'tankhah/tankhah_detail.html'
+    context_object_name = 'tankhah'
     permission_required = (
         'tankhah.Tankhah_view', 'tankhah.tankhah_update',
         'tankhah.Tankhah_hq_view', 'tankhah.Tankhah_HQ_OPS_APPROVED', 'tankhah.edit_full_tankhah'
@@ -518,34 +531,78 @@ class TankhahDetailView(PermissionBaseView, PermissionRequiredMixin, DetailView)
         return any(self.request.user.has_perm(perm) for perm in self.get_permission_required())
 
     def get_object(self, queryset=None):
-        tankhah = get_object_or_404('tankhah.Tankhah', pk=self.kwargs['pk'])
-        restrict_to_user_organization(self.request.user, tankhah.organization)
+        tankhah = get_object_or_404(Tankhah, pk=self.kwargs['pk'])
+        user_orgs = [up.post.organization for up in self.request.user.userpost_set.all()]
+        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs)
+        if not is_hq_user and tankhah.organization not in user_orgs:
+            logger.warning(f"User {self.request.user.username} attempted to access unauthorized Tankhah {tankhah.pk}")
+            raise PermissionDenied(_('شما اجازه دسترسی به این تنخواه را ندارید.'))
         return tankhah
+
+    def get_queryset(self):
+        return Tankhah.objects.select_related('organization', 'budget_allocation', 'project_allocation')\
+                             .prefetch_related('factors', 'approval_logs')
+
+    def post(self, request, *args, **kwargs):
+        tankhah = self.get_object()
+        form = TankhahStatusForm(request.POST, instance=tankhah)
+        if form.is_valid():
+            try:
+                form.save()
+                messages.success(request, _('وضعیت تنخواه با موفقیت به‌روزرسانی شد.'))
+                logger.info(f"Tankhah {tankhah.pk} status updated by user {request.user.username}")
+                return redirect('tankhah:tankhah_detail', pk=tankhah.pk)
+            except Exception as e:
+                logger.error(f"Error updating Tankhah {tankhah.pk} status: {str(e)}", exc_info=True)
+                messages.error(request, _('خطایی در به‌روزرسانی وضعیت رخ داد.'))
+        else:
+            messages.error(request, _('فرم نامعتبر است. لطفاً ورودی‌ها را بررسی کنید.'))
+        return self.get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['factors'] = self.object.factors.all()  # اصلاح: اضافه کردن .all()
-        context['title'] = _('جزئیات تنخواه') + f" - {self.object.number}"
-        context['approval_logs'] = 'tankhah.ApprovalLog'.objects.filter(tankhah=self.object).order_by('timestamp')
+        tankhah = self.object
+        context['factors'] = tankhah.factors.all()
+        context['title'] = _('جزئیات تنخواه') + f" - {tankhah.number}"
+        context['approval_logs'] = ApprovalLog.objects.filter(
+            content_type=ContentType.objects.get_for_model(Tankhah),
+            object_id=tankhah.pk
+        ).order_by('timestamp')
         context['current_date'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')
-        from tankhah.forms import TankhahStatusForm
-        context['status_form'] = TankhahStatusForm(instance=self.object)
+        context['status_form'] = TankhahStatusForm(instance=tankhah)
+
+        # لاگ مقادیر
+        remaining_budget = tankhah.get_remaining_budget()
+        logger.debug(f"Tankhah {tankhah.pk}: amount={tankhah.amount}, remaining_budget={remaining_budget}")
+
+        # تنظیم مقادیر برای context
+        context['amount'] = tankhah.amount if tankhah.amount is not None else Decimal('0')
+        context['remaining_budget'] = remaining_budget if remaining_budget is not None else Decimal('0')
 
         # تبدیل تاریخ‌ها به شمسی
-        if self.object.date:
-            context['jalali_date'] = jdatetime.date.fromgregorian(date=self.object.date).strftime('%Y/%m/%d %H:%M')
+        if tankhah.date:
+            context['jalali_date'] = date2jalali(tankhah.date).strftime('%Y/%m/%d')
         for factor in context['factors']:
-            factor.jalali_date = jdatetime.date.fromgregorian(date=factor.date).strftime('%Y/%m/%d %H:%M')
+            factor.jalali_date = date2jalali(factor.date).strftime('%Y/%m/%d')
         for approval in context['approval_logs']:
             approval.jalali_date = jdatetime.datetime.fromgregorian(datetime=approval.timestamp).strftime('%Y/%m/%d %H:%M')
 
-        # دسته‌بندی برای دفتر مرکزی
+        # دسته‌بندی برای دفتر مرکزی و دسترسی‌ها
         user_orgs = [up.post.organization for up in self.request.user.userpost_set.all()]
         context['is_hq'] = any(org.org_type == 'HQ' for org in user_orgs)
-        context['can_approve'] = self.request.user.has_perm('tankhah.Tankhah_approve') or \
-                                 self.request.user.has_perm('tankhah.Tankhah_part_approve') or \
-                                 self.request.user.has_perm('tankhah.FactorItem_approve')
+        context['can_approve'] = (
+            tankhah.status in ['DRAFT', 'PENDING'] and
+            any(
+                p.post.stageapprover_set.filter(stage=tankhah.current_stage).exists()
+                for p in self.request.user.userpost_set.all()
+            ) and (
+                self.request.user.has_perm('tankhah.Tankhah_approve') or
+                self.request.user.has_perm('tankhah.Tankhah_part_approve') or
+                self.request.user.has_perm('tankhah.FactorItem_approve')
+            )
+        )
         return context
+
 
 class TankhahDeleteView(PermissionBaseView, DeleteView):
     model = 'tankhah.Tankhah'

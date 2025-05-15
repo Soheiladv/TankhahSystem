@@ -598,11 +598,23 @@ class Factor(models.Model):
         with transaction.atomic():
             if not self.number:
                 self.number = self.generate_number()
+                logger.debug(f"تولید شماره فاکتور: {self.number}")
 
             # فقط در صورت نیاز به اعتبارسنجی خاص مدل، clean را فراخوانی کنید
             original = None
             if self.pk:
                 original = Factor.objects.get(pk=self.pk)
+
+            # چک کردن قفل بودن تخصیص بودجه یا دوره بودجه
+            if self.tankhah and self.tankhah.budget_allocation:
+                budget_allocation = self.tankhah.budget_allocation
+                budget_period = budget_allocation.budget_period
+                if self.status != 'PAID' and (budget_allocation.is_locked or budget_period.is_locked):
+                    logger.error(f"فاکتور {self.number} به دلیل قفل بودن تخصیص یا دوره بودجه نمی‌تواند ثبت شود")
+                    raise ValidationError(_("نمی‌توان فاکتور جدید ثبت کرد، تخصیص یا دوره قفل شده است."))
+            else:
+                logger.warning(
+                    f"هیچ تخصیص بودجه‌ای برای تنخواه {self.tankhah.number if self.tankhah else 'نامشخص'} یافت نشد")
 
             # به‌روزرسانی بودجه و وضعیت قفل
             if original and self.status != original.status:
@@ -610,28 +622,13 @@ class Factor(models.Model):
                     create_budget_transaction(
                         allocation=self.tankhah.budget_allocation,
                         transaction_type='CONSUMPTION',
-                        amount=self.amount,  # استفاده از self.amount به جای total_amount()
+                        amount=self.amount,
                         related_obj=self,
                         created_by=self.created_by,
                         description=f"مصرف بودجه توسط فاکتور {self.number}",
                         transaction_id=f"TX-FAC-{self.number}"
                     )
                     self.is_locked = True
-
-                    # post = Post.objects.get(id=1)
-                    # from Tanbakhsystem.view.views_notifications import send_notification
-                    # send_notification(
-                    #     sender=sender,
-                    #     posts=post,
-                    #     verb='یک پیام تست برای پست ارسال کرد',
-                    #     description='این یک اعلان آزمایشی است.',
-                    #     target=post
-                    # )
-                    # Notification.objects.create(
-                    #     user=self.created_by,
-                    #     message=f"فاکتور {self.number} پرداخت شد.",
-                    #     tankhah=self.tankhah
-                    # )
                 elif self.status == 'REJECTED' and original.status in ['APPROVED', 'PAID'] and self.is_locked:
                     create_budget_transaction(
                         allocation=self.tankhah.budget_allocation,
@@ -642,11 +639,12 @@ class Factor(models.Model):
                         description=f"بازگشت بودجه به دلیل رد فاکتور {self.number}",
                         transaction_id=f"TX-FAC-RET-{self.number}"
                     )
+                    self.is_locked = False
+
+            # اجرای اعتبارسنجی کامل
+            self.full_clean()
             super().save(*args, **kwargs)
-            # بررسی قفل شدن تخصیص یا دوره
-            if self.transaction.allocation.is_locked or self.transaction.allocation.budget_period.is_locked:
-                if self.status != 'PAID':
-                    raise ValidationError(_("نمی‌توان فاکتور جدید ثبت کرد، تخصیص یا دوره قفل شده است."))
+
             # ثبت ApprovalLog فقط در صورت تغییر وضعیت یا فیلدها
             if original:
                 changed_fields = [field.name for field in self._meta.fields if
@@ -667,58 +665,6 @@ class Factor(models.Model):
                             comment=f"تغییر {'فیلدها' if changed_fields else 'وضعیت'} فاکتور به {self.get_status_display()}",
                             changed_field=', '.join(changed_fields) if changed_fields else None
                         )
-
-                    # self.is_locked = False
-                    # Notification.objects.create(
-                    #     user=self.created_by,
-                    #     message=f"فاکتور {self.number} رد شد.",
-                    #     tankhah=self.tankhah
-                    # )
-            # if self.pk and self.status == 'PENDING':
-            #     # from django.contrib.contenttypes.models import ContentType
-            #     user_post = self.created_by.userpost_set.filter(is_active=True).first()
-            #     if user_post:
-            #         ApprovalLog.objects.create(
-            #             factor=self,
-            #             action='STAGE_CHANGE',
-            #             stage=self.tankhah.current_stage,
-            #             user=self.created_by,
-            #             post=user_post.post,
-            #             content_type=ContentType.objects.get_for_model(self),
-            #             object_id=self.id
-            #         )
-
-            # ثبت لاگ تأیید/رد
-            # if original and self.status != original.status:
-            #     ApprovalLog.objects.create(
-            #         factor=self,
-            #         action='APPROVE' if self.status in ['APPROVED', 'PAID'] else 'REJECT',
-            #         stage=self.locked_by_stage or self.tankhah.current_stage,
-            #         user=self.created_by,
-            #         comment=f"تغییر وضعیت فاکتور به {self.get_status_display()}",
-            #         content_type=ContentType.objects.get_for_model(self),
-            #         object_id=self.pk
-            #     )
-
-            # ثبت تاریخچه تغییرات
-            # if original:
-            #     changed_fields = []
-            #     for field in self._meta.fields:
-            #         field_name = field.name
-            #         if getattr(original, field_name) != getattr(self, field_name):
-            #             changed_fields.append(field_name)
-            #     if changed_fields:
-            #         ApprovalLog.objects.create(
-            #             factor=self,
-            #             action='STAGE_CHANGE',
-            #             stage=self.locked_by_stage or self.tankhah.current_stage,
-            #             user=self.created_by,
-            #             comment=f"تغییر فیلدهای {', '.join(changed_fields)}",
-            #             content_type=ContentType.objects.get_for_model(self),
-            #             object_id=self.pk,
-            #             changed_field=', '.join(changed_fields)
-            #         )
-
     def __str__(self):
         # اصلاح متد __str__ برای مدیریت tankhah=None
         tankhah_number = self.tankhah.number if self.tankhah else "تنخواه ندارد"
@@ -1036,18 +982,28 @@ def create_budget_transaction(allocation, transaction_type, amount, related_obj,
             # --- ۴. ایجاد رکورد BudgetTransaction ---
             # **مهم:** مطمئن شوید مدل BudgetTransaction شما فقط فیلدهای زیر را دارد
             # (یا اگر فیلدهای related_factor/item را دارد، آنها را هم اینجا مقداردهی کنید)
-            from budgets.models import  BudgetTransaction
-            budget_tx = BudgetTransaction.objects.create(
-                allocation=allocation,                 # تخصیص مرتبط
-                transaction_type=transaction_type,     # نوع تراکنش
-                amount=amount,                         # مبلغ
-                related_tankhah=related_tankhah,       # تنخواه مرتبط (اگر وجود دارد)
-                created_by=created_by,                 # کاربر ایجاد کننده
-                description=description,               # توضیحات
-                transaction_id=transaction_id          # شناسه یکتای تراکنش (از ویو)
-            )
-            logger.info(f"BudgetTransaction created: ID={budget_tx.pk}, TxID={transaction_id}, amount={amount}, type={transaction_type}, allocation_pk={allocation.pk}")
-
+            try:
+                from budgets.models import  BudgetTransaction
+                budget_tx = BudgetTransaction.objects.create(
+                    allocation=allocation,                 # تخصیص مرتبط
+                    transaction_type=transaction_type,     # نوع تراکنش
+                    amount=amount,                         # مبلغ
+                    related_tankhah=related_tankhah,       # تنخواه مرتبط (اگر وجود دارد)
+                    created_by=created_by,                 # کاربر ایجاد کننده
+                    description=description,               # توضیحات
+                    transaction_id=transaction_id,         # شناسه یکتای تراکنش (از ویو)
+                    # content_type=ContentType.objects.get_for_model(related_obj) if related_obj else None,
+                    # object_id=related_obj.id if related_obj else None,
+                )
+                logger.info(f"BudgetTransaction created: ID={budget_tx.pk}, TxID={transaction_id},"
+                            f" amount={amount}, type={transaction_type}, allocation_pk={allocation.pk}")
+            except Exception as e:
+                logger.error(
+                    f"Unexpected Error in create_budget_transaction: {str(e)} "
+                    f"(Allocation: {allocation.id}, Amount: {amount}, Type: {transaction_type})",
+                    exc_info=True
+                )
+                raise
             # --- ۵. ثبت تاریخچه بودجه (اختیاری) ---
             try:
                  # **اصلاح:** اطمینان از وجود و مقداردهی فیلدهای لازم در BudgetHistory

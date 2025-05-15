@@ -793,10 +793,6 @@ class BudgetAllocation(models.Model):
         try:
             with transaction.atomic():
                 self.clean()
-                if not self.pk:
-                    self.remaining_amount = self.allocated_amount
-                    logger.debug(f"New instance, set remaining_amount={self.remaining_amount}")
-
                 # بررسی و تنظیم وضعیت قفل
                 is_locked, is_active = self.update_lock_status()
                 self.is_locked = is_locked
@@ -811,10 +807,6 @@ class BudgetAllocation(models.Model):
                 ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
                 logger.debug(f"Calculated total_allocated={total_allocated} for BudgetPeriod {self.budget_period.id}")
 
-                # self.budget_period.total_allocated = total_allocated
-                # self.budget_period.save(update_fields=['total_allocated'], skip_status_update=True)
-                # logger.info(f"Updated BudgetPeriod {self.budget_period.id} with total_allocated={total_allocated}")
-
                 status, message = self.check_allocation_status()
                 logger.debug(f"Allocation status: {status}, message: {message}")
                 if status in ('warning', 'completed', 'stopped'):
@@ -823,7 +815,6 @@ class BudgetAllocation(models.Model):
         except Exception as e:
             logger.error(f"Error saving BudgetAllocation: {str(e)}", exc_info=True)
             raise
-
 
     # def save(self, *args, **kwargs):
     #     logger.debug(f"Starting save for BudgetAllocation (pk={self.pk}, allocated_amount={self.allocated_amount})")

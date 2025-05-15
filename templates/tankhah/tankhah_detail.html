@@ -1,228 +1,407 @@
 {% extends 'base.html' %}
 {% load i18n static jformat rcms_custom_filters %}
 
-{% block head %}
-    <style>
-        @media print {
-            .no-print, .nav-tabs, .btn-group {
-                display: none !important;
-            }
-            .card {
-                border: 2px solid #000 !important;
-                box-shadow: none !important;
-            }
-            h1, h2, h3, th {
-                color: #000 !important;
-            }
-        }
-        .data-card {
-            transition: transform 0.3s;
-        }
-        .data-card:hover {
-            transform: translateY(-5px);
-        }
-        .detail-table th {
-            min-width: 200px;
-            background-color: #f8f9fa !important;
-        }
-        .status-badge {
-            font-size: 0.9em;
-            padding: 0.5em 0.8em;
-            border-radius: 1em;
-        }
-    </style>
+{% block extra_head %}
+<style>
+    body { background-color: #f4f6f9; font-family: 'Vazir', sans-serif; }
+    .card { border: none; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .detail-section { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+    .table thead th { background: #007bff; color: white; }
+    .table tbody tr { transition: all 0.3s ease; }
+    .table tbody tr:hover { background: #f1f3f5; transform: translateY(-2px); }
+    .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 0.9em; }
+    .status-draft { background: #ffc107; color: #fff; }
+    .status-pending { background: #17a2b8; color: #fff; }
+    .status-approved { background: #28a745; color: #fff; }
+    .status-rejected { background: #dc3545; color: #fff; }
+    .status-paid { background: #6f42c1; color: #fff; }
+    .btn-custom { transition: all 0.3s ease; }
+    .btn-custom:hover { transform: scale(1.05); }
+    .fade-in { animation: fadeIn 0.5s ease-in; }
+    @keyframes fadeIn {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .accordion-button { background: #f8f9fa; }
+    .accordion-button:not(.collapsed) { background: #007bff; color: white; }
+</style>
 {% endblock %}
 
 {% block content %}
-    <div class="container my-4 animate__animated animate__fadeIn">
+<div class="container py-5">
+    <div class="card fade-in">
+        <div class="card-body">
+            <h2 class="card-title text-center mb-4">
+                <i class="fas fa-wallet me-2"></i>
+                {% trans "جزئیات تنخواه" %} - {{ tankhah.number |to_persian_number}}
+            </h2>
+
+            <!-- پیام‌های خطا یا موفقیت -->
+            {% if messages %}
+                <div class="alert alert-dismissible fade show {% if messages|first  %}alert-success{% else %}alert-warning{% endif %}" role="alert">
+                    {% for message in messages %}
+                        <div>{{ message }}</div>
+                    {% endfor %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+
+            <!-- جزئیات تنخواه -->
+            <div class="detail-section">
+                <h4 class="mb-3"><i class="fas fa-info-circle me-2"></i>{% trans "اطلاعات تنخواه" %}</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>{% trans "شماره تنخواه" %}:</strong> {{ tankhah.number |to_persian_number}}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>{% trans "سازمان" %}:</strong> {{ tankhah.organization.name }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>{% trans "تاریخ" %}:</strong> {{ jalali_date |to_persian_number}}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>{% trans "مبلغ بودجه" %}:</strong> {{ tankhah.budget|floatformat:0|format_negative }} {% trans "ریال" %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>{% trans "مبلغ باقی‌مانده" %}:</strong> {{ tankhah.remaining_budget|floatformat:0|format_negative }} {% trans "ریال" %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>{% trans "وضعیت" %}:</strong>
+                        <span class="status-badge status-{{ tankhah.status|lower }}">{{ tankhah.get_status_display }}</span>
+                    </div>
+                    {% if tankhah.description %}
+                        <div class="col-12">
+                            <strong>{% trans "توضیحات" %}:</strong> {{ tankhah.description |to_persian_number }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- فرم تغییر وضعیت -->
+            {% if can_approve %}
+                <div class="detail-section">
+                    <h4 class="mb-3"><i class="fas fa-edit me-2"></i>{% trans "تغییر وضعیت" %}</h4>
+                    <form method="post" class="row g-3">
+                        {% csrf_token %}
+                        <div class="col-md-6">
+                            {{ status_form.as_p }}
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary btn-custom w-100">
+                                <i class="fas fa-save me-2"></i>{% trans "به‌روزرسانی وضعیت" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            {% endif %}
+
+            <!-- لیست فاکتورها -->
+            <div class="detail-section">
+                <h4 class="mb-3"><i class="fas fa-file-invoice me-2"></i>{% trans "فاکتورهای مرتبط" %}</h4>
+                {% if factors %}
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>{% trans "شماره فاکتور" %}</th>
+                                <th>{% trans "تاریخ" %}</th>
+                                <th>{% trans "مبلغ" %}</th>
+                                <th>{% trans "وضعیت" %}</th>
+                                <th>{% trans "عملیات" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for factor in factors %}
+                                <tr class="fade-in">
+                                    <td>{{ factor.number |to_persian_number}}</td>
+                                    <td>{{ factor.jalali_date  |to_persian_number}}</td>
+                                    <td>{{ factor.amount|floatformat:0|format_negative|to_persian_number }} {% trans "ریال" %}</td>
+                                    <td>
+                                        <span class="status-badge status-{{ factor.status|lower }}">
+                                            {{ factor.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'factor_detail' factor.pk %}" class="btn btn-sm btn-info btn-custom" title="{% trans 'مشاهده' %}">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-muted">{% trans "هیچ فاکتوری برای این تنخواه یافت نشد." %}</p>
+                {% endif %}
+            </div>
+
+            <!-- لاگ‌های تأیید -->
+            <div class="detail-section">
+                <h4 class="mb-3"><i class="fas fa-history me-2"></i>{% trans "لاگ‌های تأیید" %}</h4>
+                {% if approval_logs %}
+                    <div class="accordion" id="approvalLogsAccordion">
+                        {% for log in approval_logs %}
+                            <div class="accordion-item fade-in">
+                                <h2 class="accordion-header" id="heading{{ log.pk }}">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ log.pk }}" aria-expanded="false" aria-controls="collapse{{ log.pk }}">
+                                        <i class="fas fa-clock me-2"></i> {{ log.jalali_date }} - {% trans "توسط" %} {{ log.user.username|default:"نامشخص" }}
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ log.pk }}" class="accordion-collapse collapse" aria-labelledby="heading{{ log.pk }}" data-bs-parent="#approvalLogsAccordion">
+                                    <div class="accordion-body">
+                                        <strong>{% trans "اقدام" %}:</strong> {{ log.action }}<br>
+                                        {% if log.comment %}
+                                            <strong>{% trans "توضیحات" %}:</strong> {{ log.comment }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">{% trans "هیچ لاگ تأییدی یافت نشد." %}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    // انیمیشن برای بخش‌ها
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.detail-section, .accordion-item').forEach((item, index) => {
+            item.style.animationDelay = `${index * 0.2}s`;
+            item.classList.add('fade-in');
+        });
+    });
+</script>
+{% endblock %}
+
+{#{% extends 'base.html' %}#}
+{#{% load i18n static jformat rcms_custom_filters %}#}
+{##}
+{#{% block head %}#}
+{#    <style>#}
+{#        @media print {#}
+{#            .no-print, .nav-tabs, .btn-group {#}
+{#                display: none !important;#}
+{#            }#}
+{#            .card {#}
+{#                border: 2px solid #000 !important;#}
+{#                box-shadow: none !important;#}
+{#            }#}
+{#            h1, h2, h3, th {#}
+{#                color: #000 !important;#}
+{#            }#}
+{#        }#}
+{#        .data-card {#}
+{#            transition: transform 0.3s;#}
+{#        }#}
+{#        .data-card:hover {#}
+{#            transform: translateY(-5px);#}
+{#        }#}
+{#        .detail-table th {#}
+{#            min-width: 200px;#}
+{#            background-color: #f8f9fa !important;#}
+{#        }#}
+{#        .status-badge {#}
+{#            font-size: 0.9em;#}
+{#            padding: 0.5em 0.8em;#}
+{#            border-radius: 1em;#}
+{#        }#}
+{#    </style>#}
+{#{% endblock %}#}
+{##}
+{#{% block content %}#}
+{#    <div class="container my-4 animate__animated animate__fadeIn">#}
 {#        <!-- دیباگ برای چک کردن داده‌ها -->#}
 {#        <div class="alert alert-info">#}
 {#            <p>شماره تنخواه: {{ Tankhah.number|default:'داده‌ای نیست' }}</p>#}
 {#            <p>تعداد فاکتورها: {{ factors|length }}</p>#}
 {#            <p>تعداد لاگ‌ها: {{ approval_logs|length }}</p>#}
 {#        </div>#}
-
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="text-primary mb-0">
-                <i class="fas fa-file-invoice-dollar me-2"></i>{{ title }}
-            </h1>
-            <div class="btn-group no-print">
-                <a href="{% url 'tankhah_list' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت" %}
-                </a>
-                <button onclick="window.print()" class="btn btn-outline-success">
-                    <i class="fas fa-print me-2"></i>{% trans "چاپ" %}
-                </button>
-            </div>
-        </div>
-
-        <nav>
-            <div class="nav nav-tabs mb-4" id="nav-tab" role="tablist">
-                <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details"
-                        type="button" role="tab" aria-controls="details" aria-selected="true">
-                    <i class="fas fa-info-circle me-2"></i>{% trans "جزئیات" %}
-                </button>
-                <button class="nav-link" id="factors-tab" data-bs-toggle="tab" data-bs-target="#factors" type="button"
-                        role="tab" aria-controls="factors" aria-selected="false">
-                    <i class="fas fa-receipt me-2"></i>{% trans "فاکتورها" %}
-                </button>
-                <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button"
-                        role="tab" aria-controls="history" aria-selected="false">
-                    <i class="fas fa-history me-2"></i>{% trans "تاریخچه" %}
-                </button>
-            </div>
-        </nav>
-
-        <div class="tab-content" id="nav-tabContent">
-            <!-- تب جزئیات اصلی -->
-            <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
-                <div class="card data-card shadow-sm border-primary">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-file-alt me-2"></i>{% trans "مشخصات اصلی تنخواه" %}
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <dl class="row detail-table">
-                                    <dt class="col-sm-5">{% trans "شماره:" %}</dt>
-                                    <dd class="col-sm-7">{{ Tankhah.number }}</dd>
-                                    <dt class="col-sm-5">{% trans "تاریخ ایجاد:" %}</dt>
-                                    <dd class="col-sm-7">{{ jalali_date }}</dd>
-                                    <dt class="col-sm-5">{% trans "وضعیت فعلی:" %}</dt>
-                                    <dd class="col-sm-7">
-                                        <span class="status-badge bg-info text-dark">{{ Tankhah.get_status_display }}</span>
-                                    </dd>
-                                </dl>
-                            </div>
-                            <div class="col-md-6">
-                                <dl class="row detail-table">
-                                    <dt class="col-sm-5">{% trans "مجتمع:" %}</dt>
-                                    <dd class="col-sm-7">{{ Tankhah.organization.name }}</dd>
-                                    <dt class="col-sm-5">{% trans "پروژه مرتبط:" %}</dt>
-                                    <dd class="col-sm-7">{{ Tankhah.project.name|default:'-' }}</dd>
-                                    <dt class="col-sm-5">{% trans "مرحله تأیید:" %}</dt>
-                                    <dd class="col-sm-7">{{ Tankhah.current_stage.name|default:'-' }}</dd>
-                                </dl>
-                            </div>
-                        </div>
-                        {% if can_approve %}
-                            <div class="mt-4 border-top pt-3 text-center">
-                                <a href="{% url 'tankhah_approve' Tankhah.id %}" class="btn btn-lg btn-success">
-                                    <i class="fas fa-check-double me-2"></i>{% trans "تأیید تنخواه" %}
-                                </a>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- تب فاکتورها -->
-            <div class="tab-pane fade" id="factors" role="tabpanel" aria-labelledby="factors-tab">
-                <div class="card data-card shadow-sm">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-file-invoice me-2"></i>{% trans "لیست فاکتورهای مرتبط" %}
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead class="table-light">
-                                <tr>
-                                    <th>{% trans "شماره فاکتور" %}</th>
-                                    <th>{% trans "تاریخ" %}</th>
-                                    <th>{% trans "مبلغ" %}</th>
-                                    <th>{% trans "وضعیت" %}</th>
-                                    <th class="no-print">{% trans "اقدامات" %}</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for factor in factors %}
-                                    <tr class="{% cycle '' 'table-light' %}">
-                                        <td>{{ factor.number|to_persian_number }}</td>
-                                        <td>{{ factor.jalali_date }}</td>
-                                        <td class="fw-bold">{{ factor.amount|format_negative }}</td>
-                                        <td>
-                                            <span class="status-badge
-                                                {% if factor.status == 'APPROVED' %}bg-success
-                                                {% elif factor.status == 'REJECTED' %}bg-danger
-                                                {% else %}bg-warning text-dark{% endif %}">
-                                                {{ factor.get_status_display }}
-                                            </span>
-                                        </td>
-                                        <td class="no-print">
-                                            <div class="btn-group btn-group-sm">
-                                                <a href="{% url 'factor_item_approve' factor.id %}"
-                                                   class="btn btn-outline-primary">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                {% if can_approve %}
-                                                    <a href="{% url 'factor_item_approve' factor.id %}"
-                                                       class="btn btn-outline-success">
-                                                        <i class="fas fa-check"></i>
-                                                    </a>
-                                                {% endif %}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted py-4">
-                                            <i class="fas fa-exclamation-circle me-2"></i>{% trans "فاکتوری ثبت نشده است" %}
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- تب تاریخچه -->
-            <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
-                <div class="card data-card shadow-sm">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">
-                            <i class="fas fa-history me-2"></i>{% trans "تاریخچه فرآیند تأیید" %}
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="timeline">
-                            {% for approval in approval_logs %}
-                                <div class="timeline-item {% if approval.action == 'APPROVE' %}approved{% else %}rejected{% endif %}">
-                                    <div class="timeline-icon">
-                                        <i class="fas fa-{% if approval.action == 'APPROVE' %}check-circle{% else %}times-circle{% endif %}"></i>
-                                    </div>
-                                    <div class="timeline-content">
-                                        <h6>{{ approval.user.get_full_name|default:approval.user.username }}</h6>
-                                        <small class="text-muted">{{ approval.jalali_date }}</small>
-                                        <p class="mb-0">{{ approval.comment|default:"بدون توضیح" }}</p>
-                                    </div>
-                                </div>
-                            {% empty %}
-                                <div class="text-center text-muted py-3">
-                                    <i class="fas fa-clock me-2"></i>{% trans "تاریخچه‌ای ثبت نشده است" %}
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% if is_hq %}
-            <div class="alert alert-info">
-                <strong>{% trans "دفتر مرکزی:" %}</strong> {% trans "شما به تمام تنخواه‌ها دسترسی دارید." %}
-            </div>
-        {% endif %}
-        <div class="print-footer text-center mt-5 d-print-block">
-            <hr class="my-2">
-            <small class="text-muted">
-                {% trans "تاریخ چاپ:" %} {{ current_date }} |
-                {% trans "کاربر:" %} {{ user.get_full_name|default:user.username }}
-            </small>
-        </div>
-    </div>
-{% endblock %}
+{##}
+{#        <div class="d-flex justify-content-between align-items-center mb-4">#}
+{#            <h1 class="text-primary mb-0">#}
+{#                <i class="fas fa-file-invoice-dollar me-2"></i>{{ title }}#}
+{#            </h1>#}
+{#            <div class="btn-group no-print">#}
+{#                <a href="{% url 'tankhah_list' %}" class="btn btn-outline-secondary">#}
+{#                    <i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت" %}#}
+{#                </a>#}
+{#                <button onclick="window.print()" class="btn btn-outline-success">#}
+{#                    <i class="fas fa-print me-2"></i>{% trans "چاپ" %}#}
+{#                </button>#}
+{#            </div>#}
+{#        </div>#}
+{##}
+{#        <nav>#}
+{#            <div class="nav nav-tabs mb-4" id="nav-tab" role="tablist">#}
+{#                <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details"#}
+{#                        type="button" role="tab" aria-controls="details" aria-selected="true">#}
+{#                    <i class="fas fa-info-circle me-2"></i>{% trans "جزئیات" %}#}
+{#                </button>#}
+{#                <button class="nav-link" id="factors-tab" data-bs-toggle="tab" data-bs-target="#factors" type="button"#}
+{#                        role="tab" aria-controls="factors" aria-selected="false">#}
+{#                    <i class="fas fa-receipt me-2"></i>{% trans "فاکتورها" %}#}
+{#                </button>#}
+{#                <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button"#}
+{#                        role="tab" aria-controls="history" aria-selected="false">#}
+{#                    <i class="fas fa-history me-2"></i>{% trans "تاریخچه" %}#}
+{#                </button>#}
+{#            </div>#}
+{#        </nav>#}
+{##}
+{#        <div class="tab-content" id="nav-tabContent">#}
+{#            <!-- تب جزئیات اصلی -->#}
+{#            <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">#}
+{#                <div class="card data-card shadow-sm border-primary">#}
+{#                    <div class="card-header bg-primary text-white">#}
+{#                        <h5 class="mb-0">#}
+{#                            <i class="fas fa-file-alt me-2"></i>{% trans "مشخصات اصلی تنخواه" %}#}
+{#                        </h5>#}
+{#                    </div>#}
+{#                    <div class="card-body">#}
+{#                        <div class="row">#}
+{#                            <div class="col-md-6">#}
+{#                                <dl class="row detail-table">#}
+{#                                    <dt class="col-sm-5">{% trans "شماره:" %}</dt>#}
+{#                                    <dd class="col-sm-7">{{ Tankhah.number }}</dd>#}
+{#                                    <dt class="col-sm-5">{% trans "تاریخ ایجاد:" %}</dt>#}
+{#                                    <dd class="col-sm-7">{{ jalali_date }}</dd>#}
+{#                                    <dt class="col-sm-5">{% trans "وضعیت فعلی:" %}</dt>#}
+{#                                    <dd class="col-sm-7">#}
+{#                                        <span class="status-badge bg-info text-dark">{{ Tankhah.get_status_display }}</span>#}
+{#                                    </dd>#}
+{#                                </dl>#}
+{#                            </div>#}
+{#                            <div class="col-md-6">#}
+{#                                <dl class="row detail-table">#}
+{#                                    <dt class="col-sm-5">{% trans "مجتمع:" %}</dt>#}
+{#                                    <dd class="col-sm-7">{{ Tankhah.organization.name }}</dd>#}
+{#                                    <dt class="col-sm-5">{% trans "پروژه مرتبط:" %}</dt>#}
+{#                                    <dd class="col-sm-7">{{ Tankhah.project.name|default:'-' }}</dd>#}
+{#                                    <dt class="col-sm-5">{% trans "مرحله تأیید:" %}</dt>#}
+{#                                    <dd class="col-sm-7">{{ Tankhah.current_stage.name|default:'-' }}</dd>#}
+{#                                </dl>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        {% if can_approve %}#}
+{#                            <div class="mt-4 border-top pt-3 text-center">#}
+{#                                <a href="{% url 'tankhah_approve' Tankhah.id %}" class="btn btn-lg btn-success">#}
+{#                                    <i class="fas fa-check-double me-2"></i>{% trans "تأیید تنخواه" %}#}
+{#                                </a>#}
+{#                            </div>#}
+{#                        {% endif %}#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{##}
+{#            <!-- تب فاکتورها -->#}
+{#            <div class="tab-pane fade" id="factors" role="tabpanel" aria-labelledby="factors-tab">#}
+{#                <div class="card data-card shadow-sm">#}
+{#                    <div class="card-header bg-info text-white">#}
+{#                        <h5 class="mb-0">#}
+{#                            <i class="fas fa-file-invoice me-2"></i>{% trans "لیست فاکتورهای مرتبط" %}#}
+{#                        </h5>#}
+{#                    </div>#}
+{#                    <div class="card-body">#}
+{#                        <div class="table-responsive">#}
+{#                            <table class="table table-hover align-middle">#}
+{#                                <thead class="table-light">#}
+{#                                <tr>#}
+{#                                    <th>{% trans "شماره فاکتور" %}</th>#}
+{#                                    <th>{% trans "تاریخ" %}</th>#}
+{#                                    <th>{% trans "مبلغ" %}</th>#}
+{#                                    <th>{% trans "وضعیت" %}</th>#}
+{#                                    <th class="no-print">{% trans "اقدامات" %}</th>#}
+{#                                </tr>#}
+{#                                </thead>#}
+{#                                <tbody>#}
+{#                                {% for factor in factors %}#}
+{#                                    <tr class="{% cycle '' 'table-light' %}">#}
+{#                                        <td>{{ factor.number|to_persian_number }}</td>#}
+{#                                        <td>{{ factor.jalali_date }}</td>#}
+{#                                        <td class="fw-bold">{{ factor.amount|format_negative }}</td>#}
+{#                                        <td>#}
+{#                                            <span class="status-badge#}
+{#                                                {% if factor.status == 'APPROVED' %}bg-success#}
+{#                                                {% elif factor.status == 'REJECTED' %}bg-danger#}
+{#                                                {% else %}bg-warning text-dark{% endif %}">#}
+{#                                                {{ factor.get_status_display }}#}
+{#                                            </span>#}
+{#                                        </td>#}
+{#                                        <td class="no-print">#}
+{#                                            <div class="btn-group btn-group-sm">#}
+{#                                                <a href="{% url 'factor_item_approve' factor.id %}"#}
+{#                                                   class="btn btn-outline-primary">#}
+{#                                                    <i class="fas fa-eye"></i>#}
+{#                                                </a>#}
+{#                                                {% if can_approve %}#}
+{#                                                    <a href="{% url 'factor_item_approve' factor.id %}"#}
+{#                                                       class="btn btn-outline-success">#}
+{#                                                        <i class="fas fa-check"></i>#}
+{#                                                    </a>#}
+{#                                                {% endif %}#}
+{#                                            </div>#}
+{#                                        </td>#}
+{#                                    </tr>#}
+{#                                {% empty %}#}
+{#                                    <tr>#}
+{#                                        <td colspan="5" class="text-center text-muted py-4">#}
+{#                                            <i class="fas fa-exclamation-circle me-2"></i>{% trans "فاکتوری ثبت نشده است" %}#}
+{#                                        </td>#}
+{#                                    </tr>#}
+{#                                {% endfor %}#}
+{#                                </tbody>#}
+{#                            </table>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{##}
+{#            <!-- تب تاریخچه -->#}
+{#            <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">#}
+{#                <div class="card data-card shadow-sm">#}
+{#                    <div class="card-header bg-warning text-dark">#}
+{#                        <h5 class="mb-0">#}
+{#                            <i class="fas fa-history me-2"></i>{% trans "تاریخچه فرآیند تأیید" %}#}
+{#                        </h5>#}
+{#                    </div>#}
+{#                    <div class="card-body">#}
+{#                        <div class="timeline">#}
+{#                            {% for approval in approval_logs %}#}
+{#                                <div class="timeline-item {% if approval.action == 'APPROVE' %}approved{% else %}rejected{% endif %}">#}
+{#                                    <div class="timeline-icon">#}
+{#                                        <i class="fas fa-{% if approval.action == 'APPROVE' %}check-circle{% else %}times-circle{% endif %}"></i>#}
+{#                                    </div>#}
+{#                                    <div class="timeline-content">#}
+{#                                        <h6>{{ approval.user.get_full_name|default:approval.user.username }}</h6>#}
+{#                                        <small class="text-muted">{{ approval.jalali_date }}</small>#}
+{#                                        <p class="mb-0">{{ approval.comment|default:"بدون توضیح" }}</p>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            {% empty %}#}
+{#                                <div class="text-center text-muted py-3">#}
+{#                                    <i class="fas fa-clock me-2"></i>{% trans "تاریخچه‌ای ثبت نشده است" %}#}
+{#                                </div>#}
+{#                            {% endfor %}#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#        {% if is_hq %}#}
+{#            <div class="alert alert-info">#}
+{#                <strong>{% trans "دفتر مرکزی:" %}</strong> {% trans "شما به تمام تنخواه‌ها دسترسی دارید." %}#}
+{#            </div>#}
+{#        {% endif %}#}
+{#        <div class="print-footer text-center mt-5 d-print-block">#}
+{#            <hr class="my-2">#}
+{#            <small class="text-muted">#}
+{#                {% trans "تاریخ چاپ:" %} {{ current_date }} |#}
+{#                {% trans "کاربر:" %} {{ user.get_full_name|default:user.username }}#}
+{#            </small>#}
+{#        </div>#}
+{#    </div>#}
+{#{% endblock %}#}

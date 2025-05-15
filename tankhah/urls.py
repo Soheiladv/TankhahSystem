@@ -2,6 +2,7 @@ from django import views
 from django.urls import path
 from budgets.views import get_budget_info
 from tankhah.Factor.NF.view_Nfactor import New_FactorCreateView
+from tankhah.Factor.View_Factor_list import FactorListView
 from tankhah.Factor.view_FactorItemApprove import FactorItemApproveView
 from tankhah.Factor.view_FactorUpdate import FactorUpdateView
 from tankhah.TankhahTrackingView import TankhahTrackingView
@@ -15,7 +16,7 @@ from tankhah.views import (
     ApprovalListView, ApprovalCreateView, ApprovalDetailView, ApprovalUpdateView, ApprovalDeleteView,
     FactorApproveView, FactorItemRejectView,
     upload_tankhah_documents, ApprovalLogListView, FactorStatusUpdateView, mark_notification_as_read,
-    get_subprojects, FactorListView, FactorDetailView,   FactorDeleteView, get_unread_notifications,
+    get_subprojects,FactorDetailView,   FactorDeleteView, get_unread_notifications,
     oldd__FactorUpdateView
 )
 from tankhah.Factor.view_Factor import (FactorCreateView,
@@ -41,7 +42,7 @@ urlpatterns = [
     path('get-tankhah-budget-info/',  get_tankhah_budget_info, name='get_tankhah_budget_info'),
 
     # path('factor/create/', FactorCreateWizard.as_view(), name='w_factor_create'),
-    path('factor/<int:pk>/update/', oldd__FactorUpdateView.as_view(), name='factor_update'),
+    # path('factor/<int:pk>/update/', oldd__FactorUpdateView.as_view(), name='factor_update'),
 
     path('factors/<int:pk>/edit/', FactorUpdateView.as_view(), name='factor_edit'),
 

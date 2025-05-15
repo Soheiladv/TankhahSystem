@@ -22,39 +22,39 @@ def update_total_allocated(sender, instance, **kwargs):
 
 @receiver(post_save, sender=BudgetTransaction)
 def update_remaining_amount(sender, instance, created, **kwargs):
-    # آپدیت بودجه باقی‌مانده بعد از تراکنش
+    # آپدیت کش‌های مرتبط بعد از تراکنش
     allocation = instance.allocation
-    # تخصیص مرتبط
-    allocation.remaining_amount = allocation.get_remaining_amount()
-    allocation.save(update_fields=['remaining_amount'])
-    # آپدیت باقی‌مانده تخصیص
+    logger.debug(f"BudgetTransaction {instance.transaction_id} created. Invalidating cache for allocation {allocation.id}")
+    # پاک کردن کش‌های مرتبط
+    cache.delete(f"allocation_remaining_{allocation.id}")
     if instance.related_tankhah:
         from budgets.budget_calculations import get_tankhah_remaining_budget
         instance.related_tankhah.remaining_budget = get_tankhah_remaining_budget(instance.related_tankhah)
         instance.related_tankhah.save(update_fields=['remaining_budget'])
-        # آپدیت بودجه باقی‌مانده تنخواه
+        cache.delete(f"tankhah_remaining_{instance.related_tankhah.id}")
+        logger.debug(f"Updated remaining_budget for Tankhah {instance.related_tankhah.id}")
 
 @receiver(post_save, sender=BudgetTransaction)
 def update_budget_fields(sender, instance, **kwargs):
-    # آپدیت فیلدهای بودجه بعد از تراکنش
+    # آپدیت کش‌های مرتبط بعد از تراکنش
     try:
         allocation = instance.allocation
-        allocation.remaining_amount = allocation.get_remaining_amount()
-        allocation.save(update_fields=['remaining_amount'])
-        # آپدیت باقی‌مانده تخصیص
+        logger.debug(f"Invalidating cache for BudgetAllocation {allocation.id}")
+        cache.delete(f"allocation_remaining_{allocation.id}")
+
         project_allocation = ProjectBudgetAllocation.objects.filter(budget_allocation=allocation).first()
         if project_allocation:
-            project_allocation.remaining_amount = project_allocation.get_remaining_amount()
-            project_allocation.save(update_fields=['remaining_amount'])
-            # آپدیت باقی‌مانده تخصیص پروژه
+            logger.debug(f"Invalidating cache for ProjectBudgetAllocation {project_allocation.id}")
+            cache.delete(f"project_allocation_remaining_{project_allocation.id}")
+
         if instance.related_tankhah:
             from budgets.budget_calculations import get_tankhah_remaining_budget
             instance.related_tankhah.remaining_budget = get_tankhah_remaining_budget(instance.related_tankhah)
             instance.related_tankhah.save(update_fields=['remaining_budget'])
-            # آپدیت بودجه باقی‌مانده تنخواه
+            cache.delete(f"tankhah_remaining_{instance.related_tankhah.id}")
+            logger.debug(f"Updated remaining_budget for Tankhah {instance.related_tankhah.id}")
     except Exception as e:
-        logger.error(f"Error updating budget fields for BudgetTransaction {instance.id}: {e}", exc_info=True)
-        # لاگ خطا
+        logger.error(f"Error updating caches for BudgetTransaction {instance.id}: {e}", exc_info=True)
 
 @receiver([post_save, post_delete], sender=BudgetTransaction)
 def invalidate_transaction_cache(sender, instance, **kwargs):
@@ -125,19 +125,6 @@ def invalidate_tankhah_cache(sender, instance, **kwargs):
     except Exception as e:
         logger.error(f"Error invalidating cache for Tankhah {instance.pk}: {str(e)}", exc_info=True)
         # لاگ خطا
-
-# @receiver([post_save, post_delete], sender=Factor)
-# def invalidate_invoice_cache(sender, instance, **kwargs):
-#     # ابطال کش بعد از تغییر فاکتور
-#     cache_keys = set()
-#     try:
-#         cache_keys.add(f"invoice_report_{instance.transaction.allocation.budget_period.pk}_no_filters")
-#         for key in cache_keys:
-#             cache.delete(key)
-#         logger.debug(f"Invalidated cache keys after Invoice change: {cache_keys}")
-#     except Exception as e:
-#         logger.error(f"Error invalidating cache for Invoice {instance.pk}: {str(e)}", exc_info=True)
-#         # لاگ خطا
 
 @receiver(post_save, sender=BudgetAllocation)
 def update_allocation_lock_status(sender, instance, **kwargs):
