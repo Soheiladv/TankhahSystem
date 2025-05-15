@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n static rcms_custom_filters jalali_tags %}
+{% load i18n jformat static rcms_custom_filters jalali_tags %}
 
 {% block title %}{% trans "لیست تخصیص بودجه" %}{% endblock %}
 
@@ -162,119 +162,156 @@
 
         <!-- کارت لیست تخصیص‌ها -->
         <div class="row">
-            <div class="col-12">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0">{% trans "لیست تخصیص بودجه" %}</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if budget_allocations %}
-                            <div class="table-responsive">
-                                <table class="table table-hover table-striped">
-                                    <thead class="table-primary">
-                                    <tr>
-                                        <th>{% trans "ردیف" %}</th>
-                                        <th>{% trans "دوره بودجه" %}</th>
-                                        <th>{% trans "سازمان" %}</th>
-                                        <th>{% trans "پروژه" %}</th>
-                                        <th>{% trans "ردیف بودجه" %}</th>
-                                        <th>{% trans "مبلغ تخصیص" %}</th>
-                                        <th>{% trans "تاریخ تخصیص" %}</th>
-                                        <th>{% trans "توضیحات" %}</th>
-                                        <th>{% trans "عملیات" %}</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for allocation in budget_allocations %}
-                                        <tr>
-                                            <td>{{ forloop.counter|to_persian_number }}</td>
-                                            <td>{{ allocation.budget_period.name  |to_persian_number }}</td>
-                                            <td>{{ allocation.organization.name }}</td>
-                                            <td>{{ allocation.project.name|default:"-"|to_persian_number }}</td>
-                                            <td>{{ allocation.budget_item.name |to_persian_number }}</td>
-                                            <td class="fw-bold">{{ allocation.allocated_amount|format_negative }}</td>
-                                            <td>{{ allocation.allocation_date|to_jalali:'%Y/%m/%d'|to_persian_number }}</td>
-                                            <td>{{ allocation.description|truncatechars:30|default:"-" |to_persian_number }}</td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <a href="{% url 'budgetallocation_detail' allocation.id %}"
-                                                       class="btn btn-outline-info" title="{% trans 'جزئیات' %}">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                    {% if perms.budgets.change_budgetallocation %}
-                                                        <a href="{% url 'budgetallocation_update' allocation.id %}"
-                                                           class="btn btn-outline-primary" title="{% trans 'ویرایش' %}">
-                                                            <i class="fas fa-edit"></i>
-                                                        </a>
-                                                    {% endif %}
-                                                    {% if perms.budgets.delete_budgetallocation %}
-                                                        <a href="{% url 'budgetallocation_delete' allocation.id %}"
-                                                           class="btn btn-outline-danger" title="{% trans 'حذف' %}">
-                                                            <i class="fas fa-trash"></i>
-                                                        </a>
-                                                    {% endif %}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
+            <div class="card-body">
+                       {% if budget_allocations %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-wallet me-2"></i>
+                {% trans "لیست تخصیص‌های بودجه" %}
+            </h5>
+            <span class="badge bg-light text-dark">
+                {{ budget_allocations.count }} {% trans "مورد" %}
+            </span>
+        </div>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th width="50px">{% trans "ردیف" %}</th>
+                        <th>{% trans "سازمان" %}</th>
+                        <th>{% trans "دوره بودجه" %}</th>
+                        <th>{% trans "مرکز هزینه" %}</th>
+                        <th>{% trans "ردیف بودجه" %}</th>
+                        <th>{% trans "تاریخ تخصیص‌یافته" %}</th>
+                        <th>{% trans "مبلغ تخصیص‌یافته" %}</th>
+                        <th>{% trans "باقیمانده" %}</th>
+                        <th>{% trans "وضعیت" %}</th>
+                        <th width="220px">{% trans "عملیات" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for allocation in budget_allocations %}
+                    <tr>
+                        <td class="text-center">{{ forloop.counter|to_persian_number }}</td>
+                        <td>{{ allocation.organization.name }}</td>
+                        <td>{{ allocation.budget_period.name }}</td>
+                        <td>{{ allocation.project.name|default:"-" }}</td>
+                        <td>{{ allocation.budget_item.name }}</td>
+                        <td>{{ allocation.allocation_date |jformat:"%Y/%m/%d"}}</td>
+                         <td class="fw-bold text-nowrap">{{ allocation.allocated_amount|format_negative }} {% trans "ریال" %}</td>
+                        <td class="text-nowrap {% if allocation.get_remaining_amount < 0 %}text-danger{% endif %}">
+                            {{ allocation.get_remaining_amount|format_negative }} {% trans "ریال" %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if allocation.is_locked %}secondary{% else %}success{% endif %}">
+                                {% if allocation.is_locked %}
+                                    <i class="fas fa-lock me-1"></i> {% trans "قفل‌شده" %}
+                                {% else %}
+                                    <i class="fas fa-lock-open me-1"></i> {% trans "باز" %}
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{% url 'budgetallocation_detail' allocation.id %}"
+                                   class="btn btn-sm btn-outline-info"
+                                   title="{% trans 'جزئیات' %}"
+                                   data-bs-toggle="tooltip">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+
+                                {% if perms.budgets.change_budgetallocation %}
+                                <a href="{% url 'budgetallocation_update' allocation.id %}"
+                                   class="btn btn-sm btn-outline-primary {% if allocation.is_locked %}disabled{% endif %}"
+                                   title="{% if allocation.is_locked %}{% trans 'ویرایش غیرفعال - تخصیص قفل شده' %}{% else %}{% trans 'ویرایش' %}{% endif %}"
+                                   data-bs-toggle="tooltip">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% endif %}
+
+                                {% if perms.budgets.delete_budgetallocation %}
+                                <a href="{% url 'budgetallocation_delete' allocation.id %}"
+                                   class="btn btn-sm btn-outline-danger {% if allocation.is_locked %}disabled{% endif %}"
+                                   title="{% if allocation.is_locked %}{% trans 'حذف غیرفعال - تخصیص قفل شده' %}{% else %}{% trans 'حذف' %}{% endif %}"
+                                   data-bs-toggle="tooltip">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                {% endif %}
                             </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-                            <!-- صفحه‌بندی -->
-                            {% if is_paginated %}
-                                <nav aria-label="Page navigation">
-                                    <ul class="pagination justify-content-center mt-4">
-                                        {% if page_obj.has_previous %}
-                                            <li class="page-item">
-                                                <a class="page-link" href="?page=
-                                                        {{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                                    &laquo; {% trans "قبلی" %}
-                                                </a>
-                                            </li>
-                                        {% else %}
-                                            <li class="page-item disabled">
-                                                <span class="page-link">&laquo; {% trans "قبلی" %}</span>
-                                            </li>
-                                        {% endif %}
+    {% if is_paginated %}
+    <div class="card-footer bg-light">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link"
+                       href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        <i class="fas fa-chevron-right"></i> {% trans "قبلی" %}
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="fas fa-chevron-right"></i> {% trans "قبلی" %}</span>
+                </li>
+                {% endif %}
 
-                                        {% for i in paginator.page_range %}
-                                            {% if page_obj.number == i %}
-                                                <li class="page-item active"><span class="page-link">{{ i }}</span></li>
-                                            {% else %}
-                                                <li class="page-item">
-                                                    <a class="page-link" href="?page=
-                                                            {{ i }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                                        {{ i }}
-                                                    </a>
-                                                </li>
-                                            {% endif %}
-                                        {% endfor %}
+                {% for i in paginator.page_range %}
+                    {% if page_obj.number == i %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ i|to_persian_number }}</span>
+                    </li>
+                    {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ i }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            {{ i|to_persian_number }}
+                        </a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
 
-                                        {% if page_obj.has_next %}
-                                            <li class="page-item">
-                                                <a class="page-link" href="?page=
-                                                        {{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                                    {% trans "بعدی" %} &raquo;
-                                                </a>
-                                            </li>
-                                        {% else %}
-                                            <li class="page-item disabled">
-                                                <span class="page-link">{% trans "بعدی" %} &raquo;</span>
-                                            </li>
-                                        {% endif %}
-                                    </ul>
-                                </nav>
-                            {% endif %}
-                        {% else %}
-                            <div class="alert alert-info text-center">
-                                <i class="fas fa-info-circle me-2"></i>
-                                {% trans "هیچ تخصیص بودجه‌ای یافت نشد." %}
-                            </div>
-                        {% endif %}
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link"
+                       href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        {% trans "بعدی" %} <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">{% trans "بعدی" %} <i class="fas fa-chevron-left"></i></span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<div class="alert alert-info text-center py-4">
+    <div class="d-flex justify-content-center align-items-center">
+        <i class="fas fa-wallet fa-2x me-3"></i>
+        <div>
+            <h5 class="alert-heading mb-2">{% trans "هیچ تخصیص بودجه‌ای یافت نشد" %}</h5>
+            <p class="mb-0">{% trans "می‌توانید یک تخصیص بودجه جدید ایجاد کنید" %}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
                     </div>
-                </div>
-            </div>
         </div>
     </div>
 {% endblock %}

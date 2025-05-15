@@ -298,7 +298,7 @@
                                         {% endif %}
                                     </td>
                                     <td class="text-end fw-bold">
-                                        {{ allocation.allocated_amount|intcomma|to_persian_number}}
+                                        {{ allocation.allocated_amount|to_persian_number}}
                                         <small class="text-muted">{% trans "ریال" %}</small>
                                     </td>
                                     <td>
@@ -365,6 +365,16 @@
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                             {% endif %}
+
+                                {% if not allocation.is_locked %}
+                                <a href="{% url 'budget_return' allocation_id=allocation.id %}"
+                                   class="btn btn-sm btn-danger"
+                                   title="{% trans 'برگشت بودجه' %}"
+                                   data-bs-toggle="tooltip">
+                                    <i class="fas fa-undo me-1"></i> {% trans "برگشت بودجه" %}
+                                </a>
+                                {% endif %}
+
                                         </div>
                                     </td>
                                 </tr>

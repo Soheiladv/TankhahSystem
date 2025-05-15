@@ -209,9 +209,8 @@ class __DashboardView_flows(LoginRequiredMixin, TemplateView):
         user_orgs = [up.post.organization for up in user_posts] if user_posts else []
         is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
         from budgets.models import BudgetPeriod
-        from tankhah.models import Notification
         budget_periods = BudgetPeriod.objects.filter( is_active=True) #organization=user.organization,
-        notifications = Notification.objects.filter( is_read=False)#recipient=user,
+        # notifications = Notification.objects.filter( is_read=False)#recipient=user,
         budget_statuses = []
         # for period in budget_periods:
         #     status, message = period.check_budget_status()
@@ -224,7 +223,7 @@ class __DashboardView_flows(LoginRequiredMixin, TemplateView):
         #     })
 
         context['budget_statuses'] = budget_statuses
-        context['notifications'] = notifications
+        # context['notifications'] = notifications
 
         # Filter Tankhah objects based on user permissions
         Tankhahs = Tankhah.objects.all()

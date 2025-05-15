@@ -1,5 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import Http404
 from django.shortcuts import redirect
 from django.views.generic import CreateView
@@ -19,8 +19,20 @@ from core.PermissionBase import PermissionBaseView
 import logging
 logger = logging.getLogger(__name__)
 
+from django.core.cache import cache
+
+""""گزارش‌گیری بودجه برگشتی:"""
+from budgets.models import BudgetHistory, ProjectBudgetAllocation, BudgetTransaction
+def get_returned_budgets(budget_period):
+    from django.contrib.contenttypes.models import ContentType
+    from budgets.models import  BudgetAllocation
+    return BudgetHistory.objects.filter(
+        content_type=ContentType.objects.get_for_model(BudgetAllocation),
+        action='RETURN',
+        content_object__budget_period=budget_period
+    ).values('amount', 'details', 'created_at', 'created_by__username')
 #-----------------
-class BudgetReturnView(PermissionBaseView, CreateView):
+class old__BudgetReturnView(PermissionBaseView, CreateView):
     model = BudgetTransaction
     form_class = BudgetReturnForm
     template_name = 'budgets/budget_return_form.html'
@@ -175,17 +187,99 @@ class BudgetReturnView(PermissionBaseView, CreateView):
     def get_success_url(self):
         return reverse_lazy('project_budget_allocation_detail', kwargs={'pk': self.kwargs['allocation_id']})
 #-----------------
+class BudgetReturnView(  PermissionBaseView, CreateView):
+    model = BudgetTransaction
+    form_class = BudgetReturnForm
+    template_name = 'budgets/budget_return_form.html'
+    permission_codenames = ['budgets.BudgetTransaction_add']
+    check_organization = True
+    success_url = None
 
+    def get_allocation(self):
+        try:
+            allocation = ProjectBudgetAllocation.objects.select_related(
+                'budget_allocation__budget_period', 'project', 'budget_allocation__organization'
+            ).get(pk=self.kwargs['allocation_id'], is_active=True)
+            user_organizations = self.request.user.get_authorized_organizations()
+            if not user_organizations.filter(
+                pk=allocation.budget_allocation.organization.pk
+            ).exists():
+                logger.warning(
+                    f"User {self.request.user.username} attempted to access allocation "
+                    f"{self.kwargs['allocation_id']} without organization permission"
+                )
+                raise PermissionDenied(_('متاسفانه دسترسی مجاز ندارید'))
+            return allocation
+        except ProjectBudgetAllocation.DoesNotExist:
+            logger.error(f"Allocation {self.kwargs['allocation_id']} does not exist or is inactive")
+            raise Http404(_('تخصیص بودجه مورد نظر یافت نشد یا غیرفعال است.'))
 
-""""گزارش‌گیری بودجه برگشتی:"""
-from budgets.models import BudgetHistory, ProjectBudgetAllocation, BudgetTransaction
+    def dispatch(self, request, *args, **kwargs):
+        if not self.get_allocation():
+            messages.error(self.request, _('تخصیص بودجه مورد نظر یافت نشد یا غیرفعال است.'))
+            return redirect('budgets:budgetallocation_list')
+        return super().dispatch(request, *args, **kwargs)
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['allocation'] = self.get_allocation()
+        kwargs['user'] = self.request.user
+        return kwargs
 
-def get_returned_budgets(budget_period):
-    from django.contrib.contenttypes.models import ContentType
-    from budgets.models import  BudgetAllocation
-    return BudgetHistory.objects.filter(
-        content_type=ContentType.objects.get_for_model(BudgetAllocation),
-        action='RETURN',
-        content_object__budget_period=budget_period
-    ).values('amount', 'details', 'created_at', 'created_by__username')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        allocation = self.get_allocation()
+        project = allocation.project
+        organization = allocation.budget_allocation.organization
+        budget_period = allocation.budget_allocation.budget_period
+
+        # کش برای اطلاعات بودجه
+
+        cache_key = f"budget_context_{allocation.pk}"
+        cached_context = cache.get(cache_key)
+        if cached_context:
+            context.update(cached_context)
+        else:
+            from budgets.get_budget_details import get_budget_details
+            context_data = {
+                'allocation': allocation,
+                'project': project,
+                'organization': organization,
+                'total_budget': get_project_total_budget(project),
+                'used_budget': get_project_used_budget(project),
+                'remaining_budget': get_project_remaining_budget(project),
+                'org_budget': get_organization_budget(organization),
+                'budget_details': get_budget_details(entity=project),
+                'budget_status': check_budget_status(budget_period)[0],
+                'budget_status_message': check_budget_status(budget_period)[1],
+            }
+            cache.set(cache_key, context_data, timeout=300)
+            context.update(context_data)
+
+        return context
+
+    def form_valid(self, form):
+        try:
+            instance = form.save()
+            messages.success(self.request, _("تراکنش بازگشت بودجه با موفقیت ثبت شد."))
+            logger.info(
+                f"User {self.request.user.username} created return transaction "
+                f"for allocation {self.get_allocation().id}"
+            )
+            return super().form_valid(form)
+        except ValidationError as e:
+            logger.error(
+                f"Error creating return transaction for allocation {self.get_allocation().id}: {str(e)}"
+            )
+            form.add_error(None, e)
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            'budgets:project_budget_allocation_detail',
+            kwargs={'pk': self.kwargs['allocation_id']}
+        )
+
+    def _get_organization_from_object(self, obj):
+        return obj.budget_allocation.organization
+

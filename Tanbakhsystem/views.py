@@ -55,8 +55,11 @@ class DashboardView( PermissionBaseView , TemplateView):
                  # 'permission': 'core.budget_warning_report',
                  'icon': 'fas fa-plus'},
 
-                {'name': _('  (برگشت بودجه )فهرست بودجه در پروژه '), 'url': 'budgetallocation_list',
+                {'name': _('  (برگشت بودجه )فهرست بودجه در مراکز هزینه '), 'url': 'budgetallocation_list',
                  'permission': 'budgets.view_budgetallocation',
+                 'icon': 'fas fa-plus'},
+                {'name': _('انتقال بودجه'), 'url': 'budget_transfer',
+                 # 'permission': 'budgets.view_budgetallocation',
                  'icon': 'fas fa-plus'},
 
                 {'name': _('فهرست تغییر در بودجه'), 'url': 'budgettransaction_list',
@@ -82,14 +85,13 @@ class DashboardView( PermissionBaseView , TemplateView):
             'فاکتورها': [
                 {'name': _('فهرست فاکتورها'), 'url': 'factor_list', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'},
                 # {'name': _('ایجاد فاکتور'), 'url': 'factor_create', 'permission': 'tankhah.factor_add', 'icon': 'fas fa-plus'},
-                {'name': _('ایجاد فاکتور2'), 'url': 'Nfactor_create', 'permission': 'tankhah.factor_add', 'icon': 'fas fa-plus'},
-                # {'name': _('factor_wizard ایجاد فاکتور'), 'url': 'factor_wizard', 'permission': 'tankhah.factor_add', 'icon': 'fas fa-plus'},
-            ],
-            'عنوان پروژه': [
-                {'name': _('فهرست پروژه‌ها'), 'url': 'project_list', 'permission': 'core.Project_view',
+                {'name': _('ایجاد فاکتور'), 'url': 'Nfactor_create', 'permission': 'tankhah.factor_add', 'icon': 'fas fa-plus'},
+             ],
+            'عنوان مرکز هزینه (پروژه)': [
+                {'name': _('فهرست مرکز هزینه (پروژه)'), 'url': 'project_list', 'permission': 'core.Project_view',
                  'icon': 'fas fa-project-diagram'},
-                {'name': _('ایجاد پروژه'), 'url': 'project_create', 'permission': 'core.Project_add', 'icon': 'fas fa-plus'},
-                {'name': _('ایجاد زیرپروژه'), 'url': 'subproject_create', 'permission': 'core.Project_add', 'icon': 'fas fa-plus'},
+                {'name': _('ایجاد مرکز هزینه (پروژه)'), 'url': 'project_create', 'permission': 'core.Project_add', 'icon': 'fas fa-plus'},
+                {'name': _('ایجاد زیر مرکز هزینه (پروژه)'), 'url': 'subproject_create', 'permission': 'core.Project_add', 'icon': 'fas fa-plus'},
             ],
             'گردش کار': [
                 {'name': _('فهرست گردش کار'), 'url': 'workflow_stage_list', 'permission': 'core.WorkflowStage_view',

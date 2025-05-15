@@ -233,7 +233,6 @@ class Post(models.Model):
             ('Post_view','نمایش  پست سازمانی برای تعریف سلسله مراتب'),
             ('Post_delete','حــذف  پست سازمانی برای تعریف سلسله مراتب'),
             ]
-
 class UserPost(models.Model):
     """مدل اتصال کاربر به پست"""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name=_("کاربر"))

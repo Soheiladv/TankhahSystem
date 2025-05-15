@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% trans "تنخواه‌گردانی" %}{% endblock %}</title>
+    <title>{% block title %}{% trans "سیستم جامع بودجه بندی سازمانی و تنخواه‌گردانی" %}{% endblock %}</title>
     <link rel="icon" href="{% static 'admin/img/favicon.ico' %}" type="image/x-icon">
     <!-- CSS های اصلی -->
     <link href="{% static 'admin/css/bootstrap.rtl.min.css' %}" rel="stylesheet">
@@ -86,7 +86,7 @@
     <div class="container-fluid">
         <a class="navbar-brand animate__animated animate__fadeInLeft" href="{% url 'index' %}">
             <img src="{% static 'admin/img/RCMS2.svg' %}" alt="RCMS">
-            <span class="ms-2 d-none d-md-inline">{% trans "تنخواه‌گردانی" %}</span>
+            <span class="ms-2 d-none d-md-inline">{% trans "سیستم جامع بودجه بندی سازمانی و تنخواه‌گردانی" %}</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <i class="fas fa-bars"></i>
@@ -158,7 +158,7 @@
     <div class="sidebar-header animate__animated animate__fadeInDown">
         <img src="{% static 'admin/img/rcms.jpg' %}" alt="لوگو" class="img-fluid rounded-circle mb-2"
              style="max-width: 80px;">
-        <h5 class="text-white">{% trans "تنخواه‌گردانی" %}</h5>
+        <h5 class="text-white">{% trans "سیستم جامع بودجه بندی سازمانی و تنخواه‌گردانی" %}</h5>
     </div>
     <ul class="nav flex-column p-3">
         <li class="nav-item">
@@ -245,16 +245,16 @@
 
 <footer class="footer animate__animated animate__fadeInUp">
     <div class="container">
-        <p>© 1404 {% trans "تنخواه‌گردانی" %}. {% trans "همه حقوق محفوظ است." %}</p>
+        <p>© 1404 {% trans "سیستم جامع بودجه بندی سازمانی و تنخواه‌گردانی" %}. {% trans "همه حقوق محفوظ است." %}</p>
     </div>
 </footer>
 
 <!-- اسکریپت‌ها -->
 <script src="{% static 'admin/js/jquery-3.6.0.min.js' %}"></script>
 <script src="{% static 'admin/js/jquery-ui.min.js' %}"></script>
-<script src="{% static 'admin/js/select2.min.js' %}"></script>
-<script src="{% static 'admin/js/jalalidatepicker.min.js' %}"></script>
 <script src="{% static 'admin/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'admin/js/jalalidatepicker.min.js' %}"></script>
+<script src="{% static 'admin/js/select2.min.js' %}"></script>
 <script src="{% static 'admin/js/numberFormatter.js' %}"></script>
 <script src="{% static 'admin/js/persian_number_utils.js' %}" defer></script>
 <script src="{% static 'admin/js/number_to_words_connect.js' %}"></script>

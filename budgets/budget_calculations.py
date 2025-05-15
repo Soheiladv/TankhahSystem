@@ -22,27 +22,58 @@ logger = logging.getLogger(__name__)
 def calculate_remaining_amount(allocation, amount_field='allocated_amount', model_name='Allocation'):
     """
     محاسبه بودجه باقی‌مانده تخصیص با در نظر گرفتن تراکنش‌های مصرف و بازگشت.
+
     Args:
-        allocation: نمونه مدل (مانند BudgetAllocation یا ProjectBudgetAllocation)
-        amount_field: نام فیلد مقدار اولیه (مانند 'allocated_amount')
-        model_name: نام مدل برای لاگ‌گذاری
+        allocation (Model): نمونه مدل (مانند BudgetAllocation یا ProjectBudgetAllocation)
+        amount_field (str): نام فیلد مقدار اولیه (پیش‌فرض: 'allocated_amount')
+        model_name (str): نام مدل برای لاگ‌گذاری (پیش‌فرض: 'Allocation')
+
     Returns:
-        Decimal: بودجه باقی‌مانده
+        Decimal: بودجه باقی‌مانده (همیشه غیرمنفی)
+
+    Example:
+        >>> alloc = BudgetAllocation.objects.get(pk=1)
+        >>> remaining = calculate_remaining_amount(alloc)
+        Decimal('1000.00')
     """
+    from budgets.models import BudgetTransaction,ProjectBudgetAllocation,BudgetAllocation
     try:
-        from budgets.models import BudgetTransaction
-        consumed_qs = BudgetTransaction.objects.filter(allocation=allocation, transaction_type='CONSUMPTION')
+        # چک کردن اینکه allocation ذخیره شده
+        # اگر allocation ذخیره نشده باشد، مقدار اولیه را برگردان
+        if not hasattr(allocation, 'pk') or allocation.pk is None:
+            logger.debug(f"{model_name} هنوز ذخیره نشده، بازگشت مقدار اولیه")
+            initial_amount = getattr(allocation, amount_field, Decimal('0.00')) or Decimal('0.00')
+            return initial_amount
+
+        # تبدیل allocation به BudgetAllocation اگر ProjectBudgetAllocation باشد
+        budget_allocation = allocation
+        if isinstance(allocation, ProjectBudgetAllocation):
+            budget_allocation = allocation.budget_allocation
+            logger.debug(
+                f"تبدیل ProjectBudgetAllocation {allocation.pk} به BudgetAllocation {budget_allocation.pk}")
+        elif not isinstance(allocation, BudgetAllocation):
+            logger.error(
+                f"ورودی allocation باید BudgetAllocation یا ProjectBudgetAllocation باشد، دریافت شده: {type(allocation)}")
+            raise ValueError(
+                f"ورودی allocation باید BudgetAllocation یا ProjectBudgetAllocation باشد، دریافت شده: {type(allocation)}")
+
+        # محاسبه تراکنش‌های مصرف
+        consumed_qs = BudgetTransaction.objects.filter(allocation=budget_allocation, transaction_type='CONSUMPTION')
         consumed = consumed_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
-        returned_qs = BudgetTransaction.objects.filter(allocation=allocation, transaction_type='RETURN')
+        # محاسبه تراکنش‌های بازگشت
+        returned_qs = BudgetTransaction.objects.filter(allocation=budget_allocation, transaction_type='RETURN')
         returned = returned_qs.aggregate(total=Coalesce(Sum('amount'), Decimal('0.00')))['total']
+        # دریافت مقدار اولیه
         initial_amount = getattr(allocation, amount_field) if getattr(allocation, amount_field) is not None else Decimal('0.00')
+        # محاسبه بودجه باقی‌مانده
         remaining = initial_amount - consumed + returned
+
         logger.debug(
-            f"{model_name} {allocation.pk}: Initial Amount={initial_amount}, Consumed={consumed}, Returned={returned}, Calculated Remaining={remaining}"
+            f"{model_name} {budget_allocation.pk}: مقدار اولیه={initial_amount}, مصرف={consumed}, بازگشت={returned}, باقی‌مانده={remaining}"
         )
         return max(remaining, Decimal('0.00'))
     except Exception as e:
-        logger.error(f"Error calculating remaining amount for {model_name} {allocation.pk}: {str(e)}", exc_info=True)
+        logger.error(f"خطا در محاسبه بودجه باقی‌مانده برای {model_name} {getattr(allocation, 'pk', 'Unknown')}: {str(e)}", exc_info=True)
         return Decimal('0.00')
 
 def calculate_threshold_amount(base_amount, percentage):
@@ -88,6 +119,13 @@ def apply_filters(queryset, filters=None):
     """
     اعمال فیلترهای پویا روی کوئری‌ست
     """
+    # if not isinstance(filters, dict):
+    #     logger.error(f"apply_filters received non-dict filters: {filters}")
+    #     raise TypeError("filters must be a dictionary")
+    # if 'date_from' in filters:
+    #     queryset = queryset.filter(budget_allocation__allocation_date__gte=filters['date_from'])
+    # if 'date_to' in filters:
+    #     queryset = queryset.filter(budget_allocation__allocation_date__lte=filters['date_to'])
     if not filters:
         return queryset
     if 'date_from' in filters:
@@ -100,7 +138,7 @@ def apply_filters(queryset, filters=None):
         queryset = queryset.filter(is_active=filters['is_active'])
     if 'budget_period' in filters:
         queryset = queryset.filter(budget_period=filters['budget_period'])
-    logger.debug(f"apply_filters: filters={filters}, queryset count={queryset.count()}")
+    logger.debug(f"Applied filters {filters} to queryset, resulting count: {queryset.count()}")
     return queryset
 
 # === توابع بودجه سازمان ===
@@ -214,32 +252,47 @@ def get_tankhah_remaining_budget(tankhah, filters=None):
     return Decimal('0')
 
 # === توابع بودجه پروژه ===
-def get_project_total_budget(project, filters=None):
+def get_project_total_budget(project, force_refresh=False, filters=None):
     """
-    محاسبه بودجه کل تخصیص‌یافته به پروژه
+    محاسبه مجموع بودجه تخصیصی پروژه.
+    filters: دیکشنری اختیاری برای فیلتر کردن تخصیص‌ها (مثل {'date_from': date})
     """
-    from budgets.models import ProjectBudgetAllocation
-    cache_key = f"project_total_budget_{project.pk}_{hash(str(filters)) if filters else 'no_filters'}"
+    cache_key = f"project_total_budget_{project.pk}_no_filters"
+    if force_refresh:
+        cache.delete(cache_key)
+        logger.debug(f"Cleared cache for {cache_key}")
     cached_result = cache.get(cache_key)
     if cached_result is not None:
         logger.debug(f"Returning cached project_total_budget for {cache_key}: {cached_result}")
         return cached_result
 
-        # تخصیص‌های مستقیم به پروژه
-    direct_allocations = ProjectBudgetAllocation.objects.filter(project=project, subproject__isnull=True)
+    from budgets.models import ProjectBudgetAllocation
+    direct_allocations = ProjectBudgetAllocation.objects.filter(
+        project=project,
+        subproject__isnull=True,
+        budget_allocation__is_active=True
+    )
+    # اعمال فیلترها فقط اگر filters ارائه شده باشد
     if filters:
         direct_allocations = apply_filters(direct_allocations, filters)
     direct_total = direct_allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
 
-    # تخصیص‌های زیرپروژه‌ها
-    subproject_allocations = ProjectBudgetAllocation.objects.filter(project=project, subproject__isnull=False)
+    subproject_allocations = ProjectBudgetAllocation.objects.filter(
+        project=project,
+        subproject__isnull=False,
+        budget_allocation__is_active=True
+    )
     if filters:
         subproject_allocations = apply_filters(subproject_allocations, filters)
     subproject_total = subproject_allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
 
     total = direct_total + subproject_total
     cache.set(cache_key, total, timeout=300)
-    logger.debug(f"Project {project.id} total budget: {total}")
+    logger.debug(
+        f"Project {project.id} total budget: {total}, direct: {direct_total}, "
+        f"subproject: {subproject_total}, direct_count: {direct_allocations.count()}, "
+        f"subproject_count: {subproject_allocations.count()}"
+    )
     return total
 
 """ محاسبه بودجه *واقعی* باقی‌مانده پروژه."""
@@ -319,7 +372,6 @@ def get_actual_project_remaining_budget(project, filters=None):
 # --- اطمینان حاصل کنید که تابع get_project_total_budget در همین فایل یا قابل import است ---
 # تابع get_project_total_budget شما به نظر صحیح می آید و می تواند استفاده شود.
 
-
 def get_project_used_budget(project, filters=None):
     """
     محاسبه بودجه مصرف‌شده پروژه (شامل تنخواه‌ها و زیرپروژه‌ها)
@@ -348,7 +400,8 @@ def get_project_used_budget(project, filters=None):
     consumptions = BudgetTransaction.objects.filter(
         allocation__project_allocations__project=project,
         transaction_type='CONSUMPTION'
-    )
+    ).select_related('allocation')
+
     if filters:
         consumptions = apply_filters(consumptions, filters)
     consumptions = consumptions.aggregate(total=Sum('amount'))['total'] or Decimal('0')
@@ -359,58 +412,95 @@ def get_project_used_budget(project, filters=None):
     logger.debug(f"Project {project.id} used budget: {total}")
     return total
 
-def get_project_remaining_budget(project, filters=None):
+def get_project_remaining_budget(project, force_refresh=False, filters=None):
     """
-    محاسبه بودجه باقی‌مانده پروژه با در نظر گرفتن تراکنش‌های مصرف و بازگشت
+    محاسبه بودجه باقی‌مانده پروژه با کسر تراکنش‌های مصرف و اضافه کردن بازگشت‌ها.
     """
-    from budgets.models import BudgetTransaction
-    cache_key = f"project_remaining_budget_{project.pk}_{hash(str(filters)) if filters else 'no_filters'}"
+    cache_key = f"project_remaining_budget_{project.pk}_no_filters"
+    if force_refresh:
+        cache.delete(cache_key)
+        logger.debug(f"Cleared cache for {cache_key}")
     cached_result = cache.get(cache_key)
     if cached_result is not None:
         logger.debug(f"Returning cached project_remaining_budget for {cache_key}: {cached_result}")
         return cached_result
 
-    total_allocated = get_project_total_budget(project, filters)
+    total_allocated = get_project_total_budget(project, force_refresh, filters)
+    from budgets.models import ProjectBudgetAllocation
+    allocations = ProjectBudgetAllocation.objects.filter(
+        project=project,
+        subproject__isnull=True,
+        budget_allocation__is_active=True
+    )
+    if filters:
+        allocations = apply_filters(allocations, filters)
+    logger.debug(
+        f"Project {project.id} allocations: count={allocations.count()}, "
+        f"amounts={[a.allocated_amount for a in allocations]}, "
+        f"details={[{'id': a.id, 'amount': str(a.allocated_amount), 'active': a.budget_allocation.is_active} for a in allocations]}"
+    )
+
+    from budgets.models import BudgetTransaction
     consumptions = BudgetTransaction.objects.filter(
         allocation__project_allocations__project=project,
         transaction_type='CONSUMPTION'
     )
-    if filters:
-        consumptions = apply_filters(consumptions, filters)
-    consumptions = consumptions.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    consumptions_total = consumptions.aggregate(total=Sum('amount'))['total'] or Decimal('0')
 
     returns = BudgetTransaction.objects.filter(
         allocation__project_allocations__project=project,
         transaction_type='RETURN'
     )
-    if filters:
-        returns = apply_filters(returns, filters)
-    returns = returns.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    returns_total = returns.aggregate(total=Sum('amount'))['total'] or Decimal('0')
 
-    remaining = max(total_allocated - consumptions + returns, Decimal('0'))
+    remaining = max(total_allocated - consumptions_total + returns_total, Decimal('0'))
     cache.set(cache_key, remaining, timeout=300)
-    logger.debug(f"get_project_remaining_budget: project={project}, remaining={remaining}")
+    logger.debug(
+        f"get_project_remaining_budget: project={project.id}, total={total_allocated}, "
+        f"consumptions={consumptions_total}, returns={returns_total}, remaining={remaining}, "
+        f"consumptions_count={consumptions.count()}, returns_count={returns.count()}"
+    )
     return remaining
 
+
 # === توابع بودجه زیرپروژه ===
-def get_subproject_total_budget(subproject, filters=None):
+
+def get_subproject_total_budget(subproject, force_refresh=False, filters=None):
     """
     محاسبه بودجه کل تخصیص‌یافته به زیرپروژه
     """
     from budgets.models import ProjectBudgetAllocation
-    cache_key = f"subproject_total_budget_{subproject.pk}_{hash(str(filters)) if filters else 'no_filters'}"
+    cache_key = f"subproject_remaining_budget_{subproject.pk}_no_filters"
+    if force_refresh:
+        cache.delete(cache_key)
+        logger.debug(f"Cleared cache for {cache_key}")
     cached_result = cache.get(cache_key)
     if cached_result is not None:
-        logger.debug(f"Returning cached subproject_total_budget for {cache_key}: {cached_result}")
+        logger.debug(f"Returning cached subproject_remaining_budget for {cache_key}: {cached_result}")
         return cached_result
 
-    queryset = ProjectBudgetAllocation.objects.filter(subproject=subproject)
-    if filters:
-        queryset = apply_filters(queryset, filters)
-    total = queryset.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
-    cache.set(cache_key, total, timeout=300)
-    logger.debug(f"get_subproject_total_budget: subproject={subproject}, total={total}")
-    return total
+    total_allocated = get_subproject_total_budget(subproject, force_refresh, filters)
+    from budgets.models import BudgetTransaction
+    consumptions = BudgetTransaction.objects.filter(
+        allocation__project_allocations__subproject=subproject,
+        transaction_type='CONSUMPTION'
+    )
+    consumptions_total = consumptions.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+    returns = BudgetTransaction.objects.filter(
+        allocation__project_allocations__subproject=subproject,
+        transaction_type='RETURN'
+    )
+    returns_total = returns.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+    remaining = max(total_allocated - consumptions_total + returns_total, Decimal('0'))
+    cache.set(cache_key, remaining, timeout=300)
+    logger.debug(
+        f"get_subproject_remaining_budget: subproject={subproject.id}, total={total_allocated}, "
+        f"consumptions={consumptions_total}, returns={returns_total}, remaining={remaining}, "
+        f"consumptions_count={consumptions.count()}, returns_count={returns.count()}"
+    )
+    return remaining
 
 def get_subproject_used_budget(subproject, filters=None):
     """
@@ -430,38 +520,45 @@ def get_subproject_used_budget(subproject, filters=None):
     logger.debug(f"get_subproject_used_budget: subproject={subproject}, total={total}")
     return total
 
-def get_subproject_remaining_budget(subproject, filters=None):
+def get_subproject_remaining_budget(subproject, force_refresh=False, filters=None):
     """
-    محاسبه بودجه باقی‌مانده زیرپروژه با در نظر گرفتن تراکنش‌های مصرف و بازگشت
+    محاسبه بودجه باقی‌مانده زیرپروژه.
     """
-    from budgets.models import BudgetTransaction
-    cache_key = f"subproject_remaining_budget_{subproject.pk}_{hash(str(filters)) if filters else 'no_filters'}"
+    cache_key = f"subproject_remaining_budget_{subproject.pk}_no_filters"
+    if force_refresh:
+        cache.delete(cache_key)
+        logger.debug(f"Cleared cache for {cache_key}")
     cached_result = cache.get(cache_key)
     if cached_result is not None:
         logger.debug(f"Returning cached subproject_remaining_budget for {cache_key}: {cached_result}")
         return cached_result
 
-    total_allocated = get_subproject_total_budget(subproject, filters)
+    total_allocated = get_subproject_total_budget(subproject, force_refresh, filters)
+    from budgets.models import BudgetTransaction
     consumptions = BudgetTransaction.objects.filter(
         allocation__project_allocations__subproject=subproject,
         transaction_type='CONSUMPTION'
     )
-    if filters:
-        consumptions = apply_filters(consumptions, filters)
-    consumptions = consumptions.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    consumptions_total = consumptions.aggregate(total=Sum('amount'))['total'] or Decimal('0')
 
     returns = BudgetTransaction.objects.filter(
         allocation__project_allocations__subproject=subproject,
         transaction_type='RETURN'
     )
-    if filters:
-        returns = apply_filters(returns, filters)
-    returns = returns.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    returns_total = returns.aggregate(total=Sum('amount'))['total'] or Decimal('0')
 
-    remaining = max(total_allocated - consumptions + returns, Decimal('0'))
+    remaining = max(total_allocated - consumptions_total + returns_total, Decimal('0'))
     cache.set(cache_key, remaining, timeout=300)
-    logger.debug(f"get_subproject_remaining_budget: subproject={subproject}, remaining={remaining}")
+    logger.debug(
+        f"get_subproject_remaining_budget: subproject={subproject.id}, total={total_allocated}, "
+        f"consumptions={consumptions_total}, returns={returns_total}, remaining={remaining}, "
+        f"consumptions_count={consumptions.count()}, returns_count={returns.count()}"
+    )
     return remaining
+
+
+
+
 
 # === توابع بودجه تنخواه ===
 def get_tankhah_used_budget(tankhah, filters=None):
@@ -495,6 +592,18 @@ def get_tankhah_used_budget(tankhah, filters=None):
     logger.debug(f"get_tankhah_used_budget: tankhah={tankhah.number}, total={total}")
     return total if total is not None else Decimal('0')
 
+def check_tankhah_lock_status(self):
+    """
+    اگر BudgetPeriod, BudgetAllocation, یا ProjectBudgetAllocation قفل شوند (مثلاً به دلیل lock_condition یا warning_action):
+        تنخواه‌های مرتبط نیز قفل می‌شوند (مثلاً با تنظیم is_active=False در Tankhah).
+        تراکنش‌های جدید (مثل مصرف یا برگشت) در تنخواه محدود می‌شوند.
+        متد پیشنهادی برای قفل کردن تنخواه
+    """
+    if self.allocation.budget_period.is_locked or self.allocation.is_locked:
+        self.is_active = False
+        self.save(update_fields=['is_active'])
+        return True, _("تنخواه به دلیل قفل شدن تخصیص یا دوره غیرفعال شد.")
+    return False, _("تنخواه فعال است.")
 
 # === توابع بودجه فاکتور ===
 def get_factor_total_budget(factor, filters=None):
@@ -629,6 +738,25 @@ def get_budget_status(entity, filters=None):
     logger.debug(f"get_budget_status: entity={entity}, result={result}")
     return result
 
+def check_and_update_lock(self):
+    """چک و آپدیت وضعیت قفل برای تخصیص"""
+    try:
+        if self.budget_period.is_locked:
+            self.is_locked = True
+            self.is_active = False
+        else:
+            remaining = self.get_remaining_amount()
+            locked_amount = self.get_locked_amount()
+            self.is_locked = remaining <= locked_amount
+            self.is_active = not self.is_locked
+        self.save(update_fields=['is_locked', 'is_active'])
+        if self.is_locked:
+            from tankhah.models import Tankhah
+            Tankhah.objects.filter(budget_allocation=self).update(is_active=False)
+        logger.debug(f"Updated lock status for BudgetAllocation {self.pk}: is_locked={self.is_locked}")
+    except Exception as e:
+        logger.error(f"Error updating lock for BudgetAllocation {self.pk}: {str(e)}")
+
 # === توابع کمکی ===
 def get_locked_amount(obj):
     """
@@ -675,3 +803,56 @@ def can_delete_budget(entity):
         can_delete = False
     logger.debug(f"can_delete_budget: entity={entity}, can_delete={can_delete}")
     return can_delete
+
+# == تابع بازگشت بودجه
+
+def get_returned_budgets(budget_period, entity_type='all'):
+    """
+    گزارش بودجه‌های برگشتی برای یک دوره بودجه.
+
+    Args:
+        budget_period: نمونه BudgetPeriod
+        entity_type (str): نوع موجودیت ('all', 'BudgetAllocation', 'ProjectBudgetAllocation')
+
+    Returns:
+        QuerySet: اطلاعات بودجه‌های برگشتی
+    """
+    from django.contrib.contenttypes.models import ContentType
+    from budgets.models import BudgetHistory, BudgetAllocation, ProjectBudgetAllocation
+
+    cache_key = f"returned_budgets_{budget_period.pk}_{entity_type}"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        logger.debug(f"Returning cached returned budgets: {cache_key}")
+        return cached_result
+
+    content_types = []
+    if entity_type == 'all':
+        from budgets import BudgetAllocation
+        content_types = [
+            ContentType.objects.get_for_model(BudgetAllocation),
+            ContentType.objects.get_for_model(ProjectBudgetAllocation),
+        ]
+    elif entity_type == 'BudgetAllocation':
+        content_types = [ContentType.objects.get_for_model(BudgetAllocation)]
+    elif entity_type == 'ProjectBudgetAllocation':
+        content_types = [ContentType.objects.get_for_model(ProjectBudgetAllocation)]
+    else:
+        logger.warning(f"Invalid entity_type: {entity_type}")
+        return BudgetHistory.objects.none()
+
+    queryset = BudgetHistory.objects.filter(
+        content_type__in=content_types,
+        action='RETURN',
+        content_object__budget_period=budget_period
+    ).values(
+        'amount',
+        'details',
+        'created_at',
+        'created_by__username',
+        'content_type__model'
+    )
+
+    cache.set(cache_key, queryset, timeout=1200)  # 1 ساعت
+    logger.debug(f"Cached returned budgets: {cache_key}")
+    return queryset

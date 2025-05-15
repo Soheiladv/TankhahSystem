@@ -16,7 +16,6 @@ from budgets.budget_calculations import get_subproject_remaining_budget, get_pro
     get_factor_remaining_budget, get_tankhah_remaining_budget
 import logging
 
-from budgets.models import TransactionType, BudgetTransaction, BudgetHistory, BudgetAllocation
 from core.models import WorkflowStage, Post
 
 logger = logging.getLogger(__name__)
@@ -143,205 +142,146 @@ class Tankhah(models.Model):
                 new_number = f"TNKH{sep}{date_str}{sep}{org_code}{sep}{project_code}{sep}{serial:03d}"
             return new_number
 
+    def get_remaining_budget(self):
+        """محاسبه بودجه باقی‌مانده برای تنخواه"""
+        if self.project_budget_allocation:
+            remaining = self.project_budget_allocation.get_remaining_amount()
+            logger.debug(
+                f"Remaining budget from project_budget_allocation {self.project_budget_allocation.id}: {remaining}")
+            return remaining
+        elif self.subproject:
+            remaining = get_subproject_remaining_budget(self.subproject)
+            logger.debug(f"Remaining budget from subproject {self.subproject.id}: {remaining}")
+            return remaining
+        elif self.project:
+            remaining = get_project_remaining_budget(self.project)
+            logger.debug(f"Remaining budget from project {self.project.id}: {remaining}")
+            return remaining
+        logger.warning("No project_budget_allocation, subproject, or project set for Tankhah")
+        return Decimal('0')
+
     def clean(self):
         """اعتبارسنجی تنخواه"""
         super().clean()
 
-        if self.amount <= 0:
-            raise ValidationError(_("مبلغ تنخواه باید مثبت باشد."))
-        if self.subproject and self.subproject.project != self.project:
-            raise ValidationError(_("زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد."))
+        # بررسی وجود مقدار برای amount
+        if self.amount is None:
+            raise ValidationError({"amount": _("مبلغ تنخواه اجباری است.")})
 
+        # بررسی مثبت بودن مبلغ
+        if self.amount <= 0:
+            raise ValidationError({"amount": _("مبلغ تنخواه باید مثبت باشد.")})
+
+        # بررسی سازگاری پروژه و زیرپروژه
+        if self.subproject and self.project and self.subproject.project != self.project:
+            raise ValidationError({"subproject": _("زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد.")})
+
+        # بررسی سازگاری تخصیص بودجه
+        if self.project_budget_allocation and self.project and self.project_budget_allocation.project != self.project:
+            raise ValidationError({"project_budget_allocation": _("تخصیص بودجه باید متعلق به پروژه انتخاب‌شده باشد.")})
+
+        # محاسبه بودجه باقی‌مانده
         remaining = self.get_remaining_budget()
+        logger.debug(f"اعتبارسنجی تنخواه: مبلغ={self.amount}, بودجه باقی‌مانده={remaining}")
         if self.amount > remaining:
             raise ValidationError(
                 _(f"مبلغ تنخواه ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining:,.0f} ریال) است.")
             )
-            # حذف اعتبارسنجی سخت‌گیرانه budget_allocation اگر اختیاری است
-        if not self.budget_allocation and not self.project_budget_allocation:
-            logger.warning("Neither budget_allocation nor project_budget_allocation is set.")
-            raise ValidationError({"budget_allocation": _("حداقل یکی از تخصیص‌های بودجه باید تنظیم شود.")})
-
-        if self.subproject and self.subproject.project != self.project:
-            raise ValidationError(_("زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد."))
-
-        if not self.budget_allocation:
-            logger.warning("budget_allocation مقدار ندارد. این ممکن است باعث مشکلاتی در مراحل بعدی شود.")
-            # اگر نمی‌خواهید این فیلد اجباری باشد، خطا اضافه نکنید
-            # اگر اجباری است، خطا اضافه کنید:
-            raise ValidationError({"budget_allocation": _("این فیلد نمی‌تواند خالی باشد.")})
-
-    def get_remaining_budget(self):
-            """محاسبه بودجه باقی‌مانده برای تنخواه"""
-            if self.project_budget_allocation:
-                return self.project_budget_allocation.get_remaining_amount()
-            elif self.budget_allocation:
-                return self.budget_allocation.get_remaining_amount()
-            elif self.subproject:
-                return get_subproject_remaining_budget(self.subproject)
-            return Decimal('0')
-
-    # def save(self, *args, **kwargs):
-    #     with transaction.atomic():
-    #         if not self.number:
-    #             self.number = self.generate_number()
-    #
-    #         self.full_clean()
-    #
-    #     # ثبت تراکنش در صورت ایجاد یا تغییر وضعیت
-    #     # اگه وضعیت COMPLETED یا PAID باشه، قفل کن
-    #     if self.status in ['APPROVED', 'REJECTED', 'PAID'] and not self.is_locked:
-    #         self.project_budget_allocation.budget_allocation.send_notification(
-    #             self.status.lower(),
-    #             f"تنخواه {self.number} به وضعیت {self.get_status_display()} تغییر کرد."
-    #         )
-    #         self.is_locked = True
-    #     from budgets.models import ProjectBudgetAllocation
-    #
-    #     if not self.pk:  # فقط موقع ایجاد
-    #         # پیدا کردن تخصیص بودجه پروژه/زیرپروژه
-    #         if self.subproject:
-    #             allocation = ProjectBudgetAllocation.objects.filter(
-    #                 budget_allocation=self.budget_allocation,
-    #                 subproject=self.subproject
-    #             ).first()
-    #             allocation = allocation.remaining_amount if allocation else self.subproject.get_remaining_budget()
-    #         elif self.project:
-    #             allocation = ProjectBudgetAllocation.objects.filter(
-    #                 budget_allocation=self.budget_allocation,
-    #                 project=self.project,
-    #                 subproject__isnull=True
-    #             ).first()
-    #             allocation = allocation.remaining_amount if allocation else self.project.get_remaining_budget()
-    #         else:
-    #             raise ValueError("تنخواه باید به پروژه یا ساب‌پروژه وصل باشد.")
-    #
-    #         # ثبت تراکنش مصرف بودجه
-    #         # allocation = self.project_budget_allocation
-    #         # if not allocation:
-    #         #     allocation = ProjectBudgetAllocation.objects.filter(
-    #         #         budget_allocation=self.budget_allocation,
-    #         #         project=self.project,
-    #         #         subproject=self.subproject
-    #         #     ).first()
-    #         # if not allocation:
-    #         #     raise ValidationError(_("تخصیص بودجه معتبر برای این پروژه/زیرپروژه یافت نشد."))
-    #
-    #         if self.amount > allocation.remaining_amount:
-    #             raise ValidationError(
-    #                 _(f"مبلغ تنخواه ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده تخصیص ({allocation.remaining_amount:,.0f} ریال) است.")
-    #             )
-    #
-    #         # if not self.pk:  # ایجاد تنخواه جدید
-    #         #     self.project_budget_allocation = allocation
-    #         #     allocation.remaining_amount -= self.amount
-    #         #     allocation.save()
-    #         #
-    #         #     BudgetTransaction.objects.create(
-    #         #         allocation=self.budget_allocation,
-    #         #         transaction_type='CONSUMPTION',
-    #         #         amount=self.amount,
-    #         #         related_tankhah=self,
-    #         #         created_by=self.created_by,
-    #         #         description=f"مصرف بودجه توسط تنخواه {self.number}",
-    #         #         transaction_id=f"TX-TNK-{self.number}"
-    #         #     )
-    #
-    #         # به‌روزرسانی بودجه در صورت تغییر وضعیت
-    #         if self.status == 'PAID':
-    #             self.is_locked = True
-    #             self.budget_allocation.send_notification(
-    #                 'paid',
-    #                 f"تنخواه {self.number} پرداخت شد."
-    #             )
-    #         elif self.status == 'REJECTED' and self.is_locked:
-    #             # بازگشت بودجه در صورت رد شدن
-    #             allocation.remaining_amount += self.amount
-    #             allocation.save()
-    #             BudgetTransaction.objects.create(
-    #                 allocation=self.budget_allocation,
-    #                 transaction_type='RETURN',
-    #                 amount=self.amount,
-    #                 related_tankhah=self,
-    #                 created_by=self.created_by,
-    #                 description=f"بازگشت بودجه به دلیل رد تنخواه {self.number}",
-    #                 transaction_id=f"TX-TNK-RET-{self.number}"
-    #             )
-    #             self.is_locked = False
-    #
-    #     super().save(*args, **kwargs)
     def save(self, *args, **kwargs):
-        from budgets.models import ProjectBudgetAllocation
+        # شروع تراکنش اتمیک برای اطمینان از یکپارچگی داده‌ها
         with transaction.atomic():
+            # اگر شماره تنخواه تنظیم نشده باشد، شماره جدید تولید کن
             if not self.number:
                 self.number = self.generate_number()
-            self.full_clean()
+                logger.debug(f"تولید شماره تنخواه: {self.number}")
 
-            # دریافت تخصیص بودجه
-            allocation = self.project_budget_allocation or ProjectBudgetAllocation.objects.filter(
-                budget_allocation=self.budget_allocation,
-                project=self.project,
-                subproject=self.subproject
-            ).first()
+            # تنظیم budget_allocation قبل از اعتبارسنجی برای جلوگیری از خطای ValidationError
+            if self.project_budget_allocation and not self.budget_allocation:
+                self.budget_allocation = self.project_budget_allocation.budget_allocation
+                logger.debug(f"تنظیم budget_allocation به {self.budget_allocation.id} از project_budget_allocation")
+
+            # دریافت تخصیص بودجه پروژه
+            allocation = self.project_budget_allocation
+            if not allocation and self.project:
+                # جستجوی تخصیص فعال برای پروژه بدون زیرپروژه
+                from budgets.models import ProjectBudgetAllocation
+                allocation = ProjectBudgetAllocation.objects.filter(
+                    project=self.project,
+                    subproject__isnull=True,
+                    budget_allocation__is_active=True
+                ).first()
+                if allocation and not self.budget_allocation:
+                    self.budget_allocation = allocation.budget_allocation
+                    logger.debug(f"تنظیم خودکار budget_allocation به {self.budget_allocation.id} برای پروژه")
+            if not allocation and self.subproject:
+                # جستجوی تخصیص فعال برای زیرپروژه
+                allocation = ProjectBudgetAllocation.objects.filter(
+                    subproject=self.subproject,
+                    budget_allocation__is_active=True
+                ).first()
+                if allocation and not self.budget_allocation:
+                    self.budget_allocation = allocation.budget_allocation
+                    logger.debug(f"تنظیم خودکار budget_allocation به {self.budget_allocation.id} برای زیرپروژه")
             if not allocation:
+                # اگر تخصیص پیدا نشد، خطا بده
+                logger.error(f"هیچ تخصیص بودجه معتبری برای تنخواه {self.number} یافت نشد")
                 raise ValidationError(_("تخصیص بودجه معتبر برای این پروژه/زیرپروژه یافت نشد."))
 
-            # ثبت تراکنش در صورت ایجاد یا تغییر وضعیت
-            if self.status in ['APPROVED', 'REJECTED', 'PAID'] and not self.is_locked:
-                if self.budget_allocation:  # چک کردن وجود budget_allocation
-                    print('  چک کردن وجود budget_allocation')
-                    self.budget_allocation.send_notification(
-                        self.status.lower(),
-                        f"تنخواه {self.number} به وضعیت {self.get_status_display()} تغییر کرد."
-                    )
-                self.is_locked = True
+            # اجرای اعتبارسنجی کامل مدل (شامل متد clean)
+            self.full_clean()
 
-
-            if not self.pk:  # فقط موقع ایجاد
-                # پیدا کردن تخصیص بودجه پروژه/زیرپروژه
+            # اعتبارسنجی بودجه هنگام ایجاد تنخواه جدید
+            if not self.pk:
+                # محاسبه بودجه باقی‌مانده
                 if self.subproject:
-                    allocation = ProjectBudgetAllocation.objects.filter(
-                        budget_allocation=self.budget_allocation if self.budget_allocation else None,
-                        subproject=self.subproject
-                    ).first()
-                    remaining = allocation.remaining_amount if allocation else self.subproject.get_remaining_budget()
+                    remaining = allocation.get_remaining_amount() if allocation else get_subproject_remaining_budget(self.subproject)
                 elif self.project:
-                    allocation = ProjectBudgetAllocation.objects.filter(
-                        budget_allocation=self.budget_allocation if self.budget_allocation else None,
-                        project=self.project,
-                        subproject__isnull=True
-                    ).first()
-                    remaining = allocation.remaining_amount if allocation else self.project.get_remaining_budget()
+                    remaining = allocation.get_remaining_amount() if allocation else get_project_remaining_budget(self.project)
                 else:
-                    raise ValueError("تنخواه باید به پروژه یا ساب‌پروژه وصل باشد.")
+                    raise ValidationError(_("تنخواه باید به پروژه یا زیرپروژه وصل باشد."))
 
+                # بررسی کافی بودن بودجه
                 if self.amount > remaining:
                     raise ValidationError(
                         _(f"مبلغ تنخواه ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده تخصیص ({remaining:,.0f} ریال) است.")
                     )
 
-            # بررسی بازگشت به مرحله اولیه پس از رد شدن
+            # ثبت تراکنش در صورت تغییر وضعیت به تأییدشده یا پرداخت‌شده
+            if self.status in ['APPROVED', 'PAID'] and not self.is_locked:
+                if self.budget_allocation:
+                    # ارسال اعلان برای تغییر وضعیت
+                    self.budget_allocation.send_notification(
+                        self.status.lower(),
+                        f"تنخواه {self.number} به وضعیت {self.get_status_display()} تغییر کرد."
+                    )
+                if self.status == 'PAID':
+                    # ثبت تراکنش مصرف با استفاده از create_budget_transaction
+                    create_budget_transaction(
+                        allocation=allocation.budget_allocation,
+                        transaction_type='CONSUMPTION',
+                        amount=self.amount,
+                        related_obj=self,
+                        created_by=self.created_by,
+                        description=f"Tankhah {self.number} for project {self.project.id}",
+                        transaction_id=f"TX-TNK-CONS-{self.number}"
+                    )
+                    logger.debug(f"تراکنش CONSUMPTION برای تنخواه {self.number}، مبلغ={self.amount} ثبت شد")
+                # قفل کردن تنخواه
+                self.is_locked = True
+
+            # مدیریت بازگشت به مرحله اولیه در صورت رد شدن
             initial_stage = WorkflowStage.objects.order_by('order').first()
             if self.status == 'REJECTED' and self.current_stage == initial_stage:
-                logger.info(f"تنخواه {self.number} به مرحله اولیه ({initial_stage.name}) بازگشته است.")
-                # اقدامات اضافی: مثلاً باز کردن قفل فاکتورها برای ویرایش
-                from tankhah.models import Factor
+                logger.info(f"تنخواه {self.number} به مرحله اولیه ({initial_stage.name}) بازگشته است")
+                # باز کردن فاکتورهای قفل‌شده برای ویرایش
                 factors = Factor.objects.filter(tankhah=self, is_finalized=True)
                 updated = factors.update(is_finalized=False, locked=False)
                 if updated:
-                    logger.info(f"{updated} فاکتور برای تنخواه {self.number} برای ویرایش باز شدند.")
+                    logger.info(f"{updated} فاکتور برای تنخواه {self.number} برای ویرایش باز شدند")
 
-            # به‌روزرسانی بودجه در صورت تغییر وضعیت
-            if self.status == 'PAID':
-                self.is_locked = True
-                if self.budget_allocation:  # چک کردن وجود budget_allocation
-                    self.budget_allocation.send_notification(
-                        'paid',
-                        f"تنخواه {self.number} پرداخت شد."
-                    )
-            elif self.status == 'REJECTED' and self.is_locked:
                 if allocation and self.budget_allocation:
-                    # انتقال بودجه به تخصیص دیگر (مثلاً تخصیص HQ)
+                    # تلاش برای انتقال بودجه به تخصیص سازمان مرکزی
+                    from budgets.models import BudgetAllocation
                     target_allocation = BudgetAllocation.objects.filter(organization__is_core=True).first()
                     if target_allocation:
                         create_budget_transaction(
@@ -354,37 +294,33 @@ class Tankhah(models.Model):
                             transaction_id=f"TX-TNK-XFER-{self.number}",
                             target_allocation=target_allocation
                         )
+                        logger.debug(f"تراکنش TRANSFER برای تنخواه {self.number}، مبلغ={self.amount} ثبت شد")
                     else:
-                        # بازگشت بودجه به تخصیص فعلی
-                        allocation.remaining_amount += self.amount
-                        allocation.save()
-                        BudgetTransaction.objects.create(
+                        # ثبت تراکنش بازگشت بودجه
+                        create_budget_transaction(
                             allocation=self.budget_allocation,
                             transaction_type='RETURN',
                             amount=self.amount,
-                            related_tankhah=self,
+                            related_obj=self,
                             created_by=self.created_by,
                             description=f"بازگشت بودجه به دلیل رد تنخواه {self.number}",
                             transaction_id=f"TX-TNK-RET-{self.number}"
                         )
+                        logger.debug(f"تراکنش RETURN برای تنخواه {self.number}، مبلغ={self.amount} ثبت شد")
+                # باز کردن قفل تنخواه
                 self.is_locked = False
-                # بازگشت بودجه در صورت رد شدن
-                # if allocation and self.budget_allocation:
-                #     allocation.remaining_amount += self.amount
-                #     allocation.save()
-                #     from budgets.models import BudgetTransaction
-                #     BudgetTransaction.objects.create(
-                #         allocation=self.budget_allocation,
-                #         transaction_type='RETURN',
-                #         amount=self.amount,
-                #         related_tankhah=self,
-                #         created_by=self.created_by,
-                #         description=f"بازگشت بودجه به دلیل رد تنخواه {self.number}",
-                #         transaction_id=f"TX-TNK-RET-{self.number}"
-                #     )
-                # self.is_locked = False
 
-        super().save(*args, **kwargs)
+            # ذخیره شیء در دیتابیس
+            super().save(*args, **kwargs)
+            logger.debug(f"ذخیره تنخواه: تاریخ={self.date}, مهلت={self.due_date}, "
+                         f"date_aware={timezone.is_aware(self.date) if self.date else None}, "
+                         f"due_date_aware={timezone.is_aware(self.due_date) if self.due_date else None}")
+
+            # بررسی قفل بودن تخصیص یا دوره بودجه
+            if allocation and (allocation.is_locked or allocation.budget_allocation.budget_period.is_locked):
+                self.is_active = False
+                logger.debug(f"تنخواه {self.number} به دلیل قفل بودن تخصیص یا دوره بودجه غیرفعال شد")
+                self.save(update_fields=['is_active'])
 
 
     def __str__(self):
@@ -476,8 +412,7 @@ class TankhahAction(models.Model):
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
     reference_number = models.CharField(max_length=50, blank=True, verbose_name=_("شماره مرجع"))
 
-    action_type = models.ForeignKey( TransactionType , on_delete=models.SET_NULL, null=True,
-                                    verbose_name=_("نوع اقدام"))
+    action_type = models.ForeignKey('budgets.TransactionType' , on_delete=models.SET_NULL, null=True,verbose_name=_("نوع اقدام"))
     # جایگزینی ACTION_TYPES با TransactionType
 
 
@@ -708,6 +643,10 @@ class Factor(models.Model):
                         transaction_id=f"TX-FAC-RET-{self.number}"
                     )
             super().save(*args, **kwargs)
+            # بررسی قفل شدن تخصیص یا دوره
+            if self.transaction.allocation.is_locked or self.transaction.allocation.budget_period.is_locked:
+                if self.status != 'PAID':
+                    raise ValidationError(_("نمی‌توان فاکتور جدید ثبت کرد، تخصیص یا دوره قفل شده است."))
             # ثبت ApprovalLog فقط در صورت تغییر وضعیت یا فیلدها
             if original:
                 changed_fields = [field.name for field in self._meta.fields if
@@ -1097,6 +1036,7 @@ def create_budget_transaction(allocation, transaction_type, amount, related_obj,
             # --- ۴. ایجاد رکورد BudgetTransaction ---
             # **مهم:** مطمئن شوید مدل BudgetTransaction شما فقط فیلدهای زیر را دارد
             # (یا اگر فیلدهای related_factor/item را دارد، آنها را هم اینجا مقداردهی کنید)
+            from budgets.models import  BudgetTransaction
             budget_tx = BudgetTransaction.objects.create(
                 allocation=allocation,                 # تخصیص مرتبط
                 transaction_type=transaction_type,     # نوع تراکنش
@@ -1112,6 +1052,7 @@ def create_budget_transaction(allocation, transaction_type, amount, related_obj,
             try:
                  # **اصلاح:** اطمینان از وجود و مقداردهی فیلدهای لازم در BudgetHistory
                  # فرض می‌کنیم BudgetHistory فیلد transaction_id (برای شناسه اصلی) و action دارد
+                 from budgets.models import  BudgetHistory
                  if hasattr(BudgetHistory._meta, 'get_field'): # Check if model has fields before accessing
                       history_data = {
                           'content_type': ContentType.objects.get_for_model(allocation),
@@ -1122,6 +1063,7 @@ def create_budget_transaction(allocation, transaction_type, amount, related_obj,
                           'details': f"{transaction_type} {amount:,.0f} for allocation {allocation.id}: {description}",
                       }
                       # فقط اگر فیلد transaction_id در BudgetHistory وجود دارد، آن را اضافه کن
+                      from budgets.models import  BudgetHistory
                       if 'transaction_id' in [f.name for f in BudgetHistory._meta.get_fields()]:
                            history_data['transaction_id'] = transaction_id # استفاده از شناسه اصلی تراکنش
                       # فقط اگر فیلد transaction_type در BudgetHistory وجود دارد، آن را اضافه کن

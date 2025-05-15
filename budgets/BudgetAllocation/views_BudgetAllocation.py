@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
@@ -44,6 +45,21 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
     success_url = reverse_lazy('budgetallocation_list')
     permission_required = 'budgets.add_budgetallocation'
 
+    def get_initial(self):
+        initial = super().get_initial()
+        budget_period_id = self.request.GET.get('budget_period')
+        if budget_period_id:
+            try:
+                budget_period = BudgetPeriod.objects.get(pk=budget_period_id)
+                initial['budget_period'] = budget_period
+                initial['allocation_date'] = timezone.now().date()
+                initial['is_active'] = True
+                initial['is_stopped'] = False
+                logger.info(f"Set initial budget_period: ID={budget_period.id}, name={budget_period.name}")
+            except BudgetPeriod.DoesNotExist:
+                logger.error(f"BudgetPeriod with ID={budget_period_id} not found")
+        return initial
+
     def _get_budget_period(self):
         budget_period_id = self.request.GET.get('budget_period') or self.request.POST.get('budget_period')
         logger.debug(f"Getting budget_period with ID: {budget_period_id}")
@@ -57,7 +73,6 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
         except (BudgetPeriod.DoesNotExist, ValueError) as e:
             logger.warning(f"Invalid budget_period_id: {budget_period_id}, error: {str(e)}")
             return None
-
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -104,9 +119,9 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
 
         return context
 
-
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
         budget_period = self._get_budget_period()
         if not budget_period:
             logger.error("No valid budget period for form")
@@ -117,9 +132,13 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
         kwargs['user'] = self.request.user
         return kwargs
 
+    def dispatch(self, request, *args, **kwargs):
+        # شروع پردازش درخواست
+        logger.info(f"Starting dispatch in BudgetAllocationCreateView for user: {request.user.username}")
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        logger.debug("Form is valid, starting save process")
+        logger.info(f"Form valid for BudgetAllocation, saving...")
         try:
             budget_period = form.cleaned_data['budget_period']
             is_locked, lock_message = budget_period.is_period_locked
@@ -142,7 +161,6 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
             logger.error(f"Unexpected error saving budget allocation: {str(e)}", exc_info=True)
             form.add_error(None, _('خطایی در ثبت تخصیص بودجه رخ داد: ') + str(e))
             return self.form_invalid(form)
-
 
     def form_invalid(self, form):
         logger.error(f"Form invalid: errors={form.errors.as_json()}")
@@ -212,7 +230,7 @@ class BudgetAllocationListView(PermissionBaseView, ListView):
     template_name = 'budgets/budget/budgetallocation_list.html'
     context_object_name = 'budget_allocations'
     paginate_by = 10
-    permission_required = 'budgets.view_budgetallocation'
+    # permission_required = 'budgets.view_budgetallocation'
 
     def get_queryset(self):
         # همان کد قبلی بدون تغییر
@@ -225,6 +243,7 @@ class BudgetAllocationListView(PermissionBaseView, ListView):
         date_to = self.request.GET.get('date_to', '')
         budget_item_id = self.request.GET.get('budget_item')
         organization_id = self.request.GET.get('organization')
+        allocation_date = self.request.GET.get('allocation_date')
 
         if query:
             queryset = queryset.filter(
@@ -261,6 +280,7 @@ class BudgetAllocationListView(PermissionBaseView, ListView):
         budget_period_id = self.request.GET.get('budget_period')
         budget_item_id = self.request.GET.get('budget_item')
         project_id = self.request.GET.get('project')  # اضافه کردن فیلتر پروژه
+        allocation_date = self.request.GET.get('allocation_date')  # اضافه کردن فیلتر پروژه
 
         # مقداردهی اولیه
         total_budget = Decimal('0')
@@ -394,6 +414,7 @@ class BudgetAllocationListView(PermissionBaseView, ListView):
             'selected_organization': organization_id,
             'selected_budget_period': budget_period_id,
             'selected_project': project_id,
+            'selected_allocation_date': allocation_date,  # ✅ اصلاح شد
         })
 
         logger.debug(f"BudgetAllocationListView context: {context}")

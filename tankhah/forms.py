@@ -3,15 +3,21 @@ import os
 from decimal import Decimal
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db.models import Sum
 from django.utils.translation import gettext_lazy as _
 from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget, \
-    get_tankhah_remaining_budget
+    get_tankhah_remaining_budget, get_project_total_budget
+from budgets.models import ProjectBudgetAllocation, BudgetTransaction
 from .utils import restrict_to_user_organization
 import jdatetime
 from django.utils import timezone
 from Tanbakhsystem.utils import convert_to_farsi_numbers, to_english_digits
 from Tanbakhsystem.base import JalaliDateForm
 from tankhah.models import Factor, FactorItem, Tankhah  # وارد کردن مدل‌ها
+from datetime import datetime
+from decimal import Decimal
+from django.core.cache import cache
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -81,14 +87,37 @@ class FactorApprovalForm(forms.ModelForm):
                     item.comment = self.cleaned_data[comment_field]
                     item.save()
         return instance
+#===
+class JalaliDateFormConvert(forms.ModelForm):
+    def set_jalali_initial(self, field_name, instance_field):
+        if self.instance and getattr(self.instance, instance_field):
+            jalali_date = jdatetime.date.fromgregorian(date=getattr(self.instance, instance_field))
+            self.initial[field_name] = jalali_date.strftime('%Y/%m/%d')
+            logger.info(f"Set initial {field_name} to: {self.initial[field_name]}")
+        else:
+            self.initial[field_name] = ''
 
-class TankhahForm(JalaliDateForm):
+    def clean_jalali_date(self, field_name):
+        date_str = self.cleaned_data.get(field_name)
+        logger.info(f"Raw {field_name}: {date_str}")
+        if date_str:
+            try:
+                j_date = jdatetime.datetime.strptime(date_str, '%Y/%m/%d').date()
+                g_date = j_date.togregorian()
+                logger.info(f"Converted {field_name} to: {g_date}")
+                return g_date
+            except ValueError as e:
+                logger.error(f"Error parsing {field_name}: {e}")
+                raise forms.ValidationError(_("تاریخ را به فرمت درست وارد کنید (مثل 1404/01/17)"))
+        return None
+
+class TankhahForm(JalaliDateFormConvert):
     date = forms.CharField(
         label=_('تاریخ'),
         widget=forms.TextInput(attrs={
             'data-jdp': '',
             'class': 'form-control',
-            'placeholder': _('مثال: 1404/01/17'),
+            'placeholder': _('1404/01/17'),
         })
     )
     due_date = forms.CharField(
@@ -97,27 +126,49 @@ class TankhahForm(JalaliDateForm):
         widget=forms.TextInput(attrs={
             'data-jdp': '',
             'class': 'form-control',
-            'placeholder': _('مثال: 1404/01/17'),
+            'placeholder': _('1404/01/17'),
         })
+    )
+    project_budget_allocation = forms.ModelChoiceField(
+        queryset=ProjectBudgetAllocation.objects.all(),
+        required=False,
+        label=_('تخصیص بودجه پروژه'),
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    amount = forms.DecimalField(
+        label=_('مبلغ'),
+        required=True,
+        min_value=Decimal('0.01'),
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01'})
     )
 
     class Meta:
         model = Tankhah
-        fields = ['date', 'organization', 'project', 'subproject', 'letter_number', 'due_date', 'amount', 'description']
+        fields = ['date', 'organization', 'project', 'subproject', 'project_budget_allocation', 'letter_number', 'due_date', 'amount', 'description']  # budget_allocation حذف شد
         widgets = {
             'organization': forms.Select(attrs={'class': 'form-control'}),
             'project': forms.Select(attrs={'class': 'form-control'}),
             'subproject': forms.Select(attrs={'class': 'form-control'}),
             'letter_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('اختیاری')}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
+        labels = {
+            'date': _('تاریخ'),
+            'organization': _('سازمان'),
+            'project': _('پروژه'),
+            'subproject': _('زیرپروژه'),
+            'project_budget_allocation': _('تخصیص بودجه پروژه'),
+            'letter_number': _('شماره نامه'),
+            'due_date': _('مهلت زمانی'),
+            'amount': _('مبلغ'),
+            'description': _('توضیحات'),
         }
 
     def __init__(self, *args, **kwargs):
-        from core.models import Organization, Project, SubProject
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-
+        from core.models import Organization,Project,SubProject
         if self.user:
             user_orgs = set(up.post.organization for up in self.user.userpost_set.filter(is_active=True))
             self.fields['organization'].queryset = Organization.objects.filter(id__in=[org.id for org in user_orgs])
@@ -127,12 +178,22 @@ class TankhahForm(JalaliDateForm):
                 try:
                     project_id = int(self.data.get('project'))
                     self.fields['subproject'].queryset = SubProject.objects.filter(project_id=project_id)
+                    self.fields['project_budget_allocation'].queryset = ProjectBudgetAllocation.objects.filter(
+                        project_id=project_id,
+                        budget_allocation__is_active=True
+                    )
                 except (ValueError, TypeError):
                     self.fields['subproject'].queryset = SubProject.objects.none()
+                    self.fields['project_budget_allocation'].queryset = ProjectBudgetAllocation.objects.none()
             elif self.instance.pk and self.instance.project:
                 self.fields['subproject'].queryset = SubProject.objects.filter(project=self.instance.project)
+                self.fields['project_budget_allocation'].queryset = ProjectBudgetAllocation.objects.filter(
+                    project=self.instance.project,
+                    budget_allocation__is_active=True
+                )
             else:
                 self.fields['subproject'].queryset = SubProject.objects.none()
+                self.fields['project_budget_allocation'].queryset = ProjectBudgetAllocation.objects.none()
 
             if self.instance.pk and self.instance.organization:
                 user_posts = self.user.userpost_set.filter(is_active=True)
@@ -144,41 +205,138 @@ class TankhahForm(JalaliDateForm):
         self.set_jalali_initial('date', 'date')
         self.set_jalali_initial('due_date', 'due_date')
 
+    def clean_date(self):
+        date = self.clean_jalali_date('date')
+        if not date:
+            raise forms.ValidationError(_('تاریخ تنخواه اجباری است.'))
+        dt = datetime.combine(date, datetime.min.time())
+        aware_dt = timezone.make_aware(dt)
+        logger.debug(f"تاریخ پاک‌شده: {aware_dt}, آگاه از منطقه زمانی: {timezone.is_aware(aware_dt)}")
+        return aware_dt
+
+    def clean_due_date(self):
+        date = self.clean_jalali_date('due_date')
+        if date:
+            dt = datetime.combine(date, datetime.min.time())
+            aware_dt = timezone.make_aware(dt)
+            logger.debug(f"مهلت پاک‌شده: {aware_dt}, آگاه از منطقه زمانی: {timezone.is_aware(aware_dt)}")
+            return aware_dt
+        return date
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if amount is None:
+            raise forms.ValidationError(_("مبلغ تنخواه اجباری است."))
+        if amount <= 0:
+            raise forms.ValidationError(_("مبلغ تنخواه باید مثبت باشد."))
+        return amount
+
     def clean(self):
         cleaned_data = super().clean()
         project = cleaned_data.get('project')
         subproject = cleaned_data.get('subproject')
         amount = cleaned_data.get('amount')
+        organization = cleaned_data.get('organization')
+        project_budget_allocation = cleaned_data.get('project_budget_allocation')
+
+        if project:
+            from core.models import Project
+            try:
+                project = Project.objects.get(id=project.id)
+                logger.debug(f"پروژه بارگذاری شد: {project.id} - {project}")
+            except Project.DoesNotExist:
+                self.add_error('project', _("پروژه یافت نشد یا معتبر نیست."))
+                return cleaned_data
+
+        if not project:
+            self.add_error('project', _("پروژه اجباری است."))
+            return cleaned_data
+
+        if organization and not project.organizations.filter(id=organization.id).exists():
+            self.add_error('project', _("پروژه انتخاب‌شده به سازمان شما تعلق ندارد."))
+            return cleaned_data
 
         if subproject and subproject.project != project:
-            raise forms.ValidationError(_("زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد."))
+            self.add_error('subproject', _("زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد."))
+            return cleaned_data
+
+        if project_budget_allocation and project_budget_allocation.project != project:
+            self.add_error('project_budget_allocation', _("تخصیص بودجه باید متعلق به پروژه انتخاب‌شده باشد."))
+            return cleaned_data
 
         if project and amount:
-            remaining_budget = get_subproject_remaining_budget(subproject) if subproject else get_project_remaining_budget(project)
-            if amount > remaining_budget:
-                raise forms.ValidationError(
-                    _(f"مبلغ واردشده ({amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining_budget:,.0f} ریال) است.")
+            cache_keys = [
+                f"project_remaining_budget_{project.pk}_no_filters",
+                f"project_total_budget_{project.pk}_no_filters",
+            ]
+            for key in cache_keys:
+                try:
+                    cache.delete(key)
+                    logger.debug(f"کش پاک شد برای {key}")
+                except Exception as e:
+                    logger.warning(f"خطا در پاک کردن کش برای {key}: {str(e)}")
+
+            # انتخاب تخصیص بودجه
+            allocation = project_budget_allocation
+            if not allocation and project:
+                allocation = ProjectBudgetAllocation.objects.filter(
+                    project=project,
+                    subproject__isnull=True,
+                    budget_allocation__is_active=True
+                ).first()
+            if not allocation and subproject:
+                allocation = ProjectBudgetAllocation.objects.filter(
+                    subproject=subproject,
+                    budget_allocation__is_active=True
+                ).first()
+
+            if subproject:
+                remaining_budget = get_subproject_remaining_budget(subproject, force_refresh=True)
+                budget_type = "زیرپروژه"
+            elif allocation:
+                remaining_budget = allocation.get_remaining_amount()
+                budget_type = "تخصیص بودجه پروژه"
+            else:
+                remaining_budget = get_project_remaining_budget(project, force_refresh=True)
+                budget_type = "پروژه"
+
+            total_budget = get_project_total_budget(project, force_refresh=True)
+            logger.debug(
+                f"اعتبارسنجی بودجه {budget_type} برای پروژه {project.id}: "
+                f"کل={total_budget}، باقی‌مانده={remaining_budget}، درخواست‌شده={amount}"
+            )
+
+            if not allocation and not subproject:
+                logger.error(f"هیچ تخصیص بودجه فعالی برای پروژه {project.id} یافت نشد")
+                self.add_error('project', _("هیچ تخصیص بودجه فعالی برای این پروژه یافت نشد."))
+                return cleaned_data
+
+            if remaining_budget is None or remaining_budget <= 0:
+                consumptions = BudgetTransaction.objects.filter(
+                    allocation__project_allocations__project=project,
+                    transaction_type='CONSUMPTION'
                 )
+                consumptions_total = consumptions.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+                returns = BudgetTransaction.objects.filter(
+                    allocation__project_allocations__project=project,
+                    transaction_type='RETURN'
+                )
+                returns_total = returns.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+                logger.debug(
+                    f"تراکنش‌های پروژه {project.id}: مصرف={consumptions_total}، بازگشت={returns_total}"
+                )
+                self.add_error('amount', _(
+                    f"هیچ بودجه‌ای برای {budget_type} باقی نمانده است "
+                    f"(مصرف‌شده: {consumptions_total:,.0f} ریال، بازگشتی: {returns_total:,.0f} ریال)."
+                ))
+            elif amount > remaining_budget:
+                self.add_error('amount', _(
+                    f"مبلغ واردشده ({amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining_budget:,.0f} ریال) است."
+                ))
 
         return cleaned_data
 
-    def clean_date(self):
-        return self.clean_jalali_date('date') or timezone.now()
-
-    def clean_due_date(self):
-        return self.clean_jalali_date('due_date')
-
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        if self.user:
-            user_post = self.user.userpost_set.filter(post__organization=instance.organization, is_active=True).first()
-            if not instance.pk:
-                instance.created_by = self.user
-                instance.last_stopped_post = user_post.post if user_post else None
-        if commit:
-            instance.save()
-        return instance
-
+#=========
 class TanbakhApprovalForm(forms.ModelForm):
     comment = forms.CharField(
         widget=forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),

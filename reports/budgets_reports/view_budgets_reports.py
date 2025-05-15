@@ -1,16 +1,17 @@
 # budgets/views.py
 import logging
 from decimal import Decimal
-
 from django.db.models import Sum
 from django.views.generic import ListView, DetailView
-
-from budgets.models import BudgetTransaction, ProjectBudgetAllocation
-from core.PermissionBase import PermissionBaseView
+from budgets.models import BudgetTransaction, ProjectBudgetAllocation, BudgetAllocation
 from core.models import Project
+from core.views import PermissionBaseView
+from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
+from django.db.models import Q
+from budgets.models import BudgetHistory, Tankhah, Factor
 
 logger = logging.getLogger(__name__)
-from core.views import PermissionBaseView
 
 class ProjectBudgetReportView(PermissionBaseView, DetailView):
     """گزارش بودجه پروژه و زیرپروژه"""
@@ -89,3 +90,161 @@ class BudgetWarningReportView(PermissionBaseView, ListView):
                 warnings.append(allocation)
 
         return warnings
+
+
+# budgets/reports.py
+def get_budget_transfers(budget_period, filters=None):
+    """گزارش جابجایی‌های بودجه"""
+    cache_key = f"budget_transfers_{budget_period.pk}_{hash(str(filters)) if filters else 'no_filters'}"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        logger.debug(f"Returning cached budget transfers: {cache_key}")
+        return cached_result
+
+    content_types = [
+        ContentType.objects.get_for_model(ProjectBudgetAllocation),
+        ContentType.objects.get_for_model(BudgetAllocation),
+    ]
+    transfers = []
+    return_transactions = BudgetHistory.objects.filter(
+        content_type__in=content_types,
+        action='RETURN',
+        content_object__budget_period=budget_period,
+        transaction_id__endswith='-RETURN'
+    ).select_related('created_by')
+
+    for return_tx in return_transactions:
+        transfer_id = return_tx.transaction_id.replace('-RETURN', '')
+        allocation_tx = BudgetHistory.objects.filter(
+            content_type__in=content_types,
+            action='ALLOCATION',
+            content_object__budget_period=budget_period,
+            transaction_id=f"{transfer_id}-ALLOCATION"
+        ).select_related('created_by').first()
+
+        if allocation_tx:
+            transfers.append({
+                'transfer_id': transfer_id,
+                'source': {
+                    'content_type': return_tx.content_type.model,
+                    'object_id': return_tx.object_id,
+                    'amount': return_tx.amount,
+                    'details': return_tx.details,
+                    'created_at': return_tx.created_at,
+                    'created_by': return_tx.created_by.username,
+                },
+                'destination': {
+                    'content_type': allocation_tx.content_type.model,
+                    'object_id': allocation_tx.object_id,
+                    'amount': allocation_tx.amount,
+                    'details': allocation_tx.details,
+                    'created_at': allocation_tx.created_at,
+                    'created_by': allocation_tx.created_by.username,
+                }
+            })
+
+    if filters:
+        from budgets.budget_calculations import apply_filters
+        transfers = apply_filters(transfers, filters)
+
+    cache.set(cache_key, transfers, timeout=3600)
+    logger.debug(f"Cached budget transfers: {cache_key}")
+    return transfers
+
+def get_returned_budgets(budget_period, entity_type='all', filters=None):
+    """گزارش بودجه‌های برگشتی"""
+    cache_key = f"returned_budgets_{budget_period.pk}_{entity_type}_{hash(str(filters)) if filters else 'no_filters'}"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        logger.debug(f"Returning cached returned budgets: {cache_key}")
+        return cached_result
+
+    content_types = []
+    if entity_type == 'all':
+        content_types = [
+            ContentType.objects.get_for_model(BudgetAllocation),
+            ContentType.objects.get_for_model(ProjectBudgetAllocation),
+        ]
+    elif entity_type == 'BudgetAllocation':
+        content_types = [ContentType.objects.get_for_model(BudgetAllocation)]
+    elif entity_type == 'ProjectBudgetAllocation':
+        content_types = [ContentType.objects.get_for_model(ProjectBudgetAllocation)]
+
+    queryset = BudgetHistory.objects.filter(
+        content_type__in=content_types,
+        action='RETURN',
+        content_object__budget_period=budget_period
+    ).select_related('created_by').values(
+        'amount',
+        'details',
+        'created_at',
+        'created_by__username',
+        'content_type__model'
+    )
+
+    if filters:
+        from budgets.budget_calculations import apply_filters
+        queryset = apply_filters(queryset, filters)
+
+    cache.set(cache_key, queryset, timeout=3600)
+    logger.debug(f"Cached returned budgets: {cache_key}")
+    return queryset
+
+def get_tankhah_report(budget_period, filters=None):
+    """گزارش تنخواه‌ها"""
+    cache_key = f"tankhah_report_{budget_period.pk}_{hash(str(filters)) if filters else 'no_filters'}"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        logger.debug(f"Returning cached tankhah report: {cache_key}")
+        return cached_result
+
+    queryset = Tankhah.objects.filter(
+        allocation__budget_period=budget_period
+    ).select_related('allocation', 'project', 'project_allocation').values(
+        'id',
+        'status',
+        'allocated_amount',
+        'consumed_amount',
+        'returned_amount',
+        'project__name',
+        'allocation__organization__name',
+        'project_allocation__id',
+        'is_active'
+    )
+
+    if filters:
+        from budgets.budget_calculations import apply_filters
+        queryset = apply_filters(queryset, filters)
+
+    cache.set(cache_key, queryset, timeout=3600)
+    logger.debug(f"Cached tankhah report: {cache_key}")
+    return queryset
+
+def get_invoice_report(budget_period, filters=None):
+    """گزارش فاکتورها"""
+    cache_key = f"invoice_report_{budget_period.pk}_{hash(str(filters)) if filters else 'no_filters'}"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        logger.debug(f"Returning cached invoice report: {cache_key}")
+        return cached_result
+
+    queryset = Invoice.objects.filter(
+        transaction__allocation__budget_period=budget_period
+    ).select_related('transaction', 'project', 'tankhah').values(
+        'id',
+        'invoice_number',
+        'amount',
+        'status',
+        'project__name',
+        'transaction__allocation__organization__name',
+        'tankhah__id',
+        'created_at'
+    )
+
+    if filters:
+        from budgets.budget_calculations import apply_filters
+        queryset = apply_filters(queryset, filters)
+
+    cache.set(cache_key, queryset, timeout=3600)
+    logger.debug(f"Cached invoice report: {cache_key}")
+    return queryset

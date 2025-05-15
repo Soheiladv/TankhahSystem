@@ -1,6 +1,9 @@
 # budgets/urls.py
 from django.urls import path
-from . import views
+
+from budgets.BudgetPeriod.views_BudgetPeriod import BudgetPeriodListView, BudgetPeriodDetailView, \
+    BudgetPeriodCreateView, BudgetPeriodUpdateView, \
+    BudgetPeriodDeleteView
 from budgets.views import BudgetDashboardView, \
     OrganizationBudgetAllocationListView, \
     PaymentOrderListView, PaymentOrderCreateView, \
@@ -8,20 +11,20 @@ from budgets.views import BudgetDashboardView, \
     TransactionTypeListView, TransactionTypeCreateView, TransactionTypeUpdateView, TransactionTypeDeleteView, \
     NumberToWordsView, budget_Help, get_budget_info
 from .ApproveReject.view_ApproveReject import ApproveRejectView
-from .BudgetAllocation.views_BudgetAllocation import  BudgetAllocationDetailView, BudgetAllocationDeleteView, BudgetAllocationUpdateView
-from budgets.BudgetPeriod.views_BudgetPeriod import BudgetPeriodListView, BudgetPeriodDetailView,BudgetPeriodCreateView,BudgetPeriodUpdateView,\
-    BudgetPeriodDeleteView
 from .BudgetAllocation.get_projects_by_organization import get_projects_by_organization
 from .BudgetAllocation.views_BudgetAllocation import BudgetAllocationCreateView, BudgetAllocationListView
+from .BudgetAllocation.views_BudgetAllocation import BudgetAllocationDetailView, BudgetAllocationDeleteView, \
+    BudgetAllocationUpdateView
+from .BudgetReturn.budget_Api_Return import ProjectAllocationFreeBudgetAPI, ProjectAllocationAPI
 from .BudgetReturn.view_BudgetReturn import BudgetReturnView
+from .BudgetReturn.views_BudgetTransferView import BudgetTransferView
 from .BudgetTransaction.view_budgetTransaction import BudgetTransactionListView_2D, BudgetTransactionDetailView, \
     BudgetTransactionListView
-from .ProjectBudgetAllocation.view_Project_budget_list import ProjectBudgetAllocationListView2D
 from .ProjectBudgetAllocation.view_Update_Project_Budget_Allocation import Project__Budget__Allocation__Edit__View
 # from .BudgetAllocation.views_BudgetAllocation import BudgetAllocationCreateView
 from .ProjectBudgetAllocation.views_ProjectBudgetAllocation import ProjectBudgetAllocationListView, \
     ProjectBudgetAllocationCreateView, \
-    ProjectBudgetAllocationDetailView,   ProjectBudgetAllocationDeleteView, \
+    ProjectBudgetAllocationDetailView, ProjectBudgetAllocationDeleteView, \
     BudgetRealtimeReportView
 
 urlpatterns = [
@@ -42,10 +45,6 @@ urlpatterns = [
     path('budgetallocation/<int:pk>/delete/',BudgetAllocationDeleteView.as_view(),
          name='budgetallocation_delete'),
     path('budgetallocations/create/',BudgetAllocationCreateView.as_view(), name='budgetallocation_create'),
-
-    # path('budget/allocation/<int:pk>/detail/', ProjectBudgetAllocationDetailView.as_view(),
-    #      name='project_budget_allocation_detail'),
-
 
     # Organization Budget
     path('organization/<int:org_id>/allocations/', OrganizationBudgetAllocationListView.as_view(), name='organization_budgetallocation_list'),
@@ -99,14 +98,14 @@ urlpatterns = [
    #Api get_budget_info
     path('get-budget-info/', get_budget_info, name='get_budget_info'),
 
-
-
 ]
 
 urlpatterns += [
     path('budget_Help/',budget_Help,name='budget_Help')
 ]
-from .Budget_Items.views_Budget_item import BudgetItemListView, BudgetItemCreateView, BudgetItemUpdateView, BudgetItemDeleteView,BudgetItemDetailView
+from .Budget_Items.views_Budget_item import BudgetItemListView, BudgetItemCreateView, BudgetItemUpdateView, \
+    BudgetItemDeleteView, BudgetItemDetailView #, load_budget_periods, LoadBudgetPeriodsView
+
 urlpatterns += [
     path('budgetitems/',  BudgetItemListView.as_view(), name='budgetitem_list'),
     path('budgetitems/create/',  BudgetItemCreateView.as_view(), name='budgetitem_create'),
@@ -127,9 +126,27 @@ urlpatterns += [
     path('approve-reject/<str:entity_type>/<int:entity_id>/<str:action>/', ApproveRejectView.as_view(),
          name='approve_reject'),
 ] # رد بودجه
+
 urlpatterns += [
     path('budget/allocation/<int:allocation_id>/return/', BudgetReturnView.as_view(), name='budget_return'),
- ] # برگشت بودجه
+
+    path('budget-transfer/', BudgetTransferView.as_view(), name='budget_transfer'),
+    path('budget-return/<int:allocation_id>/', BudgetReturnView.as_view(), name='budget_return'),
+
+    # API
+    # path(
+        # 'api/project-allocation-free-budget/<int:allocation_id>/', ProjectAllocationFreeBudgetAPI.as_view(),
+        # name='project_allocation_free_budget'),
+    path('api/project-allocation-free-budget/<int:pk>/', ProjectAllocationFreeBudgetAPI.as_view(),
+         name='project_allocation_free_budget'),
+
+     path('api/project-allocations/', ProjectAllocationAPI.as_view(), name='project_allocation_api_list'),
+
+    # یا نام ویو API شما
+    # path('ajax/load-budget-periods/', load_budget_periods, name='ajax_load_budget_periods'),
+    # path('ajax/load-budget-periods/', LoadBudgetPeriodsView.as_view(), name='ajax_load_budget_periods'),
+
+]  # برگشت بودجه
 
 # #/
 # urlpatterns+  = [

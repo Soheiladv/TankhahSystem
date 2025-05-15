@@ -1,4 +1,3 @@
-<!-- templates/budgets/budget_return_form.html -->
 {% extends 'base.html' %}
 {% load i18n rcms_custom_filters %}
 
@@ -6,59 +5,61 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h1 class="mb-4 text-center">{% trans "ثبت بازگشت بودجه برای تخصیص" %} #{{ allocation.id }}</h1>
+  <h1 class="mb-4 text-center">{% trans "ثبت بازگشت بودجه برای تخصیص" %} #{{ allocation.id }}</h1>
 
-    <!-- اطلاعات بودجه -->
-    <div class="card shadow mb-4">
-        <div class="card-header bg-primary text-white">
-            <h3 class="mb-0">{% trans "اطلاعات بودجه" %}</h3>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <p><strong>{% trans "پروژه" %}:</strong> {{ project.name|to_persian_number }} ({{ project.code }})</p>
-                    <p><strong>{% trans "سازمان" %}:</strong> {{ organization.name |to_persian_number }}</p>
-                    <p><strong>{% trans "مبلغ تخصیص‌یافته" %}:</strong> {{ allocation.allocated_amount|format_negative }} {% trans "ریال" %}</p>
-                    <p><strong>{% trans "بودجه کل سازمان" %}:</strong> {{ org_budget|format_negative }} {% trans "ریال" %}</p>
-                </div>
-                <div class="col-md-6">
-                    <p><strong>{% trans "بودجه کل پروژه" %}:</strong> {{ total_budget|format_negative }} {% trans "ریال" %}</p>
-                    <p><strong>{% trans "مبلغ مصرف‌شده" %}:</strong> {{ used_budget|format_negative }} {% trans "ریال" %}</p>
-                    <p><strong>{% trans "بودجه باقی‌مانده" %}:</strong> {{ remaining_budget|format_negative }} {% trans "ریال" %}</p>
-                    <p><strong>{% trans "وضعیت بودجه" %}:</strong> {{ budget_status }} - {{ budget_status_message }}</p>
-                </div>
-            </div>
-        </div>
+  <!-- اطلاعات بودجه -->
+  <div class="card shadow mb-4">
+    <div class="card-header bg-primary text-white">
+      <h3 class="mb-0">{% trans "اطلاعات بودجه" %}</h3>
     </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <p><strong>{% trans "پروژه" %}:</strong> {{ project.name|to_persian_number }} ({{ project.code }})</p>
+          <p><strong>{% trans "سازمان" %}:</strong> {{ organization.name|to_persian_number }}</p>
+          <p><strong>{% trans "مبلغ تخصیص‌یافته" %}:</strong> {{ allocation.allocated_amount|format_negative }} {% trans "ریال" %}</p>
+          <p><strong>{% trans "بودجه کل سازمان" %}:</strong> {{ org_budget|format_negative }} {% trans "ریال" %}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>{% trans "بودجه کل پروژه" %}:</strong> {{ total_budget|format_negative }} {% trans "ریال" %}</p>
+          <p><strong>{% trans "مبلغ مصرف‌شده" %}:</strong> {{ used_budget|format_negative }} {% trans "ریال" %}</p>
+          <p><strong>{% trans "بودجه باقی‌مانده" %}:</strong> {{ remaining_budget|format_negative }} {% trans "ریال" %}</p>
+          <p><strong>{% trans "وضعیت بودجه" %}:</strong> {{ budget_status }} - {{ budget_status_message }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <!-- فرم بازگشت -->
-    <div class="card shadow">
-        <div class="card-header bg-warning text-white">
-            <h3 class="mb-0">{% trans "فرم بازگشت بودجه" %}</h3>
-        </div>
-        <div class="card-body">
-            <form method="post">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label for="{{ form.amount.id_for_label }}" class="form-label">{% trans "مبلغ بازگشت" %}</label>
-                    {{ form.amount }}
-                    {% if form.amount.errors %}
-                        <div class="text-danger">{{ form.amount.errors }}</div>
-                    {% endif %}
-                </div>
-                <div class="mb-3">
-                    <label for="{{ form.description.id_for_label |format_negative}}" class="form-label">{% trans "توضیحات" %}</label>
-                    {{ form.description }}
-                    {% if form.description.errors %}
-                        <div class="text-danger">{{ form.description.errors }}</div>
-                    {% endif %}
-                </div>
-                <div class="text-center">
-                    <button type="submit" class="btn btn-primary">{% trans "ثبت بازگشت" %}</button>
-                    <a href="{% url 'project_budget_allocation_detail' allocation.pk %}" class="btn btn-secondary">{% trans "لغو" %}</a>
-                </div>
-            </form>
-        </div>
+  <!-- فرم بازگشت -->
+  <div class="card shadow">
+    <div class="card-header bg-warning text-white">
+      <h3 class="mb-0">{% trans "فرم بازگشت بودجه" %}</h3>
     </div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="{{ form.amount.id_for_label }}" class="form-label">{% trans "مبلغ بازگشت" %}</label>
+          {{ form.amount }}
+          {% if form.amount.errors %}
+            <div class="text-danger">{{ form.amount.errors }}</div>
+          {% endif %}
+        </div>
+        <div class="mb-3">
+          <label for="{{ form.description.id_for_label }}" class="form-label">{% trans "توضیحات" %}</label>
+          {{ form.description }}
+          {% if form.description.errors %}
+            <div class="text-danger">{{ form.description.errors }}</div>
+          {% endif %}
+        </div>
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary">{% trans "ثبت بازگشت" %}</button>
+          <a href="{% url 'project_budget_allocation_detail' allocation.pk %}" class="btn btn-secondary">
+            {% trans "لغو" %}
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock %}

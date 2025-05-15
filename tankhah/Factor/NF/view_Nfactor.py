@@ -26,7 +26,6 @@ from budgets.budget_calculations import (
     get_tankhah_total_budget, get_tankhah_remaining_budget, get_tankhah_used_budget,
     # Your budget transaction helper
 )
-from django.utils.translation import gettext_lazy as _
 
 
 # --- End Assumptions ---

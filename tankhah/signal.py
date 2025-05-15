@@ -5,18 +5,9 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-from tankhah.models import Tankhah, Notification, FactorItem, create_budget_transaction
+from tankhah.models import Tankhah, FactorItem, create_budget_transaction
 import logging
 logger = logging.getLogger(__name__)
-
-@receiver(post_save, sender=Tankhah)
-def send_tankhah_notification(sender, instance, created, **kwargs):
-    if instance.status == 'PAID':
-        Notification.objects.create(
-            user=instance.created_by,
-            message=f"تنخواه {instance.number} پرداخت شد.",
-            tankhah=instance
-        )
 
 
 @receiver(post_save, sender=FactorItem)

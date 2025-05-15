@@ -1,5 +1,9 @@
 import logging
 import jdatetime
+
+from tankhah.forms import TankhahForm
+from tankhah.models import Tankhah
+
 logger = logging.getLogger(__name__)
 from decimal import Decimal
 from django.db.models import Q, Sum
@@ -23,8 +27,8 @@ from django.utils.translation import gettext_lazy as _
 from django.db import models
 # -------
 class TankhahCreateView(PermissionBaseView, CreateView):
-    model = 'tankhah.Tankhah'
-    form_class = 'tankhah.forms.TankhahForm'
+    model = Tankhah
+    form_class = TankhahForm
     template_name = 'tankhah/Tankhah_form.html'
     success_url = reverse_lazy('tankhah_list')
     context_object_name = 'Tankhah'
@@ -39,40 +43,61 @@ class TankhahCreateView(PermissionBaseView, CreateView):
 
     def form_invalid(self, form):
         logger.info(f"فرم نامعتبر است. خطاها: {form.errors}")
+        messages.error(self.request, _('لطفاً خطاهای فرم را بررسی کنید.'))
         return super().form_invalid(form)
 
     def form_valid(self, form):
         logger.info(f"فرم معتبر است. داده‌ها: {form.cleaned_data}")
         with transaction.atomic():
             self.object = form.save(commit=False)
-            initial_stage = 'core.WorkflowStage'.objects.order_by('order').first()
+            from core.models import WorkflowStage
+            initial_stage = WorkflowStage.objects.order_by('order').first()
             if not initial_stage:
                 messages.error(self.request, _("مرحله اولیه جریان کاری تعریف نشده است."))
                 return self.form_invalid(form)
 
-            # user_orgs = set(up.post.organization for up in self.request.user.userpost_set.filter(is_active=True))
-            # if not user_orgs:
-            #     messages.error(self.request, _("شما به هیچ سازمانی دسترسی ندارید."))
-            #     return self.form_invalid(form)
-            #
-            # project = form.cleaned_data['project']
-            # project_orgs = set(project.organizations.all())
-            # if not project_orgs.intersection(user_orgs):
-            #     messages.error(self.request, _("این پروژه با سازمان شما هماهنگ نیست."))
-            #     return self.form_invalid(form)
-
             subproject = form.cleaned_data.get('subproject')
-            # if subproject and subproject.project != project:
-            #     messages.error(self.request, _("زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد."))
-            #     return self.form_invalid(form)
-
             self.object.subproject = subproject
+
+            # تنظیم فیلدهای اولیه
+            self.object.subproject = form.cleaned_data.get('subproject')
             self.object.organization = form.cleaned_data['organization']
             self.object.current_stage = initial_stage
             self.object.status = 'DRAFT'
             self.object.created_by = self.request.user
+
+            # تنظیم budget_allocation
+            from budgets.models import ProjectBudgetAllocation
+            project = form.cleaned_data.get('project')
+            subproject = form.cleaned_data.get('subproject')
+            project_budget_allocation = form.cleaned_data.get('project_budget_allocation')
+
+            allocation = None
+            if project_budget_allocation:
+                allocation = project_budget_allocation
+            elif subproject:
+                allocation = ProjectBudgetAllocation.objects.filter(
+                    subproject=subproject,
+                    budget_allocation__is_active=True
+                ).first()
+            elif project:
+                allocation = ProjectBudgetAllocation.objects.filter(
+                    project=project,
+                    subproject__isnull=True,
+                    budget_allocation__is_active=True
+                ).first()
+
+            if allocation:
+                self.object.budget_allocation = allocation.budget_allocation
+                logger.debug(f"تنظیم budget_allocation به {allocation.budget_allocation.id}")
+            else:
+                messages.error(self.request, _("تخصیص بودجه معتبر برای پروژه یا زیرپروژه یافت نشد."))
+                return self.form_invalid(form)
+
+            # ذخیره شیء
             self.object.save()
 
+            # ارسال اعلان به تأییدکنندگان
             approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=initial_stage)
             if approvers.exists():
                 notify.send(
@@ -96,13 +121,15 @@ class TankhahCreateView(PermissionBaseView, CreateView):
 
         # بررسی درخواست POST
         if self.request.method == 'POST' and 'project' in self.request.POST:
+            from core.models import SubProject
+            project_id = int(self.request.POST.get('project'))
             try:
-                project_id = int(self.request.POST.get('project'))
-                project = 'core.Project'.objects.get(id=project_id)
+                from core.models import Project
+                project = Project.objects.get(id=project_id)
                 if 'subproject' in self.request.POST and self.request.POST.get('subproject'):
                     subproject_id = int(self.request.POST.get('subproject'))
-                    subproject = 'core.SubProject'.objects.get(id=subproject_id)
-            except (ValueError, 'core.Project'.DoesNotExist, 'core,SubProject'.DoesNotExist) as e:
+                    subproject = SubProject.objects.get(id=subproject_id)
+            except (ValueError, Project.DoesNotExist, SubProject.DoesNotExist) as e:
                 logger.error(f"Error fetching project/subproject: {str(e)}")
                 project = None
                 subproject = None
@@ -122,6 +149,7 @@ class TankhahCreateView(PermissionBaseView, CreateView):
             context['project_budget_percentage'] = (
                 (remaining_budget / total_budget * 100) if total_budget > 0 else Decimal('0')
             )
+            logger.debug(f"Project {project.id} budget: total={total_budget}, remaining={remaining_budget}")
         else:
             context['total_budget'] = Decimal('0')
             context['remaining_budget'] = Decimal('0')
@@ -136,6 +164,7 @@ class TankhahCreateView(PermissionBaseView, CreateView):
             context['subproject_budget_percentage'] = (
                 (subproject_remaining / subproject_total * 100) if subproject_total > 0 else Decimal('0')
             )
+            logger.debug(f"Subproject {subproject.id} budget: total={subproject_total}, remaining={subproject_remaining}")
         else:
             context['subproject_total_budget'] = Decimal('0')
             context['subproject_remaining_budget'] = Decimal('0')
