@@ -3,11 +3,11 @@ import jdatetime
 from django.contrib.contenttypes.models import ContentType
 
 from tankhah.forms import TankhahForm, TankhahStatusForm
-from tankhah.models import Tankhah, ApprovalLog
+from tankhah.models import Tankhah, ApprovalLog, Factor
 
 logger = logging.getLogger(__name__)
-from decimal import Decimal
-from django.db.models import Q, Sum
+from decimal import Decimal, InvalidOperation
+from django.db.models import Q, Sum, Prefetch
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
@@ -22,6 +22,17 @@ from budgets.budget_calculations import get_project_total_budget, get_project_re
     get_subproject_total_budget, get_subproject_remaining_budget
 from tankhah.utils import restrict_to_user_organization
 
+from django.shortcuts import get_object_or_404, redirect
+from django.views.generic import DetailView
+from django.contrib import messages
+from django.db.models import Q
+from django.core.exceptions import PermissionDenied
+from jalali_date import date2jalali
+from tankhah.models import Tankhah, ApprovalLog
+from tankhah.forms import TankhahStatusForm
+from django.contrib.contenttypes.models import ContentType
+import jdatetime
+from decimal import Decimal
 # tankhah/views.py
 from core.views import PermissionBaseView
 from django.utils.translation import gettext_lazy as _
@@ -363,7 +374,7 @@ class old__TankhahListView(PermissionBaseView, ListView):
 
         return context
 
-class TankhahListView(PermissionBaseView, ListView):
+class OLD__TankhahListView(PermissionBaseView, ListView):
     model = 'tankhah.Tankhah'
     template_name = 'tankhah/tankhah_list.html'
     context_object_name = 'tankhahs'
@@ -506,17 +517,225 @@ class TankhahListView(PermissionBaseView, ListView):
 
         return context
 
-from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import DetailView
-from django.contrib import messages
-from django.db.models import Q
-from django.core.exceptions import PermissionDenied
-from jalali_date import date2jalali
-from tankhah.models import Tankhah, ApprovalLog
-from tankhah.forms import TankhahStatusForm
-from django.contrib.contenttypes.models import ContentType
-import jdatetime
-from decimal import Decimal
+class TankhahListView(PermissionBaseView, ListView):
+    model = Tankhah
+    template_name = 'tankhah/tankhah_list.html'
+    context_object_name = 'tankhahs'
+    paginate_by = 10
+    extra_context = {'title': _('لیست تنخواه‌ها')}
+    check_organization = True
+    permission_codenames = ['tankhah.Tankhah_view']
+
+    def get_queryset(self):
+        user = self.request.user
+        logger.info(f"User: {user}, is_superuser: {user.is_superuser}")
+
+        # سازمان‌های کاربر
+        user_orgs = [up.post.organization for up in user.userpost_set.filter(is_active=True,
+                                                                             end_date__isnull=True)] if user.userpost_set.exists() else []
+        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
+
+        # فیلتر اولیه تنخواه‌ها
+        if is_hq_user:
+            queryset = Tankhah.objects.all()
+            logger.info("کاربر HQ هست، همه تنخواه‌ها را می‌بیند")
+        elif user_orgs:
+            queryset = Tankhah.objects.filter(organization__in=user_orgs)
+            logger.info(f"فیلتر تنخواه‌ها برای سازمان‌های کاربر: {[org.name for org in user_orgs]}")
+        else:
+            queryset = Tankhah.objects.none()
+            logger.info("کاربر هیچ سازمانی ندارد، queryset خالی برمی‌گردد")
+
+        # فیلتر آرشیو
+        show_archived = self.request.GET.get('show_archived', 'false') == 'true'
+        queryset = queryset.filter(is_archived=show_archived)
+        logger.info(f"نمایش آرشیو: {show_archived}, تعداد: {queryset.count()}")
+
+        # فیلترهای اضافی
+        query = self.request.GET.get('q', '').strip()
+        date_query = self.request.GET.get('date', '').strip()
+        amount_query = self.request.GET.get('amount', '').strip()
+        remaining_query = self.request.GET.get('remaining', '').strip()
+        stage = self.request.GET.get('stage', '').strip()
+
+        filter_conditions = Q()
+
+        # جستجوی عمومی
+        if query:
+            filter_conditions &= (
+                    Q(number__icontains=query) |
+                    Q(organization__name__icontains=query) |
+                    Q(project__name__icontains=query) |
+                    Q(subproject__name__icontains=query)
+            )
+            logger.info(f"فیلتر با عبارت '{query}'، تعداد: {queryset.filter(filter_conditions).count()}")
+
+        # فیلتر تاریخ (شمسی)
+        if date_query:
+            try:
+                from jdatetime import date as jdate
+                parts = date_query.split('-')
+                if len(parts) == 1:  # فقط سال (مثل 1403)
+                    year = int(parts[0])
+                    gregorian_year = year - 621
+                    filter_conditions &= Q(date__year=gregorian_year)
+                elif len(parts) == 2:  # سال و ماه (مثل 1403-05)
+                    year, month = map(int, parts)
+                    jalali_date = jdate(year, month, 1)
+                    gregorian_date = jalali_date.togregorian()
+                    filter_conditions &= Q(date__year=gregorian_date.year, date__month=gregorian_date.month)
+                elif len(parts) == 3:  # تاریخ کامل (مثل 1403-05-15)
+                    year, month, day = map(int, parts)
+                    jalali_date = jdate(year, month, day)
+                    gregorian_date = jalali_date.togregorian()
+                    filter_conditions &= Q(date__date=gregorian_date)
+                else:
+                    raise ValueError("Invalid date format")
+            except ValueError as e:
+                messages.error(self.request,
+                               _('فرمت تاریخ نامعتبر است. از فرمت‌های 1403، 1403-05 یا 1403-05-15 استفاده کنید.'))
+                filter_conditions &= Q(date__isnull=True)
+            logger.info(f"فیلتر تاریخ '{date_query}'، تعداد: {queryset.filter(filter_conditions).count()}")
+
+        # فیلتر مبلغ
+        if amount_query:
+            try:
+                amount = float(amount_query.replace(',', ''))
+                filter_conditions &= Q(amount=amount)
+            except ValueError:
+                messages.error(self.request, _('مقدار مبلغ باید عدد باشد.'))
+                filter_conditions &= Q(amount__isnull=True)
+            logger.info(f"فیلتر مبلغ '{amount_query}'، تعداد: {queryset.filter(filter_conditions).count()}")
+
+        # فیلتر باقیمانده
+        if remaining_query:
+            try:
+                remaining = Decimal(remaining_query.replace(',', ''))
+                tankhah_ids = []
+                for tankhah in queryset:
+                    remaining_budget = tankhah.get_remaining_budget() or Decimal('0')
+                    if abs(remaining_budget - remaining) < Decimal('0.01'):
+                        tankhah_ids.append(tankhah.id)
+                filter_conditions &= Q(id__in=tankhah_ids)
+            except (ValueError, Decimal.InvalidOperation):
+                messages.error(self.request, _('مقدار باقیمانده باید عدد باشد.'))
+                filter_conditions &= Q(id__in=[])
+            logger.info(f"فیلتر باقیمانده '{remaining_query}'، تعداد: {queryset.filter(filter_conditions).count()}")
+
+        # فیلتر مرحله
+        if stage:
+            filter_conditions &= Q(current_stage__order=stage)
+            logger.info(f"فیلتر بر اساس مرحله {stage}، تعداد: {queryset.filter(filter_conditions).count()}")
+
+        # اعمال فیلترها
+        if filter_conditions:
+            queryset = queryset.filter(filter_conditions).distinct()
+            if not queryset.exists():
+                messages.info(self.request, _('هیچ تنخواهی با این شرایط یافت نشد.'))
+
+        # بهینه‌سازی کوئری
+        final_queryset = queryset.select_related(
+            'project', 'subproject', 'organization', 'current_stage', 'budget_allocation'
+        ).prefetch_related(
+            Prefetch('factors', queryset=Factor.objects.filter(status__in=['APPROVED', 'PAID']))
+        ).order_by('project__name', '-date')
+
+        logger.info(f"تعداد تنخواه‌های نهایی: {final_queryset.count()}")
+        return final_queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        user_orgs = [up.post.organization for up in user.userpost_set.filter(is_active=True,
+                                                                             end_date__isnull=True)] if user.userpost_set.exists() else []
+        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
+
+        # اطلاعات پایه context
+        context['is_hq_user'] = is_hq_user
+        context['user_orgs'] = user_orgs
+        context['query'] = self.request.GET.get('q', '')
+        context['date_query'] = self.request.GET.get('date', '')
+        context['amount_query'] = self.request.GET.get('amount', '')
+        context['remaining_query'] = self.request.GET.get('remaining', '')
+        context['stage'] = self.request.GET.get('stage', '')
+        context['show_archived'] = self.request.GET.get('show_archived', 'false') == 'true'
+        context['org_display_name'] = _('دفتر مرکزی') if is_hq_user else (
+            user_orgs[0].name if user_orgs else _('بدون سازمان'))
+
+        # # اضافه کردن مراحل برای انتخاب در فیلتر
+        # from core.models import WorkflowStage
+        # context['stages'] = WorkflowStage.objects.filter(workflow__name='tankhah').order_by('order')
+
+        # گروه‌بندی تنخواه‌ها بر اساس پروژه
+        tankhah_list = context[self.context_object_name]
+        grouped_tankhahs = {}
+        for tankhah in tankhah_list:
+            try:
+                project_key = tankhah.project.name if tankhah.project else _('بدون پروژه')
+                if project_key not in grouped_tankhahs:
+                    grouped_tankhahs[project_key] = {
+                        'project': tankhah.project,
+                        'tankhahs': [],
+                        'total_amount': Decimal('0'),
+                        'total_remaining': Decimal('0')
+                    }
+
+                grouped_tankhahs[project_key]['tankhahs'].append(tankhah)
+                tankhah_amount = tankhah.amount or Decimal('0')
+                tankhah_remaining = tankhah.get_remaining_budget() or Decimal('0')
+                grouped_tankhahs[project_key]['total_amount'] += tankhah_amount
+                grouped_tankhahs[project_key]['total_remaining'] += tankhah_remaining
+
+                project = tankhah.project
+                if project:
+                    tankhah.project_total_budget = get_project_total_budget(project) or Decimal('0')
+                    tankhah.project_remaining_budget = get_project_remaining_budget(project) or Decimal('0')
+                    tankhah.project_allocated_budget = tankhah.project_total_budget
+                    if tankhah.project_total_budget > 0:
+                        consumed = tankhah.project_total_budget - tankhah.project_remaining_budget
+                        tankhah.project_consumed_percentage = round((consumed / tankhah.project_total_budget) * 100)
+                    else:
+                        tankhah.project_consumed_percentage = 0
+                else:
+                    tankhah.project_total_budget = Decimal('0')
+                    tankhah.project_remaining_budget = Decimal('0')
+                    tankhah.project_allocated_budget = Decimal('0')
+                    tankhah.project_consumed_percentage = 0
+
+                organization = tankhah.organization
+                if organization and tankhah.budget_allocation:
+                    from budgets.models import BudgetAllocation,BudgetTransaction
+                    tankhah.branch_total_budget = BudgetAllocation.objects.filter(
+                        organization=organization,
+                        budget_period=tankhah.budget_allocation.budget_period
+                    ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+                else:
+                    tankhah.branch_total_budget = Decimal('0')
+
+                tankhah.tankhah_used_budget = BudgetTransaction.objects.filter(
+                    allocation=tankhah.budget_allocation,
+                    transaction_type='CONSUMPTION',
+                    related_tankhah=tankhah
+                ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+                tankhah.factor_used_budget = Factor.objects.filter(
+                    tankhah=tankhah,
+                    status__in=['APPROVED', 'PAID']
+                ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+            except Exception as e:
+                logger.error(f"خطا در محاسبه بودجه برای تنخواه {tankhah.number}: {str(e)}")
+                tankhah.project_total_budget = Decimal('0')
+                tankhah.project_remaining_budget = Decimal('0')
+                tankhah.project_allocated_budget = Decimal('0')
+                tankhah.project_consumed_percentage = 0
+                tankhah.branch_total_budget = Decimal('0')
+                tankhah.tankhah_used_budget = Decimal('0')
+                tankhah.factor_used_budget = Decimal('0')
+
+        context['grouped_tankhahs'] = grouped_tankhahs
+        context['errors'] = []
+        return context
 
 class TankhahDetailView(PermissionBaseView, DetailView):
     model = Tankhah
@@ -603,7 +822,6 @@ class TankhahDetailView(PermissionBaseView, DetailView):
         )
         return context
 
-
 class TankhahDeleteView(PermissionBaseView, DeleteView):
     model = 'tankhah.Tankhah'
     template_name = 'tankhah/Tankhah_confirm_delete.html'
@@ -617,7 +835,7 @@ class TankhahApproveView(PermissionBaseView, View):
     permission_codenames = ['tankhah.Tankhah_approve']
 
     def post(self, request, pk):
-        tankhah = get_object_or_404('tankhah.Tankhah', pk=pk)
+        tankhah = get_object_or_404( Tankhah, pk=pk)
         user_posts = request.user.userpost_set.all()
 
         logger.info(f"Processing POST for tankhah {tankhah.number}, current_stage: {tankhah.current_stage.name} (order: {tankhah.current_stage.order})")
@@ -636,7 +854,8 @@ class TankhahApproveView(PermissionBaseView, View):
             return redirect('dashboard_flows')
 
         # پیدا کردن مرحله بعدی
-        next_stage = 'core.WorkflowStage'.objects.filter(order__gt=tankhah.current_stage.order).order_by('order').first()
+        from core.models import WorkflowStage
+        next_stage =   WorkflowStage.objects.filter(order__gt=tankhah.current_stage.order).order_by('order').first()
         with transaction.atomic():
             if next_stage:
                 tankhah.current_stage = next_stage
@@ -688,20 +907,20 @@ class TankhahRejectView(PermissionBaseView, View):
     permission_codenames = ['tankhah.Tankhah_approve']
 
     def get(self, request, pk):
-        tankhah = 'tankhah.Tankhah'.objects.get(pk=pk)
+        tankhah = Tankhah.objects.get(pk=pk)
         user_posts = request.user.userpost_set.all()
-        if not any(p.post.stageapprover_set.filter(stage='tankhah.Tankhah'.current_stage).exists() for p in user_posts):
+        if not any(p.post.stageapprover_set.filter(stage=tankhah.current_stage).exists() for p in user_posts):
             messages.error(request, _('شما اجازه رد این مرحله را ندارید.'))
             return redirect('dashboard_flows')
 
-        'tankhah.Tankhah'.status = 'REJECTED'
-        'tankhah.Tankhah'.save()
+        tankhah.status = 'REJECTED'
+        tankhah.Tankhah.save()
         messages.error(request, _('تنخواه رد شد.'))
         return redirect('dashboard_flows')
 # ویو نهایی تنخواه تایید یا رد شده
 class TankhahFinalApprovalView(PermissionBaseView,UpdateView):
     """ویو نهایی تنخواه تایید یا رد شده """
-    model = 'tankhah.Tankhah'
+    model =   Tankhah
     fields = ['status']
     template_name = 'tankhah/Tankhah_final_approval.html'
     success_url = reverse_lazy('tankhah_list')
@@ -730,8 +949,8 @@ class TankhahFinalApprovalView(PermissionBaseView,UpdateView):
         return super().form_valid(form)
 
 class TankhahManageView(PermissionBaseView, CreateView):
-    model = 'tankhah.Tankhah'
-    form_class = 'tankhah.forms.TankhahForm'
+    model =  Tankhah
+    form_class = TankhahForm
     template_name = 'tankhah/tankhah_manage.html'
     success_url = reverse_lazy('tankhah_list')
 

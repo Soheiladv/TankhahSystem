@@ -990,7 +990,6 @@ class ApprovalDeleteView(PermissionBaseView, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('تأیید با موفقیت حذف شد.'))
         return super().delete(request, *args, **kwargs)
-
 #---------------------
 @permission_required('tankhah.ItemCategory_view')
 def itemcategory_list(request):
