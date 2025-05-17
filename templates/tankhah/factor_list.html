@@ -1,3 +1,481 @@
+{% extends 'base.html' %}
+{% load i18n static humanize jformat rcms_custom_filters %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --primary: #4361ee;
+        --success: #4cc9f0;
+        --danger: #f72585;
+        --warning: #f8961e;
+        --info: #4895ef;
+        --light: #f8f9fa;
+        --bg: #f5f7fb;
+        --shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+
+    body {
+        background-color: var(--bg);
+        font-family: 'Vazirmatn', sans-serif;
+        direction: rtl;
+        color: #2b2d42;
+    }
+
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        margin-bottom: 2rem;
+    }
+
+    .table thead th {
+        background: linear-gradient(135deg, var(--primary) 0%, #3f37c9 100%);
+        color: white;
+        font-weight: 500;
+        text-align: right;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .table tbody tr:hover {
+        background: rgba(67, 97, 238, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        color: white;
+    }
+
+    .status-draft { background: var(--warning); }
+    .status-pending { background: var(--info); }
+    .status-approved { background: var(--success); }
+    .status-rejected { background: var(--danger); }
+    .status-paid { background: #6f42c1; }
+
+    .btn-custom {
+        transition: all 0.2s ease;
+        border-radius: 0.5rem;
+    }
+
+    .btn-custom:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .fade-in {
+        animation: fadeIn 0.4s ease-in forwards;
+    }
+
+    @keyframes fadeIn {
+        0% { opacity: 0; transform: translateY(10px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .accordion-button {
+        background: var(--light);
+        font-weight: 500;
+        text-align: right;
+    }
+
+    .accordion-button:not(.collapsed) {
+        background: var(--primary);
+        color: white;
+    }
+
+    .accordion-button:focus {
+        box-shadow: none;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+    }
+
+    .alert {
+        border-radius: 8px;
+    }
+
+    .pagination .page-link {
+        border-radius: 5px;
+        margin: 0 3px;
+        color: var(--primary);
+    }
+
+    .pagination .page-item.active .page-link {
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .locked-row::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(
+            45deg,
+            rgba(0,0,0,0.05),
+            rgba(0,0,0,0.05) 2px,
+            transparent 2px,
+            transparent 4px
+        );
+        pointer-events: none;
+    }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vazir-font@32.102.0/dist/font-face.css">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card fade-in">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="card-title m-0">
+                    <i class="fas fa-file-invoice-dollar me-2"></i> {% trans "لیست فاکتورها" %}
+                </h2>
+                <a href="{% url 'Nfactor_create' %}" class="btn btn-success btn-custom">
+                    <i class="fas fa-plus me-2"></i> {% trans "ایجاد فاکتور جدید" %}
+                </a>
+            </div>
+
+            <!-- فرم فیلتر -->
+            <form method="get" class="mb-4">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <input type="text" name="q" value="{{ query|default_if_none:'' }}" class="form-control" placeholder="{% trans 'شماره فاکتور، تنخواه، پروژه...' %}" aria-label="{% trans 'جستجو' %}">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="date" id="jalali-date" value="{{ date_query|default_if_none:'' }}" class="form-control" placeholder="1403-05-15" aria-label="{% trans 'تاریخ' %}">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="status" class="form-select" aria-label="{% trans 'وضعیت' %}">
+                            <option value="">{% trans "همه وضعیت‌ها" %}</option>
+                            {% for status, display in status_choices %}
+                                <option value="{{ status }}" {% if status == status_query %}selected{% endif %}>{{ display }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary btn-custom w-100">
+                            <i class="fas fa-filter me-2"></i> {% trans "فیلتر" %}
+                        </button>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="?" class="btn btn-outline-secondary btn-custom w-100">
+                            <i class="fas fa-times me-2"></i> {% trans "پاک کردن" %}
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+            <!-- پیام‌ها -->
+            {% if messages %}
+                <div class="alert alert-dismissible fade show alert-info" role="alert">
+                    {% for message in messages %}
+                        <div class="alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+                    {% endfor %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'بستن' %}"></button>
+                </div>
+            {% endif %}
+
+            <!-- لیست فاکتورها -->
+            {% if grouped_by_org %}
+                <div class="accordion" id="orgAccordion">
+                    {% for org_name, org_data in grouped_by_org.items %}
+                        <div class="accordion-item fade-in">
+                            <h2 class="accordion-header" id="orgHeading{{ forloop.counter }}">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#orgCollapse{{ forloop.counter }}" aria-expanded="false" aria-controls="orgCollapse{{ forloop.counter }}">
+                                    <i class="fas fa-building me-2"></i>
+                                    {{ org_name }} ({{ org_data.projects|length }} {% trans "پروژه" %})
+                                    <span class="ms-3">
+                                        - {% trans "مبلغ" %}: {{ org_data.total_amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
+                                    </span>
+                                </button>
+                            </h2>
+                            <div id="orgCollapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="orgHeading{{ forloop.counter }}" data-bs-parent="#orgAccordion">
+                                <div class="accordion-body">
+                                    <div class="accordion" id="projectAccordion{{ forloop.counter }}">
+                                        {% for project_name, project_data in org_data.projects.items %}
+                                            <div class="accordion-item">
+                                                <h3 class="accordion-header" id="projectHeading{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}" aria-expanded="false" aria-controls="projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                                        <i class="fas fa-project-diagram me-2"></i>
+                                                        {{ project_name }} ({{ project_data.tankhahs|length }} {% trans "تنخواه" %})
+                                                        <span class="ms-3">
+                                                            - {% trans "مبلغ" %}: {{ project_data.total_amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
+                                                        </span>
+                                                    </button>
+                                                </h3>
+                                                <div id="projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="projectHeading{{ forloop.parentloop.counter }}_{{ forloop.counter }}" data-bs-parent="#projectAccordion{{ forloop.counter }}">
+                                                    <div class="accordion-body">
+                                                        <div class="accordion" id="tankhahAccordion{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                                            {% for tankhah_key, tankhah_data in project_data.tankhahs.items %}
+                                                                <div class="accordion-item">
+                                                                    <h4 class="accordion-header" id="tankhahHeading{{ forloop.parentloop.parentloop.counter }}_{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#tankhahCollapse{{ forloop.parentloop.parentloop.counter }}_{{ forloop.parentloop.counter }}_{{ forloop.counter }}" aria-expanded="false" aria-controls="tankhahCollapse{{ forloop.parentloop.parentloop.counter }}_{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                                                            <i class="fas fa-wallet me-2"></i>
+                                                                            {{ tankhah_key }} ({{ tankhah_data.factors.approved|length|add:tankhah_data.factors.rejected|length|add:tankhah_data.factors.others|length }} {% trans "فاکتور" %})
+                                                                            <span class="ms-3">
+                                                                                - {% trans "مبلغ" %}: {{ tankhah_data.total_amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
+                                                                            </span>
+                                                                        </button>
+                                                                    </h4>
+                                                                    <div id="tankhahCollapse{{ forloop.parentloop.parentloop.counter }}_{{ forloop.parentloop.counter }}_{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="tankhahHeading{{ forloop.parentloop.parentloop.counter }}_{{ forloop.parentloop.counter }}_{{ forloop.counter }}" data-bs-parent="#tankhahAccordion{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                                                        <div class="accordion-body">
+                                                                            <table class="table table-hover">
+                                                                                <thead>
+                                                                                    <tr>
+                                                                                        <th>{% trans "شماره فاکتور" %}</th>
+                                                                                        <th>{% trans "تاریخ" %}</th>
+                                                                                        <th>{% trans "مبلغ" %}</th>
+                                                                                        <th>{% trans "وضعیت" %}</th>
+                                                                                        <th>{% trans "عملیات" %}</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    <!-- فاکتورهای تأییدشده -->
+                                                                                    {% for factor in tankhah_data.factors.approved %}
+                                                                                        <tr class="fade-in table-success-custom {% if factor.is_locked %}locked-row{% endif %}">
+                                                                                            <td>{{ factor.number|to_persian_number }}</td>
+                                                                                            <td>{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
+                                                                                            <td>{{ factor.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
+                                                                                            <td>
+                                                                                                <span class="status-badge status-approved">
+                                                                                                    {{ factor.get_status_display }}
+                                                                                                </span>
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <a href="{% url 'factor_detail' factor.pk %}" class="btn btn-sm btn-info btn-custom" title="{% trans 'جزئیات' %}" aria-label="{% trans 'مشاهده جزئیات فاکتور' %} {{ factor.number }}">
+                                                                                                    <i class="fas fa-eye"></i>
+                                                                                                </a>
+                                                                                                {% if not factor.is_locked and not factor.tankhah.is_locked %}
+                                                                                                    <a href="{% url 'factor_edit' factor.pk %}" class="btn btn-sm btn-primary btn-custom" title="{% trans 'ویرایش' %}" aria-label="{% trans 'ویرایش فاکتور' %} {{ factor.number }}">
+                                                                                                        <i class="fas fa-edit"></i>
+                                                                                                    </a>
+                                                                                                {% endif %}
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    {% endfor %}
+                                                                                    <!-- فاکتورهای ردشده -->
+                                                                                    {% for factor in tankhah_data.factors.rejected %}
+                                                                                        <tr class="fade-in table-danger-custom {% if factor.is_locked %}locked-row{% endif %}">
+                                                                                            <td>{{ factor.number|to_persian_number }}</td>
+                                                                                            <td>{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
+                                                                                            <td>{{ factor.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
+                                                                                            <td>
+                                                                                                <span class="status-badge status-rejected">
+                                                                                                    {{ factor.get_status_display }}
+                                                                                                </span>
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <a href="{% url 'factor_detail' factor.pk %}" class="btn btn-sm btn-info btn-custom" title="{% trans 'جزئیات' %}" aria-label="{% trans 'مشاهده جزئیات فاکتور' %} {{ factor.number }}">
+                                                                                                    <i class="fas fa-eye"></i>
+                                                                                                </a>
+                                                                                                {% if not factor.is_locked and not factor.tankhah.is_locked %}
+                                                                                                    <a href="{% url 'factor_edit' factor.pk %}" class="btn btn-sm btn-primary btn-custom" title="{% trans 'ویرایش' %}" aria-label="{% trans 'ویرایش فاکتور' %} {{ factor.number }}">
+                                                                                                        <i class="fas fa-edit"></i>
+                                                                                                    </a>
+                                                                                                {% endif %}
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    {% endfor %}
+                                                                                    <!-- سایر فاکتورها -->
+                                                                                    {% for factor in tankhah_data.factors.others %}
+                                                                                        <tr class="fade-in {% if factor.is_locked %}locked-row{% endif %}">
+                                                                                            <td>{{ factor.number|to_persian_number }}</td>
+                                                                                            <td>{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
+                                                                                            <td>{{ factor.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
+                                                                                            <td>
+                                                                                                <span class="status-badge status-{{ factor.status|lower }}">
+                                                                                                    {{ factor.get_status_display }}
+                                                                                                </span>
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <a href="{% url 'factor_detail' factor.pk %}" class="btn btn-sm btn-info btn-custom" title="{% trans 'جزئیات' %}" aria-label="{% trans 'مشاهده جزئیات فاکتور' %} {{ factor.number }}">
+                                                                                                    <i class="fas fa-eye"></i>
+                                                                                                </a>
+                                                                                                {% if not factor.is_locked and not factor.tankhah.is_locked %}
+                                                                                                    <a href="{% url 'factor_edit' factor.pk %}" class="btn btn-sm btn-primary btn-custom" title="{% trans 'ویرایش' %}" aria-label="{% trans 'ویرایش فاکتور' %} {{ factor.number }}">
+                                                                                                        <i class="fas fa-edit"></i>
+                                                                                                    </a>
+                                                                                                    {% if factor.can_approve %}
+                                                                                                        <a href="{% url 'factor_approve' factor.pk %}" class="btn btn-sm btn-success btn-custom" title="{% trans 'تأیید' %}" aria-label="{% trans 'تأیید فاکتور' %} {{ factor.number }}">
+                                                                                                            <i class="fas fa-check"></i>
+                                                                                                        </a>
+                                                                                                        <a href="{% url 'factor_reject' factor.pk %}" class="btn btn-sm btn-danger btn-custom" title="{% trans 'رد' %}" aria-label="{% trans 'رد فاکتور' %} {{ factor.number }}">
+                                                                                                            <i class="fas fa-times"></i>
+                                                                                                        </a>
+                                                                                                    {% endif %}
+                                                                                                {% endif %}
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    {% endfor %}
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-file-invoice fa-4x text-muted mb-4"></i>
+                    <h5 class="text-muted">{% trans "فاکتوری یافت نشد" %}</h5>
+                    <p class="text-muted mb-4">{% trans "می‌توانید با کلیک روی دکمه زیر یک فاکتور جدید ایجاد کنید" %}</p>
+                    <a href="{% url 'Nfactor_create' %}" class="btn btn-primary btn-custom">
+                        <i class="fas fa-plus me-2"></i> {% trans "ایجاد فاکتور جدید" %}
+                    </a>
+                </div>
+            {% endif %}
+
+            <!-- صفحه‌بندی -->
+            {% if is_paginated %}
+                <nav aria-label="{% trans 'صفحه‌بندی' %}" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}{% if status_query %}&status={{ status_query }}{% endif %}" aria-label="{% trans 'صفحه قبلی' %}">
+                                    « {% trans "قبلی" %}
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% for num in page_obj.paginator.page_range %}
+                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}{% if status_query %}&status={{ status_query }}{% endif %}">{{ num|to_persian_number }}</a>
+                            </li>
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}{% if status_query %}&status={{ status_query }}{% endif %}" aria-label="{% trans 'صفحه بعدی' %}">
+                                    {% trans "بعدی" %} »
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- مودال تأیید عملیات -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="confirmationModalLabel">{% trans "تأیید عملیات" %}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'بستن' %}"></button>
+            </div>
+            <div class="modal-body py-4">
+                <div class="text-center mb-3">
+                    <i class="fas fa-exclamation-circle fa-4x text-warning mb-3"></i>
+                    <p id="confirmationMessage">{% trans "آیا از انجام این عملیات مطمئن هستید؟" %}</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i> {% trans "انصراف" %}
+                </button>
+                <a href="#" id="confirmActionBtn" class="btn btn-primary">
+                    <i class="fas fa-check me-2"></i> {% trans "تأیید" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr-jalali@1.0.0/dist/flatpickr-jalali.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // دیتاپیکر جلالی
+        flatpickr("#jalali-date", {
+            dateFormat: "Y-m-d",
+            locale: "fa",
+            disableMobile: true,
+            altInput: true,
+            altFormat: "Y-m-d",
+            plugins: [
+                new flatpickrJalaliPlugin({ showSwitcher: true })
+            ]
+        });
+
+        // انیمیشن‌های lazy
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.accordion-item, .table tbody tr').forEach((el, index) => {
+            el.style.animationDelay = `${index * 0.1}s`;
+            observer.observe(el);
+        });
+
+        // مودال تأیید عملیات
+        const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+        document.querySelectorAll('.factor-action-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const actionUrl = this.getAttribute('href');
+                const actionType = this.getAttribute('data-action');
+                const modalTitle = document.getElementById('confirmationModalLabel');
+                const confirmBtn = document.getElementById('confirmActionBtn');
+                const message = document.getElementById('confirmationMessage');
+
+                if (actionType === 'reject') {
+                    modalTitle.textContent = '{% trans "تأیید رد فاکتور" %}';
+                    message.textContent = '{% trans "آیا از رد کردن این فاکتور مطمئن هستید؟ این عمل قابل بازگشت نیست." %}';
+                    confirmBtn.classList.remove('btn-success');
+                    confirmBtn.classList.add('btn-danger');
+                    confirmBtn.innerHTML = '<i class="fas fa-times-circle me-2"></i> {% trans "رد کن" %}';
+                } else if (actionType === 'approve') {
+                    modalTitle.textContent = '{% trans "تأیید فاکتور" %}';
+                    message.textContent = '{% trans "آیا از تأیید این فاکتور مطمئن هستید؟ پس از تأیید امکان ویرایش وجود ندارد." %}';
+                    confirmBtn.classList.remove('btn-danger');
+                    confirmBtn.classList.add('btn-success');
+                    confirmBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i> {% trans "تأیید کن" %}';
+                } else if (actionType === 'delete') {
+                    modalTitle.textContent = '{% trans "حذف فاکتور" %}';
+                    message.textContent = '{% trans "آیا از حذف این فاکتور مطمئن هستید؟ این عمل قابل بازگشت نیست." %}';
+                    confirmBtn.classList.remove('btn-success');
+                    confirmBtn.classList.add('btn-danger');
+                    confirmBtn.innerHTML = '<i class="fas fa-trash-alt me-2"></i> {% trans "حذف کن" %}';
+                }
+
+                confirmBtn.setAttribute('href', actionUrl);
+                confirmationModal.show();
+            });
+        });
+
+        document.getElementById('confirmActionBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.href = this.getAttribute('href');
+        });
+    });
+</script>
+{% endblock %}
 {#<!--#}
 {#{% extends 'base.html' %}#}
 {#{% load i18n static rcms_custom_filters jformat %}#}
@@ -604,690 +1082,3 @@
 {#{% endblock %}#}
 {##}
 {##}
-
-{% extends 'base.html' %}
-
-{% load i18n static rcms_custom_filters jformat %}
-
-{% block extra_css %}
- <style>
-    :root {
-        --primary-color: #4361ee;
-        --primary-hover-color: #3a56d4;
-        --secondary-color: #6c757d;
-        --success-color: #4cc9f0;
-        --success-hover-color: #38b6db;
-        --info-color: #4895ef;
-        --warning-color: #f8961e;
-        --danger-color: #f72585;
-        --light-color: #f8f9fa;
-        --dark-color: #212529;
-        --card-bg: #ffffff;
-        --card-border-color: #e0e0e0;
-        --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-        --card-hover-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        --text-muted-custom: #6c757d;
-    }
-
-    body {
-        font-family: 'Vazirmatn', sans-serif;
-        background-color: #f5f7fb;
-        color: #2b2d42;
-    }
-
-    .font-weight-bold {
-        font-weight: 700 !important;
-    }
-
-    .text-primary {
-        color: var(--primary-color) !important;
-    }
-
-    /* دکمه‌ها با انیمیشن */
-    .btn {
-        border-radius: 0.5rem;
-        padding: 0.5rem 1.25rem;
-        font-weight: 500;
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        letter-spacing: 0.5px;
-        position: relative;
-        overflow: hidden;
-        border: none;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-    }
-
-    .btn:active {
-        transform: translateY(0);
-    }
-
-    .btn-primary {
-        background-color: var(--primary-color);
-        background-image: linear-gradient(135deg, var(--primary-color) 0%, #3f37c9 100%);
-    }
-
-    .btn-primary:hover {
-        background-color: var(--primary-hover-color);
-        background-image: linear-gradient(135deg, var(--primary-hover-color) 0%, #3a0ca3 100%);
-    }
-
-    .btn-success {
-        background-color: var(--success-color);
-        background-image: linear-gradient(135deg, var(--success-color) 0%, #4895ef 100%);
-    }
-
-    .btn-success:hover {
-        background-color: var(--success-hover-color);
-        background-image: linear-gradient(135deg, var(--success-hover-color) 0%, #4361ee 100%);
-    }
-
-    /* کارت‌ها با انیمیشن */
-    .card {
-        border: none;
-        box-shadow: var(--card-shadow);
-        border-radius: 0.75rem;
-        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        background-color: var(--card-bg);
-        overflow: hidden;
-    }
-
-    .card:hover {
-        box-shadow: var(--card-hover-shadow);
-        transform: translateY(-5px);
-    }
-
-    .card-header {
-        background: linear-gradient(135deg, var(--primary-color) 0%, #3f37c9 100%);
-        color: white;
-        border-bottom: none;
-        padding: 1.25rem 1.5rem;
-    }
-
-    .card-header .font-weight-bold {
-        font-size: 1.25rem;
-        letter-spacing: 0.5px;
-    }
-
-    /* جدول با استایل مدرن */
-    .table {
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    .table th {
-        background: linear-gradient(135deg, var(--primary-color) 0%, #3f37c9 100%);
-        color: white;
-        font-weight: 500;
-        padding: 1rem;
-        border: none;
-        position: sticky;
-        top: 0;
-    }
-
-    .table td {
-        padding: 0.75rem 1rem;
-        vertical-align: middle;
-        border-top: 1px solid rgba(0,0,0,0.05);
-    }
-
-    .table-hover tbody tr:hover {
-        background-color: rgba(67, 97, 238, 0.05);
-    }
-
-    /* انیمیشن‌ها */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .animate {
-        animation-duration: 0.6s;
-        animation-fill-mode: both;
-    }
-
-    .fadeInUp {
-        animation-name: fadeInUp;
-    }
-
-    /* بج‌های وضعیت */
-    .badge {
-        font-size: 0.8rem;
-        padding: 0.5em 0.75em;
-        font-weight: 500;
-        border-radius: 0.5rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .badge-success {
-        background: linear-gradient(135deg, #4cc9f0 0%, #4895ef 100%);
-        color: white;
-    }
-
-    .badge-danger {
-        background: linear-gradient(135deg, #f72585 0%, #b5179e 100%);
-        color: white;
-    }
-
-    .badge-warning {
-        background: linear-gradient(135deg, #f8961e 0%, #f3722c 100%);
-        color: white;
-    }
-
-    /* منوی عملیات */
-    .dropdown-menu {
-        border-radius: 0.75rem;
-        box-shadow: 0 5px 25px rgba(0,0,0,0.1);
-        border: none;
-        padding: 0.5rem;
-    }
-
-    .dropdown-item {
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-    }
-
-    .dropdown-item:hover {
-        background-color: rgba(67, 97, 238, 0.1);
-        transform: translateX(5px);
-    }
-
-    /* صفحه‌بندی */
-    .pagination .page-item.active .page-link {
-        background: linear-gradient(135deg, var(--primary-color) 0%, #3f37c9 100%);
-        border-color: transparent;
-        box-shadow: 0 2px 5px rgba(67, 97, 238, 0.3);
-    }
-
-    .pagination .page-link {
-        color: var(--primary-color);
-        border: none;
-        margin: 0 3px;
-        border-radius: 0.5rem !important;
-        transition: all 0.3s;
-    }
-
-    .pagination .page-link:hover {
-        background-color: rgba(67, 97, 238, 0.1);
-        transform: translateY(-2px);
-    }
-
-    /* افکت‌های ویژه */
-    .btn-icon-split {
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s;
-    }
-
-    .btn-icon-split .icon {
-        position: relative;
-        z-index: 2;
-    }
-
-    .btn-icon-split .text {
-        position: relative;
-        z-index: 2;
-    }
-
-    .btn-icon-split:after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(255,255,255,0.1);
-        z-index: 1;
-        transition: all 0.3s;
-        opacity: 0;
-    }
-
-    .btn-icon-split:hover:after {
-        opacity: 1;
-    }
-
-    /* حالت‌های مختلف ردیف‌ها */
-    .table-success-custom {
-        background-color: rgba(76, 201, 240, 0.05) !important;
-    }
-
-    .table-danger-custom {
-        background-color: rgba(247, 37, 133, 0.05) !important;
-    }
-
-    .locked-row {
-        position: relative;
-    }
-
-    .locked-row:after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: repeating-linear-gradient(
-            45deg,
-            rgba(0,0,0,0.05),
-            rgba(0,0,0,0.05) 2px,
-            transparent 2px,
-            transparent 4px
-        );
-        pointer-events: none;
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="container-fluid py-4">
-    <div class="card shadow-lg animate fadeInUp">
-        <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-center">
-            <h5 class="m-0 font-weight-bold text-white">
-                <i class="fas fa-file-invoice-dollar me-2"></i>
-                {{ title }}
-            </h5>
-            <div class="mt-3 mt-md-0">
-                <a href="{% url 'Nfactor_create' %}" class="btn btn-success btn-icon-split">
-                    <span class="icon text-white-50"><i class="fas fa-plus"></i></span>
-                    <span class="text">{% trans "ایجاد فاکتور جدید" %}</span>
-                </a>
-            </div>
-        </div>
-        <div class="card-body">
-            <!-- فیلترها -->
-            <div class="card mb-4 animate fadeInUp" style="animation-delay: 0.1s;">
-                <div class="card-body bg-light p-3 rounded-lg">
-                    <form method="get" class="row g-3 align-items-center">
-                        <div class="col-md-4 col-lg-3">
-                            <div class="input-group input-group-dynamic">
-                                <span class="input-group-text bg-transparent border-0"><i class="fas fa-search text-primary"></i></span>
-                                <input type="text" name="q" id="q_input" class="form-control form-control-sm border-0 ps-0"
-                                       placeholder="{% trans "جستجو..." %}" value="{{ query }}">
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-lg-2">
-                            <select name="status" id="status_select" class="form-select form-select-sm border-0">
-                                <option value="">{% trans "همه وضعیت‌ها" %}</option>
-                                <option value="DRAFT" {% if status_query == 'DRAFT' %}selected{% endif %}>{% trans "پیش‌نویس" %}</option>
-                                <option value="PENDING" {% if status_query == 'PENDING' %}selected{% endif %}>{% trans "در حال بررسی" %}</option>
-                                <option value="APPROVED" {% if status_query == 'APPROVED' %}selected{% endif %}>{% trans "تأیید شده" %}</option>
-                                <option value="REJECTED" {% if status_query == 'REJECTED' %}selected{% endif %}>{% trans "رد شده" %}</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 col-lg-3">
-                            <div class="input-group input-group-dynamic">
-                                <span class="input-group-text bg-transparent border-0"><i class="fas fa-calendar-alt text-primary"></i></span>
-                                <input type="text" name="date" id="datepicker" class="form-control form-control-sm border-0 ps-0"
-                                   placeholder="{% trans "تاریخ (سال یا تاریخ کامل)" %}" value="{{ date_query }}">
-                            </div>
-                        </div>
-                        <div class="col-md-2 col-lg-2 mt-3 mt-md-0">
-                            <button type="submit" class="btn btn-primary btn-sm w-100">
-                                <i class="fas fa-filter me-1"></i> {% trans "اعمال فیلتر" %}
-                            </button>
-                        </div>
-                        <div class="col-md-2 col-lg-2 mt-3 mt-md-0">
-                            <a href="?" class="btn btn-outline-secondary btn-sm w-100">
-                                <i class="fas fa-times me-1"></i> {% trans "پاک کردن" %}
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- جدول فاکتورها -->
-            <div class="table-responsive animate fadeInUp" style="animation-delay: 0.2s;">
-                <table class="table table-hover align-middle" id="dataTable">
-                    <thead>
-                        <tr>
-                            <th width="5%">{% trans "ردیف" %}</th>
-                            <th>{% trans "شماره فاکتور" %}</th>
-                            <th>{% trans "شماره تنخواه" %}</th>
-                            <th class="text-end">{% trans "مبلغ (ریال)" %}</th>
-                            <th class="text-center">{% trans "تاریخ" %}</th>
-                            <th class="text-center">{% trans "وضعیت" %}</th>
-                            <th class="text-center" width="15%">{% trans "عملیات" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for factor in factors %}
-                        <tr class="{% if factor.is_locked %}locked-row{% elif factor.status == 'APPROVED' %}table-success-custom{% elif factor.status == 'REJECTED' %}table-danger-custom{% endif %}">
-                            <td class="text-center">{{ forloop.counter0|add:page_obj.start_index|format_negative }}</td>
-                            <td>
-                                <span class="fw-bold">{{ factor.number }}</span>
-                            </td>
-                            <td>
-                                <a href="{% url 'tankhah_detail' factor.tankhah.pk %}" class="text-decoration-none text-primary-hover">
-                                    {{ factor.tankhah.number }}
-                                    <i class="fas fa-external-link-alt fa-xs ms-1"></i>
-                                </a>
-                            </td>
-                            <td class="text-end font-monospace fw-bold text-dark">
-                                {{ factor.amount|format_negative }}
-                            </td>
-                            <td class="text-center">
-                                {% with jdate=factor.date|jformat:"%Y/%m/%d" %}
-                                <span class="badge bg-light text-dark">
-                                    {{ jdate|to_persian_number }}
-                                </span>
-                                {% endwith %}
-                            </td>
-                            <td class="text-center">
-                                <span class="badge
-                                    {% if factor.status == 'APPROVED' %}badge-success
-                                    {% elif factor.status == 'REJECTED' %}badge-danger
-                                    {% elif factor.status == 'PENDING' %}badge-warning
-                                    {% else %}badge-secondary{% endif %}">
-                                    {{ factor.get_status_display }}
-                                </span>
-                                {% if factor.is_locked %}
-                                <span class="badge bg-dark ms-1" data-bs-toggle="tooltip" title="{% trans "این فاکتور به دلیل قفل بودن تنخواه یا وضعیت نهایی قابل ویرایش نیست." %}">
-                                    <i class="fas fa-lock fa-xs"></i>
-                                </span>
-                                {% endif %}
-                            </td>
-                            <td class="text-center">
-                                <div class="d-flex justify-content-center">
-                                    <!-- نمایش تعداد ردیف‌ها -->
-                                    <span class="badge bg-light text-dark rounded-pill me-2" data-bs-toggle="tooltip" title="{% trans "تعداد ردیف‌های فاکتور" %}">
-                                        <i class="fas fa-list-ol text-primary me-1"></i>
-                                        {{ factor.items.count|to_persian_number }}
-                                    </span>
-
-                                    <!-- منوی عملیات -->
-                                    <div class="dropdown">
-                                        <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button"
-                                                id="factorActions-{{ factor.pk }}" data-bs-toggle="dropdown"
-                                                aria-expanded="false">
-                                            <i class="fas fa-ellipsis-v"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="factorActions-{{ factor.pk }}">
-                                            <li>
-                                                <a class="dropdown-item" href="{% url 'factor_detail' factor.pk %}">
-                                                    <i class="fas fa-eye text-info me-2"></i>
-                                                    {% trans "مشاهده جزئیات" %}
-                                                </a>
-                                            </li>
-
-                                            {% if not factor.is_locked and not factor.tankhah.is_locked %}
-                                            <li>
-                                                <a class="dropdown-item" href="{% url 'factor_edit' factor.pk %}">
-                                                    <i class="fas fa-edit text-primary me-2"></i>
-                                                    {% trans "ویرایش فاکتور" %}
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <hr class="dropdown-divider">
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item text-danger factor-action-btn"
-                                                   data-action="delete" href="{% url 'factor_delete' factor.pk %}">
-                                                    <i class="fas fa-trash-alt me-2"></i>
-                                                    {% trans "حذف فاکتور" %}
-                                                </a>
-                                            </li>
-                                            {% endif %}
-
-                                            {% if factor.can_approve and not factor.is_locked %}
-                                            <li>
-                                                <hr class="dropdown-divider">
-                                            </li>
-                                            <li>
-                                                <h6 class="dropdown-header">{% trans "تأییدیه‌ها" %}</h6>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item text-success factor-action-btn"
-                                                   data-action="approve" href="{% url 'factor_approve' factor.pk %}">
-                                                    <i class="fas fa-check-circle me-2"></i>
-                                                    {% trans "تأیید نهایی" %}
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item text-danger factor-action-btn"
-                                                   data-action="reject" href="{% url 'factor_reject' factor.pk %}">
-                                                    <i class="fas fa-times-circle me-2"></i>
-                                                    {% trans "رد فاکتور" %}
-                                                </a>
-                                            </li>
-                                            {% endif %}
-
-                                            <li>
-                                                <hr class="dropdown-divider">
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item"
-                                                   href="{% url 'factor_item_approve' factor.pk %}">
-                                                    <i class="fas fa-tasks text-primary me-2"></i>
-                                                    {% trans "مدیریت ردیف‌ها" %}
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center py-5">
-                                <div class="empty-state">
-                                    <i class="fas fa-file-invoice fa-4x text-muted mb-4"></i>
-                                    <h5 class="text-muted">{% trans "فاکتوری یافت نشد" %}</h5>
-                                    <p class="text-muted mb-4">{% trans "می‌توانید با کلیک روی دکمه زیر یک فاکتور جدید ایجاد کنید" %}</p>
-                                    <a href="{% url 'Nfactor_create' %}" class="btn btn-primary">
-                                        <i class="fas fa-plus me-2"></i>
-                                        {% trans "ایجاد فاکتور جدید" %}
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- صفحه‌بندی -->
-            {% if is_paginated %}
-            <div class="row mt-4 animate fadeInUp" style="animation-delay: 0.3s;">
-                <div class="col-12 d-flex justify-content-center">
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination">
-                            {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link"
-                                   href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_query %}&status={{ status_query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}"
-                                   aria-label="{% trans "قبلی" %}">
-                                    <i class="fas fa-chevron-right"></i>
-                                </a>
-                            </li>
-                            {% else %}
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
-                                    <i class="fas fa-chevron-right"></i>
-                                </a>
-                            </li>
-                            {% endif %}
-
-                            {% for num in page_obj.paginator.page_range %}
-                                {% if page_obj.number == num %}
-                                <li class="page-item active" aria-current="page">
-                                    <a class="page-link" href="#">{{ num|to_persian_number }}</a>
-                                </li>
-                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                                <li class="page-item">
-                                    <a class="page-link"
-                                       href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if status_query %}&status={{ status_query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}">
-                                        {{ num|to_persian_number }}
-                                    </a>
-                                </li>
-                                {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
-                                <li class="page-item disabled"><a class="page-link" href="#">...</a></li>
-                                {% endif %}
-                            {% endfor %}
-
-                            {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link"
-                                   href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if status_query %}&status={{ status_query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}"
-                                   aria-label="{% trans "بعدی" %}">
-                                    <i class="fas fa-chevron-left"></i>
-                                </a>
-                            </li>
-                            {% else %}
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
-                                    <i class="fas fa-chevron-left"></i>
-                                </a>
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
-<!-- مودال تأیید عملیات -->
-<div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-gradient-primary text-white">
-                <h5 class="modal-title" id="confirmationModalLabel">{% trans "تأیید عملیات" %}</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body py-4">
-                <div class="text-center mb-3">
-                    <i class="fas fa-exclamation-circle fa-4x text-warning mb-3"></i>
-                    <p id="confirmationMessage">{% trans "آیا از انجام این عملیات مطمئن هستید؟" %}</p>
-                </div>
-            </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-2"></i> {% trans "انصراف" %}
-                </button>
-                <a href="#" id="confirmActionBtn" class="btn">
-                    <i class="fas fa-check me-2"></i> {% trans "تأیید" %}
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script src="{% static 'admin/js/jquery.dataTables.min.js' %}"></script>
-<script src="{% static 'admin/js/dataTables.bootstrap5.min.js' %}"></script>
-{#<script src="{% static 'admin/js/persian-date.min.js' %}"></script>#}
-{#<script src="{% static 'admin/js/persian-datepicker.min.js' %}"></script>#}
-
-<script>
-$(document).ready(function() {
-    // فعال سازی تاریخ‌شمار فارسی
-    $('#datepicker').pDatepicker({
-        format: 'YYYY/MM/DD',
-        autoClose: true,
-        initialValueType: 'persian',
-        observer: true,
-        calendar: {
-            persian: {
-                locale: 'fa'
-            }
-        },
-        toolbox: {
-            calendarSwitch: {
-                enabled: true,
-                format: 'YYYY/MM/DD'
-            },
-            todayButton: {
-                enabled: true,
-                text: {
-                    fa: 'امروز',
-                    en: 'Today'
-                }
-            },
-            submitButton: {
-                enabled: true,
-                text: {
-                    fa: 'تایید',
-                    en: 'Submit'
-                }
-            }
-        }
-    });
-
-    // فعال سازی DataTable
-    $('#dataTable').DataTable({
-        "paging": false,
-        "searching": false,
-        "info": false,
-        "ordering": true,
-        "language": {
-            "url": "{% static 'admin/fa.json' %}"
-        },
-        "order": [[4, "desc"]],
-        "columnDefs": [
-            { "orderable": false, "targets": [0, 6] }
-        ],
-        responsive: true
-    });
-
-    // فعال سازی tooltip
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
-    });
-
-    // مودال تأیید عملیات
-    var confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
-    $('.factor-action-btn').on('click', function(e) {
-        e.preventDefault();
-        const actionUrl = $(this).attr('href');
-        const actionType = $(this).data('action');
-        const modalTitle = $('#confirmationModalLabel');
-        const confirmBtn = $('#confirmActionBtn');
-        const message = $('#confirmationMessage');
-
-        if (actionType === 'reject') {
-            modalTitle.text('{% trans "تأیید رد فاکتور" %}');
-            message.text('{% trans "آیا از رد کردن این فاکتور مطمئن هستید؟ این عمل قابل بازگشت نیست." %}');
-            confirmBtn.removeClass('btn-success').addClass('btn-danger').html('<i class="fas fa-times-circle me-2"></i> {% trans "رد کن" %}');
-        } else if (actionType === 'approve') {
-            modalTitle.text('{% trans "تأیید فاکتور" %}');
-            message.text('{% trans "آیا از تأیید این فاکتور مطمئن هستید؟ پس از تأیید امکان ویرایش وجود ندارد." %}');
-            confirmBtn.removeClass('btn-danger').addClass('btn-success').html('<i class="fas fa-check-circle me-2"></i> {% trans "تأیید کن" %}');
-        } else if (actionType === 'delete') {
-            modalTitle.text('{% trans "حذف فاکتور" %}');
-            message.text('{% trans "آیا از حذف این فاکتور مطمئن هستید؟ این عمل قابل بازگشت نیست." %}');
-            confirmBtn.removeClass('btn-success').addClass('btn-danger').html('<i class="fas fa-trash-alt me-2"></i> {% trans "حذف کن" %}');
-        }
-
-        confirmBtn.attr('href', actionUrl);
-        confirmationModal.show();
-    });
-
-    $('#confirmActionBtn').on('click', function(e) {
-        e.preventDefault();
-        window.location.href = $(this).attr('href');
-    });
-
-    // انیمیشن‌ها
-    $('.animate').each(function(index) {
-        $(this).css('animation-delay', (index * 0.1) + 's');
-    });
-});
-</script>
-{% endblock %}

@@ -2,6 +2,8 @@ import logging
 import jdatetime
 from django.contrib.contenttypes.models import ContentType
 
+from budgets.models import BudgetAllocation, BudgetTransaction
+from core.models import WorkflowStage
 from tankhah.forms import TankhahForm, TankhahStatusForm
 from tankhah.models import Tankhah, ApprovalLog, Factor
 
@@ -265,259 +267,7 @@ class TankhahUpdateView(PermissionBaseView, UpdateView):
         messages.success(self.request, _('تنخواه با موفقیت به‌روزرسانی شد.'))
         return super().form_valid(form)
 # -------
-class old__TankhahListView(PermissionBaseView, ListView):
-    model = 'tankhah.Tankhah'
-    template_name = 'tankhah/tankhah_list.html'
-    context_object_name = 'Tankhahs'
-    paginate_by = 10
-    extra_context = {'title': _('لیست تنخواه‌ها')}
-    check_organization = True
-    permission_codenames = ['tankhah.Tankhah_view']
-
-    def get_queryset(self):
-        user = self.request.user
-        logger.info(f"User: {user}, is_superuser: {user.is_superuser}")
-
-        # سازمان‌های کاربر
-        user_orgs = [up.post.organization for up in user.userpost_set.all()] if user.userpost_set.exists() else []
-        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
-
-        # فیلتر اولیه تنخواه‌ها
-        if is_hq_user:
-            queryset = 'tankhah.Tankhah'.objects.all()
-            logger.info("کاربر HQ هست، همه تنخواه‌ها رو می‌بینه")
-        elif user_orgs:
-            queryset = 'tankhah.Tankhah'.objects.filter(organization__in=user_orgs)
-            logger.info(f"فیلتر تنخواه‌ها برای سازمان‌های کاربر: {user_orgs}")
-        else:
-            queryset = 'tankhah.Tankhah'.objects.none()
-            logger.info("کاربر هیچ سازمانی نداره، queryset خالی برمی‌گردونه")
-
-        # فیلتر آرشیو
-        show_archived = self.request.GET.get('show_archived', 'false') == 'true'
-        if show_archived:
-            queryset = queryset.filter(is_archived=True)
-            logger.info(f"فقط آرشیوها نمایش داده می‌شن، تعداد: {queryset.count()}")
-        else:
-            queryset = queryset.filter(is_archived=False)
-            logger.info(f"فقط غیرآرشیوها نمایش داده می‌شن، تعداد: {queryset.count()}")
-
-        # فیلترهای اضافی
-        query = self.request.GET.get('q')
-        if query:
-            queryset = queryset.filter(
-                models.Q(number__icontains=query) |
-                models.Q(organization__name__icontains=query) |
-                models.Q(project__name__icontains=query) |
-                models.Q(subproject__name__icontains=query)
-            )
-
-            logger.info(f"Filtered by query '{query}' count: {queryset.count()}")
-
-        stage = self.request.GET.get('stage')
-        if stage:
-            queryset = queryset.filter(current_stage__order=stage)
-            logger.info(f"Filtered by stage order {stage} count: {queryset.count()}")
-
-            if not queryset.exists():
-                messages.info(self.request, _('هیچ تنخواهی با این شرایط یافت نشد.'))
-
-        # final_queryset = queryset.order_by('-date') # old
-        final_queryset = queryset.select_related('project', 'subproject', 'organization', 'current_stage').order_by('-date')
-        logger.info(f"Final queryset count: {final_queryset.count()}")
-        return final_queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-        user_orgs = [up.post.organization for up in user.userpost_set.all()] if user.userpost_set.exists() else []
-        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
-
-        context['is_hq_user'] = is_hq_user
-        context['user_orgs'] = user_orgs
-        context['query'] = self.request.GET.get('q', '')
-        context['stage'] = self.request.GET.get('stage', '')
-        context['show_archived'] = self.request.GET.get('show_archived', 'false') == 'true'
-
-        if is_hq_user:
-            context['org_display_name'] = _('دفتر مرکزی')
-        elif user_orgs:
-            context['org_display_name'] = user_orgs[0].name
-        else:
-            context['org_display_name'] = _('بدون سازمان')
-
-        tankhah_list_page = context[self.context_object_name] # گرفتن لیست آبجکت‌های صفحه فعلی
-        for tankhah in tankhah_list_page:
-            if tankhah.project:
-                try:
-                    # فراخوانی توابع محاسبه بودجه برای پروژه مربوطه
-                    tankhah.project_total_budget_display = get_project_total_budget(tankhah.project)
-                    tankhah.project_remaining_budget_display = get_project_remaining_budget(tankhah.project)
-                    # محاسبه درصد مصرف شده (برای Progress Bar)
-                    if tankhah.project_total_budget_display and tankhah.project_total_budget_display > 0:
-                        consumed = tankhah.project_total_budget_display - tankhah.project_remaining_budget_display
-                        tankhah.project_consumed_percentage = round((consumed / tankhah.project_total_budget_display) * 100)
-                    else:
-                        tankhah.project_consumed_percentage = 0
-                except Exception as e:
-                    # در صورت بروز خطا، مقادیر پیش‌فرض تنظیم کنید
-                    logger.error(f"Error calculating budget for project {tankhah.project.id} in TankhahList: {e}")
-                    tankhah.project_total_budget_display = Decimal('0')
-                    tankhah.project_remaining_budget_display = Decimal('0')
-                    tankhah.project_consumed_percentage = 0
-            else:
-                # اگر پروژه ندارد
-                tankhah.project_total_budget_display = Decimal('0')
-                tankhah.project_remaining_budget_display = Decimal('0')
-                tankhah.project_consumed_percentage = 0
-        # ----------------------------------------------------------
-
-        return context
-
-class OLD__TankhahListView(PermissionBaseView, ListView):
-    model = 'tankhah.Tankhah'
-    template_name = 'tankhah/tankhah_list.html'
-    context_object_name = 'tankhahs'
-    paginate_by = 10
-    extra_context = {'title': _('لیست تنخواه‌ها')}
-    check_organization = True
-    permission_codenames = ['tankhah.Tankhah_view']
-
-    def get_queryset(self):
-        user = self.request.user
-        logger.info(f"User: {user}, is_superuser: {user.is_superuser}")
-
-        # سازمان‌های کاربر
-        user_orgs = [up.post.organization for up in user.userpost_set.filter(is_active=True, end_date__isnull=True)] if user.userpost_set.exists() else []
-        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
-
-        # فیلتر اولیه تنخواه‌ها
-        from tankhah.models import Tankhah
-        if is_hq_user:
-            queryset =   Tankhah.objects.all()
-            logger.info("کاربر HQ هست، همه تنخواه‌ها را می‌بیند")
-        elif user_orgs:
-            queryset =   Tankhah.objects.filter(organization__in=user_orgs)
-            logger.info(f"فیلتر تنخواه‌ها برای سازمان‌های کاربر: {[org.name for org in user_orgs]}")
-        else:
-            queryset =  Tankhah.objects.none()
-            logger.info("کاربر هیچ سازمانی ندارد، queryset خالی برمی‌گردد")
-
-        # فیلتر آرشیو
-        show_archived = self.request.GET.get('show_archived', 'false') == 'true'
-        queryset = queryset.filter(is_archived=show_archived)
-        logger.info(f"نمایش آرشیو: {show_archived}, تعداد: {queryset.count()}")
-
-        # فیلترهای اضافی
-        query = self.request.GET.get('q')
-        if query:
-            queryset = queryset.filter(
-                Q(number__icontains=query) |
-                Q(organization__name__icontains=query) |
-                Q(project__name__icontains=query) |
-                Q(subproject__name__icontains=query)
-            )
-            logger.info(f"فیلتر با عبارت '{query}'، تعداد: {queryset.count()}")
-
-        stage = self.request.GET.get('stage')
-        if stage:
-            queryset = queryset.filter(current_stage__order=stage)
-            logger.info(f"فیلتر بر اساس مرحله {stage}، تعداد: {queryset.count()}")
-            if not queryset.exists():
-                messages.info(self.request, _('هیچ تنخواهی با این شرایط یافت نشد.'))
-
-        # بهینه‌سازی کوئری با select_related و prefetch_related
-        # final_queryset = queryset.select_related(
-        #     'project', 'subproject', 'organization', 'current_stage', 'budget_allocation'
-        # ).prefetch_related('factors').order_by('-date') #
-        from django.db.models import Prefetch
-        from tankhah.models import Factor
-        final_queryset = queryset.select_related(
-            'project', 'subproject', 'organization', 'current_stage', 'budget_allocation'
-        ).prefetch_related(
-            Prefetch('factors', queryset= Factor.objects.filter(status__in=['APPROVED', 'PAID']))
-        ).order_by('-date') #کوئری بهینه تر
-
-        logger.info(f"تعداد تنخواه‌های نهایی: {final_queryset.count()}")
-        return final_queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-        user_orgs = [up.post.organization for up in user.userpost_set.filter(is_active=True, end_date__isnull=True)] if user.userpost_set.exists() else []
-        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
-
-        # اطلاعات پایه context
-        context['is_hq_user'] = is_hq_user
-        context['user_orgs'] = user_orgs
-        context['query'] = self.request.GET.get('q', '')
-        context['stage'] = self.request.GET.get('stage', '')
-        context['show_archived'] = self.request.GET.get('show_archived', 'false') == 'true'
-        context['org_display_name'] = _('دفتر مرکزی') if is_hq_user else (user_orgs[0].name if user_orgs else _('بدون سازمان'))
-
-        # پردازش تنخواه‌ها
-        tankhah_list_page = context[self.context_object_name]
-        for tankhah in tankhah_list_page:
-            try:
-                # اطلاعات بودجه پروژه
-                project = tankhah.project
-                if project:
-                    # تخصیص بودجه به پروژه
-                    tankhah.project_total_budget = get_project_total_budget(project)
-                    tankhah.project_remaining_budget = get_project_remaining_budget(project)
-                    tankhah.project_allocated_budget = tankhah.project_total_budget  # معادل دریافتی پروژه
-
-                    # درصد مصرف بودجه پروژه
-                    if tankhah.project_total_budget > 0:
-                        consumed = tankhah.project_total_budget - tankhah.project_remaining_budget
-                        tankhah.project_consumed_percentage = round((consumed / tankhah.project_total_budget) * 100)
-                    else:
-                        tankhah.project_consumed_percentage = 0
-                else:
-                    tankhah.project_total_budget = Decimal('0')
-                    tankhah.project_remaining_budget = Decimal('0')
-                    tankhah.project_allocated_budget = Decimal('0')
-                    tankhah.project_consumed_percentage = 0
-
-                # اطلاعات بودجه شعبه (سازمان)
-                organization = tankhah.organization
-                from budgets.models import BudgetAllocation
-                if organization:
-                    tankhah.branch_total_budget = BudgetAllocation.objects.filter(
-                        organization=organization,
-                        budget_period=tankhah.budget_allocation.budget_period
-                    ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
-                else:
-                    tankhah.branch_total_budget = Decimal('0')
-
-                # میزان استفاده‌شده در تنخواه
-                from budgets.models import BudgetTransaction
-                tankhah.tankhah_used_budget = BudgetTransaction.objects.filter(
-                    allocation=tankhah.budget_allocation,
-                    transaction_type='CONSUMPTION',
-                    related_tankhah=tankhah
-                ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
-
-                # میزان استفاده‌شده توسط فاکتورهای تأییدشده
-                tankhah.factor_used_budget = 'tankhah.Factor'.objects.filter(
-                    tankhah=tankhah,
-                    status__in=['APPROVED', 'PAID']
-                ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
-
-            except Exception as e:
-                logger.error(f"خطا در محاسبه بودجه برای تنخواه {tankhah.number}: {str(e)}")
-                tankhah.project_total_budget = Decimal('0')
-                tankhah.project_remaining_budget = Decimal('0')
-                tankhah.project_allocated_budget = Decimal('0')
-                tankhah.project_consumed_percentage = 0
-                tankhah.branch_total_budget = Decimal('0')
-                tankhah.tankhah_used_budget = Decimal('0')
-                tankhah.factor_used_budget = Decimal('0')
-                # context['errors'].append(f"خطا در تنخواه {tankhah.number}: {str(e)}")
-
-        return context
-
-class TankhahListView(PermissionBaseView, ListView):
+class NOORGAN_TankhahListView(PermissionBaseView, ListView):
     model = Tankhah
     template_name = 'tankhah/tankhah_list.html'
     context_object_name = 'tankhahs'
@@ -735,6 +485,277 @@ class TankhahListView(PermissionBaseView, ListView):
 
         context['grouped_tankhahs'] = grouped_tankhahs
         context['errors'] = []
+        return context
+
+
+class TankhahListView(PermissionBaseView, ListView):
+    model = Tankhah
+    template_name = 'tankhah/tankhah_list.html'
+    context_object_name = 'tankhahs'
+    paginate_by = 10
+    extra_context = {'title': _('لیست تنخواه‌ها')}
+    check_organization = True
+    permission_codenames = ['tankhah.Tankhah_view']
+
+    def get_queryset(self):
+        """بازگرداندن کوئری‌ست فیلترشده تنخواه‌ها با بهینه‌سازی برای MySQL."""
+        user = self.request.user
+        logger.info(f"[TankhahListView] User: {user}, is_superuser: {user.is_superuser}")
+
+        # سازمان‌های کاربر
+        user_orgs = [
+            up.post.organization
+            for up in user.userpost_set.filter(is_active=True, end_date__isnull=True)
+        ] if user.userpost_set.exists() else []
+        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
+
+        # فیلتر اولیه بر اساس دسترسی
+        if is_hq_user:
+            queryset = Tankhah.objects.all()
+            logger.info("[TankhahListView] کاربر HQ، دسترسی به همه تنخواه‌ها")
+        elif user_orgs:
+            queryset = Tankhah.objects.filter(organization__in=user_orgs)
+            logger.info(f"[TankhahListView] فیلتر برای سازمان‌ها: {[org.name for org in user_orgs]}")
+        else:
+            queryset = Tankhah.objects.none()
+            logger.info("[TankhahListView] کاربر بدون سازمان، کوئری‌ست خالی")
+
+        # فیلتر آرشیو
+        show_archived = self.request.GET.get('show_archived', 'false') == 'true'
+        queryset = queryset.filter(is_archived=show_archived)
+        logger.info(f"[TankhahListView] نمایش آرشیو: {show_archived}, تعداد: {queryset.count()}")
+
+        # پارامترهای فیلتر
+        query = self.request.GET.get('q', '').strip()
+        date_query = self.request.GET.get('date', '').strip()
+        amount_query = self.request.GET.get('amount', '').strip()
+        remaining_query = self.request.GET.get('remaining', '').strip()
+        stage = self.request.GET.get('stage', '').strip()
+
+        filter_conditions = Q()
+
+        # فیلتر جستجوی عمومی
+        if query:
+            filter_conditions &= (
+                Q(number__icontains=query) |
+                Q(organization__name__icontains=query) |
+                Q(project__name__icontains=query) |
+                Q(subproject__name__icontains=query)
+            )
+            logger.info(f"[TankhahListView] جستجو '{query}', تعداد: {queryset.filter(filter_conditions).count()}")
+
+        # فیلتر تاریخ (شمسی به میلادی)
+        if date_query:
+            try:
+                parts = date_query.split('-')
+                if len(parts) == 1:  # فقط سال (مثل 1403)
+                    year = int(parts[0])
+                    gregorian_year = year - 621
+                    filter_conditions &= Q(date__year=gregorian_year)
+                elif len(parts) == 2:  # سال و ماه (مثل 1403-05)
+                    year, month = map(int, parts)
+                    jalali_date = jdate(year, month, 1)
+                    gregorian_date = jalali_date.togregorian()
+                    filter_conditions &= Q(date__year=gregorian_date.year, date__month=gregorian_date.month)
+                elif len(parts) == 3:  # تاریخ کامل (مثل 1403-05-15)
+                    year, month, day = map(int, parts)
+                    jalali_date = jdate(year, month, day)
+                    gregorian_date = jalali_date.togregorian()
+                    filter_conditions &= Q(date=gregorian_date)
+                else:
+                    raise ValueError("Invalid date format")
+            except ValueError as e:
+                logger.warning(f"[TankhahListView] خطای فرمت تاریخ: {date_query}, error: {str(e)}")
+                messages.error(self.request, _('فرمت تاریخ نامعتبر است (1403، 1403-05، یا 1403-05-15).'))
+                filter_conditions &= Q(date__isnull=True)
+            logger.info(f"[TankhahListView] فیلتر تاریخ '{date_query}', تعداد: {queryset.filter(filter_conditions).count()}")
+
+        # فیلتر مبلغ
+        if amount_query:
+            try:
+                amount = Decimal(amount_query.replace(',', ''))
+                filter_conditions &= Q(amount=amount)
+            except (ValueError, Decimal.InvalidOperation):
+                logger.warning(f"[TankhahListView] خطای فرمت مبلغ: {amount_query}")
+                messages.error(self.request, _('مبلغ باید عدد باشد.'))
+                filter_conditions &= Q(amount__isnull=True)
+            logger.info(f"[TankhahListView] فیلتر مبلغ '{amount_query}', تعداد: {queryset.filter(filter_conditions).count()}")
+
+        # فیلتر باقیمانده
+        if remaining_query:
+            try:
+                remaining = Decimal(remaining_query.replace(',', ''))
+                tankhah_ids = [
+                    t.id for t in queryset
+                    if abs((t.get_remaining_budget() or Decimal('0')) - remaining) < Decimal('0.01')
+                ]
+                filter_conditions &= Q(id__in=tankhah_ids)
+            except (ValueError, Decimal.InvalidOperation):
+                logger.warning(f"[TankhahListView] خطای فرمت باقیمانده: {remaining_query}")
+                messages.error(self.request, _('باقیمانده باید عدد باشد.'))
+                filter_conditions &= Q(id__in=[])
+            logger.info(f"[TankhahListView] فیلتر باقیمانده '{remaining_query}', تعداد: {queryset.filter(filter_conditions).count()}")
+
+        # فیلتر مرحله
+        if stage:
+            try:
+                filter_conditions &= Q(current_stage__order=int(stage))
+            except ValueError:
+                logger.warning(f"[TankhahListView] خطای فرمت مرحله: {stage}")
+                messages.error(self.request, _('مرحله باید عدد باشد.'))
+            logger.info(f"[TankhahListView] فیلتر مرحله {stage}, تعداد: {queryset.filter(filter_conditions).count()}")
+
+        # اعمال فیلترها
+        if filter_conditions:
+            queryset = queryset.filter(filter_conditions)
+            if not queryset.exists():
+                messages.info(self.request, _('هیچ تنخواهی یافت نشد.'))
+                logger.info("[TankhahListView] هیچ تنخواهی با شرایط فیلتر یافت نشد")
+
+        # بهینه‌سازی کوئری برای MySQL
+        final_queryset = queryset.select_related(
+            'project', 'subproject', 'organization', 'current_stage', 'budget_allocation'
+        ).prefetch_related(
+            Prefetch('factors', queryset=Factor.objects.filter(status__in=['APPROVED', 'PAID']))
+        ).order_by('organization__name', 'project__name', '-date')
+
+        logger.info(f"[TankhahListView] تعداد تنخواه‌های نهایی: {final_queryset.count()}")
+        return final_queryset
+
+    def get_context_data(self, **kwargs):
+        """ایجاد کنتکست با گروه‌بندی تنخواه‌ها بر اساس شعبه و پروژه."""
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        logger.info(f"[TankhahListView] ایجاد کنتکست برای کاربر: {user}")
+
+        # سازمان‌های کاربر
+        user_orgs = [
+            up.post.organization
+            for up in user.userpost_set.filter(is_active=True, end_date__isnull=True)
+        ] if user.userpost_set.exists() else []
+        is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
+
+        # اطلاعات پایه کنتکست
+        context['is_hq_user'] = is_hq_user
+        context['user_orgs'] = user_orgs
+        context['query'] = self.request.GET.get('q', '')
+        context['date_query'] = self.request.GET.get('date', '')
+        context['amount_query'] = self.request.GET.get('amount', '')
+        context['remaining_query'] = self.request.GET.get('remaining', '')
+        context['stage'] = self.request.GET.get('stage', '')
+        context['show_archived'] = self.request.GET.get('show_archived', 'false') == 'true'
+        context['org_display_name'] = (
+            _('دفتر مرکزی') if is_hq_user else (user_orgs[0].name if user_orgs else _('بدون سازمان'))
+        )
+        # context['stages'] = WorkflowStage.objects.filter(workflow__name='tankhah').order_by('order')
+
+        # گروه‌بندی تنخواه‌ها
+        tankhah_list = context[self.context_object_name]
+        grouped_by_org = {}
+
+        # کش بودجه شعبه‌ها
+        org_budget_cache = {}
+        org_ids = (
+            [org.id for org in user_orgs] or
+            list(set(tankhah.organization_id for tankhah in tankhah_list if tankhah.organization_id))
+        )
+
+        # استخراج دوره‌های بودجه به‌صورت جداگانه برای جلوگیری از زیرکوئری
+        budget_periods = list(
+            set(tankhah.budget_allocation.budget_period_id
+                for tankhah in tankhah_list
+                if tankhah.budget_allocation and tankhah.budget_allocation.budget_period_id)
+        )
+
+        for org_id in org_ids:
+            if org_id:
+                org_budget_cache[org_id] = (
+                    BudgetAllocation.objects.filter(
+                        organization_id=org_id,
+                        budget_period_id__in=budget_periods
+                    ).aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+                )
+
+        # گروه‌بندی بر اساس شعبه و پروژه
+        for tankhah in tankhah_list:
+            try:
+                org = tankhah.organization
+                org_key = org.name if org else _('بدون شعبه')
+                project_key = tankhah.project.name if tankhah.project else _('بدون پروژه')
+
+                # مقداردهی اولیه شعبه
+                if org_key not in grouped_by_org:
+                    grouped_by_org[org_key] = {
+                        'organization': org,
+                        'projects': {},
+                        'total_amount': Decimal('0'),
+                        'total_remaining': Decimal('0')
+                    }
+
+                # مقداردهی اولیه پروژه
+                if project_key not in grouped_by_org[org_key]['projects']:
+                    grouped_by_org[org_key]['projects'][project_key] = {
+                        'project': tankhah.project,
+                        'tankhahs': [],
+                        'total_amount': Decimal('0'),
+                        'total_remaining': Decimal('0')
+                    }
+
+                # افزودن تنخواه و محاسبات
+                tankhah_amount = tankhah.amount or Decimal('0')
+                tankhah_remaining = tankhah.get_remaining_budget() or Decimal('0')
+                grouped_by_org[org_key]['projects'][project_key]['tankhahs'].append(tankhah)
+                grouped_by_org[org_key]['projects'][project_key]['total_amount'] += tankhah_amount
+                grouped_by_org[org_key]['projects'][project_key]['total_remaining'] += tankhah_remaining
+                grouped_by_org[org_key]['total_amount'] += tankhah_amount
+                grouped_by_org[org_key]['total_remaining'] += tankhah_remaining
+
+                # محاسبات بودجه پروژه
+                project = tankhah.project
+                if project:
+                    tankhah.project_total_budget = get_project_total_budget(project) or Decimal('0')
+                    tankhah.project_remaining_budget = get_project_remaining_budget(project) or Decimal('0')
+                    tankhah.project_allocated_budget = tankhah.project_total_budget
+                    tankhah.project_consumed_percentage = (
+                        round(
+                            (tankhah.project_total_budget - tankhah.project_remaining_budget) /
+                            tankhah.project_total_budget * 100
+                        ) if tankhah.project_total_budget > 0 else 0
+                    )
+                else:
+                    tankhah.project_total_budget = Decimal('0')
+                    tankhah.project_remaining_budget = Decimal('0')
+                    tankhah.project_allocated_budget = Decimal('0')
+                    tankhah.project_consumed_percentage = 0
+
+                # بودجه شعبه و تراکنش‌ها
+                tankhah.branch_total_budget = org_budget_cache.get(
+                    tankhah.organization_id if org else None, Decimal('0')
+                )
+                tankhah.tankhah_used_budget = (
+                    BudgetTransaction.objects.filter(
+                        allocation=tankhah.budget_allocation,
+                        transaction_type='CONSUMPTION',
+                        related_tankhah=tankhah
+                    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+                ) if tankhah.budget_allocation else Decimal('0')
+                tankhah.factor_used_budget = (
+                    tankhah.factors.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+                )
+
+            except Exception as e:
+                logger.error(f"[TankhahListView] خطا در محاسبه بودجه تنخواه {tankhah.number}: {str(e)}")
+                tankhah.project_total_budget = Decimal('0')
+                tankhah.project_remaining_budget = Decimal('0')
+                tankhah.project_allocated_budget = Decimal('0')
+                tankhah.project_consumed_percentage = 0
+                tankhah.branch_total_budget = Decimal('0')
+                tankhah.tankhah_used_budget = Decimal('0')
+                tankhah.factor_used_budget = Decimal('0')
+
+        context['grouped_by_org'] = grouped_by_org
+        context['errors'] = []
+        logger.info(f"[TankhahListView] تعداد شعبه‌ها: {len(grouped_by_org)}")
         return context
 
 class TankhahDetailView(PermissionBaseView, DetailView):

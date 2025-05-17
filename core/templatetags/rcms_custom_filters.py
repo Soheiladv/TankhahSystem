@@ -30,6 +30,10 @@ def absolute(value):
         return value
 
 
+@register.filter
+def lookup(dictionary, key):
+    return dictionary.get(key)
+
 #
 # @register.filter
 # def get_current_tenant(unit):
@@ -37,11 +41,6 @@ def absolute(value):
 #     if tenant_history and tenant_history.tenant:
 #         return tenant_history.tenant
 #     return '---'
-
-
-from django import template
-
-register = template.Library()
 
 
 @register.filter

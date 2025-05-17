@@ -21,20 +21,24 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class FactorItemApprovalForm(forms.Form):
-    item_id = forms.IntegerField(widget=forms.HiddenInput)
-    action = forms.ChoiceField(
+class FactorItemApprovalForm(forms.ModelForm):
+    class Meta:
+        model = FactorItem
+        fields = ['status', 'description']
+
+    status = forms.ChoiceField(
         choices=[
-            ('PENDING', _('در انتظار')),
-            ('APPROVE', _('تأیید')),
-            ('REJECT', _('رد')),
+            ('PENDING', _('در حال بررسی')),
+            ('APPROVED', _('تأیید شده')),
+            ('REJECTED', _('رد شده')),
         ],
         widget=forms.Select(attrs={'class': 'form-control form-select', 'style': 'max-width: 200px;'}),
         label=_("اقدام"),
         required=False,
         initial='PENDING'
     )
-    comment = forms.CharField(
+
+    description = forms.CharField(
         widget=forms.Textarea(attrs={
             'class': 'form-control',
             'rows': 2,
@@ -44,6 +48,20 @@ class FactorItemApprovalForm(forms.Form):
         required=False,
         label=_("توضیحات")
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.status:
+            self.fields['status'].initial = self.instance.status
+
+    def clean(self):
+        cleaned_data = super().clean()
+        status = cleaned_data.get('status')
+        if status and status != 'NONE':
+            cleaned_data['status'] = status
+        return cleaned_data
+
+
 
 class FactorApprovalForm(forms.ModelForm):
     comment = forms.CharField(
