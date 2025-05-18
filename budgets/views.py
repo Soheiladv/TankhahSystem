@@ -70,6 +70,8 @@ class OrganizationBudgetAllocationListView(PermissionBaseView, ListView):
 def get_budget_info(request):
     project_id = request.GET.get('project_id')
     subproject_id = request.GET.get('subproject_id')
+    response_data = {}
+
     if not project_id:
         logger.warning('project_id دریافت نشد')
         return JsonResponse({'total_budget': 0, 'remaining_budget': 0}, status=400)
@@ -79,9 +81,11 @@ def get_budget_info(request):
         project = Project.objects.get(id=project_id)
         from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, get_subproject_total_budget, get_subproject_remaining_budget
         data = {
-            'total_budget': float(get_project_total_budget(project)),
-            'remaining_budget': float(get_project_remaining_budget(project))
+            'total_budget': float(get_project_total_budget(project, force_refresh=True)),
+            'remaining_budget': float(get_project_remaining_budget(project, force_refresh=True))
         }
+        logger.debug(f"Budget info for project {project_id}: {response_data}")
+
         if subproject_id:
             subproject_id = int(subproject_id)
             subproject = SubProject.objects.get(id=subproject_id)

@@ -20,6 +20,7 @@ from .BudgetReturn.view_BudgetReturn import BudgetReturnView
 from .BudgetReturn.views_BudgetTransferView import BudgetTransferView
 from .BudgetTransaction.view_budgetTransaction import BudgetTransactionListView_2D, BudgetTransactionDetailView, \
     BudgetTransactionListView
+from .PaymentOrder import PaymentOrderSignView
 from .ProjectBudgetAllocation.view_Update_Project_Budget_Allocation import Project__Budget__Allocation__Edit__View
 # from .BudgetAllocation.views_BudgetAllocation import BudgetAllocationCreateView
 from .ProjectBudgetAllocation.views_ProjectBudgetAllocation import ProjectBudgetAllocationListView, \
@@ -75,6 +76,10 @@ urlpatterns = [
     path('paymentorder/add/',PaymentOrderCreateView.as_view(), name='paymentorder_add'),
     path('paymentorder/<int:pk>/edit/',PaymentOrderUpdateView.as_view(), name='paymentorder_edit'),
     path('paymentorder/<int:pk>/delete/',PaymentOrderDeleteView.as_view(), name='paymentorder_delete'),
+
+    path('payment-order/<int:pk>/sign/', PaymentOrderSignView.as_view(), name='payment_order_sign'),
+
+
     # Payee
     path('payee/',PayeeListView.as_view(), name='payee_list'),
     path('payee/add/',PayeeCreateView.as_view(), name='payee_add'),

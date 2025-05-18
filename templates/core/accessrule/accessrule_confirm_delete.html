@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4 text-right">{% trans "حذف قانون دسترسی" %}</h1>
+    <div class="card shadow-sm">
+        <div class="card-header bg-danger text-white text-right">
+            {% trans "تأیید حذف" %}
+        </div>
+        <div class="card-body">
+            <p class="text-right">
+                {% trans "آیا مطمئن هستید که می‌خواهید قانون دسترسی برای" %} <strong>{{ object.organization }}</strong> {% trans "را حذف کنید؟" %}
+            </p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="text-right">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> {% trans "حذف" %}
+                    </button>
+                    <a href="{% url 'accessrule_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right"></i> {% trans "لغو" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

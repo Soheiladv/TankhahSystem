@@ -33,6 +33,16 @@ class FactorItemApproveView(PermissionBaseView, DetailView):
     check_organization = True
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
 
+    def _get_organization_from_object(self, obj):
+        """استخراج سازمان برای Factor"""
+        try:
+            if isinstance(obj, Factor):
+                return obj.tankhah.organization
+            return super()._get_organization_from_object(obj)
+        except AttributeError as e:
+            logger.error(f"خطا در استخراج سازمان از شیء {obj}: {str(e)}")
+            return None
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         factor = self.object
@@ -63,9 +73,7 @@ class FactorItemApproveView(PermissionBaseView, DetailView):
 
         context['form_log_pairs'] = form_log_pairs
         context['formset'] = formset
-        context['approval_logs'] = ApprovalLog.objects.filter(tankhah=tankhah).select_related('user', 'post', 'stage',
-                                                                                              'factor_item').order_by(
-            '-timestamp')
+        context['approval_logs'] = ApprovalLog.objects.filter(tankhah=tankhah).select_related('user', 'post', 'stage','factor_item').order_by('-timestamp')
         context['title'] = _('تأیید ردیف‌های فاکتور') + f" - {factor.number}"
         context['tankhah'] = tankhah
         context['can_edit'] = can_edit_approval(user, tankhah, tankhah.current_stage)

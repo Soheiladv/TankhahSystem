@@ -1,7 +1,9 @@
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Sum
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from budgets.models import BudgetAllocation, BudgetTransaction, ProjectBudgetAllocation
+from budgets.models import BudgetAllocation, BudgetTransaction, ProjectBudgetAllocation, PaymentOrder
+from core.models import Post
 from tankhah.models import Tankhah, Factor
 from decimal import Decimal
 from django.core.cache import cache
@@ -146,3 +148,71 @@ def update_allocation_lock_on_transaction(sender, instance, **kwargs):
     except Exception as e:
         logger.error(f"Error updating lock status for BudgetAllocation {instance.allocation.pk}: {str(e)}")
         # لاگ خطا
+
+#==
+"""وقتی یک ApprovalLog برای فاکتور یا تنخواه ثبت می‌شه و مرحله به یکی با triggers_payment_order=True می‌رسه، یک PaymentOrder ایجاد می‌شه:"""
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from tankhah.models import ApprovalLog,  Factor
+from decimal import Decimal
+
+@receiver(post_save, sender=ApprovalLog)
+def create_payment_order_on_approval(sender, instance, created, **kwargs):
+    """
+        این سیگنال فقط وقتی ApprovalLog با action='APPROVE' برای فاکتور ثبت می‌شه و فاکتور به وضعیت APPROVED رسیده، اجرا می‌شه.
+        مبلغ از آیتم‌های تأییدشده فاکتور محاسبه می‌شه.
+        payee باید مشخص بشه (مثلاً از اطلاعات فاکتور یا دستی توسط کاربر).
+        می‌تونید min_signatures رو از تنظیمات سیستم یا سازمان بگیرید.
+    """
+    if created and instance.action == 'APPROVE':
+        stage = instance.stage
+        if stage.triggers_payment_order:
+            content_type = instance.content_type
+            if content_type.model == 'factor':
+                factor = Factor.objects.get(id=instance.object_id)
+                tankhah = factor.tankhah
+                # بررسی اینکه فاکتور کاملاً تأیید شده
+                if factor.status == 'APPROVED':
+                    # محاسبه مبلغ از فاکتور
+                    amount = sum(item.amount for item in factor.items.filter(status='APPROVE'))
+                    # پیدا کردن پست ایجادکننده
+                    user_post = instance.user.userpost_set.filter(is_active=True, end_date__isnull=True).first()
+                    if user_post:
+                        # ایجاد PaymentOrder
+                        payment_order = PaymentOrder.objects.create(
+                            tankhah=tankhah,
+                            amount=amount,
+                            payee=None,  # باید مشخص بشه، مثلاً از فاکتور
+                            description=f"دستور پرداخت برای فاکتور {factor.id}",
+                            created_by=instance.user,
+                            created_by_post=user_post.post,
+                            status='DRAFT',
+                            min_signatures=1  # می‌تونه از تنظیمات گرفته بشه
+                        )
+                        payment_order.related_factors.add(factor)
+
+"""تعریف PostAction برای امضای دستور پرداخت
+برای اینکه پست‌های خاصی بتونن دستور پرداخت رو امضا کنن، باید PostAction رو برای موجودیت paymentorder تعریف کنیم:"""
+@receiver(post_save, sender=Post)
+def create_post_actions_for_payment_order(sender, instance, created, **kwargs):
+    """فقط پست‌هایی که is_payment_order_signer=True دارن، می‌تونن دستور پرداخت رو امضا کنن.
+        این برای مراحل با triggers_payment_order=True اعمال می‌شه."""
+    if created and instance.is_payment_order_signer:
+        from core.models import PostAction,WorkflowStage
+        stages = WorkflowStage.objects.filter(is_active=True, triggers_payment_order=True)
+        content_type = ContentType.objects.get_for_model(PaymentOrder)
+        for stage in stages:
+            PostAction.objects.get_or_create(
+                post=instance,
+                stage=stage,
+                action_type='APPROVE',  # برای امضا
+                entity_type=content_type.model.upper(),
+                is_active=True
+            )
+            PostAction.objects.get_or_create(
+                post=instance,
+                stage=stage,
+                action_type='REJECT',
+                entity_type=content_type.model.upper(),
+                is_active=True
+            )

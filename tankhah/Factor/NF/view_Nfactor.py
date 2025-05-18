@@ -49,7 +49,6 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
     template_name = 'tankhah/Factors/NF/new_factor_form.html'  # Your template path
     success_url = reverse_lazy('factor_list') # Use your URL namespace and name
     context_object_name = 'factor'
-
     permission_codenames = ['tankhah.factor_add'] # Use your actual permission codename
     permission_denied_message = _('متاسفانه دسترسی لازم برای افزودن فاکتور را ندارید.')
     check_organization = True # Assuming your PermissionBaseView uses this

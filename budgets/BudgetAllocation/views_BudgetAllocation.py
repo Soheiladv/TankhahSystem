@@ -38,7 +38,7 @@ def get_projects_by_organization(request):
     return JsonResponse({'projects': []})
  # ---------------------------------
 # --- BudgetAllocation CRUD ---
-class BudgetAllocationCreateView(PermissionBaseView, CreateView):
+class old__BudgetAllocationCreateView(PermissionBaseView, CreateView):
     model = BudgetAllocation
     form_class = BudgetAllocationForm
     template_name = 'budgets/budget/budgetallocation_form.html'
@@ -224,7 +224,6 @@ class BudgetAllocationUpdateView(PermissionBaseView, UpdateView):
             )
         messages.success(self.request, f'تخصیص بودجه به {form.instance.organization.name} با موفقیت به‌روزرسانی شد.')
         return response
-
 class BudgetAllocationListView(PermissionBaseView, ListView):
     model = BudgetAllocation
     template_name = 'budgets/budget/budgetallocation_list.html'
@@ -419,7 +418,6 @@ class BudgetAllocationListView(PermissionBaseView, ListView):
 
         logger.debug(f"BudgetAllocationListView context: {context}")
         return context
-
 class BudgetAllocationDetailView(PermissionBaseView, DetailView):
     model = BudgetAllocation
     template_name = 'budgets/budget/budgetallocation_detail.html'
@@ -443,3 +441,263 @@ class BudgetAllocationDeleteView(PermissionBaseView, DeleteView):
         messages.success(request, f'تخصیص بودجه به {allocation.organization.name} با موفقیت حذف شد.')
         from django.shortcuts import redirect
         return redirect(self.success_url)
+
+class old__BudgetAllocationCreateView(PermissionBaseView, CreateView):
+    model = BudgetAllocation
+    form_class = BudgetAllocationForm
+    template_name = 'budgets/budget/budgetallocation_form.html'
+    success_url = reverse_lazy('budgetallocation_list')
+    permission_required = 'budgets.add_budgetallocation'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        budget_period_id = self.request.GET.get('budget_period')
+        if budget_period_id:
+            try:
+                budget_period = BudgetPeriod.objects.get(pk=budget_period_id)
+                initial['budget_period'] = budget_period
+                initial['allocation_date'] = timezone.now().date()
+                initial['is_active'] = True
+                initial['is_stopped'] = False
+                logger.info(f"Set initial budget_period: ID={budget_period.id}, name={budget_period.name}")
+            except BudgetPeriod.DoesNotExist:
+                logger.error(f"BudgetPeriod with ID={budget_period_id} not found")
+        return initial
+
+    def _get_budget_period(self):
+        budget_period_id = self.request.GET.get('budget_period') or self.request.POST.get('budget_period')
+        logger.debug(f"Getting budget_period with ID: {budget_period_id}")
+        if not budget_period_id:
+            logger.warning("No budget_period_id provided")
+            return None
+        try:
+            budget_period = BudgetPeriod.objects.get(id=budget_period_id, is_active=True)
+            logger.info(f"Retrieved budget_period: ID={budget_period.id}, name={budget_period.name}")
+            return budget_period
+        except (BudgetPeriod.DoesNotExist, ValueError) as e:
+            logger.warning(f"Invalid budget_period_id: {budget_period_id}, error: {str(e)}")
+            return None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        budget_period = self._get_budget_period()
+
+        context['title'] = _('ایجاد تخصیص بودجه جدید')
+
+        # سازمان‌های مجاز
+        allowed_org_types = OrganizationType.objects.filter(is_budget_allocatable=True).values_list('id', flat=True)
+        context['organizations'] = Organization.objects.filter(
+            org_type__in=allowed_org_types, is_active=True
+        ).select_related('org_type')
+
+        if budget_period:
+            context['budget_period'] = budget_period
+            # حذف فیلتر budget_period و is_active برای budget_items
+            # نمایش تمام ردیف‌های بودجه یا محدود به سازمان‌های مجاز
+            context['budget_items'] = BudgetItem.objects.filter(
+                organization__org_type__in=allowed_org_types
+            ).select_related('organization')
+            # بودجه کل از BudgetPeriod
+            context['total_amount'] = budget_period.total_amount or Decimal('0')
+            # باقی‌مانده دوره
+            context['remaining_amount'] = budget_period.get_remaining_amount() or Decimal('0')
+            context['remaining_percent'] = (
+                (context['remaining_amount'] / context['total_amount'] * 100)
+                if context['total_amount'] else 0
+            )
+            context['locked_percentage'] = budget_period.locked_percentage or 0
+            context['warning_threshold'] = budget_period.warning_threshold or 10
+            logger.info(f"Budget period data: total={context['total_amount']}, remaining={context['remaining_amount']}")
+        else:
+            context['budget_period'] = None
+            # در صورت عدم وجود budget_period، همچنان ردیف‌های بودجه مرتبط با سازمان‌های مجاز نمایش داده شوند
+            context['budget_items'] = BudgetItem.objects.filter(
+                organization__org_type__in=allowed_org_types
+            ).select_related('organization')
+            context['total_amount'] = Decimal('0')
+            context['remaining_amount'] = Decimal('0')
+            context['remaining_percent'] = 0
+            context['locked_percentage'] = 0
+            context['warning_threshold'] = 10
+            messages.warning(self.request, _('دوره بودجه انتخاب‌شده نامعتبر است.'))
+
+        context['projects'] = Project.objects.filter(is_active=True).select_related('category')
+        logger.debug(f"Loaded {context['projects'].count()} projects")
+
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        budget_period = self._get_budget_period()
+        if not budget_period:
+            logger.warning("No valid budget period for form")
+            messages.warning(self.request, _("دوره بودجه معتبر انتخاب نشده است."))
+            kwargs['budget_period'] = None
+        else:
+            kwargs['budget_period'] = budget_period
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def dispatch(self, request, *args, **kwargs):
+        logger.info(f"Starting dispatch in BudgetAllocationCreateView for user: {request.user.username}")
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        logger.info(f"Form valid for BudgetAllocation, saving...")
+        try:
+            budget_period = form.cleaned_data['budget_period']
+            is_locked, lock_message = budget_period.is_period_locked
+            if is_locked:
+                messages.error(self.request, lock_message)
+                return self.form_invalid(form)
+
+            with transaction.atomic():
+                # اعتبارسنجی اضافی: بررسی سازگاری budget_item با organization
+                # budget_item = form.cleaned_data['budget_item']
+                # organization = form.cleaned_data['organization']
+                # if budget_item.organization != organization:
+                #     form.add_error('budget_item', _("ردیف بودجه باید متعلق به سازمان انتخاب‌شده باشد."))
+                #     return self.form_invalid(form)
+
+                response = super().form_valid(form)
+                logger.info(f"BudgetAllocation created with ID: {self.object.pk}")
+                messages.success(self.request, _('تخصیص بودجه با موفقیت ثبت شد.'))
+                return response
+        except ValidationError as e:
+            logger.error(f"Validation error saving budget allocation: {str(e)}")
+            form.add_error(None, str(e))
+            return self.form_invalid(form)
+        except Exception as e:
+            logger.error(f"Unexpected error saving budget allocation: {str(e)}", exc_info=True)
+            form.add_error(None, _('خطایی در ثبت تخصیص بودجه رخ داد: ') + str(e))
+            return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        logger.error(f"Form invalid: errors={form.errors.as_json()}")
+        messages.error(self.request, _('لطفاً خطاهای فرم را بررسی کنید.'))
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+class BudgetAllocationCreateView(PermissionBaseView, CreateView):
+    model = BudgetAllocation
+    form_class = BudgetAllocationForm
+    template_name = 'budgets/budget/budgetallocation_form.html'
+    success_url = reverse_lazy('budgetallocation_list')
+    permission_required = 'budgets.add_budgetallocation'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        budget_period_id = self.request.GET.get('budget_period')
+        if budget_period_id:
+            try:
+                budget_period = BudgetPeriod.objects.get(pk=budget_period_id)
+                initial['budget_period'] = budget_period
+                initial['allocation_date'] = timezone.now().date()
+                initial['is_active'] = True
+                initial['is_stopped'] = False
+                logger.info(f"Set initial budget_period: ID={budget_period.id}, name={budget_period.name}")
+            except BudgetPeriod.DoesNotExist:
+                logger.error(f"BudgetPeriod with ID={budget_period_id} not found")
+        return initial
+
+    def _get_budget_period(self):
+        budget_period_id = self.request.GET.get('budget_period') or self.request.POST.get('budget_period')
+        logger.debug(f"Getting budget_period with ID: {budget_period_id}")
+        if not budget_period_id:
+            logger.warning("No budget_period_id provided")
+            return None
+        try:
+            budget_period = BudgetPeriod.objects.get(id=budget_period_id, is_active =True)
+            logger.info(f"Retrieved budget_period: ID={budget_period.id}, name={budget_period.name}")
+            return budget_period
+        except (BudgetPeriod.DoesNotExist, ValueError) as e:
+            logger.warning(f"Invalid budget_period_id: {budget_period_id}, error: {str(e)}")
+            return None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        budget_period = self._get_budget_period()
+
+        context['title'] = _('ایجاد تخصیص بودجه جدید')
+
+        allowed_org_types = OrganizationType.objects.filter(is_budget_allocatable=True).values_list('id', flat=True)
+        context['organizations'] = Organization.objects.filter(
+            org_type__in=allowed_org_types, is_active=True
+        ).select_related('org_type')
+
+        if budget_period:
+            context['budget_period'] = budget_period
+            context['budget_items'] = BudgetItem.objects.filter(
+                organization__org_type__in=allowed_org_types, is_active=True
+            ).select_related('organization')
+            context['total_amount'] = budget_period.total_amount or Decimal('0')
+            context['remaining_amount'] = budget_period.get_remaining_amount() or Decimal('0')
+            context['remaining_percent'] = (
+                (context['remaining_amount'] / context['total_amount'] * 100)
+                if context['total_amount'] else 0
+            )
+            context['locked_percentage'] = budget_period.locked_percentage or 0
+            context['warning_threshold'] = budget_period.warning_threshold or 10
+            logger.info(f"Budget period data: total={context['total_amount']}, remaining={context['remaining_amount']}")
+        else:
+            context['budget_period'] = None
+            context['budget_items'] = BudgetItem.objects.filter(
+                organization__org_type__in=allowed_org_types, is_active=True
+            ).select_related('organization')
+            context['total_amount'] = Decimal('0')
+            context['remaining_amount'] = Decimal('0')
+            context['remaining_percent'] = 0
+            context['locked_percentage'] = 0
+            context['warning_threshold'] = 10
+            messages.warning(self.request, _('دوره بودجه انتخاب‌شده نامعتبر است.'))
+
+        context['projects'] = Project.objects.filter(is_active=True).select_related('category')
+        logger.debug(f"Loaded {context['projects'].count()} projects")
+
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        budget_period = self._get_budget_period()
+        if not budget_period:
+            logger.warning("No valid budget period for form")
+            messages.warning(self.request, _("دوره بودجه معتبر انتخاب نشده است."))
+            kwargs['budget_period'] = None
+        else:
+            kwargs['budget_period'] = budget_period
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def dispatch(self, request, *args, **kwargs):
+        logger.info(f"Starting dispatch in BudgetAllocationCreateView for user: {request.user.username}")
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        logger.info(f"Form valid for BudgetAllocation, saving...")
+        try:
+            budget_period = form.cleaned_data['budget_period']
+            is_locked, lock_message = budget_period.is_period_locked
+            if is_locked:
+                messages.error(self.request, lock_message)
+                return self.form_invalid(form)
+
+            with transaction.atomic():
+                response = super().form_valid(form)
+                logger.info(f"BudgetAllocation created with ID: {self.object.pk}")
+                messages.success(self.request, _('تخصیص بودجه با موفقیت ثبت شد.'))
+                return response
+        except ValidationError as e:
+            logger.error(f"Validation error saving budget allocation: {str(e)}")
+            form.add_error(None, str(e))
+            return self.form_invalid(form)
+        except Exception as e:
+            logger.error(f"Unexpected error saving budget allocation: {str(e)}", exc_info=True)
+            form.add_error(None, _('خطایی در ثبت تخصیص بودجه رخ داد: ') + str(e))
+            return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        logger.error(f"Form invalid: errors={form.errors.as_json()}")
+        messages.error(self.request, _('لطفاً خطاهای فرم را بررسی کنید.'))
+        return self.render_to_response(self.get_context_data(form=form))

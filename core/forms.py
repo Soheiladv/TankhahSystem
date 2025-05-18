@@ -5,7 +5,8 @@ from Tanbakhsystem.utils import convert_jalali_to_gregorian, convert_gregorian_t
 from Tanbakhsystem.widgets import NumberToWordsWidget
 from accounts.models import TimeLockModel
 from budgets.models import BudgetAllocation, ProjectBudgetAllocation
-from core.models import Project, Organization, UserPost, Post, PostHistory, WorkflowStage, SubProject, OrganizationType
+from core.models import Project, Organization, UserPost, Post, PostHistory, WorkflowStage, SubProject, OrganizationType, \
+    SystemSettings
 from django import forms
 from .models import Project, Organization
 from django.utils.translation import gettext_lazy as _
@@ -21,6 +22,13 @@ import jdatetime
 import re
 import logging
 logger = logging.getLogger(__name__)
+
+from django import forms
+
+class SystemSettingsForm(forms.ModelForm):
+    class Meta:
+        model = SystemSettings
+        fields = '__all__'
 
 class TimeLockModelForm(forms.ModelForm):
     class Meta:
@@ -641,7 +649,7 @@ class SubProjectForm(forms.ModelForm):
 class OrganizationForm(forms.ModelForm):
     class Meta:
         model = Organization
-        fields = ['code', 'name', 'org_type', 'description', 'parent_organization','is_core']
+        fields = ['code', 'name', 'org_type', 'description', 'parent_organization','is_core','is_holding' ,'is_independent']
         # budget = forms.DecimalField(
         #     widget=NumberToWordsWidget(attrs={'placeholder': '  ارقام بودجه سالانه را وارد کنید'}),
         #     label='بودجه سالانه'
@@ -652,6 +660,8 @@ class OrganizationForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'org_type': forms.Select(attrs={'class': 'form-control'}),
             'is_core': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_holding': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_independent': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             # 'budget': forms.Select(attrs={'class': 'form-control'}),
             'parent_organization': forms.Select(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
@@ -661,7 +671,8 @@ class OrganizationForm(forms.ModelForm):
             'name': _('نام سازمان'),
             'org_type': _('نوع سازمان'),
             'is_core': _('شعبه اصلی سازمان(دفتر مرکزی)'),
-            # 'budget': _('بودجه سالانه'),
+            'is_independent': _('مستقل کار میکند؟'),
+            'is_holding': _(' هلدینگ است ؟'),
             'parent_organization': _('نوع سازمان'),
             'description': _('توضیحات'),
         }

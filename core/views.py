@@ -377,7 +377,8 @@ class OrganizationListView(PermissionBaseView, ListView):
     context_object_name = 'organizations'
     paginate_by = 10
     permission_codenames = ['core.Organization_view']
-    check_organization = True
+    # check_organization = True
+    check_organization = False  # هلدینگ به همه دسترسی داره
     extra_context = {'title': _('لیست سازمان‌ها')}
 
     def get_queryset(self):

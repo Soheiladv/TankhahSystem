@@ -13,6 +13,8 @@ from budgets.models import BudgetItem, BudgetPeriod
 from django.contrib.auth.mixins import PermissionRequiredMixin
 import logging
 
+from core.PermissionBase import PermissionBaseView
+
 logger = logging.getLogger(__name__)
 
 class BudgetItemListView(PermissionRequiredMixin, ListView):
@@ -40,7 +42,118 @@ class BudgetItemListView(PermissionRequiredMixin, ListView):
         context['query'] = self.request.GET.get('q', '')
         return context
 
-class BudgetItemCreateView(PermissionRequiredMixin, SuccessMessageMixin, CreateView):
+class BudgetItemCreateView(PermissionBaseView, CreateView):
+    model = BudgetItem
+    form_class = BudgetItemForm
+    template_name = 'budgets/budgetitem/budgetitem_form.html'
+    success_url = reverse_lazy('budgetitem_list')
+    success_message = _('ردیف بودجه با موفقیت ایجاد شد.')
+    permission_required = 'budgets.add_budgetitem'
+
+    def get_form_kwargs(self):
+        """افزودن کاربر به kwargs فرم برای محدود کردن انتخاب‌ها"""
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        """تقویت context با عناصر UI پیشرفته"""
+        context = super().get_context_data(**kwargs)
+
+        # عنوان صفحه
+        context['title'] = _('ایجاد ردیف بودجه جدید')
+        context['page_title'] = _('مدیریت ردیف‌های بودجه')
+        context['page_subtitle'] = _('ایجاد ردیف بودجه جدید')
+
+        # اطلاعات راهنما
+        context['help_texts'] = {
+            'budget_period': _('دوره بودجه مربوطه را انتخاب نمایید'),
+            'organization': _('سازمان/شعبه مرتبط با این ردیف بودجه'),
+            'code': _('کد منحصر به فرد برای ردیف بودجه'),
+        }
+
+        # دکمه‌های اکشن
+        context['action_buttons'] = [
+            {
+                'text': _('بازگشت به لیست'),
+                'url': reverse_lazy('budgetitem_list'),
+                'icon': 'fa fa-arrow-right',
+                'class': 'btn btn-light-danger',
+            },
+            {
+                'text': _('ذخیره و ادامه'),
+                'type': 'submit',
+                'name': 'save_and_continue',
+                'icon': 'fa fa-save',
+                'class': 'btn btn-light-primary',
+            },
+            {
+                'text': _('ذخیره'),
+                'type': 'submit',
+                'icon': 'fa fa-check',
+                'class': 'btn btn-primary',
+            }
+        ]
+
+        # فعال کردن اجزای پیشرفته UI
+        context['use_card'] = True  # استفاده از کارت بوت استرپ
+        context['use_select2'] = True  # فعال کردن select2
+        context['use_jalali_datepicker'] = False  # غیرفعال کردن تاریخ‌شمار جلالی
+        context['use_form_validation'] = True  # فعال کردن اعتبارسنجی فرم
+
+        return context
+
+    def form_valid(self, form):
+        """پردازش پس از ثبت موفق فرم"""
+        response = super().form_valid(form)
+
+        # بررسی دکمه ذخیره و ادامه
+        if 'save_and_continue' in self.request.POST:
+            from django.urls import reverse
+            return redirect(reverse('budgetitem_create'))
+
+        return response
+
+    def form_invalid(self, form):
+        """پردازش خطاهای فرم با UI پیشرفته"""
+        logger.error(f"Form invalid: errors={form.errors.as_json()}")
+
+        # افزودن خطاهای فیلدها به context برای نمایش بهتر
+        context = self.get_context_data(form=form)
+        context['form_errors'] = [
+            {
+                'field': field,
+                'errors': errors,
+                'icon': 'fa fa-exclamation-triangle'
+            }
+            for field, errors in form.errors.items()
+        ]
+
+        return self.render_to_response(context)
+
+    def get_form(self, form_class=None):
+        """تنظیمات اضافی برای فرم"""
+        form = super().get_form(form_class)
+
+        # افزودن کلاس‌های بوت استرپ به فیلدها
+        for field_name, field in form.fields.items():
+            if 'class' not in field.widget.attrs:
+                field.widget.attrs['class'] = 'form-control'
+
+            if field.required:
+                field.widget.attrs['required'] = 'required'
+                field.widget.attrs['class'] += ' required-field'
+
+            # تنظیم placeholder برای فیلدهای متنی
+            from django import forms
+            if isinstance(field.widget, (forms.TextInput, forms.Textarea)):
+                if not field.widget.attrs.get('placeholder'):
+                    field.widget.attrs['placeholder'] = field.label
+
+        return form
+
+"""این ویو سازمان را اجبار کرده است"""
+class old_BudgetItemCreateView(PermissionRequiredMixin, SuccessMessageMixin, CreateView):
     model = BudgetItem
     form_class = BudgetItemForm
     template_name = 'budgets/budgetitem/budgetitem_form.html'
@@ -49,11 +162,11 @@ class BudgetItemCreateView(PermissionRequiredMixin, SuccessMessageMixin, CreateV
     permission_required = 'budgets.add_budgetitem'
 
     def get_context_data(self, **kwargs):
-        from core.models import Organization
+        # from core.models import Organization
         context = super().get_context_data(**kwargs)
         context['title'] = _('ایجاد ردیف بودجه جدید')
         context['budget_periods'] = BudgetPeriod.objects.filter(is_active=True).select_related('organization')
-        context['organizations'] = Organization.objects.filter(is_active=True).select_related('org_type')
+        # context['organizations'] = Organization.objects.filter(is_active=True).select_related('org_type')
         return context
 
 

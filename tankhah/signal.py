@@ -1,12 +1,13 @@
+import logging
 from decimal import Decimal
 
 from django.db.models import Sum
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-from tankhah.models import Tankhah, FactorItem, create_budget_transaction
-import logging
+from tankhah.models import Tankhah, FactorItem, create_budget_transaction, Factor, ApprovalLog
+
 logger = logging.getLogger(__name__)
 
 
@@ -60,3 +61,49 @@ def update_factor_and_tankhah(sender, instance, **kwargs):
     except Exception as e:
         logger.error(f"Error updating factor/tankhah for FactorItem (Signal Tankhah) {instance.pk}: {e}", exc_info=True)
 
+
+@receiver(post_save, sender=Factor)
+def log_factor_changes(sender, instance, created, **kwargs):
+    """عملکرد: این سیگنال پس از ذخیره یا ایجاد فاکتور (Factor) اجرا می‌شود. اگر فاکتور جدید باشد، ایجاد آن لاگ می‌شود. اگر فاکتور موجود ویرایش شود، تغییرات فیلدها در لاگ ثبت می‌شوند.
+    تأثیر: اگر در فرآیند ثبت تنخواه فاکتوری ایجاد یا ویرایش شود، این سیگنال آن را لاگ می‌کند. اما در TankhahCreateView هیچ اشاره‌ای به ایجاد یا ویرایش فاکتور نیست، بنابراین این سیگنال احتمالاً در مرحله ثبت اولیه تنخواه اجرا نمی‌شود.
+    """
+    user = getattr(instance, '_changed_by', None)  # کاربر تغییر دهنده
+    if created:
+        logger.info(f"فاکتور جدید ایجاد شد: {instance.number} توسط {user or 'ناشناس'}")
+    else:
+        changes = instance._meta.fields  # تغییرات را بررسی کنید
+        for field in changes:
+            field_name = field.name
+            old_value = getattr(instance, f'_old_{field_name}', None)
+            new_value = getattr(instance, field_name)
+            if old_value != new_value:
+                logger.info(
+                    f"تغییر در فاکتور {instance.number}: {field_name} از {old_value} به {new_value} توسط {user or 'ناشناس'}")
+
+
+@receiver(post_save, sender=ApprovalLog)
+def lock_factor_after_approval(sender, instance, **kwargs):
+    """
+    عملکرد: این سیگنال پس از ثبت یک ApprovalLog اجرا می‌شود. اگر اقدام (action) تأیید (APPROVE) باشد و فاکتور (factor) وجود داشته باشد، فاکتور قفل می‌شود (locked = True).
+    """
+    if instance.action == 'APPROVE' and instance.factor:
+        instance.factor.locked = True
+        instance.factor.save()
+
+
+@receiver(pre_save, sender=Tankhah)
+def log_tanbakh_changes(sender, instance, **kwargs):
+    """
+    عملکرد: این سیگنال قبل از ذخیره تنخواه اجرا می‌شود. اگر وضعیت (status) تنخواه تغییر کند (مثلاً از DRAFT به PAID)، یک رکورد در ApprovalLog ثبت می‌شود که تغییر وضعیت را با کاربر تغییردهنده و توضیحات ثبت می‌کند.
+    ارتباط با تنخواه: این سیگنال مستقیماً به تنخواه مربوط است و تغییرات وضعیت آن را رصد می‌کند.
+    تأثیر: در TankhahCreateView، تنخواه ابتدا با وضعیت PAID تنظیم می‌شود و سپس به DRAFT تغییر می‌کند. چون تنخواه جدید است (instance.pk وجود ندارد)، این سیگنال در مرحله ثبت اولیه اجرا نمی‌شود. اما اگر بعداً وضعیت تنخواه تغییر کند (مثلاً در جریان کاری تأیید به PAID برسد)، این سیگنال یک ApprovalLog ایجاد می‌کند.
+    """
+    if instance.pk:
+        old_instance = Tankhah.objects.get(pk=instance.pk)
+        if old_instance.status != instance.status:
+            ApprovalLog.objects.create(
+                tanbakh=instance,
+                action='STATUS_CHANGE',
+                user=instance._changed_by,
+                comment=f"تغییر وضعیت از {old_instance.status} به {instance.status}"
+            )

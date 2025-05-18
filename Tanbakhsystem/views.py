@@ -113,6 +113,9 @@ class DashboardView( PermissionBaseView , TemplateView):
                 {'name': _('فهرست اتصالات کاربر به پست'), 'url': 'userpost_list', 'permission': 'core.UserPost_view', 'icon': 'fas fa-users'},
                 {'name': _('ایجاد اتصال'), 'url': 'userpost_create', 'permission': 'core.UserPost_add', 'icon': 'fas fa-plus'},
             ],
+            'قوانین سیستم (رول های دسترسی ) ': [
+                {'name': _('قوانین سیستم (رول های دسترسی )'), 'url': 'accessrule_list',  'icon': 'fas fa-history'},#'permission': 'core.view_posthistory',
+             ],
             'تاریخچه پست‌ها': [
                 {'name': _('فهرست تاریخچه پست‌ها'), 'url': 'posthistory_list', 'permission': 'core.view_posthistory', 'icon': 'fas fa-history'},
                 # {'name': _('ثبت تاریخچه'), 'url': 'posthistory_create', 'permission': 'add_posthistory', 'icon': 'fas fa-plus'},

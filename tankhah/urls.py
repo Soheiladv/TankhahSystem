@@ -10,7 +10,7 @@ from tankhah.TankhahTrackingView import TankhahTrackingView
 #     NotificationDeleteView
 from tankhah.view_folder_tankhah.view_tankhah import (
     TankhahDetailView, TankhahCreateView, TankhahDeleteView,
-    TankhahListView, TankhahApproveView, TankhahUpdateView, TankhahRejectView
+    TankhahListView, TankhahApproveView, TankhahUpdateView, TankhahRejectView, get_projects
 )
 from tankhah.views import (
     ApprovalListView, ApprovalCreateView, ApprovalDetailView, ApprovalUpdateView, ApprovalDeleteView,
@@ -84,6 +84,13 @@ urlpatterns += [
     path('categories/<int:pk>/edit/', itemcategory_update, name='itemcategory_update'),
     path('categories/<int:pk>/delete/', itemcategory_delete, name='itemcategory_delete'),
 ] #categories
+
+urlpatterns += [
+    path('get_projects/', get_projects, name='get_projects'), #به‌روزرسانی پروژه‌ها بر اساس سازمان
+]
+
+
+
 
 # urlpatterns += [
 #     # لیست تمام اعلان‌ها

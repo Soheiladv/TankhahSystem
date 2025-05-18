@@ -710,9 +710,10 @@
                     {% for org_name, org_data in grouped_by_org.items %}
                         <div class="accordion-item fade-in">
                             <h2 class="accordion-header" id="orgHeading{{ forloop.counter }}">
+                                {% trans " مرکزهزینه  " %}<strong style="color: orangered">  {{ org_data.projects|length |to_persian_number}}   </strong>
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#orgCollapse{{ forloop.counter }}" aria-expanded="false" aria-controls="orgCollapse{{ forloop.counter }}">
                                     <i class="fas fa-building me-2"></i>
-                                    {{ org_name }} ({{ org_data.projects|length }} {% trans "پروژه" %})
+                                    {{ org_name  }}
                                     <span class="ms-3">
                                         - {% trans "مبلغ" %}: {{ org_data.total_amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
                                         - {% trans "باقیمانده" %}: {{ org_data.total_remaining|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
@@ -725,9 +726,10 @@
                                         {% for project_name, project_data in org_data.projects.items %}
                                             <div class="accordion-item">
                                                 <h3 class="accordion-header" id="projectHeading{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                                   <strong style="color: green"> {{ project_data.tankhahs|length |to_persian_number}} </strong>
                                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}" aria-expanded="false" aria-controls="projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
                                                         <i class="fas fa-project-diagram me-2"></i>
-                                                        {{ project_name }} ({{ project_data.tankhahs|length }} {% trans "تنخواه" %})
+                                                        {{ project_name }} {% trans "تنخواه" %}
                                                         <span class="ms-3">
                                                             - {% trans "مبلغ" %}: {{ project_data.total_amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
                                                             - {% trans "باقیمانده" %}: {{ project_data.total_remaining|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
@@ -739,6 +741,7 @@
                                                         <table class="table table-hover">
                                                             <thead>
                                                                 <tr>
+                                                                    <th>{% trans "ردیف" %}</th>
                                                                     <th>{% trans "شماره" %}</th>
                                                                     <th>{% trans "تاریخ" %}</th>
                                                                     <th>{% trans "مبلغ" %}</th>
@@ -750,6 +753,7 @@
                                                             <tbody>
                                                                 {% for tankhah in project_data.tankhahs %}
                                                                     <tr class="fade-in">
+                                                                        <td>{{ forloop.counter |to_persian_number }}</td>
                                                                         <td>{{ tankhah.number|to_persian_number }}</td>
                                                                         <td>{{ tankhah.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
                                                                         <td>{{ tankhah.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>

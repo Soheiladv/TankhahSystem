@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
-from core.models import Organization, OrganizationType, Project, Post, UserPost, PostHistory, WorkflowStage
+from core.models import Organization, OrganizationType, Project, Post, UserPost, PostHistory, WorkflowStage, \
+    SystemSettings,AccessRule
 
 
 # تابع کمکی برای کوتاه کردن متن
@@ -175,3 +176,12 @@ class WorkflowStageAdmin(BaseAdmin):
     def description_short(self, obj):
         return truncate_text(obj.description)
     description_short.short_description = _('توضیحات کوتاه')
+
+admin.site.register(SystemSettings)
+
+@admin.register(AccessRule)
+class AccessRuleAdmin(admin.ModelAdmin):
+    list_display = ('organization', 'branch', 'min_level', 'stage', 'action_type', 'entity_type', 'is_active')
+    list_filter = ('organization', 'branch', 'stage', 'action_type', 'entity_type')
+    search_fields = ('organization__name', 'stage__name')
+    autocomplete_fields = ['organization', 'stage']

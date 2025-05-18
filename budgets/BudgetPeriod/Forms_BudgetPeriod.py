@@ -5,7 +5,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from Tanbakhsystem.utils import format_jalali_date, parse_jalali_date
-from budgets.models import BudgetPeriod, SystemSettings
+from budgets.models import BudgetPeriod
 from core.templatetags.rcms_custom_filters import number_to_farsi_words
 
 logger = logging.getLogger(__name__)
@@ -82,6 +82,7 @@ class BudgetPeriodForm(forms.ModelForm):
         self.fields['organization'].queryset = Organization.objects.filter(is_core=True, is_active=True).select_related('org_type')
 
         # تنظیم مقادیر پیش‌فرض از SystemSettings
+        from core.models import SystemSettings
         system_settings = SystemSettings.objects.first()
         if system_settings:
             self.fields['locked_percentage'].initial = system_settings.budget_locked_percentage_default

@@ -446,7 +446,7 @@ class Tankhah(models.Model):
         ('PAID', _('پرداخت‌شده')),
         ('REJECTED', _('ردشده')),
     )
-    number = models.CharField(max_length=50, unique=True, blank=True, verbose_name=_("شماره تنخواه"))
+    number = models.CharField(max_length=150, unique=True, blank=True, verbose_name=_("شماره تنخواه"))
     amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ"))
     date = models.DateTimeField(default=timezone.now, verbose_name=_("تاریخ"))
     due_date = models.DateTimeField(null=True, blank=True, verbose_name=_('مهلت زمانی'))
@@ -716,6 +716,7 @@ class Tankhah(models.Model):
             ('Tankhah_delete', _('⛔حذف تنخواه')),
             ('Tankhah_approve', _('👍تأیید تنخواه')),
             ('Tankhah_reject', _('رد تنخواه👎')),
+            ('Tankhah_view_all', _( 'نمایش همه تنخواه‌ها (دفتر مرکزی)')),
 
             ('Tankhah_part_approve', '👍تأیید رئیس قسمت'),
 
@@ -733,7 +734,6 @@ class Tankhah(models.Model):
             ('Dashboard_Core_view', 'دسترسی به داشبورد Core پایه'),
             ('DashboardView_flows_view', 'دسترسی به روند تنخواه گردانی'),
             ('Dashboard__view', 'دسترسی به داشبورد اصلی 💻'),
-
             ('Dashboard_Stats_view', 'دسترسی به آمار کلی داشبورد💲'),
         ]
  #-------- فرمت نمایشی خاص
@@ -871,7 +871,7 @@ class Factor(models.Model):
         ('PAID', _('پرداخت شده')),
     )
 
-    number = models.CharField(max_length=60, blank=True, verbose_name=_("شماره فاکتور"))
+    number = models.CharField(max_length=100, blank=True, verbose_name=_("شماره فاکتور"))
     tankhah = models.ForeignKey('Tankhah', on_delete=models.PROTECT, related_name='factors', verbose_name=_("تنخواه"))
     date = models.DateField(default=timezone.now, verbose_name=_("تاریخ"))
     amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name=_('مبلغ فاکتور'), default=0)

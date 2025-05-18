@@ -93,3 +93,21 @@ urlpatterns += [
     path('organization-chart/', OrganizationChartView.as_view(), name='organization_chart'),
 
 ] # چارت سازمانی
+
+from django.urls import path
+from core.AccessRule.views_accessrule import (
+    AccessRuleListView, AccessRuleDetailView, AccessRuleCreateView,
+    AccessRuleUpdateView, AccessRuleDeleteView, userGiud_AccessRule
+)
+
+urlpatterns += [
+    path('access-rules/', AccessRuleListView.as_view(), name='accessrule_list'),
+    path('access-rules/<int:pk>/', AccessRuleDetailView.as_view(), name='accessrule_detail'),
+    path('access-rules/create/', AccessRuleCreateView.as_view(), name='accessrule_create'),
+    path('access-rules/<int:pk>/edit/', AccessRuleUpdateView.as_view(), name='accessrule_update'),
+    path('access-rules/<int:pk>/delete/', AccessRuleDeleteView.as_view(), name='accessrule_delete'),
+] # قوانین سیستم
+
+urlpatterns += [
+    path('Help_AccessRule',userGiud_AccessRule , name= 'user_Giud_AccessRule')
+]

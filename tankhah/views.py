@@ -28,7 +28,7 @@ from budgets.budget_calculations import get_tankhah_remaining_budget, get_factor
 from core.PermissionBase import PermissionBaseView, get_lowest_access_level
 
 from tankhah.forms import (
-     FactorDocumentForm, TankhahDocumentForm, get_factor_item_formset
+    FactorDocumentForm, TankhahDocumentForm, get_factor_item_formset, FactorApprovalForm
 )
 logger = logging.getLogger(__name__)
 from django.shortcuts import render, redirect, get_object_or_404
@@ -295,7 +295,7 @@ class FactorDetailView(PermissionBaseView, DetailView):
 """  ویو برای تأیید فاکتور"""
 class FactorApproveView(UpdateView):
     model =  Factor
-    form_class = 'tankhah.forms.FactorApprovalForm'  # فرض بر وجود این فرم
+    form_class =  FactorApprovalForm   # فرض بر وجود این فرم
     template_name = 'tankhah/factor_approval.html'
     success_url = reverse_lazy('factor_list')
     permission_codenames = ['tankhah.factor_view', 'tankhah.factor_update']
@@ -345,6 +345,7 @@ class FactorApproveView(UpdateView):
                 messages.warning(self.request, _('برخی ردیف‌ها هنوز تأیید نشده‌اند.'))
 
         return super().form_valid(form)
+
 class FactorApproveView1(PermissionBaseView,UpdateView):
     model =  Factor
     form_class = 'tankhah.forms.FactorApprovalForm'  # فرض می‌کنیم این فرم وجود دارد

@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from .models import  BudgetAllocation, BudgetTransaction, PaymentOrder, Payee, TransactionType, \
-    ProjectBudgetAllocation, SystemSettings
+    ProjectBudgetAllocation
 import jdatetime
 from django.utils import timezone
 from decimal import Decimal
@@ -187,8 +187,3 @@ class ProjectBudgetAllocationForm1(forms.ModelForm):
         return amount
 # budgets/forms.py
 from core.models import Project, SubProject
-
-class SystemSettingsForm(forms.ModelForm):
-    class Meta:
-        model = SystemSettings
-        fields = '__all__'

@@ -12,10 +12,14 @@ def can_edit_approval(user, tankhah, stage):
     چک می‌کند آیا کاربر می‌تواند تأیید/رد یا مرحله را تغییر دهد.
     کاربر می‌تواند تا قبل از اینکه سطح بالاتر تأیید را ببیند تغییر دهد، صرف‌نظر از مرحله فعلی.
     """
-    user_post = UserPost.objects.filter(user=user, end_date__isnull=True).first()
+    # user_post = UserPost.objects.filter(user=user, end_date__isnull=True).first()
+    user_post = UserPost.objects.filter(user=user, is_active=True, end_date__isnull=True).first()
     if not user_post:
         logger.info(f"No active UserPost found for user {user.username}")
         return False
+    # اگر کاربر HQ است، دسترسی کامل
+    if user_post.post.organization.is_core:
+        return True
 
     user_level = user_post.post.level
     max_change_level = user_post.post.max_change_level

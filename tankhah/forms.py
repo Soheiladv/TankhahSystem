@@ -3,6 +3,7 @@ import os
 from decimal import Decimal
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db import models
 from django.db.models import Sum
 from django.utils.translation import gettext_lazy as _
 from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget, \
@@ -60,8 +61,6 @@ class FactorItemApprovalForm(forms.ModelForm):
         if status and status != 'NONE':
             cleaned_data['status'] = status
         return cleaned_data
-
-
 
 class FactorApprovalForm(forms.ModelForm):
     comment = forms.CharField(
@@ -129,7 +128,7 @@ class JalaliDateFormConvert(forms.ModelForm):
                 raise forms.ValidationError(_("تاریخ را به فرمت درست وارد کنید (مثل 1404/01/17)"))
         return None
 
-class TankhahForm(JalaliDateFormConvert):
+class old__TankhahForm(JalaliDateFormConvert):
     date = forms.CharField(
         label=_('تاریخ'),
         widget=forms.TextInput(attrs={
@@ -188,37 +187,81 @@ class TankhahForm(JalaliDateFormConvert):
         super().__init__(*args, **kwargs)
         from core.models import Organization,Project,SubProject
         if self.user:
-            user_orgs = set(up.post.organization for up in self.user.userpost_set.filter(is_active=True))
-            self.fields['organization'].queryset = Organization.objects.filter(id__in=[org.id for org in user_orgs])
-            self.fields['project'].queryset = Project.objects.filter(organizations__in=user_orgs).distinct()
+            # سازمان‌های کاربر (بر اساس پست‌های فعال)
+            # user_orgs = set(up.post.organization for up in self.user.userpost_set.filter(is_active=True))
+            # سازمان‌های مجاز از تنظیمات سیستم
+            # from core.models import SystemSettings
+            # system_settings = SystemSettings.objects.first()
+            # accessible_org_ids = system_settings.tankhah_accessible_organizations if system_settings else []
+            # # ترکیب سازمان‌های کاربر و سازمان‌های مجاز
+            # accessible_orgs = Organization.objects.filter(models.Q(id__in=[org.id for org in user_orgs]) |models.Q(id__in=accessible_org_ids, is_active=True)).distinct().order_by('name')
+            # self.fields['organization'].queryset = accessible_orgs
+            # تنظیم queryset پروژه‌ها
+            # self.fields['project'].queryset = Project.objects.filter(organizations__in=accessible_orgs,is_active=True).distinct().order_by('name')
+            # تنظیم queryset زیرپروژه‌ها و تخصیص بودجه
+            # self.fields['organization'].queryset = Organization.objects.filter(id__in=[org.id for org in user_orgs])
+            # self.fields['project'].queryset = Project.objects.filter(organizations__in=user_orgs).distinct()
 
+            # تنظیم سازمان‌ها به تمام سازمان‌های بودجه‌پذیر و فعال
+
+            # # تنظیم پروژه‌ها بر اساس سازمان‌های بودجه‌پذیر
+            # self.fields['project'].queryset = Project.objects.filter(organizations__org_type__is_budget_allocatable=True,
+            #     is_active=True).distinct().order_by('name')
+            self.fields['organization'].queryset = Organization.objects.filter(org_type__is_budget_allocatable=True,
+                is_active=True).select_related('org_type').order_by('name')
+
+            # تنظیم پروژه‌ها بر اساس سازمان انتخاب‌شده (در حالت POST یا ویرایش)
+            if 'organization' in self.data:
+                try:
+                    org_id = int(self.data.get('organization'))
+                    self.fields['project'].queryset = Project.objects.filter(
+                        organizations__id=org_id,
+                        is_active=True
+                    ).distinct().order_by('name')
+                except (ValueError, TypeError):
+                    self.fields['project'].queryset = Project.objects.none()
+            elif self.instance.pk and self.instance.organization:
+                self.fields['project'].queryset = Project.objects.filter(
+                    organizations=self.instance.organization,
+                    is_active=True
+                ).distinct().order_by('name')
+            else:
+                # در حالت اولیه، هیچ پروژه‌ای نمایش داده نشود تا سازمان انتخاب شود
+                self.fields['project'].queryset = Project.objects.none()
+
+            # تنظیم زیرپروژه‌ها و تخصیص بودجه
             if 'project' in self.data:
                 try:
                     project_id = int(self.data.get('project'))
-                    self.fields['subproject'].queryset = SubProject.objects.filter(project_id=project_id)
+                    self.fields['subproject'].queryset = SubProject.objects.filter(
+                        project_id=project_id,
+                        is_active=True
+                    ).order_by('name')
                     self.fields['project_budget_allocation'].queryset = ProjectBudgetAllocation.objects.filter(
                         project_id=project_id,
                         budget_allocation__is_active=True
-                    )
+                    ).order_by('budget_allocation__allocation_date')
                 except (ValueError, TypeError):
                     self.fields['subproject'].queryset = SubProject.objects.none()
                     self.fields['project_budget_allocation'].queryset = ProjectBudgetAllocation.objects.none()
             elif self.instance.pk and self.instance.project:
-                self.fields['subproject'].queryset = SubProject.objects.filter(project=self.instance.project)
+                self.fields['subproject'].queryset = SubProject.objects.filter(
+                    project=self.instance.project,
+                    is_active=True
+                ).order_by('name')
                 self.fields['project_budget_allocation'].queryset = ProjectBudgetAllocation.objects.filter(
                     project=self.instance.project,
                     budget_allocation__is_active=True
-                )
+                ).order_by('budget_allocation__allocation_date')
             else:
                 self.fields['subproject'].queryset = SubProject.objects.none()
                 self.fields['project_budget_allocation'].queryset = ProjectBudgetAllocation.objects.none()
 
-            if self.instance.pk and self.instance.organization:
-                user_posts = self.user.userpost_set.filter(is_active=True)
-                if not any(post.post.organization == self.instance.organization for post in user_posts):
-                    for field_name in self.fields:
-                        if field_name not in ['status', 'description']:
-                            self.fields[field_name].disabled = True
+            # بررسی پرمیشن برای غیرفعال کردن فیلدها در حالت ویرایش
+            if self.instance.pk and not self.user.has_perm('tankhah.Tankhah_update'):
+                for field_name in self.fields:
+                    if field_name not in ['status', 'description']:
+                        self.fields[field_name].disabled = True
 
         self.set_jalali_initial('date', 'date')
         self.set_jalali_initial('due_date', 'due_date')
@@ -354,6 +397,260 @@ class TankhahForm(JalaliDateFormConvert):
 
         return cleaned_data
 
+class TankhahForm(JalaliDateFormConvert):
+    date = forms.CharField(
+        label=_('تاریخ'),
+        widget=forms.TextInput(attrs={
+            'data-jdp': '',
+            'class': 'form-control',
+            'placeholder': _('1404/01/17'),
+        })
+    )
+    due_date = forms.CharField(
+        label=_('مهلت زمانی'),
+        required=False,
+        widget=forms.TextInput(attrs={
+            'data-jdp': '',
+            'class': 'form-control',
+            'placeholder': _('1404/01/17'),
+        })
+    )
+    project_budget_allocation = forms.ModelChoiceField(
+        queryset=ProjectBudgetAllocation.objects.all(),
+        required=False,
+        label=_('تخصیص بودجه پروژه'),
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    amount = forms.DecimalField(
+        label=_('مبلغ'),
+        required=True,
+        min_value=Decimal('0.01'),
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01'})
+    )
+
+    class Meta:
+        model = Tankhah
+        fields = ['date', 'organization', 'project', 'subproject', 'project_budget_allocation', 'letter_number',
+                  'due_date', 'amount', 'description']  # budget_allocation حذف شد
+        widgets = {
+            'organization': forms.Select(attrs={'class': 'form-control'}),
+            'project': forms.Select(attrs={'class': 'form-control'}),
+            'subproject': forms.Select(attrs={'class': 'form-control'}),
+            'letter_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('اختیاری')}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
+        labels = {
+            'date': _('تاریخ'),
+            'organization': _('سازمان'),
+            'project': _('پروژه'),
+            'subproject': _('زیرپروژه'),
+            'project_budget_allocation': _('تخصیص بودجه پروژه'),
+            'letter_number': _('شماره نامه'),
+            'due_date': _('مهلت زمانی'),
+            'amount': _('مبلغ'),
+            'description': _('توضیحات'),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        from core.models import Organization, Project, SubProject
+
+        if self.user:
+            # تنظیم سازمان‌ها
+            self.fields['organization'].queryset = Organization.objects.filter(
+                org_type__is_budget_allocatable=True,
+                is_active=True
+            ).select_related('org_type').order_by('name')
+
+            # تنظیم پروژه‌ها بر اساس سازمان انتخاب‌شده
+            if 'organization' in self.data:
+                try:
+                    org_id = int(self.data.get('organization'))
+                    logger.debug(f"Filtering projects for organization: {org_id}")
+                    self.fields['project'].queryset = Project.objects.filter(
+                        organizations__id=org_id,
+                        is_active=True
+                    ).distinct().order_by('name')
+                except (ValueError, TypeError) as e:
+                    logger.error(f"Error filtering projects: {str(e)}")
+                    self.fields['project'].queryset = Project.objects.none()
+            elif self.instance.pk and self.instance.organization:
+                self.fields['project'].queryset = Project.objects.filter(
+                    organizations=self.instance.organization,
+                    is_active=True
+                ).distinct().order_by('name')
+            else:
+                self.fields['project'].queryset = Project.objects.none()
+
+            # تنظیم زیرپروژه‌ها و تخصیص بودجه
+            if 'project' in self.data:
+                try:
+                    project_id = int(self.data.get('project'))
+                    self.fields['subproject'].queryset = SubProject.objects.filter(
+                        project_id=project_id,
+                        is_active=True
+                    ).order_by('name')
+                    self.fields['project_budget_allocation'].queryset = ProjectBudgetAllocation.objects.filter(
+                        project_id=project_id,
+                        budget_allocation__is_active=True
+                    ).order_by('budget_allocation__allocation_date')
+                except (ValueError, TypeError):
+                    self.fields['subproject'].queryset = SubProject.objects.none()
+                    self.fields['project_budget_allocation'].queryset = ProjectBudgetAllocation.objects.none()
+            elif self.instance.pk and self.instance.project:
+                self.fields['subproject'].queryset = SubProject.objects.filter(
+                    project=self.instance.project,
+                    is_active=True
+                ).order_by('name')
+                self.fields['project_budget_allocation'].queryset = ProjectBudgetAllocation.objects.filter(
+                    project=self.instance.project,
+                    budget_allocation__is_active=True
+                ).order_by('budget_allocation__allocation_date')
+            else:
+                self.fields['subproject'].queryset = SubProject.objects.none()
+                self.fields['project_budget_allocation'].queryset = ProjectBudgetAllocation.objects.none()
+
+            # بررسی پرمیشن برای غیرفعال کردن فیلدها
+            if self.instance.pk and not self.user.has_perm('tankhah.Tankhah_update'):
+                for field_name in self.fields:
+                    if field_name not in ['status', 'description']:
+                        self.fields[field_name].disabled = True
+
+        self.set_jalali_initial('date', 'date')
+        self.set_jalali_initial('due_date', 'due_date')
+
+    def clean_date(self):
+        date = self.clean_jalali_date('date')
+        if not date:
+            raise forms.ValidationError(_('تاریخ تنخواه اجباری است.'))
+        dt = datetime.combine(date, datetime.min.time())
+        aware_dt = timezone.make_aware(dt)
+        logger.debug(f"تاریخ پاک‌شده: {aware_dt}, آگاه از منطقه زمانی: {timezone.is_aware(aware_dt)}")
+        return aware_dt
+
+    def clean_due_date(self):
+        date = self.clean_jalali_date('due_date')
+        if date:
+            dt = datetime.combine(date, datetime.min.time())
+            aware_dt = timezone.make_aware(dt)
+            logger.debug(f"مهلت پاک‌شده: {aware_dt}, آگاه از منطقه زمانی: {timezone.is_aware(aware_dt)}")
+            return aware_dt
+        return date
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if amount is None:
+            raise forms.ValidationError(_("مبلغ تنخواه اجباری است."))
+        if amount <= 0:
+            raise forms.ValidationError(_("مبلغ تنخواه باید مثبت باشد."))
+        return amount
+
+    def clean(self):
+        cleaned_data = super().clean()
+        project = cleaned_data.get('project')
+        subproject = cleaned_data.get('subproject')
+        amount = cleaned_data.get('amount')
+        organization = cleaned_data.get('organization')
+        project_budget_allocation = cleaned_data.get('project_budget_allocation')
+
+        if project:
+            from core.models import Project
+            try:
+                project = Project.objects.get(id=project.id)
+                logger.debug(f"پروژه بارگذاری شد: {project.id} - {project}")
+            except Project.DoesNotExist:
+                self.add_error('project', _("پروژه یافت نشد یا معتبر نیست."))
+                return cleaned_data
+
+        if not project:
+            self.add_error('project', _("پروژه اجباری است."))
+            return cleaned_data
+
+        if organization and not project.organizations.filter(id=organization.id).exists():
+            self.add_error('project', _("پروژه انتخاب‌شده به سازمان شما تعلق ندارد."))
+            return cleaned_data
+
+        if subproject and subproject.project != project:
+            self.add_error('subproject', _("زیرپروژه باید متعلق به پروژه انتخاب‌شده باشد."))
+            return cleaned_data
+
+        if project_budget_allocation and project_budget_allocation.project != project:
+            self.add_error('project_budget_allocation', _("تخصیص بودجه باید متعلق به پروژه انتخاب‌شده باشد."))
+            return cleaned_data
+
+        if project and amount:
+            cache_keys = [
+                f"project_remaining_budget_{project.pk}_no_filters",
+                f"project_total_budget_{project.pk}_no_filters",
+            ]
+            for key in cache_keys:
+                try:
+                    cache.delete(key)
+                    logger.debug(f"کش پاک شد برای {key}")
+                except Exception as e:
+                    logger.warning(f"خطا در پاک کردن کش برای {key}: {str(e)}")
+
+            # انتخاب تخصیص بودجه
+            allocation = project_budget_allocation
+            if not allocation and project:
+                allocation = ProjectBudgetAllocation.objects.filter(
+                    project=project,
+                    subproject__isnull=True,
+                    budget_allocation__is_active=True
+                ).first()
+            if not allocation and subproject:
+                allocation = ProjectBudgetAllocation.objects.filter(
+                    subproject=subproject,
+                    budget_allocation__is_active=True
+                ).first()
+
+            if subproject:
+                remaining_budget = get_subproject_remaining_budget(subproject, force_refresh=True)
+                budget_type = "زیرپروژه"
+            elif allocation:
+                remaining_budget = allocation.get_remaining_amount()
+                budget_type = "تخصیص بودجه پروژه"
+            else:
+                remaining_budget = get_project_remaining_budget(project, force_refresh=True)
+                budget_type = "پروژه"
+
+            total_budget = get_project_total_budget(project, force_refresh=True)
+            logger.debug(
+                f"اعتبارسنجی بودجه {budget_type} برای پروژه {project.id}: "
+                f"کل={total_budget}، باقی‌مانده={remaining_budget}، درخواست‌شده={amount}"
+            )
+
+            if not allocation and not subproject:
+                logger.error(f"هیچ تخصیص بودجه فعالی برای پروژه {project.id} یافت نشد")
+                self.add_error('project', _("هیچ تخصیص بودجه فعالی برای این پروژه یافت نشد."))
+                return cleaned_data
+
+            if remaining_budget is None or remaining_budget <= 0:
+                consumptions = BudgetTransaction.objects.filter(
+                    allocation__project_allocations__project=project,
+                    transaction_type='CONSUMPTION'
+                )
+                consumptions_total = consumptions.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+                returns = BudgetTransaction.objects.filter(
+                    allocation__project_allocations__project=project,
+                    transaction_type='RETURN'
+                )
+                returns_total = returns.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+                logger.debug(
+                    f"تراکنش‌های پروژه {project.id}: مصرف={consumptions_total}، بازگشت={returns_total}"
+                )
+                self.add_error('amount', _(
+                    f"هیچ بودجه‌ای برای {budget_type} باقی نمانده است "
+                    f"(مصرف‌شده: {consumptions_total:,.0f} ریال، بازگشتی: {returns_total:,.0f} ریال)."
+                ))
+            elif amount > remaining_budget:
+                self.add_error('amount', _(
+                    f"مبلغ واردشده ({amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining_budget:,.0f} ریال) است."
+                ))
+
+        return cleaned_data
 #=========
 class TanbakhApprovalForm(forms.ModelForm):
     comment = forms.CharField(
@@ -507,7 +804,6 @@ class old__FactorForm(forms.ModelForm):
             instance.save()
             logger.info(f"Factor saved: ID={instance.pk}, number={instance.number}")
         return instance
-
 class old__FactorItemForm(forms.ModelForm):
     class Meta:
         model = FactorItem
@@ -766,7 +1062,6 @@ class TankhahDocumentForm(forms.Form):
                 )
                 raise ValidationError(error_msg)
         return files
-
 
 def get_factor_item_formset():
     from django.forms import inlineformset_factory

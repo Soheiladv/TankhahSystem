@@ -5,321 +5,263 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block extra_head %}
+    <link href="{% static 'admin/css/select2.min.css' %}" rel="stylesheet"/>
+    <link href="{% static 'admin/css/select2-bootstrap-5-theme.min.css' %}" rel="stylesheet"/>
     <style>
         :root {
             --primary-color: #6a11cb;
             --secondary-color: #2575fc;
             --success-color: #28a745;
-            --warning-color: #feb47b;
+            --warning-color: #ffc107;
             --danger-color: #dc3545;
             --light-bg: #f8f9fa;
             --shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .fade-in {
-            animation: fadeIn 0.8s ease-in-out;
+        .card {
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            border: none;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .card-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
         }
 
-        .form-control, .form-select {
+        .form-control, .form-select, .select2-selection {
             border-radius: 8px;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+            padding: 10px 15px;
+            border: 1px solid #ced4da;
             transition: all 0.3s ease;
         }
 
         .form-control:focus, .form-select:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 8px rgba(106, 17, 203, 0.3);
-        }
-
-        .form-control:disabled, .form-select:disabled {
-            background-color: var(--light-bg);
-            color: #6c757d;
-            opacity: 0.8;
+            box-shadow: 0 0 0 0.25rem rgba(106, 17, 203, 0.25);
         }
 
         .progress {
             height: 25px;
-            background-color: #e9ecef;
             border-radius: 12px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            margin-top: 10px;
+            background-color: #e9ecef;
         }
 
         .progress-bar {
             font-weight: 600;
             font-size: 14px;
-            color: white;
-            text-align: center;
-            transition: width 0.6s ease;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .progress-bar-striped {
-            background-image: linear-gradient(
-                    45deg,
-                    rgba(255, 255, 255, 0.15) 25%,
-                    transparent 25%,
-                    transparent 50%,
-                    rgba(255, 255, 255, 0.15) 50%,
-                    rgba(255, 255, 255, 0.15) 75%,
-                    transparent 75%,
-                    transparent
-            );
-            background-size: 1rem 1rem;
+        .budget-info {
+            background-color: var(--light-bg);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
         }
 
-        .progress-bar-animated {
-            animation: progress-bar-stripes 1s linear infinite;
-        }
-
-        @keyframes progress-bar-stripes {
-            0% {
-                background-position: 1rem 0;
-            }
-            100% {
-                background-position: 0 0;
-            }
+        .budget-info i {
+            margin-left: 5px;
         }
 
         .btn-primary {
             background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
             border: none;
-            transition: all 0.3s ease;
+            padding: 10px 25px;
+            font-weight: 500;
         }
 
         .btn-primary:hover {
-            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
         }
 
-        .btn-secondary {
-            background-color: #6c757d;
-            border: none;
-            transition: all 0.3s ease;
+        .select2-container--bootstrap-5 .select2-selection {
+            padding: 8px 15px;
         }
 
-        .btn-secondary:hover {
-            background-color: #5a6268;
-            transform: translateY(-2px);
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
         }
 
-        .persian-amount-label {
-            font-weight: 500;
-            color: #495057;
-        }
-
-        .remaining-budget-progress .progress-bar {
-            background: linear-gradient(90deg, #28a745, #34d058);
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 {% endblock %}
 
 {% block content %}
-    <div class="container mt-5 mb-5">
-        <div class="card fade-in">
-            <div class="card-header d-flex justify-content-between align-items-center bg-light">
-                <h4 class="mb-0"><i class="fas fa-file-invoice-dollar me-2 text-primary"></i>{{ title }}</h4>
-                <a href="{% url 'tankhah_list' %}" class="btn btn-secondary btn-sm">
-                    <i class="fas fa-list me-1"></i>{% trans "بازگشت به لیست" %}
+    <div class="container py-4 fade-in">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0 text-white">
+                    <i class="fas fa-file-invoice-dollar me-2"></i>{{ title }}
+                </h4>
+                <a href="{% url 'tankhah_list' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>{% trans "بازگشت به لیست" %}
                 </a>
             </div>
-            {% if form.non_field_errors %}
-                <div class="alert alert-danger" role="alert">
-                    {% for error in form.non_field_errors %}
-                        {{ error }}
-                    {% endfor %}
-                </div>
-            {% endif %}
-
 
             <div class="card-body">
-                <form method="post" id="tankhah-form">
+                <form method="post" id="tankhah-form" class="needs-validation" novalidate>
                     {% csrf_token %}
 
                     {% if form.non_field_errors %}
-                        <div class="alert alert-danger" role="alert">
+                        <div class="alert alert-danger">
                             {% for error in form.non_field_errors %}
-                                {{ error }}
+                                <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
                             {% endfor %}
                         </div>
                     {% endif %}
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.date.id_for_label }}" class="form-label">{{ form.date.label }} <span
-                                    class="text-danger">*</span></label>
+                    <div class="row g-3">
+                        <!-- تاریخ‌ها -->
+                        <div class="col-md-6">
+                            <label for="{{ form.date.id_for_label }}" class="form-label">
+                                {{ form.date.label }} <span class="text-danger">*</span>
+                            </label>
                             {{ form.date }}
-                            {% if form.date.errors %}
-                                {% for error in form.date.errors %}
-                                    <small class="text-danger d-block">{{ error }}</small>
-                                {% endfor %}
-                            {% endif %}
+                            {% for error in form.date.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
                         </div>
 
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.due_date.id_for_label }}" class="form-label">{{ form.due_date.label }}</label>
+                        <div class="col-md-6">
+                            <label for="{{ form.due_date.id_for_label }}" class="form-label">
+                                {{ form.due_date.label }}
+                            </label>
                             {{ form.due_date }}
-                            {% if form.due_date.errors %}
-                                {% for error in form.due_date.errors %}
-                                    <small class="text-danger d-block">{{ error }}</small>
-                                {% endfor %}
-                            {% endif %}
+                            {% for error in form.due_date.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
                         </div>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.organization.id_for_label }}" class="form-label">{{ form.organization.label }} <span class="text-danger">*</span></label>
+                        <!-- سازمان و پروژه -->
+                        <div class="col-md-6">
+                            <label for="{{ form.organization.id_for_label }}" class="form-label">
+                                {{ form.organization.label }} <span class="text-danger">*</span>
+                            </label>
                             {{ form.organization }}
-                            {% if form.organization.errors %}
-                                {% for error in form.organization.errors %}
-                                    <small class="text-danger d-block">{{ error }}</small>
-                                {% endfor %}
-                            {% endif %}
+                            {% for error in form.organization.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
                         </div>
 
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.project.id_for_label }}" class="form-label">{{ form.project.label }} <span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            <label for="{{ form.project.id_for_label }}" class="form-label">
+                                {{ form.project.label }} <span class="text-danger">*</span>
+                            </label>
                             {{ form.project }}
-                            {% if form.project.errors %}
-                                {% for error in form.project.errors %}
-                                    <small class="text-danger d-block">{{ error }}</small>
-                                {% endfor %}
-                            {% endif %}
-                            {% if total_budget is not None %}
-                                <small class="form-text text-muted d-block mt-1">
-                                    <i class="fas fa-money-bill-wave me-1 text-success"></i> {% trans "بودجه کل پروژه:" %}
-                                    <span id="project_total_budget">{{ total_budget|floatformat:0|intcomma }}</span> {% trans "ریال" %}
-                                    <br>
-                                    <i class="fas fa-coins me-1 text-primary"></i> {% trans "بودجه باقی‌مانده پروژه:" %}
-                                    <span id="project_remaining_budget">{{ remaining_budget|floatformat:0|intcomma }}</span> {% trans "ریال" %}
-                                </small>
-                                <div class="progress">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated"
-                                         role="progressbar"
-                                         style="width: {{ project_budget_percentage }}%; background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));"
-                                         aria-valuenow="{{ project_budget_percentage }}"
-                                         aria-valuemin="0"
-                                         aria-valuemax="100">
-                                        {{ project_budget_percentage|floatformat:1 }}%
-                                    </div>
+                            {% for error in form.project.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="budget-info mt-2" id="project-budget-info">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span><i class="fas fa-coins text-success"></i> بودجه کل:</span>
+                                    <span id="project-total-budget">0 ریال</span>
                                 </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.subproject.id_for_label }}" class="form-label">{{ form.subproject.label }}</label>
-                            {{ form.subproject }}
-                            {% if form.subproject.errors %}
-                                {% for error in form.subproject.errors %}
-                                    <small class="text-danger d-block">{{ error }}</small>
-                                {% endfor %}
-                            {% endif %}
-                            {% if subproject_total_budget is not None %}
-                                <small class="form-text text-muted d-block mt-1">
-                                    <i class="fas fa-money-bill me-1 text-success"></i> {% trans "بودجه کل زیرپروژه:" %}
-                                    <span id="subproject_total_budget">{{ subproject_total_budget|floatformat:0|intcomma }}</span> {% trans "ریال" %}
-                                    <br>
-                                    <i class="fas fa-hand-holding-usd me-1 text-primary"></i> {% trans "بودجه باقی‌مانده زیرپروژه:" %}
-                                    <span id="subproject_remaining_budget">{{ subproject_remaining_budget|floatformat:0|intcomma }}</span> {% trans "ریال" %}
-                                </small>
-                                <div class="progress">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated"
-                                         role="progressbar"
-                                         style="width: {{ subproject_budget_percentage }}%; background: linear-gradient(90deg, #ff7e5f, #feb47b);"
-                                         aria-valuenow="{{ subproject_budget_percentage }}"
-                                         aria-valuemin="0"
-                                         aria-valuemax="100">
-                                        {{ subproject_budget_percentage|floatformat:1 }}%
-                                    </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span><i class="fas fa-wallet text-primary"></i> بودجه باقیمانده:</span>
+                                    <span id="project-remaining-budget">0 ریال</span>
                                 </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.letter_number.id_for_label }}" class="form-label">{{ form.letter_number.label }}</label>
-                            {{ form.letter_number }}
-                            {% if form.letter_number.errors %}
-                                {% for error in form.letter_number.errors %}
-                                    <small class="text-danger d-block">{{ error }}</small>
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <label for="{{ form.amount.id_for_label }}" class="form-label">{{ form.amount.label }} <span class="text-danger">*</span></label>
-                            {{ form.amount }}
-                            {% if form.amount.errors %}
-                                {% for error in form.amount.errors %}
-                                    <small class="text-danger d-block">{{ error }}</small>
-                                {% endfor %}
-                            {% endif %}
-                            <small class="form-text text-muted d-block mt-1">
-                                <i class="fas fa-calculator me-1 text-info"></i> {% trans "مقدار به فارسی:" %}
-                                <span id="amount-in-persian" class="persian-amount-label">۰</span> {% trans "ریال" %}
-                                <br>
-                                <i class="fas fa-font me-1 text-info"></i> {% trans "مقدار به حروف:" %}
-                                <span id="amount-in-words" class="persian-amount-label">-</span>
-                            </small>
-                            <small class="form-text text-muted d-block mt-1">
-                                <i class="fas fa-coins me-1 text-primary"></i> {% trans "بودجه باقی‌مانده پس از تخصیص:" %}
-                                <span id="remaining-after-amount">۰</span> {% trans "ریال" %}
-                            </small>
-                            <div class="progress remaining-budget-progress">
-                                <div id="remaining-budget-progress-bar"
-                                     class="progress-bar progress-bar-striped progress-bar-animated"
-                                     role="progressbar"
-                                     style="width: 100%;"
-                                     aria-valuenow="100"
-                                     aria-valuemin="0"
-                                     aria-valuemax="100">
-                                    100%
+                                <div class="progress">
+                                    <div id="project-progress-bar" class="progress-bar"
+                                         role="progressbar" style="width: 100%">100%</div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                        <!-- زیرپروژه و شماره نامه -->
+                        <div class="col-md-6">
+                            <label for="{{ form.subproject.id_for_label }}" class="form-label">
+                                {{ form.subproject.label }}
+                            </label>
+                            {{ form.subproject }}
+                            {% for error in form.subproject.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="budget-info mt-2" id="subproject-budget-info" style="display: none;">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span><i class="fas fa-coins text-success"></i> بودجه کل:</span>
+                                    <span id="subproject-total-budget">0 ریال</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span><i class="fas fa-wallet text-primary"></i> بودجه باقیمانده:</span>
+                                    <span id="subproject-remaining-budget">0 ریال</span>
+                                </div>
+                                <div class="progress">
+                                    <div id="subproject-progress-bar" class="progress-bar"
+                                         role="progressbar" style="width: 100%">100%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ form.letter_number.id_for_label }}" class="form-label">
+                                {{ form.letter_number.label }}
+                            </label>
+                            {{ form.letter_number }}
+                            {% for error in form.letter_number.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- مبلغ و توضیحات -->
+                        <div class="col-md-12">
+                            <label for="{{ form.amount.id_for_label }}" class="form-label">
+                                {{ form.amount.label }} <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                {{ form.amount }}
+                                <span class="input-group-text">ریال</span>
+                            </div>
+                            {% for error in form.amount.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+
+                            <div class="budget-info mt-2">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span><i class="fas fa-calculator text-info"></i> مقدار به فارسی:</span>
+                                    <span id="amount-persian">۰ ریال</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span><i class="fas fa-font text-info"></i> مقدار به حروف:</span>
+                                    <span id="amount-words">صفر ریال</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span><i class="fas fa-coins text-primary"></i> بودجه باقیمانده پس از تخصیص:</span>
+                                    <span id="remaining-after-amount">0 ریال</span>
+                                </div>
+                                <div class="progress">
+                                    <div id="remaining-progress-bar" class="progress-bar"
+                                         role="progressbar" style="width: 100%">100%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                {{ form.description.label }}
+                            </label>
                             {{ form.description }}
-                            {% if form.description.errors %}
-                                {% for error in form.description.errors %}
-                                    <small class="text-danger d-block">{{ error }}</small>
-                                {% endfor %}
-                            {% endif %}
+                            {% for error in form.description.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
                         </div>
                     </div>
 
-                    {% for hidden in form.hidden_fields %}
-                        {{ hidden }}
-                    {% endfor %}
-
-                    <div class="text-center mt-4">
-                        <button type="submit" class="btn btn-primary btn-lg">
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-primary me-2">
                             <i class="fas fa-save me-2"></i>{% trans "ثبت تنخواه" %}
                         </button>
-                        <a href="{% url 'tankhah_list' %}" class="btn btn-secondary btn-lg ms-2">
-                            <i class="fas fa-times-circle me-2"></i>{% trans "انصراف" %}
+                        <a href="{% url 'tankhah_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>{% trans "انصراف" %}
                         </a>
                     </div>
                 </form>
@@ -329,28 +271,61 @@
 {% endblock %}
 
 {% block extra_js %}
+    <script src="{% static 'admin/js/jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'admin/js/select2.min.js' %}"></script>
+    <script src="{% static 'admin/js/select2-fa-ir.js' %}"></script>
+    <script src="{% static 'admin/js/jalali-datepicker.min.js' %}"></script>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // راه‌اندازی Jalali Date Picker
+        $(document).ready(function() {
+            // Initialize date pickers
             jalaliDatepicker.startWatch();
 
-            // تبدیل اعداد انگلیسی به فارسی
-            function toPersianDigits(number) {
+            // Initialize Select2 with RTL support
+            $('select').select2({
+                theme: 'bootstrap-5',
+                language: 'fa-ir',
+                dir: 'rtl',
+                width: '100%'
+            });
+
+            // CSRF Token setup
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            const csrfToken = getCookie('csrftoken');
+            const fetchOptions = {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken
+                }
+            };
+
+            // Format numbers to Persian
+            function toPersianNumber(number) {
                 const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
                 return number.toString().replace(/\d/g, digit => persianDigits[parseInt(digit)]);
             }
 
-            // فرمت‌دهی عدد با جداکننده هزارگان و تبدیل به فارسی
-            function formatNumberToPersian(number) {
-                if (!number) return '۰';
-                const formattedNumber = Number(number).toLocaleString('fa-IR');
-                return formattedNumber;
+            function formatCurrency(number) {
+                return new Intl.NumberFormat('fa-IR').format(number);
             }
 
-            // تبدیل عدد به حروف (به فارسی)
-            function numberToPersianWords(num) {
-                if (!num || num == 0) return '-';
-
+            // Number to Persian words conversion
+            function numberToWords(num) {
+                if (!num || num == 0) return 'صفر';
                 const units = ['', 'هزار', 'میلیون', 'میلیارد', 'تریلیون'];
                 const numbers = [
                     '', 'یک', 'دو', 'سه', 'چهار', 'پنج', 'شش', 'هفت', 'هشت', 'نه',
@@ -374,7 +349,7 @@
 
                 let result = '';
                 let unitIndex = 0;
-                num = Math.floor(num); // فقط بخش صحیح عدد
+                num = Math.floor(num);
 
                 while (num > 0) {
                     const part = num % 1000;
@@ -386,173 +361,186 @@
                     unitIndex++;
                 }
 
-                return result || 'صفر';
+                return result + ' ریال';
             }
 
-            // به‌روزرسانی مقادیر پویا هنگام تایپ
-            const amountInput = document.getElementById('{{ form.amount.id_for_label }}');
-            const amountInPersianSpan = document.getElementById('amount-in-persian');
-            const amountInWordsSpan = document.getElementById('amount-in-words');
-            const remainingAfterAmountSpan = document.getElementById('remaining-after-amount');
-            const remainingBudgetProgressBar = document.getElementById('remaining-budget-progress-bar');
+            // Update dynamic fields based on amount input
+            let currentRemainingBudget = 0;
+            let currentTotalBudget = 0;
 
-            // مقدار اولیه بودجه باقی‌مانده (از کانتکست)
-            let baseRemainingBudget = {{ remaining_budget|default:0 }};
-            let baseTotalBudget = {{ total_budget|default:0 }};
-            let baseSubprojectRemainingBudget = {{ subproject_remaining_budget|default:0 }};
-            let baseSubprojectTotalBudget = {{ subproject_total_budget|default:0 }};
+            $('#id_amount').on('input', function() {
+                const amount = parseFloat($(this).val()) || 0;
+                console.log('Amount input:', amount, 'Current budgets:', currentTotalBudget, currentRemainingBudget);
+                $('#amount-persian').text(formatCurrency(amount) + ' ریال');
+                $('#amount-words').text(numberToWords(amount));
+                updateRemainingBudget(amount);
+            });
 
-            function updateDynamicFields() {
-                let amount = amountInput.value.replace(/[^0-9.]/g, '');
-                amount = amount ? parseFloat(amount) : 0;
+            // Update remaining budget display
+            function updateRemainingBudget(amount) {
+                const remaining = currentRemainingBudget - amount;
+                const percentage = currentTotalBudget > 0 ? Math.max((remaining / currentTotalBudget) * 100, 0) : 0;
 
-                // به‌روزرسانی مقدار فارسی
-                const persianValue = formatNumberToPersian(amount);
-                amountInPersianSpan.textContent = persianValue;
+                $('#remaining-after-amount').text(formatCurrency(Math.max(remaining, 0)) + ' ریال');
+                $('#remaining-progress-bar').css('width', percentage + '%')
+                    .text(percentage.toFixed(1) + '%')
+                    .attr('aria-valuenow', percentage);
 
-                // به‌روزرسانی مقدار به حروف
-                const wordsValue = numberToPersianWords(amount);
-                amountInWordsSpan.textContent = wordsValue + ' ریال';
-
-                // محاسبه بودجه باقی‌مانده پس از کسر مقدار واردشده
-                let remainingBudget = baseSubprojectRemainingBudget > 0 ? baseSubprojectRemainingBudget : baseRemainingBudget;
-                let totalBudget = baseSubprojectTotalBudget > 0 ? baseSubprojectTotalBudget : baseTotalBudget;
-                const newRemaining = remainingBudget - amount;
-                const percentage = totalBudget > 0 ? (newRemaining / totalBudget * 100) : 0;
-
-                // به‌روزرسانی مقدار بودجه باقی‌مانده
-                remainingAfterAmountSpan.textContent = formatNumberToPersian(Math.max(newRemaining, 0));
-
-                // به‌روزرسانی پروگرس بار
-                remainingBudgetProgressBar.style.width = `${Math.max(percentage, 0)}%`;
-                remainingBudgetProgressBar.setAttribute('aria-valuenow', Math.max(percentage, 0));
-                remainingBudgetProgressBar.textContent = `${Math.max(percentage, 0).toFixed(1)}%`;
-
-                // تغییر رنگ پروگرس بار بر اساس مقدار باقی‌مانده
                 if (percentage > 50) {
-                    remainingBudgetProgressBar.style.background = 'linear-gradient(90deg, #28a745, #34d058)';
+                    $('#remaining-progress-bar').css('background', 'linear-gradient(90deg, #28a745, #34d058)');
                 } else if (percentage > 20) {
-                    remainingBudgetProgressBar.style.background = 'linear-gradient(90deg, #ff7e5f, #feb47b)';
+                    $('#remaining-progress-bar').css('background', 'linear-gradient(90deg, #ff7e5f, #feb47b)');
                 } else {
-                    remainingBudgetProgressBar.style.background = 'linear-gradient(90deg, #dc3545, #ff6b6b)';
+                    $('#remaining-progress-bar').css('background', 'linear-gradient(90deg, #dc3545, #ff6b6b)');
                 }
             }
 
-            amountInput.addEventListener('input', updateDynamicFields);
-            amountInput.addEventListener('change', updateDynamicFields);
-            updateDynamicFields();
+            // AJAX functions for dynamic loading
+            $('#id_organization').change(function() {
+                const orgId = $(this).val();
+                if (!orgId) {
+                    resetBudgetInfo();
+                    return;
+                }
 
-            // به‌روزرسانی زیرپروژه‌ها و بودجه
-            const projectSelect = document.getElementById('{{ form.project.id_for_label }}');
-            const subprojectSelect = document.getElementById('{{ form.subproject.id_for_label }}');
-            const projectTotalBudgetSpan = document.getElementById('project_total_budget');
-            const projectRemainingBudgetSpan = document.getElementById('project_remaining_budget');
-            const subprojectTotalBudgetSpan = document.getElementById('subproject_total_budget');
-            const subprojectRemainingBudgetSpan = document.getElementById('subproject_remaining_budget');
+                $.ajax({
+                    url: '{% url "get_projects" %}',
+                    data: { org_id: orgId },
+                    ...fetchOptions
+                })
+                .done(function(data) {
+                    console.log('Projects data:', data);
+                    const $projectSelect = $('#id_project');
+                    $projectSelect.empty().append('<option value="">---------</option>');
 
-            function updateSubprojectsAndBudget() {
-                const projectId = projectSelect.value;
-                subprojectSelect.innerHTML = '<option value="">---------</option>';
-                subprojectSelect.disabled = true;
+                    if (data.projects && data.projects.length > 0) {
+                        $.each(data.projects, function(i, project) {
+                            $projectSelect.append($('<option>', {
+                                value: project.id,
+                                text: project.name
+                            }));
+                        });
+                    } else {
+                        $projectSelect.append('<option value="">هیچ پروژه‌ای یافت نشد</option>');
+                    }
 
+                    $('#id_subproject').empty().append('<option value="">---------</option>');
+                    resetBudgetInfo();
+                })
+                .fail(function(xhr, status, error) {
+                    console.error('Error loading projects:', error);
+                });
+            });
+
+            $('#id_project').change(function() {
+                const projectId = $(this).val();
                 if (!projectId) {
-                    if (projectTotalBudgetSpan) projectTotalBudgetSpan.textContent = '0';
-                    if (projectRemainingBudgetSpan) projectRemainingBudgetSpan.textContent = '0';
-                    if (subprojectTotalBudgetSpan) subprojectTotalBudgetSpan.textContent = '0';
-                    if (subprojectRemainingBudgetSpan) subprojectRemainingBudgetSpan.textContent = '0';
-                    baseRemainingBudget = 0;
-                    baseTotalBudget = 0;
-                    baseSubprojectRemainingBudget = 0;
-                    baseSubprojectTotalBudget = 0;
-                    updateDynamicFields();
+                    resetBudgetInfo();
                     return;
                 }
 
-                const subprojectsUrl = '{% url "get_subprojects" %}';
-                fetch(`${subprojectsUrl}?project_id=${projectId}`)
-                    .then(response => {
-                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                        return response.json();
-                    })
-                    .then(data => {
-                        subprojectSelect.innerHTML = '<option value="">---------</option>';
-                        if (data.subprojects.length === 0) {
-                            subprojectSelect.innerHTML = '<option value="">هیچ زیرپروژه‌ای یافت نشد</option>';
-                        } else {
-                            data.subprojects.forEach(subproject => {
-                                const option = document.createElement('option');
-                                option.value = subproject.id;
-                                option.textContent = subproject.name;
-                                if ({{ form.instance.subproject.id|default:"0" }} && subproject.id == {{ form.instance.subproject.id|default:"0" }}) {
-                                    option.selected = true;
-                                }
-                                subprojectSelect.appendChild(option);
-                            });
-                        }
-                        subprojectSelect.disabled = false;
-                    })
-                    .catch(error => {
-                        console.error('Error fetching subprojects:', error);
-                        subprojectSelect.innerHTML = '<option value="">خطا در بارگذاری زیرپروژه‌ها</option>';
-                    });
+                // Load subprojects
+                $.ajax({
+                    url: '{% url "get_subprojects" %}',
+                    data: { project_id: projectId },
+                    ...fetchOptions
+                })
+                .done(function(data) {
+                    console.log('Subprojects data:', data);
+                    const $subprojectSelect = $('#id_subproject');
+                    $subprojectSelect.empty().append('<option value="">---------</option>');
 
-                const budgetUrl = '{% url "get_budget_info" %}';
-                fetch(`${budgetUrl}?project_id=${projectId}`)
-                    .then(response => {
-                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (projectTotalBudgetSpan) projectTotalBudgetSpan.textContent = data.total_budget.toLocaleString('fa-IR');
-                        if (projectRemainingBudgetSpan) projectRemainingBudgetSpan.textContent = data.remaining_budget.toLocaleString('fa-IR');
-                        baseRemainingBudget = data.remaining_budget;
-                        baseTotalBudget = data.total_budget;
-                        baseSubprojectRemainingBudget = 0;
-                        baseSubprojectTotalBudget = 0;
-                        updateDynamicFields();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching budget info:', error);
-                    });
-            }
+                    if (data.subprojects && data.subprojects.length > 0) {
+                        $.each(data.subprojects, function(i, subproject) {
+                            $subprojectSelect.append($('<option>', {
+                                value: subproject.id,
+                                text: subproject.name
+                            }));
+                        });
+                    }
+                })
+                .fail(function(xhr, status, error) {
+                    console.error('Error loading subprojects:', error);
+                });
 
-            function updateSubprojectBudget() {
-                const subprojectId = subprojectSelect.value;
+                // Load project budget info
+                $.ajax({
+                    url: '{% url "get_budget_info" %}',
+                    data: { project_id: projectId },
+                    ...fetchOptions
+                })
+                .done(function(data) {
+                    console.log('Budget data:', data);
+                    if (data.total_budget && data.remaining_budget) {
+                        currentTotalBudget = parseFloat(data.total_budget);
+                        currentRemainingBudget = parseFloat(data.remaining_budget);
+                        console.log('Updated budgets:', currentTotalBudget, currentRemainingBudget);
+
+                        $('#project-total-budget').text(formatCurrency(data.total_budget) + ' ریال');
+                        $('#project-remaining-budget').text(formatCurrency(data.remaining_budget) + ' ریال');
+
+                        const percentage = (data.remaining_budget / data.total_budget) * 100;
+                        $('#project-progress-bar').css('width', percentage + '%')
+                            .text(percentage.toFixed(1) + '%')
+                            .attr('aria-valuenow', percentage);
+                    }
+                })
+                .fail(function(xhr, status, error) {
+                    console.error('Error loading budget info:', error);
+                });
+            });
+
+            $('#id_subproject').change(function() {
+                const subprojectId = $(this).val();
                 if (!subprojectId) {
-                    if (subprojectTotalBudgetSpan) subprojectTotalBudgetSpan.textContent = '0';
-                    if (subprojectRemainingBudgetSpan) subprojectRemainingBudgetSpan.textContent = '0';
-                    baseSubprojectRemainingBudget = 0;
-                    baseSubprojectTotalBudget = 0;
-                    updateDynamicFields();
+                    $('#subproject-budget-info').hide();
                     return;
                 }
 
-                const budgetUrl = '{% url "get_budget_info" %}';
-                fetch(`${budgetUrl}?subproject_id=${subprojectId}`)
-                    .then(response => {
-                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (subprojectTotalBudgetSpan) subprojectTotalBudgetSpan.textContent = data.subproject_total_budget.toLocaleString('fa-IR');
-                        if (subprojectRemainingBudgetSpan) subprojectRemainingBudgetSpan.textContent = data.subproject_remaining_budget.toLocaleString('fa-IR');
-                        baseSubprojectRemainingBudget = data.subproject_remaining_budget;
-                        baseSubprojectTotalBudget = data.subproject_total_budget;
-                        updateDynamicFields();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching subproject budget:', error);
-                    });
+                $.ajax({
+                    url: '{% url "get_budget_info" %}',
+                    data: { subproject_id: subprojectId },
+                    ...fetchOptions
+                })
+                .done(function(data) {
+                    console.log('Subproject budget data:', data);
+                    if (data.subproject_total_budget && data.subproject_remaining_budget) {
+                        $('#subproject-budget-info').show();
+                        currentTotalBudget = parseFloat(data.subproject_total_budget);
+                        currentRemainingBudget = parseFloat(data.subproject_remaining_budget);
+
+                        $('#subproject-total-budget').text(formatCurrency(data.subproject_total_budget) + ' ریال');
+                        $('#subproject-remaining-budget').text(formatCurrency(data.subproject_remaining_budget) + ' ریال');
+
+                        const percentage = (data.subproject_remaining_budget / data.subproject_total_budget) * 100;
+                        $('#subproject-progress-bar').css('width', percentage + '%')
+                            .text(percentage.toFixed(1) + '%')
+                            .attr('aria-valuenow', percentage);
+                    }
+                })
+                .fail(function(xhr, status, error) {
+                    console.error('Error loading subproject budget:', error);
+                });
+            });
+
+            function resetBudgetInfo() {
+                currentRemainingBudget = 0;
+                currentTotalBudget = 0;
+
+                $('#project-total-budget, #project-remaining-budget, ' +
+                  '#subproject-total-budget, #subproject-remaining-budget').text('0 ریال');
+
+                $('.progress-bar').css('width', '100%')
+                    .text('100%')
+                    .attr('aria-valuenow', 100)
+                    .css('background', 'linear-gradient(90deg, #28a745, #34d058)');
+
+                $('#subproject-budget-info').hide();
             }
 
-            projectSelect.addEventListener('change', updateSubprojectsAndBudget);
-            subprojectSelect.addEventListener('change', updateSubprojectBudget);
-
-            if (projectSelect.value) {
-                updateSubprojectsAndBudget();
-            }
-            if (subprojectSelect.value) {
-                updateSubprojectBudget();
+            // Initial setup
+            if ($('#id_project').val()) {
+                $('#id_project').trigger('change');
             }
         });
     </script>

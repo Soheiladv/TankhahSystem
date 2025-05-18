@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% load i18n %} {# Load the i18n tags for translation #}
+{% load humanize %} {# Optional: Load humanize for number formatting if needed, e.g., comma separation #}
+{% load static %} {# Optional: Load static files if you need custom CSS/JS for this page #}
+
+{% block content %}
+<div class="container mt-4">
+    {# Page Title #}
+    <h1 class="mb-4 text-right">{{ title }}</h1>
+
+    {# Card for Search and Filter Options #}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light text-dark text-right">
+            <h5 class="my-1">{% trans "جستجو و فیلتر" %}</h5>
+        </div>
+        <div class="card-body">
+            {# Search/Filter Form - Action points to the list URL #}
+            <form method="get" action="{% url 'accessrule_list' %}" class="form-row align-items-end text-right">
+                {# Text Search Input #}
+                <div class="form-group col-md-4">
+                    <label for="id_q">{% trans "جستجو در سازمان، شاخه یا نوع موجودیت" %}</label>
+                    <input type="text" name="q" id="id_q" class="form-control" value="{{ query|default:'' }}" placeholder='{% trans "عبارت جستجو..." %}'> {# Added default to handle None if query is empty #}
+                </div>
+
+                {# Active Status Filter #}
+                <div class="form-group col-md-3">
+                    <label for="id_is_active">{% trans "وضعیت" %}</label>
+                    <select name="is_active" id="id_is_active" class="form-control">
+                        <option value="">{% trans "همه" %}</option>
+                        <option value="true" {% if is_active == 'true' %}selected{% endif %}>{% trans "فعال" %}</option>
+                        <option value="false" {% if is_active == 'false' %}selected{% endif %}>{% trans "غیرفعال" %}</option>
+                    </select>
+                </div>
+
+                {# Submit and Reset Buttons #}
+                <div class="form-group col-md-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> {% trans "اعمال فیلتر" %}
+                    </button>
+                    {# Reset Filter button - Href points to the list URL #}
+                    <a href="{% url 'accessrule_list' %}" class="btn btn-secondary mr-2">
+                         <i class="fas fa-sync-alt"></i> {% trans "بازنشانی" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Total Rules Count and Add New Button #}
+    <div class="row mb-3 align-items-center text-right">
+        <div class="col-md-6">
+             <p class="mb-0">
+                 {% blocktrans count total_rules=total_access_rules %}
+                     مجموع: ۱ قانون دسترسی
+                 {% plural %}
+                     مجموع: {{ total_rules|intcomma }} قانون دسترسی
+                 {% endblocktrans %}
+             </p>
+        </div>
+        <div class="col-md-6 text-left"> {# text-left to push the button to the left in RTL #}
+             {# Add New Button - Href points to the create URL #}
+            <a href="{% url 'accessrule_create' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> {% trans "قانون جدید" %}
+            </a>
+        </div>
+    </div>
+
+
+    {# Card for the Access Rules List Table #}
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if access_rules %} {# Check if there are any access rules to display #}
+                {# Responsive table wrapper #}
+                <div class="table-responsive">
+                    {# The main table for the list #}
+                    <table class="table table-striped table-hover text-right"> {# Added striped and hover for better readability #}
+                        <thead>
+                            <tr>
+                                <th>{% trans "#" %}</th> {# Row number/ID column #}
+                                <th>{% trans "سازمان" %}</th>
+                                <th>{% trans "شاخه" %}</th>
+                                <th>{% trans "حداقل سطح" %}</th>
+                                <th>{% trans "مرحله" %}</th>
+                                <th>{% trans "نوع اقدام" %}</th>
+                                <th>{% trans "نوع موجودیت" %}</th>
+                                <th>{% trans "امضاکننده دستور پرداخت" %}</th>
+                                <th>{% trans "وضعیت" %}</th>
+                                <th class="text-center">{% trans "عملیات" %}</th> {# Center align the actions column header #}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rule in access_rules %} {# Loop through each access rule object #}
+                            <tr>
+                                <td>{{ forloop.counter  }}</td> {# Display row number taking pagination into account #}
+                                <td>{{ rule.organization }}</td>
+                                <td>{{ rule.get_branch_display|default:_("نامشخص") }}</td> {# Display verbose name for choice #}
+                                <td>{{ rule.min_level }}</td>
+                                <td>{{ rule.stage }}</td> {# Assuming stage has a __str__ method or similar display #}
+                                <td>{{ rule.get_action_type_display }}</td> {# Display verbose name for choice #}
+                                <td>{{ rule.entity_type }}</td>
+                                <td>{{ rule.is_payment_order_signer|yesno:_("بله,خیر") }}</td> {# Display boolean as Yes/No #}
+                                <td>
+                                    {% if rule.is_active %}
+                                    <span class="badge bg-success">{% trans "فعال" %}</span> {# Badge for active status #}
+                                    {% else %}
+                                    <span class="badge bg-danger">{% trans "غیرفعال" %}</span> {# Badge for inactive status #}
+                                    {% endif %}
+                                </td>
+                                <td class="text-center text-nowrap"> {# text-center for buttons, text-nowrap to keep buttons together #}
+                                    {# Action Buttons/Links #}
+                                    {# Add a check if rule.pk is not None before generating URLs #}
+                                    {% if rule.pk %}
+                                        {# Detail Button - Href points to the detail URL with rule's primary key #}
+                                        <a href="{% url 'accessrule_detail' rule.pk %}" class="btn btn-info btn-sm" data-toggle="tooltip" title='{% trans "جزئیات" %}'>
+                                            <i class="fas fa-eye"></i> {# View icon #}
+                                        </a>
+                                        {# Edit Button - Href points to the update URL with rule's primary key #}
+                                        <a href="{% url 'accessrule_update' rule.pk %}" class="btn btn-warning btn-sm mr-1" data-toggle="tooltip" title='{% trans "ویرایش" %}'>
+                                            <i class="fas fa-edit"></i> {# Edit icon #}
+                                        </a>
+                                        {# Delete Button - Href points to the delete URL with rule's primary key #}
+                                        <a href="{% url 'accessrule_delete' rule.pk %}" class="btn btn-danger btn-sm mr-1" data-toggle="tooltip" title='{% trans "حذف" %}'>
+                                            <i class="fas fa-trash"></i> {# Delete icon #}
+                                        </a>
+                                    {% else %}
+                                        {# Optional: Display a message or leave blank for rules with no PK #}
+                                        <span class="text-muted small">{% trans "نامعتبر" %}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div> {# End table-responsive #}
+
+                {# Pagination Controls #}
+                {% if is_paginated %} {# Check if pagination is needed #}
+                    <nav aria-label="Page navigation" class="mt-4"> {# Add margin top #}
+                        <ul class="pagination justify-content-center"> {# Center align pagination #}
+
+                            {# Previous Page Link #}
+                            {% if page_obj.has_previous %}
+                                {# Href includes page number and preserves existing query/is_active params #}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if is_active %}&is_active={{ is_active }}{% endif %}" aria-label='{% trans "قبلی" %}'>
+                                        <span aria-hidden="true">&laquo;</span>
+                                        <span class="sr-only">{% trans "قبلی" %}</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link" aria-hidden="true">&laquo;</span>
+                                </li>
+                            {% endif %}
+
+                            {# Page Numbers #}
+                            {% for i in paginator.page_range %}
+                                {% if page_obj.number == i %}
+                                    <li class="page-item active"><span class="page-link">{{ i }} <span class="sr-only">(current)</span></span></li>
+                                {% else %}
+                                    {# Href includes page number and preserves existing query/is_active params #}
+                                    <li class="page-item"><a class="page-link" href="?page={{ i }}{% if query %}&q={{ query }}{% endif %}{% if is_active %}&is_active={{ is_active }}{% endif %}">{{ i }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {# Next Page Link #}
+                            {% if page_obj.has_next %}
+                                {# Href includes page number and preserves existing query/is_active params #}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if is_active %}&is_active={{ is_active }}{% endif %}" aria-label='{% trans "بعدی" %}'>
+                                        <span aria-hidden="true">&raquo;</span>
+                                        <span class="sr-only">{% trans "بعدی" %}</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link" aria-hidden="true">&raquo;</span>
+                                </li>
+                            {% endif %}
+
+                        </ul>
+                    </nav>
+                {% endif %} {# End pagination check #}
+
+            {% else %} {# Message when no access rules are found #}
+                <div class="alert alert-info text-center mb-0" role="alert">
+                    {% trans "هیچ قانون دسترسی یافت نشد." %}
+                </div>
+            {% endif %} {# End access_rules check #}
+        </div> {# End card-body #}
+    </div> {# End card #}
+
+</div> {# End container #}
+{% endblock %}
+
+{% block extra_js %} {# Optional: Add JS block for tooltip initialization #}
+    {{ block.super }} {# Include parent template's JS if base.html has an extra_js block #}
+    <script>
+        // Initialize Bootstrap tooltips (requires Bootstrap JS bundle)
+        $(function () {
+          $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>
+{% endblock extra_js %}
