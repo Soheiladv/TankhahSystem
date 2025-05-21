@@ -795,6 +795,7 @@ class ApprovalDetailView(PermissionBaseView, DetailView):
     template_name = 'tankhah/approval_detail.html'
     context_object_name = 'approval'
     extra_context = {'title': _('جزئیات تأیید')}
+    # نسخه جدید بنویس
 class ApprovalCreateView(PermissionRequiredMixin, CreateView):
     model = 'tankhah.ApprovalLog'
     form_class = 'tankhah.forms.ApprovalForm'

@@ -2,6 +2,9 @@ from django import template
 from django.utils import numberformat
 from decimal import Decimal
 
+from django.contrib.humanize.templatetags.humanize import intcomma
+import re
+
 register = template.Library()
 
 
@@ -60,7 +63,6 @@ def get_item(dictionary, key):
 
 
 #####  اعداد فارسی
-register = template.Library()
 
 
 @register.filter
@@ -82,9 +84,6 @@ def to_persian_number(value):
         value = value.replace(eng, per)
     return value
 
-
-from django.contrib.humanize.templatetags.humanize import intcomma
-import re
 
 
 @register.filter
@@ -395,4 +394,33 @@ def is_image_file(filename):
          return ext in IMAGE_EXTENSIONS
      except Exception:
          return False
+#
+@register.filter(name='get_item')
+def get_item(dictionary, key):
+    return dictionary.get(key)
 
+
+@register.filter
+def lookup(value, key):
+    if isinstance(value, dict):
+        return value.get(key)
+    return getattr(value, key, None)
+
+
+# @register.filter
+# def split(value, delimiter):
+# #     """فیلتر split: فرض کردم split تعریف شده (برای جدا کردن rule_label). اگه نیست، بگو تا جایگزین کنم یا تعریفش کنم:"""
+#     return value.split(delimiter)
+
+@register.filter
+def split(value, separator):
+    #     """فیلتر split: فرض کردم split تعریف شده (برای جدا کردن rule_label). اگه نیست، بگو تا جایگزین کنم یا تعریفش کنم:"""
+    return value.split(separator)
+
+@register.filter
+def startswith(value, prefix):
+    return value.startswith(prefix)
+#
+@register.filter
+def endswith(value, suffix):
+    return value.endswith(suffix)

@@ -4,6 +4,7 @@ from unittest import TestCase
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, get_object_or_404
 from django.test import RequestFactory
@@ -407,6 +408,34 @@ class PermissionBaseView(LoginRequiredMixin, View):
         """مدیریت عدم دسترسی"""
         messages.error(self.request, _("شما اجازه دسترسی به این بخش را ندارید."))
         return redirect('index')
+
+    def check_object_permission(self, request, obj):
+        user = request.user
+        user_posts = user.userpost_set.filter(is_active=True)
+        for user_post in user_posts:
+            from core.models import PostAction
+
+            # چک قوانین مرتبط با پست خاص
+            if PostAction.objects.filter(
+                post=user_post.post,
+                stage=obj.stage,
+                action_type='APPROVE',
+                entity_type=ContentType.objects.get_for_model(obj).model.upper(),
+                is_active=True
+            ).exists():
+                logger.info(f"دسترسی تأیید برای {obj} تأیید شد (قانون مستقیم پست)")
+                return True
+            # چک قوانین بر اساس min_level
+            if PostAction.objects.filter(
+                post=user_post.post,
+                stage=obj.stage,
+                action_type='APPROVE',
+                entity_type=ContentType.objects.get_for_model(obj).model.upper(),
+                is_active=True,
+                min_level__lte=user_post.post.level
+            ).exists():
+                logger.info(f"دسترسی تأیید برای {obj} تأیید شد (min_level)")
+                return True
 
 
 """

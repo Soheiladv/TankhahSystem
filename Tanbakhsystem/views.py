@@ -115,7 +115,8 @@ class DashboardView( PermissionBaseView , TemplateView):
             ],
             'قوانین سیستم (رول های دسترسی ) ': [
                 {'name': _('قوانین سیستم (رول های دسترسی )'), 'url': 'accessrule_list',  'icon': 'fas fa-history'},#'permission': 'core.view_posthistory',
-             ],
+                {'name': _('قوانین سیستم (رول های دسترسی ) فرم جدید '), 'url': 'post_access_rule_assign',  'icon': 'fas fa-history'},#'permission': 'core.view_posthistory',
+                 ],
             'تاریخچه پست‌ها': [
                 {'name': _('فهرست تاریخچه پست‌ها'), 'url': 'posthistory_list', 'permission': 'core.view_posthistory', 'icon': 'fas fa-history'},
                 # {'name': _('ثبت تاریخچه'), 'url': 'posthistory_create', 'permission': 'add_posthistory', 'icon': 'fas fa-plus'},

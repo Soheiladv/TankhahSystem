@@ -241,3 +241,33 @@ class CoreViewsTest(TestCase):
     def tearDown(self):
         # پاکسازی بعد از تست
         self.client.logout()
+
+
+from django.test import TestCase
+from core.models import Post, WorkflowStage
+
+class PostAccessRuleFormTest(TestCase):
+    def setUp(self):
+        self.post = Post.objects.create(name="تست", organization_id=1, is_active=True)
+        self.stage = WorkflowStage.objects.create(name="تست مرحله", is_active=True)
+
+    def test_sign_payment_validation(self):
+        data = {
+            f"post_{self.post.id}_rule_FACTOR_SIGN_PAYMENT": "on",
+            f"post_{self.post.id}_rule_FACTOR_SIGN_PAYMENT_stage": self.stage.id,
+            f"post_{self.post.id}_level": 2,
+        }
+        from core.AccessRule.forms_accessrule import PostAccessRuleForm
+        form = PostAccessRuleForm(data=data)
+        self.assertTrue(form.is_valid(), msg=form.errors.as_json())
+        self.assertIn(f"post_{self.post.id}_rule_FACTOR_SIGN_PAYMENT", form.cleaned_data)
+
+    def test_invalid_action_type(self):
+        data = {
+            f"post_{self.post.id}_rule_FACTOR_SIGN": "on",
+            f"post_{self.post.id}_rule_FACTOR_SIGN_stage": self.stage.id,
+        }
+        from core.AccessRule.forms_accessrule import PostAccessRuleForm
+        form = PostAccessRuleForm(data=data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("نوع اقدام SIGN نامعتبر است.", str(form.errors))

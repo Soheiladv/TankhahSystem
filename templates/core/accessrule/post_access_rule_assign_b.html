@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4 text-right">{{ title }}</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white text-right d-flex justify-content-between align-items-center">
+            <h5 class="my-1">{% trans "تنظیمات دسترسی بر اساس پست" %}</h5>
+            <i class="fas fa-tools fa-2x"></i> {# Example icon #}
+        </div>
+
+        <div class="card-body">
+            {# Messages Framework - Displays Django messages (success, error, warning, info) #}
+            {% if messages %}
+                <div class="alert-container mb-3">
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% else %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show text-right" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {# Form Errors - Displays general form errors or errors not tied to specific fields #}
+            {% if form.errors %}
+                <div class="alert alert-danger text-right mb-4" role="alert">
+                    <strong>{% trans "خطاهای فرم:" %}</strong>
+                    <ul class="list-unstyled mb-0">
+                        {# Display non-field errors first #}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                        {# Display field-specific errors. Individual field errors are also shown next to their fields. #}
+                        {% for field, errors in form.errors.items %}
+                            {# Only show errors for fields not typically rendered with their own label (e.g., if a global error related to a field name exists) #}
+                            {% if not field in form.fields and not field == '__all__' %}
+                                <li><strong>{{ field }}:</strong> {{ errors|join:", " }}</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <form method="post" id="accessRuleForm">
+                {% csrf_token %}
+
+                {# Check if there are any posts to display and manage #}
+                {% if form.post_fields_data %}
+                    <div class="accordion" id="postsAccordion">
+                        {# Loop through each post data prepared by the form #}
+                        {% for post_data in form.post_fields_data %}
+                            <div class="card mb-3 border-0 rounded-3 shadow-sm">
+                                <div class="accordion-header" id="headingPost{{ post_data.post.id }}">
+                                    <button class="accordion-button text-right text-decoration-none {% if not forloop.first %}collapsed{% endif %} py-3"
+                                            type="button" data-bs-toggle="collapse" data-bs-target="#collapsePost{{ post_data.post.id }}"
+                                            aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapsePost{{ post_data.post.id }}">
+                                        <span class="d-flex align-items-center">
+                                            <i class="fas fa-user-tie fa-lg me-2 text-primary"></i> {# Icon for post #}
+                                            <strong class="fs-5">{{ post_data.post.name }}</strong>
+                                            <small class="text-muted ms-3">
+                                                ({{ post_data.post.organization.name|default:_("بدون سازمان") }} - {{ post_data.post.get_branch_display|default:_("بدون شاخه") }})
+                                            </small>
+                                        </span>
+                                    </button>
+                                </div>
+
+                                <div id="collapsePost{{ post_data.post.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+                                     aria-labelledby="headingPost{{ post_data.post.id }}" data-bs-parent="#postsAccordion">
+                                    <div class="accordion-body bg-light-subtle p-3">
+
+                                        {# Post Level Field - Allows setting the level for the post #}
+                                        <div class="row align-items-center mb-4 pb-2 border-bottom border-secondary-subtle">
+                                            <label for="{{ post_data.level_field.id_for_label }}" class="col-sm-3 col-form-label text-right fw-bold">{% trans "سطح پست" %}:</label>
+                                            <div class="col-sm-9">
+                                                <div class="d-flex align-items-center">
+                                                    {{ post_data.level_field }} {# Renders the number input field #}
+                                                    <span class="ms-3 text-muted small">{% trans "عدد بیشتر = سطح بالاتر" %}</span>
+                                                </div>
+                                                {% if post_data.level_field.errors %}
+                                                    <div class="text-danger small mt-1">{{ post_data.level_field.errors|join:", " }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <h5 class="mb-3 mt-4 text-primary">{% trans "قوانین دسترسی به موجودیت‌ها" %}</h5>
+
+                                        {# Inner Accordion for Entities - Groups rules by entity type #}
+                                        <div class="accordion accordion-flush" id="entitiesAccordion{{ post_data.post.id }}">
+                                            {% for entity_group in post_data.entity_groups %}
+                                                <div class="card mb-2 border rounded-2">
+                                                    <div class="accordion-item">
+                                                        <h2 class="accordion-header" id="headingEntity{{ post_data.post.id }}{{ entity_group.entity_id }}">
+                                                            <button class="accordion-button text-right text-decoration-none collapsed py-2"
+                                                                    type="button" data-bs-toggle="collapse" data-bs-target="#collapseEntity{{ post_data.post.id }}{{ entity_group.entity_id }}"
+                                                                    aria-expanded="false" aria-controls="collapseEntity{{ post_data.post.id }}{{ entity_group.entity_id }}">
+                                                                <i class="fas fa-file-alt me-2 text-info"></i> {# Icon for entity type #}
+                                                                <strong>{{ entity_group.entity_label }}</strong>
+                                                            </button>
+                                                        </h2>
+
+                                                        <div id="collapseEntity{{ post_data.post.id }}{{ entity_group.entity_id }}" class="accordion-collapse collapse"
+                                                             aria-labelledby="headingEntity{{ post_data.post.id }}{{ entity_group.entity_id }}" data-bs-parent="#entitiesAccordion{{ post_data.post.id }}">
+                                                            <div class="accordion-body p-2 bg-white">
+
+                                                                {# Table to display individual rules for the current entity #}
+                                                                <div class="table-responsive">
+                                                                    <table class="table table-striped table-hover mb-0">
+                                                                        <thead class="table-light">
+                                                                            <tr>
+                                                                                <th class="text-right" style="width: 30%;">{% trans "اقدام" %}</th>
+                                                                                <th class="text-right" style="width: 30%;">{% trans "مرحله گردش کار" %}</th>
+                                                                                <th class="text-center" style="width: 20%;">{% trans "فعال" %}</th>
+                                                                                <th class="text-center" style="width: 20%;">{% trans "امضاکننده" %}</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            {# Loop through each rule item (action, stage, active state) #}
+                                                                            {% for rule_item in entity_group.rules %}
+                                                                                <tr>
+                                                                                    <td><i class="fas fa-hand-point-right me-2 text-secondary"></i> {{ rule_item.action_label }}</td>
+                                                                                    <td><span class="badge bg-info text-dark rounded-pill">{{ rule_item.stage_obj.name }}</span></td>
+                                                                                    <td class="text-center">
+                                                                                        {# Main rule activation checkbox (toggle switch style) #}
+                                                                                        <div class="form-check form-switch d-inline-block">
+                                                                                            <input type="checkbox" class="form-check-input rule-checkbox"
+                                                                                                   name="{{ rule_item.rule_field.name }}"
+                                                                                                   id="{{ rule_item.rule_field.id_for_label }}"
+                                                                                                   {% if rule_item.rule_field.value %}checked{% endif %}
+                                                                                                   title="{% trans 'فعال کردن این قانون' %}">
+                                                                                            <label class="form-check-label" for="{{ rule_item.rule_field.id_for_label }}"></label>
+                                                                                        </div>
+                                                                                        {% if rule_item.rule_field.errors %}
+                                                                                            <div class="text-danger small mt-1">{{ rule_item.rule_field.errors|join:", " }}</div>
+                                                                                        {% endif %}
+                                                                                    </td>
+                                                                                    <td class="text-center">
+                                                                                        {# Conditional rendering for payment order signer checkbox #}
+                                                                                        {% if rule_item.is_signer_field %}
+                                                                                            <div class="form-check form-switch d-inline-block">
+                                                                                                <input type="checkbox" class="form-check-input signer-checkbox"
+                                                                                                       name="{{ rule_item.is_signer_field.name }}"
+                                                                                                       id="{{ rule_item.is_signer_field.id_for_label }}"
+                                                                                                       {% if rule_item.is_signer_field.value %}checked{% endif %}
+                                                                                                       {% if not rule_item.rule_field.value %}disabled{% endif %} {# Disable if main rule is not active #}
+                                                                                                       title="{% trans 'این پست مجاز به امضای دستور پرداخت است.' %}">
+                                                                                                <label class="form-check-label" for="{{ rule_item.is_signer_field.id_for_label }}"></label>
+                                                                                            </div>
+                                                                                            {% if rule_item.is_signer_field.errors %}
+                                                                                                <div class="text-danger small mt-1">{{ rule_item.is_signer_field.errors|join:", " }}</div>
+                                                                                            {% endif %}
+                                                                                        {% else %}
+                                                                                            {# Display a dash if this action type doesn't have a signer option #}
+                                                                                            <i class="fas fa-minus text-muted"></i>
+                                                                                        {% endif %}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            {% endfor %}
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div> {# .table-responsive #}
+
+                                                            </div> {# .accordion-body for entity #}
+                                                        </div> {# .collapseEntity #}
+                                                    </div> {# .accordion-item #}
+                                                </div> {# .card mb-2 for entity #}
+                                            {% endfor %}
+                                        </div> {# .accordion for entities #}
+
+                                    </div> {# .accordion-body for post #}
+                                </div> {# .collapsePost #}
+                            </div> {# .card mb-3 for post #}
+                        {% endfor %}
+                    </div> {# .accordion for posts #}
+
+                    {# Form Buttons - Action buttons for saving or cancelling #}
+                    <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-success btn-lg px-4 me-2 shadow-sm">
+                            <i class="fas fa-save me-2"></i> {% trans "ذخیره تغییرات" %}
+                        </button>
+                        <a href="{% url 'accessrule_list' %}" class="btn btn-outline-secondary btn-lg px-4"> {# Update 'accessrule_list' to your actual list URL #}
+                            <i class="fas fa-times-circle me-2"></i> {% trans "انصراف" %}
+                        </a>
+                    </div>
+                {% else %}
+                    {# Message displayed when no active posts are found for the user #}
+                    <div class="alert alert-info text-center mb-0 p-3">
+                        <i class="fas fa-info-circle fa-lg me-2"></i>
+                        {% trans "هیچ پست فعالی که شما اجازه مدیریت قوانین دسترسی آن را داشته باشید، یافت نشد." %}
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Function to toggle the disabled state of the 'signer-checkbox'
+            // based on whether its corresponding 'rule-checkbox' is checked.
+            const toggleSignerCheckbox = (ruleCheckbox) => {
+                // Find the closest table row (<tr>) to the ruleCheckbox
+                // and then search for the .signer-checkbox within that row.
+                const signerCheckbox = ruleCheckbox.closest('tr').querySelector('.signer-checkbox');
+                if (signerCheckbox) {
+                    // Disable the signer checkbox if the main rule checkbox is not checked.
+                    signerCheckbox.disabled = !ruleCheckbox.checked;
+                    // If the main rule is disabled, uncheck the signer checkbox to prevent accidental enabling.
+                    if (!ruleCheckbox.checked) {
+                        signerCheckbox.checked = false;
+                    }
+                }
+            };
+
+            // 1. Initial setup: Apply the toggle logic to all existing rule checkboxes on page load.
+            document.querySelectorAll('.rule-checkbox').forEach(toggleSignerCheckbox);
+
+            // 2. Event Listener: Add a change event listener to all rule checkboxes
+            // so the signer checkbox updates dynamically when the rule checkbox is toggled.
+            document.querySelectorAll('.rule-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', (event) => toggleSignerCheckbox(event.target));
+            });
+
+            // 3. Accordion Icon Rotation: Adds a visual flair by rotating the chevron icon
+            // in the accordion headers when they are expanded/collapsed.
+            document.querySelectorAll('.accordion-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const icon = button.querySelector('.fa-chevron-down'); // Find the icon within the button
+                    if (icon) {
+                        icon.classList.toggle('rotate-180'); // Toggle a CSS class to rotate the icon
+                    }
+                });
+            });
+
+            // 4. Initialize Bootstrap Tooltips: Ensures all elements with a 'title' attribute
+            // display a Bootstrap tooltip on hover.
+            const tooltipTriggerList = document.querySelectorAll('[title]');
+            tooltipTriggerList.forEach(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+            // 5. Auto-open Accordions with Errors: This is a crucial UX improvement.
+            // If the form returns with errors, this script will automatically expand
+            // the accordion sections (both post and entity) that contain fields with errors,
+            // making it easier for the user to see and correct them.
+            // A small delay is added to ensure Bootstrap's JavaScript has fully initialized collapses.
+            setTimeout(() => {
+                document.querySelectorAll('.accordion-collapse').forEach(collapseEl => {
+                    // Check if there's any element with 'text-danger' (indicating an error) inside this collapse.
+                    if (collapseEl.querySelector('.text-danger')) {
+                        // Get the Bootstrap Collapse instance for the current collapse element.
+                        const bsCollapse = bootstrap.Collapse.getInstance(collapseEl);
+                        // If the collapse is not already shown or in the process of collapsing/showing, open it.
+                        if (!bsCollapse || (!bsCollapse._isCollapsing && !bsCollapse._isShown)) {
+                            new bootstrap.Collapse(collapseEl, { toggle: true });
+                        }
+
+                        // Also find and open its parent collapse (e.g., if an entity within a post has an error,
+                        // ensure the parent post accordion is also open).
+                        const parentCollapseEl = collapseEl.closest('.accordion-collapse');
+                        if (parentCollapseEl) {
+                            const parentBsCollapse = bootstrap.Collapse.getInstance(parentCollapseEl);
+                            if (!parentBsCollapse || (!parentBsCollapse._isCollapsing && !parentBsCollapse._isShown)) {
+                                new bootstrap.Collapse(parentCollapseEl, { toggle: true });
+                            }
+                        }
+                    }
+                });
+            }, 100); // Short delay to ensure Bootstrap's JS has completed its initial DOM parsing.
+        });
+    </script>
+    <style>
+        /* CSS for the accordion icon rotation effect */
+        .accordion-button .fa-chevron-down {
+            transition: transform 0.3s ease-in-out;
+            margin-right: auto; /* Pushes the icon to the left in LTR, adjust for RTL if needed */
+            margin-left: 0; /* Ensures no extra space on left */
+        }
+        .accordion-button:not(.collapsed) .fa-chevron-down {
+            transform: rotate(180deg);
+        }
+        /* Override default Bootstrap accordion button focus outline for a cleaner look */
+        .accordion-button:focus {
+            box-shadow: none;
+        }
+    </style>
+{% endblock %}

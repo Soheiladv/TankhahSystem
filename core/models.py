@@ -191,9 +191,20 @@ class SubProject(models.Model):
         ]
 class Post(models.Model):
     """مدل پست سازمانی برای تعریف سلسله مراتب"""
+    # BRANCH_CHOICES = (
+    #     ('OPS', _('مدیرعامل')),
+    #     ('FIN', _('مالی و اداری')),
+    #     ('OPS', _('سرمایه گذاری')),
+    #     ('OPS', _('هتلها')),
+    #     ('OPS', _('دیگر واحدهای ستادی')),
+    #     (None, _('بدون شاخه')),
+    # )
     BRANCH_CHOICES = (
-        ('OPS', _('بهره‌برداری')),
+        ('CEO', _('مدیرعامل')),
         ('FIN', _('مالی و اداری')),
+        ('INV', _('سرمایه‌گذاری')),
+        ('HOT', _('هتل‌ها')),
+        ('STF', _('دیگر واحدهای ستادی')),
         (None, _('بدون شاخه')),
     )
     name = models.CharField(max_length=100, verbose_name=_("نام پست"))
@@ -210,6 +221,7 @@ class Post(models.Model):
 
     def __str__(self):
         branch = self.branch or "بدون شاخه"
+        branch = self.get_branch_display() or _('بدون شاخه')
         return f"{self.name} ({self.organization.code}) - {branch}"
 
     def save(self, *args, **kwargs):
@@ -424,37 +436,42 @@ class AccessRule(models.Model):
     """این مدل مشخص می‌کنه که پست‌های یک سازمان، با branch و min_level خاص، چه اقداماتی می‌تونن توی چه مراحلی برای چه موجودیت‌هایی انجام بدن."""
     ENTITY_TYPES = (
         ('FACTOR', _('فاکتور')),
-        ('PAYMENTORDER', _('دستور پرداخت')),
         ('TANKHAH', _('تنخواه')),
         ('BUDGET', _('بودجه')),
+        ('PAYMENTORDER', _('دستور پرداخت')),
         ('REPORTS', _('گزارشات')),
-        # مقادیر دیگه‌ای که ممکنه بعداً اضافه بشن
     )
-    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("سازمان"))
-    branch = models.CharField(max_length=10, choices=[('OPS', 'عملیات'), ('FIN', 'مالی')], blank=True, verbose_name=_("شاخه"))
-    min_level = models.IntegerField(default=1, verbose_name=_("حداقل سطح"))
-    stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_("مرحله"))
-    action_type = models.CharField(max_length=25, choices=[
+    ACTION_TYPES = (
         ('APPROVE', _('تأیید')),
         ('REJECT', _('رد')),
-        ('SIGN_PAYMENT', _('امضای دستور پرداخت'))
-    ], verbose_name=_("نوع اقدام"))
-    # entity_type = models.CharField(max_length=50, verbose_name=_("نوع موجودیت"))
-    entity_type = models.CharField(max_length=100,choices=ENTITY_TYPES, verbose_name=_('نوع موجودیت') )
+        ('VIEW', _('مشاهده')),
+        ('SIGN_PAYMENT', _('امضای دستور پرداخت')),
+    )
+
+
+    branch = models.CharField(max_length=3, choices=Post.BRANCH_CHOICES, blank=True, verbose_name=_('شاخه'))
+    stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_('مرحله'))
+    action_type = models.CharField(max_length=25, choices=ACTION_TYPES, verbose_name=_('نوع اقدام'))
+    entity_type = models.CharField(max_length=100, choices=ENTITY_TYPES, verbose_name=_('نوع موجودیت'))
+    is_active = models.BooleanField(default=True, verbose_name=_('فعال'))
+    post = models.ForeignKey('core.Post', on_delete=models.CASCADE, null=True, blank=True, verbose_name=_('پست'),
+                             help_text=_('پست مرتبط با این قانون. اگر خالی باشد، بر اساس min_level اعمال می‌شود.'))
+    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("سازمان"))
+    min_level = models.IntegerField(default=1, verbose_name=_("حداقل سطح"))
     is_payment_order_signer = models.BooleanField(default=False, verbose_name=_("امضاکننده دستور پرداخت"))
-    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+
 
     class Meta:
-        verbose_name = _("قانون دسترسی")
-        verbose_name_plural = _("قوانین دسترسی")
-        unique_together = ('organization', 'branch', 'min_level', 'stage', 'action_type', 'entity_type')
-        default_permissions = ()
-        permissions = [
-            ('AccessRule_add','افزودن قانون دسترسی'),
-            ('AccessRule_view','نمایش قانون دسترسی'),
-            ('AccessRule_update','ویرایش قانون دسترسی'),
-            ('AccessRule_delete','حــذف قانون دسترسی'),
-        ]
+            verbose_name = _("قانون دسترسی")
+            verbose_name_plural = _("قوانین دسترسی")
+            unique_together = ('organization', 'branch', 'min_level', 'stage', 'action_type', 'entity_type')
+            default_permissions = ()
+            permissions = [
+                ('AccessRule_add','افزودن قانون دسترسی'),
+                ('AccessRule_view','نمایش قانون دسترسی'),
+                ('AccessRule_update','ویرایش قانون دسترسی'),
+                ('AccessRule_delete','حــذف قانون دسترسی'),
+            ]
 
     def __str__(self):
         return f"{self.organization} - {self.branch} - {self.action_type} - {self.entity_type}"
