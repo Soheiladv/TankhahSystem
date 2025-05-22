@@ -424,3 +424,4 @@ def startswith(value, prefix):
 @register.filter
 def endswith(value, suffix):
     return value.endswith(suffix)
+

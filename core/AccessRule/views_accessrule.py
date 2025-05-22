@@ -2,6 +2,7 @@
 import logging
 
 from django.contrib import messages
+from django.db.models import Q
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
@@ -17,44 +18,71 @@ def userGiud_AccessRule(request):
 class UserGuideView(TemplateView):
     template_name = 'core/accessrule/user_guide.html'
     extra_context = {'title': _('راهنمای کاربر: تخصیص قوانین دسترسی')}
+
+# It's good practice to define choices once for reusability
+# You might already have these in your models or a constants file.
+# If not, define them here or import them.
+ENTITY_TYPE_CHOICES = [
+    ('FACTOR', _('فاکتور')),
+    ('PAYMENTORDER', _('دستور پرداخت')),
+    ('TANKHAH', _('تنخواه')),
+    ('BUDGET', _('بودجه')), # Added BUDGET and REPORTS for completeness
+    ('REPORTS', _('گزارشات')),
+]
+
 class AccessRuleListView(PermissionBaseView, ListView):
     model = AccessRule
     template_name = 'core/accessrule/accessrule_list.html'
     context_object_name = 'access_rules'
     paginate_by = 10
-    permission_codenames = ['core.AccessRule_view']
+    permission_codenames = ['core.accessrule_view'] # Ensure this matches your actual permission
     check_organization = True
-    extra_context = {'title': _('لیست قوانین دسترسی')}
+    extra_context = {
+        'title': _('لیست قوانین دسترسی'),
+        'entity_type_choices': ENTITY_TYPE_CHOICES, # Pass choices to the template
+    }
 
     def get_queryset(self):
-        queryset = super().get_queryset().select_related('organization', 'stage').order_by('id')
-        query = self.request.GET.get('q', '')
-        is_active = self.request.GET.get('is_active', '')
-        entity_type = self.request.GET.get('entity_type', '')
+        queryset = super().get_queryset().select_related('organization', 'post', 'stage').order_by('-id')
+        # Using '-id' to show latest rules first, or you can order by 'organization__name', 'post__name' etc.
 
+        # Get filter parameters
+        query = self.request.GET.get('q', '')
+        is_active_param = self.request.GET.get('is_active', '')
+        entity_type_param = self.request.GET.get('entity_type', '')
+
+        # Apply filters
         if query:
-            from django.db.models import Q
+            # Use Q objects for OR conditions
             queryset = queryset.filter(
                 Q(organization__name__icontains=query) |
-                Q(branch__icontains=query) |
-                Q(entity_type__icontains=query)
+                Q(post__name__icontains=query) | # Assuming you want to search by post name too
+                Q(entity_type__icontains=query) |
+                Q(action_type__icontains=query) # Allow searching by action type
             )
 
-        if is_active:
-            queryset = queryset.filter(is_active=(is_active == 'true'))
-        if entity_type:
-            queryset = queryset.filter(entity_type=entity_type)
+        if is_active_param:
+            queryset = queryset.filter(is_active=(is_active_param == 'true'))
+
+        if entity_type_param:
+            queryset = queryset.filter(entity_type=entity_type_param)
 
         logger.info(f"AccessRule queryset count: {queryset.count()}")
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # Pass filter values back to the template for sticky filters
         context['query'] = self.request.GET.get('q', '')
-        context['is_active'] = self.request.GET.get('is_active', '')
-        context['entity_type'] = self.request.GET.get('entity_type', '')
+        context['is_active_filter'] = self.request.GET.get('is_active', '') # Renamed to avoid conflict with model field if any
+        context['entity_type_filter'] = self.request.GET.get('entity_type', '') # Renamed
+
+        # Calculate total_access_rules BEFORE pagination
+        # Use .count() on the filtered (but not paginated) queryset
         context['total_access_rules'] = self.get_queryset().count()
+
         return context
+
 class AccessRuleDetailView(PermissionBaseView, DetailView):
     model = AccessRule
     template_name = 'core/accessrule/accessrule_detail.html'
@@ -114,173 +142,7 @@ class PostRuleReportView(PermissionBaseView, ListView):
             'organization__name', 'level')
     # template_name = 'core/accessrule/post_access_rule_assign_a.html'
 
-class ___PostAccessRuleAssignView(FormView):
-    template_name = 'core/accessrule/post_access_rule_assign_b.html'
-    form_class = PostAccessRuleForm
-    success_url = reverse_lazy('accessrule_list')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = _('مدیریت پست‌ها و قوانین دسترسی')
-        context['entity_types'] = AccessRule.ENTITY_TYPES
-        context['action_types'] = AccessRule.ACTION_TYPES
-        total_columns = 4 + len(AccessRule.ENTITY_TYPES) * len(AccessRule.ACTION_TYPES)
-        context['total_table_columns'] = total_columns
-        logger.info(f"Context prepared. Form posts: {len(context['form'].posts)}, Total columns: {total_columns}")
-        return context
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        if self.request.user.is_authenticated and not self.request.user.is_superuser:
-            if not (
-                self.request.user.userpost_set.filter(post__organization__is_holding=True).exists() or
-                self.request.user.userpost_set.filter(post__branch='HQ').exists()
-            ):
-                user_orgs = self.request.user.userpost_set.filter(is_active=True).values('post__organization')
-                kwargs['user_organizations'] = user_orgs
-                logger.debug(f"Filtered by user organizations: {user_orgs}")
-        return kwargs
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        logger.info(f"درخواست POST دریافت شد. داده‌ها: {dict(request.POST)}")
-
-        # اعتبارسنجی فیلدهای قانون
-        valid_action_types = dict(AccessRule.ACTION_TYPES).keys()  # ['APPROVE', 'REJECT', 'VIEW', 'SIGN_PAYMENT']
-        invalid_fields = []
-
-        for field in request.POST:
-            if '_rule_' in field and not field.endswith('_stage'):
-                parts = field.split('_')
-                if len(parts) < 5:
-                    invalid_fields.append(field)
-                    continue
-                entity_type = parts[3]
-                action_type = 'SIGN_PAYMENT' if field.endswith('_SIGN_PAYMENT') else parts[4]
-                if action_type not in valid_action_types:
-                    invalid_fields.append(field)
-
-        if invalid_fields:
-            logger.warning(f"فیلدهای نامعتبر یافت شد: {invalid_fields}")
-            messages.error(request, f"فیلدهای نامعتبر: {', '.join(invalid_fields)}")
-            # افزودن خطاها به فرم برای لاگ‌گیری بهتر
-            form.add_error(None, f"فیلدهای نامعتبر: {', '.join(invalid_fields)}")
-            return self.form_invalid(form)
-
-        if form.is_valid():
-            logger.info("فرم معتبر است، ادامه ذخیره‌سازی")
-            return self.form_valid(form)
-        else:
-            logger.error(f"فرم نامعتبر است. خطاها: {form.errors.as_json()}, غیرفیلدی: {form.non_field_errors()}")
-            if not form.errors:
-                messages.error(request, "فرم به دلیل خطای ناشناخته نامعتبر است. لطفاً دوباره تلاش کنید.")
-            return self.form_invalid(form)
-
-    def form_invalid(self, form):
-        logger.error(
-            f"فرم نامعتبر است. خطاها: {form.errors.as_json()}, غیرفیلدی: {form.non_field_errors()}, داده‌ها: {dict(self.request.POST)}")
-        messages.error(self.request, _('خطایی در ذخیره‌سازی رخ داد. لطفاً ورودی‌ها را بررسی کنید.'))
-        # نمایش خطاهای خاص فیلدها و غیرفیلدی
-        for field, errors in form.errors.items():
-            for error in errors:
-                messages.warning(self.request, f"خطا در فیلد {field}: {error}")
-        for error in form.non_field_errors():
-            messages.warning(self.request, f"خطای عمومی: {error}")
-        return super().form_invalid(form)
-
-    def form_valid(self, form):
-        try:
-            cleaned_data = form.cleaned_data
-            logger.info(f"پردازش داده‌های فرم. فیلدها: {list(cleaned_data.keys())}")
-
-            # جمع‌آوری پست‌های تغییرکرده
-            post_ids = set()
-            for field_name in cleaned_data:
-                if '_rule_' in field_name and not field_name.endswith('_stage'):
-                    try:
-                        post_id = int(field_name.split('_')[1])
-                        post_ids.add(post_id)
-                    except (IndexError, ValueError):
-                        logger.warning(f"فرمت نام فیلد نامعتبر: {field_name}")
-                        continue
-            logger.info(f"شناسه‌های پست برای پردازش: {post_ids}")
-
-            # به‌روزرسانی سطح پست‌ها
-            posts_to_update = []
-            for field_name in cleaned_data:
-                if field_name.endswith('_level'):
-                    try:
-                        post_id = int(field_name.split('_')[1])
-                        level = cleaned_data[field_name] or 1
-                        post = Post.objects.get(id=post_id)
-                        post.level = level
-                        posts_to_update.append(post)
-                        logger.debug(f"پست {post.name} به سطح {level} به‌روزرسانی می‌شود")
-                    except Post.DoesNotExist:
-                        logger.error(f"پست با شناسه {post_id} یافت نشد")
-                        continue
-
-            if posts_to_update:
-                Post.objects.bulk_update(posts_to_update, ['level'])
-                logger.info(f"{len(posts_to_update)} پست به‌روزرسانی شد")
-
-            # حذف قوانین قبلی برای پست‌های انتخاب‌شده
-            if post_ids:
-                AccessRule.objects.filter(post__id__in=post_ids).delete()
-                logger.info(f"قوانین برای پست‌ها حذف شد: {post_ids}")
-
-            # ایجاد قوانین جدید
-            rules_to_create = []
-            for field_name in cleaned_data:
-                if '_rule_' in field_name and not field_name.endswith('_stage'):
-                    parts = field_name.split('_')
-                    if len(parts) >= 5:
-                        try:
-                            post_id = int(parts[1])
-                            entity_type = parts[3]
-                            action_type = parts[4]
-                            if cleaned_data[field_name]:
-                                stage = cleaned_data.get(f"{field_name}_stage")
-                                if stage:
-                                    post = Post.objects.get(id=post_id)
-                                    rules_to_create.append(
-                                        AccessRule(
-                                            post=post,
-                                            organization=post.organization,
-                                            branch=post.branch or '',
-                                            stage=stage,
-                                            action_type=action_type,
-                                            entity_type=entity_type,
-                                            is_active=True,
-                                            is_payment_order_signer=(action_type == 'SIGN_PAYMENT')
-                                        )
-                                    )
-                                    logger.debug(f"قانون برای پست {post.name} ایجاد خواهد شد: {entity_type}/{action_type}")
-                                else:
-                                    logger.warning(f"مرحله برای {field_name} وجود ندارد، رد می‌شود")
-                        except Post.DoesNotExist:
-                            logger.error(f"پست با شناسه {post_id} یافت نشد")
-                            continue
-
-            if rules_to_create:
-                AccessRule.objects.bulk_create(rules_to_create)
-                logger.info(f"{len(rules_to_create)} قانون ایجاد شد")
-            else:
-                logger.info("هیچ قانونی برای ایجاد وجود ندارد")
-
-            messages.success(self.request, 'پست‌ها و قوانین با موفقیت ذخیره شدند.')
-            logger.info("ذخیره‌سازی با موفقیت انجام شد")
-            return super().form_valid(form)
-
-        except Exception as e:
-            logger.exception(f"خطای غیرمنتظره در form_valid: {str(e)}")
-            messages.error(self.request, 'خطای غیرمنتظره‌ای رخ داد.')
-            return self.form_invalid(form)
-
-
-# budgets/views.py
-
-class PostAccessRuleAssignView(FormView):
+class OK__PostAccessRuleAssignView(FormView):
     template_name = 'core/accessrule/post_access_rule_assign_b.html'
     form_class = PostAccessRuleForm
     success_url = reverse_lazy('accessrule_list')  # Ensure this URL name is correct
@@ -319,19 +181,31 @@ class PostAccessRuleAssignView(FormView):
             logger.debug("User not authenticated or is superuser, showing all posts (or no filtering applied).")
         return kwargs
 
+    # def form_valid(self, form):
+    #     """
+    #     Called when the form is valid.
+    #     """
+    #     try:
+    #         form.save()  # The save logic is now encapsulated in the form
+    #         messages.success(self.request, _('پست‌ها و قوانین دسترسی با موفقیت ذخیره شدند.'))
+    #         logger.info("Form saved successfully.")
+    #         return super().form_valid(form)
+    #     except Exception as e:
+    #         logger.exception(f"An unexpected error occurred during form saving: {str(e)}")
+    #         messages.error(self.request, _('خطای غیرمنتظره‌ای در هنگام ذخیره‌سازی رخ داد.'))
+    #         return self.form_invalid(form)  # Re-render with errors if save fails
+
     def form_valid(self, form):
-        """
-        Called when the form is valid.
-        """
         try:
-            form.save()  # The save logic is now encapsulated in the form
+            # request.user را به متد save فرم منتقل کنید
+            form.save(user=self.request.user)
             messages.success(self.request, _('پست‌ها و قوانین دسترسی با موفقیت ذخیره شدند.'))
-            logger.info("Form saved successfully.")
+            logger.info("فرم با موفقیت ذخیره شد.")
             return super().form_valid(form)
         except Exception as e:
-            logger.exception(f"An unexpected error occurred during form saving: {str(e)}")
+            logger.exception(f"خطای غیرمنتظره‌ای در هنگام ذخیره‌سازی فرم رخ داد: {str(e)}")
             messages.error(self.request, _('خطای غیرمنتظره‌ای در هنگام ذخیره‌سازی رخ داد.'))
-            return self.form_invalid(form)  # Re-render with errors if save fails
+            return self.form_invalid(form)  # در صورت بروز خطا، فرم را با خطاها نمایش دهید
 
     def form_invalid(self, form):
         """
@@ -345,6 +219,63 @@ class PostAccessRuleAssignView(FormView):
         for field, errors in form.errors.items():
             for error in errors:
                 messages.warning(self.request, f"{_('خطا در فیلد')} {field}: {error}")
+        for error in form.non_field_errors():
+            messages.warning(self.request, f"{_('خطای عمومی')}: {error}")
+
+        return super().form_invalid(form)
+class PostAccessRuleAssignView(FormView):
+    template_name = 'core/accessrule/post_access_rule_assign_b.html'  # نام تمپلیت جدید و بهینه
+    form_class = PostAccessRuleForm
+    success_url = reverse_lazy('accessrule_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _("تنظیم قوانین دسترسی پست‌ها")
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+
+        posts_query = Post.objects.filter(is_active=True).select_related('organization', 'parent')
+
+        if not self.request.user.is_superuser:
+            user_orgs = self.request.user.userpost_set.filter(is_active=True).values_list('post__organization',
+                                                                                          flat=True).distinct()
+            posts_query = posts_query.filter(organization__id__in=user_orgs)
+
+        kwargs['posts_query'] = posts_query
+        logger.debug(f"Passing {posts_query.count()} posts to PostAccessRuleForm.")
+        return kwargs
+
+    def form_valid(self, form):
+        try:
+            form.save(user=self.request.user)
+            messages.success(self.request, _('پست‌ها و قوانین دسترسی با موفقیت ذخیره شدند.'))
+            logger.info("فرم با موفقیت ذخیره شد.")
+            return super().form_valid(form)
+        except Exception as e:
+            logger.exception(f"خطای غیرمنتظره‌ای در هنگام ذخیره‌سازی فرم رخ داد: {str(e)}")
+            messages.error(self.request, _('خطای غیرمنتظره‌ای در هنگام ذخیره‌سازی رخ داد.'))
+            return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        logger.error(f"فرم نامعتبر است. خطاها: {form.errors.as_json()}, خطاهای غیرفیلدی: {form.non_field_errors()}")
+        messages.error(self.request, _('خطایی در ذخیره‌سازی رخ داد. لطفاً ورودی‌ها را بررسی کنید.'))
+
+        for field, errors in form.errors.items():
+            display_field_name = field
+            if field.startswith('post_') and field.endswith('_level'):
+                post_id = field.split('_')[1]
+                try:
+                    post = Post.objects.get(id=post_id)
+                    display_field_name = f"{_('سطح پست')}: {post.name}"
+                except Post.DoesNotExist:
+                    pass
+            elif field.startswith('rule_') or field.startswith('signer_'):
+                display_field_name = _("قانون دسترسی")
+
+            # messages.warning(self.request, f"{_('خطا در فیلد')} {display_field_name}: {error}")
+
         for error in form.non_field_errors():
             messages.warning(self.request, f"{_('خطای عمومی')}: {error}")
 

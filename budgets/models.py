@@ -24,7 +24,6 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 from accounts.models import CustomUser
 
- # -- New
 
 def get_current_date():
     return timezone.now().date()
@@ -926,6 +925,21 @@ class TransactionType(models.Model):
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
                                    related_name='transaction_types_created', verbose_name=_("ایجادکننده"))
     category = models.CharField(max_length=50, blank=True, null=True,verbose_name=_('گروه بندی تراکنش‌ها '))
+    TRANSACTION_FLOW_CHOICES = [
+        ('INFLOW', _('ورودی (افزایش بودجه)')),
+        ('OUTFLOW', _('خروجی (کاهش بودجه)')),
+        ('CONSUMPTION', _('مصرف بودجه')),  # For expenses
+        ('TRANSFER', _('انتقال بودجه')),
+        ('RETURN', _('بازگشت بودجه')),
+        ('ADJUSTMENT', _('تعدیل بودجه')),  # مثلاً برای اصلاحات
+    ]
+    transaction_flow = models.CharField(
+        max_length=20,
+        choices=TRANSACTION_FLOW_CHOICES,
+        verbose_name=_("جریان تراکنش"),  # e.g., INFLOW, OUTFLOW, CONSUMPTION
+        help_text=_("جهت جریان مالی این نوع تراکنش (ورودی، خروجی، مصرف و غیره)")
+    )
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
 
     def __str__(self):
         return self.name

@@ -1,6 +1,11 @@
 import json
 import logging
 from datetime import timedelta
+
+import jdatetime
+from django.core import cache
+from django.db.models.functions import Coalesce
+from django.db.models.functions.datetime import TruncQuarter
 from django.utils import timezone
 
 from django.db.models import Sum, Q
@@ -9,14 +14,64 @@ from django.utils.translation import gettext_lazy as _
 ############################################Main
 # core/views.py
 from django.views.generic.base import TemplateView
+
+from budgets.budget_calculations import get_project_total_budget, get_project_used_budget
+from budgets.models import BudgetAllocation, BudgetTransaction, BudgetPeriod, CostCenter, BudgetHistory
 from core.PermissionBase import PermissionBaseView
-from core.models import WorkflowStage, Project
-from tankhah.models import Tankhah, ApprovalLog, Factor
+from core.models import WorkflowStage, Project, Organization
+from tankhah.models import Tankhah, ApprovalLog, Factor, FactorItem
 from version_tracker.models import FinalVersion, AppVersion
+
+
+import json
+import logging
+logger = logging.getLogger(__name__)
+import calendar
+from datetime import timedelta
+from decimal import Decimal
+import jdatetime
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Sum, Count, Q, F
+from django.db.models.functions import Coalesce, TruncMonth, TruncQuarter
+from django.shortcuts import render
+from django.urls import reverse_lazy
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from django.views import View
+
+# Model Imports - مطمئن شوید مسیرها درست هستند
+from budgets.models import (
+    BudgetAllocation, BudgetPeriod, BudgetTransaction, BudgetHistory
+)
+from tankhah.models import Tankhah, Factor, FactorItem, ApprovalLog, ItemCategory
+from core.models import Project, Organization  # اضافه کردن Organization
+from notifications.models import Notification
+
+# Calculation Functions Import
+from budgets.budget_calculations import (
+    get_project_total_budget,
+    get_project_used_budget,
+    get_project_remaining_budget
+)
 
 def pdate(request):
     return render(request, template_name='budgets/pdate.html')
 
+def about(request):
+    return render(request, template_name='about.html')
+
+class GuideView(TemplateView):
+    template_name = 'help/guide.html'
+
+class TanbakhWorkflowView(TemplateView): #help
+    template_name =  'help/run_tankhahSystem.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('جریان کار تنخواه‌گردانی')
+        context['stages'] = WorkflowStage.objects.all().order_by('order')
+        return context
 
 def home_view(request, *args, **kwargs):
     final_version = FinalVersion.calculate_final_version()
@@ -24,7 +79,7 @@ def home_view(request, *args, **kwargs):
     return render(request, 'index.html', {'latest_version': latest_version, 'final_version': final_version})
 
 """ داشبورد اصلی سیستم"""
-class DashboardView( PermissionBaseView , TemplateView):
+class OLD_DashboardView( PermissionBaseView , TemplateView):
     """ داشبورد اصلی سیستم"""
     template_name = 'core/dashboard.html'
     permission_codename = 'core.Dashboard_view'
@@ -126,7 +181,6 @@ class DashboardView( PermissionBaseView , TemplateView):
                 {'name': _('همه لینک‌ها'), 'url': 'all_links', 'icon': 'fas fa-link'},
                 {'name': _('مدیریت کاربران'), 'url': 'accounts:admin_dashboard', 'icon': 'fas fa-link'},
                 {'name': _('نسخه ها'), 'url': 'version_index_view', 'icon': 'fas fa-link'},
-                {'name': _('P Test '), 'url': 'pdate', 'icon': 'fas fa-link'},
                 {'name': _('راهنمای بودجه بندی'), 'url': 'budget_Help', 'icon': 'fas fa-link'},
                 {'name': _('دسته بندی نوع هزینه کرد'), 'url': 'itemcategory_list', 'icon': 'fas fa-link'},
             ],
@@ -280,48 +334,4 @@ class DashboardView( PermissionBaseView , TemplateView):
         #     }
 
         return stats
-
-class TanbakhWorkflowView(TemplateView): #help
-    template_name =  'help/run_tankhahSystem.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = _('جریان کار تنخواه‌گردانی')
-        context['stages'] = WorkflowStage.objects.all().order_by('order')
-        return context
-
-def about(request):
-    return render(request, template_name='about.html')
-
-class GuideView(TemplateView):
-    template_name = 'help/guide.html'
-# class Tanbakhsystem_DashboardView(LoginRequiredMixin, TemplateView):
-#     template_name = 'index.html'  # استفاده از index.html شما
-#     extra_context = {'title': _('منوی مدیریت سیستم')}
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         user = self.request.user
-#
-#         # تعریف لینک‌ها در دسته‌بندی‌های مختلف
-#         context['cards'] = {
-#             'مدیریت هزینه‌ها': [
-#                 {'url': 'tanbakh_list', 'label': _('لیست تنخواه‌ها'), 'perm': 'tanbakh.Tanbakh_view'},
-#                 {'url': 'tanbakh_create', 'label': _('ایجاد تنخواه'), 'perm': 'tanbakh.Tanbakh_add'},
-#                 {'url': 'factor_list', 'label': _('لیست فاکتورها'), 'perm': 'tanbakh.Factor_view'},
-#                 {'url': 'factor_create', 'label': _('ایجاد فاکتور'), 'perm': 'tanbakh.Factor_add'},
-#             ],
-#
-#             'عملیات هزینه': [
-#                 {'url': 'approval_list', 'label': _('لیست تأییدات'), 'perm': 'tanbakh.Approval_view'},
-#                 {'url': 'approval_create', 'label': _('ثبت تأیید'), 'perm': 'tanbakh.Approval_add'},
-#             ],
-#
-#         }
-#
-#         # فیلتر کردن لینک‌ها بر اساس دسترسی کاربر
-#         for card_title, links in context['cards'].items():
-#             context['cards'][card_title] = [link for link in links if user.has_perm(link['perm'])] if links else []
-#
-#         return context
 

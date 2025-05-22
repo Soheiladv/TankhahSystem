@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'core.templatetags.file_tags',
     'budgets.apps.BudgetsConfig',
     'formtools',
+    # 'Tanbakhsystem',
 ]
 
 MIDDLEWARE = [

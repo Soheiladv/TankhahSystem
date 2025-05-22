@@ -1,684 +1,994 @@
-{% extends "base.html" %}
-{% load i18n static rcms_custom_filters jformat %}
+{% extends 'base.html' %}
+{% load i18n static rcms_custom_filters jalali_tags %}
 
-{% block title %}{% trans "داشبورد مدیریت تنخواه" %}{% if title %} - {{ title }}{% endif %} | {{ block.super }}{% endblock %}
+{% block extra_head %}
+    <link href="{% static 'admin/css/animate.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/fontawesome-all.min.css' %}" rel="stylesheet">
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'admin/js/chart.min.js' %}"></script>
+    <script src="{% static 'admin/js/chartjs-plugin-datalabels.min.js' %}"></script>
+
+    <style>
+        @font-face {
+            font-family: 'Vazirmatn';
+            src: url('{% static 'fonts/Vazirmatn-Regular.woff2' %}') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #1abc9c;
+            --info-color: #3498db;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            color: var(--dark-color);
+            font-family: 'Vazirmatn', sans-serif;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 25px rgba(67, 97, 238, 0.2);
+        }
+
+        .accordion-button {
+            font-weight: 500;
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: rgba(var(--bs-primary-rgb), 0.05);
+            color: var(--primary-color);
+            box-shadow: none;
+        }
+
+        .accordion-button:focus {
+            box-shadow: none;
+            border-color: rgba(var(--bs-primary-rgb), 0.2);
+        }
+
+        .stat-card {
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.07);
+        }
+
+        .stat-card .card-header {
+            border-bottom: none;
+            background-color: transparent;
+            font-weight: 500;
+            padding-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            background-color: #fff;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .quick-link {
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            background-color: #fff;
+            border: 1px solid #e9ecef;
+        }
+
+        .quick-link:hover {
+            background-color: rgba(var(--bs-primary-rgb), 0.05);
+            transform: translateX(3px);
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .activity-item {
+            border-left: 3px solid var(--primary-color);
+            padding: 0.75rem 1rem;
+        }
+
+        .list-group-item {
+            border-color: #f1f1f1;
+        }
+
+        .permission-denied-alert {
+            background-color: rgba(var(--bs-warning-rgb), 0.1);
+            border-color: rgba(var(--bs-warning-rgb), 0.3);
+            color: #664d03;
+        }
+
+        .accordion-button::after {
+            display: none;
+        }
+
+        .accordion-button .accordion-icon {
+            margin-left: 0.5rem;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .accordion-button:not(.collapsed) .accordion-icon {
+            transform: rotate(180deg);
+        }
+    </style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid dashboard-creative-page py-4 px-md-4">
-
-    <!-- ========================== هدر صفحه ========================== -->
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-6">
-            <div class="d-flex align-items-center">
-                <div class="avatar me-3">
-                    <img src="{% static 'admin/img/user.png' %}" alt="{{ user.get_full_name|default:user.username }}"
-                         class="rounded-circle" width="60">
-                </div>
-                <div>
-                    <h1 class="dashboard-greeting h3 fw-light mb-1">
-                        {% blocktrans with user_name=user.get_full_name|default:user.username %}سلام {{ user_name }}!{% endblocktrans %}
-                    </h1>
-                    <p class="text-muted mb-0 small">
-                        <i class="fas fa-user-shield me-1"></i>
-                        {% for group in user.groups.all %}{{ group.name }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans "بدون گروه کاربری" %}{% endfor %}
+    <div class="container-fluid py-4">
+        <!-- هدر داشبورد -->
+        <div class="dashboard-header p-4 mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-1 fw-bold">{{ title }}</h1>
+                    <p class="mb-0 opacity-75">
+                        <i class="fas fa-clock me-2"></i> آخرین بروزرسانی: {% now "j F Y - H:i" %}
+                        <span class="mx-2">|</span>
+                        <i class="fas fa-code-branch me-2"></i> نسخه: {{ version }}
                     </p>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-6 text-md-end mt-3 mt-md-0">
-            <div class="d-flex flex-column align-items-md-end align-items-start">
-                 <!-- دکمه اعلان‌ها -->
-                <div class="notifications-bell mb-2 position-relative">
-                    <button class="btn btn-link text-primary p-0 border-0" id="notificationBellBtn" aria-label="{% trans 'اعلان‌ها' %}">
-                         <i class="fas fa-bell" style="font-size: 1.5rem;"></i>
-                         {% if notifications %}
-                            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle badge-sm rounded-pill">{{ notifications|length }}</span>
-                         {% endif %}
-                    </button>
-                    {% if notifications %}
-                    <div class="dropdown-menu dropdown-menu-end p-2 shadow border-0" id="notificationDropdown" style="min-width: 280px; display: none; position: absolute; z-index: 1050;">
-                        <h6 class="dropdown-header small text-muted">{% trans "اعلان‌های خوانده نشده" %}</h6>
-                        {% for notification in notifications %}
-                            <a href="#" class="dropdown-item notification-item p-2 small border-bottom">
-                                <i class="fas fa-info-circle me-2 text-{% if notification.level == 'WARNING' %}warning{% elif notification.level == 'ERROR' %}danger{% else %}info{% endif %}"></i>
-                                {{ notification.message }}
-                                <span class="d-block text-muted mt-1" style="font-size: 0.75rem;">{{ notification.created_at|jformat:"%Y/%m/%d %H:%M" }}</span>
-                            </a>
-                        {% endfor %}
-                         <a href="#" class="dropdown-item text-center small text-primary mt-1">{% trans "مشاهده همه اعلان‌ها" %}</a>
-                    </div>
-                    {% endif %}
-                </div>
-                <!-- تاریخ و نسخه -->
-                <span class="badge bg-light text-dark shadow-sm p-2 px-3 mb-2">
-                    <i class="fas fa-calendar-alt me-2 text-primary"></i>
-                    <span id="dashboard-datetime">{% now "l، j F Y" %}</span>
-                </span>
-                {% if version %}
-                    <span class="badge bg-primary text-white shadow-sm p-2 px-3">
-                        <i class="fas fa-code-branch me-2"></i>
-                        <strong>{% trans "نسخه" %}:</strong> <span class="badge bg-light text-primary ms-1">{{ version }}</span>
-                    </span>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================== کارت‌های آماری (KPI) ========================== -->
-    <div class="row g-4 mb-4">
-        <div class="col-xl-3 col-md-6">
-            <div class="kpi-card kpi-card-primary h-100">
-                <div class="kpi-card-body">
-                    <div class="kpi-icon"><i class="fas fa-file-invoice-dollar"></i></div>
-                    <div class="kpi-content">
-                        <span class="kpi-value display-6 fw-bold" id="active-tankhah-counter">{{ active_tankhah_count|default:0 }}</span>
-                        <span class="kpi-label">{% trans "تنخواه فعال" %}</span>
-                    </div>
-                </div>
-                <a href="{% url 'tankhah_list' %}" class="kpi-card-footer d-block">{% trans "مشاهده لیست" %} <i class="fas fa-arrow-left small"></i></a>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="kpi-card kpi-card-danger h-100">
-                <div class="kpi-card-body">
-                    <div class="kpi-icon"><i class="fas fa-coins"></i></div>
-                    <div class="kpi-content">
-                        <span class="kpi-value display-6 fw-bold" id="monthly-expense-counter">{{ current_month_total_amount|default:0|floatformat:0 }}</span>
-                        <span class="kpi-label">{% trans "هزینه ماه جاری (ریال)" %}</span>
-                    </div>
-                </div>
-                <a href="#" class="kpi-card-footer d-block">{% trans "مشاهده گزارش" %} <i class="fas fa-arrow-left small"></i></a>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="kpi-card kpi-card-warning h-100">
-                <div class="kpi-card-body">
-                    <div class="kpi-icon"><i class="fas fa-clock"></i></div>
-                    <div class="kpi-content">
-                        <span class="kpi-value display-6 fw-bold" id="pending-approval-counter">{{ pending_approval_count|default:0 }}</span>
-                        <span class="kpi-label">{% trans "مورد منتظر تأیید شما" %}</span>
-                    </div>
-                </div>
-                <a href="#" class="kpi-card-footer d-block">{% trans "بررسی موارد" %} <i class="fas fa-arrow-left small"></i></a>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6">
-            <div class="kpi-card kpi-card-success h-100">
-                <div class="kpi-card-body">
-                    <div class="kpi-icon"><i class="fas fa-project-diagram"></i></div>
-                    <div class="kpi-content">
-                        <span class="kpi-value display-6 fw-bold" id="active-projects-counter">{{ active_projects_count|default:0 }}</span>
-                        <span class="kpi-label">{% trans "پروژه فعال" %}</span>
-                    </div>
-                </div>
-                <a href="{% url 'project_list' %}" class="kpi-card-footer d-block">{% trans "مشاهده پروژه‌ها" %} <i class="fas fa-arrow-left small"></i></a>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================== چارت هزینه‌ها و لیست فعالیت‌ها ========================== -->
-    <div class="row g-4 mb-4">
-        <!-- چارت هزینه‌ها -->
-        <div class="col-lg-7">
-            <div class="card chart-widget border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-bottom-0 pt-3 px-3 d-flex justify-content-between align-items-center">
-                    <h3 class="h6 text-heading fw-bold mb-0"><i class="fas fa-chart-line me-2 text-primary"></i>{% trans "نمودار هزینه‌های ماهانه/فصلی" %}</h3>
-                    <div class="btn-group btn-group-sm" role="group" aria-label="{% trans 'انتخاب دوره زمانی چارت' %}">
-                        <input type="radio" class="btn-check" name="chartPeriod" id="chartMonthly" autocomplete="off" checked data-period="monthly">
-                        <label class="btn btn-outline-secondary" for="chartMonthly">{% trans "ماهانه" %}</label>
-
-                        <input type="radio" class="btn-check" name="chartPeriod" id="chartQuarterly" autocomplete="off" data-period="quarterly">
-                        <label class="btn btn-outline-secondary" for="chartQuarterly">{% trans "فصلی" %}</label>
-                    </div>
-                </div>
-                <div class="card-body pt-0">
-                    <div class="chart-container" style="position: relative; height: 280px; width:100%;">
-                        <canvas id="monthlyExpensesChart"></canvas>
-                    </div>
-                    <div id="chartLoading" class="text-center mt-3 d-none">
-                        <div class="spinner-border spinner-border-sm text-primary" role="status">
-                            <span class="visually-hidden">{% trans "در حال بارگذاری..." %}</span>
-                        </div>
-                         <span class="ms-2 small">{% trans "در حال بارگذاری داده‌ها..." %}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- لیست فعالیت‌های اخیر -->
-        <div class="col-lg-5">
-            <div class="card activity-widget border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-bottom-0 pt-3 px-3 d-flex justify-content-between align-items-center">
-                    <h3 class="h6 text-heading fw-bold mb-0"><i class="fas fa-list-check me-2 text-success"></i>{% trans "فعالیت‌های اخیر شما" %}</h3>
-                    <a href="#" class="btn btn-sm btn-outline-primary">{% trans "مشاهده همه" %}</a>
-                </div>
-                <div class="card-body pt-0">
-                    <ul class="list-group list-group-flush activity-list">
-                        {% for activity in recent_activities %}
-                            <li class="list-group-item px-0 py-2">
-                                <a href="{{ activity.get_absolute_url }}" class="d-flex align-items-center text-decoration-none activity-link">
-                                    <div class="activity-icon me-3 flex-shrink-0">
-                                        {% if activity.action == 'APPROVE' %}
-                                            <i class="fas fa-check-circle text-success fs-5"></i>
-                                        {% elif activity.action == 'REJECT' %}
-                                            <i class="fas fa-times-circle text-danger fs-5"></i>
-                                        {% elif activity.action == 'STAGE_CHANGE' %}
-                                             <i class="fas fa-exchange-alt text-info fs-5"></i>
-                                        {% else %}
-                                            <i class="fas fa-info-circle text-secondary fs-5"></i>
-                                        {% endif %}
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <p class="mb-0 small fw-medium">
-                                            {% if activity.tankhah %}
-                                                {% trans "اقدام روی تنخواه" %} <strong class="text-primary">{{ activity.tankhah.number }}</strong>: {{ activity.get_action_display   }}
-                                            {% elif activity.factor %}
-                                                {% trans "اقدام روی فاکتور" %} <strong class="text-primary">{{ activity.factor.number   |to_persian_number  }}</strong>: {{ activity.get_action_display |to_persian_number   }}
-                                             {% elif activity.factor_item %}
-                                                 {% trans "اقدام روی ردیف فاکتور" %} <strong class="text-primary">({{ activity.factor_item.description|truncatechars:20 |to_persian_number }})</strong>: {{ activity.get_action_display|format_negative  }}
-                                            {% else %}
-                                                {{ activity.get_action_display |to_persian_number  }}
-                                            {% endif %}
-                                        </p>
-                                        <small class="text-muted">{{ activity.timestamp|jformat:"%Y/%m/%d، %H:%M" |to_persian_number  }}</small>
-                                    </div>
-                                    <i class="fas fa-chevron-left text-muted small ms-2 flex-shrink-0"></i>
-                                </a>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <div class="btn-group">
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            <i class="fas fa-cog me-2"></i> {% trans "تنظیمات" %}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i
+                                    class="fas fa-user-cog me-2"></i> {% trans "تنظیمات کاربری" %}</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-bell me-2"></i> {% trans "اعلانات" %}
+                            </a></li>
+                            <li>
+                                <hr class="dropdown-divider">
                             </li>
-                        {% empty %}
-                            <li class="list-group-item px-0 text-center text-muted py-4">{% trans "فعالیتی برای نمایش ثبت نشده است." %}</li>
-                        {% endfor %}
-                    </ul>
+                            <li><a class="dropdown-item" href="#"><i
+                                    class="fas fa-question-circle me-2"></i> {% trans "راهنما" %}</a></li>
+                        </ul>
+                </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- ========================== دکمه‌های نمایش/مخفی کردن بخش‌های اضافی ========================== -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-6">
-            <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#quickLinksCollapse"
-                    aria-expanded="false" aria-controls="quickLinksCollapse">
-                <i class="fas fa-paper-plane me-2"></i> {% trans "نمایش/مخفی کردن دسترسی سریع" %}
-            </button>
-        </div>
-        <div class="col-md-6">
-            <button class="btn btn-outline-secondary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#statsCollapse"
-                    aria-expanded="false" aria-controls="statsCollapse">
-                <i class="fas fa-chart-pie me-2"></i> {% trans "نمایش/مخفی کردن آمار کلی" %}
-            </button>
-        </div>
-    </div>
-
-    <!-- ========================== بخش دسترسی سریع (Collapsible) ========================== -->
-    <div class="collapse" id="quickLinksCollapse">
-        <div class="row g-4 mb-4">
-            <div class="col-12">
-                <div class="card border-0 shadow-sm dashboard-links">
-                     <!-- هدر با استایل متفاوت برای بخش مخفی -->
-                    <div class="card-header bg-light border-bottom pt-3 px-4 d-flex justify-content-between align-items-center">
-                        <h3 class="h5 fw-bold mb-0 text-dark"><i class="fas fa-compass me-2 text-primary"></i>{% trans "دسترسی سریع" %}</h3>
-                        <span class="badge bg-primary-subtle text-primary-emphasis px-3 py-1 rounded-pill">{% trans "لینک‌های کاربردی" %}</span>
-                    </div>
-                    <div class="card-body p-4">
+        <!-- دسترسی‌های سریع -->
+        <div class="accordion mb-4" id="quickLinksAccordion">
+            <div class="accordion-item border-0 shadow-sm">
+                <h2 class="accordion-header" id="quickLinksHeading">
+                    <button class="accordion-button fw-bold py-3" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#quickLinksCollapse" aria-expanded="true"
+                            aria-controls="quickLinksCollapse">
+                        <i class="fas fa-bolt me-2 text-warning"></i> {% trans "دسترسی‌های سریع" %}
+                        <i class="fas fa-chevron-down accordion-icon ms-auto"></i>
+                    </button>
+                </h2>
+                <div id="quickLinksCollapse" class="accordion-collapse collapse show"
+                     aria-labelledby="quickLinksHeading">
+                    <div class="accordion-body p-3">
                         {% for category, links in dashboard_links.items %}
-                        <div class="mb-4">
-                            <h5 class="dashboard-category-title text-uppercase text-muted small fw-bold mb-3 pb-2 border-bottom">
-                                <i class="fas fa-folder-open me-2 text-secondary"></i>{{ category }}
-                            </h5>
-                            <div class="row g-3">
-                                {% for link in links %}
-                                    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
-                                        <a href="{% url link.url %}" class="dashboard-link-card d-block text-decoration-none">
-                                            <div class="d-flex align-items-center p-3">
-                                                <div class="link-icon-circle me-3 flex-shrink-0">
-                                                    <i class="{{ link.icon|default:'fas fa-link' }} text-primary"></i>
+                            <div class="mb-3">
+                                <h6 class="fw-bold text-primary mb-2">
+                                    <i class="fas fa-folder-open me-2 opacity-75"></i> {{ category }}
+                                </h6>
+                                <div class="row g-2">
+                                    {% for link in links %}
+                                        <div class="col-xl-3 col-lg-4 col-md-6">
+                                            <a href="{% if link.url %}{% url link.url %}{% else %}#{% endif %}"
+                                               class="d-block quick-link p-2 text-decoration-none">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-primary bg-opacity-10 p-2 rounded me-2"
+                                                         style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+                                                        <i class="{{ link.icon|default:'fas fa-link' }} text-primary fs-6"></i>
+                                                    </div>
+                                                    <span class="text-dark small">{{ link.name }}</span>
                                                 </div>
-                                                <span class="link-text fw-medium">{{ link.name }}</span>
-                                            </div>
-                                        </a>
-                                    </div>
-                                {% endfor %}
+                                            </a>
+                                        </div>
+                                    {% endfor %}
+                                </div>
                             </div>
-                        </div>
+                            {% if not forloop.last %}
+                                <hr class="my-3">{% endif %}
                         {% empty %}
-                            <p class="text-muted text-center py-3">{% trans "لینکی برای دسترسی سریع تعریف نشده است." %}</p>
+                            <p class="text-muted">{% trans "لینکی یافت نشد." %}</p>
                         {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- ========================== بخش آمار کلی (Collapsible) ========================== -->
-    <div class="collapse" id="statsCollapse">
-        <div class="row g-4">
-            <div class="col-12">
-                <div class="card border-0 shadow-sm">
-                     <!-- هدر با استایل متفاوت برای بخش مخفی -->
-                    <div class="card-header bg-light border-bottom pt-3 px-3">
-                        <h3 class="h6 text-heading fw-bold mb-0"><i class="fas fa-wallet me-2 text-secondary"></i>{% trans "آمار کلی سیستم" %}</h3>
-                    </div>
-                    <div class="card-body">
-                        {% if stats_permission_denied %}
-                            <div class="alert alert-warning text-center" role="alert">
-                                <i class="fas fa-exclamation-triangle me-2"></i> {% trans "شما دسترسی لازم برای مشاهده آمار کلی را ندارید." %}
+        <!-- آمار کلی -->
+        <div class="row mb-4">
+            <!-- آمار بودجه -->
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <div class="stat-card h-100">
+                    <div class="card-header">
+                        <i class="fas fa-wallet me-2 text-success"></i> {% trans "آمار بودجه" %}
+                </div>
+                    <div class="card-body p-0">
+                        {% if can_view_budget_stats %}
+                            <div class="row g-0">
+                                <div class="col-6 p-3 border-end border-bottom">
+                                    <div class="text-center">
+                                        <div class="stat-value text-info">{{ total_allocated_budget|format_negative }}</div>
+                                        <p class="stat-label mb-0">{% trans "کل بودجه تخصیص‌یافته" %}</p>
+                                    </div>
+                                </div>
+                                <div class="col-6 p-3 border-bottom">
+                                    <div class="text-center">
+                                        <div class="stat-value text-success">{{ total_consumed_budget|floatformat:0|format_negative }}</div>
+                                        <p class="stat-label mb-0">{% trans "کل بودجه مصرف‌شده" %}</p>
+
+                                    </div>
+                                </div>
+                                <div class="col-6 p-3 border-end">
+                                    <div class="text-center">
+                                        <div class="stat-value text-primary">{{ remaining_total_budget|floatformat:0|format_negative }}</div>
+                                        <p class="stat-label mb-0">{% trans "بودجه باقی‌مانده کل" %}</p>
+                                    </div>
+                                </div>
+                                <div class="col-6 p-3">
+                                    <div class="text-center">
+                                        <div class="stat-value text-warning">{{ percentage_consumed_budget|floatformat:1|format_negative }}%</div>
+                                        <p class="stat-label mb-0">{% trans "درصد مصرف بودجه" %}</p>
+                                    </div>
+                                </div>
                             </div>
                         {% else %}
-                            <div class="row">
-                                <!-- آمار کلی -->
-                                <div class="col-md-4 border-end mb-3 mb-md-0">
-                                    <h6 class="text-muted small text-uppercase mb-3">{% trans "بودجه کلی" %}</h6>
-                                    <ul class="list-unstyled">
-                                        <li class="d-flex justify-content-between mb-2"><span>{% trans "جمع تخصیص‌یافته:" %}</span> <strong class="text-primary">{{ total_allocated|default:0|floatformat:0 }} {% trans "ریال" %}</strong></li>
-                                        <li class="d-flex justify-content-between mb-2"><span>{% trans "جمع هزینه شده:" %}</span> <strong class="text-danger">{{ total_spent|default:0|floatformat:0 }} {% trans "ریال" %}</strong></li>
-                                        <li class="d-flex justify-content-between"><span>{% trans "جمع باقیمانده:" %}</span> <strong class="text-success">{{ total_unspent|default:0|floatformat:0 }} {% trans "ریال" %}</strong></li>
-                                        <hr class="my-2">
-                                        <li class="d-flex justify-content-between"><span>{% trans "جمع مبلغ فاکتورها:" %}</span> <strong>{{ total_factors_amount|default:0|floatformat:0 }} {% trans "ریال" %}</strong></li>
-                                    </ul>
+                            <div class="alert permission-denied-alert m-3">{% trans "شما اجازه دسترسی به آمار بودجه را ندارید." %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- آمار تنخواه -->
+            <div class="col-lg-6">
+                <div class="stat-card h-100">
+                    <div class="card-header">
+                        <i class="fas fa-money-bill-wave me-2 text-info"></i> {% trans "آمار تنخواه" %}
+                    </div>
+                    <div class="card-body p-0">
+                        {% if can_view_tankhah_stats %}
+                            <div class="row g-0">
+                                <div class="col-6 p-3 border-end border-bottom">
+                                    <div class="text-center">
+                                        <div class="stat-value text-info">{{ active_tankhah_count|format_negative }}</div>
+                                        <p class="stat-label mb-0">{% trans "تنخواه‌های در جریان" %}</p>
+                                    </div>
                                 </div>
-                                <!-- آمار آرشیو -->
-                                <div class="col-md-4 border-end mb-3 mb-md-0">
-                                     <h6 class="text-muted small text-uppercase mb-3">{% trans "آرشیو" %}</h6>
-                                     <ul class="list-unstyled">
-                                        <li class="d-flex justify-content-between mb-2"><span>{% trans "پروژه‌های آرشیو شده:" %}</span> <strong>{{ archived_projects_count|default:0 }}</strong></li>
-                                        <li class="d-flex justify-content-between"><span>{% trans "تنخواه‌های آرشیو شده:" %}</span> <strong>{{ archived_tankhah_count|default:0 }}</strong></li>
-                                     </ul>
-                                     <hr class="my-3">
-                                     <h6 class="text-muted small text-uppercase mb-3">{% trans "وضعیت بودجه‌ها" %}</h6>
-                                     {% for budget in budget_statuses %}
-                                        <div class="small mb-2 p-2 rounded {% if budget.status == 'locked' %}bg-danger-subtle text-danger-emphasis{% elif budget.status == 'warning' %}bg-warning-subtle text-warning-emphasis{% else %}bg-light{% endif %}">
-                                            <strong>{{ budget.name }}:</strong> {{ budget.message }} ({{ budget.remaining|floatformat:0 }} / {{ budget.total|floatformat:0 }})
-                                        </div>
-                                     {% empty %}
-                                        <p class="small text-muted">{% trans "وضعیت بودجه‌ای برای نمایش وجود ندارد." %}</p>
-                                     {% endfor %}
+                                <div class="col-6 p-3 border-bottom">
+                                    <div class="text-center">
+                                        <div class="stat-value text-primary">{{ current_month_total_amount|floatformat:0|format_negative }}</div>
+                                        <p class="stat-label mb-0">{% trans "پرداختی ماه جاری (فاکتور)" %}</p>
+                                    </div>
                                 </div>
-                                <!-- آمار شعبه‌ها و فاکتورها -->
-                                <div class="col-md-4">
-                                    <h6 class="text-muted small text-uppercase mb-3">{% trans "آمار شعبه‌ها" %}</h6>
-                                    <ul class="list-unstyled small">
-                                        {% for branch, data in branch_stats.items %}
-                                            <li class="mb-1">{{ branch }}: <span class="text-primary">تخصیص {{ data.allocated|default:0|floatformat:0 }}</span> - <span class="text-danger">هزینه {{ data.spent|default:0|floatformat:0 }}</span></li>
-                                        {% empty %}
-                                             <li class="text-muted">{% trans "آماری برای شعبه‌ها وجود ندارد." %}</li>
-                                        {% endfor %}
-                                    </ul>
-                                    <hr class="my-3">
-                                    <h6 class="text-muted small text-uppercase mb-3">{% trans "جمع فاکتورهای هر تنخواه" %}</h6>
-                                    <ul class="list-unstyled small">
-                                        {% for tankhah_number, factors_total in tankhah_factors.items %}
-                                            <li class="mb-1">{{ tankhah_number }}: <strong>{{ factors_total|default:0|floatformat:0 }} {% trans "ریال" %}</strong></li>
-                                         {% empty %}
-                                             <li class="text-muted">{% trans "فاکتوری ثبت نشده است." %}</li>
-                                        {% endfor %}
-                                    </ul>
+                                <div class="col-6 p-3 border-end">
+                                    <div class="text-center">
+                                        <div class="stat-value text-warning">{{ pending_approval_count|format_negative }}</div>
+                                        <p class="stat-label mb-0">{% trans "تنخواه در انتظار تأیید" %}</p>
+                                    </div>
+                                </div>
+                                <div class="col-6 p-3">
+                                    <div class="text-center">
+                                        <div class="stat-value text-danger">{{ rejected_factors|format_negative }}</div>
+                                        <p class="stat-label mb-0">{% trans "فاکتورهای ردشده" %}</p>
+                                    </div>
                                 </div>
                             </div>
+                        {% else %}
+                            <div class="alert permission-denied-alert m-3">{% trans "شما اجازه دسترسی به آمار تنخواه را ندارید." %}</div>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
-    </div> <!-- End of stats collapse -->
 
-</div> <!-- End of container-fluid -->
-{% endblock %}
+        <!-- نمودارها -->
+        <div class="accordion mb-4" id="chartsAccordion">
+            <div class="accordion-item border-0 shadow-sm">
+                <h2 class="accordion-header" id="chartsHeading">
+                    <button class="accordion-button fw-bold py-3" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#chartsCollapse" aria-expanded="true" aria-controls="chartsCollapse">
+                        <i class="fas fa-chart-bar me-2 text-primary"></i> {% trans "نمودارهای آماری" %}
+                        <i class="fas fa-chevron-down accordion-icon ms-auto"></i>
+                    </button>
+                </h2>
+                <div id="chartsCollapse" class="accordion-collapse collapse show" aria-labelledby="chartsHeading">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <!-- نمودار مصرف بودجه بر اساس دسته -->
+                            <div class="col-lg-6 mb-4">
+                                <h6 class="fw-semibold mb-2"><i
+                                        class="fas fa-chart-pie me-2 text-danger opacity-75"></i> {% trans "مصرف بودجه بر اساس دسته" %}
+                                </h6>
+                                {% if can_view_budget_stats %}
+                                    <div class="chart-container">
+                                        <canvas id="budgetCategoryChart"></canvas>
+                                    </div>
+                                {% else %}
+                                    <div class="alert permission-denied-alert">{% trans "عدم دسترسی به نمودار." %}</div>
+                                {% endif %}
+                            </div>
 
-{% block extra_css %}
-{# Load static files first #}
- <style>
-    body {
-        background-color: #f8f9fa; /* A light grey background for the whole page */
-    }
-    .dashboard-creative-page {
-        /* Optional: Add specific styling for the main container */
-    }
-    .kpi-card {
-        background-color: white;
-        border-radius: 0.75rem; /* Slightly larger radius */
-        border: 1px solid #e9ecef;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        transition: all 0.3s ease-in-out;
-        display: flex;
-        flex-direction: column; /* Ensure footer is at the bottom */
-        height: 100%; /* Make cards in a row the same height */
-    }
-    .kpi-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
-    }
-    .kpi-card-body {
-        padding: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        flex-grow: 1; /* Allow body to grow */
-    }
-    .kpi-icon {
-        font-size: 2rem; /* Slightly smaller icon */
-        opacity: 0.15; /* A bit more visible */
-        color: #6c757d;
-    }
-     .kpi-card-primary .kpi-icon { color: #0d6efd; }
-     .kpi-card-danger .kpi-icon { color: #dc3545; }
-     .kpi-card-warning .kpi-icon { color: #ffc107; }
-     .kpi-card-success .kpi-icon { color: #198754; }
+                            <!-- نمودار بودجه تخصیص/مصرف ماهانه -->
+                            <div class="col-lg-6 mb-4">
+                                <h6 class="fw-semibold mb-2"><i
+                                        class="fas fa-chart-column me-2 text-success opacity-75"></i> {% trans "بودجه تخصیص/مصرف ماهانه" %}
+                                </h6>
+                                {% if can_view_budget_stats %}
+                                    <div class="chart-container">
+                                        <canvas id="budgetVsActualChart"></canvas>
+                                    </div>
+                                {% else %}
+                                    <div class="alert permission-denied-alert">{% trans "عدم دسترسی به نمودار." %}</div>
+                                {% endif %}
+                            </div>
 
-    .kpi-content {
-        flex-grow: 1;
-        text-align: right;
-    }
-    .kpi-value {
-        color: #212529;
-        line-height: 1.1;
-    }
-    .kpi-label {
-        font-size: 0.85rem;
-        color: #6c757d;
-        display: block; /* Ensure it takes its own line */
-        margin-top: 0.25rem;
-    }
-    .kpi-card-footer {
-        padding: 0.75rem 1.5rem;
-        text-align: center;
-        font-size: 0.8rem;
-        color: #6c757d;
-        text-decoration: none;
-        background-color: #f8f9fa;
-        border-top: 1px solid #e9ecef;
-        border-bottom-left-radius: 0.75rem; /* Match card radius */
-        border-bottom-right-radius: 0.75rem;
-        transition: background-color 0.2s ease, color 0.2s ease;
-    }
-    .kpi-card-footer:hover {
-        color: #0d6efd;
-        background-color: #e7f1ff;
-    }
-    .chart-widget, .activity-widget {
-        background-color: white;
-        border-radius: 0.75rem;
-        border: 1px solid #e9ecef;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    }
-    .activity-list .list-group-item {
-        border: none;
-        border-bottom: 1px solid #f1f1f1; /* Lighter border */
-    }
-    .activity-list .list-group-item:last-child {
-        border-bottom: none;
-    }
-    .activity-link { color: inherit; } /* Remove default link color */
-    .activity-link:hover {
-        background-color: #f8f9fa;
-    }
-    .activity-icon {
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #e9ecef; /* Default background */
-    }
-     .activity-link:hover .activity-icon {
-         background-color: #d1d9e1; /* Slightly darker on hover */
-     }
+                            <!-- روند تنخواه ماهانه -->
+                            <div class="col-lg-6 mb-4">
+                                <h6 class="fw-semibold mb-2"><i
+                                        class="fas fa-chart-line me-2 text-info opacity-75"></i> {% trans "روند تنخواه ماهانه" %}
+                                </h6>
+                                {% if can_view_tankhah_stats %}
+                                    <div class="chart-container">
+                                        <canvas id="monthlyTankhahChart"></canvas>
+                                    </div>
+                                {% else %}
+                                    <div class="alert permission-denied-alert">{% trans "عدم دسترسی به نمودار." %}</div>
+                                {% endif %}
+                            </div>
 
-    /* استایل‌های بخش دسترسی سریع */
-    .dashboard-links .card-header { /* Style for the collapsed header */
-        background-color: #f8f9fa;
-    }
-    .dashboard-category-title {
-        font-size: 0.8rem; /* Smaller title */
-        letter-spacing: 0.5px;
-        color: #6c757d;
-    }
-    .dashboard-link-card {
-        background-color: #fff;
-        border: 1px solid #e9ecef;
-        border-radius: 0.5rem; /* Standard radius */
-        transition: all 0.25s ease-in-out;
-        overflow: hidden;
-        position: relative;
-    }
-    .dashboard-link-card:hover {
-        background-color: #e7f1ff; /* Primary light background */
-        border-color: #b6d4fe;
-        transform: translateY(-3px);
-        box-shadow: 0 0.25rem 0.75rem rgba(0, 123, 255, 0.1);
-    }
-    .link-icon-circle {
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        background-color: rgba(0, 123, 255, 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.1rem;
-        transition: all 0.25s ease;
-    }
-    .dashboard-link-card:hover .link-icon-circle {
-        background-color: #0d6efd;
-        color: #fff;
-        transform: scale(1.05);
-    }
-    .link-text {
-        color: #343a40;
-        font-size: 0.9rem;
-        transition: color 0.25s ease;
-    }
-    .dashboard-link-card:hover .link-text {
-        color: #0d6efd;
-        font-weight: 500;
-    }
+                            <!-- روند تنخواه فصلی -->
+                            <div class="col-lg-6 mb-4">
+                                <h6 class="fw-semibold mb-2"><i
+                                        class="fas fa-chart-area me-2 text-warning opacity-75"></i> {% trans "روند تنخواه فصلی" %}
+                                </h6>
+                                {% if can_view_tankhah_stats %}
+                                    <div class="chart-container">
+                                        <canvas id="quarterlyTankhahChart"></canvas>
+                                    </div>
+                                {% else %}
+                                    <div class="alert permission-denied-alert">{% trans "عدم دسترسی به نمودار." %}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    /* استایل‌های بخش آمار */
-    #statsCollapse .card-body ul li {
-        font-size: 0.9rem;
-    }
-    #statsCollapse .card-body hr {
-        border-top: 1px solid #e9ecef;
-    }
+        <!-- ویجت‌ها: وضعیت پروژه‌ها و هشدارها -->
+        <div class="accordion mb-4" id="widgetsAccordion">
+            <div class="accordion-item border-0 shadow-sm">
+                <h2 class="accordion-header" id="widgetsHeading">
+                    <button class="accordion-button fw-bold py-3" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#widgetsCollapse" aria-expanded="true" aria-controls="widgetsCollapse">
+                        <i class="fas fa-th-large me-2 text-secondary"></i> {% trans "وضعیت و هشدارها" %}
+                        <i class="fas fa-chevron-down accordion-icon ms-auto"></i>
+                    </button>
+                </h2>
+                <div id="widgetsCollapse" class="accordion-collapse collapse show" aria-labelledby="widgetsHeading">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <!-- وضعیت بودجه پروژه‌ها -->
+                            <div class="col-lg-6 mb-4">
+                                <h6 class="fw-semibold mb-2"><i
+                                        class="fas fa-project-diagram me-2 text-primary opacity-75"></i> {% trans "وضعیت بودجه پروژه‌ها" %}
+                                </h6>
+                                <div class="bg-white p-3 rounded border h-100">
+                                    {% if can_view_project_status and project_chart_data.labels %}
+                                        <div class="list-group list-group-flush">
+                                            {% for project in project_budget_status %}
+                                                <div class="list-group-item px-0 py-2">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <h6 class="mb-0 fw-semibold small">{{ project.name }}</h6>
+                                                            <small class="text-muted">
+                                                                {% trans "مصرف" %}: {{ project.consumed|floatformat:0|format_negative }}
+                                                                |
+                                                                {% trans "تخصیص" %}: {{ project.allocated|floatformat:0|format_negative }}
+                                                            </small>
+                                                        </div>
+                                                        <div class="text-end">
+                                                        <span class="badge rounded-pill"
+                                                              data-percentage-color="{{ project.percentage_consumed }}">
+                                                            {{ project.percentage_consumed|floatformat:1 }}%
+                                                        </span>
+                                                            <small class="d-block text-muted mt-1">
+                                                                {% trans "باقی‌مانده" %}: {{ project.remaining|floatformat:0|format_negative }}
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="progress mt-1" style="height: 5px;">
+                                                        <div class="progress-bar"
+                                                             data-percentage="{{ project.percentage_consumed }}"
+                                                             role="progressbar"
+                                                             aria-valuenow="{{ project.percentage_consumed }}"
+                                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                            </div>
+                                            {% empty %}
+                                                <div class="list-group-item text-center py-4 text-muted small">
+                                                    {% trans "اطلاعاتی برای پروژه‌ها یافت نشد." %}
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="alert permission-denied-alert">{% trans "شما اجازه دسترسی به وضعیت پروژه‌ها را ندارید." %}</div>
+                                    {% endif %}
 
-    /* اعلان‌ها */
-    #notificationDropdown .notification-item {
-        white-space: normal; /* Allow text wrapping */
-    }
-    #notificationBellBtn .badge-sm { /* Make notification badge smaller */
-        font-size: 0.6em;
-        padding: 0.2em 0.4em;
-    }
-    .notifications-bell .dropdown-menu {
-        display: none; /* Hidden by default, controlled by JS */
-        position: absolute; /* Ensure it's positioned correctly */
-        left: auto; /* Let bootstrap handle positioning */
-        right: 0;
-    }
+                                 {% if can_view_project_status and project_chart_data.labels %}
+        <div class="chart-container" style="height: 300px;">
+            <canvas id="projectBudgetChart"></canvas>
+        </div>
+    {% else %}
+        <div class="alert permission-denied-alert">{% trans "عدم دسترسی به نمودار یا داده‌ای یافت نشد." %}</div>
+    {% endif %}
 
-     /* Responsive adjustments */
-    @media (max-width: 767.98px) {
-        .kpi-value { font-size: 2rem; } /* Smaller font on mobile */
-        .kpi-label { font-size: 0.8rem; }
-        .kpi-card-body { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-        .kpi-content { text-align: left; }
-        .kpi-icon { align-self: flex-end; font-size: 1.8rem; opacity: 0.1; position: absolute; right: 1rem; top: 1rem; }
-    }
+                                </div>
+                            </div>
 
-</style>
-{% endblock %}
+                            <!-- هشدارهای اخیر بودجه -->
+                            <div class="col-lg-6 mb-4">
+                                <h6 class="fw-semibold mb-2"><i
+                                        class="fas fa-exclamation-triangle me-2 text-danger opacity-75"></i> {% trans "هشدارهای اخیر بودجه" %}
+                                </h6>
+                                <div class="bg-white p-3 rounded border h-100">
+                                    {% if can_view_budget_alerts %}
+                                        <div class="list-group list-group-flush">
+                                            {% for warning in recent_budget_warnings %}
+                                                <div class="list-group-item px-0 py-2">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <p class="mb-0 fw-semibold small">{{ warning.details|truncatechars:70 }}</p>
+                                                            <small class="text-muted">
+                                                                {% if warning.timestamp %}
+                                                                    {{ warning.timestamp|date:"j F Y، H:i" }}{% else %}
+                                                                    {% trans "بدون تاریخ" %}{% endif %}
+                                                                - {% trans "توسط" %}: {{ warning.created_by.username|default:_("سیستم") }}
+                                                            </small>
+                                                        </div>
+                                                        <span class="badge bg-danger bg-opacity-10 text-danger small">{% trans "بودجه" %}</span>
+                                                    </div>
+                                                </div>
+                                            {% empty %}
+                                                <div class="list-group-item text-center py-4 text-muted small">
+                                                    {% trans "هشداری یافت نشد." %}
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="alert permission-denied-alert">{% trans "شما اجازه دسترسی به هشدارهای بودجه را ندارید." %}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-{% block extra_js %}
-{#    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>#}
-    <script src="{% static 'admin/js/chart.min.js'%}"></script>
-    <script src="{% static 'admin/js/chart.js'%}"></script>
-    <script src="{% static 'admin/js/countUp.min.js'%}"></script>
-    {# Ensure Bootstrap JS is loaded (likely in base.html or via bundle) #}
-    {# <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> #}
+        <!-- فعالیت‌های اخیر -->
+        <div class="accordion" id="recentActivitiesAccordion">
+            <div class="accordion-item border-0 shadow-sm">
+                <h2 class="accordion-header" id="recentActivitiesHeading">
+                    <button class="accordion-button fw-bold py-3" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#recentActivitiesCollapse" aria-expanded="true"
+                            aria-controls="recentActivitiesCollapse">
+                        <i class="fas fa-history me-2 text-info"></i> {% trans "فعالیت‌های اخیر سیستم" %}
+                        <i class="fas fa-chevron-down accordion-icon ms-auto"></i>
+                    </button>
+                </h2>
+                <div id="recentActivitiesCollapse" class="accordion-collapse collapse show"
+                     aria-labelledby="recentActivitiesHeading">
+                    <div class="accordion-body p-0">
+                        <div class="list-group list-group-flush">
+                            {% for activity in recent_activities %}
+                                <div class="list-group-item activity-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1 fw-semibold small">
+                                                {% if activity.tankhah %}
+                                                    {% trans "تنخواه" %} #{{ activity.tankhah.number|default:"N/A" }}
+                                                {% elif activity.factor %}
+                                                    {% trans "فاکتور" %} #{{ activity.factor.number|default:"N/A" }}
+                                                {% else %}
+                                                    {% trans "عملیات سیستمی" %}
+                                                {% endif %}
+                                                - {{ activity.get_action_display|default:"اقدام نامشخص" }}
+                                                {% if activity.stage %}({% trans "مرحله" %}:
+                                                    {{ activity.stage.name|default:"N/A" }}){% endif %}
+                                            </h6>
+                                            <small class="text-muted">
+                                                {% trans "توسط" %}: {{ activity.user.username|default:_("نامشخص") }} -
+                                                {% trans "در تاریخ" %}: {% if activity.timestamp %}
+                                                {{ activity.timestamp|date:"j F Y، H:i" }}{% else %}
+                                                {% trans "نامشخص" %}{% endif %}
+                                            </small>
+                                            {% if activity.comment %}
+                                                <p class="text-muted small mt-1 mb-0 fst-italic">
+                                                    "{% trans "نظر" %}: {{ activity.comment|truncatechars:100 }}"</p>
+                                            {% endif %}
+                                        </div>
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary small">
+                                        {% if activity.tankhah %}{% trans "تنخواه" %}
+                                            {% elif activity.factor %}{% trans "فاکتور" %}
+                                        {% else %}{% trans "سیستم" %}{% endif %}
+                                    </span>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="list-group-item text-center py-4 text-muted small">
+                                    {% trans "فعالیت اخیری یافت نشد." %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // 1. Animate Counters
-            const animateCounters = () => {
-                const counters = [
-                    // Use default:0 filter in template for safety
-                    ['active-tankhah-counter', parseFloat('{{ active_tankhah_count|default:0 }}'.replace(/,/g, ''))],
-                    ['monthly-expense-counter', parseFloat('{{ current_month_total_amount|default:0|floatformat:0 }}'.replace(/,/g, ''))],
-                    ['pending-approval-counter', parseFloat('{{ pending_approval_count|default:0 }}'.replace(/,/g, ''))],
-                    ['active-projects-counter', parseFloat('{{ active_projects_count|default:0 }}'.replace(/,/g, ''))]
-                ];
-                counters.forEach(([id, value]) => {
-                    const element = document.getElementById(id);
-                    if (element) {
-                        const countUp = new CountUp(id, value, {
-                            duration: 2.5,
-                            separator: ',',
-                            useEasing: true,
-                            enableScrollSpy: true, // Start animation when element is visible
-                            scrollSpyDelay: 150,
-                            scrollSpyOnce: true // Only animate once
-                         });
-                        if (!countUp.error) {
-                            // countUp.start(); // Removed - rely on scrollSpy
-                        } else {
-                            console.error(`CountUp error on ${id}:`, countUp.error);
-                            element.textContent = value.toLocaleString('fa-IR'); // Fallback
-                        }
-                    }
-                });
-            };
-             // Delay slightly to ensure elements are fully rendered
-             // Use requestAnimationFrame for smoother start
-             requestAnimationFrame(() => setTimeout(animateCounters, 100));
+            // تنظیمات پیش‌فرض Chart.js
+            Chart.defaults.font.family = "'Vazirmatn', sans-serif";
+            Chart.defaults.color = '#495057'; // رنگ متن پیش‌فرض
+            Chart.defaults.borderColor = 'rgba(0, 0, 0, 0.07)'; // رنگ خطوط جداکننده
 
+            const colors = [ // پالت رنگی متنوع‌تر و مدرن‌تر
+                '#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de',
+                '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc'
+            ];
+            const colorsTransparent = colors.map(color => color + 'B3'); // 70% opacity
 
-            // 2. Initialize Chart
-            const ctx = document.getElementById('monthlyExpensesChart');
-            let expensesChart = null; // Hold the chart instance
-
-             // Safely parse JSON data, provide defaults
-            const safeParseJson = (dataString, defaultVal = { labels: [], values: [] }) => {
+            // تابع عمومی برای ایجاد نمودار
+            const createChart = (canvasId, config) => {
+                const ctx = document.getElementById(canvasId);
+                if (!ctx) {
+                    console.warn(`Canvas with id '${canvasId}' not found.`);
+                    return null;
+                }
                 try {
-                    const parsed = JSON.parse(dataString);
-                     // Ensure it has the expected structure
-                     if (parsed && Array.isArray(parsed.labels) && Array.isArray(parsed.values)) {
-                         return parsed;
-                     }
-                     return defaultVal;
+                    return new Chart(ctx.getContext('2d'), config);
                 } catch (e) {
-                    console.error("Error parsing chart JSON:", e);
-                    return defaultVal;
+                    console.error(`Error creating chart '${canvasId}':`, e);
+                    return null;
                 }
             };
 
-             // Use |safe only if you are absolutely sure the content is safe!
-             // It's safer to properly escape JSON in the view.
-            const monthlyReportData = safeParseJson('{{ monthly_report_data_json|escapejs }}');
-            const quarterlyReportData = safeParseJson('{{ quarterly_report_data_json|escapejs }}');
+            const tooltipTitle = (tooltipItems) => {
+                // عنوان پیش‌فرض چارت، اگر tooltipItems[0] وجود داشته باشد
+                if (tooltipItems.length > 0) {
+                    const item = tooltipItems[0];
+                    if (item.label) {
+                        return item.label;
+                    }
+                }
+                return '';
+            };
+            const tooltipLabel = (context) => {
+                let label = context.dataset.label || '';
+                if (label) {
+                    label += ': ';
+                }
+                if (context.parsed.y !== null) {
+                    // تبدیل عدد به فرمت پولی با جداکننده هزارگان و "ریال"
+                    label += new Intl.NumberFormat('fa-IR', {
+                        style: 'currency',
+                        currency: 'IRR',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                    }).format(context.parsed.y).replace('ریال', '').trim() + ' ریال';
+                }
+                return label;
+            };
+            const tooltipPercentageLabel = (context) => {
+                let label = context.label || '';
+                let value = context.parsed || 0;
+                let sum = context.dataset.data.reduce((a, b) => a + b, 0);
+                let percentage = sum > 0 ? (value * 100 / sum).toFixed(1) + "%" : "0%";
+                if (label) {
+                    label += ': ';
+                }
+                label += new Intl.NumberFormat('fa-IR').format(value) + ` (${percentage})`;
+                return label;
+            };
 
-            if (ctx) {
-                 expensesChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: monthlyReportData.labels,
-                        datasets: [{
-                            label: '{% trans "هزینه‌ها (ریال)" %}',
-                            data: monthlyReportData.values,
-                            backgroundColor: 'rgba(54, 162, 235, 0.6)', // Bootstrap primary blue tone
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1,
-                            borderRadius: 4, // Rounded bars
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                             y: {
-                                 beginAtZero: true,
-                                 ticks: {
-                                     // Format Y-axis ticks (optional)
-                                     callback: function(value) { return value.toLocaleString('fa-IR'); }
-                                 }
-                             },
-                             x: {
-                                 grid: { display: false } // Cleaner X-axis
-                             }
-                         },
-                        plugins: {
-                            legend: { display: false }, // Usually not needed for single dataset bar charts
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) { label += ': '; }
-                                        if (context.parsed.y !== null) {
-                                            label += context.parsed.y.toLocaleString('fa-IR') + ' {% trans "ریال" %}';
-                                        }
-                                        return label;
+
+            // نمودار مصرف بودجه بر اساس دسته
+            {% if can_view_budget_stats and budget_category_consumption.labels %}
+                const budgetCategoryData = {
+                    labels: {{ budget_category_consumption.labels|safe }},
+                    values: {{ budget_category_consumption.values|safe }}
+                };
+                if (budgetCategoryData.labels.length > 0) {
+                    createChart('budgetCategoryChart', {
+                        type: 'doughnut',
+                        data: {
+                            labels: budgetCategoryData.labels,
+                            datasets: [{
+                                data: budgetCategoryData.values,
+                                backgroundColor: colorsTransparent,
+                                borderColor: colors,
+                                borderWidth: 1.5
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    align: 'center',
+                                    rtl: true,
+                                    labels: {padding: 15, usePointStyle: true, pointStyle: 'circle', font: {size: 11}}
+                                },
+                                tooltip: {
+                                    rtl: true,
+                                    titleFont: {weight: 'bold'},
+                                    bodyFont: {family: 'Vazirmatn'},
+                                    callbacks: {title: tooltipTitle, label: tooltipPercentageLabel}
+                                },
+                                datalabels: {
+                                    formatter: (value, ctx) => {
+                                        let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                        let percentage = sum > 0 ? (value * 100 / sum).toFixed(1) + "%" : "";
+                                        return percentage;
+                                    },
+                                    color: '#fff',
+                                    font: {weight: 'bold', size: 10}
+                                }
+                            },
+                            cutout: '60%'
+                        },
+                        plugins: [ChartDataLabels]
+                    });
+                }
+            {% endif %}
+
+            // نمودار بودجه تخصیص‌یافته در مقابل مصرف‌شده
+            {% if can_view_budget_stats and budget_vs_actual_data.labels %}
+                const budgetVsActualData = {
+                    labels: {{ budget_vs_actual_data.labels|safe }},
+                    allocated: {{ budget_vs_actual_data.allocated|safe }},
+                    consumed: {{ budget_vs_actual_data.consumed|safe }}
+                };
+                if (budgetVsActualData.labels.length > 0) {
+                    createChart('budgetVsActualChart', {
+                        type: 'bar',
+                        data: {
+                            labels: budgetVsActualData.labels,
+                            datasets: [
+                                {
+                                    label: '{% trans "تخصیص‌یافته" %}',
+                                    data: budgetVsActualData.allocated,
+                                    backgroundColor: colorsTransparent[0],
+                                    borderColor: colors[0],
+                                    borderWidth: 1.5,
+                                    borderRadius: 4
+                        },
+                                {
+                                    label: '{% trans "مصرف‌شده" %}',
+                                    data: budgetVsActualData.consumed,
+                                    backgroundColor: colorsTransparent[1],
+                                    borderColor: colors[1],
+                                    borderWidth: 1.5,
+                                    borderRadius: 4
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    align: 'center',
+                                    rtl: true,
+                                    labels: {padding: 15, usePointStyle: true, font: {size: 11}}
+                                },
+                                tooltip: {
+                                    rtl: true,
+                                    titleFont: {weight: 'bold'},
+                                    bodyFont: {family: 'Vazirmatn'},
+                                    callbacks: {title: tooltipTitle, label: tooltipLabel}
+                                }
+                            },
+                            scales: {
+                                x: {grid: {display: false}, ticks: {font: {size: 10}}},
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {color: 'rgba(0,0,0,0.05)'},
+                                    ticks: {
+                                        font: {size: 10},
+                                        callback: value => new Intl.NumberFormat('fa-IR').format(value)
                                     }
                                 }
                             }
+                        }
+                    });
+                }
+            {% endif %}
+
+            // روند تنخواه ماهانه
+            {% if can_view_tankhah_stats and monthly_report_data.labels %}
+                const monthlyTankhahData = {
+                    labels: {{ monthly_report_data.labels|safe }},
+                    values: {{ monthly_report_data.values|safe }}
+                };
+                if (monthlyTankhahData.labels.length > 0) {
+                    createChart('monthlyTankhahChart', {
+                        type: 'line',
+                        data: {
+                            labels: monthlyTankhahData.labels,
+                            datasets: [{
+                                label: '{% trans "مبلغ تنخواه پرداخت‌شده" %}',
+                                data: monthlyTankhahData.values,
+                                borderColor: colors[2],
+                                backgroundColor: colorsTransparent[2],
+                                fill: true,
+                                tension: 0.3,
+                                borderWidth: 2,
+                                pointBackgroundColor: '#fff',
+                                pointBorderColor: colors[2],
+                                pointBorderWidth: 1.5,
+                                pointRadius: 3,
+                                pointHoverRadius: 5
+                            }]
                         },
-                        // Optional: Add animation
-                        animation: {
-                            duration: 800,
-                            easing: 'easeInOutQuart'
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            plugins: {
+                                legend: {display: false}, // مخفی کردن لجند اگر فقط یک دیتاست داریم
+                                tooltip: {
+                                    rtl: true,
+                                    titleFont: {weight: 'bold'},
+                                    bodyFont: {family: 'Vazirmatn'},
+                                    callbacks: {title: tooltipTitle, label: tooltipLabel}
+                                }
+                            },
+                            scales: {
+                                x: {grid: {display: false}, ticks: {font: {size: 10}}},
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {color: 'rgba(0,0,0,0.05)'},
+                                    ticks: {
+                                        font: {size: 10},
+                                        callback: value => new Intl.NumberFormat('fa-IR').format(value)
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            {% endif %}
+
+            // روند تنخواه فصلی
+            {% if can_view_tankhah_stats and quarterly_report_data.labels %}
+                const quarterlyTankhahData = {
+                    labels: {{ quarterly_report_data.labels|safe }},
+                    values: {{ quarterly_report_data.values|safe }}
+                };
+                if (quarterlyTankhahData.labels.length > 0) {
+                    createChart('quarterlyTankhahChart', {
+                        type: 'bar',
+                        data: {
+                            labels: quarterlyTankhahData.labels,
+                            datasets: [{
+                                label: '{% trans "مبلغ تنخواه پرداخت‌شده" %}',
+                                data: quarterlyTankhahData.values,
+                                backgroundColor: colorsTransparent[3],
+                                borderColor: colors[3],
+                                borderWidth: 1.5,
+                                borderRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            plugins: {
+                                legend: {display: false},
+                                tooltip: {
+                                    rtl: true,
+                                    titleFont: {weight: 'bold'},
+                                    bodyFont: {family: 'Vazirmatn'},
+                                    callbacks: {title: tooltipTitle, label: tooltipLabel}
+                                }
+                            },
+                            scales: {
+                                x: {grid: {display: false}, ticks: {font: {size: 10}}},
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {color: 'rgba(0,0,0,0.05)'},
+                                    ticks: {
+                                        font: {size: 10},
+                                        callback: value => new Intl.NumberFormat('fa-IR').format(value)
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            {% endif %}
+
+            // انیمیشن برای آکاردئون‌ها و تغییر آیکون
+            document.querySelectorAll('.accordion-button').forEach(button => {
+                button.addEventListener('click', function () {
+                    const icon = this.querySelector('.accordion-icon');
+                    if (icon) {
+                        // آیکون به صورت خودکار با کلاس‌های BS تغییر می‌کند اگر aria-expanded درست تنظیم شود
+                        // نیازی به تغییر دستی کلاس آیکون نیست.
+                    }
+                });
+            });
+        });
+
+        // نمودار وضعیت بودجه پروژه‌ها
+{% if can_view_project_status and project_chart_data.labels %}
+    const projectBudgetData = {
+        labels: {{ project_chart_data.labels|safe }},
+        allocated: {{ project_chart_data.allocated|safe }},
+        consumed: {{ project_chart_data.consumed|safe }},
+        remaining: {{ project_chart_data.remaining|safe }}
+    };
+    if (projectBudgetData.labels.length > 0) {
+        try {
+            createChart('projectBudgetChart', {
+                type: 'bar',
+                data: {
+                    labels: projectBudgetData.labels,
+                    datasets: [
+                        {
+                            label: '{% trans "تخصیص‌یافته" %}',
+                            data: projectBudgetData.allocated,
+                            backgroundColor: colorsTransparent[0],
+                            borderColor: colors[0],
+                            borderWidth: 1.5,
+                            borderRadius: 4
+                        },
+                        {
+                            label: '{% trans "مصرف‌شده" %}',
+                            data: projectBudgetData.consumed,
+                            backgroundColor: colorsTransparent[1],
+                            borderColor: colors[1],
+                            borderWidth: 1.5,
+                            borderRadius: 4
+                        },
+                        {
+                            label: '{% trans "باقی‌مانده" %}',
+                            data: projectBudgetData.remaining,
+                            backgroundColor: colorsTransparent[2],
+                            borderColor: colors[2],
+                            borderWidth: 1.5,
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            align: 'center',
+                            rtl: true,
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                font: { size: 11, family: 'Vazirmatn' }
+                            }
+                        },
+                        tooltip: {
+                            rtl: true,
+                            titleFont: { weight: 'bold', family: 'Vazirmatn' },
+                            bodyFont: { family: 'Vazirmatn' },
+                            callbacks: {
+                                title: tooltipTitle,
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${new Intl.NumberFormat('fa-IR').format(context.raw)} ریال`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: (value) => new Intl.NumberFormat('fa-IR', { notation: 'compact' }).format(value),
+                            color: '#495057',
+                            font: { weight: 'bold', size: 10, family: 'Vazirmatn' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 10, family: 'Vazirmatn' } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: {
+                                font: { size: 10, family: 'Vazirmatn' },
+                                callback: value => new Intl.NumberFormat('fa-IR').format(value)
+                            }
                         }
                     }
-                });
+                },
+                plugins: [ChartDataLabels]
+            });
+            console.log('Project budget chart initialized successfully');
+        } catch (error) {
+            console.error('Error initializing project budget chart:', error);
+        }
+    } else {
+        console.warn('No data available for project budget chart');
+    }
+{% endif %}
 
-                // 3. Chart Period Toggle Logic
-                 document.querySelectorAll('input[name="chartPeriod"]').forEach(radio => {
-                    radio.addEventListener('change', function () {
-                        if (!expensesChart) return; // Safety check
-                        const period = this.dataset.period;
-                        const data = period === 'monthly' ? monthlyReportData : quarterlyReportData;
-                        const loadingDiv = document.getElementById('chartLoading');
 
-                        if(loadingDiv) loadingDiv.classList.remove('d-none'); // Show loading indicator
 
-                        // Simulate data fetching delay (remove in production)
-                         // setTimeout(() => {
-                             expensesChart.data.labels = data.labels;
-                             expensesChart.data.datasets[0].data = data.values;
-                             expensesChart.update();
-                             if(loadingDiv) loadingDiv.classList.add('d-none'); // Hide loading
-                         // }, 300); // Simulate 300ms delay
+        // تابعی برای تعیین رنگ بر اساس درصد مصرف پروژه
+        // این باید در تگ script باشد اما خارج از DOMContentLoaded
+        function getProjectStatusColor(percentage) {
+            if (percentage >= 90) return '#e74c3c'; // Danger
+            if (percentage >= 70) return '#f39c12'; // Warning
+            if (percentage >= 50) return '#3498db'; // Info
+            return '#1abc9c'; // Success
+        }
 
-                    });
-                });
-            } // end if(ctx)
+        // برای اینکه تابع بالا در تمپلیت جنگو قابل استفاده باشد، باید آن را به عنوان فیلتر سفارشی ثبت کنید
+        // یا اینکه این منطق را در view انجام دهید و رنگ را به کانتکست اضافه کنید.
+        // راه ساده‌تر برای تمپلیت:
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.progress-bar[data-percentage]').forEach(bar => {
+                const percentage = parseFloat(bar.dataset.percentage);
+                bar.style.backgroundColor = getProjectStatusColor(percentage);
+                bar.style.width = percentage + '%';
+            });
+            document.querySelectorAll('.badge[data-percentage-color]').forEach(badge => {
+                const percentage = parseFloat(badge.dataset.percentageColor);
+                badge.style.backgroundColor = getProjectStatusColor(percentage);
+                badge.style.color = 'white'; // اطمینان از خوانایی متن روی بج
+            });
+        });
 
-            // 4. Notification Dropdown Logic
-            const notificationBellBtn = document.getElementById('notificationBellBtn');
-            const notificationDropdown = document.getElementById('notificationDropdown');
 
-            if (notificationBellBtn && notificationDropdown) {
-                 notificationBellBtn.addEventListener('click', (event) => {
-                    event.stopPropagation(); // Prevent click from bubbling up to document
-                    const isShown = notificationDropdown.style.display === 'block';
-                    notificationDropdown.style.display = isShown ? 'none' : 'block';
-                    if (!isShown) {
-                        // Optional: Add class for animation entry
-                        notificationDropdown.classList.add('animate__animated', 'animate__fadeIn', 'animate__faster');
-                    } else {
-                         notificationDropdown.classList.remove('animate__animated', 'animate__fadeIn', 'animate__faster');
-                    }
-                 });
+        // تعریف پالت رنگی
+const colors = ['#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8'];
+const colorsTransparent = colors.map(color => color.replace('#', 'rgba(') + ',0.2)');
 
-                 // Close dropdown if clicked outside
-                 document.addEventListener('click', (event) => {
-                     if (notificationDropdown.style.display === 'block' && !notificationBellBtn.contains(event.target) && !notificationDropdown.contains(event.target)) {
-                         notificationDropdown.style.display = 'none';
-                          notificationDropdown.classList.remove('animate__animated', 'animate__fadeIn', 'animate__faster');
-                     }
-                 });
-            }
+// تابع کمکی برای ایجاد چارت
+function createChart(canvasId, config) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    return new Chart(ctx, config);
+}
 
-             // 5. Ensure Collapse works (Bootstrap JS handles this if loaded)
-             // No extra JS needed for basic collapse functionality
+// تابع فرمت عنوان تولتیپ
+function tooltipTitle(tooltipItems) {
+    return tooltipItems[0].label;
+}
 
-        }); // End DOMContentLoaded
+
+
     </script>
 {% endblock %}

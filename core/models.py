@@ -100,11 +100,8 @@ class Project(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("نام پروژه"))
     code = models.CharField(max_length=80, unique=True, verbose_name=_("کد پروژه"))
     # organizations = models.ManyToManyField(Organization, limit_choices_to={'org_type': 'COMPLEX'}, verbose_name=_("مجتمع‌های مرتبط"))
-    organizations = models.ManyToManyField(
-        Organization,
-        limit_choices_to={'org_type__is_budget_allocatable': True},  # سازمان‌هایی که می‌توانند بودجه دریافت کنند
-        verbose_name=_("سازمان‌های مرتبط")
-    )
+    organizations = models.ManyToManyField(Organization,limit_choices_to={'org_type__is_budget_allocatable': True},  # سازمان‌هایی که می‌توانند بودجه دریافت کنند
+        verbose_name=_("سازمان‌های مرتبط"))
     # allocations = models.ManyToManyField('budgets.BudgetAllocation', blank=True, verbose_name=_("تخصیص‌های بودجه مرتبط"))
     start_date = models.DateField(verbose_name=_("تاریخ شروع"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))
@@ -224,15 +221,30 @@ class Post(models.Model):
         branch = self.get_branch_display() or _('بدون شاخه')
         return f"{self.name} ({self.organization.code}) - {branch}"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, changed_by=None, **kwargs):  # آرگومان changed_by را بپذیرید
+        old_level = self.level if self.pk else None  # سطح قدیمی را برای تاریخچه ثبت کنید
+
+        # منطق محاسبه خودکار سطح (بر اساس والد)
         if self.parent:
             self.level = self.parent.level + 1
         else:
             self.level = 1
+
         # مطمئن می‌شیم max_change_level از level کمتر نباشه
         if self.max_change_level < self.level:
             self.max_change_level = self.level
-        super().save(*args, **kwargs)
+
+        super().save(*args, **kwargs)  # ذخیره مدل
+
+        # ثبت تاریخچه تغییرات سطح
+        if old_level != self.level:
+            PostHistory.objects.create(
+                post=self,
+                changed_field='level',
+                old_value=str(old_level),
+                new_value=str(self.level),
+                changed_by=changed_by  # از کاربر تغییردهنده (که از ویو منتقل شده) استفاده کنید
+            )
 
     def get_absolute_url(self):
         return reverse('post_detail', kwargs={'pk': self.pk})
