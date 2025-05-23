@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'core.templatetags.file_tags',
     'budgets.apps.BudgetsConfig',
     'formtools',
+    'dbbackup',
     # 'Tanbakhsystem',
 ]
 
@@ -70,6 +71,11 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Tanbakhsystem.wsgi.application'
+
+
+DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
+DBBACKUP_STORAGE_OPTIONS = {'location': os.path.join(BASE_DIR, 'backups')}
+DBBACKUP_GPG_RECIPIENT = 'D@d123@@'  # نام کلید GPG
 
 DATABASES = {
     'default': {

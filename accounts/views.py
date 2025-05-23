@@ -119,6 +119,15 @@ def dashboard_view(request):
                 {"label": "وضعیت قفل ", "url": "accounts:lock_status", "icon": "fas fa-history", "color": "warning"},
                 {"label": "فهرست کاربران فعال سیستم ", "url": "accounts:active_user_list", "icon": "fas fa-history",
                  "color": "warning"},
+                {"label": " مدیریت دیتابیس ", "url": "accounts:database_manage", "icon": "fas fa-history",
+                 "color": "warning"}      ,
+
+                {"label": "2 مدیریت دیتابیس ", "url": "accounts:databasebackuprestore", "icon": "fas fa-history",
+                 "color": "warning"},
+
+                {"label": "4 مدیریت دیتابیس ", "url": "accounts:databasebackup", "icon": "fas fa-history",
+                 "color": "warning"}
+
 
             ],
         },

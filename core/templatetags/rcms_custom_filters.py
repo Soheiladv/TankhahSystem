@@ -179,6 +179,7 @@ def abs_value_float(value):
 import logging
 logger = logging.getLogger(__name__)
 
+
 @register.filter(name='format_negative')
 def format_negative(value):
     """نمایش عدد با جداکننده هزارگان و تبدیل به فارسی. اعداد منفی درون پرانتز قرار می‌گیرند."""
@@ -425,3 +426,24 @@ def startswith(value, prefix):
 def endswith(value, suffix):
     return value.endswith(suffix)
 
+
+@register.filter
+def get_project_status_color(percentage):
+    try:
+        percentage = float(percentage)
+        if percentage < 50:
+            return '#2ecc71'  # سبز
+        elif 50 <= percentage < 80:
+            return '#f1c40f'  # زرد
+        else:
+            return '#e74c3c'  # قرمز
+    except (ValueError, TypeError):
+        return '#6c757d'  # خاکستری برای ورودی نامعتبر
+
+
+@register.filter
+def is_false(value):
+    """
+    بررسی می‌کند که آیا مقدار دقیقاً False است.
+    """
+    return value is False

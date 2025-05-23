@@ -1,5 +1,6 @@
 from django.urls import path
 
+from Tanbakhsystem.view.view_Dashboard import SimpleChartView
 from budgets.BudgetAllocation.get_projects_by_organization import get_budget_items_by_organization, \
     get_budget_item_remaining, get_budget_item_details
 from core.views import (
@@ -116,5 +117,5 @@ urlpatterns += [
 urlpatterns += [
     path('Help_AccessRule',userGiud_AccessRule , name= 'user_Giud_AccessRule'),
     path('user-guide/', UserGuideView.as_view(), name='user_guide'),
-
+path ('simple-chart/', SimpleChartView.as_view(), name='simple_chart'),
 ]#راهنما

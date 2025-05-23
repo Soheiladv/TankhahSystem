@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/forms.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4RhiikNY7xP/be+3QpXg/N+b/YvG+S8Q5c6Q1a6d/wLw/oD/B6o0h8l7vS0R2dFzQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+    .database-management {
+        margin: 20px;
+        font-family: Arial, sans-serif;
+    }
+    h1 {
+        color: #333;
+        margin-bottom: 25px;
+    }
+    .nav-tabs .nav-link {
+        color: #007bff;
+        border-color: #dee2e6 #dee2e6 #fff;
+    }
+    .nav-tabs .nav-link.active {
+        color: #495057;
+        background-color: #fff;
+        border-color: #dee2e6 #dee2e6 #fff;
+    }
+    .tab-content {
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-top: none;
+        border-radius: 0 0 0.25rem 0.25rem;
+    }
+    .model-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 10px;
+        background: #f9f9f9;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .model-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .model-header input[type="checkbox"] {
+        margin-right: 10px;
+        transform: scale(1.2); /* بزرگتر کردن چک‌باکس */
+    }
+    .model-title {
+        font-weight: bold;
+        font-size: 1.1em;
+        color: #0056b3;
+    }
+    .model-app {
+        background: #e9ecef;
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-size: 0.85em;
+        color: #6c757d;
+        margin-left: auto; /* برای بردن نام اپلیکیشن به سمت راست */
+    }
+    .record-count, .relations {
+        margin-top: 5px;
+        font-size: 0.9em;
+        color: #555;
+    }
+    .relation-item {
+        margin-right: 15px;
+        display: inline-block;
+        background: #f0f8ff;
+        padding: 2px 7px;
+        border-radius: 3px;
+        border: 1px solid #d0e8f8;
+    }
+    .password-field {
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    .password-field label {
+        font-weight: bold;
+        margin-bottom: 8px;
+        display: block;
+    }
+    .password-field input {
+        width: 100%;
+        max-width: 400px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1em;
+    }
+    .help {
+        font-size: 0.85em;
+        color: #777;
+        margin-top: 5px;
+    }
+    .action-buttons button {
+        margin-right: 10px;
+        margin-bottom: 10px; /* برای فاصله دکمه‌ها در موبایل */
+        padding: 10px 20px;
+        font-size: 1em;
+        border-radius: 5px;
+    }
+    .alert {
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="database-management">
+    <h1>{% trans 'مدیریت بک‌آپ و ریست دیتابیس' %}</h1>
+
+    <ul class="nav nav-tabs" id="dbTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="backup-tab" data-toggle="tab" href="#backup" role="tab" aria-controls="backup" aria-selected="true">
+                <i class="fas fa-save"></i> {% trans 'بک‌آپ گیری' %}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="reset-tab" data-toggle="tab" href="#reset" role="tab" aria-controls="reset" aria-selected="false">
+                <i class="fas fa-trash-alt"></i> {% trans 'ریست داده‌ها' %}
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="dbTabsContent">
+        <div class="tab-pane fade show active" id="backup" role="tabpanel" aria-labelledby="backup-tab">
+            <form method="post" id="backupForm">
+                {% csrf_token %}
+                
+                <h3>{% trans 'گزینه‌های بک‌آپ' %}</h3>
+                <p class="help">
+                    {% trans 'برای بک‌آپ کامل داده‌ها (رمزگذاری شده)، رمز عبور را وارد کنید. برای بک‌آپ ساختار دیتابیس (Schema) نیازی به رمز عبور نیست.' %}
+                </p>
+
+                <div class="password-field">
+                    <label for="backup-password">{% trans 'رمز عبور برای رمزگذاری بک‌آپ داده‌ها:' %}</label>
+                    <input type="password" name="password" id="backup-password" class="form-control"
+                           placeholder="{% trans 'حداقل 8 کاراکتر' %}" required>
+                    <p class="help">{% trans 'این رمز برای بازگردانی بک‌آپ داده‌ها ضروری است. آن را در مکانی امن نگه دارید.' %}</p>
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="submit" name="action" value="backup_data" class="btn btn-primary mt-3">
+                        <i class="fas fa-database"></i> {% trans 'بک‌آپ کامل داده‌ها (رمزگذاری شده)' %}
+                    </button>
+                    <button type="submit" name="action" value="backup_schema" class="btn btn-info mt-3">
+                        <i class="fas fa-file-code"></i> {% trans 'بک‌آپ ساختار دیتابیس (Schema)' %}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="tab-pane fade" id="reset" role="tabpanel" aria-labelledby="reset-tab">
+            <form method="post" id="resetForm" onsubmit="return confirmReset()">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset">
+                
+                <h3>{% trans 'انتخاب مدل‌ها برای ریست' %}</h3>
+                <div class="alert alert-warning">
+                    <strong>{% trans 'هشدار بسیار مهم:' %}</strong>
+                    {% trans 'این عمل تمام داده‌های مدل‌های انتخاب شده را حذف می‌کند و **غیرقابل بازگشت** است! لطفاً قبل از انجام، از بک‌آپ بودن داده‌های خود اطمینان حاصل کنید.' %}
+                </div>
+                
+                <div class="form-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleSelectAll('resetForm', true)">
+                        {% trans 'انتخاب همه' %}
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleSelectAll('resetForm', false)">
+                        {% trans 'لغو انتخاب' %}
+                    </button>
+                </div>
+                
+                <div class="model-list">
+                    {% for model in models %}
+                    <div class="model-card">
+                        <div class="model-header">
+                            <input type="checkbox" name="models" value="{{ model.key }}" id="reset-{{ forloop.counter }}">
+                            <label class="model-title" for="reset-{{ forloop.counter }}">
+                                {{ model.verbose_name }} ({{ model.model_name }})
+                            </label>
+                            <span class="model-app">{{ model.app_label }}</span>
+                        </div>
+                        <div class="record-count">
+                            <strong>{% trans 'تعداد رکوردها:' %}</strong> {{ model.record_count }}
+                        </div>
+                        {% if model.relations %}
+                        <div class="relations">
+                            <strong>{% trans 'روابط:' %}</strong>
+                            {% for rel in model.relations %}
+                            <span class="relation-item">
+                                {{ rel.field_name }} ({{ rel.type }}) &rarr; {{ rel.related_model_verbose_name }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-danger mt-3">
+                        <i class="fas fa-eraser"></i> {% trans 'ریست داده‌های انتخاب شده' %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSU9Y5V+zXg4z0b3k3/rJ+5R0E4x0+2uK6vF5L5j5p5/1l5u" crossorigin="anonymous"></script>
+
+<script>
+    // تابع برای انتخاب/لغو انتخاب همه چک‌باکس‌ها در یک فرم
+    function toggleSelectAll(formId, checked) {
+        const form = document.getElementById(formId);
+        // اطمینان از اینکه فقط چک‌باکس‌های مربوط به مدل‌ها انتخاب می‌شوند
+        const checkboxes = form.querySelectorAll('input[type="checkbox"][name="models"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = checked;
+        });
+    }
+
+    // تابع تایید برای عملیات ریست
+    function confirmReset() {
+        const form = document.getElementById('resetForm');
+        const checked = form.querySelectorAll('input[type="checkbox"][name="models"]:checked');
+        
+        if (checked.length === 0) {
+            alert("{% trans 'لطفا حداقل یک مدل برای ریست انتخاب کنید.' %}");
+            return false;
+        }
+        
+        // پیام تایید نهایی برای عملیات حساس ریست
+        return confirm("{% trans 'آیا مطمئن هستید؟ این عمل تمام داده‌های انتخاب شده را حذف می‌کند و غیرقابل بازگشت است!' %}\n\n{% trans 'فقط در صورتی ادامه دهید که از بک‌آپ داده‌های خود اطمینان دارید.' %}");
+    }
+
+    // فعال‌سازی تب‌های Bootstrap
+    $(function () {
+        $('#dbTabs a').on('click', function (e) {
+            e.preventDefault(); // جلوگیری از رفتار پیش‌فرض لینک
+            $(this).tab('show'); // نمایش تب
+        });
+    });
+</script>
+{% endblock %}

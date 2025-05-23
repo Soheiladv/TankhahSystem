@@ -653,3 +653,58 @@ class TimeLockForm(forms.Form):
             self.fields['expiry_date'].initial = jalali_date.strftime('%Y/%m/%d')
 
 
+# Forms For Backuping
+# core/forms.py
+from django import forms
+from django.utils.translation import gettext_lazy as _
+
+class DatabaseBackupForm(forms.Form):
+    DATABASE_TYPES = (
+        ('mysql', 'MySQL'),
+        ('postgresql', 'PostgreSQL'),
+    )
+    FORMATS = (
+        ('sql', 'SQL'),
+        ('zip', 'ZIP'),
+    )
+
+    database_type = forms.ChoiceField(
+        label=_("نوع دیتابیس"),
+        choices=DATABASE_TYPES,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    format = forms.ChoiceField(
+        label=_("فرمت خروجی"),
+        choices=FORMATS,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    password = forms.CharField(
+        label=_("رمز برای رمزگذاری (اختیاری)"),
+        required=False,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': _("حداقل 8 کاراکتر")}),
+        help_text=_("برای رمزگذاری ZIP یا GPG استفاده می‌شود.")
+    )
+    reset_models = forms.BooleanField(
+        label=_("ریست جدول‌ها"),
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    models_to_reset = forms.CharField(
+        label=_("جدول‌های موردنظر برای ریست (با کاما جدا کنید)"),
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'table1,table2'}),
+        help_text=_("نام جدول‌ها را دقیق وارد کنید.")
+    )
+
+    def clean_password(self):
+        password = self.cleaned_data.get('password')
+        if password and len(password) < 8:
+            raise forms.ValidationError(_("رمز باید حداقل 8 کاراکتر باشد."))
+        return password
+
+    def clean_models_to_reset(self):
+        models = self.cleaned_data.get('models_to_reset')
+        reset = self.cleaned_data.get('reset_models')
+        if reset and not models:
+            raise forms.ValidationError(_("لطفاً جدول‌هایی برای ریست مشخص کنید."))
+        return models

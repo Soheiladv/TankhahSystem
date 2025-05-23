@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/forms.css' %}">
+<style>
+    .database-management {
+        margin: 20px;
+    }
+    .model-card {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background: #fff;
+    }
+    .model-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .model-title {
+        font-weight: bold;
+        margin-left: 10px;
+    }
+    .model-app {
+        background: #f0f0f0;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 0.8em;
+    }
+    .relations {
+        margin-top: 10px;
+        font-size: 0.9em;
+        color: #666;
+    }
+    .relation-item {
+        margin-right: 10px;
+        display: inline-block;
+    }
+    .action-buttons {
+        margin-top: 20px;
+    }
+    .tab-content {
+        padding: 15px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-top: none;
+        border-radius: 0 0 4px 4px;
+    }
+    .password-field {
+        margin-top: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="database-management">
+    <h1>{% trans 'مدیریت بک‌آپ و ریست دیتابیس' %}</h1>
+
+    <ul class="nav nav-tabs" id="dbTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="backup-tab" data-toggle="tab" href="#backup" role="tab">
+                {% trans 'بک‌آپ گیری' %}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="restore-tab" data-toggle="tab" href="#restore" role="tab">
+                {% trans 'ریست داده‌ها' %}
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="dbTabsContent">
+        <!-- تب بک‌آپ -->
+        <div class="tab-pane fade show active" id="backup" role="tabpanel">
+            <form method="post" id="backupForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="backup">
+
+                <h3>{% trans 'انتخاب مدل‌ها برای بک‌آپ' %}</h3>
+                <p class="help">
+                    {% trans 'در صورت عدم انتخاب مدل‌ها، از تمام دیتابیس بک‌آپ گرفته می‌شود' %}
+                </p>
+
+                <div class="form-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleSelectAll('backupForm', true)">
+                        {% trans 'انتخاب همه' %}
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleSelectAll('backupForm', false)">
+                        {% trans 'لغو انتخاب' %}
+                    </button>
+                </div>
+
+                <div class="model-list">
+                    {% for model in models %}
+                    <div class="model-card">
+                        <div class="model-header">
+                            <input type="checkbox" name="models" value="{{ model.key }}" id="model-{{ forloop.counter }}">
+                            <label class="model-title" for="model-{{ forloop.counter }}">
+                                {{ model.verbose }} ({{ model.name }})
+                            </label>
+                            <span class="model-app">{{ model.app }}</span>
+                        </div>
+                        {% if model.relations %}
+                        <div class="relations">
+                            <strong>{% trans 'روابط:' %}</strong>
+                            {% for rel in model.relations %}
+                            <span class="relation-item">
+                                {{ rel.name }} ({{ rel.type }}) → {{ rel.related_verbose }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="password-field">
+                    <label for="backup-password">{% trans 'رمز عبور برای رمزگذاری بک‌آپ:' %}</label>
+                    <input type="password" name="password" id="backup-password" class="form-control" required
+                           placeholder="{% trans 'حداقل 8 کاراکتر' %}">
+                    <p class="help">{% trans 'این رمز برای بازگردانی بک‌آپ ضروری است' %}</p>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-download"></i> {% trans 'ایجاد بک‌آپ' %}
+                    </button>
+                      <button type="submit" name="action" value="backup_data" class="btn btn-primary mt-3">
+        بک‌آپ کامل داده‌ها (رمزگذاری شده)
+    </button>
+                     <button type="submit" name="action" value="backup_schema" class="btn btn-info mt-3">
+        بک‌آپ ساختار دیتابیس (Schema)
+    </button>
+                </div>
+            <h4>مدل‌ها برای ریست (پاک کردن داده‌ها):</h4>
+    <div class="form-group">
+        {% for model in models %}
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="models" value="{{ model.key }}" id="model_{{ model.key }}">
+                <label class="form-check-label" for="model_{{ model.key }}">
+                    {{ model.verbose }} ({{ model.app }}.{{ model.name }})
+                </label>
+            </div>
+        {% endfor %}
+    </div>
+
+    <button type="submit" name="action" value="reset" class="btn btn-danger mt-3"
+            onclick="return confirm('آیا از ریست کردن داده‌های انتخاب شده اطمینان دارید؟ این عمل غیرقابل بازگشت است!');">
+        ریست داده‌های انتخاب شده
+    </button>
+</form>
+
+            </form>
+        </div>
+
+        <!-- تب ریست -->
+        <div class="tab-pane fade" id="restore" role="tabpanel">
+            <form method="post" id="resetForm" onsubmit="return confirmReset()">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset">
+
+                <h3>{% trans 'انتخاب مدل‌ها برای ریست' %}</h3>
+                <div class="alert alert-warning">
+                    <strong>{% trans 'هشدار:' %}</strong>
+                    {% trans 'این عمل تمام داده‌های مدل‌های انتخاب شده را حذف می‌کند و غیرقابل بازگشت است!' %}
+                </div>
+
+                <div class="form-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleSelectAll('resetForm', true)">
+                        {% trans 'انتخاب همه' %}
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleSelectAll('resetForm', false)">
+                        {% trans 'لغو انتخاب' %}
+                    </button>
+                </div>
+
+                <div class="model-list">
+                    {% for model in models %}
+                    <div class="model-card">
+                        <div class="model-header">
+                            <input type="checkbox" name="models" value="{{ model.key }}" id="reset-{{ forloop.counter }}">
+                            <label class="model-title" for="reset-{{ forloop.counter }}">
+                                {{ model.verbose }} ({{ model.name }})
+                            </label>
+                            <span class="model-app">{{ model.app }}</span>
+                        </div>
+                        <div class="relations">
+                            <strong>{% trans 'تعداد رکوردها:' %}</strong>
+                            <span id="count-{{ model.key }}">{% trans 'در حال محاسبه...' %}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt"></i> {% trans 'ریست داده‌های انتخاب شده' %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleSelectAll(formId, checked) {
+    const form = document.getElementById(formId);
+    const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = checked;
+    });
+}
+
+function confirmReset() {
+    const form = document.getElementById('resetForm');
+    const checked = form.querySelectorAll('input[type="checkbox"]:checked');
+
+    if (checked.length === 0) {
+        alert("{% trans 'لطفا حداقل یک مدل انتخاب کنید' %}");
+        return false;
+    }
+
+    return confirm("{% trans 'آیا مطمئن هستید؟ این عمل غیرقابل بازگشت است!' %}");
+}
+
+// محاسبه تعداد رکوردهای هر مدل
+{#document.addEventListener('DOMContentLoaded', function() {#}
+{#    {% for model in models %}#}
+{#    fetch(`{% url 'model-count' %}?model={{ model.key }}`)#}
+{#        .then(response => response.json())#}
+{#        .then(data => {#}
+{#            document.getElementById(`count-{{ model.key }}`).textContent = data.count;#}
+{#        });#}
+{#    {% endfor %}#}
+});
+</script>
+{% endblock %}

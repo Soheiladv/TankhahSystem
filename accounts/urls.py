@@ -1,3 +1,4 @@
+from .DashboardReset import DatabaseResetView, DatabaseManageView, DatabaseBackupRestoreView, DatabaseBackupView
 from .Heartbeat import heartbeat_view
 app_name = 'accounts'  # این خط باید وجود داشته باشد
 from atexit import register
@@ -205,3 +206,12 @@ urlpatterns+=[
 urlpatterns+=[
     path('active-users/', active_users_view, name='active_users'),
 ]#تعداد کاربر فعال سیستم
+
+urlpatterns += [
+    path('reset-database/', DatabaseResetView.as_view(), name='reset_database'),
+    path('database-manage/', DatabaseManageView.as_view(), name='database_manage'),
+    path('databasebackuprestore/', DatabaseBackupRestoreView.as_view(), name='databasebackuprestore'),
+    path('databasebackup/', DatabaseBackupView.as_view(), name='databasebackup'),
+
+]# Dashboard reset
+

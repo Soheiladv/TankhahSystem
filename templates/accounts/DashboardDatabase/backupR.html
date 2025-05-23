@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block extra_css %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .backup-card {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        .btn-primary {
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: scale(1.05);
+        }
+        .alert {
+            border-radius: 8px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">{% trans "ایجاد بکاپ دیتابیس" %}</h1>
+        <div class="backup-card">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-info{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" id="backupForm" onsubmit="return validateForm()">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="{{ form.database_type.id_for_label }}" class="form-label">{% trans "نوع دیتابیس" %}</label>
+                    {{ form.database_type }}
+                    {% if form.database_type.errors %}
+                        <div class="text-danger">{{ form.database_type.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.format.id_for_label }}" class="form-label">{% trans "فرمت خروجی" %}</label>
+                    {{ form.format }}
+                    {% if form.format.errors %}
+                        <div class="text-danger">{{ form.format.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.password.id_for_label }}" class="form-label">{% trans "رمز برای رمزگذاری" %}</label>
+                    {{ form.password }}
+                    <small class="form-text text-muted">{% trans "اختیاری، حداقل 8 کاراکتر." %}</small>
+                    {% if form.password.errors %}
+                        <div class="text-danger">{{ form.password.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3 form-check">
+                    {{ form.reset_models }}
+                    <label class="form-check-label" for="{{ form.reset_models.id_for_label }}">{% trans "ریست جدول‌ها" %}</label>
+                    {% if form.reset_models.errors %}
+                        <div class="text-danger">{{ form.reset_models.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3" id="modelsToReset" style="display: none;">
+                    <label for="{{ form.models_to_reset.id_for_label }}" class="form-label">{% trans "جدول‌های موردنظر برای ریست" %}</label>
+                    {{ form.models_to_reset }}
+                    <small class="form-text text-muted">{% trans "نام جدول‌ها را با کاما جدا کنید (مثال: table1,table2)." %}</small>
+                    {% if form.models_to_reset.errors %}
+                        <div class="text-danger">{{ form.models_to_reset.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary">{% trans "ایجاد بکاپ" %}</button>
+                <a href="{% url 'core:index' %}" class="btn btn-secondary">{% trans "لغو" %}</a>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resetModelsCheckbox = document.getElementById('{{ form.reset_models.id_for_label }}');
+            const modelsToResetDiv = document.getElementById('modelsToReset');
+
+            // نمایش/مخفی کردن فیلد جدول‌ها
+            resetModelsCheckbox.addEventListener('change', function () {
+                modelsToResetDiv.style.display = this.checked ? 'block' : 'none';
+            });
+
+            // اعتبارسنجی فرم
+            function validateForm() {
+                const password = document.getElementById('{{ form.password.id_for_label }}').value;
+                const resetModels = document.getElementById('{{ form.reset_models.id_for_label }}').checked;
+                const modelsToReset = document.getElementById('{{ form.models_to_reset.id_for_label }}').value;
+
+                if (password && password.length < 8) {
+                    alert('{% trans "رمز باید حداقل 8 کاراکتر باشد." %}');
+                    return false;
+                }
+
+                if (resetModels && !modelsToReset.trim()) {
+                    alert('{% trans "لطفاً جدول‌هایی برای ریست مشخص کنید." %}');
+                    return false;
+                }
+
+                return confirm('{% trans "آیا مطمئن هستید که می‌خواهید بکاپ ایجاد کنید؟" %}');
+            }
+        });
+    </script>
+{% endblock %}
