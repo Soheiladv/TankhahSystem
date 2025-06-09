@@ -135,10 +135,10 @@
                     <h6 class="text-muted">{% trans "وضعیت مالی این تخصیص" %}</h6>
                     <div class="budget-bar mb-2">
                         {% with consumed_percentage=consumed_amount|percentage_of:allocation.allocated_amount %}
-                        <div class="budget-bar-consumed" id="consumedBar" style="width: {{ consumed_percentage|default:0 }}%;" data-bs-toggle="tooltip" title="{% blocktrans with amount=consumed_amount|intcomma:False|to_persian_number %}مصرف شده: {{ amount }} ریال{% endblocktrans %}">
+                        <div class="budget-bar-consumed" id="consumedBar" style="width: {{ consumed_percentage|default:0 }}%;" data-bs-toggle="tooltip" title="{% blocktrans with amount=consumed_amount|to_persian_number %}مصرف شده: {{ amount }} ریال{% endblocktrans %}">
                             <span class="p-1">{{ consumed_percentage|floatformat:0|to_persian_number }}%</span>
                         </div>
-                        <div class="budget-bar-remaining" id="remainingBar" style="width: {{ 100|sub:consumed_percentage|default:100 }}%;" data-bs-toggle="tooltip" title="{% blocktrans with amount=remaining_amount|intcomma:False|to_persian_number %}باقیمانده: {{ amount }} ریال{% endblocktrans %}">
+                        <div class="budget-bar-remaining" id="remainingBar" style="width: {{ 100|sub:consumed_percentage|default:100 }}%;" data-bs-toggle="tooltip" title="{% blocktrans with amount=remaining_amount|to_persian_number %}باقیمانده: {{ amount }} ریال{% endblocktrans %}">
                             <span class="p-1">{{ 100|sub:consumed_percentage|floatformat:0|to_persian_number }}%</span>
                         </div>
                         {% endwith %}
@@ -151,11 +151,11 @@
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item d-flex justify-content-between px-0">
                             <span>{% translate "مبلغ کل تخصیص" %}</span>
-                            <span class="fw-bold text-primary">{{ allocation.allocated_amount|intcomma:False|to_persian_number }} ریال</span>
+                            <span class="fw-bold text-primary">{{ allocation.allocated_amount|to_persian_number }} ریال</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between px-0">
                             <span>{% translate "مبلغ مصرف شده" %}</span>
-                            <span class="fw-bold text-danger">{{ consumed_amount|intcomma:False|to_persian_number }} ریال</span>
+                            <span class="fw-bold text-danger">{{ consumed_amount|to_persian_number }} ریال</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between px-0 mt-1 bg-success-subtle rounded p-2">
                             <span class="fw-bold">{% trans "قابل بازگشت" %}</span>
