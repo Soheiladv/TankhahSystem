@@ -1,0 +1,979 @@
+{#{% extends 'base.html' %}#}
+{#{% load i18n jformat rcms_custom_filters %}#}
+{#{% block title %}{{ title }}{% endblock %}#}
+{##}
+{#{% block extra_css %}#}
+{# <style>#}
+{#    .project-form-page {#}
+{#        max-width: 900px;#}
+{#        margin: 1rem auto;#}
+{#    }#}
+{#    .card-header {#}
+{#        padding: 0.75rem 1rem;#}
+{#    }#}
+{#    .card-body {#}
+{#        padding: 1.5rem;#}
+{#    }#}
+{#    .budget-summary {#}
+{#        margin-bottom: 1.5rem;#}
+{#    }#}
+{#    .progress-container {#}
+{#        padding-top: 1rem;#}
+{#    }#}
+{#    .progress {#}
+{#        height: 1rem;#}
+{#    }#}
+{#    .progress-labels {#}
+{#        font-size: 0.75rem;#}
+{#    }#}
+{#    .threshold-marker {#}
+{#        height: 0.6rem;#}
+{#    }#}
+{#    .metric small {#}
+{#        font-size: 0.75rem;#}
+{#    }#}
+{#    .metric strong {#}
+{#        font-size: 1.1rem;#}
+{#    }#}
+{#    .allocation-display {#}
+{#        padding: 0.75rem;#}
+{#        text-align: center;#}
+{#    }#}
+{#    .allocation-display small {#}
+{#        font-size: 0.75rem;#}
+{#    }#}
+{#    .allocation-display strong {#}
+{#        font-size: 1.1rem;#}
+{#    }#}
+{#    .word-display {#}
+{#        font-size: 0.8rem;#}
+{#    }#}
+{#    .form-label {#}
+{#        font-size: 0.9rem;#}
+{#        margin-bottom: 0.3rem;#}
+{#    }#}
+{#    .input-group-text {#}
+{#        font-size: 0.85rem;#}
+{#    }#}
+{#    .form-check {#}
+{#        margin-bottom: 0.3rem;#}
+{#    }#}
+{#    .form-actions {#}
+{#        margin-top: 1.5rem;#}
+{#        padding-top: 1rem;#}
+{#    }#}
+{#    .btn {#}
+{#        padding: 0.4rem 1rem;#}
+{#        font-size: 0.9rem;#}
+{#    }#}
+{#</style>#}
+{#{% endblock %}#}
+{##}
+{#{% block content %}#}
+{#<div class="project-form-page">#}
+{#    <div class="card shadow-sm border-0">#}
+{#        <div class="card-header bg-primary text-white d-flex align-items-center gap-2">#}
+{#            <i class="fas fa-project-diagram fa-fw"></i>#}
+{#            <h5 class="mb-0">{{ title }}</h5>#}
+{#        </div>#}
+{##}
+{#        <div class="card-body">#}
+{#            <div class="budget-summary border-bottom pb-2">#}
+{#                <h6 class="mb-2 text-muted">{% trans "وضعیت بودجه شعبه" %}</h6>#}
+{#                <div class="row g-2 mb-2">#}
+{#                    <div class="col-md-4 col-6">#}
+{#                        <div class="metric">#}
+{#                            <small class="text-muted d-block">{% trans "کل بودجه:" %}</small>#}
+{#                            <strong id="total-amount-display">0</strong>#}
+{#                            <span class="text-muted"> {% trans "ریال" %}</span>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                    <div class="col-md-4 col-6">#}
+{#                        <div class="metric">#}
+{#                            <small class="text-muted d-block">{% trans "باقی‌مانده:" %}</small>#}
+{#                            <strong id="remaining-amount">0</strong><span class="text-muted"> {% trans "ریال" %}</span>#}
+{#                            <strong id="remaining-amount">{{ budget_period.get_remaining_amount|format_negative|to_persian_number }}</strong>#}
+{##}
+{#                            <small id="remaining-percent">(0%)</small>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                    <div class="col-md-4 col-12">#}
+{#                        <div class="progress-container">#}
+{#                            <div class="progress-labels">#}
+{#                                <span>10% <i class="fas fa-exclamation-triangle fa-xs text-warning"></i></span>#}
+{#                            </div>#}
+{#                            <div class="progress position-relative">#}
+{#                                <div class="progress-bar bg-success" id="progress-bar" role="progressbar"#}
+{#                                     style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>#}
+{#                                <div class="threshold-marker warning-threshold" style="left: 10%;"></div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{##}
+{#            {% if messages %}#}
+{#                <div class="messages mb-2">#}
+{#                    {% for message in messages %}#}
+{#                        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show d-flex align-items-center gap-1"#}
+{#                             role="alert">#}
+{#                            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% elif message.tags == 'error' %}fa-times-circle{% else %}fa-info-circle{% endif %} fa-fw"></i>#}
+{#                            {{ message }}#}
+{#                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>#}
+{#                        </div>#}
+{#                    {% endfor %}#}
+{#                </div>#}
+{#            {% endif %}#}
+{##}
+{#            <form method="post" id="project-form" class="needs-validation" novalidate>#}
+{#                {% csrf_token %}#}
+{#                <div class="row g-3">#}
+{#                    <div class="col-md-6">#}
+{#                        <label for="{{ form.name.id_for_label }}" class="form-label fw-semibold">#}
+{#                            <i class="fas fa-tag fa-fw me-1 text-muted"></i> {% trans "نام پروژه" %}#}
+{#                        </label>#}
+{#                        {{ form.name }}#}
+{#                        {{ form.name.errors }}#}
+{#                    </div>#}
+{#                    <div class="col-md-6">#}
+{#                        <label for="{{ form.code.id_for_label }}" class="form-label fw-semibold">#}
+{#                            <i class="fas fa-barcode fa-fw me-1 text-muted"></i> {% trans "کد پروژه" %}#}
+{#                        </label>#}
+{#                        {{ form.code }}#}
+{#                        {{ form.code.errors }}#}
+{#                    </div>#}
+{#                    <div class="col-md-6">#}
+{#                        <label for="{{ form.organization.id_for_label }}" class="form-label fw-semibold">#}
+{#                            <i class="fas fa-building fa-fw me-1 text-muted"></i> {% trans "شعبه" %}#}
+{#                        </label>#}
+{#                        {{ form.organization }}#}
+{#                        {{ form.organization.errors }}#}
+{#                    </div>#}
+{#                    <div class="col-md-6">#}
+{#                        <label for="{{ form.start_date.id_for_label }}" class="form-label fw-semibold">#}
+{#                            <i class="fas fa-calendar-alt fa-fw me-1 text-muted"></i> {% trans "تاریخ شروع" %}#}
+{#                        </label>#}
+{#                        {{ form.start_date }}#}
+{#                        {{ form.start_date.errors }}#}
+{#                    </div>#}
+{#                    <div class="col-md-6">#}
+{#                        <label for="{{ form.end_date.id_for_label }}" class="form-label fw-semibold">#}
+{#                            <i class="fas fa-calendar-alt fa-fw me-1 text-muted"></i> {% trans "تاریخ پایان" %}#}
+{#                        </label>#}
+{#                        {{ form.end_date }}#}
+{#                        {{ form.end_date.errors }}#}
+{#                    </div>#}
+{#                    <div class="col-md-6">#}
+{#                        <label for="{{ form.priority.id_for_label }}" class="form-label fw-semibold">#}
+{#                            <i class="fas fa-star fa-fw me-1 text-muted"></i> {% trans "اولویت" %}#}
+{#                        </label>#}
+{#                        {{ form.priority }}#}
+{#                        {{ form.priority.errors }}#}
+{#                    </div>#}
+{#                    <div class="col-md-6">#}
+{#                        <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">#}
+{#                            <i class="fas fa-comment fa-fw me-1 text-muted"></i> {% trans "توضیحات" %}#}
+{#                        </label>#}
+{#                        {{ form.description }}#}
+{#                        {{ form.description.errors }}#}
+{#                    </div>#}
+{#                    <div class="col-md-6">#}
+{#                        <label for="{{ form.allocated_amount.id_for_label }}" class="form-label fw-semibold">#}
+{#                            <i class="fas fa-money-bill-wave fa-fw me-1 text-muted"></i> {% trans "بودجه پروژه (ریال)" %}#}
+{#                        </label>#}
+{#                        <div class="input-group">#}
+{#                            {{ form.allocated_amount }}#}
+{#                            <span class="input-group-text">{% trans "ریال" %}</span>#}
+{#                        </div>#}
+{#                        <div class="allocation-display">#}
+{#                            <small class="text-muted d-block">{% trans "تخصیص:" %}</small>#}
+{#                            <strong id="allocated-amount-display">0</strong>#}
+{#                            <span>{% trans "ریال" %}</span>#}
+{#                            <div class="word-display" id="allocated-amount-words"></div>#}
+{#                        </div>#}
+{#                        {{ form.allocated_amount.errors }}#}
+{#                    </div>#}
+{#                    <div class="col-md-6">#}
+{#                        <div class="form-check">#}
+{#                            {{ form.has_subproject }}#}
+{#                            <label class="form-check-label" for="{{ form.has_subproject.id_for_label }}">#}
+{#                                {% trans "آیا ساب‌پروژه دارد؟" %}#}
+{#                            </label>#}
+{#                            {{ form.has_subproject.errors }}#}
+{#                        </div>#}
+{#                        <div id="subproject_fields" style="{% if not form.has_subproject.value %}display: none;{% endif %}">#}
+{#                            <div class="mt-3">#}
+{#                                <label for="{{ form.subproject_name.id_for_label }}" class="form-label fw-semibold">#}
+{#                                    <i class="fas fa-tag fa-fw me-1 text-muted"></i> {% trans "نام ساب‌پروژه" %}#}
+{#                                </label>#}
+{#                                {{ form.subproject_name }}#}
+{#                                {{ form.subproject_name.errors }}#}
+{#                            </div>#}
+{#                            <div class="mt-3">#}
+{#                                <label for="{{ form.subproject_description.id_for_label }}" class="form-label fw-semibold">#}
+{#                                    <i class="fas fa-comment fa-fw me-1 text-muted"></i> {% trans "توضیحات ساب‌پروژه" %}#}
+{#                                </label>#}
+{#                                {{ form.subproject_description }}#}
+{#                                {{ form.subproject_description.errors }}#}
+{#                            </div>#}
+{#                            <div class="mt-3">#}
+{#                                <label for="{{ form.subproject_budget.id_for_label }}" class="form-label fw-semibold">#}
+{#                                    <i class="fas fa-money-bill-wave fa-fw me-1 text-muted"></i> {% trans "بودجه ساب‌پروژه (ریال)" %}#}
+{#                                </label>#}
+{#                                <div class="input-group">#}
+{#                                    {{ form.subproject_budget }}#}
+{#                                    <span class="input-group-text">{% trans "ریال" %}</span>#}
+{#                                </div>#}
+{#                                <div class="allocation-display">#}
+{#                                    <small class="text-muted d-block">{% trans "تخصیص:" %}</small>#}
+{#                                    <strong id="subproject-budget-display">0</strong>#}
+{#                                    <span>{% trans "ریال" %}</span>#}
+{#                                    <div class="word-display" id="subproject-budget-words"></div>#}
+{#                                </div>#}
+{#                                {{ form.subproject_budget.errors }}#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                    <div class="col-md-6">#}
+{#                        <div class="form-check">#}
+{#                            {{ form.is_active }}#}
+{#                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">#}
+{#                                {% trans "فعال" %}#}
+{#                            </label>#}
+{#                            {{ form.is_active.errors }}#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{##}
+{#                <div class="form-actions border-top mt-3 d-flex justify-content-end gap-2">#}
+{#                    <button type="submit" class="btn btn-primary">#}
+{#                        <i class="fas fa-check me-1"></i> {% trans "ذخیره" %}#}
+{#                    </button>#}
+{#                    <a href="{% url 'project_list' %}" class="btn btn-secondary">#}
+{#                        <i class="fas fa-times me-1"></i> {% trans "انصراف" %}#}
+{#                    </a>#}
+{#                </div>#}
+{#            </form>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+{#{% endblock %}#}
+{##}
+{#{% block extra_js %}#}
+{#<script>#}
+{#(function () {#}
+{#    "use strict";#}
+{##}
+{#    const NumberFormatter = {#}
+{#        separate: function (number) {#}
+{#            number = this.getRawNumber(number + '').replace(/[^0-9.]/g, '');#}
+{#            if (!number) return '';#}
+{#            let parts = number.split('.');#}
+{#            let y = parts[0];#}
+{#            let z = parts.length > 1 ? '.' + parts[1] : '';#}
+{#            let rgx = /(\d+)(\d{3})/;#}
+{#            while (rgx.test(y)) {#}
+{#                y = y.replace(rgx, '$1,$2');#}
+{#            }#}
+{#            return this.toPersianDigits(y + z).replace(/,/g, '،');#}
+{#        },#}
+{#        getRawNumber: function (formattedNumber) {#}
+{#            return this.toEnglishDigits(formattedNumber.replace(/،/g, ''));#}
+{#        },#}
+{#        toPersianDigits: function (number) {#}
+{#            const persianDigits = '۰۱۲۳۴۵۶۷۸۹';#}
+{#            const englishDigits = '0123456789';#}
+{#            let result = number + '';#}
+{#            for (let i = 0; i < 10; i++) {#}
+{#                result = result.replace(new RegExp(englishDigits[i], 'g'), persianDigits[i]);#}
+{#            }#}
+{#            return result;#}
+{#        },#}
+{#        toEnglishDigits: function (number) {#}
+{#            return number.replace(/[۰-۹]/g, function (d) {#}
+{#                return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);#}
+{#            });#}
+{#        }#}
+{#    };#}
+{##}
+{#    const NumberToWords = {#}
+{#        units: ['', 'یک', 'دو', 'سه', 'چهار', 'پنج', 'شش', 'هفت', 'هشت', 'نه'],#}
+{#        teens: ['ده', 'یازده', 'دوازده', 'سیزده', 'چهارده', 'پانزده', 'شانزده', 'هفده', 'هجده', 'نوزده'],#}
+{#        tens: ['', 'ده', 'بیست', 'سی', 'چهل', 'پنجاه', 'شصت', 'هفتاد', 'هشتاد', 'نود'],#}
+{#        hundreds: ['', 'صد', 'دویست', 'سیصد', 'چهارصد', 'پانصد', 'ششصد', 'هفتصد', 'هشتصد', 'نهصد'],#}
+{#        thousands: ['هزار', 'میلیون', 'میلیارد'],#}
+{##}
+{#        convert: function (number) {#}
+{#            number = parseInt(number);#}
+{#            if (isNaN(number) || number === 0) return 'صفر';#}
+{#            let parts = [];#}
+{#            let chunkCount = 0;#}
+{#            while (number > 0) {#}
+{#                let chunk = number % 1000;#}
+{#                if (chunk) {#}
+{#                    let chunkText = this.convertChunk(chunk);#}
+{#                    if (chunkCount > 0) {#}
+{#                        chunkText += ' ' + this.thousands[chunkCount - 1];#}
+{#                    }#}
+{#                    parts.unshift(chunkText);#}
+{#                }#}
+{#                number = Math.floor(number / 1000);#}
+{#                chunkCount++;#}
+{#            }#}
+{#            return parts.join(' و ');#}
+{#        },#}
+{##}
+{#        convertChunk: function (number) {#}
+{#            let result = '';#}
+{#            if (number >= 100) {#}
+{#                result += this.hundreds[Math.floor(number / 100)];#}
+{#                number %= 100;#}
+{#                if (number > 0) result += ' و ';#}
+{#            }#}
+{#            if (number >= 20) {#}
+{#                result += this.tens[Math.floor(number / 10)];#}
+{#                number %= 10;#}
+{#                if (number > 0) result += ' و ';#}
+{#            }#}
+{#            if (number >= 10) {#}
+{#                result += this.teens[number - 10];#}
+{#            } else if (number > 0) {#}
+{#                result += this.units[number];#}
+{#            }#}
+{#            return result;#}
+{#        }#}
+{#    };#}
+{##}
+{#    document.addEventListener('DOMContentLoaded', function () {#}
+{#        const hasSubprojectCheckbox = document.getElementById('{{ form.has_subproject.id_for_label }}');#}
+{#        const subprojectFields = document.getElementById('subproject_fields');#}
+{#        const organizationSelect = document.getElementById('{{ form.organization.id_for_label }}');#}
+{#        const allocatedAmountInput = document.getElementById('{{ form.allocated_amount.id_for_label }}');#}
+{#        const subprojectBudgetInput = document.getElementById('{{ form.subproject_budget.id_for_label }}');#}
+{#        const totalAmountDisplay = document.getElementById('total-amount-display');#}
+{#        const remainingAmountDisplay = document.getElementById('remaining-amount');#}
+{#        const remainingPercentDisplay = document.getElementById('remaining-percent');#}
+{#        const progressBar = document.getElementById('progress-bar');#}
+{#        const allocatedAmountDisplay = document.getElementById('allocated-amount-display');#}
+{#        const allocatedAmountWords = document.getElementById('allocated-amount-words');#}
+{#        const subprojectBudgetDisplay = document.getElementById('subproject-budget-display');#}
+{#        const subprojectBudgetWords = document.getElementById('subproject-budget-words');#}
+{##}
+{#        let totalAmount = 0;#}
+{#        let remainingAmount = 0;#}
+{#        const warningThreshold = 10; // 10% برای هشدار#}
+{##}
+{#        // اطلاعات بودجه شعبه‌ها از ویو#}
+{#        const budgetData = {#}
+{#            {% for org_id, report in budget_report.items %}#}
+{#                "{{ org_id }}": {#}
+{#                    total: {{ report.total_budget|floatformat:0 }},#}
+{#                    remaining: {{ report.remaining_budget|floatformat:0 }}#}
+{#                }{% if not forloop.last %},{% endif %}#}
+{#            {% endfor %}#}
+{#        };#}
+{##}
+{#        // مدیریت نمایش فیلدهای ساب‌پروژه#}
+{#        if (hasSubprojectCheckbox) {#}
+{#            hasSubprojectCheckbox.addEventListener('change', function () {#}
+{#                subprojectFields.style.display = this.checked ? 'block' : 'none';#}
+{#                updateDisplay();#}
+{#            });#}
+{#        }#}
+{##}
+{#        // فیلتر کردن ورودی‌ها#}
+{#        function filterNumericInput(input) {#}
+{#            if (!input) return;#}
+{#            input.addEventListener('input', function (e) {#}
+{#                let value = e.target.value;#}
+{#                value = value.replace(/[^۰-۹0-9]/g, '');#}
+{#                e.target.value = NumberFormatter.separate(value);#}
+{#            });#}
+{#        }#}
+{##}
+{#        filterNumericInput(allocatedAmountInput);#}
+{#        filterNumericInput(subprojectBudgetInput);#}
+{##}
+{#        function updateDisplay() {#}
+{#            const orgId = organizationSelect.value;#}
+{#            const budget = budgetData[orgId] || { total: 0, remaining: 0 };#}
+{#            totalAmount = budget.total;#}
+{#            remainingAmount = budget.remaining;#}
+{##}
+{#            let allocated = allocatedAmountInput ? NumberFormatter.getRawNumber(allocatedAmountInput.value) : 0;#}
+{#            let subproject = subprojectBudgetInput && hasSubprojectCheckbox.checked ? NumberFormatter.getRawNumber(subprojectBudgetInput.value) : 0;#}
+{#            allocated = parseFloat(allocated) || 0;#}
+{#            subproject = parseFloat(subproject) || 0;#}
+{##}
+{#            // محدود کردن ورودی‌ها#}
+{#            allocated = Math.max(0, Math.min(allocated, remainingAmount));#}
+{#            subproject = Math.max(0, Math.min(subproject, remainingAmount - allocated));#}
+{#            const totalRequested = allocated + subproject;#}
+{##}
+{#            if (allocatedAmountInput) {#}
+{#                allocatedAmountInput.value = NumberFormatter.separate(allocated);#}
+{#            }#}
+{#            if (subprojectBudgetInput && hasSubprojectCheckbox.checked) {#}
+{#                subprojectBudgetInput.value = NumberFormatter.separate(subproject);#}
+{#            }#}
+{##}
+{#            // آپدیت نمایش‌ها#}
+{#            if (totalAmountDisplay) {#}
+{#                totalAmountDisplay.textContent = NumberFormatter.separate(totalAmount);#}
+{#            }#}
+{#            if (remainingAmountDisplay) {#}
+{#                remainingAmountDisplay.textContent = NumberFormatter.separate(remainingAmount - totalRequested);#}
+{#            }#}
+{#            if (remainingPercentDisplay) {#}
+{#                const percent = totalAmount ? ((remainingAmount - totalRequested) / totalAmount * 100).toFixed(1) : 0;#}
+{#                remainingPercentDisplay.textContent = `(${NumberFormatter.separate(percent)}%)`;#}
+{#            }#}
+{#            if (progressBar) {#}
+{#                const percent = totalAmount ? ((remainingAmount - totalRequested) / totalAmount * 100) : 0;#}
+{#                progressBar.style.width = `${percent}%`;#}
+{#                progressBar.setAttribute('aria-valuenow', percent);#}
+{#                progressBar.classList.remove('bg-success', 'bg-warning', 'bg-danger');#}
+{#                if (percent <= warningThreshold) {#}
+{#                    progressBar.classList.add('bg-warning');#}
+{#                } else {#}
+{#                    progressBar.classList.add('bg-success');#}
+{#                }#}
+{#            }#}
+{#            if (allocatedAmountDisplay) {#}
+{#                allocatedAmountDisplay.textContent = NumberFormatter.separate(allocated);#}
+{#            }#}
+{#            if (allocatedAmountWords) {#}
+{#                allocatedAmountWords.textContent = allocated > 0 ? NumberToWords.convert(Math.round(allocated)) + ' ریال' : '';#}
+{#            }#}
+{#            if (subprojectBudgetDisplay && hasSubprojectCheckbox.checked) {#}
+{#                subprojectBudgetDisplay.textContent = NumberFormatter.separate(subproject);#}
+{#            }#}
+{#            if (subprojectBudgetWords && hasSubprojectCheckbox.checked) {#}
+{#                subprojectBudgetWords.textContent = subproject > 0 ? NumberToWords.convert(Math.round(subproject)) + ' ریال' : '';#}
+{#            }#}
+{#        }#}
+{##}
+{#        // رویدادها#}
+{#        organizationSelect.addEventListener('change', updateDisplay);#}
+{#        if (allocatedAmountInput) {#}
+{#            allocatedAmountInput.addEventListener('input', updateDisplay);#}
+{#        }#}
+{#        if (subprojectBudgetInput) {#}
+{#            subprojectBudgetInput.addEventListener('input', updateDisplay);#}
+{#        }#}
+{##}
+{#        // اعتبارسنجی فرم#}
+{#        const form = document.getElementById('project-form');#}
+{#        form.addEventListener('submit', function (event) {#}
+{#            if (!form.checkValidity()) {#}
+{#                event.preventDefault();#}
+{#                event.stopPropagation();#}
+{#            }#}
+{#            form.classList.add('was-validated');#}
+{#        }, false);#}
+{##}
+{#        updateDisplay();#}
+{#    });#}
+{#})();#}
+{#</script>#}
+{#{% endblock %}#}
+
+{% extends 'base.html' %}
+{% load i18n jformat rcms_custom_filters %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .project-form-page {
+        max-width: 900px;
+        margin: 1rem auto;
+    }
+    .card-header {
+        padding: 0.75rem 1rem;
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    .budget-summary {
+        margin-bottom: 1.5rem;
+    }
+    .progress-container {
+        padding-top: 1rem;
+    }
+    .progress {
+        height: 1rem;
+    }
+    .progress-labels {
+        font-size: 0.75rem;
+    }
+    .threshold-marker {
+        height: 0.6rem;
+    }
+    .metric small {
+        font-size: 0.75rem;
+    }
+    .metric strong {
+        font-size: 1.1rem;
+    }
+    .form-label {
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+    }
+    .form-check {
+        margin-bottom: 0.3rem;
+    }
+    .form-actions {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+    }
+    .btn {
+        padding: 0.4rem 1rem;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="project-form-page">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white d-flex align-items-center gap-2">
+            <i class="fas fa-project-diagram fa-fw"></i>
+            <h5 class="mb-0">{{ title }}</h5>
+        </div>
+
+        <div class="card-body">
+            <div class="budget-summary border-bottom pb-2">
+                <h6 class="mb-2 text-muted">{% trans "وضعیت بودجه شعبه" %}</h6>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-4 col-6">
+                        <div class="metric">
+                            <small class="text-muted d-block">{% trans "کل بودجه:" %}</small>
+                            <strong id="total-amount-display">0</strong>
+                            <span class="text-muted"> {% trans "ریال" %}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <div class="metric">
+                            <small class="text-muted d-block">{% trans "باقی‌مانده:" %}</small>
+                            <strong id="remaining-amount">0</strong>
+                            <span class="text-muted"> {% trans "ریال" %}</span>
+                            <small id="remaining-percent">(0%)</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <div class="progress-container">
+                            <div class="progress-labels">
+                                <span>10% <i class="fas fa-exclamation-triangle fa-xs text-warning"></i></span>
+                            </div>
+                            <div class="progress position-relative">
+                                <div class="progress-bar bg-success" id="progress-bar" role="progressbar"
+                                     style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                                <div class="threshold-marker warning-threshold" style="left: 10%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if messages %}
+                <div class="messages mb-2">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show d-flex align-items-center gap-1"
+                             role="alert">
+                            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% elif message.tags == 'error' %}fa-times-circle{% else %}fa-info-circle{% endif %} fa-fw"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" id="project-form" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.name.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-tag fa-fw me-1 text-muted"></i> {% trans "نام پروژه" %}
+                        </label>
+                        {{ form.name }}
+                        {{ form.name.errors }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.code.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-barcode fa-fw me-1 text-muted"></i> {% trans "کد پروژه" %}
+                        </label>
+                        {{ form.code }}
+                        {{ form.code.errors }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.organization.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-building fa-fw me-1 text-muted"></i> {% trans "شعبه" %}
+                        </label>
+                        {{ form.organization }}
+                        {{ form.organization.errors }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.start_date.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-calendar-alt fa-fw me-1 text-muted"></i> {% trans "تاریخ شروع" %}
+                        </label>
+                        {{ form.start_date }}
+                        {{ form.start_date.errors }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.end_date.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-calendar-alt fa-fw me-1 text-muted"></i> {% trans "تاریخ پایان" %}
+                        </label>
+                        {{ form.end_date }}
+                        {{ form.end_date.errors }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.priority.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-star fa-fw me-1 text-muted"></i> {% trans "اولویت" %}
+                        </label>
+                        {{ form.priority }}
+                        {{ form.priority.errors }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-comment fa-fw me-1 text-muted"></i> {% trans "توضیحات" %}
+                        </label>
+                        {{ form.description }}
+                        {{ form.description.errors }}
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            {{ form.has_subproject }}
+                            <label class="form-check-label" for="{{ form.has_subproject.id_for_label }}">
+                                {% trans "آیا ساب‌پروژه دارد؟" %}
+                            </label>
+                            {{ form.has_subproject.errors }}
+                        </div>
+                        <div id="subproject_fields" style="{% if not form.has_subproject.value %}display: none;{% endif %}">
+                            <div class="mt-3">
+                                <label for="{{ form.subproject_name.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-tag fa-fw me-1 text-muted"></i> {% trans "نام ساب‌پروژه" %}
+                                </label>
+                                {{ form.subproject_name }}
+                                {{ form.subproject_name.errors }}
+                            </div>
+                            <div class="mt-3">
+                                <label for="{{ form.subproject_description.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-comment fa-fw me-1 text-muted"></i> {% trans "توضیحات ساب‌پروژه" %}
+                                </label>
+                                {{ form.subproject_description }}
+                                {{ form.subproject_description.errors }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                {% trans "فعال" %}
+                            </label>
+                            {{ form.is_active.errors }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions border-top mt-3 d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check me-1"></i> {% trans "ذخیره" %}
+                    </button>
+                    <a href="{% url 'project_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i> {% trans "انصراف" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    "use strict";
+
+    const NumberFormatter = {
+        separate: function (number) {
+            number = this.getRawNumber(number + '').replace(/[^0-9.]/g, '');
+            if (!number) return '';
+            let parts = number.split('.');
+            let y = parts[0];
+            let z = parts.length > 1 ? '.' + parts[1] : '';
+            let rgx = /(\d+)(\d{3})/;
+            while (rgx.test(y)) {
+                y = y.replace(rgx, '$1,$2');
+            }
+            return this.toPersianDigits(y + z).replace(/,/g, '،');
+        },
+        getRawNumber: function (number) {
+            return this.toEnglishDigits(number.replace(/،/g, ''));
+        },
+        toPersianDigits: function (number) {
+            const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+            const englishDigits = '0123456789';
+            let result = number + '';
+            for (let i = 0; i < 10; i++) {
+                result = result.replace(new RegExp(englishDigits[i], 'g'), persianDigits[i]);
+            }
+            return result;
+        },
+        toEnglishDigits: function (number) {
+            return number.replace(/[۰-۹]/g, function (d) {
+                return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);
+            });
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const hasSubprojectCheckbox = document.getElementById('{{ form.has_subproject.id_for_label }}');
+        const subprojectFields = document.getElementById('subproject_fields');
+        const organizationSelect = document.getElementById('{{ form.organization.id_for_label }}');
+        const totalAmountDisplay = document.getElementById('total-amount-display');
+        const remainingAmountDisplay = document.getElementById('remaining-amount');
+        const remainingPercentDisplay = document.getElementById('remaining-percent');
+        const progressBar = document.getElementById('progress-bar');
+
+        const warningThreshold = 10; // 10% برای هشدار
+
+        // اطلاعات بودجه شعبه‌ها از ویو
+        const budgetData = {
+            {% for org_id, report in budget_report.items %}
+                "{{ org_id }}": {
+                    total: {{ report.total_budget|floatformat:0 }},
+                    remaining: {{ report.remaining_budget|floatformat:0 }}
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        };
+
+        // مدیریت نمایش فیلدهای ساب‌پروژه
+        if (hasSubprojectCheckbox) {
+            hasSubprojectCheckbox.addEventListener('change', function () {
+                subprojectFields.style.display = this.checked ? 'block' : 'none';
+            });
+        }
+
+        function updateDisplay() {
+            const orgId = organizationSelect.value;
+            const budget = budgetData[orgId] || { total: 0, remaining: 0 };
+            const totalAmount = budget.total;
+            const remainingAmount = budget.remaining;
+
+            // آپدیت نمایش‌ها
+            if (totalAmountDisplay) {
+                totalAmountDisplay.textContent = NumberFormatter.separate(totalAmount);
+            }
+            if (remainingAmountDisplay) {
+                remainingAmountDisplay.textContent = NumberFormatter.separate(remainingAmount);
+            }
+            if (remainingPercentDisplay) {
+                const percent = totalAmount ? (remainingAmount / totalAmount * 100).toFixed(1) : 0;
+                remainingPercentDisplay.textContent = `(${NumberFormatter.separate(percent)}%)`;
+            }
+            if (progressBar) {
+                const percent = totalAmount ? (remainingAmount / totalAmount * 100) : 0;
+                progressBar.style.width = `${percent}%`;
+                progressBar.setAttribute('aria-valuenow', percent);
+                progressBar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+                if (percent <= warningThreshold) {
+                    progressBar.classList.add('bg-warning');
+                } else {
+                    progressBar.classList.add('bg-success');
+                }
+            }
+        }
+
+        // رویدادها
+        organizationSelect.addEventListener('change', updateDisplay);
+
+        // اعتبارسنجی فرم
+        const form = document.getElementById('project-form');
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+
+        updateDisplay();
+    });
+})();
+</script>
+{% endblock %}
+
+{#{% extends 'base.html' %}#}
+
+
+{#{% load i18n static rcms_custom_filters jformat %}#}
+{##}
+{#{% block content %}#}
+{#<div class="container mt-4">#}
+{#    <h1 class="mb-4 text-center">#}
+{#        <i class="fas fa-project-diagram me-2 text-primary"></i>{{ title|default:'فرم پروژه'|to_persian_number }}#}
+{#    </h1>#}
+{##}
+{#    {% if messages %}#}
+{#    <div class="alert-container mb-4">#}
+{#        {% for message in messages %}#}
+{#        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">#}
+{#            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %} me-2"></i>#}
+{#            {{ message }}#}
+{#            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>#}
+{#        </div>#}
+{#        {% endfor %}#}
+{#    </div>#}
+{#    {% endif %}#}
+{##}
+{#    <div class="card shadow-lg">#}
+{#        <div class="card-header bg-primary text-white d-flex align-items-center">#}
+{#            <i class="fas fa-plus-circle me-2"></i>#}
+{#            <span>{% trans "فرم پروژه" %}</span>#}
+{#        </div>#}
+{#        <div class="card-body">#}
+{#            <form method="post" class="row g-3" novalidate>#}
+{#                {% csrf_token %}#}
+{#                <div class="col-md-6">#}
+{#                    <label for="{{ form.name.id_for_label }}" class="form-label">#}
+{#                        <i class="fas fa-signature me-2"></i>{% trans "نام پروژه" %}#}
+{#                    </label>#}
+{#                    {{ form.name }}#}
+{#                    {{ form.name.errors }}#}
+{#                </div>#}
+{#                <div class="col-md-6">#}
+{#                    <label for="{{ form.code.id_for_label }}" class="form-label">#}
+{#                        <i class="fas fa-barcode me-2"></i>{% trans "کد پروژه" %}#}
+{#                    </label>#}
+{#                    {{ form.code }}#}
+{#                    {{ form.code.errors }}#}
+{#                </div>#}
+{#                <div class="col-md-6">#}
+{#                    <label for="{{ form.start_date.id_for_label }}" class="form-label">#}
+{#                        <i class="fas fa-calendar-alt me-2"></i>{% trans "تاریخ شروع" %}#}
+{#                    </label>#}
+{#                    {{ form.start_date }}#}
+{#                    {{ form.start_date.errors }}#}
+{#                </div>#}
+{#                <div class="col-md-6">#}
+{#                    <label for="{{ form.end_date.id_for_label }}" class="form-label">#}
+{#                        <i class="fas fa-calendar-check me-2"></i>{% trans "تاریخ پایان" %}#}
+{#                    </label>#}
+{#                    {{ form.end_date }}#}
+{#                    {{ form.end_date.errors }}#}
+{#                </div>#}
+{#                <div class="col-md-6">#}
+{#                    <label for="{{ form.priority.id_for_label }}" class="form-label">#}
+{#                        <i class="fas fa-sort-amount-up me-2"></i>{% trans "اولویت" %}#}
+{#                    </label>#}
+{#                    {{ form.priority }}#}
+{#                    {{ form.priority.errors }}#}
+{#                </div>#}
+{#                <div class="col-md-6">#}
+{#                    <label class="form-label">#}
+{#                        <i class="fas fa-building me-2"></i>{% trans "مجتمع‌های مرتبط" %}#}
+{#                    </label>#}
+{#                    <div class="form-check-list">#}
+{#                        {{ form.organizations }}#}
+{#                    </div>#}
+{#                    {{ form.organizations.errors }}#}
+{#                </div>#}
+{#                <div class="col-md-6 d-flex align-items-center">#}
+{#                    <div class="form-check form-switch">#}
+{#                        {{ form.is_active }}#}
+{#                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">#}
+{#                            <i class="fas fa-toggle-on me-2"></i>{% trans "فعال" %}#}
+{#                        </label>#}
+{#                    </div>#}
+{#                    {{ form.is_active.errors }}#}
+{#                </div>#}
+{#                <div class="col-12">#}
+{#                    <label for="{{ form.description.id_for_label }}" class="form-label">#}
+{#                        <i class="fas fa-comment-dots me-2"></i>{% trans "توضیحات" %}#}
+{#                    </label>#}
+{#                    {{ form.description }}#}
+{#                    {{ form.description.errors }}#}
+{#                </div>#}
+{#                <div class="col-12 mt-4">#}
+{#                    <div class="card shadow-sm">#}
+{#                        <div class="card-header bg-light">#}
+{#                            <div class="form-check form-switch">#}
+{#                                {{ form.has_subproject }}#}
+{#                                <label class="form-check-label" for="{{ form.has_subproject.id_for_label }}">#}
+{#                                    <i class="fas fa-folder-plus me-2"></i>{% trans "آیا مجموعه زیر پروژه دارد؟" %}#}
+{#                                </label>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="card-body subproject-fields" {% if not form.has_subproject.value %}style="display: none;"{% endif %}>#}
+{#                            <div class="row g-3">#}
+{#                                <div class="col-md-6">#}
+{#                                    <label for="{{ form.subproject_name.id_for_label }}" class="form-label">#}
+{#                                        <i class="fas fa-signature me-2"></i>{% trans "نام مجموعه زیر پروژه" %}#}
+{#                                    </label>#}
+{#                                    {{ form.subproject_name }}#}
+{#                                    {{ form.subproject_name.errors }}#}
+{#                                </div>#}
+{#                                <div class="col-md-6">#}
+{#                                    <label for="{{ form.subproject_description.id_for_label }}" class="form-label">#}
+{#                                        <i class="fas fa-comment-dots me-2"></i>{% trans "توضیحات مجموعه زیر پروژه" %}#}
+{#                                    </label>#}
+{#                                    {{ form.subproject_description }}#}
+{#                                    {{ form.subproject_description.errors }}#}
+{#                                </div>#}
+{#                                <div class="col-md-6">#}
+{#                                    <label for="{{ form.allocated_budget.id_for_label }}" class="form-label">#}
+{#                                        <i class="fas fa-money-bill-wave me-2"></i>{% trans "بودجه زیرپروژه (ریال)" %}#}
+{#                                    </label>#}
+{#                                    {{ form.allocated_budget }}#}
+{#                                    {{ form.allocated_budget.errors }}#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#                <div class="col-12 text-end mt-4">#}
+{#                    <button type="submit" class="btn btn-primary me-2">#}
+{#                        <i class="fas fa-save me-2"></i>{% trans "ذخیره" %}#}
+{#                    </button>#}
+{#                    <a href="{% url 'project_list' %}" class="btn btn-secondary">#}
+{#                        <i class="fas fa-times me-2"></i>{% trans "لغو" %}#}
+{#                    </a>#}
+{#                </div>#}
+{#            </form>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+{#{% endblock %}#}
+{##}
+{#{% block extra_css %}#}
+{#<style>#}
+{#    .form-group { margin-bottom: 1.5rem; }#}
+{#    .form-label { font-weight: 500; color: #333; }#}
+{#    .form-check-list { max-height: 150px; overflow-y: auto; padding: 0.5rem; border: 1px solid #ddd; border-radius: 5px; }#}
+{#    .form-check { margin-bottom: 0.5rem; }#}
+{#    .subproject-fields { transition: all 0.3s ease; }#}
+{#</style>#}
+{#{% endblock %}#}
+{##}
+{#{% block extra_js %}#}
+{#<script>#}
+{#    document.addEventListener('DOMContentLoaded', function () {#}
+{#        const form = document.querySelector('form');#}
+{#        const hasSubprojectCheckbox = document.getElementById('{{ form.has_subproject.id_for_label }}');#}
+{#        const subprojectFields = document.querySelector('.subproject-fields');#}
+{##}
+{#        hasSubprojectCheckbox.addEventListener('change', function () {#}
+{#            subprojectFields.style.display = this.checked ? 'block' : 'none';#}
+{#        });#}
+{##}
+{#        form.addEventListener('submit', function (event) {#}
+{#            if (!form.checkValidity()) {#}
+{#                event.preventDefault();#}
+{#                event.stopPropagation();#}
+{#            }#}
+{#            form.classList.add('was-validated');#}
+{#        }, false);#}
+{#    });#}
+{#</script>#}
+{#{% endblock %}#}

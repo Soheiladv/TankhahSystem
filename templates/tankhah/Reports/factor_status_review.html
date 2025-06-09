@@ -1,0 +1,893 @@
+{% extends 'base.html' %}
+{% load i18n static rcms_custom_filters %}
+
+{% block extra_css %}
+
+<style>
+    :root {
+        --primary: #007bff;
+        --success: #28a745;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --info: #17a2b8;
+        --light: #f8f9fa;
+        --dark: #343a40;
+    }
+
+    body {
+        background-color: var(--light);
+        font-family: 'Vazir', sans-serif;
+    }
+
+    .container {
+        max-width: 1400px;
+    }
+
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .accordion-button {
+        background-color: #fff;
+        border-radius: 8px;
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    .accordion-button:not(.collapsed) {
+        background-color: var(--primary);
+        color: #fff;
+    }
+
+    .status-badge {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+        border-radius: 12px;
+    }
+
+    .status-draft { background-color: #6c757d; color: #fff; }
+    .status-pending { background-color: var(--warning); color: #212529; }
+    .status-approved { background-color: var(--success); color: #fff; }
+    .status-rejected { background-color: var(--danger); color: #fff; }
+    .status-paid { background-color: var(--primary); color: #fff; }
+
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+        margin: 20px 0;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 10px;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--light);
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -14px;
+        top: 8px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--primary);
+        border: 2px solid #fff;
+    }
+
+    .timeline-approved::before { background: var(--success); }
+    .timeline-rejected::before { background: var(--danger); }
+    .timeline-pending::before { background: var(--warning); }
+    .timeline-stage_change::before { background: var(--info); }
+
+    .action-btn {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .search-form {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    @media (max-width: 768px) {
+        .accordion-button {
+            font-size: 0.9rem;
+            padding: 10px;
+        }
+        .timeline { padding-left: 20px; }
+        .timeline-item::before { left: -10px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- هدر -->
+    <div class="card mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">
+                <i class="fa-solid fa-file-invoice text-primary me-2"></i>
+                {% trans "بررسی وضعیت فاکتورها" %}
+            </h2>
+            <div>
+                <button class="btn btn-primary action-btn me-2" disabled>
+                    <i class="fa-solid fa-file-excel me-1"></i>
+                    {% trans "خروجی Excel" %}
+                </button>
+                <button class="btn btn-success action-btn" disabled>
+                    <i class="fa-solid fa-print me-1"></i>
+                    {% trans "چاپ گزارش" %}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- جستجو و فیلتر -->
+    <div class="search-form mb-4">
+        <form method="GET" class="row g-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" placeholder="{% trans 'جستجو بر اساس شماره فاکتور، تنخواه یا توضیحات' %}" value="{{ request.GET.search|default:'' }}">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">{% trans "همه وضعیت‌ها" %}</option>
+                    {% for status, label in factor_data.0.factor.STATUS_CHOICES %}
+                        <option value="{{ status }}" {% if request.GET.status == status %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fa-solid fa-filter me-1"></i>
+                    {% trans "فیلتر" %}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- فاکتورها -->
+    <div class="accordion" id="factorAccordion">
+        {% for item in factor_data %}
+        <div class="accordion-item card">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                    <div class="d-flex flex-column flex-md-row w-100 align-items-center">
+                        <div class="me-md-3 mb-2 mb-md-0">
+                            <strong>#{{ item.factor.number }}</strong>
+                            <span class="status-badge status-{{ item.factor.status|lower }} ms-2">{{ item.factor.get_status_display }}</span>
+                        </div>
+                        <div class="me-md-3">
+                            <i class="fa-solid fa-wallet text-muted me-1"></i>
+                            {{ item.factor.tankhah.number|default:"جدا شده" }}
+                        </div>
+                        <div class="me-md-3">
+                            <i class="fa-solid fa-calendar-days text-muted me-1"></i>
+                            {{ item.factor.created_at|date:"Y/m/d H:i" }}
+                        </div>
+                        <div>
+                            <i class="fa-solid fa-coins text-muted me-1"></i>
+                            {{ item.factor.amount|floatformat:0 }} {% trans "تومان" %}
+                        </div>
+                    </div>
+                </button>
+            </h2>
+            <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#factorAccordion">
+                <div class="accordion-body">
+                    <div class="row">
+                        <!-- اطلاعات اصلی -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0"><i class="fa-solid fa-info-circle me-1"></i>{% trans "جزئیات فاکتور" %}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>{% trans "سازمان" %}:</strong> {{ item.factor.tankhah.organization.name|default:"-" }}</p>
+                                    <p><strong>{% trans "پروژه" %}:</strong> {{ item.factor.tankhah.project.name|default:"-" }}</p>
+                                    <p><strong>{% trans "ایجاد کننده" %}:</strong> {{ item.factor.created_by.get_full_name|default:"-" }}</p>
+                                    <p><strong>{% trans "توضیحات" %}:</strong> {{ item.factor.description|default:"-" }}</p>
+                                    <p><strong>{% trans "وضعیت تنخواه" %}:</strong> {% if item.is_detached %}{% trans "جدا شده" %}{% else %}{% trans "متصل" %}{% endif %}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- وضعیت ردیف‌ها -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0"><i class="fa-solid fa-list-check me-1"></i>{% trans "وضعیت ردیف‌ها" %}</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <div class="row">
+                                        <div class="col-3">
+                                            <div class="badge bg-success p-2">{{ item.item_statuses.approved }}</div>
+                                            <small>{% trans "تأیید شده" %}</small>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="badge bg-danger p-2">{{ item.item_statuses.rejected }}</div>
+                                            <small>{% trans "رد شده" %}</small>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="badge bg-warning p-2">{{ item.item_statuses.pending }}</div>
+                                            <small>{% trans "در انتظار" %}</small>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="badge bg-primary p-2">{{ item.item_statuses.paid }}</div>
+                                            <small>{% trans "پرداخت شده" %}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- تاریخچه تأییدها -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fa-solid fa-clock-rotate-left me-1"></i>{% trans "تاریخچه تأییدها" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if item.post_impacts %}
+                            <div class="timeline">
+                                {% for log in item.post_impacts %}
+                                <div class="timeline-item timeline-{{ log.action|lower }}">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>{{ log.post__title|default:"بدون پست" }}</strong> ({{ log.stage__name|default:"بدون مرحله" }})<br>
+                                            <small>
+                                                {% trans "کاربر" %}: {{ log.user__first_name|default:"" }} {{ log.user__last_name|default:"بدون نام" }}<br>
+                                                {% trans "اقدام" %}: {{ log.action|action_display }}<br>
+                                                {% trans "توضیح" %}: {{ log.comment|default:"-" }}
+                                            </small>
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted">{{ log.timestamp|date:"Y/m/d H:i" }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info">
+                                <i class="fa-solid fa-info-circle me-1"></i>
+                                {% trans "هیچ تاریخچه تأییدی ثبت نشده است." %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- پست‌های بعدی -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fa-solid fa-users me-1"></i>{% trans "پست‌های بعدی برای تأیید" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if item.next_approver_posts %}
+                            <ul class="list-group list-group-flush">
+                                {% for post in item.next_approver_posts %}
+                                <li class="list-group-item">
+                                    <i class="fa-solid fa-user-tie text-primary me-2"></i>
+                                    {{ post.post__title }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <div class="alert alert-info">
+                                <i class="fa-solid fa-info-circle me-1"></i>
+                                {% if item.factor.status == 'PAID' or item.factor.is_locked %}
+                                    {% trans "فاکتور نهایی شده یا قفل است." %}
+                                {% elif item.is_detached %}
+                                    {% trans "فاکتور از تنخواه جدا شده است." %}
+                                {% else %}
+                                    {% trans "هیچ پست بعدی برای تأیید وجود ندارد." %}
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- عملیات -->
+                    <div class="d-flex justify-content-end">
+                        {% if item.factor.status == 'PENDING' and item.eligible_final_posts %}
+                        <a href="{% url 'factor_approve' item.factor.pk|default:0 %}" class="btn btn-success action-btn me-2">
+                            <i class="fa-solid fa-check me-1"></i>{% trans "تأیید نهایی" %}
+                        </a>
+                        <a href="{% url 'factor_reject' item.factor.pk|default:0 %}" class="btn btn-danger action-btn me-2">
+                            <i class="fa-solid fa-times me-1"></i>{% trans "رد فاکتور" %}
+                        </a>
+                        {% endif %}
+                        {% if item.factor.status in 'DRAFT,PENDING' and not item.factor.is_locked %}
+{#                        <a href="{% url 'factor_update' item.factor.pk|default:0 %}" class="btn btn-primary action-btn me-2">#}
+{#                            <i class="fa-solid fa-edit me-1"></i>{% trans "ویرایش" %}#}
+{#                        </a>#}
+                        {% endif %}
+{#                        <a href="{% url 'factor_print' item.factor.pk|default:0 %}" class="btn btn-info action-btn">#}
+{#                            <i class="fa-solid fa-print me-1"></i>{% trans "چاپ" %}#}
+{#                        </a>#}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-warning">
+            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+            {% trans "هیچ فاکتوری یافت نشد. لطفاً فیلترها را بررسی کنید." %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- صفحه‌بندی -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">«</a>
+            </li>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">»</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    e.target.form.submit();
+                }
+            });
+        }
+        console.log('Factors loaded:', {{ factor_data|length }});
+    });
+</script>
+{% endblock %}
+
+{#{% extends 'base.html' %}#}
+{#{% load i18n static rcms_custom_filters  jformat %}#}
+{##}
+{#{% block extra_css %}#}
+{#<style>#}
+{#    :root {#}
+{#        --primary-color: #4e73df;#}
+{#        --success-color: #1cc88a;#}
+{#        --warning-color: #f6c23e;#}
+{#        --danger-color: #e74a3b;#}
+{#        --info-color: #36b9cc;#}
+{#        --dark-color: #5a5c69;#}
+{#    }#}
+{##}
+{#    /* استایل کلی صفحه */#}
+{#    .status-review-container {#}
+{#        background-color: #f8f9fc;#}
+{#        min-height: 100vh;#}
+{#    }#}
+{##}
+{#    /* کارت هدر */#}
+{#    .review-header-card {#}
+{#        border-radius: 0.5rem;#}
+{#        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);#}
+{#        border-left: 5px solid var(--primary-color);#}
+{#        transition: all 0.3s;#}
+{#    }#}
+{##}
+{#    /* بخش جستجو و فیلتر */#}
+{#    .search-filter-section {#}
+{#        background: linear-gradient(135deg, #f8f9fc 0%, #e3e6f0 100%);#}
+{#        border-radius: 0.5rem;#}
+{#        padding: 1.5rem;#}
+{#        margin-bottom: 2rem;#}
+{#    }#}
+{##}
+{#    /* آکاردئون فاکتورها */#}
+{#    .factor-accordion {#}
+{#        margin-bottom: 2rem;#}
+{#    }#}
+{##}
+{#    .accordion-item {#}
+{#        border: none;#}
+{#        border-radius: 0.5rem !important;#}
+{#        margin-bottom: 1rem;#}
+{#        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);#}
+{#        overflow: hidden;#}
+{#        transition: all 0.3s ease;#}
+{#    }#}
+{##}
+{#    .accordion-item:hover {#}
+{#        transform: translateY(-3px);#}
+{#        box-shadow: 0 0.5rem 1.5rem rgba(58, 59, 69, 0.2);#}
+{#    }#}
+{##}
+{#    .accordion-header {#}
+{#        background-color: white;#}
+{#        border-bottom: 1px solid rgba(0, 0, 0, 0.05);#}
+{#    }#}
+{##}
+{#    .accordion-button {#}
+{#        font-weight: 600;#}
+{#        color: var(--dark-color);#}
+{#        background-color: white;#}
+{#        box-shadow: none;#}
+{#        padding: 1.25rem;#}
+{#    }#}
+{##}
+{#    .accordion-button:not(.collapsed) {#}
+{#        background-color: rgba(78, 115, 223, 0.05);#}
+{#        color: var(--primary-color);#}
+{#    }#}
+{##}
+{#    .accordion-button::after {#}
+{#        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%235a5c69'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");#}
+{#        transition: transform 0.3s ease-in-out;#}
+{#    }#}
+{##}
+{#    .accordion-button:not(.collapsed)::after {#}
+{#        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%234e73df'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");#}
+{#    }#}
+{##}
+{#    /* وضعیت‌ها */#}
+{#    .status-badge {#}
+{#        font-size: 0.75rem;#}
+{#        font-weight: 600;#}
+{#        padding: 0.35em 0.65em;#}
+{#        border-radius: 0.25rem;#}
+{#        text-transform: uppercase;#}
+{#        letter-spacing: 0.5px;#}
+{#    }#}
+{##}
+{#    .status-draft { background-color: #858796; color: white; }#}
+{#    .status-pending { background-color: var(--warning-color); color: #2d3748; }#}
+{#    .status-approved { background-color: var(--success-color); color: white; }#}
+{#    .status-rejected { background-color: var(--danger-color); color: white; }#}
+{#    .status-paid { background-color: var(--primary-color); color: white; }#}
+{##}
+{#    /* انیمیشن‌ها */#}
+{#    @keyframes fadeIn {#}
+{#        from { opacity: 0; transform: translateY(10px); }#}
+{#        to { opacity: 1; transform: translateY(0); }#}
+{#    }#}
+{##}
+{#    .factor-item {#}
+{#        animation: fadeIn 0.5s ease forwards;#}
+{#        opacity: 0;#}
+{#    }#}
+{##}
+{#    .factor-item:nth-child(1) { animation-delay: 0.1s; }#}
+{#    .factor-item:nth-child(2) { animation-delay: 0.2s; }#}
+{#    .factor-item:nth-child(3) { animation-delay: 0.3s; }#}
+{#    /* ... و به همین ترتیب برای آیتم‌های بیشتر */#}
+{##}
+{#    /* جدول اقلام فاکتور */#}
+{#    .factor-items-table {#}
+{#        border-radius: 0.5rem;#}
+{#        overflow: hidden;#}
+{#    }#}
+{##}
+{#    .factor-items-table th {#}
+{#        background-color: var(--light-color);#}
+{#        font-weight: 600;#}
+{#        text-transform: uppercase;#}
+{#        font-size: 0.75rem;#}
+{#        letter-spacing: 0.5px;#}
+{#    }#}
+{##}
+{#    /* تاریخچه تأییدها */#}
+{#    .timeline {#}
+{#        position: relative;#}
+{#        padding-left: 1.5rem;#}
+{#    }#}
+{##}
+{#    .timeline::before {#}
+{#        content: '';#}
+{#        position: absolute;#}
+{#        left: 0.5rem;#}
+{#        top: 0;#}
+{#        bottom: 0;#}
+{#        width: 2px;#}
+{#        background-color: #e3e6f0;#}
+{#    }#}
+{##}
+{#    .timeline-item {#}
+{#        position: relative;#}
+{#        padding-bottom: 1.5rem;#}
+{#    }#}
+{##}
+{#    .timeline-item::before {#}
+{#        content: '';#}
+{#        position: absolute;#}
+{#        left: -1.5rem;#}
+{#        top: 0.25rem;#}
+{#        width: 1rem;#}
+{#        height: 1rem;#}
+{#        border-radius: 50%;#}
+{#        background-color: var(--primary-color);#}
+{#        border: 3px solid white;#}
+{#    }#}
+{##}
+{#    .timeline-approved::before { background-color: var(--success-color); }#}
+{#    .timeline-rejected::before { background-color: var(--danger-color); }#}
+{#    .timeline-pending::before { background-color: var(--warning-color); }#}
+{##}
+{#    /* دکمه‌های عملیات */#}
+{#    .action-btn {#}
+{#        transition: all 0.2s ease;#}
+{#        border-radius: 0.25rem;#}
+{#        font-weight: 600;#}
+{#        font-size: 0.75rem;#}
+{#        text-transform: uppercase;#}
+{#        letter-spacing: 0.5px;#}
+{#    }#}
+{##}
+{#    .action-btn:hover {#}
+{#        transform: translateY(-2px);#}
+{#        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);#}
+{#    }#}
+{##}
+{#    /* رسپانسیو */#}
+{#    @media (max-width: 768px) {#}
+{#        .accordion-button {#}
+{#            padding: 0.75rem;#}
+{#            font-size: 0.9rem;#}
+{#        }#}
+{##}
+{#        .factor-details-grid {#}
+{#            grid-template-columns: 1fr !important;#}
+{#        }#}
+{#    }#}
+{#</style>#}
+{#{% endblock %}#}
+{##}
+{#{% block content %}#}
+{#<div class="status-review-container py-4">#}
+{#    <div class="container-fluid">#}
+{#        <!-- هدر صفحه -->#}
+{#        <div class="review-header-card card mb-4">#}
+{#            <div class="card-body">#}
+{#                <div class="d-sm-flex align-items-center justify-content-between">#}
+{#                    <h1 class="h3 mb-3 mb-sm-0 text-gray-800">#}
+{#                        <i class="fas fa-file-invoice-dollar text-primary mr-2"></i>#}
+{#                        {% trans "بررسی وضعیت فاکتورها" %}#}
+{#                    </h1>#}
+{#                    <div class="d-flex">#}
+{#                        <button class="btn btn-primary mr-2">#}
+{#                            <i class="fas fa-download mr-2"></i>#}
+{#                            {% trans "خروجی Excel" %}#}
+{#                        </button>#}
+{#                        <button class="btn btn-success">#}
+{#                            <i class="fas fa-print mr-2"></i>#}
+{#                            {% trans "چاپ گزارش" %}#}
+{#                        </button>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{##}
+{#        <!-- بخش جستجو و فیلتر -->#}
+{#        <div class="search-filter-section">#}
+{#            <form method="get" class="row g-3">#}
+{#                <div class="col-md-6">#}
+{#                    <div class="input-group">#}
+{#                        <input type="text" class="form-control" name="search"#}
+{#                               placeholder="{% trans 'جستجو بر اساس شماره فاکتور/تنخواه/توضیحات' %}"#}
+{#                               value="{{ request.GET.search }}">#}
+{#                        <button class="btn btn-primary" type="submit">#}
+{#                            <i class="fas fa-search"></i>#}
+{#                        </button>#}
+{#                    </div>#}
+{#                </div>#}
+{#                <div class="col-md-3">#}
+{#                    <select class="form-select" name="status">#}
+{#                        <option value="">{% trans "همه وضعیت‌ها" %}</option>#}
+{#                        <option value="DRAFT" {% if request.GET.status == 'DRAFT' %}selected{% endif %}>پیش‌نویس</option>#}
+{#                        <option value="PENDING" {% if request.GET.status == 'PENDING' %}selected{% endif %}>در انتظار تأیید</option>#}
+{#                        <option value="APPROVED" {% if request.GET.status == 'APPROVED' %}selected{% endif %}>تأیید شده</option>#}
+{#                        <option value="REJECTED" {% if request.GET.status == 'REJECTED' %}selected{% endif %}>رد شده</option>#}
+{#                        <option value="PAID" {% if request.GET.status == 'PAID' %}selected{% endif %}>پرداخت شده</option>#}
+{#                    </select>#}
+{#                </div>#}
+{#                <div class="col-md-3">#}
+{#                    <button type="submit" class="btn btn-primary w-100">#}
+{#                        <i class="fas fa-filter mr-2"></i>#}
+{#                        {% trans "اعمال فیلتر" %}#}
+{#                    </button>#}
+{#                </div>#}
+{#            </form>#}
+{#        </div>#}
+{##}
+{#        <!-- آکاردئون فاکتورها -->#}
+{#        <div class="factor-accordion accordion" id="factorsAccordion">#}
+{#            {% for item in factor_data %}#}
+{#            <div class="accordion-item factor-item">#}
+{#                <div class="accordion-header" id="heading{{ forloop.counter }}">#}
+{#                    <button class="accordion-button collapsed" type="button"#}
+{#                            data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}"#}
+{#                            aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">#}
+{#                        <div class="d-flex flex-column flex-md-row w-100">#}
+{#                            <div class="me-md-4 mb-2 mb-md-0">#}
+{#                                <span class="fw-bold me-2">فاکتور #{{ item.factor.number|to_persian_number }}</span>#}
+{#                                <span class="badge status-{{ item.factor.status|lower }}">#}
+{#                                    {{ item.factor.get_status_display }}#}
+{#                                </span>#}
+{#                            </div>#}
+{#                            <div class="me-md-4">#}
+{#                                <i class="fas fa-wallet text-muted me-2"></i>#}
+{#                                <span>تنخواه: {{ item.factor.tankhah.number|to_persian_number|default:"-" }}</span>#}
+{#                            </div>#}
+{#                            <div class="me-md-4">#}
+{#                                <i class="fas fa-calendar text-muted me-2"></i>#}
+{#                                <span>{{ item.factor.created_at|jformat:"%Y/%m/%d %H:%m"  |to_persian_number }}</span>#}
+{#                            </div>#}
+{#                            <div>#}
+{#                                <i class="fas fa-coins text-muted me-2"></i>#}
+{#                                <span>{{ item.factor.total_amount|to_persian_number }} تومان</span>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </button>#}
+{#                </div>#}
+{#                <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse"#}
+{#                     aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#factorsAccordion">#}
+{#                    <div class="accordion-body">#}
+{#                        <div class="row">#}
+{#                            <!-- اطلاعات اصلی -->#}
+{#                            <div class="col-md-6 mb-4">#}
+{#                                <div class="card h-100">#}
+{#                                    <div class="card-header bg-light">#}
+{#                                        <h6 class="mb-0">#}
+{#                                            <i class="fas fa-info-circle me-2"></i>#}
+{#                                            {% trans "اطلاعات اصلی" %}#}
+{#                                        </h6>#}
+{#                                    </div>#}
+{#                                    <div class="card-body">#}
+{#                                        <div class="row">#}
+{#                                            <div class="col-6 mb-3">#}
+{#                                                <small class="text-muted d-block">{% trans "سازمان" %}</small>#}
+{#                                                <span>{{ item.factor.tankhah.organization.name|default:"-" }}</span>#}
+{#                                            </div>#}
+{#                                            <div class="col-6 mb-3">#}
+{#                                                <small class="text-muted d-block">{% trans "پروژه" %}</small>#}
+{#                                                <span>{{ item.factor.tankhah.project.name|default:"-" }}</span>#}
+{#                                            </div>#}
+{#                                            <div class="col-6 mb-3">#}
+{#                                                <small class="text-muted d-block">{% trans "تاریخ ایجاد" %}</small>#}
+{#                                                <span>{{ item.factor.created_at|jformat:"%Y/%m/%d %H:%m"  |to_persian_number }}</span>#}
+{#                                            </div>#}
+{#                                            <div class="col-6 mb-3">#}
+{#                                                <small class="text-muted d-block">{% trans "ایجاد کننده" %}</small>#}
+{#                                                <span>{{ item.factor.created_by.get_full_name }}</span>#}
+{#                                            </div>#}
+{#                                            <div class="col-12 mb-3">#}
+{#                                                <small class="text-muted d-block">{% trans "توضیحات" %}</small>#}
+{#                                                <span>{{ item.factor.description|default:"-" |to_persian_number_with_comma }}</span>#}
+{#                                            </div>#}
+{#                                        </div>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </div>#}
+{##}
+{#                            <!-- وضعیت اقلام -->#}
+{#                            <div class="col-md-6 mb-4">#}
+{#                                <div class="card h-100">#}
+{#                                    <div class="card-header bg-light">#}
+{#                                        <h6 class="mb-0">#}
+{#                                            <i class="fas fa-tasks me-2"></i>#}
+{#                                            {% trans "وضعیت اقلام" %}#}
+{#                                        </h6>#}
+{#                                    </div>#}
+{#                                    <div class="card-body">#}
+{#                                        <div class="row text-center">#}
+{#                                            <div class="col-3">#}
+{#                                                <div class="status-circle bg-success">#}
+{#                                                    {{ item.item_statuses.approved|to_persian_number }}#}
+{#                                                </div>#}
+{#                                                <small class="text-muted">تأیید شده</small>#}
+{#                                            </div>#}
+{#                                            <div class="col-3">#}
+{#                                                <div class="status-circle bg-danger">#}
+{#                                                    {{ item.item_statuses.rejected|to_persian_number }}#}
+{#                                                </div>#}
+{#                                                <small class="text-muted">رد شده</small>#}
+{#                                            </div>#}
+{#                                            <div class="col-3">#}
+{#                                                <div class="status-circle bg-warning">#}
+{#                                                    {{ item.item_statuses.pending|to_persian_number }}#}
+{#                                                </div>#}
+{#                                                <small class="text-muted">در انتظار</small>#}
+{#                                            </div>#}
+{#                                            <div class="col-3">#}
+{#                                                <div class="status-circle bg-primary">#}
+{#                                                    {{ item.item_statuses.paid|to_persian_number }}#}
+{#                                                </div>#}
+{#                                                <small class="text-muted">پرداخت شده</small>#}
+{#                                            </div>#}
+{#                                        </div>#}
+{#                                        <hr>#}
+{#                                        <div class="text-center">#}
+{#                                            <a href="#" class="btn btn-sm btn-outline-primary">#}
+{#                                                <i class="fas fa-eye me-2"></i>#}
+{#                                                {% trans "مشاهده جزئیات اقلام" %}#}
+{#                                            </a>#}
+{#                                        </div>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{##}
+{#                        <!-- تاریخچه تأییدها -->#}
+{#                        <div class="card mb-4">#}
+{#                            <div class="card-header bg-light">#}
+{#                                <h6 class="mb-0">#}
+{#                                    <i class="fas fa-history me-2"></i>#}
+{#                                    {% trans "تاریخچه تأییدها" %}#}
+{#                                </h6>#}
+{#                            </div>#}
+{#                            <div class="card-body">#}
+{#                                {% if item.post_impacts %}#}
+{#                                <div class="timeline">#}
+{#                                    {% for log in item.post_impacts %}#}
+{#                                    <div class="timeline-item timeline-{{ log.action|lower }}">#}
+{#                                        <div class="d-flex justify-content-between">#}
+{#                                            <div>#}
+{#                                                <h6 class="mb-1">{{ log.get_action_display }}</h6>#}
+{#                                                <p class="mb-1 text-muted small">{{ log.comment|default:"-" |to_persian_number_with_comma }}</p>#}
+{#                                            </div>#}
+{#                                            <div class="text-end">#}
+{#                                                <small class="text-muted">{{ log.timestamp|jformat:"%Y/%m/%d %H:%m"  |to_persian_number}}</small>#}
+{#                                            </div>#}
+{#                                        </div>#}
+{#                                    </div>#}
+{#                                    {% endfor %}#}
+{#                                </div>#}
+{#                                {% else %}#}
+{#                                <div class="alert alert-info mb-0">#}
+{#                                    <i class="fas fa-info-circle me-2"></i>#}
+{#                                    {% trans "تاریخچه‌ای ثبت نشده است" %}#}
+{#                                </div>#}
+{#                                {% endif %}#}
+{#                            </div>#}
+{#                        </div>#}
+{##}
+{#                        <!-- عملیات -->#}
+{#                        <div class="d-flex justify-content-end">#}
+{#                            {% if item.factor.status == 'PENDING' and item.eligible_posts %}#}
+{#                            <button class="btn btn-success action-btn me-2">#}
+{#                                <i class="fas fa-check me-2"></i>#}
+{#                                {% trans "تأیید نهایی" %}#}
+{#                            </button>#}
+{#                            <button class="btn btn-danger action-btn me-2">#}
+{#                                <i class="fas fa-times me-2"></i>#}
+{#                                {% trans "رد فاکتور" %}#}
+{#                            </button>#}
+{#                            {% endif %}#}
+{#                            <a href="#" class="btn btn-primary action-btn me-2">#}
+{#                                <i class="fas fa-edit me-2"></i>#}
+{#                                {% trans "ویرایش" %}#}
+{#                            </a>#}
+{#                            <a href="#" class="btn btn-info action-btn">#}
+{#                                <i class="fas fa-print me-2"></i>#}
+{#                                {% trans "چاپ فاکتور" %}#}
+{#                            </a>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#            {% empty %}#}
+{#            <div class="alert alert-warning">#}
+{#                <i class="fas fa-exclamation-triangle me-2"></i>#}
+{#                {% trans "فاکتوری با معیارهای انتخاب شده یافت نشد." %}#}
+{#            </div>#}
+{#            {% endfor %}#}
+{#        </div>#}
+{##}
+{#        <!-- صفحه‌بندی -->#}
+{#        {% if is_paginated %}#}
+{#        <nav aria-label="Page navigation" class="mt-4">#}
+{#            <ul class="pagination justify-content-center">#}
+{#                {% if page_obj.has_previous %}#}
+{#                <li class="page-item">#}
+{#                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" aria-label="Previous">#}
+{#                        <span aria-hidden="true">&laquo;</span>#}
+{#                    </a>#}
+{#                </li>#}
+{#                {% endif %}#}
+{##}
+{#                {% for num in page_obj.paginator.page_range %}#}
+{#                <li class="page-item {% if page_obj.number == num %}active{% endif %}">#}
+{#                    <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">{{ num|to_persian_number }}</a>#}
+{#                </li>#}
+{#                {% endfor %}#}
+{##}
+{#                {% if page_obj.has_next %}#}
+{#                <li class="page-item">#}
+{#                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" aria-label="Next">#}
+{#                        <span aria-hidden="true">&raquo;</span>#}
+{#                    </a>#}
+{#                </li>#}
+{#                {% endif %}#}
+{#            </ul>#}
+{#        </nav>#}
+{#        {% endif %}#}
+{#    </div>#}
+{#</div>#}
+{#{% endblock %}#}
+{##}
+{#{% block extra_js %}#}
+{#<script>#}
+{#    // انیمیشن برای آکاردئون#}
+{#    document.addEventListener('DOMContentLoaded', function() {#}
+{#        // فعال کردن انیمیشن‌ها#}
+{#        const factorItems = document.querySelectorAll('.factor-item');#}
+{#        factorItems.forEach(item => {#}
+{#            item.style.opacity = '1';#}
+{#        });#}
+{##}
+{#        // مدیریت آکاردئون#}
+{#        const accordionButtons = document.querySelectorAll('.accordion-button');#}
+{#        accordionButtons.forEach(button => {#}
+{#            button.addEventListener('click', function() {#}
+{#                const target = this.getAttribute('data-bs-target');#}
+{#                const collapseElement = document.querySelector(target);#}
+{##}
+{#                if (collapseElement.classList.contains('collapsing')) {#}
+{#                    return;#}
+{#                }#}
+{##}
+{#                if (collapseElement.classList.contains('show')) {#}
+{#                    collapseElement.classList.remove('show');#}
+{#                    this.classList.add('collapsed');#}
+{#                } else {#}
+{#                    collapseElement.classList.add('show');#}
+{#                    this.classList.remove('collapsed');#}
+{#                }#}
+{#            });#}
+{#        });#}
+{##}
+{#        // جستجوی لحظه‌ای (اختیاری)#}
+{#        const searchInput = document.querySelector('input[name="search"]');#}
+{#        searchInput.addEventListener('keyup', function(e) {#}
+{#            if (e.key === 'Enter') {#}
+{#                this.form.submit();#}
+{#            }#}
+{#        });#}
+{#    });#}
+{#</script>#}
+{#{% endblock %}#}

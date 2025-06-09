@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+{% load static i18n humanize %}
+{% load jformat  rcms_custom_filters %} {# فرض می‌کنیم to_persian_number اینجا لود شده #}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}
+    <div class="d-flex justify-content-between align-items-center">
+        <h2><i class="fas fa-clipboard-check me-2"></i>{{ title }}</h2>
+        {#  می‌توانید اینجا خلاصه‌ای از تعداد کل فاکتورها یا فیلترهای فعال را نمایش دهید #}
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="card shadow-sm mb-4">
+        <div class="card-body bg-light-subtle">
+            <form method="get" class="row g-3 align-items-end">
+                {# ... بخش فیلترها بدون تغییر زیاد از قبل ... #}
+                 <div class="col-md-3">
+                    <label for="searchInput" class="form-label">{% translate "جستجو" %}</label>
+                    <input type="text" name="search" id="searchInput" class="form-control form-control-sm" value="{{ current_search }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="statusFilter" class="form-label">{% translate "وضعیت فاکتور" %}</label>
+                    <select name="status" id="statusFilter" class="form-select form-select-sm">
+                        <option value="">{% translate "همه" %}</option>
+                        {% for value, display in factor_status_choices %}
+                            <option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ display }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="organizationFilter" class="form-label">{% translate "سازمان" %}</label>
+                    <select name="organization_id" id="organizationFilter" class="form-select form-select-sm">
+                        <option value="">{% translate "همه" %}</option>
+                        {% for org in organizations_for_filter %}
+                            <option value="{{ org.id }}" {% if org.id|stringformat:"s" == current_organization_id %}selected{% endif %}>{{ org.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="projectFilter" class="form-label">{% translate "مرکز هزینه" %}</label>
+                    <select name="project_id" id="projectFilter" class="form-select form-select-sm">
+                        <option value="">{% translate "همه" %}</option>
+                         {% for proj in projects_for_filter %}
+                            <option value="{{ proj.id }}" {% if proj.id|stringformat:"s" == current_project_id %}selected{% endif %}>{{ proj.name }} ({{ proj.code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-1 mt-auto">
+                    <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-filter"></i></button>
+                </div>
+                 <div class="col-md-auto mt-auto">
+                    <a href="{% url 'factor_status_review' %}" class="btn btn-outline-secondary btn-sm">{% translate "پاک کردن" %}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if factors_data %}
+        <div class="accordion" id="factorReviewAccordion">
+            {% for data_item in factors_data %}
+            {% with factor=data_item.factor %}
+            <div class="accordion-item mb-3 border rounded shadow-sm factor-card factor-status-{{ factor.status|lower }}">
+                <h2 class="accordion-header" id="heading-{{ factor.pk }}">
+                    <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ factor.pk }}" aria-expanded="false" aria-controls="collapse-{{ factor.pk }}">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <div class="me-3">
+                                <strong class="fs-6">{% translate "فاکتور" %}: {{ factor.number|to_persian_number }}</strong>
+                                <br>
+                                <small class="text-muted">{% translate "تنخواه" %}: {{ factor.tankhah.number|to_persian_number }}</small>
+                            </div>
+                            <div class="text-center mx-3 flex-grow-1 d-none d-md-block">
+                                <small class="d-block text-muted">{% translate "سازمان" %}</small>
+                                <span class="fw-bold">{{ data_item.tankhah_name }}</span>
+                            </div>
+                            <div class="text-center mx-3 flex-grow-1 d-none d-lg-block">
+                                <small class="d-block text-muted">{% translate "مرکز هزینه" %}</small>
+                                <span class="fw-bold">{{ data_item.project_name }}</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge fs-09rem {% if factor.status == 'APPROVED' %}bg-success-soft text-success-emphasis{% elif factor.status == 'REJECTED' %}bg-danger-soft text-danger-emphasis{% elif factor.status == 'PENDING' %}bg-warning-soft text-warning-emphasis{% elif factor.status == 'PAID' %}bg-primary-soft text-primary-emphasis{% else %}bg-secondary-soft text-secondary-emphasis{% endif %}">
+                                    <i class="fas {% if factor.status == 'APPROVED' %}fa-check-circle{% elif factor.status == 'REJECTED' %}fa-times-circle{% elif factor.status == 'PENDING' %}fa-hourglass-half{% elif factor.status == 'PAID' %}fa-receipt{% else %}fa-question-circle{% endif %} me-1"></i>
+                                    {{ factor.get_status_display }}
+                                </span>
+                                <div class="mt-1 text-muted small">
+                                    {{ factor.amount|intcomma:False|to_persian_number }} {% translate "ریال" %}
+                                </div>
+                            </div>
+                        </div>
+                    </button>
+                </h2>
+                <div id="collapse-{{ factor.pk }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ factor.pk }}" data-bs-parent="#factorReviewAccordion">
+                    <div class="accordion-body p-4">
+                        <div class="row g-4">
+                            <div class="col-lg-5 border-end-lg">
+                                <h5><i class="fas fa-file-invoice me-1 text-primary"></i>{% translate "جزئیات فاکتور" %}</h5>
+                                <dl class="row dl-compact">
+                                    <dt class="col-sm-4">{% translate "تاریخ" %}:</dt>
+                                    <dd class="col-sm-8">{{ factor.date|jformat:"%Y/%m/%d" |to_persian_number }}</dd>
+                                    <dt class="col-sm-4">{% translate "ایجادکننده" %}:</dt>
+                                    <dd class="col-sm-8">{{ factor.created_by.get_full_name|default:factor.created_by.username }}</dd>
+                                    <dt class="col-sm-4">{% translate "دسته هزینه" %}:</dt>
+                                    <dd class="col-sm-8">{{ factor.category.name|default:"-" }}</dd>
+                                    <dt class="col-sm-4">{% translate "مرحله تنخواه" %}:</dt>
+                                    <dd class="col-sm-8"><span class="badge bg-info-soft text-info-emphasis">{{ data_item.current_tankhah_stage_name }}</span></dd>
+                                </dl>
+                                <p class="small mt-2"><strong>{% translate "توضیحات" %}:</strong> {{ factor.description|linebreaksbr|default:"ندارد" }}</p>
+
+                                <h6 class="mt-3"><i class="fas fa-layer-group me-1 text-info"></i>{% translate "وضعیت ردیف‌ها" %}</h6>
+                                <ul class="list-inline small">
+                                    <li class="list-inline-item">{% translate "کل" %}: <span class="badge bg-secondary rounded-pill">{{ data_item.item_statuses_summary.total|to_persian_number }}</span></li>
+                                    <li class="list-inline-item">{% translate "تأیید" %}: <span class="badge bg-success rounded-pill">{{ data_item.item_statuses_summary.approved|to_persian_number }}</span></li>
+                                    <li class="list-inline-item">{% translate "رد" %}: <span class="badge bg-danger rounded-pill">{{ data_item.item_statuses_summary.rejected|to_persian_number }}</span></li>
+                                    <li class="list-inline-item">{% translate "انتظار" %}: <span class="badge bg-warning text-dark rounded-pill">{{ data_item.item_statuses_summary.pending|to_persian_number }}</span></li>
+                                </ul>
+                            </div>
+
+                            <div class="col-lg-4 border-end-lg">
+                                <h5><i class="fas fa-wallet me-1 text-success"></i>{% translate "وضعیت بودجه" %}</h5>
+                                {% if data_item.factor_budget_impact_message %}
+                                    <div class="alert alert-warning small p-2" role="alert">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ data_item.factor_budget_impact_message }}
+                                    </div>
+                                {% endif %}
+                                <dl class="row dl-compact">
+                                    <dt class="col-sm-6">{% translate "مانده تنخواه (پس از این فاکتور)" %}:</dt>
+                                    <dd class="col-sm-6 text-end fw-bold {% if data_item.tankhah_remaining_after_factor < 0 %}text-danger{% endif %}">
+                                        {{ data_item.tankhah_remaining_after_factor|intcomma:False|to_persian_number }}
+                                    </dd>
+                                    <dt class="col-sm-6">{% translate "مانده مرکز هزینه (پس از این فاکتور)" %}:</dt>
+                                    <dd class="col-sm-6 text-end fw-bold {% if data_item.project_remaining_after_factor < 0 %}text-danger{% endif %}">
+                                        {{ data_item.project_remaining_after_factor|intcomma:False|to_persian_number }}
+                                    </dd>
+                                </dl>
+
+                                {% if data_item.next_possible_approvers %}
+                                <h6 class="mt-3"><i class="fas fa-users-cog me-1 text-info"></i>{% translate "اقدام‌کنندگان بعدی مجاز" %}</h6>
+                                <ul class="list-unstyled small">
+                                    {% for approver in data_item.next_possible_approvers %}
+                                    <li>
+                                        <span class= "border text-dark-emphasis"><i class="fas fa-user-shield me-1"></i>{{ approver.post_name }} <small>({{ approver.organization_name }})</small></span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-lg-3">
+                                 <h5><i class="fas fa-history me-1 text-secondary"></i>{% translate "گردش کار" %}</h5>
+                                {% if data_item.previous_actions %}
+                                    <ul class="list-unstyled timeline-sm">
+                                        {% for action in data_item.previous_actions %}
+                                        <li class="timeline-sm-item {{ action.post_branch_class }}"> {# کلاس رنگ‌بندی بر اساس پست #}
+                                            <div class="timeline-sm-date">{{ action.timestamp|jformat:"%Y/%m/%d %H:%i"|to_persian_number }}</div>
+                                            <div class="timeline-sm-content">
+                                                <span class="fw-bold">{{ action.action }}</span> {% translate "توسط" %}
+                                                <strong title="{{action.post_org_name}}">{{ action.post_name }}</strong>
+                                                <div class="text-muted small">{{ action.user_name }}</div>
+                                                {% if action.comment %}<div class="text-muted fst-italic small mt-1">"{% translate action.comment %}"</div>{% endif %}
+                                            </div>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p class="small text-muted">{% translate "اقدامی ثبت نشده." %}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mt-4 text-center border-top pt-3">
+                            <a href="{% url 'factor_detail'  factor.pk %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-search-plus me-1"></i>{% translate "مشاهده جزئیات کامل و آیتم‌ها" %}
+                            </a>
+                             {% if not factor.is_locked and factor.status == 'PENDING' %} {# مثال برای دکمه اقدام #}
+                                <a href="{% url 'factor_item_approve'  factor.pk %}"  class="btn btn-success btn-sm ms-2">
+                                    <i class="fas fa-thumbs-up me-1"></i>{% translate "تأیید فاکتور" %}
+                                </a>
+                             {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+            {% endfor %}
+        </div>
+
+        {% if is_paginated %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">« {% translate "اول" %}</a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{% translate "قبلی" %}</a></li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num|to_persian_number }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num|to_persian_number }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{% translate "بعدی" %}</a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{% translate "آخر" %} »</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+
+    {% else %}
+        <div class="alert alert-info text-center mt-4" role="alert">
+            <i class="fas fa-info-circle me-2"></i>{% translate "هیچ فاکتوری با فیلترهای اعمال شده یافت نشد." %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .accordion-button { font-size: 0.95rem; }
+    .accordion-button:not(.collapsed) {
+        color: var(--bs-primary-text-emphasis);
+        background-color: var(--bs-primary-bg-subtle);
+        box-shadow: inset 0 -1px 0 rgba(0,0,0,.125);
+    }
+    .dl-compact dt { font-weight: 500; font-size: 0.85rem; color: #555;}
+    .dl-compact dd { font-size: 0.9rem; margin-bottom: .4rem; }
+    .fs-09rem { font-size: 0.9rem !important; }
+
+    /* Timeline styles */
+    .timeline-sm { padding-right: 0; /* برای راست‌چین */ }
+    .timeline-sm-item {
+        position: relative;
+        padding-right: 30px; /* برای راست‌چین */
+        padding-bottom: 15px;
+        border-right: 2px solid #e9ecef; /* برای راست‌چین */
+    }
+    .timeline-sm-item:last-child { border-right: 2px solid transparent; padding-bottom: 0; } /* برای راست‌چین */
+    .timeline-sm-item::before {
+        content: '';
+        position: absolute;
+        top: 5px;
+        right: -7px; /* برای راست‌چین */
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #adb5bd;
+        border: 2px solid #fff;
+    }
+    .timeline-sm-date {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-bottom: 2px;
+    }
+    .timeline-sm-content { font-size: 0.85rem; }
+
+    /* Color coding for post branches/types in timeline */
+    .timeline-sm-item.post-branch-finance::before { background-color: #198754; } /* Green for finance */
+    .timeline-sm-item.post-branch-ceo::before { background-color: #dc3545; } /* Red for CEO */
+    .timeline-sm-item.post-branch-hq::before { background-color: #0d6efd; } /* Blue for HQ */
+    /* Add more classes as needed */
+
+    /* Factor card status specific borders */
+    .factor-card.factor-status-approved .accordion-button { border-left: 5px solid var(--bs-success); }
+    .factor-card.factor-status-rejected .accordion-button { border-left: 5px solid var(--bs-danger); }
+    .factor-card.factor-status-pending .accordion-button { border-left: 5px solid var(--bs-warning); }
+    .factor-card.factor-status-paid .accordion-button { border-left: 5px solid var(--bs-primary); }
+
+    /* Softer badge colors */
+    .bg-success-soft { background-color: #d1e7dd !important; }
+    .text-success-emphasis { color: #0a3622 !important; }
+    .bg-danger-soft { background-color: #f8d7da !important; }
+    .text-danger-emphasis { color: #58151c !important; }
+    .bg-warning-soft { background-color: #fff3cd !important; }
+    .text-warning-emphasis { color: #664d03 !important; }
+    .bg-primary-soft { background-color: #cfe2ff !important; }
+    .text-primary-emphasis { color: #052c65 !important; }
+    .bg-secondary-soft { background-color: #e2e3e5 !important; }
+    .text-secondary-emphasis { color: #292d32 !important; }
+    .bg-info-soft { background-color: #cff4fc !important; }
+    .text-info-emphasis { color: #055160 !important; }
+
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    // Activate Bootstrap tooltips if you use them
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+{% endblock %}

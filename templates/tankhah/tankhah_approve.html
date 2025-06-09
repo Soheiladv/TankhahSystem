@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+    <div class="container my-4">
+        <h1 class="mb-4 text-primary">{% trans "تأیید تنخواه" %}</h1>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5>{% trans "شماره تنخواه" %}: {{ tanbakh.number }}</h5>
+                <p>{% trans "وضعیت" %}: {{ tanbakh.status }}</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.comment.label_tag }}
+                        {{ form.comment }}
+                        {% if form.comment.errors %}
+                            <div class="text-danger">{{ form.comment.errors }}</div>
+                        {% endif %}
+                    </div>
+{#                    <button type="submit" class="btn btn-primary">{% trans "تأیید" %}</button>#}
+                    <button type="submit" name="action" value="APPROVE" class="btn btn-primary">{% trans "تأیید" %}</button>
+                    <button type="submit" name="action" value="REJECT" class="btn btn-danger">{% trans "رد" %}</button>
+
+                    <a href="{% url 'tankhah_list' %}" class="btn btn-secondary">{% trans "بازگشت" %}</a>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

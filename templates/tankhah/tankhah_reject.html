@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+    <h1>رد تنخواه</h1>
+    <p>آیا مطمئن هستید که می‌خواهید تنخواه {{ object.number }} را رد کنید؟</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">بله، رد کن</button>
+        <a href="{% url 'tankhah_list' %}" class="btn btn-secondary">خیر، لغو</a>
+    </form>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1><i class="fas fa-users-cog"></i> لیست گروه‌ها</h1>
+
+    <!-- فرم جستجو -->
+    <form method="get" class="mb-3">
+        <div class="input-group">
+            <input type="text" class="form-control" name="q" placeholder="جستجو بر اساس نام یا توضیحات" value="{{ request.GET.q }}">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i> جستجو</button>
+            </div>
+        </div>
+    </form>
+
+    <a href="{% url 'mygroup_create' %}" class="btn btn-success mb-3"><i class="fas fa-plus"></i> ایجاد گروه جدید</a>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>نام گروه</th>
+                <th>نقش</th>
+                <th>توضیحات</th>
+                <th>عملیات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in groups %}
+            <tr>
+                <td>{{ group.name }}</td>
+                <td>{{ group.role.name|default:"ندارد" }}</td>
+                <td>{{ group.description|default:"-" }}</td>
+                <td>
+                    <a href="{% url 'mygroup_update' group.id %}" class="btn btn-primary"><i class="fas fa-edit"></i></a>
+                    <a href="{% url 'mygroup_delete' group.id %}" class="btn btn-danger"><i class="fas fa-trash"></i></a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- پاجینگ -->
+    <div class="pagination">
+        {% if groups.has_previous %}
+        <a href="?page=1&q={{ request.GET.q }}" class="btn btn-outline-secondary">اولین</a>
+        <a href="?page={{ groups.previous_page_number }}&q={{ request.GET.q }}" class="btn btn-outline-secondary">قبلی</a>
+        {% endif %}
+
+        <span class="current">صفحه {{ groups.number }} از {{ groups.paginator.num_pages }}</span>
+
+        {% if groups.has_next %}
+        <a href="?page={{ groups.next_page_number }}&q={{ request.GET.q }}" class="btn btn-outline-secondary">بعدی</a>
+        <a href="?page={{ groups.paginator.num_pages }}&q={{ request.GET.q }}" class="btn btn-outline-secondary">آخرین</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

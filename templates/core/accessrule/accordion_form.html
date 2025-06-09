@@ -1,0 +1,80 @@
+{% load i18n %}
+{% load static rcms_custom_filters %}
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>مدیریت قوانین دسترسی</title>
+</head>
+<body class="p-4">
+<h2>مدیریت قوانین دسترسی پست‌ها</h2>
+<form method="post">
+    {% csrf_token %}
+    <div class="accordion" id="postAccessAccordion">
+        {% for post in form.posts %}
+            <div class="accordion-item mb-3">
+                <h2 class="accordion-header" id="heading{{ post.id }}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapse{{ post.id }}">
+                        {{ post.name }} - سازمان: {{ post.organization.name }}
+                    </button>
+                </h2>
+                <div id="collapse{{ post.id }}" class="accordion-collapse collapse"
+                     data-bs-parent="#postAccessAccordion">
+                    <div class="accordion-body">
+<div class="mb-2">
+
+{% with field_name="level_" ~ post.id %}
+    {% with form_field=form[field_name] %}
+        <div class="mb-2">
+            {{ form_field.label_tag }}
+            {{ form_field }}
+        </div>
+    {% endwith %}
+{% endwith %}
+
+
+{% endwith %}
+
+
+
+</div>
+
+
+
+                        <table class="table table-bordered table-sm">
+                            <thead>
+                            <tr>
+                                <th>موجودیت</th>
+                                <th>اقدام</th>
+                                <th>فعال؟</th>
+                                <th>مرحله</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for entity_type, entity_label in form.ENTITY_TYPES %}
+                                {% for action_type, action_label in form.ACTION_TYPES %}
+                                    {% with   "rule_"|add:post.id|stringformat:"s"|add:"_"|add:entity_type|add:"_"|add:action_type as rule_name %}
+                                        {% with rule_name|add:"_stage" as stage_name %}
+                                            <tr>
+                                                <td>{{ entity_label }}</td>
+                                                <td>{{ action_label }}</td>
+                                                <td>{{ form[rule_name] }}</td>
+                                                <td>{{ form[stage_name] }}</td>
+                                            </tr>
+                                        {% endwith %}
+                                    {% endwith %}
+                                {% endfor %}
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-success mt-4">ثبت تغییرات</button>
+</form>
+
+</body>
+</html>

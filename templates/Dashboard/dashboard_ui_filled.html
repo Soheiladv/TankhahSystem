@@ -1,0 +1,302 @@
+{% extends "base.html" %} {# یا بیس تمپلیت خودتان #}
+{% load static i18n humanize %}
+
+{% block title %}{% translate "داشبورد بودجه و مالی" %}{% endblock %}
+
+{% block page_title %}
+    <h2>{% translate "داشبورد بودجه و مالی" %}</h2>
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid mt-3">
+
+    <!-- Filter Row (Placeholder - for future implementation) -->
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <label for="budgetPeriodFilter" class="form-label small">{% translate "دوره بودجه" %}</label>
+            <select id="budgetPeriodFilter" name="budget_period" class="form-select form-select-sm">
+                <option value="">{% translate "همه دوره‌ها" %}</option>
+                {# Load periods dynamically or from context #}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="organizationFilter" class="form-label small">{% translate "سازمان" %}</label>
+            <select id="organizationFilter" name="organization" class="form-select form-select-sm">
+                <option value="">{% translate "همه سازمان‌ها" %}</option>
+                {# Load organizations dynamically or from context #}
+            </select>
+        </div>
+        <!-- Add more filters as needed -->
+    </div>
+
+    <!-- KPI Scorecards Row -->
+    <div class="row mb-4">
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="card text-white bg-primary shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase small">{% translate "کل بودجه دوره" %}</h6>
+                    <div class="display-6 fw-bold">{{ kpi_data.total_budget|intcomma:False }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="card text-white bg-danger shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase small">{% translate "کل هزینه شده" %}</h6>
+                    <div class="display-6 fw-bold">{{ kpi_data.total_spent|intcomma:False }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="card text-white bg-success shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase small">{% translate "بودجه باقیمانده" %}</h6>
+                    <div class="display-6 fw-bold">{{ kpi_data.remaining_budget|intcomma:False }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="card text-dark bg-info shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase small">{% translate "درصد مصرف" %}</h6>
+                    <div class="display-6 fw-bold">{{ kpi_data.utilization_percentage|floatformat:1 }}%</div>
+                    <div class="progress mt-1" style="height: 5px;">
+                        <div class="progress-bar bg-light" role="progressbar" style="width: {{ kpi_data.utilization_percentage }}%;" aria-valuenow="{{ kpi_data.utilization_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="card text-dark bg-light shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase small">{% translate "پروژه‌های فعال" %}</h6>
+                    <div class="display-6 fw-bold">{{ kpi_data.active_projects_count|intcomma:False }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+            <div class="card text-dark bg-warning shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase small">{% translate "مبلغ تنخواه‌های باز" %}</h6>
+                    <div class="display-6 fw-bold">{{ kpi_data.open_tankhahs_amount|intcomma:False }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">{% translate "روند بودجه تخصیصی در مقابل مصرف واقعی (ماهانه)" %}</h6>
+                </div>
+                <div class="card-body" style="min-height: 350px;">
+                    <canvas id="budgetVsActualTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">{% translate "هزینه بر اساس پروژه (تاپ 5)" %}</h6>
+                </div>
+                <div class="card-body" style="min-height: 350px;">
+                    <canvas id="spendingByProjectChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Performance Table Row -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% translate "عملکرد بودجه پروژه‌ها (7 پروژه اخیر)" %}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-sm small">
+                            <thead>
+                                <tr>
+                                    <th>{% translate "کد" %}</th>
+                                    <th>{% translate "نام پروژه" %}</th>
+                                    <th class="text-end">{% translate "بودجه تخصیص‌یافته" %}</th>
+                                    <th class="text-end">{% translate "مصرف واقعی" %}</th>
+                                    <th class="text-end">{% translate "باقیمانده" %}</th>
+                                    <th class="text-center">{% translate "درصد مصرف" %}</th>
+                                    <th>{% translate "وضعیت/اولویت" %}</th>
+                                    <th class="text-center">{% translate "عملیات" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for proj in project_performance_data %}
+                                <tr>
+                                    <td>{{ proj.code }}</td>
+                                    <td>
+                                        <a href="#"> {#  {% url 'core:project_detail' proj.id %} #}
+                                            {{ proj.name }}
+                                        </a>
+                                    </td>
+                                    <td class="text-end">{{ proj.allocated|intcomma:False }}</td>
+                                    <td class="text-end">{{ proj.consumed|intcomma:False }}</td>
+                                    <td class="text-end {% if proj.remaining < 0 %}text-danger fw-bold{% endif %}">{{ proj.remaining|intcomma:False }}</td>
+                                    <td class="text-center">
+                                        <div class="progress" style="height: 18px; background-color: #e9ecef;">
+                                            <div class="progress-bar {% if proj.percentage_consumed > 85 %}bg-danger{% elif proj.percentage_consumed > 60 %}bg-warning{% else %}bg-success{% endif %}"
+                                                 role="progressbar" style="width: {{ proj.percentage_consumed }}%;"
+                                                 aria-valuenow="{{ proj.percentage_consumed }}" aria-valuemin="0" aria-valuemax="100">
+                                                <small>{{ proj.percentage_consumed|floatformat:0 }}%</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge bg-secondary">{{ proj.status }}</span></td>
+                                    <td class="text-center">
+                                        <a href="#" class="btn btn-outline-primary btn-sm py-0 px-1">
+                                            <i class="fas fa-eye fa-xs"></i> {% comment %} یا آیکون جزئیات {% endcomment %}
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">{% translate "هیچ پروژه‌ای برای نمایش یافت نشد." %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Placeholder for other sections like Recent Activities or Budget Alerts #}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    // تابع برای تبدیل اعداد به فارسی (برای نمایش در چارت)
+    function toFarsiNumber(n) {
+        if (n === null || n === undefined) return '';
+        const farsiDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        return n.toString().replace(/\d/g, d => farsiDigits[d]);
+    }
+
+    // 1. Budget vs Actual Trend Chart
+    const budgetTrendData = JSON.parse('{{ budget_trend_data.labels|escapejs }}');
+    const budgetTrendCtx = document.getElementById('budgetVsActualTrendChart').getContext('2d');
+    new Chart(budgetTrendCtx, {
+        type: 'line',
+        data: {
+            labels: budgetTrendData, // از context
+            datasets: [{
+                label: '{% translate "بودجه تخصیص‌یافته" %}',
+                data: JSON.parse('{{ budget_trend_data.allocated|escapejs }}'), // از context
+                borderColor: 'rgb(54, 162, 235)',
+                backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                fill: true,
+                tension: 0.3
+            }, {
+                label: '{% translate "مصرف واقعی" %}',
+                data: JSON.parse('{{ budget_trend_data.spent|escapejs }}'), // از context
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value, index, values) {
+                            return toFarsiNumber(new Intl.NumberFormat('fa-IR').format(value/1000000)) + ' M'; // نمایش به میلیون
+                        }
+                    }
+                },
+                x: { ticks: { font: { family: "Vazirmatn, tanbeh, sans-serif" } } }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) { label += ': '; }
+                            if (context.parsed.y !== null) {
+                                label += toFarsiNumber(new Intl.NumberFormat('fa-IR').format(context.parsed.y));
+                            }
+                            return label;
+                        }
+                    }
+                },
+                legend: { labels: { font: { family: "Vazirmatn, tanbeh, sans-serif" } } }
+            }
+        }
+    });
+
+    // 2. Spending by Project Chart
+    const projectSpendingData = JSON.parse('{{ project_spending_data.labels|escapejs }}');
+    const projectSpendingCtx = document.getElementById('spendingByProjectChart').getContext('2d');
+    new Chart(projectSpendingCtx, {
+        type: 'doughnut', // یا 'pie' یا 'bar'
+        data: {
+            labels: projectSpendingData, // از context
+            datasets: [{
+                label: '{% translate "هزینه پروژه" %}',
+                data: JSON.parse('{{ project_spending_data.values|escapejs }}'), // از context
+                backgroundColor: [ // رنگ‌های نمونه
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)'
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { font: { family: "Vazirmatn, tanbeh, sans-serif" } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) { label += ': '; }
+                            if (context.parsed !== null) {
+                                label += toFarsiNumber(new Intl.NumberFormat('fa-IR').format(context.parsed));
+                                const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? (context.parsed / total * 100).toFixed(1) : 0;
+                                label += ` (${toFarsiNumber(percentage)}%)`;
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // افزودن JavaScript برای فیلترها و به‌روزرسانی AJAX در اینجا (در صورت نیاز)
+    // مثال ساده برای دریافت پروژه‌ها بر اساس سازمان:
+    // document.getElementById('organizationFilter').addEventListener('change', function() {
+    //     const orgId = this.value;
+    //     if (orgId) {
+    //         // fetch(`/api/projects-for-organization/${orgId}/`) ...
+    //     }
+    // });
+
+</script>
+{% endblock %}

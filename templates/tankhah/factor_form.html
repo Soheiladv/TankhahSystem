@@ -1,0 +1,555 @@
+{% extends 'base.html' %}
+{% load i18n static rcms_custom_filters %}
+
+{% block extra_head %}
+<style>
+    .form-label { display: block; font-weight: 500; margin-bottom: 0.3rem; font-size: 0.9em; }
+    .form-control:disabled, .form-select:disabled { background-color: #e9ecef; opacity: 0.7; cursor: not-allowed; }
+    .factor-tabs .nav-link { border: none; border-bottom: 3px solid transparent; color: var(--bs-secondary-color); font-weight: 500; padding: 0.8rem 1.2rem; transition: all 0.2s ease-in-out; display: flex; align-items: center; gap: 0.5rem; }
+    .factor-tabs .nav-link i { width: 1.2em; text-align: center; }
+    .factor-tabs .nav-link:hover { color: var(--bs-primary); }
+    .factor-tabs .nav-link.active { color: var(--bs-primary); border-bottom-color: var(--bs-primary); font-weight: 600; }
+    .tab-pane { padding-top: 1.5rem; }
+    .item-row { border: 1px solid var(--bs-border-color-translucent); border-radius: var(--bs-border-radius-lg); margin-bottom: 1rem; padding: 1rem; background-color: var(--bs-light-bg-subtle); transition: background-color 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease, transform 0.3s ease; }
+    .item-row:hover { background-color: var(--bs-primary-bg-subtle); box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); }
+    .item-row.is-deleting { opacity: 0.5; background-color: var(--bs-danger-bg-subtle); border-color: var(--bs-danger-border-subtle); transform: scale(0.95); pointer-events: none; }
+    .item-total { font-weight: bold; font-size: 0.95em; padding: 0.5rem 0.75rem; background-color: var(--bs-light); border: 1px solid var(--bs-border-color); border-radius: var(--bs-border-radius); min-width: 100px; display: inline-block; text-align: center; }
+    .delete-item-btn { cursor: pointer; color: var(--bs-danger); transition: color 0.2s ease; }
+    .delete-item-btn:hover { color: var(--bs-danger-text-emphasis); }
+    .calculation-summary-panel { background-color: var(--bs-tertiary-bg); border: 1px solid var(--bs-border-color-translucent); border-radius: var(--bs-border-radius-lg); padding: 1rem 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05); }
+    .summary-item { text-align: center; }
+    .summary-item strong { display: block; font-size: 0.85em; color: var(--bs-secondary-color); margin-bottom: 0.2rem; }
+    .summary-value { font-weight: 600; font-size: 1.1em; padding: 0.3em 0.6em; border-radius: var(--bs-border-radius); min-width: 110px; display: inline-block; background-color: var(--bs-light-bg-subtle); border: 1px solid var(--bs-border-color); }
+    .summary-value.positive { background-color: var(--bs-success-bg-subtle); border-color: var(--bs-success-border-subtle); color: var(--bs-success-text-emphasis); }
+    .summary-value.negative { background-color: var(--bs-danger-bg-subtle); border-color: var(--bs-danger-border-subtle); color: var(--bs-danger-text-emphasis); }
+    .summary-value.warning { background-color: var(--bs-warning-bg-subtle); border-color: var(--bs-warning-border-subtle); color: var(--bs-warning-text-emphasis); }
+    #tankhah-budget-warning { display: none; color: var(--bs-danger); font-weight: bold; margin-top: 0.5rem; text-align: center; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+    .budget-progress-bar { height: 12px; background-color: var(--bs-gray-300); border-radius: var(--bs-border-radius-pill); overflow: hidden; margin-top: 0.75rem; }
+    .budget-progress-bar .progress-bar { background-color: var(--bs-success); transition: width 0.3s ease-in-out; }
+    .budget-progress-bar .progress-bar.bg-warning { background-color: var(--bs-warning); }
+    .budget-progress-bar .progress-bar.bg-danger { background-color: var(--bs-danger); }
+    .is-invalid { border-color: var(--bs-danger) !important; }
+    .invalid-feedback { display: none; }
+    .is-invalid + .invalid-feedback, .is-invalid ~ .invalid-feedback { display: block; color: var(--bs-danger); font-size: 0.85em; }
+    #tankhah-budget-info-display.loading, #tankhah-budget-info-display.error { display: none; }
+    #tankhah-budget-loading.active, #tankhah-budget-error.active { display: block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center py-3 px-4">
+            <h4 class="card-title mb-0 d-flex align-items-center">
+                <i class="fas fa-edit me-3"></i>{{ title|to_persian_number }}
+            </h4>
+        </div>
+        <div class="card-body p-4">
+            {% if messages %}
+                <div class="alert alert-dismissible fade show" role="alert">
+                    {% for message in messages %}
+                        <div class="alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+
+            {% if form.non_field_errors or item_formset.non_form_errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>{% trans "خطا در فرم" %}</h5>
+                    {% for error in form.non_field_errors %}<p class="mb-1">{{ error }}</p>{% endfor %}
+                    {% for error in item_formset.non_form_errors %}<p class="mb-1">{{ error }}</p>{% endfor %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+
+            <div class="calculation-summary-panel" id="calculation-summary">
+                <div class="row gy-3 align-items-center">
+                    <div class="col-md-4 border-end-md">
+                        <div id="tankhah-budget-info-display" data-initial-budget="{{ budget_info.tankhah_initial|floatformat:0 }}">
+                            <div class="summary-item mb-2">
+                                <strong>{% trans "بودجه اولیه تنخواه" %}</strong>
+                                <span class="summary-value" id="display-initial-budget">{{ budget_info.tankhah_initial|floatformat:0|to_persian_number }}</span> <small class="text-muted">{% trans "ریال" %}</small>
+                            </div>
+                            <div class="summary-item">
+                                <strong>{% trans "بودجه باقیمانده" %}</strong>
+                                <span class="summary-value" id="display-remaining-budget">{{ budget_info.tankhah_remaining|floatformat:0|to_persian_number }}</span> <small class="text-muted">{% trans "ریال" %}</small>
+                            </div>
+                            <div class="budget-progress-bar mt-2">
+                                <div class="progress-bar" role="progressbar" style="width: {% if budget_info.tankhah_initial > 0 %}{{ budget_info.tankhah_remaining|div:budget_info.tankhah_initial|mul:100|floatformat:0 }}%{% else %}0%{% endif %};" aria-valuenow="{% if budget_info.tankhah_initial > 0 %}{{ budget_info.tankhah_remaining|div:budget_info.tankhah_initial|mul:100|floatformat:0 }}{% else %}0{% endif %}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div id="tankhah-budget-warning" {% if budget_info.tankhah_remaining <= 0 %}style="display: block;"{% endif %}><i class="fas fa-exclamation-circle me-1"></i>{% trans "هشدار: اعتبار تنخواه کافی نیست!" %}</div>
+                        </div>
+                        <div id="tankhah-budget-loading" class="text-center text-muted small py-3">
+                            <i class="fas fa-spinner fa-spin me-1"></i> {% trans "بارگذاری بودجه..." %}
+                        </div>
+                        <div id="tankhah-budget-error" class="text-center text-danger small py-3">
+                            <i class="fas fa-times-circle me-1"></i> {% trans "خطا در دریافت بودجه." %}
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row gy-3">
+                            <div class="col-sm-4 summary-item">
+                                <strong>{% trans "جمع کل ردیف‌ها" %}</strong>
+                                <span class="summary-value" id="display-items-total">۰</span> <small class="text-muted">{% trans "ریال" %}</small>
+                            </div>
+                            <div class="col-sm-4 summary-item">
+                                <strong>{% trans "مبلغ کل فاکتور" %}</strong>
+                                <span class="summary-value" id="display-factor-total">۰</span> <small class="text-muted">{% trans "ریال" %}</small>
+                            </div>
+                            <div class="col-sm-4 summary-item">
+                                <strong>{% trans "اختلاف مبلغ" %}</strong>
+                                <span class="summary-value" id="display-difference">۰</span> <small class="text-muted">{% trans "ریال" %}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" id="factor-form" novalidate>
+                {% csrf_token %}
+                <ul class="nav nav-tabs factor-tabs mb-4" id="factorTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="main-tab" data-bs-toggle="tab" data-bs-target="#main-tab-pane" type="button" role="tab" aria-controls="main-tab-pane" aria-selected="true">
+                            <i class="fas fa-file-invoice"></i>{% trans "اطلاعات اصلی" %}
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="items-tab" data-bs-toggle="tab" data-bs-target="#items-tab-pane" type="button" role="tab" aria-controls="items-tab-pane" aria-selected="false">
+                            <i class="fas fa-list-ol"></i>{% trans "اقلام فاکتور" %} <span class="badge bg-secondary rounded-pill ms-2" id="item-count-badge">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents-tab-pane" type="button" role="tab" aria-controls="documents-tab-pane" aria-selected="false">
+                            <i class="fas fa-paperclip"></i>{% trans "اسناد" %}
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="factorTabsContent">
+                    <div class="tab-pane fade show active" id="main-tab-pane" role="tabpanel" aria-labelledby="main-tab" tabindex="0">
+                        <div class="row g-3">
+                            {% for field in form %}
+                                <div class="{% if field.name == 'description' %}col-12{% else %}col-md-6{% endif %} mb-3">
+                                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+                                    {{ field  }}
+                                    {% if field.help_text %}<div class="form-text small text-muted">{{ field.help_text|safe }}</div>{% endif %}
+                                    {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors|striptags }}</div>{% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if budget_info.project_total %}
+                            <div class="alert alert-secondary mt-4 p-3 small border-0">
+                                <strong class="d-block mb-2">{% trans "بودجه پروژه" %}</strong>
+                                <span class="me-3">{% trans "کل:" %} {{ budget_info.project_total|floatformat:0|to_persian_number }}</span>
+                                <span class="me-3">{% trans "مصرف:" %} {{ budget_info.project_consumed|floatformat:0|to_persian_number }}</span>
+                                <span>{% trans "باقیمانده:" %} {{ budget_info.tankhah_remaining|floatformat:0|to_persian_number }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="tab-pane fade" id="items-tab-pane" role="tabpanel" aria-labelledby="items-tab" tabindex="0">
+                        {{ item_formset.management_form }}
+                        <div id="items-formset-container">
+                            <div class="d-none d-md-block mb-2">
+                                <div class="row g-2 fw-bold text-muted small text-uppercase">
+                                    <div class="col-md-1 text-center">#</div>
+                                    <div class="col-md-5">{% trans "شرح" %}</div>
+                                    <div class="col-md-2 text-center">{% trans "قیمت واحد" %}</div>
+                                    <div class="col-md-1 text-center">{% trans "تعداد" %}</div>
+                                    <div class="col-md-2 text-center">{% trans "جمع" %}</div>
+                                    <div class="col-md-1 text-center">{% trans "حذف" %}</div>
+                                </div>
+                                <hr class="my-1">
+                            </div>
+
+                            {% for item_form in item_formset %}
+                                <div class="item-row" id="{{ item_formset.prefix }}-{{ forloop.counter0 }}-row" {% if item_form.DELETE.value %}style="display:none;" class="is-deleting"{% endif %}>
+                                    {{ item_form.id }}
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-12 col-md-1 text-center mb-2 mb-md-0">
+                                            <span class="row-number badge bg-secondary rounded-pill fs-6">{{ forloop.counter|to_persian_number }}</span>
+                                        </div>
+                                        <div class="col-12 col-md-5 mb-2 mb-md-0">
+                                            <label for="{{ item_form.description.id_for_label }}" class="form-label d-md-none">{% trans "شرح" %}</label>
+                                            {{ item_form.description }}
+                                            {% if item_form.description.errors %}<div class="invalid-feedback d-block">{{ item_form.description.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-6 col-md-2 mb-2 mb-md-0">
+                                            <label for="{{ item_form.unit_price.id_for_label }}" class="form-label d-md-none">{% trans "قیمت واحد" %}</label>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text"><i class="fas fa-coins"></i></span>
+                                                {{ item_form.unit_price }}
+                                            </div>
+                                            {% if item_form.unit_price.errors %}<div class="invalid-feedback d-block">{{ item_form.unit_price.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-6 col-md-1 mb-2 mb-md-0">
+                                            <label for="{{ item_form.quantity.id_for_label }}" class="form-label d-md-none">{% trans "تعداد" %}</label>
+                                            {{ item_form.quantity }}
+                                            {% if item_form.quantity.errors %}<div class="invalid-feedback d-block">{{ item_form.quantity.errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-6 col-md-2 text-center mb-2 mb-md-0">
+                                            <label class="form-label d-md-none">{% trans "جمع" %}</label>
+                                            <span class="item-total">۰ {% trans "ریال" %}</span>
+                                        </div>
+                                        <div class="col-6 col-md-1 text-center">
+                                            {% if item_formset.can_delete %}
+                                                <button type="button" class="btn btn-sm btn-outline-danger delete-item-btn" title="{% trans 'حذف ردیف' %}">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                                {{ item_form.DELETE  }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% if item_form.non_field_errors %}
+                                        <div class="alert alert-warning alert-sm mt-2 py-1 px-2">{{ item_form.non_field_errors|striptags }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <button type="button" class="btn btn-outline-success mt-3" id="add-item-row-button">
+                            <i class="fas fa-plus-circle me-2"></i>{% trans "افزودن ردیف" %}
+                        </button>
+                    </div>
+
+                    <div class="tab-pane fade" id="documents-tab-pane" role="tabpanel" aria-labelledby="documents-tab" tabindex="0">
+                        <div class="row g-4">
+                            <div class="col-md-12">
+                                <div class="card border-light shadow-sm">
+                                    <div class="card-header bg-light"><h6 class="mb-0"><i class="fas fa-file-invoice text-primary me-2"></i>{% trans "پیوست‌های فاکتور" %}</h6></div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="{{ document_form.files.id_for_label }}" class="form-label">{{ document_form.files.label }}</label>
+                                            {{ document_form.files }}
+                                            <div class="form-text small">{% trans "می‌توانید چند فایل را همزمان انتخاب کنید." %}</div>
+                                            {% if document_form.files.errors %}<div class="invalid-feedback d-block">{{ document_form.files.errors|striptags }}</div>{% endif %}
+                                            {% if document_form.non_field_errors %}<div class="alert alert-warning p-1 small mt-1">{{ document_form.non_field_errors|striptags }}</div>{% endif %}
+                                        </div>
+                                        {% if object.documents.exists %}
+                                            <hr><h6 class="mb-2 small text-muted">{% trans "پیوست‌های موجود:" %}</h6>
+                                            <ul class="list-unstyled">
+                                                {% for doc in object.documents.all %}
+                                                    <li class="d-flex justify-content-between align-items-center border-bottom py-1">
+                                                        <div class="d-flex align-items-center flex-grow-1 me-2 text-truncate">
+                                                            <i class="fas {{ doc.file.name  }} text-secondary me-2"></i>
+                                                            <a href="{{ doc.file.url }}" target="_blank" class="text-decoration-none text-dark small" title="{{ doc.file.name }}">{{ doc.file.name|truncatechars:30 }}</a>
+                                                            <span class="badge bg-light text-dark rounded-pill ms-2 small">{{ doc.file.size|filesizeformat }}</span>
+                                                        </div>
+                                                        <div class="form-check form-switch form-check-inline m-0 p-0">
+                                                            <input class="form-check-input delete-doc-check" type="checkbox" name="delete_factor_doc_{{ doc.pk }}" id="del_fdoc_{{ doc.pk }}" value="{{ doc.pk }}" title="{% trans 'حذف' %}">
+                                                        </div>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-5 pt-4 border-top">
+                    <button type="submit" class="btn btn-lg btn-primary px-5" id="submit-button">
+                        <i class="fas fa-save me-2"></i>{% trans "ذخیره فاکتور" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<template id="item-form-template">
+    <div class="item-row" style="opacity:0; transform: translateY(-10px);">
+        <input type="hidden" name="{{ item_formset.prefix }}-__prefix__-id" id="id_{{ item_formset.prefix }}-__prefix__-id">
+        <div class="row g-2 align-items-center">
+            <div class="col-12 col-md-1 text-center mb-2 mb-md-0">
+                <span class="row-number badge bg-secondary rounded-pill fs-6">__row_num__</span>
+            </div>
+            <div class="col-12 col-md-5 mb-2 mb-md-0">
+                <label for="id_{{ item_formset.prefix }}-__prefix__-description" class="form-label d-md-none">{% trans "شرح" %}</label>
+                <input type="text" name="{{ item_formset.prefix }}-__prefix__-description" class="form-control form-control-sm" maxlength="255" id="id_{{ item_formset.prefix }}-__prefix__-description" required>
+            </div>
+            <div class="col-6 col-md-2 mb-2 mb-md-0">
+                <label for="id_{{ item_formset.prefix }}-__prefix__-unit_price" class="form-label d-md-none">{% trans "قیمت واحد" %}</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i class="fas fa-coins"></i></span>
+                    <input type="number" name="{{ item_formset.prefix }}-__prefix__-unit_price" class="form-control form-control-sm ltr-input unit-price-field" step="0.01" min="0" id="id_{{ item_formset.prefix }}-__prefix__-unit_price" required>
+                </div>
+            </div>
+            <div class="col-6 col-md-1 mb-2 mb-md-0">
+                <label for="id_{{ item_formset.prefix }}-__prefix__-quantity" class="form-label d-md-none">{% trans "تعداد" %}</label>
+                <input type="number" name="{{ item_formset.prefix }}-__prefix__-quantity" value="1" class="form-control form-control-sm ltr-input quantity-field" step="1" min="1" id="id_{{ item_formset.prefix }}-__prefix__-quantity" required>
+            </div>
+            <div class="col-6 col-md-2 text-center mb-2 mb-md-0">
+                <label class="form-label d-md-none">{% trans "جمع" %}</label>
+                <span class="item-total">۰ {% trans "ریال" %}</span>
+            </div>
+            <div class="col-6 col-md-1 text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger delete-item-btn" title="{% trans 'حذف ردیف' %}">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <input type="checkbox" name="{{ item_formset.prefix }}-__prefix__-DELETE" class="d-none delete-item-checkbox" id="id_{{ item_formset.prefix }}-__prefix__-DELETE">
+            </div>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('factor-form');
+    const formsetContainer = document.getElementById('items-formset-container');
+    const addItemButton = document.getElementById('add-item-row-button');
+    const formsetPrefix = '{{ item_formset.prefix|escapejs }}';
+    const totalFormsInput = document.getElementById(`id_${formsetPrefix}-TOTAL_FORMS`);
+    const emptyFormTemplate = document.getElementById('item-form-template')?.content;
+    const tankhahSelect = document.getElementById('id_tankhah');
+    const factorAmountInput = document.getElementById('id_amount');
+    const displayItemsTotalEl = document.getElementById('display-items-total');
+    const displayFactorTotalEl = document.getElementById('display-factor-total');
+    const displayDifferenceEl = document.getElementById('display-difference');
+    const itemCountBadge = document.getElementById('item-count-badge');
+    const budgetInfoDisplay = document.getElementById('tankhah-budget-info-display');
+    const budgetLoading = document.getElementById('tankhah-budget-loading');
+    const budgetError = document.getElementById('tankhah-budget-error');
+    const initialBudgetEl = document.getElementById('display-initial-budget');
+    const remainingBudgetEl = document.getElementById('display-remaining-budget');
+    const budgetWarning = document.getElementById('tankhah-budget-warning');
+    const progressBar = document.querySelector('.budget-progress-bar .progress-bar');
+
+    // توابع کمکی
+    function toLatinDigits(str) {
+        return String(str ?? '').replace(/[۰-۹]/g, d => '0123456789'[d.charCodeAt(0) - 1776]);
+    }
+
+    function toPersianDigits(num) {
+        return String(num ?? 0).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    }
+
+    function formatCurrency(value) {
+        const num = parseFloat(toLatinDigits(String(value)));
+        return isNaN(num) ? '۰' : toPersianDigits(Math.round(num).toLocaleString('en-US'));
+    }
+
+    function getNumericValue(element) {
+        const strValue = element.value !== undefined ? element.value : element.textContent;
+        return parseFloat(toLatinDigits(strValue?.trim() || '')) || 0;
+    }
+
+    // محاسبه جمع یک ردیف
+    function calculateRowTotal(rowElement) {
+        if (!rowElement || rowElement.classList.contains('is-deleting')) return 0;
+        const unitPrice = getNumericValue(rowElement.querySelector('.unit-price-field'));
+        const quantity = getNumericValue(rowElement.querySelector('.quantity-field'));
+        const rowTotal = unitPrice * quantity;
+        const totalSpan = rowElement.querySelector('.item-total');
+        if (totalSpan) {
+            totalSpan.textContent = `${formatCurrency(rowTotal)} {% trans "ریال" %}`;
+        }
+        return rowTotal;
+    }
+
+    // آپدیت تمام محاسبات
+    function updateAllCalculations() {
+        let itemsGrandTotal = 0;
+        let activeItemCount = 0;
+
+        formsetContainer.querySelectorAll('.item-row').forEach(row => {
+            if (!row.classList.contains('is-deleting')) {
+                itemsGrandTotal += calculateRowTotal(row);
+                activeItemCount++;
+            }
+        });
+
+        const factorAmount = getNumericValue(factorAmountInput);
+
+        displayItemsTotalEl.textContent = formatCurrency(itemsGrandTotal);
+        itemCountBadge.textContent = toPersianDigits(activeItemCount);
+        displayFactorTotalEl.textContent = formatCurrency(factorAmount);
+
+        const difference = factorAmount - itemsGrandTotal;
+        displayDifferenceEl.textContent = formatCurrency(Math.abs(difference));
+        displayDifferenceEl.classList.remove('positive', 'negative', 'warning');
+        if (Math.abs(difference) < 0.01) {
+            displayDifferenceEl.classList.add('positive');
+        } else if (difference < 0) {
+            displayDifferenceEl.classList.add('negative');
+        } else {
+            displayDifferenceEl.classList.add('warning');
+        }
+
+        checkBudget();
+    }
+
+    // بررسی بودجه تنخواه
+    function checkBudget() {
+        const tankhahId = tankhahSelect.value;
+        if (!tankhahId) {
+            budgetInfoDisplay.style.display = 'none';
+            budgetLoading.classList.remove('active');
+            budgetError.classList.remove('active');
+            return;
+        }
+
+        const items = [];
+        formsetContainer.querySelectorAll('.item-row:not(.is-deleting)').forEach(row => {
+            const quantity = getNumericValue(row.querySelector('.quantity-field'));
+            const unitPrice = getNumericValue(row.querySelector('.unit-price-field'));
+            items.push({ quantity, unit_price: unitPrice });
+        });
+
+        budgetInfoDisplay.style.display = 'none';
+        budgetLoading.classList.add('active');
+        budgetError.classList.remove('active');
+
+        fetch('{% url "budget_check" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: JSON.stringify({ tankhah_id: tankhahId, items })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            budgetLoading.classList.remove('active');
+            if (data.status === 'success') {
+                budgetInfoDisplay.style.display = 'block';
+                initialBudgetEl.textContent = formatCurrency(data.initial_budget);
+                remainingBudgetEl.textContent = formatCurrency(data.remaining_budget);
+                budgetInfoDisplay.dataset.initialBudget = data.initial_budget;
+
+                const percentage = data.initial_budget ? (data.remaining_budget / data.initial_budget) * 100 : 0;
+                progressBar.style.width = `${percentage}%`;
+                progressBar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+                if (percentage > 50) {
+                    progressBar.classList.add('bg-success');
+                } else if (percentage > 20) {
+                    progressBar.classList.add('bg-warning');
+                } else {
+                    progressBar.classList.add('bg-danger');
+                }
+
+                budgetWarning.style.display = data.is_valid ? 'none' : 'block';
+            } else {
+                budgetError.classList.add('active');
+                console.error('Budget check error:', data.message);
+            }
+        })
+        .catch(error => {
+            budgetLoading.classList.remove('active');
+            budgetError.classList.add('active');
+            console.error('Error fetching budget info:', error);
+        });
+    }
+
+    // افزودن ردیف جدید
+    function addFormsetRow(withAnimation = true) {
+        if (!emptyFormTemplate) {
+            console.error('Error: item-form-template not found');
+            return;
+        }
+        if (!formsetContainer) {
+            console.error('Error: formsetContainer not found');
+            return;
+        }
+        if (!totalFormsInput) {
+            console.error('Error: totalFormsInput not found');
+            return;
+        }
+
+        const formIndex = parseInt(totalFormsInput.value) || 0;
+        const newRowFragment = document.importNode(emptyFormTemplate, true);
+        const newRowElement = newRowFragment.querySelector('.item-row');
+
+        newRowElement.innerHTML = newRowElement.innerHTML.replace(/__prefix__/g, formIndex);
+        formsetContainer.appendChild(newRowElement);
+        totalFormsInput.value = formIndex + 1;
+
+        attachRowEventListeners(newRowElement);
+        updateRowNumbers();
+
+        if (withAnimation) {
+            newRowElement.style.opacity = '0';
+            newRowElement.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                newRowElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                newRowElement.style.opacity = '1';
+                newRowElement.style.transform = 'translateY(0)';
+            }, 10);
+        }
+
+        updateAllCalculations();
+    }
+
+    // آپدیت شماره ردیف‌ها
+    function updateRowNumbers() {
+        let visibleRowIndex = 1;
+        formsetContainer.querySelectorAll('.item-row').forEach(row => {
+            if (!row.classList.contains('is-deleting')) {
+                row.querySelector('.row-number').textContent = toPersianDigits(visibleRowIndex++);
+            }
+        });
+    }
+
+    // اتصال Event Listener به ردیف‌ها
+    function attachRowEventListeners(rowElement) {
+        rowElement.querySelectorAll('.unit-price-field, .quantity-field').forEach(input => {
+            input.addEventListener('input', updateAllCalculations);
+        });
+
+        const deleteButton = rowElement.querySelector('.delete-item-btn');
+        const deleteCheckbox = rowElement.querySelector('.delete-item-checkbox');
+        if (deleteButton && deleteCheckbox) {
+            deleteButton.addEventListener('click', () => {
+                deleteCheckbox.checked = true;
+                rowElement.classList.add('is-deleting');
+                rowElement.style.opacity = '0';
+                setTimeout(() => {
+                    rowElement.style.display = 'none';
+                    updateAllCalculations();
+                    updateRowNumbers();
+                }, 300);
+            });
+        }
+    }
+
+    // مدیریت ارسال فرم
+    form.addEventListener('submit', function (event) {
+        const factorAmount = getNumericValue(factorAmountInput);
+        const itemsTotal = getNumericValue(displayItemsTotalEl);
+        if (Math.abs(factorAmount - itemsTotal) > 0.01) {
+            event.preventDefault();
+            alert('{% trans "مبلغ کل فاکتور با مجموع ردیف‌ها همخوانی ندارد." %}');
+        }
+    });
+
+    // راه‌اندازی اولیه
+    if (addItemButton) {
+        addItemButton.addEventListener('click', addFormsetRow);
+    } else {
+        console.error('Error: add-item-row-button not found');
+    }
+
+    if (tankhahSelect) {
+        tankhahSelect.addEventListener('change', checkBudget);
+        if (tankhahSelect.value) checkBudget(); // بررسی اولیه اگر تنخواه انتخاب شده
+    }
+
+    if (factorAmountInput) {
+        factorAmountInput.addEventListener('input', updateAllCalculations);
+    }
+
+    formsetContainer.querySelectorAll('.item-row').forEach(attachRowEventListeners);
+    updateRowNumbers();
+    updateAllCalculations();
+});
+</script>
+{% endblock %}

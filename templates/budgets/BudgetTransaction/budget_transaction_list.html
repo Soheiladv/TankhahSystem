@@ -1,0 +1,44 @@
+<!-- templates/budgets/budget_transaction_list.html -->
+{% extends 'base.html' %}
+{% load i18n humanize %}
+
+{% block title %}{% trans "تراکنش‌های تخصیص بودجه" %} #{{ allocation.id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4 text-center">{% trans "تراکنش‌های تخصیص بودجه" %} #{{ allocation.id }}</h1>
+    <div class="card shadow">
+        <div class="card-body">
+            {% if transactions %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>{% trans "شناسه" %}</th>
+                        <th>{% trans "نوع" %}</th>
+                        <th>{% trans "مبلغ" %}</th>
+                        <th>{% trans "تاریخ" %}</th>
+                        <th>{% trans "توضیحات" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.id }}</td>
+                        <td>{{ transaction.get_transaction_type_display }}</td>
+                        <td>{{ transaction.amount|intcomma }} {% trans "ریال" %}</td>
+                        <td>{{ transaction.timestamp|date:"Y/m/d H:i" }}</td>
+                        <td>{{ transaction.description|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">{% trans "هیچ تراکنشی یافت نشد." %}</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="text-center mt-4">
+        <a href="{% url 'project_budget_allocation_detail' allocation.pk %}" class="btn btn-primary">{% trans "بازگشت به جزئیات تخصیص" %}</a>
+    </div>
+</div>
+{% endblock %}

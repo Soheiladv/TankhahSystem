@@ -1,0 +1,51 @@
+<!-- tankhah/templates/tankhah/subproject_form.html -->
+{% extends 'base.html' %}
+{% load i18n rcms_custom_filters %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white">
+            <h1 class="card-title mb-0">
+                {% if form.instance.pk %}
+                    {% trans "ویرایش ساب‌پروژه" %}
+                {% else %}
+                    {% trans "ایجاد ساب‌پروژه" %}
+                {% endif %}
+            </h1>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% if project_remaining_budget is not None %}
+                    <p>{% trans "بودجه باقیمانده پروژه:" %} {{ project_remaining_budget|floatformat:0|to_persian_number }} {% trans "ریال" %}</p>
+                {% endif %}
+
+                {% csrf_token %}
+                {{ form.as_p }}
+                {#                <div class="mb-3">#}
+                {#                    {{ form.project.label_tag }}#}
+                {#                    {{ form.project }}#}
+                {#                    {{ form.project.errors }}#}
+                {#                </div>#}
+                {#                <div class="mb-3">#}
+                {#                    {{ form.name.label_tag }}#}
+                {#                    {{ form.name }}#}
+                {#                    {{ form.name.errors }}#}
+                {#                </div>#}
+                {#                <div class="mb-3">#}
+                {#                    {{ form.description.label_tag }}#}
+                {#                    {{ form.description }}#}
+                {#                    {{ form.description.errors }}#}
+                {#                </div>#}
+                {#                <div class="mb-3 form-check">#}
+                {#                    {{ form.is_active }}#}
+                {#                    {{ form.is_active.label_tag }}#}
+                {#                    {{ form.is_active.errors }}#}
+                {#                </div>#}
+                <button type="submit" class="btn btn-primary">{% trans "ذخیره" %}</button>
+                <a href="{% url 'subproject_list' %}" class="btn btn-secondary">{% trans "لغو" %}</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

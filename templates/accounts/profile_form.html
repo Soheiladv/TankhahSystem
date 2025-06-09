@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">ذخیره</button>
+</form>
+
+<script>
+document.getElementById('id_province').addEventListener('change', function() {
+    var provinceId = this.value;
+    fetch('/get_cities/?province=' + provinceId)
+        .then(response => response.json())
+        .then(data => {
+            var citySelect = document.getElementById('id_city');
+            citySelect.innerHTML = '<option value="">---------</option>';
+            data.forEach(city => {
+                citySelect.innerHTML += `<option value="${city.id}">${city.name}</option>`;
+            });
+        });
+});
+</script>
+{% endblock %}

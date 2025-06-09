@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load i18n %} {# Load the i18n tags for translation #}
+
+{% block content %}
+<div class="container mt-4">
+    {# Page Title with object's organization name #}
+    <h1 class="mb-4 text-right">{% trans "جزئیات قانون دسترسی" %} <span class="text-muted">- {{ access_rule.organization }}</span></h1>
+
+    {# Card container for the details #}
+    <div class="card shadow-sm">
+        {# Card header #}
+        <div class="card-header bg-primary text-white text-right">
+            <h5 class="my-1">{% trans "اطلاعات قانون دسترسی" %}</h5> {# Use h5 for header title #}
+        </div>
+
+        {# Card body with details list #}
+        <div class="card-body">
+            {# Definition list for displaying key-value details #}
+            <dl class="row text-right mb-0"> {# mb-0 to remove default bottom margin #}
+
+                {# Organization #}
+                <dt class="col-sm-3 text-truncate">{% trans "سازمان" %}:</dt> {# text-truncate added for long labels #}
+                <dd class="col-sm-9">{{ access_rule.organization }}</dd>
+
+                {# Branch #}
+                <dt class="col-sm-3 text-truncate">{% trans "شاخه" %}:</dt>
+                <dd class="col-sm-9">{{ access_rule.get_branch_display|default:_("نامشخص") }}</dd>
+
+                {# Minimum Level #}
+                <dt class="col-sm-3 text-truncate">{% trans "حداقل سطح" %}:</dt>
+                <dd class="col-sm-9">{{ access_rule.min_level }}</dd>
+
+                {# Stage #}
+                <dt class="col-sm-3 text-truncate">{% trans "مرحله" %}:</dt>
+                <dd class="col-sm-9">{{ access_rule.stage }}</dd>
+
+                {# Action Type #}
+                <dt class="col-sm-3 text-truncate">{% trans "نوع اقدام" %}:</dt>
+                <dd class="col-sm-9">{{ access_rule.get_action_type_display }}</dd>
+
+                {# Entity Type #}
+                <dt class="col-sm-3 text-truncate">{% trans "نوع موجودیت" %}:</dt>
+                <dd class="col-sm-9">{{ access_rule.entity_type }}</dd>
+
+                {# Payment Order Signer #}
+                <dt class="col-sm-3 text-truncate">{% trans "امضاکننده دستور پرداخت" %}:</dt>
+                <dd class="col-sm-9">{{ access_rule.is_payment_order_signer|yesno:_("بله,خیر") }}</dd>
+
+                {# Status #}
+                <dt class="col-sm-3 text-truncate">{% trans "وضعیت" %}:</dt>
+                <dd class="col-sm-9">
+                    {% if access_rule.is_active %}
+                    <span class="badge bg-success">{% trans "فعال" %}</span>
+                    {% else %}
+                    <span class="badge bg-danger">{% trans "غیرفعال" %}</span>
+                    {% endif %}
+                </dd>
+
+            </dl>
+
+            {# Horizontal rule to separate details from actions #}
+            <hr class="my-4"> {# Adds vertical margin #}
+
+            {# Action Buttons, aligned right #}
+            <div class="text-right">
+                {# Edit Button #}
+                <a href="{% url 'accessrule_update' access_rule.pk %}" class="btn btn-warning mr-2"> {# Added margin-right #}
+                    <i class="fas fa-edit"></i> {% trans "ویرایش" %}
+                </a>
+                {# Delete Button #}
+                <a href="{% url 'accessrule_delete' access_rule.pk %}" class="btn btn-danger mr-2"> {# Added margin-right #}
+                    <i class="fas fa-trash"></i> {% trans "حذف" %}
+                </a>
+                {# Back Button #}
+                <a href="{% url 'accessrule_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-right"></i> {% trans "بازگشت به لیست" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{# reports/partials/_ajax_level_organizations.html #}
+{% load i18n static rcms_custom_filters %} {# rcms_custom_filters را اگر به هیچ فیلتر دیگری نیاز ندارید، حذف کنید #}
+
+<h5 class="mb-3 mt-4 text-secondary">
+    <i class="fas fa-building me-2"></i>{% translate "خلاصه تخصیص‌ها بر اساس سازمان" %}
+</h5>
+<div class="table-responsive">
+    <table class="table table-bordered table-striped table-hover small">
+        <thead class="table-light">
+            <tr>
+                <th scope="col">{% translate "سازمان" %}</th>
+                <th scope="col">{% translate "کد" %}</th>
+                <th scope="col" class="text-center">{% translate "کل تخصیص" %}</th>
+                <th scope="col" class="text-center">{% translate "مصرف خالص" %}</th>
+                <th scope="col" class="text-center">{% translate "مانده" %}</th>
+                <th scope="col" class="text-center">% مصرف</th>
+                <th scope="col" class="text-center">تعداد سرفصل</th>
+                <th scope="col" class="text-center no-print">عملیات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for org in organizations %}
+                <tr data-bs-toggle="collapse" data-bs-target="#budgetAllocCollapse-{{ parent_period_pk }}-{{ org.id }}"
+                    aria-expanded="false" aria-controls="budgetAllocCollapse-{{ parent_period_pk }}-{{ org.id }}"
+                    class="table-row-clickable" style="cursor: pointer;"
+                    data-ajax-load-url="{{ org.budget_items_ajax_url }}"
+                    data-target-id="budget-item-detail-{{ parent_period_pk }}-{{ org.id }}">
+                    <td class="fw-bold">{{ org.name|to_persian_number }}</td>
+                    <td>{{ org.code|to_persian_number }}</td>
+                    <td class="text-center">{{ org.total_allocated_formatted|to_persian_number }}</td>
+                    <td class="text-center">{{ org.net_consumed_formatted|to_persian_number }}</td>
+                    <td class="text-center">{{ org.remaining_formatted|to_persian_number }}</td>
+                    <td class="text-center">
+                        <span class="badge bg-{% if org.utilization_percentage > 90 %}danger{% elif org.utilization_percentage > 70 %}warning{% else %}success{% endif %}">
+                            {{ org.utilization_percentage|floatformat:"0"|to_persian_number }}%
+                        </span>
+                    </td>
+                    <td class="text-center">{{ org.num_budget_items|to_persian_number }}</td>
+                    <td class="text-center no-print">
+                        {# می‌توانید دکمه‌های خاص سازمان را اینجا اضافه کنید #}
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="8" class="p-0 border-0">
+                        <div class="collapse" id="budgetAllocCollapse-{{ parent_period_pk }}-{{ org.id }}">
+                            <div class="card card-body border-0 rounded-0 bg-light">
+                                <div id="budget-item-detail-{{ parent_period_pk }}-{{ org.id }}" class="p-3">
+                                    <p class="text-muted text-center py-4">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>{% translate "در حال بارگذاری سرفصل‌های بودجه..." %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-4">{% translate "هیچ تخصیصی برای سازمان‌ها در این دوره بودجه یافت نشد." %}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,206 @@
+{#{% extends 'base.html' %}#}
+{% load i18n jformat rcms_custom_filters static humanize %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+    </head>
+    <body>
+
+
+    <!-- استایل‌های مورد نیاز -->
+    <link rel="stylesheet" href="{% static 'admin/css/bootstrap.rtl.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/css/jalalidatepicker.min.css' %}">
+
+    <!-- ورودی‌های تاریخ -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <label for="start_date" class="form-label">تاریخ شروع</label>
+            <input type="text" id="start_date" class="form-control" data-jdp placeholder="مثلاً 1403/01/01">
+        </div>
+        <div class="col-md-6">
+            <label for="end_date" class="form-label">تاریخ پایان</label>
+            <input type="text" id="end_date" class="form-control" data-jdp placeholder="مثلاً 1403/02/01">
+        </div>
+    </div>
+<h2><strong style="color: red">"data-jdp" این مهم بوده که باید در تگ تاریخ میامد </strong> </h2>
+    <!-- پیام هشدار -->
+    <div id="date-error" class="text-danger mt-2 d-none">
+        تاریخ پایان نباید قبل از تاریخ شروع باشد.
+    </div>
+
+    <!-- اسکریپت‌های مورد نیاز -->
+    <script src="{% static 'admin/js/jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'admin/js/jalalidatepicker.min.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+            // فعال‌سازی دیتاپیکر
+            jalaliDatepicker.startWatch();
+
+            function convertToNumber(dateStr) {
+                return parseInt(dateStr.replace(/\//g, ''), 10);  // تبدیل "1403/01/15" به 14030115
+            }
+
+            // اعتبارسنجی و محدود کردن تاریخ
+            $('#start_date').on('change', function () {
+                const startVal = $(this).val();
+                $('#end_date').val(''); // پاک کردن تاریخ پایان برای جلوگیری از حالت نامعتبر
+                $('#date-error').addClass('d-none');
+
+                // محدود کردن تاریخ پایان به بعد از تاریخ شروع
+                jalaliDatepicker.updateOptions('#end_date', {
+                    minDate: startVal
+                });
+            });
+
+            $('#end_date').on('change', function () {
+                const start = $('#start_date').val();
+                const end = $(this).val();
+                if (start && end) {
+                    const startNum = convertToNumber(start);
+                    const endNum = convertToNumber(end);
+                    if (endNum < startNum) {
+                        $('#date-error').removeClass('d-none');
+                    } else {
+                        $('#date-error').addClass('d-none');
+                    }
+                }
+            });
+        });
+    </script>
+
+
+    </body>
+    </html>
+{% endblock %}
+
+<!--
+عالی، پس بریم سراغ حالت‌های پیشرفته‌تر برای `jalalidatepicker` که واقعاً کاربردی‌ان – مخصوصاً وقتی می‌خوای توی فرم Django هم استفاده کنی. به‌صورت کامل توضیح می‌دم:
+
+---
+
+## 🟢 ۱. اتصال به `forms.DateField` در Django
+
+اگر از یک فرم Django استفاده می‌کنی، فرض کن فیلدت اینه:
+
+```python
+# forms.py
+from django import forms
+
+class MyForm(forms.Form):
+    start_date = forms.DateField(
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'id': 'start_date',
+            'data-jdp': True,
+            'placeholder': 'مثلاً 1403/01/01'
+        })
+    )
+```
+
+داخل قالب فقط اینو بذار:
+
+```html
+<form method="post">
+    {% csrf_token %}
+    {{ form.start_date }}
+</form>
+```
+
+و همون `jalalidatepicker.startWatch()` به صورت خودکار روی فیلدها با `data-jdp` کار می‌کنه.
+
+---
+
+## 🟢 ۲. انتخاب تاریخ با زمان (تاریخ + ساعت)
+
+متأسفانه `jalalidatepicker` به‌صورت پیش‌فرض از انتخاب **زمان** (ساعت و دقیقه) پشتیبانی نمی‌کنه.
+
+✅ اما راهکار:
+می‌تونی به صورت جداگانه یه `select` برای ساعت و دقیقه بذاری کنار فیلد تاریخ یا از `persian-datepicker` استفاده کنی که تاریخ و زمان رو با هم پشتیبانی می‌کنه.
+
+نمونه‌ای از اونو اگه خواستی برات می‌نویسم (با `persian-date.min.js` و `persian-datepicker.min.js`).
+
+---
+
+## 🟢 ۳. پیش‌فرض‌گذاری تاریخ
+
+اگر می‌خوای تاریخ اولیه به‌صورت پیش‌فرض ست باشه:
+
+```html
+<input type="text" id="start_date" data-jdp value="1403/01/01">
+```
+
+یا در Django:
+
+```python
+start_date = forms.DateField(
+    initial='1403/01/01',
+    widget=forms.TextInput(attrs={'data-jdp': True})
+)
+```
+
+---
+
+## 🟢 ۴. غیرفعال کردن روزهای خاص
+
+این مورد توسط خود `jalalidatepicker` پشتیبانی نمی‌شه، اما با کمی جاوااسکریپت دستی می‌تونی مانع انتخاب روز خاص بشی:
+
+```js
+$('#start_date').on('change', function () {
+    const selected = $(this).val();
+    const bannedDates = ['1403/01/13', '1403/02/01'];
+    if (bannedDates.includes(selected)) {
+        alert('این تاریخ مجاز نیست!');
+        $(this).val('');
+    }
+});
+```
+
+---
+
+## 🟢 ۵. تبدیل خودکار به فرمت میلادی در فرم Django
+
+داخل ویو یا فرم `clean`:
+
+```python
+from khayyam import JalaliDate
+import datetime
+
+class MyForm(forms.Form):
+    start_date = forms.CharField()
+
+    def clean_start_date(self):
+        value = self.cleaned_data['start_date']  # مثلاً '1403/01/15'
+        parts = list(map(int, value.split('/')))
+        # تبدیل به میلادی
+        try:
+            gregorian = JalaliDate(parts[0], parts[1], parts[2]).todate()
+        except:
+            raise forms.ValidationError("تاریخ معتبر نیست.")
+        return gregorian
+```
+
+---
+
+## ✅ نتیجه‌گیری
+
+| ویژگی                       | امکان‌پذیر؟ | توضیح |
+|----------------------------|-------------|--------|
+| اتصال به `DateField`        | ✅          | با `data-jdp` به راحتی |
+| تاریخ + زمان               | ❌ / جایگزین | با پلاگین دیگر مثل `persian-datepicker` |
+| تاریخ پیش‌فرض              | ✅          | با `value` یا `initial` |
+| روزهای غیرفعال             | ⚠️ با کدنویسی دستی |
+| تبدیل به میلادی در `clean` | ✅          | با کتابخانه `khayyam` یا `jdatetime` |
+
+---
+
+اگه خواستی نسخه کامل با `persian-datepicker` بنویسم که تاریخ + زمان و محدودیت روز هم داشته باشه، فقط بگو 💡
+
+همچنین بگو از `ModelForm` استفاده می‌کنی یا فرم دستی، تا کد دقیق‌تری بفرستم.
+-->

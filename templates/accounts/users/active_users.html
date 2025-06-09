@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load active_users_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">
+                <i class="fas fa-users me-2"></i>
+                وضعیت کاربران فعال
+            </h4>
+        </div>
+        <div class="card-body">
+            <div id="active-users-container">
+                {% include 'accounts/_active_users_partial.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const refreshInterval = {{ refresh_interval|default:60000 }};
+    
+    function updateActiveUsers() {
+        fetch(window.location.href, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('active-users-count').textContent = data.active_users_count;
+            document.getElementById('max-users-count').textContent = data.max_active_users;
+            document.getElementById('users-progress').style.width = 
+                `${Math.min(100, (data.active_users_count / data.max_active_users) * 100)}%`;
+            
+            // تغییر رنگ بر اساس درصد استفاده
+            const progressBar = document.getElementById('users-progress');
+            const percent = (data.active_users_count / data.max_active_users) * 100;
+            
+            if (percent > 80) {
+                progressBar.classList.add('bg-danger');
+                progressBar.classList.remove('bg-warning', 'bg-success');
+            } else if (percent > 50) {
+                progressBar.classList.add('bg-warning');
+                progressBar.classList.remove('bg-danger', 'bg-success');
+            } else {
+                progressBar.classList.add('bg-success');
+                progressBar.classList.remove('bg-danger', 'bg-warning');
+            }
+        });
+    }
+    
+    // رفرش خودکار هر X دقیقه
+    setInterval(updateActiveUsers, refreshInterval);
+});
+</script>
+{% endblock %}

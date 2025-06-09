@@ -1,0 +1,53 @@
+{% extends "base.html" %} 
+{% block content %}
+
+    <title>خطا</title> 
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .error-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .error-box {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .error-box h1 {
+            color: #dc3545;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        .error-box p {
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+        .error-box i {
+            font-size: 4rem;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        .btn-home {
+            margin-top: 20px;
+        }
+    </style>
+   
+<div class="container error-container">
+    <div class="error-box">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h1>خطا رخ داده است</h1>
+        <p>{{ message }}</p>
+        <a href="/" class="btn btn-danger btn-home">
+            <i class="fas fa-home"></i> بازگشت به صفحه اصلی
+        </a>
+    </div>
+</div>
+    
+    
+{% endblock %}

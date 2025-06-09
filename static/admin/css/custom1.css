@@ -1,0 +1,395 @@
+/*!* custom.css *!*/
+
+body {
+    font-size: 16px;
+    background-color: #f0f2f5;
+    direction: rtl;
+    color: #333;
+}
+
+h2 {
+    font-weight: 700;
+    color: #1a73e8;
+}
+
+.btn {
+    font-size: 14px;
+    margin-right: 5px;
+}
+
+.btn-primary {
+    background-color: #1a73e8;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #1565c0;
+}
+
+.btn-success {
+    background-color: #4caf50;
+}
+
+.btn-success:hover {
+    background-color: #43a047;
+}
+
+.btn-warning {
+    background-color: #ff9800;
+}
+
+.btn-warning:hover {
+    background-color: #f57c00;
+}
+
+.btn-danger {
+    background-color: #f44336;
+}
+
+.btn-danger:hover {
+    background-color: #e53935;
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: #1a73e8;
+    color: white;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.card-body {
+    background-color: white;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table th, .table td {
+    padding: 12px;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #ddd;
+    position: relative;
+}
+
+
+.table thead th {
+    background-color: #1a73e8;
+    color: white;
+}
+
+.table tfoot td {
+    font-weight: bold;
+    background-color: #f1f1f1;
+    color: #000;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.table tbody tr:hover {
+    background-color: #e9ecef;
+    transition: background-color 0.3s ease;
+}
+
+.highlight {
+    background-color: #e2e3e5;
+}
+
+.info-row {
+    background-color: #cce5ff;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.form-inline .form-group {
+    margin-bottom: 10px;
+}
+
+@media print {
+    body {
+        font-size: 12px;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+        line-height: 1.2;
+    }
+
+    .no-print, .btn {
+        display: none !important;
+    }
+
+    .table th, .table td {
+        padding: 2px 3px;
+        font-size: 9pt;
+        color: #000;
+        border-color: #000;
+    }
+
+    .table thead th {
+        background-color: #343a40;
+        color: white;
+    }
+
+    .print-footer {
+        display: block;
+        text-align: center;
+        margin-top: 20px;
+        font-size: 8pt;
+    }
+
+    .print-footer p {
+        margin: 0;
+        color: #333;
+    }
+
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
+    }
+
+    @page {
+        @bottom-right {
+            content: "صفحه " counter(page);
+            font-size: 8pt;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table thead {
+        display: none;
+    }
+
+    .table, .table tbody, .table tr, .table td {
+        display: block;
+        width: 100% !important;
+    }
+
+    .table tr {
+        margin-bottom: 15px;
+        border-bottom: 1px solid #ccc;
+    }
+
+    .table td {
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+        border: none;
+        /*padding: 10px 0;*/
+    }
+
+    .table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 6px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .form-inline {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .form-control {
+        width: 100%;
+    }
+
+    .btn {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    .button {
+    background-color: #007bff;
+    color: white;
+    padding: 5px 10px;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: 0.3s;
+}
+
+.button:hover {
+    background-color: #0056b3;
+}
+
+}
+
+/*    !* عمومی *!*/
+/*body {*/
+/*    font-family: 'Yekan', 'Parastoo', 'IRANSans','Awesome', sans-serif;*/
+/*    text-align: right; !* راست‌چین کردن متن‌ها *!*/
+/*    direction: rtl; !* جهت راست‌چین برای متون *!*/
+/*    margin: 0;*/
+/*    padding: 0;*/
+/*    }*/
+
+/*    !* محتوا *!*/
+/*    .container {*/
+/*        margin-top: 60px; !* فاصله از منو *!*/
+/*    }*/
+
+/*    .footer {*/
+/*        background-color: #343a40;*/
+/*        color: #ffffff;*/
+/*        padding: 20px;*/
+/*        text-align: center;*/
+/*        position: relative;*/
+/*        bottom: 0;*/
+/*        width: 100%;*/
+/*    }*/
+
+/*    .footer p {*/
+/*        margin: 0;*/
+/*    }*/
+
+/*.sidebar {*/
+/*    background-color: #343a40;*/
+/*    color: #ffffff;*/
+/*    height: 100vh;*/
+/*    position: fixed;*/
+/*    width: 150px;*/
+/*    top: 0;*/
+/*    right: 0; !* انتقال منو به سمت راست *!*/
+/*    padding-top: 20px;*/
+/*    z-index: 1000;*/
+/*    text-align: right; !* راست‌چین کردن متن‌های منو *!*/
+/*}*/
+
+/*.sidebar h2 {*/
+/*    color: #ffffff;*/
+/*    text-align: center;*/
+/*    margin-bottom: 20px;*/
+/*}*/
+
+/*.sidebar a {*/
+/*    color: #ffffff;*/
+/*    text-decoration: none;*/
+/*    display: block;*/
+/*    padding: 15px 20px;*/
+/*    text-align: right; !* راست‌چین کردن لینک‌ها *!*/
+/*}*/
+
+/*.sidebar a:hover {*/
+/*    background-color: #495057;*/
+/*}*/
+
+/*.main-content {*/
+/*    margin-right: 250px; !* جابجایی محتوا به سمت چپ *!*/
+/*    padding: 20px;*/
+/*}*/
+
+/*!* .navbar {*/
+/*    margin-right: 250px; !* جابجایی ناوبری به سمت چپ*/
+/*    padding: 20px;*/
+/*} *!*/
+
+/*!* منو *!*/
+/*  !*  .navbar {*/
+/*        background-color: #f8f9fa;*/
+/*        z-index: 1000; !* منو را بالاتر از سایر محتوا قرار دهید *!*/
+/*   !*     position: fixed; !* منو ثابت باشد *!*/
+/*  !*      width: 100%; !* عرض کامل صفحه *!*/
+/* !*       top: 0;*/
+/*   !*     padding: 0 15px;*/
+/*   !*     background-color: #343a40;*/
+/*        margin-bottom: 20px; !* فاصله از پایین ناوبار *!*/
+
+/*   !* } *!*/
+
+/*.navbar-nav {*/
+/*    margin-left: auto; !* تنظیم موقعیت منوها به سمت راست *!*/
+/*}*/
+
+/*.nav-item {*/
+/*    position: relative;*/
+/*}*/
+
+/*.nav-link {*/
+/*    color: #ffffff;*/
+/*    padding: 15px;*/
+/*    text-align: right; !* راست‌چین کردن لینک‌ها *!*/
+/*}*/
+
+/*.nav-link:hover {*/
+/*    color: #f8f9fa;*/
+/*}*/
+
+/*.main-links {*/
+/*    list-style: none;*/
+/*    padding: 0;*/
+/*}*/
+
+/*.main-links li {*/
+/*    margin: 10px 0;*/
+/*}*/
+
+/*.main-links a {*/
+/*    text-decoration: none;*/
+/*    color: #0056b3;*/
+/*    font-weight: bold;*/
+/*}*/
+
+/*.main-links a:hover {*/
+/*    text-decoration: underline;*/
+/*}*/
+
+
+/*    .table {*/
+/*        margin-top: 20px;*/
+/*    }*/
+
+/*    !* اضافه کردن استایل برای بوت‌استرپ *!*/
+/*    .btn-info {*/
+/*        background-color: #17a2b8;*/
+/*        color: #ffffff;*/
+/*    }*/
+
+/*    .btn-info:hover {*/
+/*        background-color: #138496;*/
+/*    }*/
+
+/*    .btn-warning {*/
+/*        background-color: #ffc107;*/
+/*        color: #212529;*/
+/*    }*/
+
+/*    .btn-warning:hover {*/
+/*        background-color: #e0a800;*/
+/*    }*/
+
+/*    .btn-danger {*/
+/*        background-color: #dc3545;*/
+/*        color: #ffffff;*/
+/*    }*/
+
+/*    .btn-danger:hover {*/
+/*        background-color: #c82333;*/
+/*    }*/
+

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load i18n static jformat rcms_custom_filters jalali_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg border-0" style="border-radius: 20px;">
+        <div class="card-header bg-gradient-primary text-white p-4 d-flex justify-content-between align-items-center">
+            <h1 class="card-title mb-0 animate__animated animate__fadeInDown">
+                <i class="fas fa-history me-3"></i>{{ title|default:_("تاریخچه تأییدات") }}
+            </h1>
+            <a href="{% url 'dashboard_flows' %}" class="btn btn-light">
+                <i class="fas fa-arrow-left"></i> {% trans "بازگشت" %}
+            </a>
+        </div>
+        <div class="card-body p-4">
+            <div class="row">
+                {% for approval in approvals %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm animate__animated animate__zoomIn" style="border-radius: 15px; overflow: hidden;">
+                        <div class="card-header {% if approval.action == 'APPROVE' %}bg-success{% else %}bg-danger{% endif %} text-white p-3">
+                            <h5 class="card-title mb-0">
+                                <i class="fas {% if approval.action == 'APPROVE' %}fa-check{% else %}fa-times{% endif %} me-2"></i>
+                                {% if approval.action == 'APPROVE' %}{% trans "تأیید" %}{% else %}{% trans "رد" %}{% endif %}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                <i class="fas fa-user me-2 text-primary"></i>
+                                <strong>{{ approval.user.get_full_name }}</strong>
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-calendar-alt me-2 text-info"></i>
+                                {{ approval.timestamp|to_jalali:'%Y/%m/%d %H:%M'|to_persian_number }}
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-wallet me-2 text-success"></i>
+                                {% trans "تنخواه:" %} {{ approval.tankhah.number|to_persian_number }}
+                            </p>
+                            {% if approval.factor_item %}
+                            <p class="card-text">
+                                <i class="fas fa-file-invoice me-2 text-warning"></i>
+                                {% trans "فاکتور:" %} {{ approval.factor_item.factor.number|to_persian_number }}
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-list me-2 text-secondary"></i>
+                                {% trans "ردیف:" %} {{ approval.factor_item.description|truncatechars:20 }}
+                            </p>
+                            {% endif %}
+                            <p class="card-text">
+                                <i class="fas fa-comment me-2 text-muted"></i>
+                                {{ approval.comment|default:_("بدون توضیح") }}
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-step-forward me-2 text-purple"></i>
+                                {% trans "مرحله:" %} {{ approval.stage.name }}
+                            </p>
+                        </div>
+                        <div class="card-footer bg-light text-center p-2">
+                            <a href="{% url 'approval_detail' approval.pk %}" class="btn btn-sm btn-info me-1">
+                                <i class="fas fa-eye"></i> {% trans "جزئیات" %}
+                            </a>
+                            {% if approval.can_edit and not approval.tankhah.is_locked %}
+                            <a href="{% url 'approval_update' approval.pk %}" class="btn btn-sm btn-primary me-1">
+                                <i class="fas fa-edit"></i> {% trans "ویرایش" %}
+                            </a>
+                            <a href="{% url 'approval_delete' approval.pk %}" class="btn btn-sm btn-danger" onclick="return confirm('{% trans "آیا مطمئن هستید؟" %}');">
+                                <i class="fas fa-trash"></i> {% trans "حذف" %}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-4">
+                    <p class="text-muted animate__animated animate__fadeIn">
+                        <i class="fas fa-exclamation-circle me-2"></i>{% trans "تأیید یا رد یافت نشد." %}
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- صفحه‌بندی -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "قبلی" %}</a>
+                    </li>
+                    {% endif %}
+                    {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}">{{ num|to_persian_number }}</a>
+                    </li>
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "بعدی" %}</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+    }
+    .bg-success {
+        background: linear-gradient(135deg, #28a745, #1e7e34);
+    }
+    .bg-danger {
+        background: linear-gradient(135deg, #dc3545, #b02a37);
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        transition: transform 0.3s ease;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+    .card-footer {
+        border-top: 1px solid #e0e0e0;
+    }
+    .text-purple {
+        color: #6f42c1;
+    }
+</style>
+{% endblock %}

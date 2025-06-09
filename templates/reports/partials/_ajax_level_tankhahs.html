@@ -1,0 +1,55 @@
+{% load i18n static rcms_custom_filters %}
+
+<h6 class="mb-3 mt-4 text-success">
+    <i class="fas fa-receipt me-2"></i>{% translate "لیست تنخواه‌ها" %}
+    <a href="{{ add_tankhah_url }}" class="btn btn-sm btn-outline-primary ms-3 no-print">
+        <i class="fas fa-plus-circle me-1"></i>{% translate "افزودن تنخواه" %}
+    </a>
+</h6>
+{% if tankhahs_data %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped table-hover small">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">{% translate "شماره تنخواه" %}</th>
+                    <th scope="col" class="text-center">{% translate "مبلغ" %}</th>
+                    <th scope="col" class="text-center">{% translate "وضعیت" %}</th>
+                    <th scope="col" class="text-center no-print">{% translate "عملیات" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tankhah in tankhahs_data %}
+                    <tr data-bs-toggle="collapse" data-bs-target="#factorCollapse-{{ tankhah.id }}"
+                        aria-expanded="false" aria-controls="factorCollapse-{{ tankhah.id }}"
+                        class="table-row-clickable" style="cursor: pointer;"
+                        data-ajax-load-url="{{ tankhah.factors_ajax_url }}"
+                        data-target-id="factor-detail-{{ tankhah.id }}">
+                        <td class="fw-bold">{{ tankhah.number|to_persian_number }}</td>
+                        <td class="text-center">{{ tankhah.amount |to_persian_number }}</td>
+                        <td class="text-center">{{ tankhah.status_display|to_persian_number }}</td> {# فرض کنید یک فیلد status_display دارید #}
+                        <td class="text-center no-print">
+                            <a href="{{ tankhah.detail_url }}" class="btn btn-sm btn-info" title="{% translate 'جزئیات تنخواه' %}">
+                                <i class="fas fa-info-circle"></i>
+                            </a>
+                        </td>
+                    </tr>
+                     <tr>
+                        <td colspan="4" class="p-0 border-0">
+                            <div class="collapse" id="factorCollapse-{{ tankhah.id }}">
+                                <div class="card card-body border-0 rounded-0 bg-light-subtle">
+                                    <div id="factor-detail-{{ tankhah.id }}" class="p-3">
+                                        <p class="text-muted text-center py-4">
+                                            <i class="fas fa-spinner fa-spin me-2"></i>{% translate "در حال بارگذاری فاکتورها..." %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info text-center mt-3 small">{% translate "هیچ تنخواهی برای این تخصیص پروژه یافت نشد." %}</div>
+{% endif %}

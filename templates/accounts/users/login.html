@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    ورود کاربران
+{% endblock %}
+
+{% block content %}
+<style>
+    .login,
+    .image {
+        min-height: 100vh;
+    }
+
+    .bg-image {
+        background-image: url("{% static 'admin/img/RCMS1.jpg' %}");
+        background-size: cover;
+        background-position: center center;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .bg-image img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row no-gutter">
+        <!-- The content half -->
+        <div class="col-md-6 bg-light">
+            <div class="login d-flex align-items-center py-5">
+                <!-- Form content -->
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-10 col-xl-7 mx-auto">
+                            <h3 class="display-4">ورود کاربران</h3>
+                            <p class="text-muted mb-4">اطلاعات کاربری را وارد نمایید</p>
+                            <form action="{% url 'login' %}" method="post">
+                                {% csrf_token %}
+                                {% if form.errors %}
+                                    <div class="alert alert-danger">
+                                        <strong>خطا!</strong> نام کاربری و رمز عبور شما مطابقت نداشت. لطفا دوباره تلاش کنید.
+                                    </div>
+                                {% endif %}
+                                {% if next %}
+                                    {% if user.is_authenticated %}
+                                        <div class="alert alert-warning">
+                                            حساب شما به این صفحه دسترسی ندارد. برای ادامه، لطفا با حسابی که دسترسی دارد وارد شوید.
+                                        </div>
+                                    {% else %}
+                                        <div class="alert alert-info">
+                                            لطفا برای دیدن این صفحه وارد شوید.
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                                {% if login_status == 'success' %}
+                                    <div class="alert alert-success">
+                                        <strong>موفقیت!</strong> وارد حساب کاربری شدید.
+                                    </div>
+                                {% elif login_status == 'error' %}
+                                    <div class="alert alert-danger">
+                                        <strong>خطا!</strong> نام کاربری و یا رمز عبور اشتباه است.
+                                    </div>
+                                {% endif %}
+                                <div class="form-group mb-3">
+                                    <input type="text" class="form-control rounded-pill border-0 shadow-sm px-4" id="username" name="username" autofocus autocapitalize="none"
+                                           autocomplete="username" maxlength="150" required placeholder="نام کاربری اخذ شده از IT را وارد کنید">
+                                    <label for="username">نام کاربری</label>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <input type="password" class="form-control rounded-pill border-0 shadow-sm px-4 text-primary" id="password" name="password" required placeholder="رمز عبور را وارد کنید">
+                                    <label for="password">رمز عبور</label>
+                                </div>
+                                <div class="custom-control custom-checkbox mb-3">
+                                    <input type="checkbox" class="custom-control-input" id="customCheck1">
+                                    <label class="custom-control-label" for="customCheck1">بخاطر بسپار</label>
+                                </div>
+                                <input type="hidden" name="next" value="{{ next }}">
+                                <button type="submit" class="btn btn-primary btn-block text-uppercase mb-2 rounded-pill shadow-sm">ورود به سیستم</button>
+                            </form>
+                        </div>
+                    </div>
+                </div><!-- End -->
+            </div>
+        </div><!-- End -->
+
+
+         <!-- The image half -->
+         <div class="col-md-6 d-none d-md-flex bg-image">
+            {% comment %} <img class="mb-4" src="{% static 'admin/img/RCMS1.jpg' %}" alt=""> {% endcomment %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

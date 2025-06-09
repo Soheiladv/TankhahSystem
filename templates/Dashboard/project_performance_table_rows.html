@@ -1,0 +1,29 @@
+{% load i18n humanize %}
+{% for proj in projects %}
+<tr>
+    <td>{{ proj.code }}</td>
+    <td><a href="#" class="project-drilldown" data-project-id="{{ proj.id }}">{{ proj.name }}</a></td>
+    <td>{{ proj.allocated|intcomma:False }}</td>
+    <td>{{ proj.consumed|intcomma:False }}</td>
+    <td class="{% if proj.remaining < 0 %}text-danger{% endif %}">{{ proj.remaining|intcomma:False }}</td>
+    <td>
+        <div class="progress" style="height: 20px;">
+            <div class="progress-bar {% if proj.percentage_consumed > 85 %}bg-danger{% elif proj.percentage_consumed > 60 %}bg-warning{% else %}bg-success{% endif %}"
+                 role="progressbar" style="width: {{ proj.percentage_consumed }}%;"
+                 aria-valuenow="{{ proj.percentage_consumed }}" aria-valuemin="0" aria-valuemax="100">
+                {{ proj.percentage_consumed|floatformat:0 }}%
+            </div>
+        </div>
+    </td>
+    <td class="{% if proj.variance < 0 %}text-danger{% endif %}">{{ proj.variance|intcomma:False }}</td>
+    <td>
+        <button class="btn btn-sm btn-info project-drilldown-btn" data-project-id="{{ proj.id }}" data-project-name="{{ proj.name }}">
+            {% translate "جزئیات" %}
+        </button>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="8" class="text-center">{% translate "هیچ پروژه‌ای برای نمایش یافت نشد." %}</td>
+</tr>
+{% endfor %}

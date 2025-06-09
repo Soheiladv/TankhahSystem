@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static jformat rcms_custom_filters %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-5 fw-bold">لیست تغییرات کد</h1>
+
+    <!-- فرم فیلتر -->
+    <form method="get" class="mb-5">
+        <div class="row g-3 justify-content-center">
+            <div class="col-md-4">
+                <label for="app_name" class="form-label">فیلتر بر اساس اپلیکیشن:</label>
+                <select name="app_name" id="app_name" class="form-select">
+                    <option value="">همه اپلیکیشن‌ها</option>
+                    {% for app in app_versions %}
+                        <option value="{{ app.app_name }}" {% if request.GET.app_name == app.app_name %}selected{% endif %}>
+                            {{ app.app_name_fa }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">فیلتر</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- جدول تغییرات -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>نام اپلیکیشن</th>
+                    <th>شماره نسخه</th>
+                    <th>نام فایل</th>
+                    <th>تاریخ تغییر</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for change in changes %}
+                    <tr>
+                        <td>{{ change.version.get_app_name_fa |to_persian_number}}</td>
+                        <td>{{ change.version.version_number|to_persian_number }}</td>
+                        <td>{{ change.file_name }}</td>
+                        <td>{{ change.change_date|jformat:"%Y-%m-%d %H:%m"|to_persian_number }}</td>
+                        <td>
+                            <a href="{% url 'codechangelog_detail' change.pk %}" class="btn btn-sm btn-info">جزئیات</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">تغییری یافت نشد.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

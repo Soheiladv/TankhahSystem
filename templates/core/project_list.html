@@ -1,0 +1,530 @@
+{% extends 'base.html' %}
+{% load i18n static rcms_custom_filters jformat %}
+
+{% block title %}{{ title|default:'مدیریت پروژه‌ها' }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --rcms-primary-rgb: 106, 17, 203;
+        --rcms-secondary-rgb: 37, 117, 252;
+        --rcms-primary-dark: #500a9c;
+        --rcms-gradient: linear-gradient(135deg, rgb(var(--rcms-primary-rgb)), rgb(var(--rcms-secondary-rgb)));
+        --rcms-gradient-hover: linear-gradient(135deg, rgb(var(--rcms-secondary-rgb)), rgb(var(--rcms-primary-rgb)));
+    }
+    .project-dashboard { background-color: #f8f9fa; }
+    .dashboard-header { background: var(--rcms-gradient); color: white; }
+    .dashboard-header:hover { transform: translateY(-3px); }
+    .search-card { border: none; }
+    .project-card {
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+    .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(var(--rcms-primary-rgb), 0.08);
+    }
+    .project-card .card-header { border-bottom: 1px solid #dee2e6; text-align: center; }
+    .project-details { font-size: 0.9rem; }
+    .project-details li { padding: 0.4rem 0; display: flex; gap: 0.6rem; }
+    .project-details li i { color: #6c757d; width: 1.2em; }
+    .action-btn { width: 2rem; height: 2rem; border-radius: 50%; }
+    .pagination .page-link { color: rgb(var(--rcms-primary-rgb)); border-radius: 50%; }
+    .pagination .page-item.active .page-link { background: var(--rcms-gradient); color: white; }
+    @keyframes cardEnter {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .project-card-animated { animation: cardEnter 0.5s ease-out forwards; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 project-dashboard">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dashboard-header p-4 rounded-3 shadow-sm">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div>
+                        <h1 class="text-white mb-1 d-flex align-items-center gap-3">
+                            <i class="fas fa-project-diagram"></i>{{ title|default:'مدیریت پروژه‌ها' }}
+                        </h1>
+                        <p class="text-white-50 mb-0 small">
+                            {% trans "مدیریت، مشاهده و جستجوی پروژه‌های تعریف شده در سیستم" %}
+                        </p>
+                    </div>
+                    {% if perms.core.add_project %}
+                    <a href="{% url 'project_create' %}" class="btn btn-light btn-sm fw-bold">
+                        <i class="fas fa-plus me-1"></i>{% trans "ایجاد پروژه جدید" %}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card search-card shadow-sm">
+                <div class="card-body p-3">
+                    <form method="get" class="row g-2 align-items-center">
+                        <div class="col-lg-6 col-md-5">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="{% trans 'جستجو در نام، کد، شرح یا ساب‌پروژه...' %}">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3">
+                            <select name="status" class="form-select form-select-sm">
+                                <option value="">{% trans "همه وضعیت‌ها" %}</option>
+                                <option value="active" {% if status == 'active' %}selected{% endif %}>{% trans "فقط فعال" %}</option>
+                                <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>{% trans "فقط غیرفعال" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-1 col-md-2">
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                <i class="fas fa-filter"></i> {% trans "اعمال" %}
+                            </button>
+                        </div>
+                        <div class="col-lg-auto col-md-2">
+                            <a href="{% url 'project_list' %}" class="btn btn-outline-secondary btn-sm w-100" title="{% trans 'پاک کردن فیلترها' %}">
+                                <i class="fas fa-times"></i> {% trans "پاک" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+        {% for project in page_obj %}
+        <div class="col project-card-animated" style="animation-delay: {{ forloop.counter0|floatformat:1 }}s;">
+            <div class="card project-card h-100">
+                <div class="card-header">
+                    <div class="project-icon">
+                        <i class="fas fa-drafting-compass"></i>
+                    </div>
+                    <h5 class="project-title mb-1">{{ project.name|truncatechars:40 }}</h5>
+                    <div class="project-code">{{ project.code|to_persian_number }}</div>
+                    <span class="badge position-absolute top-0 end-0 m-2 {% if project.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                        {% if project.is_active %}{% trans "فعال" %}{% else %}{% trans "غیرفعال" %}{% endif %}
+                    </span>
+                </div>
+                <div class="card-body pt-2">
+                    <ul class="list-unstyled project-details mb-0">
+                        <li>
+                            <i class="fas fa-calendar-alt"></i>
+                            <div class="detail-value font-monospace small">
+                                {{ project.start_date|jformat:"%Y/%m/%d"|to_persian_number }} - {% if project.end_date %}{{ project.end_date|jformat:"%Y/%m/%d"|to_persian_number }}{% else %}{% trans "نامحدود" %}{% endif %}
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-coins"></i>
+                            <div class="detail-value fw-bold">
+                         {{ project_budgets|dict_get:project.id|default:0|floatformat:0|format_negative }} <small class="text-muted">{% trans "ریال بودجه" %}</small>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-align-left"></i>
+                            <div class="detail-value text-muted small">
+                                {{ project.description|truncatechars:70|default:"-" }}
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-folder-tree"></i>
+                            <div class="detail-value">
+                                {% if project.subprojects.exists %}
+                                    {% for subproject in project.subprojects.all|slice:":3" %}
+                                        <span class="badge bg-secondary me-1 mb-1">{{ subproject.name|truncatechars:15 }}</span>
+                                    {% endfor %}
+                                    {% if project.subprojects.count > 3 %}
+                                        <span class="badge bg-light text-dark">+{{ project.subprojects.count|add:"-3"|to_persian_number }}</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted small">{% trans "ساب‌پروژه ندارد" %}</span>
+                                {% endif %}
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-footer text-center">
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <a href="{% url 'project_detail' project.pk %}" class="btn btn-outline-primary action-btn" title="{% trans 'مشاهده جزئیات' %}">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        {% if perms.core.change_project %}
+                        <a href="{% url 'project_update' project.pk %}" class="btn btn-outline-secondary action-btn" title="{% trans 'ویرایش پروژه' %}">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        {% endif %}
+                        {% if perms.core.add_subproject %}
+                        <a href="{% url 'subproject_create' %}?project={{ project.pk }}" class="btn btn-outline-success action-btn" title="{% trans 'افزودن ساب‌پروژه' %}">
+                            <i class="fas fa-plus"></i>
+                        </a>
+                        {% endif %}
+                        {% if perms.core.delete_project %}
+                        <a href="{% url 'project_delete' project.pk %}" class="btn btn-outline-danger action-btn" title="{% trans 'حذف پروژه' %}" onclick="return confirm('{% trans 'آیا از حذف این پروژه و تمام موارد مرتبط با آن مطمئن هستید؟' %}');">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card empty-state-card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-folder-open fa-4x text-muted mb-4"></i>
+                    <h4 class="text-muted mb-3">{% trans "پروژه‌ای یافت نشد!" %}</h4>
+                    {% if perms.core.add_project %}
+                    <a href="{% url 'project_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>{% trans "اولین پروژه را ایجاد کنید" %}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+    <nav aria-label="Project navigation" class="mt-5">
+        <ul class="pagination justify-content-center flex-wrap">
+            {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1&q={{ query }}&status={{ status }}"><i class="fas fa-angle-double-right"></i></a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&status={{ status }}"><i class="fas fa-chevron-right"></i></a></li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link"><i class="fas fa-angle-double-right"></i></span></li>
+                <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-right"></i></span></li>
+            {% endif %}
+            {% for num in paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num|to_persian_number }}</span></li>
+                {% elif num > page_obj.number|add:'-2' and num < page_obj.number|add:'2' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}&q={{ query }}&status={{ status }}">{{ num|to_persian_number }}</a></li>
+                {% elif num == page_obj.number|add:'-2' or num == page_obj.number|add:'2' %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&status={{ status }}"><i class="fas fa-chevron-left"></i></a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ paginator.num_pages }}&q={{ query }}&status={{ status }}"><i class="fas fa-angle-double-left"></i></a></li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i></span></li>
+                <li class="page-item disabled"><span class="page-link"><i class="fas fa-angle-double-left"></i></span></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}
+
+{#{% extends 'base.html' %}#}
+{#{% load i18n static jformat rcms_custom_filters %}#}
+{##}
+{#{% block title %}{{ title|default:'مدیریت پروژه‌ها' }}{% endblock %}#}
+{##}
+{#{% block content %}#}
+{#<div class="container-fluid py-4 project-dashboard">#}
+{#    <!-- هدر -->#}
+{#    <div class="row mb-5">#}
+{#        <div class="col-12">#}
+{#            <div class="dashboard-header bg-info p-4 rounded-4 shadow">#}
+{#                <div class="d-flex justify-content-between align-items-center">#}
+{#                    <div>#}
+{#                        <h1 class="text-white mb-0">#}
+{#                            <i class="fas fa-project-diagram me-3"></i>{{ title|default:'مدیریت پروژه‌ها' }}#}
+{#                        </h1>#}
+{#                        <p class="text-white-50 mt-2 mb-0">#}
+{#                            <i class="fas fa-info-circle me-2"></i>{% trans "مدیریت و مشاهده پروژه‌ها" %}#}
+{#                        </p>#}
+{#                    </div>#}
+{#                    {% if perms.core.Project_add %}#}
+{#                    <a href="{% url 'project_create' %}" class="btn btn-light btn-lg btn-animate">#}
+{#                        <i class="fas fa-plus me-2"></i>{% trans "پروژه جدید" %}#}
+{#                    </a>#}
+{#                    {% endif %}#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{##}
+{#    <!-- جستجوی پیشرفته -->#}
+{#    <div class="row mb-5">#}
+{#        <div class="col-12">#}
+{#            <div class="card search-card shadow-lg">#}
+{#                <div class="card-body p-4">#}
+{#                    <form method="get" class="row g-3 align-items-center">#}
+{#                        <div class="col-md-6 col-lg-4">#}
+{#                            <div class="input-group">#}
+{#                                <span class="input-group-text"><i class="fas fa-search"></i></span>#}
+{#                                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="{% trans 'جستجوی پروژه...' %}">#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="col-md-3 col-lg-2">#}
+{#                            <select name="status" class="form-select">#}
+{#                                <option value="">{% trans "همه وضعیت‌ها" %}</option>#}
+{#                                <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>{% trans "فعال" %}</option>#}
+{#                                <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>{% trans "غیرفعال" %}</option>#}
+{#                            </select>#}
+{#                        </div>#}
+{#                        <div class="col-md-3 col-lg-2">#}
+{#                            <button type="submit" class="btn btn-primary w-100 btn-animate">#}
+{#                                <i class="fas fa-filter me-2"></i>{% trans "فیلتر" %}#}
+{#                            </button>#}
+{#                        </div>#}
+{#                    </form>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{##}
+{#    <!-- لیست پروژه‌ها -->#}
+{#    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">#}
+{#        {% for project in page_obj %}#}
+{#        <div class="col">#}
+{#            <div class="card project-card h-100 shadow-sm">#}
+{#                <div class="card-header position-relative">#}
+{#                    <div class="project-icon">#}
+{#                        <i class="fas fa-project-diagram"></i>#}
+{#                    </div>#}
+{#                    <h5 class="project-title text-center py-3 mb-0">{{ project.name }}</h5>#}
+{#                </div>#}
+{#                <div class="card-body pt-0">#}
+{#                    <ul class="list-unstyled project-details">#}
+{#                        <li>#}
+{#                            <i class="fas fa-hashtag me-2"></i>#}
+{#                            <strong>{% trans "کد:" %}</strong> {{ project.code|to_persian_number }}#}
+{#                        </li>#}
+{#                        <li>#}
+{#                            <i class="fas fa-calendar-alt me-2"></i>#}
+{#                            <strong>{% trans "شروع:" %}</strong> {{ project.start_date|jformat:"%Y/%m/%d"|format_negative }}#}
+{#                        </li>#}
+{#                        <li>#}
+{#                            <i class="fas fa-align-left me-2"></i>#}
+{#                            <strong>{% trans "توضیحات:" %}</strong> {{ project.description|truncatechars:80|default:"-" }}#}
+{#                        </li>#}
+{#                            <li>#}
+{#                            <i class="fas fa-align-left me-2"></i>#}
+{#                            <strong>{% trans "بودجه کل:" %}</strong> {{ organization.total_allocated|default:0|floatformat:0|format_negative|to_persian_number }}#}
+{#                        </li>#}
+{##}
+{#                        <li>#}
+{#                            <i class="fas fa-folder me-2"></i>#}
+{#                            <strong>{% trans "ساب‌پروژه‌ها:" %}</strong>#}
+{#                            {% if project.subprojects.exists %}#}
+{#                            <ul class="list-unstyled ms-4">#}
+{#                                {% for subproject in project.subprojects.all %}#}
+{#                                <li>{{ subproject.name }} {% if not subproject.is_active %}(غیرفعال){% endif %}</li>#}
+{#                                {% endfor %}#}
+{#                            </ul>#}
+{#                            {% else %}#}
+{#                            <span class="text-muted">{% trans "ندارد" %}</span>#}
+{#                            {% endif %}#}
+{#                        </li>#}
+{#                    </ul>#}
+{#                </div>#}
+{#                <div class="card-footer bg-white pt-0">#}
+{#                    <div class="d-flex justify-content-center gap-2 flex-wrap">#}
+{#                        <a href="{% url 'project_detail' project.pk %}" class="btn btn-outline-primary btn-sm action-btn" title="{% trans 'جزئیات' %}" data-bs-toggle="tooltip">#}
+{#                            <i class="fas fa-eye"></i>#}
+{#                        </a>#}
+{#                        {% if perms.core.Project_update %}#}
+{#                        <a href="{% url 'project_update' project.pk %}" class="btn btn-outline-warning btn-sm action-btn" title="{% trans 'ویرایش' %}" data-bs-toggle="tooltip">#}
+{#                            <i class="fas fa-edit"></i>#}
+{#                        </a>#}
+{#                        {% endif %}#}
+{#                        {% if perms.core.Project_delete %}#}
+{#                        <a href="{% url 'project_delete' project.pk %}" class="btn btn-outline-danger btn-sm action-btn" title="{% trans 'حذف' %}" data-bs-toggle="tooltip">#}
+{#                            <i class="fas fa-trash-alt"></i>#}
+{#                        </a>#}
+{#                        {% endif %}#}
+{#                        {% if perms.tankhah.SubProject_add %}#}
+{#                        <a href="{% url 'subproject_create' %}?project={{ project.pk }}" class="btn btn-outline-success btn-sm action-btn" title="{% trans 'افزودن ساب‌پروژه' %}" data-bs-toggle="tooltip">#}
+{#                            <i class="fas fa-plus"></i>#}
+{#                        </a>#}
+{#                        {% endif %}#}
+{#                        <span class="btn btn-sm {% if project.is_active %}btn-success{% else %}btn-danger{% endif %} btn-animate" title="{% if project.is_active %}{% trans 'فعال' %}{% else %}{% trans 'غیرفعال' %}{% endif %}" data-bs-toggle="tooltip">#}
+{#                            <i class="fas fa-circle me-1"></i>{% if project.is_active %}{% trans "فعال" %}{% else %}{% trans "غیرفعال" %}{% endif %}#}
+{#                        </span>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#        {% empty %}#}
+{#        <div class="col-12">#}
+{#            <div class="card empty-state-card shadow-sm">#}
+{#                <div class="card-body text-center py-5">#}
+{#                    <i class="fas fa-folder-open fa-3x text-muted mb-4"></i>#}
+{#                    <h4 class="text-muted mb-3">{% trans "پروژه‌ای یافت نشد!" %}</h4>#}
+{#                    {% if query %}#}
+{#                    <p class="text-muted mb-4">{% trans "جستجوی شما نتیجه‌ای نداشت" %}</p>#}
+{#                    {% endif %}#}
+{#                    {% if perms.core.Project_add %}#}
+{#                    <a href="{% url 'project_create' %}" class="btn btn-primary btn-animate">#}
+{#                        <i class="fas fa-plus me-2"></i>{% trans "ساخت پروژه" %}#}
+{#                    </a>#}
+{#                    {% endif %}#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#        {% endfor %}#}
+{#    </div>#}
+{##}
+{#    <!-- صفحه‌بندی -->#}
+{#    {% if is_paginated %}#}
+{#    <nav class="mt-5">#}
+{#        <ul class="pagination justify-content-center">#}
+{#            {% if page_obj.has_previous %}#}
+{#            <li class="page-item">#}
+{#                <a class="page-link" href="?page=1&q={{ query }}&status={{ request.GET.status }}" title="{% trans 'اولین صفحه' %}">#}
+{#                    <i class="fas fa-angle-double-right"></i>#}
+{#                </a>#}
+{#            </li>#}
+{#            <li class="page-item">#}
+{#                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&status={{ request.GET.status }}" title="{% trans 'صفحه قبل' %}">#}
+{#                    <i class="fas fa-chevron-right"></i>#}
+{#                </a>#}
+{#            </li>#}
+{#            {% endif %}#}
+{#            {% for num in page_obj.paginator.page_range %}#}
+{#            {% if num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}#}
+{#            <li class="page-item {% if page_obj.number == num %}active{% endif %}">#}
+{#                <a class="page-link" href="?page={{ num }}&q={{ query }}&status={{ request.GET.status }}">{{ num|to_persian_number }}</a>#}
+{#            </li>#}
+{#            {% endif %}#}
+{#            {% endfor %}#}
+{#            {% if page_obj.has_next %}#}
+{#            <li class="page-item">#}
+{#                <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&status={{ request.GET.status }}" title="{% trans 'صفحه بعد' %}">#}
+{#                    <i class="fas fa-chevron-left"></i>#}
+{#                </a>#}
+{#            </li>#}
+{#            <li class="page-item">#}
+{#                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&q={{ query }}&status={{ request.GET.status }}" title="{% trans 'آخرین صفحه' %}">#}
+{#                    <i class="fas fa-angle-double-left"></i>#}
+{#                </a>#}
+{#            </li>#}
+{#            {% endif %}#}
+{#        </ul>#}
+{#    </nav>#}
+{#    {% endif %}#}
+{#</div>#}
+{#{% endblock %}#}
+{##}
+{#{% block extra_css %}#}
+{#<link rel="stylesheet" href="{% static 'admin/css/project_style.css' %}">#}
+{#<style>#}
+{#    :root {#}
+{#        --primary: #6a11cb;#}
+{#        --secondary: #2575fc;#}
+{#        --success: #2ecc71;#}
+{#        --info: #3498db;#}
+{#        --warning: #f39c12;#}
+{#        --danger: #e74c3c;#}
+{#        --light: #f8f9fa;#}
+{#    }#}
+{##}
+{#    .project-dashboard { background: var(--light); }#}
+{#    .dashboard-header {#}
+{#        background: linear-gradient(135deg, var(--primary), var(--secondary));#}
+{#        transition: transform 0.3s ease;#}
+{#    }#}
+{#    .dashboard-header:hover { transform: translateY(-2px); }#}
+{#    .search-card {#}
+{#        border-radius: 10px;#}
+{#        transition: box-shadow 0.3s ease;#}
+{#    }#}
+{#    .search-card:hover { box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }#}
+{#    .input-group-text {#}
+{#        background: white;#}
+{#        border: 1px solid #ced4da;#}
+{#        border-right: none;#}
+{#        color: var(--primary);#}
+{#    }#}
+{#    .form-control { border: 1px solid #ced4da; border-left: none; }#}
+{#    .btn-primary {#}
+{#        background: linear-gradient(135deg, var(--primary), var(--secondary));#}
+{#        border: none;#}
+{#    }#}
+{#    .btn-primary:hover { background: linear-gradient(135deg, var(--secondary), var(--primary)); }#}
+{#    .project-card {#}
+{#        border-radius: 10px;#}
+{#        transition: all 0.3s ease;#}
+{#    }#}
+{#    .project-card:hover {#}
+{#        transform: translateY(-5px);#}
+{#        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);#}
+{#    }#}
+{#    .card-header {#}
+{#        background: linear-gradient(to right, var(--light), white);#}
+{#        border-bottom: none;#}
+{#        padding-bottom: 2.5rem;#}
+{#    }#}
+{#    .project-icon {#}
+{#        width: 50px;#}
+{#        height: 50px;#}
+{#        background: linear-gradient(135deg, var(--primary), var(--secondary));#}
+{#        color: white;#}
+{#        border-radius: 50%;#}
+{#        display: flex;#}
+{#        align-items: center;#}
+{#        justify-content: center;#}
+{#        margin: -2rem auto 0.5rem;#}
+{#        font-size: 1.5rem;#}
+{#    }#}
+{#    .project-title { color: var(--primary); font-weight: 600; }#}
+{#    .project-details li {#}
+{#        padding: 0.5rem 0;#}
+{#        border-bottom: 1px solid #eee;#}
+{#    }#}
+{#    .project-details li:last-child { border-bottom: none; }#}
+{#    .action-btn {#}
+{#        width: 2.5rem;#}
+{#        height: 2.5rem;#}
+{#        display: flex;#}
+{#        align-items: center;#}
+{#        justify-content: center;#}
+{#        border-radius: 50%;#}
+{#    }#}
+{#    .action-btn:hover { background: var(--info); border-color: var(--info); color: white; }#}
+{#    .btn-outline-warning:hover { background: var(--warning); border-color: var(--warning); color: white; }#}
+{#    .btn-outline-danger:hover { background: var(--danger); border-color: var(--danger); color: white; }#}
+{#    .btn-outline-success:hover { background: var(--success); border-color: var(--success); color: white; }#}
+{#    .empty-state-card { border: 2px dashed #ddd; background: white; }#}
+{#    .btn-animate { transition: all 0.3s ease; }#}
+{#    .btn-animate:hover { transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1); }#}
+{#    .pagination .page-link { color: var(--primary); border-radius: 50%; margin: 0 0.3rem; }#}
+{#    .pagination .page-item.active .page-link {#}
+{#        background: linear-gradient(135deg, var(--primary), var(--secondary));#}
+{#        border-color: transparent;#}
+{#        color: white;#}
+{#    }#}
+{#</style>#}
+{#{% endblock %}#}
+{##}
+{#{% block extra_js %}#}
+{#<script>#}
+{#    $(document).ready(function () {#}
+{#        $('[data-bs-toggle="tooltip"]').tooltip();#}
+{#        $('.project-card').each(function (i) {#}
+{#            $(this).delay(i * 100).animate({opacity: 1, top: 0}, 300, 'easeOutCubic');#}
+{#        });#}
+{#    });#}
+{#</script>#}
+{#{% endblock %}#}

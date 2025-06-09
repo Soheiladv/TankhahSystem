@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1><i class="fas fa-user-edit"></i> {{ view.object.id|default:"ایجاد" }} گروه</h1>
+    <form method="post">
+        {% csrf_token %}
+        <!-- استفاده از crispy_forms برای استایل دادن به فرم -->
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> ذخیره</button>
+        <a href="{% url 'mygroup_list' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> بازگشت</a>
+    </form>
+</div>
+{% endblock %}

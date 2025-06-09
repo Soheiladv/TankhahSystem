@@ -1,0 +1,343 @@
+قطعاً! عذرخواهی می‌کنم اگر در پاسخ قبلی منظور شما را به درستی متوجه نشدم. شما به طور خاص به بهبود بخش "نحوه ثبت قوانین" در راهنمای کاربر نیاز دارید، با تأکید بر UI قوی‌تر و جزئیات منظم‌تر.
+
+هدف ما این است که این بخش را بسیار واضح، قدم به قدم و با استفاده از عناصر بصری جذاب (آیکون‌ها، رنگ‌ها) و زبان ساده توضیح دهیم.
+
+راهنمای کاربر: مدیریت قوانین دسترسی پست‌ها (بخش بهبود یافته)
+{% extends "base.html" %}
+{% load i18n %}
+{% block content %}
+
+<div class="container mt-4">
+<div class="d-flex justify-content-between align-items-center mb-4">
+<h1 class="mb-0 text-right"><i class="fas fa-book-open me-3 text-primary opacity-75"></i>{% trans "راهنمای کاربر: تخصیص قوانین دسترسی به پست‌ها" %}</h1>
+<div class="d-flex gap-2">
+<a href="{% url 'post_access_rule_assign' %}" class="btn btn-primary btn-sm shadow-sm d-flex align-items-center">
+<i class="fas fa-arrow-left me-2"></i> {% trans "رفتن به فرم تخصیص قوانین" %}
+</a>
+<a href="{% url 'accessrule_list' %}" class="btn btn-secondary btn-sm shadow-sm d-flex align-items-center">
+<i class="fas fa-list me-2"></i> {% trans "بازگشت به لیست قوانین" %}
+</a>
+</div>
+</div>
+
+<div class="card shadow-lg border-0 rounded-4 mb-5">
+    <div class="card-header bg-gradient-primary text-white text-right py-3 rounded-top-4 d-flex align-items-center">
+        <i class="fas fa-info-circle fa-lg me-3 opacity-75"></i>
+        <h5 class="my-0 font-weight-bold">{% trans "معرفی و آموزش استفاده از فرم تخصیص قوانین" %}</h5>
+    </div>
+    <div class="card-body p-4 bg-white">
+        <section class="mb-5 pb-3 border-bottom border-secondary-subtle">
+            <h3 class="text-right mb-3 text-dark"><i class="fas fa-lightbulb me-2 text-warning"></i> {% trans "مقدمه" %}</h3>
+            <p class="text-right lead">
+                {% trans "این راهنما به شما کمک می‌کند تا به سادگی از فرم <strong>'مدیریت پست‌ها و قوانین دسترسی'</strong> استفاده کنید و دسترسی‌های کاربران را به طور دقیق تنظیم نمایید. با این فرم، می‌توانید مشخص کنید هر <strong>پست سازمانی</strong> (مانند مدیر مالی یا کارشناس) چه عملیاتی را می‌تواند بر روی چه موجودیت‌هایی (مثل فاکتور، تنخواه) انجام دهد." %}
+            </p>
+            <div class="alert alert-info d-flex align-items-center text-right shadow-sm p-3 border-start border-4 border-info rounded-3">
+                <i class="fas fa-user-shield fa-2x me-3 text-info"></i>
+                <div>
+                    <strong>{% trans "مخاطب این راهنما" %}</strong>: {% trans "مدیران سیستم، مدیران ارشد هلدینگ، یا کاربرانی که دارای <strong>مجوز 'تغییر قوانین دسترسی'</strong> می‌باشند." %}
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-5 pb-3 border-bottom border-secondary-subtle">
+            <h3 class="text-right mb-3 text-dark"><i class="fas fa-tools me-2 text-success"></i> {% trans "قابلیت‌های فرم تخصیص قوانین" %}</h3>
+            <p class="text-right">
+                {% trans "فرم <strong>'مدیریت پست‌ها و قوانین دسترسی'</strong> ابزاری قدرتمند برای انجام کارهای زیر است:" %}
+            </p>
+            <ul class="text-right list-group list-group-flush border rounded-3 overflow-hidden shadow-sm">
+                <li class="list-group-item d-flex align-items-center py-2 bg-light"><i class="fas fa-sitemap me-3 text-primary"></i> {% trans "<strong>مشاهده و مدیریت پست‌ها:</strong> تمامی پست‌های سازمانی فعال (از جمله پست‌های هلدینگ، شعبه‌ها و معاونت‌ها) را به همراه سازمان و شاخه‌ی مرتبط با آن‌ها مشاهده کنید." %}</li>
+                <li class="list-group-item d-flex align-items-center py-2"><i class="fas fa-level-up-alt me-3 text-success"></i> {% trans "<strong>تغییر سطح پست:</strong> سطح سلسله‌مراتبی هر پست را (مثلاً از ۱ تا ۵) تعیین و به‌روزرسانی نمایید. این سطح در فرآیندهای تأیید و گزارش‌گیری اهمیت دارد." %}</li>
+                <li class="list-group-item d-flex align-items-center py-2 bg-light"><i class="fas fa-check-square me-3 text-info"></i> {% trans "<strong>تخصیص قوانین دسترسی:</strong> قوانین مشخصی را برای هر پست فعال یا غیرفعال کنید. این قوانین شامل <strong>تأیید</strong>، <strong>رد</strong>، <strong>مشاهده</strong> و <strong>امضای دستور پرداخت</strong> برای انواع موجودیت‌هاست." %}</li>
+                <li class="list-group-item d-flex align-items-center py-2"><i class="fas fa-sitemap me-3 text-warning"></i> {% trans "<strong>انتخاب مرحله گردش کار:</strong> برای قوانین مرتبط با <strong>تأیید</strong>، <strong>رد</strong> و <strong>مشاهده</strong>، می‌توانید مرحله‌ی خاصی از گردش کار (مثل <em>بررسی اولیه</em>، <em>تأیید میانی</em>، <em>تأیید نهایی</em>) را انتخاب کنید. این به شما امکان می‌دهد دسترسی‌ها را بسیار دقیق‌تر کنترل نمایید." %}</li>
+            </ul>
+            <div class="alert alert-primary d-flex align-items-center text-right mt-4 shadow-sm p-3 border-start border-4 border-primary rounded-3">
+                <i class="fas fa-globe-americas fa-2x me-3 text-primary"></i>
+                <div>
+                    <strong>{% trans "توجه به دسترسی هلدینگ" %}</strong>: {% trans "اگر شما در سطح هلدینگ فعالیت می‌کنید، می‌توانید تمامی پست‌ها و قوانین دسترسی مرتبط با آن‌ها را در تمامی سازمان‌ها، شعبه‌ها و معاونت‌های زیرمجموعه مدیریت کنید. این امکان کنترل متمرکز را فراهم می‌آورد." %}
+                </div>
+            </div>
+        </section>
+
+        ---
+
+        <section class="mb-5 pb-3 border-bottom border-secondary-subtle">
+            <h3 class="text-right mb-3 text-dark"><i class="fas fa-clipboard-list me-2 text-danger"></i> {% trans "راهنمای گام به گام تخصیص قوانین" %}</h3>
+            <p class="text-right lead">{% trans "برای تخصیص قوانین دسترسی به پست‌های سازمانی، لطفا گام‌های زیر را به دقت دنبال کنید:" %}</p>
+
+            <ol class="text-right list-group list-group-numbered shadow-sm rounded-3 overflow-hidden">
+                <li class="list-group-item d-flex align-items-start py-3 bg-light">
+                    <div class="ms-3 pt-1">
+                        <h5 class="mb-1 text-dark"><i class="fas fa-sign-in-alt me-2 text-info"></i> {% trans "۱. ورود به فرم تخصیص قوانین" %}</h5>
+                        <p class="mb-0 small text-muted">{% trans "پس از ورود به سیستم، از طریق منوی اصلی یا دکمه‌های ناوبری، به صفحه <strong>'لیست قوانین دسترسی'</strong> مراجعه کنید. سپس، روی دکمه‌ی <span class='badge bg-primary text-white p-2'><i class='fas fa-edit me-1'></i> مدیریت پست‌ها و قوانین</span> کلیک کنید. این عمل، فرم <strong>'مدیریت پست‌ها و قوانین دسترسی'</strong> را برای شما باز می‌کند (آدرس تقریبی: <code>/access-rules/assign/</code>)." %}</p>
+                    </div>
+                </li>
+                <li class="list-group-item d-flex align-items-start py-3">
+                    <div class="ms-3 pt-1">
+                        <h5 class="mb-1 text-dark"><i class="fas fa-eye me-2 text-primary"></i> {% trans "۲. مشاهده ساختار پست‌های سازمانی" %}</h5>
+                        <p class="mb-0 small text-muted">{% trans "در فرم باز شده، یک ساختار آکاردئونی از تمامی <strong>پست‌های سازمانی فعال</strong> را مشاهده خواهید کرد. هر عنوان آکاردئون مربوط به یک پست خاص است و اطلاعاتی نظیر <span class='badge bg-secondary-subtle text-secondary-emphasis'>نام پست</span>، <span class='badge bg-secondary-subtle text-secondary-emphasis'>سازمان</span> و <span class='badge bg-secondary-subtle text-secondary-emphasis'>شاخه</span> (در صورت وجود) آن را نمایش می‌دهد. برای مشاهده و ویرایش جزئیات دسترسی‌های مربوط به هر پست، کافیست بر روی عنوان آن پست کلیک کنید تا بخش مربوطه باز شود." %}</p>
+                    </div>
+                </li>
+                <li class="list-group-item d-flex align-items-start py-3 bg-light">
+                    <div class="ms-3 pt-1">
+                        <h5 class="mb-1 text-dark"><i class="fas fa-sort-numeric-up-alt me-2 text-success"></i> {% trans "۳. تعیین و تغییر سطح پست" %}</h5>
+                        <p class="mb-0 small text-muted">{% trans "در بخش مربوط به هر پست، فیلدی با عنوان <strong>'تغییر سطح پست'</strong> (معمولاً یک کادر ورودی عددی یا منوی کشویی) وجود دارد. در این فیلد، یک عدد بین 1 تا 5 (یا هر محدوده تعریف شده دیگری) را وارد یا انتخاب کنید. این عدد نشان‌دهنده **سطح سلسله‌مراتبی و اهمیت** آن پست در سازمان است (مثلاً: <span class='badge bg-info-subtle text-info-emphasis'>۱ برای کارشناس</span>، <span class='badge bg-info-subtle text-info-emphasis'>۳ برای مدیر شعبه</span>، <span class='badge bg-info-subtle text-info-emphasis'>۵ برای مدیرکل</span>). سطوح بالاتر معمولاً اختیارات و دسترسی‌های بیشتری را در فرآیندهای تأیید و گردش کار به همراه دارند." %}</p>
+                        <div class="alert alert-warning d-flex align-items-center text-right mt-3 p-2 border-start border-3 border-warning rounded-2">
+                            <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+                            <small>{% trans "<strong>اهمیت سطح:</strong> تنظیم صحیح سطح پست‌ها برای عملکرد دقیق سیستم گردش کار و همچنین نمایش صحیح در گزارشات اهمیت بالایی دارد. در صورت ابهام، با مدیر سیستم مشورت کنید." %}</small>
+                        </div>
+                    </div>
+                </li>
+                <li class="list-group-item d-flex align-items-start py-3">
+                    <div class="ms-3 pt-1">
+                        <h5 class="mb-1 text-dark"><i class="fas fa-toggle-on me-2 text-danger"></i> {% trans "۴. فعال‌سازی قوانین دسترسی و انتخاب اقدام" %}</h5>
+                        <p class="mb-0 small text-muted">{% trans "در داخل بخش هر پست، لیستی از <strong>انواع موجودیت‌ها</strong> (مانند فاکتور، تنخواه، دستور پرداخت، بودجه) و **اقدامات** مربوط به آن‌ها (مانند تأیید، رد، مشاهده، امضا) را مشاهده خواهید کرد. برای تخصیص یک قانون، به شرح زیر عمل کنید:" %}</p>
+                        <ul class="list-unstyled mt-2 small text-muted">
+                            <li class="mb-2"><i class="fas fa-check-circle me-2 text-primary"></i>{% trans "<strong>فعال‌سازی کلی یک گروه:</strong> در بالای هر گروه از قوانین (مثلاً 'فاکتورها') یک سوئیچ <span class='badge bg-secondary p-1'>فعال‌سازی همه <i class='fas fa-sync-alt'></i></span> وجود دارد. با فعال کردن آن، تمام قوانین مربوط به آن موجودیت (مثلاً تمامی قوانین فاکتورها) برای این پست فعال می‌شوند." %}</li>
+                            <li class="mb-2"><i class="fas fa-hand-pointer me-2 text-success"></i>{% trans "<strong>فعال‌سازی قانون خاص:</strong> می‌توانید به صورت دستی و با دقت بیشتری، قوانین خاصی را فعال کنید. به عنوان مثال، برای اینکه 'مدیر مالی' بتواند فاکتورها را <strong>تأیید</strong> کند، به بخش 'فاکتور' بروید و تیک مربوط به گزینه <strong>'تأیید فاکتور'</strong> را بزنید." %}</li>
+                            <li class="mb-2"><i class="fas fa-signature me-2 text-warning"></i>{% trans "<strong>امضای دستور پرداخت:</strong> این قانون تنها به پست‌های خاصی (معمولاً مدیران ارشد) اعطا می‌شود. برای فعال‌سازی آن، در گروه <strong>'دستور پرداخت'</strong>، تیک مربوط به گزینه <strong>'امضا'</strong> را بزنید. <strong>توجه:</strong> این قانون نیازی به انتخاب مرحله گردش کار ندارد و بلافاصله پس از فعال‌سازی اعمال می‌شود." %}</li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="list-group-item d-flex align-items-start py-3 bg-light">
+                    <div class="ms-3 pt-1">
+                        <h5 class="mb-1 text-dark"><i class="fas fa-stream me-2 text-info"></i> {% trans "۵. انتخاب مرحله گردش کار (فقط برای تأیید، رد، مشاهده)" %}</h5>
+                        <p class="mb-0 small text-muted">{% trans "برای هر قانونی که فعال کرده‌اید (به جز 'امضای دستور پرداخت')، در کنار آن، مجموعه‌ای از <strong>گزینه‌های رادیویی (دایره‌ای شکل)</strong> را مشاهده خواهید کرد که <strong>مراحل مختلف گردش کار</strong> را نشان می‌دهند. این مراحل شامل گزینه‌هایی مانند <span class='badge bg-light text-dark'>بررسی اولیه</span>، <span class='badge bg-light text-dark'>تأیید میانی</span>، <span class='badge bg-light text-dark'>تأیید نهایی</span> و... می‌باشند. برای هر قانون فعال شده، **حتماً باید یکی از این مراحل را انتخاب کنید** تا قانون به درستی در سیستم اعمال شود. این انتخاب مشخص می‌کند که قانون در کدام مرحله از فرآیند گردش کار اعمال گردد." %}</p>
+                        <div class="alert alert-danger d-flex align-items-center text-right mt-3 p-2 border-start border-3 border-danger rounded-2">
+                            <i class="fas fa-exclamation-circle me-2 text-danger"></i>
+                            <small>{% trans "<strong>هشدار حیاتی:</strong> اگر یک قانون (تأیید، رد، مشاهده) را فعال کنید اما <strong>هیچ مرحله‌ای</strong> را برای آن انتخاب نکنید، آن قانون <strong>ذخیره نخواهد شد</strong> و اعمال نمی‌شود. همچنین، گزینه <strong>'غیرفعال'</strong> نیز در بین مراحل موجود است که با انتخاب آن، آن قانون خاص برای آن پست غیرفعال می‌گردد." %}</small>
+                        </div>
+                    </div>
+                </li>
+                <li class="list-group-item d-flex align-items-start py-3">
+                    <div class="ms-3 pt-1">
+                        <h5 class="mb-1 text-dark"><i class="fas fa-save me-2 text-success"></i> {% trans "۶. ذخیره نهایی تغییرات" %}</h5>
+                        <p class="mb-0 small text-muted">{% trans "پس از اینکه تمامی سطوح پست‌ها و قوانین دسترسی مورد نظر را برای هر پست تنظیم کردید و مراحل مربوطه را انتخاب نمودید، به پایین صفحه اسکرول کرده و بر روی دکمه‌ی بزرگ <span class='badge bg-success text-white p-2'><i class='fas fa-save me-1'></i> ذخیره تغییرات</span> کلیک نمایید. با این کار، تمامی تنظیمات اعمال شده در دیتابیس سیستم ثبت و فعال خواهند شد." %}</p>
+                        <div class="alert alert-info d-flex align-items-center text-right mt-3 p-2 border-start border-3 border-info rounded-2">
+                            <i class="fas fa-lightbulb me-2 text-info"></i>
+                            <small>{% trans "<strong>نکته مهم در ذخیره‌سازی:</strong> هر بار که این فرم را ذخیره می‌کنید، تمامی قوانین دسترسی <strong>قبلی</strong> مربوط به پست‌هایی که در این فرم مدیریت می‌شوند، حذف شده و قوانین <strong>جدید</strong> بر اساس انتخاب‌های فعلی شما ایجاد می‌شوند. بنابراین، همواره اطمینان حاصل کنید که تمامی قوانین مورد نیاز را در این فرم دوباره انتخاب کرده‌اید تا هیچ دسترسی مهمی از بین نرود." %}</small>
+                        </div>
+                    </div>
+                </li>
+                <li class="list-group-item d-flex align-items-start py-3 bg-light">
+                    <div class="ms-3 pt-1">
+                        <h5 class="mb-1 text-dark"><i class="fas fa-chart-pie me-2 text-purple"></i> {% trans "۷. بررسی گزارش قوانین تخصیص یافته" %}</h5>
+                        <p class="mb-0 small text-muted">{% trans "برای تأیید نهایی و مشاهده یک نمای کلی و دقیق از قوانین دسترسی که به هر پست تخصیص یافته است، می‌توانید به صفحه <strong>'گزارش قوانین پست‌ها'</strong> با آدرس <code>/access-rules/report/</code> مراجعه کنید. این گزارش به شما کمک می‌کند تا مطمئن شوید تنظیمات اعمال شده دقیقاً مطابق با نیازهای سازمانی و فرآیندهای شما هستند." %}</p>
+                    </div>
+                </li>
+            </ol>
+        </section>
+
+        <section class="mb-5 pb-3 border-bottom border-secondary-subtle">
+            <h3 class="text-right mb-3 text-dark"><i class="fas fa-vial me-2 text-primary"></i> {% trans "مثال کاربردی برای درک بهتر" %}</h3>
+            <p class="text-right lead">
+                {% trans "فرض کنید می‌خواهید به پست <strong>'مدیر مالی تهران'</strong> اجازه دهید فاکتورها را در <strong>مرحله 'بررسی اولیه'</strong> تأیید کند، و به پست <strong>'مدیرکل هلدینگ'</strong> اجازه دهید دستورات پرداخت را <strong>امضا</strong> کند و فاکتورها را در <strong>مرحله 'تأیید نهایی'</strong> تأیید کند:" %}
+            </p>
+            <ol class="text-right list-group list-group-numbered shadow-sm rounded-3 overflow-hidden">
+                <li class="list-group-item d-flex align-items-start py-3 bg-light">
+                    <div class="ms-3 pt-1">
+                        <p class="mb-0 small text-muted">{% trans "۱. وارد فرم <strong>'مدیریت پست‌ها و قوانین'</strong> شوید." %}</p>
+                    </div>
+                </li>
+                <li class="list-group-item d-flex align-items-start py-3">
+                    <div class="ms-3 pt-1">
+                        <p class="mb-0 small text-muted">{% trans "۲. بخش مربوط به پست <strong>'مدیر مالی تهران'</strong> را باز کنید." %}</p>
+                        <ul class="list-unstyled mt-1 mb-0 small text-muted">
+                            <li class="mb-1"><i class="fas fa-long-arrow-alt-left me-2"></i>{% trans "سطح آن را به <strong>'۳'</strong> تغییر دهید." %}</li>
+                            <li class="mb-1"><i class="fas fa-long-arrow-alt-left me-2"></i>{% trans "در قسمت قوانین، به گروه <strong>'فاکتور'</strong> بروید." %}</li>
+                            <li class="mb-1"><i class="fas fa-long-arrow-alt-left me-2"></i>{% trans "گزینه‌ی <strong>'تأیید'</strong> را فعال کنید و از بین مراحل، <strong>'بررسی اولیه'</strong> را انتخاب نمایید." %}</li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="list-group-item d-flex align-items-start py-3 bg-light">
+                    <div class="ms-3 pt-1">
+                        <p class="mb-0 small text-muted">{% trans "۳. بخش مربوط به پست <strong>'مدیرکل هلدینگ'</strong> را باز کنید." %}</p>
+                        <ul class="list-unstyled mt-1 mb-0 small text-muted">
+                            <li class="mb-1"><i class="fas fa-long-arrow-alt-left me-2"></i>{% trans "سطح آن را به <strong>'۵'</strong> تغییر دهید." %}</li>
+                            <li class="mb-1"><i class="fas fa-long-arrow-alt-left me-2"></i>{% trans "در گروه <strong>'دستور پرداخت'</strong>، گزینه‌ی <strong>'امضا'</strong> را فعال کنید." %}</li>
+                            <li class="mb-1"><i class="fas fa-long-arrow-alt-left me-2"></i>{% trans "در گروه <strong>'فاکتور'</strong>، گزینه‌ی <strong>'تأیید'</strong> را فعال کنید و از بین مراحل، <strong>'تأیید نهایی'</strong> را انتخاب نمایید." %}</li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="list-group-item d-flex align-items-start py-3">
+                    <div class="ms-3 pt-1">
+                        <p class="mb-0 small text-muted">{% trans "۴. در نهایت، روی دکمه‌ی <strong>'ذخیره تغییرات'</strong> کلیک کنید." %}</p>
+                    </div>
+                </li>
+            </ol>
+            <div class="alert alert-success d-flex align-items-center text-right mt-4 shadow p-3 border-start border-4 border-success rounded-3">
+                <i class="fas fa-check-circle fa-2x me-3 text-success"></i>
+                <div>
+                    <strong>{% trans "نتیجه این عملیات" %}</strong>: {% trans "از این پس، <strong>مدیر مالی تهران</strong> می‌تواند فاکتورها را در مرحله <strong>بررسی اولیه</strong> تأیید کند. همزمان، <strong>مدیرکل هلدینگ</strong> مجوز <strong>امضای دستورات پرداخت</strong> را دارد و همچنین می‌تواند فاکتورها را در مرحله <strong>تأیید نهایی</strong> تأیید کند." %}
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-4">
+            <h3 class="text-right mb-3 text-dark"><i class="fas fa-question-circle me-2 text-secondary"></i> {% trans "پشتیبانی و نکات تکمیلی" %}</h3>
+            <ul class="text-right list-group list-group-flush border rounded-3 overflow-hidden shadow-sm">
+                <li class="list-group-item d-flex align-items-start py-2 bg-light"><i class="fas fa-check-double me-3 text-success"></i> {% trans "<strong>تأیید نهایی انتخاب‌ها:</strong> قبل از ذخیره، مطمئن شوید که تمامی قوانین مورد نیاز و مراحل مربوط به آن‌ها را به درستی انتخاب کرده‌اید. فراموش نکنید که هر بار ذخیره، قوانین قبلی را بازنویسی می‌کند." %}</li>
+                <li class="list-group-item d-flex align-items-start py-2"><i class="fas fa-sync-alt me-3 text-info"></i> {% trans "<strong>بازگشت به حالت اولیه:</strong> برای لغو تغییرات اعمال شده در فرم و بازگشت به وضعیت قبلی، از دکمه <strong>'انصراف'</strong> در پایین فرم استفاده کنید تا به صفحه لیست قوانین دسترسی بازگردید." %}</li>
+                <li class="list-group-item d-flex align-items-start py-2 bg-light"><i class="fas fa-headset me-3 text-primary"></i> {% trans "<strong>نیاز به کمک؟</strong> در صورت بروز هرگونه مشکل یا سوال در استفاده از این فرم، لطفا با <strong>پشتیبانی سیستم</strong> یا <strong>مدیر داخلی شرکت</strong> خود تماس بگیرید." %}</li>
+            </ul>
+        </section>
+
+        <div class="text-right mt-5 pt-4 border-top">
+            <a href="{% url 'post_access_rule_assign' %}" class="btn btn-primary btn-lg shadow-sm me-3 d-inline-flex align-items-center">
+                <i class="fas fa-arrow-left me-2"></i> {% trans "بازگشت به فرم تخصیص" %}
+            </a>
+            <a href="{% url 'accessrule_list' %}" class="btn btn-outline-secondary btn-lg shadow-sm d-inline-flex align-items-center">
+                <i class="fas fa-list me-2"></i> {% trans "مشاهده لیست قوانین" %}
+            </a>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+// Initialize Bootstrap Tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+return new bootstrap.Tooltip(tooltipTriggerEl)
+})
+});
+</script>
+{% endblock extra_js %}
+
+<style>
+/* Gradient header for card /
+.bg-gradient-primary {
+background: linear-gradient(135deg, #007bff 0%, #6610f2 100%); / Blue to Purple gradient */
+color: white;
+}
+
+/* General body font and background */
+body {
+    font-family: &#39;Vazirmatn&#39;, sans-serif; /* Or your preferred Persian font */
+    background-color: #f0f2f5; /* Light grey background */
+}
+
+/* Card styling */
+.card {
+    border-radius: 1rem; /* More rounded corners */
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); /* Stronger but soft shadow */
+}
+
+.card-header {
+    border-bottom: none; /* Remove default border */
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+}
+
+/* Headings and text */
+h1, h3, h5 {
+    font-weight: 700; /* Bolder headings */
+}
+.lead {
+    font-size: 1.15rem; /* Slightly larger lead text */
+    color: #495057;
+}
+strong {
+    color: #212529; /* Darker bold text */
+}
+
+/* Alerts with icons and borders */
+.alert {
+    border-radius: 0.75rem;
+    padding: 1rem 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start; /* Align text to top if icon is tall */
+}
+.alert i {
+    margin-top: 0.2rem; /* Align icon with text start */
+}
+.alert.border-start {
+    border-left-width: 0.5rem !important; /* Thicker left border for alerts */
+}
+
+/* List group styling */
+.list-group-item {
+    border-color: #e9ecef; /* Lighter border for list items */
+    transition: background-color 0.2s ease;
+}
+.list-group-item:hover {
+    background-color: #eef1f4 !important; /* Subtle hover effect */
+}
+.list-group-numbered {
+    counter-reset: my-custom-counter;
+}
+.list-group-numbered .list-group-item::before {
+    content: counter(my-custom-counter) &quot;.&quot;;
+    counter-increment: my-custom-counter;
+    margin-left: 0.5rem; /* Adjust space for number */
+    font-weight: bold;
+    color: #007bff; /* Blue numbers */
+    font-size: 1.1em;
+    padding-top: 0.1rem;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 0.5rem; /* More rounded buttons */
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #004d9e;
+    transform: translateY(-1px); /* Slight lift on hover */
+}
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    transform: translateY(-1px);
+}
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Icons */
+.me-2 { margin-right: 0.75rem !important; }
+.me-3 { margin-right: 1rem !important; }
+.ms-3 { margin-left: 1rem !important; }
+
+/* Custom colors for clarity */
+.text-primary { color: #007bff !important; }
+.text-success { color: #28a745 !important; }
+.text-info { color: #17a2b8 !important; }
+.text-warning { color: #ffc107 !important; }
+.text-danger { color: #dc3545 !important; }
+.text-secondary { color: #6c757d !important; }
+.text-dark { color: #343a40 !important; }
+.text-muted { color: #6c757d !important; } /* A bit darker muted for readability */
+.opacity-75 { opacity: 0.75; }
+
+/* Specific subtle badge colors if needed (from previous response) */
+.bg-primary-subtle { background-color: #cfe2ff !important; }
+.text-primary-emphasis { color: #052c65 !important; }
+.bg-info-subtle { background-color: #d1ecf1 !important; }
+.text-info-emphasis { color: #0c5460 !important; }
+.bg-secondary-subtle { background-color: #e2e3e5 !important; }
+.text-secondary-emphasis { color: #383d41 !important; }
+.bg-success-subtle { background-color: #d4edda !important; }
+.text-success-emphasis { color: #155724 !important; }
+.text-purple { color: #6610f2 !important; } /* Custom color for specific icon */
+</style>
+ 

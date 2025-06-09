@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% load i18n static humanize jalali_tags rcms_custom_filters %} {# rcms_custom_filters شامل to_persian_number و format_negative است #}
+
+{% block title %}{{ report_title }} - {{ budget_allocation.budget_item.name }} ({{ budget_allocation.organization.name }}){% endblock %}
+
+{% block page_title %}
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold text-gradient">
+                <i class="fas fa-file-invoice-dollar me-2"></i>{{ report_title }}
+            </h2>
+            <h5 class="text-muted">
+                {% translate "سازمان:" %} {{ organization.name }} |
+                {% translate "دوره بودجه:" %} {{ budget_period.name }} |
+                {% translate "سرفصل بودجه:" %} {{ budget_item.name }} ({{ budget_item.code }})
+            </h5>
+        </div>
+        <div>
+            <button onclick="window.print();" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-print me-1"></i>{% translate "چاپ گزارش" %}
+            </button>
+            {# لینک بازگشت به لیست BudgetAllocations یا داشبورد #}
+            <a href="{% url 'budgetallocation_list' %}" class="btn btn-outline-secondary btn-sm">
+                 <i class="fas fa-arrow-left me-1"></i> {% translate "بازگشت به لیست تخصیص‌ها" %}
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background-color: #f4f7f6; }
+    .card { border-radius: .75rem; border: none; margin-bottom: 1.5rem; }
+    .card-header { background-color: #e9ecef; border-bottom: 1px solid #dee2e6; font-weight: 600; padding: .75rem 1.25rem; }
+    .text-gradient {
+        background: linear-gradient(45deg, var(--bs-primary), var(--bs-info));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .stat-card {
+        background-color: #fff;
+        padding: 1.25rem;
+        border-radius: .5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    .stat-card h6 { color: #6c757d; font-size: 0.9rem; margin-bottom: 0.25rem; text-transform: uppercase; }
+    .stat-card .display-6 { font-weight: 700; }
+    .progress { height: 8px; border-radius: 8px; }
+    .table th { font-weight: 600; white-space: nowrap; }
+    .table td { vertical-align: middle; }
+    .badge { padding: .4em .65em; font-size: .8rem; }
+    .text-negative { color: var(--bs-danger); } /* برای نمایش اعداد منفی */
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--bs-primary);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--bs-primary);
+        display: inline-block;
+    }
+    @media print {
+        body { background-color: #fff; }
+        .btn, .alert-dismissible .btn-close { display: none !important; }
+        .card { box-shadow: none !important; border: 1px solid #ccc !important; }
+        .no-print { display: none !important; }
+        .text-gradient { color: #000 !important; -webkit-text-fill-color: initial; background: none;}
+        a {text-decoration: none !important; color: inherit !important;}
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid report-page">
+
+    <!-- خلاصه وضعیت BudgetAllocation اصلی -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h6>{% translate "کل مبلغ تخصیص اصلی" %}</h6>
+                <div class="display-6 text-primary">{{ allocated_amount_main|format_negative }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h6>{% translate "کل مصرف شده از این تخصیص" %}</h6>
+                <div class="display-6 text-danger">{{ consumed_amount_main|format_negative }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h6>{% translate "مانده این تخصیص اصلی" %}</h6>
+                <div class="display-6 {% if remaining_amount_main < 0 %}text-danger{% else %}text-success{% endif %}">
+                    {{ remaining_amount_main|format_negative }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mb-4 px-3">
+        <h6 class="d-inline">{% translate "درصد مصرف از تخصیص اصلی:" %}</h6>
+        <div class="progress mt-1">
+            <div class="progress-bar {% if utilization_percentage_main > 85 %}bg-danger{% elif utilization_percentage_main > 60 %}bg-warning{% else %}bg-success{% endif %}"
+                 role="progressbar" style="width: {{ utilization_percentage_main|floatformat:2 }}%;"
+                 aria-valuenow="{{ utilization_percentage_main|floatformat:2 }}" aria-valuemin="0" aria-valuemax="100">
+                {{ utilization_percentage_main|floatformat:1 }}%
+            </div>
+        </div>
+        {% if description_main %}
+            <p class="mt-2 mb-0 text-muted small"><strong>{% translate "توضیحات تخصیص اصلی:" %}</strong> {{ description_main }}</p>
+        {% endif %}
+        {% if is_stopped_main %}
+            <div class="alert alert-warning mt-2 small py-2">{% trans "توجه: این تخصیص بودجه اصلی متوقف شده است." %}</div>
+        {% endif %}
+    </div>
+    <hr>
+
+    <!-- توزیع بودجه به پروژه‌ها/زیرپروژه‌ها -->
+    <div class="mt-4">
+        <h4 class="section-title">
+            <i class="fas fa-project-diagram me-2"></i>{% translate "توزیع بودجه به مراکز هزینه (پروژه‌ها/زیرپروژه‌ها)" %}
+        </h4>
+        {% if project_allocations_list %}
+            <p class="text-muted">
+                {% blocktranslate with total_allocated=total_allocated_to_projects_from_this_ba|format_negative unallocated=unallocated_from_main_ba_to_projects|format_negative %}
+                از این تخصیص اصلی، مبلغ <strong>{{ total_allocated }}</strong> ریال به پروژه‌ها/زیرپروژه‌ها تخصیص یافته و مبلغ <strong>{{ unallocated }}</strong> ریال هنوز به پروژه‌ای تخصیص نیافته است.
+                {% endblocktranslate %}
+            </p>
+            <div class="table-responsive">
+                <table class="table table-hover table-striped table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>{% translate "پروژه / زیرپروژه" %}</th>
+                            <th class="text-end">{% translate "تخصیص از این منبع" %}</th>
+                            <th class="text-end">{% translate "کل بودجه هدف" %}</th>
+                            <th class="text-end">{% translate "کل مصرف هدف" %}</th>
+                            <th class="text-end">{% translate "مانده کلی هدف" %}</th>
+                            <th class="text-center">{% translate "درصد مصرف هدف" %}</th>
+                            <th>{% translate "عملیات" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pba_detail in project_allocations_list %}
+                        <tr>
+                            <td>{{ forloop.counter|to_persian_number }}</td>
+                            <td>
+                                <a href="{% url 'project_budget_allocation_detail' pba_detail.instance.pk %}">
+                                    {{ pba_detail.target_name }}
+                                </a>
+                                <br><small class="text-muted">PBA ID: {{ pba_detail.instance.pk|to_persian_number }}</small>
+                            </td>
+                            <td class="text-end fw-bold text-primary">{{ pba_detail.allocated_to_target_from_this_pba|format_negative }}</td>
+                            <td class="text-end">{{ pba_detail.target_total_allocated_overall|format_negative }}</td>
+                            <td class="text-end">{{ pba_detail.target_consumed_overall|format_negative }}</td>
+                            <td class="text-end {% if pba_detail.target_remaining_overall < 0 %}text-danger fw-bold{% endif %}">
+                                {{ pba_detail.target_remaining_overall|format_negative }}
+                            </td>
+                            <td class="text-center">
+                                 <div class="progress" style="height: 18px; min-width: 70px;">
+                                    <div class="progress-bar {% if pba_detail.target_utilization_overall > 85 %}bg-danger{% elif pba_detail.target_utilization_overall > 60 %}bg-warning{% else %}bg-success{% endif %}"
+                                         role="progressbar" style="width: {{ pba_detail.target_utilization_overall|floatformat:2 }}%;"
+                                         aria-valuenow="{{ pba_detail.target_utilization_overall|floatformat:2 }}" aria-valuemin="0" aria-valuemax="100">
+                                        <small>{{ pba_detail.target_utilization_overall|floatformat:0 }}%</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="{% url 'project_budget_allocation_detail' pba_detail.instance.pk %}" class="btn btn-outline-info btn-sm py-1 px-2" title="{% translate 'جزئیات این تخصیص پروژه' %}">
+                                    <i class="fas fa-eye fa-xs"></i>
+                                </a>
+                                {# لینک به جزئیات خود پروژه/زیرپروژه اگر لازم است #}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-light text-center">
+                <i class="fas fa-info-circle me-1"></i> {% trans "این تخصیص بودجه اصلی هنوز به هیچ پروژه یا زیرپروژه‌ای توزیع نشده است." %}
+                {# لینک برای ایجاد ProjectBudgetAllocation جدید #}
+{#                 <a href="{% url 'project_budget_allocation' %}?organization_id={{ budget_allocation.pk }}" class="btn btn-success btn-sm mt-2">#}
+{#                    <i class="fas fa-plus me-1"></i> {% trans "تخصیص به پروژه جدید" %}#}
+{#                </a>#}
+            </div>
+        {% endif %}
+    </div>
+    <hr>
+
+    <!-- تراکنش‌های اخیر روی BudgetAllocation اصلی -->
+    <div class="mt-4">
+        <h4 class="section-title">
+            <i class="fas fa-exchange-alt me-2"></i>{% translate "تراکنش‌های اخیر روی این تخصیص بودجه اصلی" %}
+            <small class="text-muted fs-6">({{ budget_item.name }})</small>
+        </h4>
+        {% if recent_transactions_main %}
+            <div class="table-responsive">
+                <table class="table table-hover table-striped table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>{% translate "نوع تراکنش" %}</th>
+                            <th class="text-end">{% translate "مبلغ" %}</th>
+                            <th>{% translate "تاریخ و زمان" %}</th>
+                            <th>{% translate "تنخواه مرتبط" %}</th>
+                            <th>{% translate "توضیحات" %}</th>
+                            <th>{% translate "کاربر" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in recent_transactions_main %}
+                        <tr class="{% if tx.transaction_type == 'CONSUMPTION' %}table-danger-soft{% elif tx.transaction_type == 'RETURN' %}table-success-soft{% endif %}">
+                            <td>{{ forloop.counter|to_persian_number }}</td>
+                            <td>
+                                <span class="badge bg-{% if tx.transaction_type == 'CONSUMPTION' %}danger{% elif tx.transaction_type == 'RETURN' %}success{% elif tx.transaction_type == 'ALLOCATION' %}primary{% else %}secondary{% endif %}">
+                                    {{ tx.get_transaction_type_display }}
+                                </span>
+                            </td>
+                            <td class="text-end fw-bold">{{ tx.amount|format_negative }}</td>
+                            <td>{{ tx.timestamp|to_jalali:"%Y/%m/%d %H:%M"|to_persian_number }}</td>
+                            <td>
+                                {% if tx.related_tankhah %}
+                                    <a href="{% url 'tankhah_detail' tx.related_tankhah.pk %}">
+                                        {{ tx.related_tankhah.number }}
+                                    </a>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>{{ tx.description|truncatechars:70|default:"-" }}</td>
+                            <td>{{ tx.created_by.username|default:"سیستم" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-light text-center">
+                <i class="fas fa-info-circle me-1"></i> {% trans "هیچ تراکنشی برای این تخصیص بودجه اصلی ثبت نشده است." %}
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{# اگر نیاز به JavaScript خاصی برای این صفحه دارید، اینجا اضافه کنید #}
+{% endblock %}

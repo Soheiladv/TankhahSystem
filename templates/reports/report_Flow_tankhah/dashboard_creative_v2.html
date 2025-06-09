@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+{% load static i18n humanize jalali_tags rcms_custom_filters %} {# اطمینان از لود شدن همه تگ‌ها #}
+
+{% block title %}{{ page_title|default:"مرکز فرماندهی مالی" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ------------------------------------------- */
+    /* --- تم کلی و متغیرهای رنگی (تم تیره/روشن) --- */
+    /* ------------------------------------------- */
+    :root, [data-bs-theme="light"] {
+        --bs-body-bg: #f4f7f9;
+        --bs-body-color: #343a40;
+        --card-bg: #ffffff;
+        --card-border-color: #e9ecef;
+        --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        --text-muted: #6c757d;
+        --text-primary-emphasis: #0a58ca;
+        --gradient-start: #4e73df;
+        --gradient-end: #224abe;
+        --kanban-bg: #e9ecef;
+        --kanban-header-bg: #f8f9fa;
+        --kanban-card-bg: #ffffff;
+    }
+    [data-bs-theme="dark"] {
+        --bs-body-bg: #161c2d;
+        --bs-body-color: #c0c6d9;
+        --card-bg: #1f2940;
+        --card-border-color: #2c3a58;
+        --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        --text-muted: #8492af;
+        --text-primary-emphasis: #6ea8fe;
+        --gradient-start: #36b9cc;
+        --gradient-end: #258391;
+        --kanban-bg: #1a2235;
+        --kanban-header-bg: #212b44;
+        --kanban-card-bg: #283452;
+    }
+    body {
+        background-color: var(--bs-body-bg);
+        color: var(--bs-body-color);
+        font-family: 'Vazirmatn', sans-serif;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* ------------------------------------------- */
+    /* --- هدر و بخش اطلاعات کاربر --- */
+    /* ------------------------------------------- */
+    .dashboard-header {
+        background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+        color: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--card-shadow);
+        position: relative;
+        overflow: hidden;
+    }
+    .dashboard-header::before { /* افکت نوری */
+        content: '';
+        position: absolute;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        animation: rotateGlow 20s linear infinite;
+    }
+    @keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    .user-avatar {
+        width: 70px;
+        height: 70px;
+        font-size: 2.5rem;
+        background-color: rgba(255, 255, 255, 0.2);
+        border: 2px solid white;
+    }
+    .user-info h4 { font-weight: 700; text-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+    .user-info .badge { background-color: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); }
+
+    /* ------------------------------------------- */
+    /* --- کارت‌های خلاصه آمار --- */
+    /* ------------------------------------------- */
+    .stat-card-v2 {
+        background-color: var(--card-bg);
+        border: 1px solid var(--card-border-color);
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        transition: all 0.3s ease;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    .stat-card-v2:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    .stat-card-v2 .icon-bg {
+        width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem;
+    }
+    .stat-card-v2 .stat-title { font-size: 0.9rem; color: var(--text-muted); font-weight: 500;}
+    .stat-card-v2 .stat-value { font-size: 2rem; font-weight: 700; }
+    .stat-card-v2 .stat-change { font-size: 0.8rem; margin-top: auto; }
+    .sparkline-chart { height: 40px; margin-top: 10px; }
+
+    /* ------------------------------------------- */
+    /* --- برد گردش کار کانبان (Kanban) --- */
+    /* ------------------------------------------- */
+    .kanban-board-container { display: flex; gap: 1rem; overflow-x: auto; padding: 1rem 0; background-color: var(--kanban-bg); border-radius: .75rem; }
+    .kanban-board-container::-webkit-scrollbar { height: 8px; }
+    .kanban-board-container::-webkit-scrollbar-track { background: transparent; }
+    .kanban-board-container::-webkit-scrollbar-thumb { background: #c1c1c9; border-radius: 10px; }
+    [data-bs-theme="dark"] .kanban-board-container::-webkit-scrollbar-thumb { background: #404a63; }
+
+    .kanban-column {
+        min-width: 320px;
+        max-width: 320px;
+        background-color: var(--card-bg);
+        border-radius: .5rem;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--card-border-color);
+        box-shadow: var(--card-shadow);
+    }
+    .kanban-header {
+        padding: .75rem 1rem;
+        font-weight: 600;
+        border-bottom: 1px solid var(--card-border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: var(--kanban-header-bg);
+    }
+    .kanban-body { padding: .5rem; flex-grow: 1; overflow-y: auto; max-height: 400px; }
+    .kanban-card {
+        background-color: var(--kanban-card-bg);
+        border-radius: .375rem;
+        padding: .75rem;
+        margin-bottom: .5rem;
+        border-left: 4px solid var(--bs-primary);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        cursor: pointer;
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+    .kanban-card:hover { box-shadow: 0 3px 8px rgba(0,0,0,0.1); transform: scale(1.02); }
+    .kanban-card-title { font-size: 0.9rem; font-weight: 600; margin-bottom: .25rem; }
+    .kanban-card-meta { font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;}
+    .kanban-card .badge { font-size: 0.7rem; }
+    .kanban-card.status-REJECTED { border-left-color: var(--bs-danger); }
+    .kanban-card.status-PENDING { border-left-color: var(--bs-warning); }
+    .kanban-card.status-APPROVED { border-left-color: var(--bs-success); }
+    .kanban-card.status-PAID { border-left-color: var(--bs-primary); }
+
+    /* ------------------------------------------- */
+    /* --- سایر استایل‌ها --- */
+    /* ------------------------------------------- */
+    .theme-toggle-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        border-radius: 50%;
+        width: 40px; height: 40px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: var(--card-shadow);
+    }
+    .action-needed-section {
+        border: 1px solid var(--bs-danger);
+        animation: pulse-glow 2.5s infinite ease-in-out;
+    }
+    @keyframes pulse-glow {
+        0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+        70% { box-shadow: 0 0 0 12px rgba(220, 53, 69, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+    }
+
+    /* رنگ‌های سفارشی برای badge ها (باید بر اساس STATUS_CHOICES شما باشد) */
+    .bg-draft_badge { background-color: #6c757d !important; color: white; }
+    .bg-pending_badge { background-color: #ffc107 !important; color: #000; }
+    .bg-approved_badge { background-color: #198754 !important; color: white; }
+    .bg-sent_to_hq_badge { background-color: #0dcaf0 !important; color: #000; }
+    .bg-hq_ops_pending_badge { background-color: #fd7e14 !important; color: white; }
+    .bg-hq_ops_approved_badge { background-color: #20c997 !important; color: white; }
+    .bg-hq_fin_pending_badge { background-color: #6f42c1 !important; color: white; }
+    .bg-paid_badge { background-color: #0d6efd !important; color: white; }
+    .bg-rejected_badge { background-color: #dc3545 !important; color: white; }
+    .bg-cancelled_badge { background-color: #adb5bd !important; color: #000; }
+
+    .bg-primary-soft { background-color: rgba(var(--bs-primary-rgb), 0.1); }
+    .bg-danger-soft { background-color: rgba(var(--bs-danger-rgb), 0.1); }
+    .bg-warning-soft { background-color: rgba(var(--bs-warning-rgb), 0.1); }
+    .bg-success-soft { background-color: rgba(var(--bs-success-rgb), 0.1); }
+    .bg-info-soft { background-color: rgba(var(--bs-info-rgb), 0.1); }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid py-3">
+    <!-- دکمه تغییر تم -->
+    <button class="btn btn-outline-secondary theme-toggle-btn no-print" id="theme-toggler" title="تغییر تم">
+        <i class="fas fa-moon" id="theme-icon"></i>
+    </button>
+
+    {% if error_message %}
+        <div class="alert alert-danger text-center">
+            <h4 class="alert-heading">خطا در بارگذاری داشبورد</h4>
+            <p>{{ error_message }}</p>
+        </div>
+    {% else %}
+        <!-- بخش هدر و اطلاعات کاربر -->
+        <div class="dashboard-header">
+            <div class="row align-items-center">
+                <div class="col-md-auto text-center text-md-start mb-3 mb-md-0">
+                    <div class="avatar user-avatar rounded-circle">
+                        {{ user_info.user.get_full_name|slice:":1"|default:user_info.user.username|slice:":1"|upper }}
+                    </div>
+                </div>
+                <div class="col-md user-info">
+                    <h4>خوش آمدید، {{ user_info.user.get_full_name|default:user_info.user.username }}!</h4>
+                    <p class="mb-1 opacity-75">
+                        <i class="fas fa-user-tag fa-fw me-2"></i>
+                        {% for post_item in user_info.user_posts %}
+                            <span class="badge me-1">{{ post_item.post.name }}</span>
+                        {% empty %}
+                            <span class="badge">{% translate "پست سازمانی مشخص نشده" %}</span>
+                        {% endfor %}
+                    </p>
+                    <p class="mb-0 opacity-75">
+                        <i class="fas fa-building fa-fw me-2"></i>
+                        {% for org in user_info.user_orgs %}
+                            <span class="badge me-1">{{ org.name }}</span>
+                        {% empty %}
+                            <span class="badge">{% translate "سازمان مشخص نشده" %}</span>
+                        {% endfor %}
+                        {% if user_info.is_hq_user %}<span class="badge text-bg-light"><i class="fas fa-star me-1 text-warning"></i>{% translate "دفتر مرکزی" %}</span>{% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش اقدامات فوری شما -->
+        {% if summary_stats.my_tasks > 0 %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card stat-card-v2 action-needed-section mb-4">
+                    <div class="card-body text-center">
+                        <h5 class="mb-2 text-danger fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>{% translate "اقدامات فوری منتظر شما" %}</h5>
+                        <p>{% blocktranslate count my_tasks=summary_stats.my_tasks|to_persian_number %}شما <strong>{{ my_tasks }} وظیفه</strong> در انتظار اقدام دارید.{% plural %}شما <strong>{{ my_tasks }} وظیفه</strong> در انتظار اقدام دارید.{% endblocktranslate %}</p>
+                        <a href="#" class="btn btn-danger">{% translate "مشاهده لیست وظایف" %}</a> {# لینک به لیست وظایf کاربر #}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- بخش کارت‌های خلاصه آمار -->
+        <div class="row">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card-v2">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <div class="stat-title">{% translate "کل بودجه فعال دوره" %}</div>
+                            <div class="stat-value text-primary">{{ summary_stats.total_budgets|intcomma:False|to_persian_number }}</div>
+                        </div>
+                        <div class="icon-bg bg-primary-soft text-primary"><i class="fas fa-wallet"></i></div>
+                    </div>
+                    <div class="stat-change text-muted small mt-auto">{% translate "مجموع دوره‌های بودجه فعال" %}</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card-v2">
+                     <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <div class="stat-title">{% translate "کل مصرف شده" %}</div>
+                            <div class="stat-value text-danger">{{ summary_stats.total_spent_formatted|to_persian_number }}</div>
+                        </div>
+                        <div class="icon-bg bg-danger-soft text-danger"><i class="fas fa-chart-line"></i></div>
+                    </div>
+                    <canvas class="sparkline-chart" id="consumptionSparkline"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                 <div class="stat-card-v2">
+                     <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <div class="stat-title">{% translate "تنخواه‌های در گردش" %}</div>
+                            <div class="stat-value text-warning">{{ summary_stats.pending_tankhahs|to_persian_number }} <span style="font-size:1.2rem;">مورد</span></div>
+                        </div>
+                        <div class="icon-bg bg-warning-soft text-warning"><i class="fas fa-hourglass-half"></i></div>
+                    </div>
+                    <div class="stat-change text-muted small mt-auto">{% translate "در انتظار تایید" %}</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                 <div class="stat-card-v2">
+                     <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <div class="stat-title">{% translate "مانده کل بودجه" %}</div>
+                            <div class="stat-value text-success">{{ summary_stats.total_remaining_formatted|to_persian_number }}</div>
+                        </div>
+                        <div class="icon-bg bg-success-soft text-success"><i class="fas fa-check-double"></i></div>
+                    </div>
+                    <div class="progress mt-auto" title="{{ summary_stats.total_remaining_percentage|floatformat:1 }}% {% translate 'باقی مانده' %}"><div class="progress-bar bg-success" role="progressbar" style="width: {{ summary_stats.total_remaining_percentage }}%;" aria-valuenow="{{ summary_stats.total_remaining_percentage }}" aria-valuemin="0" aria-valuemax="100"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش گردش کار کانبان -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-columns me-2"></i>{% translate "نمای کلی گردش کار تنخواه‌ها" %}</h5>
+            </div>
+            <div class="card-body">
+                 <div class="kanban-board-container">
+                    {% for stage_data in workflow_data %}
+                        <div class="kanban-column">
+                            <div class="kanban-header">
+                                <h6 class="mb-0">{{ stage_data.stage.name }}</h6>
+                                <span class="badge rounded-pill bg-primary">{{ stage_data.tankhah_stats.total|to_persian_number }}</span>
+                            </div>
+                            <div class="kanban-body">
+                                {% for tankhah in stage_data.recent_items.tankhahs %}
+                                    <div class="kanban-card status-{{ tankhah.status|lower }}">
+                                        <a href="{% url 'tankhah_detail' pk=tankhah.id %}" class="text-decoration-none text-reset stretched-link">
+                                            <h6 class="kanban-card-title">{{ tankhah.number|to_persian_number }}</h6>
+                                            <div class="kanban-card-meta">
+                                                <span><i class="fas fa-building fa-fw"></i> {{ tankhah.organization__name|truncatechars:20 }}</span>
+                                                <span class="fw-bold">{{ tankhah.amount|intcomma:False|to_persian_number }}</span>
+                                            </div>
+                                            <div class="kanban-card-meta mt-1">
+                                                <span><i class="fas fa-user fa-fw"></i> {{ tankhah.created_by_full_name }}</span>
+                                                <span class="badge bg-{{ tankhah.status|lower }}_badge">{{ tankhah.get_status_display }}</span>
+                                            </div>
+                                        </a>
+                                    </div>
+                                {% empty %}
+                                    <p class="text-center text-muted small mt-3">{% translate "هیچ تنخواهی در این مرحله نیست." %}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="alert alert-light w-100 text-center">
+                            {% translate "هیچ مرحله گردش کاری تعریف نشده است." %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // --- Theme Toggler ---
+    const themeToggler = document.getElementById('theme-toggler');
+    if (themeToggler) {
+        const themeIcon = document.getElementById('theme-icon');
+        // Function to set theme based on saved preference or system default
+        const applyTheme = (theme) => {
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            if (themeIcon) {
+                if (theme === 'dark') {
+                    themeIcon.classList.remove('fa-moon');
+                    themeIcon.classList.add('fa-sun');
+                } else {
+                    themeIcon.classList.remove('fa-sun');
+                    themeIcon.classList.add('fa-moon');
+                }
+            }
+        };
+
+        const savedTheme = localStorage.getItem('theme');
+        // You can also check for prefers-color-scheme for initial load
+        const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        applyTheme(savedTheme || preferredTheme);
+
+        themeToggler.addEventListener('click', function () {
+            let currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+            localStorage.setItem('theme', newTheme);
+            // Redraw charts if their colors depend on the theme
+            renderAllCharts();
+        });
+    }
+
+
+    // --- Sparkline Charts ---
+    function createSparkline(canvasId, data, color, softColor) {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return;
+        
+        const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 40);
+        gradient.addColorStop(0, softColor);
+        gradient.addColorStop(1, softColor.substring(0, 7) + '00'); // Make transparent
+
+        return new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: new Array(data.length).fill(''),
+                datasets: [{
+                    data: data,
+                    borderColor: color,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: true,
+                    backgroundColor: gradient,
+                    tension: 0.4,
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                scales: { x: { display: false }, y: { display: false } }
+            }
+        });
+    }
+
+    function renderAllCharts() {
+        // Destroy existing charts if they exist
+        if (window.budgetChartInstance) window.budgetChartInstance.destroy();
+        if (window.consumptionChartInstance) window.consumptionChartInstance.destroy();
+
+        try {
+            const consumptionData = {{ summary_stats.consumption_trend_data|safe|default:'[]' }};
+            if (consumptionData.length > 0) {
+                window.consumptionChartInstance = createSparkline('consumptionSparkline', consumptionData, 'rgba(231, 74, 59, 1)', 'rgba(231, 74, 59, 0.2)');
+            }
+
+            const budgetData = {{ summary_stats.budget_trend_data|safe|default:'[]' }};
+            if (budgetData.length > 0) {
+                 window.budgetChartInstance = createSparkline('budgetSparkline', budgetData, 'rgba(78, 115, 223, 1)', 'rgba(78, 115, 223, 0.1)');
+            }
+        } catch(e) {
+            console.error("Error rendering sparkline charts:", e);
+        }
+    }
+
+    renderAllCharts(); // Initial render
+});
+</script>
+{% endblock %}

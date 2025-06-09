@@ -1,0 +1,883 @@
+{% extends 'base.html' %}
+{% load i18n static rcms_custom_filters %}
+
+{% block extra_css %}
+
+    <link href="{% static 'admin/css/vis-network.min.css' %}" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #4e73df;
+            --secondary: #858796;
+            --success: #1cc88a;
+            --danger: #e74a3b;
+            --warning: #f6c23e;
+            --info: #36b9cc;
+            --light: #f8f9fc;
+            --dark: #5a5c69;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f8f9fc;
+            color: var(--dark);
+        }
+
+        .dashboard-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            margin-bottom: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            padding: 1.25rem 1.5rem;
+            border-radius: 12px 12px 0 0 !important;
+        }
+
+        .card-title {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .btn {
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 0.5rem 1.25rem;
+            transition: all 0.3s;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .btn i {
+            margin-left: 5px;
+        }
+
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table th {
+            background-color: var(--light);
+            color: var(--dark);
+            font-weight: 700;
+            border-top: 1px solid #e3e6f0;
+        }
+
+        .table td, .table th {
+            padding: 12px 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e3e6f0;
+        }
+
+        .table tr:hover {
+            background-color: rgba(78, 115, 223, 0.05);
+        }
+
+        .badge {
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 50px;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 10px 15px;
+            border: 1px solid #d1d3e2;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+
+        .alert {
+            border-radius: 8px;
+            border: none;
+        }
+
+        /* Graph Styles */
+        #model-relations-graph {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #e3e6f0;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.05);
+        }
+
+        /* Progress Bar */
+        #progress-container {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .progress {
+            height: 20px;
+            border-radius: 10px;
+        }
+
+        .progress-bar {
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        /* Tabs Navigation */
+        .nav-tabs {
+            border-bottom: 2px solid #e3e6f0;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            color: var(--secondary);
+            font-weight: 600;
+            padding: 12px 20px;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--primary);
+            background-color: transparent;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .nav-tabs .nav-link:hover {
+            border-color: transparent;
+            color: var(--primary);
+        }
+
+        /* Relation List */
+        .relations-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .relations-list li {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: var(--secondary);
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 1rem;
+            }
+
+            #model-relations-graph {
+                height: 400px;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        /* Custom Checkbox */
+        .form-check-input {
+            width: 20px;
+            height: 20px;
+            margin-top: 0;
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e3e6f0;
+        }
+
+        .section-title {
+            font-weight: 700;
+            color: var(--dark);
+            margin: 0;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0 text-gray-800">{% trans "مدیریت پیشرفته دیتابیس" %}</h1>
+            <div>
+                <a href="{% url 'admin:index' %}" class="btn btn-secondary">
+                    <i class="fas fa-cog"></i> {% trans "پنل ادمین" %}
+                </a>
+            </div>
+        </div>
+
+        <div id="progress-container" class="card">
+            <div class="card-body p-2">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%">
+                        {% trans "در حال پردازش درخواست..." %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-project-diagram me-2"></i>{% trans "گراف روابط مدل‌ها" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <select id="app-filter" class="form-select">
+                            <option value="">{% trans "همه اپلیکیشن‌ها" %}</option>
+                            {% for app in app_labels %}
+                                <option value="{{ app }}">{{ app }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-8 d-flex justify-content-end">
+                        <button id="zoom-fit" class="btn btn-sm btn-outline-primary me-2">
+                            <i class="fas fa-expand"></i> {% trans "تنظیم نمای گراف" %}
+                        </button>
+                        <button id="zoom-in" class="btn btn-sm btn-outline-primary me-2">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                        <button id="zoom-out" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-search-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="model-relations-graph"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#backup-tab">
+                            <i class="fas fa-database me-2"></i>{% trans "بک‌آپ" %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#restore-tab">
+                            <i class="fas fa-undo me-2"></i>{% trans "بازگردانی" %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#reset-tab">
+                            <i class="fas fa-trash-alt me-2"></i>{% trans "ریست" %}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <!-- Backup Tab -->
+                    <div class="tab-pane fade show active" id="backup-tab">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="card-title mb-0 text-white">
+                                            <i class="fas fa-table me-2"></i>{% trans "بک‌آپ مدل‌های انتخابی" %}
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post" onsubmit="return validateBackupForm(this);">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="backup_data">
+
+                                            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th width="40px"></th>
+                                                            <th>{% trans "مدل" %}</th>
+                                                            <th>{% trans "رکوردها" %}</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for model in models %}
+                                                            <tr>
+                                                                <td>
+                                                                    <input class="form-check-input model-checkbox" type="checkbox"
+                                                                           name="models" value="{{ model.key }}" id="model-{{ model.key }}">
+                                                                </td>
+                                                                <td>
+                                                                    <label for="model-{{ model.key }}" class="mb-0">
+                                                                        <strong>{{ model.verbose_name }}</strong>
+                                                                        <small class="d-block text-muted">{{ model.app_label }}.{{ model.model_name }}</small>
+                                                                    </label>
+                                                                </td>
+                                                                <td>
+                                                                    <span class="badge bg-primary rounded-pill">{{ model.record_count |to_persian_number}}</span>
+                                                                </td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <div class="mt-3">
+                                                <div class="mb-3">
+                                                    <label for="password" class="form-label">{% trans "رمز عبور برای رمزگذاری" %}</label>
+                                                    <input type="password" class="form-control" id="password" name="password" required>
+                                                    <small class="text-muted">{% trans "حداقل 8 کاراکتر با حروف و اعداد" %}</small>
+                                                </div>
+
+                                                <div class="form-check mb-3">
+                                                    <input class="form-check-input" type="checkbox" name="save_to_server" id="save_to_server" value="true">
+                                                    <label class="form-check-label" for="save_to_server">{% trans "ذخیره بک‌آپ روی سرور" %}</label>
+                                                </div>
+
+                                                <button type="submit" class="btn btn-primary w-100">
+                                                    <i class="fas fa-file-export me-2"></i>{% trans "ایجاد بک‌آپ مدل‌ها" %}
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-success text-white">
+                                        <h5 class="card-title mb-0 text-white">
+                                            <i class="fas fa-database me-2"></i>{% trans "بک‌آپ کامل دیتابیس" %}
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="backup_db">
+
+                                            <div class="mb-3">
+                                                <label for="db_password" class="form-label">{% trans "رمز عبور (اختیاری)" %}</label>
+                                                <input type="password" class="form-control" id="db_password" name="password">
+                                            </div>
+
+                                            <div class="form-check mb-3">
+                                                <input class="form-check-input" type="checkbox" name="save_to_server" id="db_save_to_server" value="true" checked>
+                                                <label class="form-check-label" for="db_save_to_server">{% trans "ذخیره بک‌آپ روی سرور" %}</label>
+                                            </div>
+
+                                            <button type="submit" class="btn btn-success w-100">
+                                                <i class="fas fa-download me-2"></i>{% trans "ایجاد بک‌آپ کامل" %}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-header bg-info text-white">
+                                        <h5 class="card-title mb-0 text-white">
+                                            <i class="fas fa-history me-2"></i>{% trans "بک‌آپ‌های موجود" %}
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if existing_backups %}
+                                            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>{% trans "آخرین پشتیبان" %}</th>
+                                                            <th>{% trans "نام فایل" %}</th>
+                                                            <th>{% trans "نوع" %}</th>
+                                                            <th>{% trans "حجم" %}</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for backup in existing_backups %}
+                                                            <tr>
+                                                                <td>{{ forloop.counter| to_persian_number }} ⬆️</td>
+                                                                <td width="10%px">{{ backup.filename }}</td>
+                                                                <td>
+                                                                    <span class="badge {% if backup.type == 'Database' %}bg-primary{% else %}bg-success{% endif %}">
+                                                                        {{ backup.type }}
+                                                                    </span>
+                                                                </td>
+                                                                <td>{{ backup.size|filesizeformat }}</td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        {% else %}
+                                            <div class="alert alert-warning mb-0">
+                                                {% trans "هیچ فایل بک‌آپی یافت نشد." %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Restore Tab -->
+                    <div class="tab-pane fade" id="restore-tab">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="card">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-file-import me-2"></i>{% trans "بازگردانی از فایل" %}
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post" enctype="multipart/form-data">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="restore">
+
+                                            <div class="mb-3">
+                                                <label for="backup_file" class="form-label">{% trans "فایل بک‌آپ" %}</label>
+                                                <input type="file" class="form-control" id="backup_file" name="backup_file" required>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="restore_password" class="form-label">{% trans "رمز عبور (اگر فایل رمزگذاری شده است)" %}</label>
+                                                <input type="password" class="form-control" id="restore_password" name="password">
+                                            </div>
+
+                                            <button type="submit" class="btn btn-warning w-100">
+                                                <i class="fas fa-upload me-2"></i>{% trans "بارگذاری و بازگردانی" %}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="card">
+                                    <div class="card-header bg-info text-white">
+                                        <h5 class="card-title mb-0 text-white">
+                                            <i class="fas fa-archive me-2"></i>{% trans "بازگردانی از بک‌آپ‌های موجود" %}
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="restore">
+
+                                            <div class="mb-3">
+                                                <label class="form-label">{% trans "انتخاب بک‌آپ" %}</label>
+                                                <select class="form-select" name="backup_file_to_restore" required>
+                                                    <option value="">{% trans "-- انتخاب کنید --" %}</option>
+                                                    {% for backup in existing_backups %}
+                                                        <option value="{{ backup.filepath }}">
+                                                            {{ backup.filename }} ({{ backup.type }}, {{ backup.size|filesizeformat }})
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="server_restore_password" class="form-label">{% trans "رمز عبور (اگر فایل رمزگذاری شده است)" %}</label>
+                                                <input type="password" class="form-control" id="server_restore_password" name="password">
+                                            </div>
+
+                                            <button type="submit" class="btn btn-info w-100 text-white">
+                                                <i class="fas fa-redo me-2"></i>{% trans "بازگردانی بک‌آپ" %}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reset Tab -->
+                    <div class="tab-pane fade" id="reset-tab">
+                        <div class="alert alert-danger">
+                            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>{% trans "هشدار!" %}</h5>
+                            <p class="mb-0">
+                                {% trans "این عملیات تمام داده‌های مدل‌های انتخاب‌شده را حذف خواهد کرد. این عمل غیرقابل بازگشت است." %}
+                            </p>
+                        </div>
+
+                        <form method="post" onsubmit="return confirm('{% trans "آیا مطمئن هستید؟ این عمل تمام داده‌های انتخاب‌شده را حذف می‌کند و غیرقابل بازگشت است." %}');">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="reset">
+
+                            <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th width="40px"></th>
+                                            <th>{% trans "مدل" %}</th>
+                                            <th>{% trans "رکوردها" %}</th>
+                                            <th>{% trans "روابط" %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for model in models %}
+                                            <tr>
+                                                <td>
+                                                    <input class="form-check-input model-checkbox" type="checkbox"
+                                                           name="models" value="{{ model.key }}" id="model-reset-{{ model.key }}">
+                                                </td>
+                                                <td>
+                                                    <label for="model-reset-{{ model.key }}" class="mb-0">
+                                                        <strong>{{ model.verbose_name }}</strong>
+                                                        <small class="d-block text-muted">{{ model.app_label }}.{{ model.model_name }}</small>
+                                                    </label>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-danger rounded-pill">{{ model.record_count }}</span>
+                                                </td>
+                                                <td>
+                                                    {% if model.relations %}
+                                                        <small>
+                                                            {% for relation in model.relations %}
+                                                                <span class="badge bg-secondary me-1">{{ relation.field_name }}</span>
+                                                            {% endfor %}
+                                                        </small>
+                                                    {% else %}
+                                                        <span class="badge bg-light text-dark">{% trans "بدون رابطه" %}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <button type="submit" class="btn btn-danger mt-3 w-100">
+                                <i class="fas fa-trash-alt me-2"></i>{% trans "حذف داده‌های انتخاب‌شده" %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'admin/js/vis-network.min.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Hide progress bar initially
+            document.getElementById('progress-container').style.display = 'none';
+
+            // Generate distinct colors for apps
+            function generateAppColors(count) {
+                const colors = [];
+                const hueStep = 360 / count;
+                for (let i = 0; i < count; i++) {
+                    const hue = (i * hueStep + 30) % 360; // Start from 30 to avoid red
+                    colors.push(`hsl(${hue}, 70%, 60%)`);
+                }
+                return colors;
+            }
+
+            const appColors = generateAppColors({{ app_labels|length }});
+            const appColorMap = {};
+            {% for app in app_labels %}
+                appColorMap['{{ app }}'] = appColors[{{ forloop.counter0 | to_persian_number }}];
+            {% endfor %}
+
+            // Prepare nodes data
+            const nodes = new vis.DataSet([
+                {% for model in models %}
+                {
+                    id: '{{ model.key }}',
+                    label: '{{ model.verbose_name }}',
+                    title: `
+                        اپلیکیشن: {{ model.app_label }}
+                        مدل: {{ model.model_name }}
+                        رکوردها: {{ model.record_count|default:"0" }}
+                    `,
+                    group: '{{ model.app_label }}',
+                    color: {
+                        background: appColorMap['{{ model.app_label }}'],
+                        border: '#2c3e50',
+                        highlight: {
+                            background: appColorMap['{{ model.app_label }}'],
+                            border: '#2c3e50'
+                        }
+                    },
+                    font: {
+                        color: '#fff',
+                        size: 14,
+                        face: 'Vazirmatn',
+                        bold: true
+                    },
+                    shape: 'box',
+                    shadow: true,
+                    margin: 10,
+                    widthConstraint: { minimum: 120, maximum: 200 },
+                    physics: true
+                },
+                {% endfor %}
+            ]);
+
+            // Prepare edges data
+            const edges = new vis.DataSet([
+                {% for model in models %}
+                    {% for relation in model.relations %}
+                    {
+                        from: '{{ model.key }}',
+                        to: '{{ relation.related_model_key }}',
+                        label: '{{ relation.field_name }}',
+                        title: '{{ relation.type }} → {{ relation.related_model_verbose_name }}',
+                        color: {
+                            color: {% if relation.type == 'ForeignKey' %}'var(--danger)'{% elif relation.type == 'ManyToManyField' %}'var(--primary)'{% else %}'var(--success)'{% endif %},
+                            highlight: 'var(--warning)'
+                        },
+                        arrows: 'to',
+                        smooth: { type: 'curvedCW', roundness: 0.2 },
+                        font: { size: 12, face: 'Vazirmatn', strokeWidth: 5, strokeColor: '#ffffff' },
+                        width: 2,
+                        selectionWidth: 3,
+                        physics: true
+                    },
+                    {% endfor %}
+                {% endfor %}
+            ]);
+
+            // Create the network
+            const container = document.getElementById('model-relations-graph');
+            const data = { nodes, edges };
+
+            const options = {
+                nodes: {
+                    shapeProperties: { borderRadius: 6 }
+                },
+                edges: {
+                    length: 200
+                },
+                physics: {
+                    enabled: true,
+                    solver: 'forceAtlas2Based',
+                    forceAtlas2Based: {
+                        gravitationalConstant: -100,
+                        centralGravity: 0.01,
+                        springLength: 200,
+                        springConstant: 0.08,
+                        damping: 0.4
+                    },
+                    stabilization: {
+                        enabled: true,
+                        iterations: 1000,
+                        updateInterval: 25
+                    }
+                },
+                interaction: {
+                    hover: true,
+                    tooltipDelay: 200,
+                    hideEdgesOnDrag: false,
+                    keyboard: { enabled: true }
+                }
+            };
+
+            const network = new vis.Network(container, data, options);
+
+            // Fit the network to view when initialized
+            network.once('stabilizationIterationsDone', function() {
+                network.fit({
+                    animation: {
+                        duration: 1000,
+                        easingFunction: 'easeInOutQuad'
+                    }
+                });
+            });
+
+            // Filter by application
+            document.getElementById('app-filter').addEventListener('change', function() {
+                const filter = this.value;
+
+                if (!filter) {
+                    nodes.forEach(node => {
+                        nodes.update({ id: node.id, hidden: false });
+                    });
+                    edges.forEach(edge => {
+                        edges.update({ id: edge.id, hidden: false });
+                    });
+                } else {
+                    nodes.forEach(node => {
+                        nodes.update({
+                            id: node.id,
+                            hidden: node.group !== filter
+                        });
+                    });
+
+                    edges.forEach(edge => {
+                        const fromNode = nodes.get(edge.from);
+                        const toNode = nodes.get(edge.to);
+                        edges.update({
+                            id: edge.id,
+                            hidden: !(fromNode && !fromNode.hidden && toNode && !toNode.hidden)
+                        });
+                    });
+                }
+
+                network.fit({
+                    animation: {
+                        duration: 800,
+                        easingFunction: 'easeInOutQuad'
+                    }
+                });
+            });
+
+            // Zoom controls
+            document.getElementById('zoom-in').addEventListener('click', function() {
+                network.moveTo({
+                    scale: network.getScale() * 1.2,
+                    animation: { duration: 300 }
+                });
+            });
+
+            document.getElementById('zoom-out').addEventListener('click', function() {
+                network.moveTo({
+                    scale: network.getScale() * 0.8,
+                    animation: { duration: 300 }
+                });
+            });
+
+            document.getElementById('zoom-fit').addEventListener('click', function() {
+                network.fit({
+                    animation: {
+                        duration: 800,
+                        easingFunction: 'easeInOutQuad'
+                    }
+                });
+            });
+
+            // Highlight connected nodes on selection
+            network.on('selectNode', function(params) {
+                if (params.nodes.length === 1) {
+                    const selectedNode = params.nodes[0];
+                    const connectedNodes = network.getConnectedNodes(selectedNode);
+
+                    nodes.forEach(node => {
+                        const isConnected = connectedNodes.includes(node.id);
+                        nodes.update({
+                            id: node.id,
+                            color: {
+                                background: isConnected ?
+                                    lightenColor(appColorMap[node.group], 20) :
+                                    appColorMap[node.group],
+                                border: isConnected ? '#ff5722' : '#2c3e50'
+                            }
+                        });
+                    });
+
+                    network.focus(selectedNode, {
+                        scale: 0.8,
+                        animation: { duration: 800 }
+                    });
+                }
+            });
+
+            // Reset highlights when clicking on empty space
+            network.on('deselectNode', function() {
+                nodes.forEach(node => {
+                    nodes.update({
+                        id: node.id,
+                        color: {
+                            background: appColorMap[node.group],
+                            border: '#2c3e50'
+                        }
+                    });
+                });
+            });
+
+            // Helper function to lighten colors
+            function lightenColor(color, percent) {
+                if (color.startsWith('hsl')) {
+                    const values = color.match(/\d+/g);
+                    const lightness = Math.min(100, parseInt(values[2]) + percent);
+                    return `hsl(${values[0]}, ${values[1]}%, ${lightness}%)`;
+                }
+                return color;
+            }
+
+            // Form validation
+            function validateBackupForm(form) {
+                const password = form.querySelector('#password').value;
+                if (password && (password.length < 8 || !/[a-zA-Z]/.test(password) || !/[0-9]/.test(password))) {
+                    alert('{% trans "رمز باید حداقل 8 کاراکتر با حروف و اعداد باشد." %}');
+                    return false;
+                }
+                return confirm('{% trans "آیا مطمئن هستید که می‌خواهید بک‌آپ ایجاد کنید؟" %}');
+            }
+
+            // Show progress bar on form submission
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function() {
+                    const progressContainer = document.getElementById('progress-container');
+                    const progressBar = progressContainer.querySelector('.progress-bar');
+
+                    const action = form.querySelector('input[name="action"]').value;
+                    let message = '';
+
+                    switch(action) {
+                        case 'backup_data':
+                            message = '{% trans "در حال ایجاد بک‌آپ از مدل‌های انتخاب‌شده..." %}';
+                            break;
+                        case 'backup_db':
+                            message = '{% trans "در حال ایجاد بک‌آپ کامل از دیتابیس..." %}';
+                            break;
+                        case 'restore':
+                            message = '{% trans "در حال بازگردانی داده‌ها از فایل بک‌آپ..." %}';
+                            break;
+                        case 'reset':
+                            message = '{% trans "در حال حذف داده‌های انتخاب‌شده..." %}';
+                            break;
+                        default:
+                            message = '{% trans "در حال پردازش درخواست..." %}';
+                    }
+
+                    progressBar.textContent = message;
+                    progressContainer.style.display = 'block';
+                });
+            });
+
+            // Check/uncheck model when clicked in graph
+            network.on('click', function(params) {
+                if (params.nodes.length) {
+                    const modelKey = params.nodes[0];
+                    ['model-', 'model-reset-'].forEach(prefix => {
+                        const checkbox = document.getElementById(prefix + modelKey);
+                        if (checkbox) checkbox.checked = !checkbox.checked;
+                    });
+                }
+            });
+        });
+    </script>
+{% endblock %}

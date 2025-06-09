@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header text-center bg-primary text-white">
+                    <h3><i class="fas fa-user-edit"></i> {% trans "ویرایش پروفایل" %}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                {{ form.errors }}
+                            </div>
+                        {% endif %}
+                        <div class="row">
+                            {% for field in form %}
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ field.id_for_label }}" class="form-label fw-bold">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="text-danger">{{ field.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button type="submit" class="btn btn-success btn-block">
+                            <i class="fas fa-save"></i> {% trans "ذخیره تغییرات" %}
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{% url 'accounts:profile_update_success' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> {% trans "بازگشت" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+ <script>
+document.addEventListener('DOMContentLoaded', function() {
+
+
+    const provinceSelect = document.getElementById('id_province');
+    const citySelect = document.getElementById('id_city');
+    if (provinceSelect && citySelect) {
+        provinceSelect.addEventListener('change', function() {
+            const provinceId = this.value;
+            fetch(`/get_cities/?province=${provinceId}`)
+                .then(response => response.json())
+                .then(data => {
+                    citySelect.innerHTML = '<option value="">---------</option>';
+                    data.forEach(city => {
+                        citySelect.innerHTML += `<option value="${city.id}">${city.name}</option>`;
+                    });
+                });
+        });
+    }
+});
+</script>
+{% endblock %}

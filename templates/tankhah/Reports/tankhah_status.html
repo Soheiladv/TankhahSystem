@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block extra_css %}
+
+    <style>
+         .container { max-width: 1200px; margin-top: 50px; }
+        .card { border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .table { background-color: #fff; border-radius: 8px; }
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-approved { background-color: #d4edda; color: #155724; }
+        .status-rejected { background-color: #f8d7da; color: #721c24; }
+        .badge { font-size: 0.9em; }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title text-center mb-4">{% trans "وضعیت تنخواه‌ها و فاکتورها" %}</h1>
+                {% if tankhahs_data %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{% trans "شماره تنخواه" %}</th>
+                                    <th>{% trans "سازمان" %}</th>
+                                    <th>{% trans "مرحله فعلی" %}</th>
+                                    <th>{% trans "وضعیت" %}</th>
+                                    <th>{% trans "فاکتورها" %}</th>
+                                    <th>{% trans "بودجه" %}</th>
+                                    <th>{% trans "اقدامات" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for data in tankhahs_data %}
+                                    <tr>
+                                        <td>{{ data.tankhah.number }}</td>
+                                        <td>{{ data.tankhah.organization.name }}</td>
+                                        <td>
+                                            {% if data.current_stage %}
+                                                <span class="badge bg-primary">{{ data.current_stage.name }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{% trans "نامشخص" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge status-{{ data.status|lower }}">
+                                                {{ data.tankhah.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% for factor_data in data.factors %}
+                                                <div>
+                                                    <strong>{{ factor_data.factor.number }}</strong>:
+                                                    {% if factor_data.current_stage %}
+                                                        <span class="badge bg-info">{{ factor_data.current_stage.name }}</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">{% trans "نامشخص" %}</span>
+                                                    {% endif %}
+                                                    <span class="badge status-{{ factor_data.status|lower }}">
+                                                        {{ factor_data.factor.get_status_display }}
+                                                    </span>
+                                                </div>
+                                            {% empty %}
+                                                {% trans "بدون فاکتور" %}
+                                            {% endfor %}
+                                        </td>
+                                        <td>
+                                            <div>{% trans "کل" %}: {{ data.budget.total|floatformat:0 }} {% trans "ریال" %}</div>
+                                            <div>{% trans "باقیمانده" %}: {{ data.budget.remaining|floatformat:0 }} {% trans "ریال" %}</div>
+                                        </td>
+                                        <td>
+                                            {% if data.can_view_details %}
+                                                <a href="{% url 'tankhah_detail' data.tankhah.pk %}" class="btn btn-sm btn-info">
+                                                    {% trans "جزئیات" %}
+                                                </a>
+                                            {% endif %}
+                                            {% if data.is_payment_ready %}
+                                                <a href="{% url 'payment_order_create' %}" class="btn btn-sm btn-primary">
+                                                    {% trans "ایجاد دستور پرداخت" %}
+                                                </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info text-center">
+                        {% trans "هیچ تنخواهی برای نمایش وجود ندارد." %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+ {% endblock %}

@@ -1,0 +1,15 @@
+{# reports/partials/_no_tankhahs_found.html #}
+{% load i18n static rcms_custom_filters %}
+
+<div class="alert alert-info text-center mt-3">
+    {% translate "هیچ تنخواه فعالی برای" %}
+    {% if parent_pba.project %}
+        {% translate "پروژه" %} "{{ parent_pba.project.name }}"
+        {% if parent_pba.subproject %}
+            / {% translate "زیرپروژه" %} "{{ parent_pba.subproject.name }}"
+        {% endif %}
+    {% else %}
+        {% translate "تخصیص پروژه" %} (ID: {{ parent_pba.pk|to_persian_number }})
+    {% endif %}
+    {% translate "یافت نشد." %}
+</div>

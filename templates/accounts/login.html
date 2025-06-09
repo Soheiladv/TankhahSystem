@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load i18n version_tags static %}
+
+{% block content %}
+    <div class="container-fluid vh-100 d-flex align-items-center justify-content-center"
+         style="background: linear-gradient(135deg, #E5E7EB 0%, #D1D5DB 100%);">
+        <div class="row w-100">
+            <div class="col-md-6 col-lg-4 mx-auto">
+                <div class="card shadow-lg animate__animated animate__fadeInUp"
+                     style="border-radius: 20px; overflow: hidden; background: #FFFFFF; border: 2px solid #D1D5DB;">
+                    <!-- هدر لاگین -->
+                    <div class="card-header bg-persian-blue text-white text-center py-4 position-relative">
+                        <h2 class="mb-0 animate__animated animate__fadeInDown"
+                            style=" font-weight: bold; color: #FFFFFF;">
+                            <i class="fas fa-sign-in-alt me-2"></i> {% trans "ورود به سامانه" %}
+                        </h2>
+                        <p class="mt-2 animate__animated animate__fadeIn animate__delay-1s"
+                           style=" color: #E5E7EB;">
+                            {% trans "با اطمینان و آرامش وارد شوید" %}
+                        </p>
+                    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message|safe }}  <!-- safe برای رندر HTML توی پیام -->
+            </div>
+        {% endfor %}
+    {% endif %}
+{##}
+{#    <form method="post" action="{% url 'accounts:login' %}">#}
+{#        {% csrf_token %}#}
+{#        <!-- فیلدهای فرم لاگین -->#}
+{#        <button type="submit" class="btn btn-primary">ورود</button>#}
+{#    </form>#}
+
+                    <!-- بدنه فرم -->
+                    <div class="card-body p-5">
+                        <form method="post" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            <!-- پیام‌های خطا -->
+                            {% if form.errors %}
+                                <div class="alert alert-danger animate__animated animate__shakeX mb-4"
+                                     style="background: #FEE2E2; border: 1px solid #FCA5A5; color: #DC2626;">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    {% trans "نام کاربری یا رمز عبور اشتباه است!" %}
+                                </div>
+                            {% endif %}
+                            <!-- فیلد نام کاربری -->
+                            <div class="mb-4 position-relative">
+                                <label for="id_username" class="form-label fw-bold"
+                                       style="color: #374151; ">
+                                    {% trans "نام کاربری" %}
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"
+                                          style="background: #E5E7EB; border: 2px solid #D1D5DB; border-right: none; border-radius: 10px 0 0 10px;">
+                                        <i class="fas fa-user" style="color: #0047AB;"></i>
+                                    </span>
+                                    <input type="text" name="username" id="id_username" class="form-control"
+                                           placeholder="{% trans 'نام کاربری خود را وارد کنید' %}"
+                                           required
+                                           style="border: 2px solid #D1D5DB; border-radius: 0 10px 10px 0;  color: #374151;">
+                                    <div class="invalid-feedback"
+                                         style=" color: #DC2626;">
+                                        {% trans "لطفاً نام کاربری را وارد کنید." %}
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- فیلد رمز عبور -->
+                            <div class="mb-4 position-relative">
+                                <label for="id_password" class="form-label fw-bold"
+                                       style="color: #374151; ">
+                                    {% trans "رمز عبور" %}
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"
+                                          style="background: #E5E7EB; border: 2px solid #D1D5DB; border-right: none; border-radius: 10px 0 0 10px;">
+                                        <i class="fas fa-lock" style="color: #0047AB;"></i>
+                                    </span>
+                                    <input type="password" name="password" id="id_password" class="form-control"
+                                           placeholder="{% trans 'رمز عبور خود را وارد کنید' %}"
+                                           required
+                                           style="border: 2px solid #D1D5DB; border-radius: 0 10px 10px 0;  color: #374151;">
+                                    <div class="invalid-feedback"
+                                         style=" color: #DC2626;">
+                                        {% trans "لطفاً رمز عبور را وارد کنید." %}
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- دکمه ورود -->
+                            <button type="submit" class="btn btn-persian w-100 py-3 mt-3 animate__animated animate__pulse animate__infinite"
+                                    style="">
+                                <i class="fas fa-sign-in-alt me-2"></i> {% trans "ورود" %}
+                            </button>
+                        </form>
+                        <!-- لینک فراموشی رمز -->
+                        <div class="text-center mt-4">
+                            <a href="#" class="small animate__animated animate__fadeIn animate__delay-2s"
+                               style="color: #0047AB; ">
+                                {% trans "رمز عبور خود را فراموش کرده‌اید؟" %}
+                            </a>
+                        </div>
+                    </div>
+                    <!-- فوتر کارت -->
+                    <div class="card-footer text-center py-3"
+                         style="background: #E5E7EB; color: #374151; ">
+                        <small>{% trans "سامانه مدیریت بودجه سازمانی - نسخه" %} {% get_final_version %}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- استایل‌های سفارشی -->
+    <style>
+        /* رنگ آبی پرشین برای هدر */
+        .bg-persian-blue {
+            background: linear-gradient(135deg, #0047AB, #1E3A8A);
+        }
+
+        /* دکمه با تم آبی پرشین */
+        .btn-persian {
+            background: linear-gradient(45deg, #0047AB, #1E3A8A);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 71, 171, 0.3);
+        }
+
+        .btn-persian:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 71, 171, 0.5);
+        }
+
+        /* تنظیمات فرم */
+        .form-control {
+            border: 2px solid #D1D5DB;
+            transition: all 0.3s ease;
+            background: #FFFFFF;
+        }
+
+        .form-control:focus {
+            border-color: #0047AB;
+            box-shadow: 0 0 10px rgba(0, 71, 171, 0.3);
+            background: #FFFFFF;
+        }
+
+        .input-group-text {
+            border: 2px solid #D1D5DB;
+            border-right: none;
+        }
+
+        /* افکت هاور کارت */
+        .card {
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ولیدیشن فرم */
+        .invalid-feedback {
+            color: #DC2626;
+        }
+
+        /* فونت و تنظیمات کلی */
+        body {
+            
+        }
+    </style>
+
+    <!-- اسکریپت ولیدیشن فرم -->
+    <script>
+        (function () {
+            'use strict';
+            window.addEventListener('load', function () {
+                var forms = document.getElementsByClassName('needs-validation');
+                Array.prototype.filter.call(forms, function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+    </script>
+
+
+
+    <script>
+    // Heartbeat برای به‌روزرسانی سشن
+    setInterval(function() {
+        fetch("{% url 'accounts:heartbeat' %}", { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+            .then(response => console.log("Heartbeat OK"))
+            .catch(error => console.log("Heartbeat failed:", error));
+    }, 60000); // هر 60 ثانیه
+</script>
+{% endblock %}

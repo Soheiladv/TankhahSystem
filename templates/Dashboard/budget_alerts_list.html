@@ -1,0 +1,14 @@
+{% load i18n %}
+{% if alerts %}
+<ul class="list-group list-group-flush">
+    {% for alert in alerts %}
+    <li class="list-group-item {% if alert.type == 'warning' %}list-group-item-warning{% elif alert.type == 'error' %}list-group-item-danger{% else %}list-group-item-info{% endif %}">
+        <a href="#" class="alert-link" data-related-id="{{ alert.related_id }}" data-related-type="{{ alert.related_type }}">
+            {{ alert.message }}
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="text-center">{% translate "هیچ هشداری برای نمایش وجود ندارد." %}</p>
+{% endif %}

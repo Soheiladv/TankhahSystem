@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load i18n static rcms_custom_filters tanbakh_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">{{ title }}</h1>
+
+    <!-- کارت اطلاعات تنخواه -->
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">{% trans "اطلاعات تنخواه" %}</h5>
+        </div>
+        <div class="card-body">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>{% trans "شماره تنخواه" %}:</strong> {{ report.tankhah.number }}</li>
+                <li class="list-group-item"><strong>{% trans "وضعیت" %}:</strong> <span class="badge bg-{{ report.tankhah.status|lower }}">{{ report.tankhah.status }}</span></li>
+                <li class="list-group-item"><strong>{% trans "سازمان" %}:</strong> {{ report.tankhah.organization.name }}</li>
+                <li class="list-group-item"><strong>{% trans "پروژه" %}:</strong> {{ report.tankhah.project.name }}</li>
+                <li class="list-group-item"><strong>{% trans "تاریخ ثبت" %}:</strong> {{ report.tankhah.created_at|date:"Y/m/d" }}</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- گزارش مالی -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card text-center bg-info text-white shadow-lg">
+                <div class="card-body">
+                    <h5>{% trans "مبلغ کل" %}</h5>
+                    <p class="fs-3">{{ report.total_amount|floatformat:0|to_persian_number }} {% trans "تومان" %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center bg-success text-white shadow-lg">
+                <div class="card-body">
+                    <h5>{% trans "مبلغ تأییدشده" %}</h5>
+                    <p class="fs-3">{{ report.approved_amount|floatformat:0|to_persian_number }} {% trans "تومان" %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center bg-danger text-white shadow-lg">
+                <div class="card-body">
+                    <h5>{% trans "مبلغ ردشده" %}</h5>
+                    <p class="fs-3">{{ report.rejected_amount|floatformat:0|to_persian_number }} {% trans "تومان" %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- تعداد فاکتورها -->
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">{% trans "آمار فاکتورها" %}</h5>
+        </div>
+        <div class="card-body">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">{% trans "تعداد کل فاکتورها" %}: <strong>{{ report.total_factors|to_persian_number }}</strong></li>
+                <li class="list-group-item">{% trans "فاکتورهای تأییدشده" %}: <strong>{{ report.approved_factors|to_persian_number }}</strong></li>
+                <li class="list-group-item">{% trans "فاکتورهای ردشده" %}: <strong>{{ report.rejected_factors|to_persian_number }}</strong></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- فرم شماره پرداخت -->
+    <div class="card shadow-lg mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">{% trans "ثبت شماره پرداخت" %}</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" class="row g-3">
+                {% csrf_token %}
+                <div class="col-md-6">
+                    <label for="{{ form.payment_number.id_for_label }}" class="form-label">{% trans "شماره پرداخت" %}</label>
+                    {{ form.payment_number|format_negative }}
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <button type="submit" class="btn btn-success w-100">{% trans "ذخیره" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- اطلاعات گزارش -->
+    <div class="card shadow-lg">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">{% trans "جزئیات گزارش" %}</h5>
+        </div>
+        <div class="card-body">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">{% trans "شماره پرداخت" %}: <strong>{{ report.payment_number|default:"ثبت نشده" }}</strong></li>
+                <li class="list-group-item">{% trans "تاریخ گزارش" %}: <strong>{{ report.report_date|date:"Y/m/d H:i" }}</strong></li>
+                <li class="list-group-item">{% trans "آخرین وضعیت" %}: <strong>{{ report.last_status|default:"نامشخص" }}</strong></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- استایل و اسکریپت -->
+{% block extra_css %}
+<style>
+    .badge.bg-draft { background-color: #6c757d; }
+    .badge.bg-pending { background-color: #ffc107; }
+    .badge.bg-paid { background-color: #28a745; }
+</style>
+{% endblock %}
+{% block extra_js %}
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{% static 'admin/img/favicon.ico' %}" type="image/x-icon">
+    <link href="{% static 'admin/css/all.min.css' %}" rel="stylesheet">
+    <link href="{% static 'admin/css/animate.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'admin/jquery.ui.datepicker.jalali/themes/base/jquery-ui.min.css' %}">
+    <script src="{% static 'admin/js/them1.js' %}" defer></script>
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+{#    <link href="{% static 'admin/css/custom.css' %}" rel="stylesheet">#}
+    <link rel="stylesheet" href="{% static 'admin/css/admin_custom.css' %}">
+
+
+    {% if LANGUAGE_BIDI %}
+{#        <link rel="stylesheet" href="{% static 'admin/css/rtl.css' %}">#}
+    {% endif %}
+{% endblock %}
+
+{% block title %}{{ title }} | {% trans 'پنل مدیریت تنخواه' %}{% endblock %}
+
+{% block branding %}
+    <div id="site-name" class="animate__animated animate__fadeInDown">
+        <a href="{% url 'admin:index' %}">
+            <i class="fas fa-tachometer-alt"></i> {% trans 'پنل مدیریت تنخواه' %}
+        </a>
+    </div>
+{% endblock %}
+
+{% block userlinks %}
+    {{ block.super }}
+{#    {% include "admin/color_theme_toggle.html" %}#}
+{% endblock %}
+
+{% block footer %}
+    <div id="footer" class="animate__animated animate__fadeInUp">
+        <p>
+            {% trans 'سیستم مدیریت تنخواه' %} © {% now "Y" %} |
+            {% trans 'توسعه داده شده توسط تیم ارجمند' %}
+        </p>
+    </div>
+{% endblock %}
+
+{% block bodyclass %}theme-auto{% endblock %}
+

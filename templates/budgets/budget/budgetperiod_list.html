@@ -1,0 +1,507 @@
+{% extends "base.html" %}
+{% load i18n rcms_custom_filters jformat static %}
+
+{% block title %}{% trans "فهرست بودجه کلان" %}{% endblock %}
+
+{% block extra_css %}
+
+<style>
+    .budget-list-page {
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+    }
+
+    .card {
+        border: none;
+        border-radius: 0.8rem;
+        overflow: hidden;
+        animation: fadeInScaleUp 0.6s ease-out forwards;
+    }
+
+    .card-header {
+        background: var(--bs-primary);
+        border-bottom: none;
+        padding: 1rem 1.5rem;
+    }
+
+    .card-header h4 {
+        margin-bottom: 0;
+        font-weight: 600;
+        font-size: 1.25rem;
+    }
+
+    .card-header .btn-light {
+        font-weight: 500;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .card-header .btn-light:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-1px);
+    }
+
+    .table {
+        margin-bottom: 0;
+        --bs-table-striped-bg: rgba(var(--bs-primary-rgb), 0.03);
+    }
+
+    .table th {
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background-color: var(--bs-light-bg-subtle);
+        vertical-align: middle;
+    }
+
+    .table td {
+        vertical-align: middle;
+        font-size: 0.95rem;
+        padding: 0.75rem;
+    }
+
+    .action-buttons .btn {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.85rem;
+    }
+
+    .status-badge {
+        font-weight: 500;
+        padding: 0.3em 0.6em;
+        font-size: 0.85em;
+        border-radius: var(--bs-border-radius-sm);
+    }
+    .status-badge.active { background-color: var(--bs-success-bg-subtle); color: var(--bs-success-text-emphasis); border: 1px solid var(--bs-success-border-subtle); }
+    .status-badge.inactive { background-color: var(--bs-secondary-bg-subtle); color: var(--bs-secondary-text-emphasis); border: 1px solid var(--bs-secondary-border-subtle); }
+
+    .status-badge.locked {
+        background-color: var(--bs-danger-bg-subtle);
+        color: var(--bs-danger-text-emphasis);
+        border: 1px solid var(--bs-danger-border-subtle);
+    }
+
+    .status-badge.completed {
+        background-color: var(--bs-warning-bg-subtle);
+        color: var(--bs-warning-text-emphasis);
+        border: 1px solid var(--bs-warning-border-subtle);
+    }
+
+    .status-badge.archived {
+        background-color: var(--bs-warning-bg-subtle);
+        color: var(--bs-warning-text-emphasis);
+        border: 1px solid var(--bs-warning-border-subtle);
+        margin-right: 5px;
+    }
+
+    .text-numeric {
+        text-align: end;
+        font-family: monospace;
+    }
+
+    @keyframes fadeInScaleUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.98);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes fadeInRow {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media print {
+        body { font-size: 10pt; }
+        .no-print, .card-header .btn, .action-buttons { display: none !important; }
+
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #ccc !important;
+            border-radius: 0 !important;
+        }
+        .table, .table th, .table td { border: 1px solid #ccc !important; }
+
+        .table-striped tbody tr:nth-child(odd) {
+            background: #fff !important;
+        }
+        .container-lg, .budget-list-page { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+    }
+
+    .search-form {
+        margin-bottom: 1.5rem;
+    }
+
+    .search-form .form-control, .search-form .form-select {
+        font-size: 0.9rem;
+        border-radius: 0.5rem;
+    }
+
+    .search-form .form-label {
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+
+    .search-form .btn {
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+    }
+
+    .search-form .jalali-datepicker {
+        direction: ltr;
+        text-align: right;
+        font-family: Vazirmatn, sans-serif;
+    }
+
+    .persian-datepicker {
+        z-index: 1050;
+    }
+
+    /* اطمینان از نمایش بالای سایر المان‌ها */
+    .status-badge.archived {
+        background-color: var(--bs-secondary-bg-subtle); /* یا رنگ دلخواه دیگر */
+        color: var(--bs-secondary-text-emphasis);
+        border: 1px solid var(--bs-secondary-border-subtle);
+    }
+
+    .status-badge.upcoming {
+        background-color: var(--bs-info-bg-subtle);
+        color: var(--bs-info-text-emphasis);
+        border: 1px solid var(--bs-info-border-subtle);
+    }
+
+    .status-badge.expired {
+        background-color: var(--bs-warning-bg-subtle);
+        color: var(--bs-warning-text-emphasis);
+        border: 1px solid var(--bs-warning-border-subtle);
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="container-lg budget-list-page">
+        <div class="card shadow-sm">
+            <div class="card-header text-numeric d-flex justify-content-between align-items-center no-print">
+            <h4 class="mb-0 d-flex align-items-center gap-2">
+                <i class="fas fa-landmark fa-fw"></i>
+                {% trans "فهرست بودجه کلان" %}
+            </h4>
+            <div class="no-print">
+                <a href="{% url 'budgetperiod_create' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-plus me-1"></i>
+                    {% trans "ثبت بودجه کلان جدید" %} <i class="fas fa-dollar me-1"></i>
+                </a>
+            </div>
+
+                <div class="no-print">
+                    <a href="{% url 'budget_Help' %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-user-graduate me-1"></i> {% trans "راهنمای کار بودجه کلان" %}
+                    </a>
+                </div>
+            </div>
+            <!-- خلاصه وضعیت‌ها و تعداد نتایج -->
+            <div class="card-body no-print">
+                <div class="alert alert-info d-flex justify-content-between align-items-center">
+                <span>
+                    {% trans "تعداد کل دوره‌ها" %}: {{ status_summary.total|to_persian_number }} |
+                    {% trans "فعال" %}: {{ status_summary.active|to_persian_number }} |
+                    {% trans "قفل‌شده" %}: {{ status_summary.locked|to_persian_number }} |
+                    {% trans "تمام‌شده" %}: {{ status_summary.completed|to_persian_number }}
+                </span>
+                    <span>
+                    {% trans "نتایج یافت‌شده" %}: {{ result_count|to_persian_number }}
+                </span>
+                </div>
+            </div>
+
+            <!-- فرم جستجو -->
+            <div class="card-body no-print search-form">
+                <form method="GET" action="{% url 'budgetperiod_list' %}" class="row g-3" id="searchForm">
+                    <div class="col-md-3">
+                        <label for="q" class="form-label">{% trans "جستجو" %}</label>
+                        <input type="text" name="q" id="q" value="{{ query|default:'' }}" class="form-control"
+                               placeholder="{% trans 'نام دوره یا سازمان' %}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">{% trans "وضعیت" %}</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="" {% if not status %}selected{% endif %}>{% trans "همه" %}</option>
+                            <option value="active"
+                                    {% if status == 'active' %}selected{% endif %}>{% trans "فعال" %}</option>
+                            <option value="inactive"
+                                    {% if status == 'inactive' %}selected{% endif %}>{% trans "غیرفعال" %}</option>
+                            <option value="locked"
+                                    {% if status == 'locked' %}selected{% endif %}>{% trans "قفل‌شده" %}</option>
+                            <option value="completed"
+                                    {% if status == 'completed' %}selected{% endif %}>{% trans "تمام‌شده" %}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="date_from" class="form-label">{% trans "از تاریخ" %}</label>
+
+                        <input type="text" name="date_from" id="start_date" value="{{ date_from|default:'' }}"
+                               class="form-control  " placeholder="1404/01/01 مثلاً " data-jdp autocomplete="off">
+
+
+                    </div>
+                    <div class="col-md-2">
+                        <label for="date_to" class="form-label">{% trans "تا تاریخ" %}</label>
+                        <input type="text" name="date_to" id="end_date" data-jdp value="{{ date_to|default:'' }}"
+                               class="form-control jalali-datepicker" placeholder="مثلاً 1404/12/29" autocomplete="off">
+                    </div>
+
+
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2"><i
+                                class="fas fa-search me-1"></i> {% trans "جستجو" %}</button>
+                        <a href="{% url 'budgetperiod_list' %}" class="btn btn-secondary"><i
+                                class="fas fa-undo me-1"></i> {% trans "بازنشانی" %}</a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-bordered table-sm align-middle mb-0">
+                    <thead class="text-center table-light">
+                    <tr>
+                        <th style="width: 5%;">{% trans "ردیف" %}</th>
+                        <th>{% trans "نام دوره" %}</th>
+                        <th>{% trans "دفتر مرکزی" %}</th>
+                        <th class="text-end">{% trans "مبلغ کل" %} <small>({% trans "ریال" %})</small></th>
+                        <th class="text-end">{% trans "باقی‌مانده" %} <small>({% trans "ریال" %})</small></th>
+                        <th>{% trans "تاریخ شروع" %}</th>
+                        <th>{% trans "تاریخ پایان" %}</th>
+                        <th>{% trans "وضعیت" %}</th>
+                        <th style="width: 25%;" class="no-print">{% trans "اقدامات" %}</th>
+                    </tr>
+                </thead>
+                    <tbody class="text-center">
+                    {% for budget_period in budget_periods %}
+                        <tr style="--row-index: {{ forloop.counter0 }};">
+                        <td>{{ forloop.counter|to_persian_number }}</td>
+                            <td class="text-start">{{ budget_period.name|to_persian_number_with_comma }}</td>
+                            <td class="text-start">{{ budget_period.organization.name|to_persian_number_with_comma }}</td>
+                            <td class="text-numeric">{{ budget_period.total_amount|format_negative }}</td>
+                            <td class="text-numeric {% if budget_period.remaining_amount < 0 %}text-danger fw-bold{% endif %}">
+                            {{ budget_period.remaining_amount|format_negative }}
+                        </td>
+                        <td class="font-monospace">{{ budget_period.start_date|jformat:'%Y/%m/%d'|to_persian_number }}</td>
+                        <td class="font-monospace">{{ budget_period.end_date|jformat:'%Y/%m/%d'|to_persian_number }}</td>
+                        <td>
+                            {# --- نمایش وضعیت جدید --- #}
+                            <span class="status-badge {{ budget_period.status_css_class }}">
+                            {% if budget_period.display_status == 'active' %}
+                                {% trans "فعال" %}
+                            {% elif budget_period.display_status == 'inactive' %}
+                                {% trans "غیرفعال" %}
+                            {% elif budget_period.display_status == 'locked' %}
+                                {% trans "قفل‌شده" %}
+                            {% elif budget_period.display_status == 'completed' %}
+                                {% trans "تمام‌شده" %}
+                            {% elif budget_period.display_status == 'archived' %}
+                                {% trans "بایگانی" %}
+                            {% elif budget_period.display_status == 'upcoming' %}
+                                {% trans "آینده" %}
+                            {% elif budget_period.display_status == 'expired' %}
+                                {% trans "منقضی" %}
+                            {% else %}
+                                - {# نمایش برای وضعیت نامشخص #}
+                            {% endif %}
+                        </span>
+                            {# نمایش بایگانی به صورت جداگانه دیگر لازم نیست #}
+                            {# {% if budget_period.is_archived %} ... {% endif %} #}
+                            {# --- پایان نمایش وضعیت جدید --- #}
+                        </td>
+                            <td class="action-buttons no-print">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Budget Period Actions">
+                                <a href="{% url 'budgetperiod_detail' budget_period.pk %}" class="btn btn-outline-primary" title="{% trans 'جزئیات' %}">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'budgetperiod_update' budget_period.pk %}" class="btn btn-outline-secondary" title="{% trans 'ویرایش' %}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'budgetperiod_delete' budget_period.pk %}" class="btn btn-outline-danger" title="{% trans 'حذف' %}" onclick="return confirm('{% trans 'آیا از حذف این دوره بودجه و تمام تخصیص‌های مرتبط با آن مطمئن هستید؟' %}');">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                </div>
+                                <div class="btn-group btn-group-sm mt-1" role="group">
+                                    <a href="{% url 'budgetallocation_create' %}?budget_period={{ budget_period.pk }}"
+                                       class="btn btn-success" title="{% trans 'تخصیص جدید به شعب' %}">
+                                    <i class="fas fa-plus"></i> {% trans "تخصیص" %}
+                                </a>
+                                <a href="{% url 'budgetallocation_list' %}?q={{ budget_period.name }}" class="btn btn-info" title="{% trans 'مشاهده تخصیص‌های این دوره' %}">
+                                    <i class="fas fa-list-ul"></i> {% trans "لیست تخصیص‌ها" %}
+                                </a>
+                                </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-4">
+                            <i class="fas fa-info-circle fa-lg text-muted me-2"></i>
+                            {% trans "هیچ بودجه کلانی یافت نشد." %}
+                            <a href="{% url 'budgetperiod_create' %}"
+                               class="btn btn-sm btn-primary ms-2 no-print">{% trans "ثبت بودجه جدید" %}</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                    {# --- بخش جدید: جمع کل --- #}
+                    <tfoot>
+                    <tr class="table-light fw-bold"> {# استایل برای ردیف جمع کل #}
+                        <td colspan="3" class="text-center">{% trans "جمع کل نتایج" %}</td>
+                        {# ادغام 3 ستون اول #}
+                        <td class="text-numeric">{{ total_sum|format_negative }}</td>
+                        {# نمایش جمع مبلغ کل #}
+                        <td class="text-numeric {% if total_remaining < 0 %}text-danger{% endif %}">{{ total_remaining|format_negative }}</td>
+                        {# نمایش جمع باقی‌مانده #}
+                        <td colspan="3"></td>
+                        {# ادغام ستون‌های تاریخ و وضعیت #}
+                        <td class="no-print"></td>
+                        {# ستون اقدامات خالی #}
+                    </tr>
+                    </tfoot>
+                    {# --- پایان بخش جمع کل --- #}
+                </table>
+            </div>
+
+
+            {% if is_paginated %}
+                <div class="card-footer bg-light no-print">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=
+
+                                            {{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                                       aria-label="{% trans 'Previous' %}">
+                                        «
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">«</span></li>
+                            {% endif %}
+
+                            {% for num in paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active" aria-current="page"><span
+                                            class="page-link">{{ num|to_persian_number }}</span></li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item"><a class="page-link" href="?page=
+
+                                            {{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num|to_persian_number }}</a>
+                                    </li>
+                                {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=
+
+                                            {{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                                       aria-label="{% trans 'Next' %}">
+                                        »
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">»</span></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // فعال‌سازی دیتاپیکر
+            jalaliDatepicker.startWatch();
+
+            function convertToNumber(dateStr) {
+                return parseInt(dateStr.replace(/\//g, ''), 10);  // تبدیل "1403/01/15" به 14030115
+            }
+
+            // اعتبارسنجی و محدود کردن تاریخ
+            $('#start_date').on('change', function () {
+                const startVal = $(this).val();
+                $('#end_date').val(''); // پاک کردن تاریخ پایان برای جلوگیری از حالت نامعتبر
+                $('#date-error').addClass('d-none');
+
+                // محدود کردن تاریخ پایان به بعد از تاریخ شروع
+                jalaliDatepicker.updateOptions('#end_date', {
+                    minDate: startVal
+                });
+            });
+
+            function updateDateTime() {
+                const now = new Date().toLocaleDateString('fa-IR', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+                $('#datetime').text(now);
+            }
+
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+
+            const sidebar = $('#sidebar');
+            const toggleBtn = $('#sidebarToggle');
+            const content = $('#mainContent');
+            toggleBtn.on('click', function () {
+                sidebar.toggleClass('active animate__animated animate__slideInRight');
+                sidebar.removeClass('animate__slideOutRight');
+                content.toggleClass('shifted');
+                if (!sidebar.hasClass('active')) {
+                    sidebar.addClass('animate__animated animate__slideOutRight');
+                }
+            });
+
+            jalaliDatepicker.startWatch();
+
+        });
+    </script>
+
+
+    <link rel="stylesheet" href="{% static 'admin/css/jalalidatepicker.min.css' %}">
+
+    <script src="{% static 'admin/js/jalalidatepicker.min.js' %}"></script>
+    <script>
+        $(document).ready(function () {
+            $('#date_from').persianDatepicker({
+                format: 'YYYY/MM/DD',
+                altFormat: 'YYYY/MM/DD',
+                calendarType: 'persian'
+            });
+            $('#date_to').persianDatepicker({
+                format: 'YYYY/MM/DD',
+                altFormat: 'YYYY/MM/DD',
+                calendarType: 'persian'
+            });
+        });
+    </script>
+
+
+
+
+
+{% endblock %}

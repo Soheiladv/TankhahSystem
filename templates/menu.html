@@ -1,0 +1,173 @@
+<!-- menu.html -->
+
+{% load jalali_tags %}
+{% load static %}
+{% load humanize %}
+{% load jformat %}
+
+
+<div class="sidebar no-print animate__animated animate__slideInRight d-md-block hidden" id="sidebar">
+    <button class="btn btn-secondary mb-3" id="toggleSidebar"><i class="fas fa-bars"></i></button>
+    <a href="{% url 'index' %}"><i class="fas fa-home"></i><span>خانه</span></a>
+
+    <!-- منوی کوتاه -->
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#ShortMenu"><i class="fas fa-user"></i>منوی کوتاه</a>
+    <div id="ShortMenu" class="collapse" style="background: #0b2e13">
+        {% if user_permissions.software_links_view %}
+            <a href="{% url 'software_links' %}"><i class="fas fa-user"></i> مدیریت لینک </a>
+        {% endif %}
+        <!-- و بقیه منوهای کوتاه -->
+    </div>
+
+    <!-- تنظیمات سیستم -->
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#userOperationsMenu" onclick="toggleMenu()">
+        <i class="fas fa-user"></i> تنظیمات سیستم
+        <i class="fas fa-chevron-down rotate-icon"></i>
+    </a>
+    <div id="userOperationsMenu" class="collapse">
+        {% if user_permissions.Complex_view %}
+            <a href="{% url 'complexList' %}"><i class="fas fa-building"></i> مجتمع‌ها </a>
+        {% endif %}
+        <!-- و بقیه منوهای تنظیمات سیستم -->
+    </div>
+تمامی منو ها را میخواهم در یک فایل جدا گانه لود کنم و در تملیت بارگذاری شود
+
+
+
+                            {% if user_permissions.Complex_view %}
+                                <li><a href="{% url 'complexList' %}">مشاهده مجتمع‌ها</a></li>
+                            {% endif %}
+                            {% if user_permissions.Complex_add %}
+                                <li><a href="{% url 'complex_add' %}">اضافه کردن مجتمع جدید</a></li>
+                            {% endif %}
+                             {% if user.is_authenticated %}
+                                <span style="color: lightgoldenrodyellow"> {{ user.username }}</span><span> کاربر فعال</span>
+                             {% else %}
+                             <!-- ورود -->
+                                <a href="{% url 'accounts:login' %}" class="btn btn-outline-warning w-100 mb-2">
+                                    <i class="fas fa-sign-in-alt"></i> ورود
+                                </a>
+                            {% endif %}
+
+
+
+{#        {% if user_permissions.software_links_view %}#}
+{#            <a href="{% url 'software_links' %}"><i class="fas fa-user"></i> مدیریت لینک </a>#}
+{#        {% endif %}#}
+{#        {% if user_permissions.Expense_View %}#}
+{#            <a href="{% url 'expense_list' %}"><i class="fas fa-file-invoice"></i> فهرست قبوض </a>#}
+{#        {% endif %}#}
+{#        {% if user_permissions.Expense_Add %}#}
+{#            <a href="{% url 'expense_create' %}"><i class="fas fa-file-invoice"></i> صدور قبوض </a>#}
+{#        {% endif %}#}
+{#        {% if user_permissions.TenantHistory_View %}#}
+{#            <a href="{% url 'tenant_history_list' %}"><i class="fas fa-user-clock"></i> مالک/مستجر </a>#}
+{#        {% endif %}#}
+{#        {% if user_permissions.UserMessage_View %}#}
+{#            <a href="{% url 'user_message_list' %}"><i class="fas fa-envelope"></i> پیام‌ها </a>#}
+{#        {% endif %}#}
+{#        {% if user_permissions.Fund_View %}#}
+{#            <a href="{% url 'fund_list' %}"><i class="fas fa-piggy-bank"></i> صندوق </a>#}
+{#        {% endif %}#}
+{#        {% if user_permissions.Unit_View %}#}
+{#            <a href="{% url 'unitList' %}"><i class="fas fa-list"></i> فهرست واحدها</a>#}
+{#        {% endif %}#}
+{#        {% if user_permissions.Complex_View %}#}
+{#            <a href="{% url 'select_complex' %}"><i class="fas fa-building"></i> فهرست تراکنش واحد</a>#}
+{#        {% endif %}#}
+{#        {% if user_permissions.Reservation_View %}#}
+{#            <a href="{% url 'reservation_list' %}" class="nav-link"><i class="fas fa-calendar-check"></i> رزروها</a>#}
+{#        {% endif %}#}
+{#        {% if user_permissions.MeetingRequest_Add %}#}
+{#            <a href="{% url 'meeting_request_create' %}"><i class="fas fa-calendar-plus"></i> درخواست جلسه</a>#}
+{#        {% endif %}#}
+
+{#        {% if user_permissions.RCMS.MeetingRequest_Add %}#}
+{#                <a href="{% url 'meeting_request_create' %}"><i class="fas fa-calendar-plus"></i> درخواست جلسه</a>#}
+{#        {% endif %}#}
+
+{##########################################################################################################################}
+
+  <div class="sidebar no-print animate__animated animate__slideInRight d-md-block hidden" id="sidebar">
+
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#ShortMenu"><i class="fas fa-user"></i>منوی کوتاه</a>
+    <div id="ShortMenu" class="collapse" style="background: #0b2e13">
+
+    <button class="btn btn-secondary mb-3 " id="toggleSidebar"><i class="fas fa-bars"></i></button>
+    <a href="{% url 'index' %}"><i class="fas fa-home"></i><span>خانه</span></a>
+
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#ShortMenu"><i class="fas fa-user"></i>منوی کوتاه</a>
+    <div id="ShortMenu" class="collapse" style="background: #0b2e13">
+
+
+    </div>
+
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#userOperationsMenu" onclick="toggleMenu()">
+        <i class="fas fa-user"></i> تنظیمات سیستم
+        <i class="fas fa-chevron-down rotate-icon"></i>
+    </a>
+    <div id="userOperationsMenu" class="collapse">
+
+    </div>
+
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#reportOperationsMenu"><i class="fas fa-user"></i>صدور قبض و
+        سند</a>
+    <div id="reportOperationsMenu" class="collapse">
+
+
+    </div>
+
+    <a href="#" style="color: #00dd1c" data-bs-toggle="collapse" data-bs-target="#transactionListMenu"><i
+            class="fas fa-list"></i> فهرست تراکنش‌ها</a>
+    <div id="transactionListMenu" class="collapse">
+
+
+    </div>
+
+    <
+    </div>
+
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#reservMenu"><i class="fas fa-calendar-check"></i>
+        رزرواسیون</a>
+    <div id="reservMenu" class="collapse">
+
+    </div>
+
+    <a href="#" style="color: #81d4fa" data-bs-toggle="collapse" data-bs-target="#userManagementMessage">
+        <i class="fas fa-users"></i>جلسات و پیام‌ها
+    </a>
+    <div id="userManagementMessage" class="collapse">
+
+    </div>
+
+    <a href="#" style="color: yellow  " data-bs-toggle="collapse" data-bs-target="#hseMenu"><i
+            class="fas fa-hard-hat"></i> HSE ایمنی</a>
+    <div id="hseMenu" class="collapse">
+
+    </div>
+
+    <a href="#" style="color:#00ffd5" data-bs-toggle="collapse" data-bs-target="#FacilityManagementMenu">
+        <i class="fas fa-users"></i>مدیریت تاسیسات
+    </a>
+    <div id="FacilityManagementMenu" class="collapse">
+        <ul class="navbar-nav">
+
+        </ul>
+    </div>
+
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#WasteShoot">
+        <i class="fas fa-users"></i> نظافت
+    </a>
+    <div id="WasteShoot" class="collapse">
+        <ul class="navbar-nav" style="background-color: #363209cb;">
+
+        </ul>
+    </div>
+
+    <a href="#" class="btn btn-dark w-100" data-bs-toggle="collapse" data-bs-target="#userManagementMenu">
+        <i class="fas fa-users"></i> کاربری سیستم
+    </a>
+
+
+</div>
+</div>

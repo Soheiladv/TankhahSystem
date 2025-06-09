@@ -1,0 +1,117 @@
+{# reports/partials/_ajax_level_budget_allocations.html #}
+{% load i18n static rcms_custom_filters %} {# rcms_custom_filters را اگر به هیچ فیلتر دیگری نیاز ندارید، حذف کنید #}
+
+<h6 class="mb-3 mt-4 text-primary">
+    <i class="fas fa-tasks me-2"></i>{% translate "سرفصل‌های بودجه تخصیص یافته" %}
+    <a href="{% url 'budgetallocation_create' %}?period_id={{ parent_period_pk }}&org_id={{ parent_org_pk }}" class="btn btn-sm btn-outline-success ms-3 no-print">
+        <i class="fas fa-plus-circle me-1"></i>{% translate "افزودن تخصیص جدید" %}
+    </a>
+</h6>
+<div class="table-responsive">
+    <table class="table table-bordered table-striped table-hover small">
+        <thead class="table-light">
+            <tr>
+                <th scope="col">{% translate "نام سرفصل" %}</th>
+                <th scope="col">{% translate "کد سرفصل" %}</th>
+                <th scope="col" class="text-center">{% translate "مبلغ تخصیص" %}</th>
+                <th scope="col" class="text-center">{% translate "مبلغ مصرف" %}</th>
+                <th scope="col" class="text-center">{% translate "مانده" %}</th>
+                <th scope="col" class="text-center">% مصرف" %}</th>
+                <th scope="col" class="text-center no-print">عملیات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ba in budget_allocations_data %} 
+                <tr data-bs-toggle="collapse" data-bs-target="#projectAllocCollapse-{{ ba.ba_pk }}"
+                    aria-expanded="false" aria-controls="projectAllocCollapse-{{ ba.ba_pk }}"
+                    class="table-row-clickable" style="cursor: pointer;">
+                    <td class="fw-bold">{{ ba.budget_item_name|to_persian_number }}</td>
+                    <td>{{ ba.budget_item_code|to_persian_number }}</td>
+                    <td class="text-center">{{ ba.ba_allocated_amount_formatted|to_persian_number }}</td>
+                    <td class="text-center">{{ ba.ba_consumed_amount_formatted|to_persian_number }}</td>
+                    <td class="text-center">{{ ba.ba_remaining_amount_formatted|to_persian_number }}</td>
+                    <td class="text-center">
+                         <span class="badge bg-{% if ba.ba_utilization_percentage > 90 %}danger{% elif ba.ba_utilization_percentage > 70 %}warning{% else %}success{% endif %}">
+                            {{ ba.ba_utilization_percentage|floatformat:"0"|to_persian_number }}%
+                        </span>
+                    </td>
+                    <td class="text-center no-print">
+                        <a href="{{ ba.ba_report_url }}" class="btn btn-sm btn-info me-1" title="{% translate 'گزارش جزئیات تخصیص' %}">
+                            <i class="fas fa-file-alt"></i>
+                        </a>
+                         <a href="{% url 'project_budget_allocation' organization_id=parent_org_pk %}?budget_allocation_id={{ ba.ba_pk }}" class="btn btn-sm btn-outline-primary" title="{% translate 'افزودن تخصیص پروژه' %}">
+                            <i class="fas fa-plus"></i>
+                        </a>
+                    </td>
+                </tr>
+                 <tr>
+                    <td colspan="7" class="p-0 border-0">
+                        <div class="collapse" id="projectAllocCollapse-{{ ba.ba_pk }}">
+                            <div class="card card-body border-0 rounded-0 bg-light-subtle">
+                                <div id="project-alloc-detail-{{ ba.ba_pk }}" class="p-3">
+                                    {% if ba.assigned_projects_details %}
+                                        <h6 class="mb-3 mt-4 text-warning">
+                                            <i class="fas fa-project-diagram me-2"></i>{% translate "تخصیص‌های پروژه مرتبط" %}
+                                        </h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-striped table-hover small">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th scope="col">{% translate "پروژه / زیرپروژه" %}</th>
+                                                        <th scope="col" class="text-center">{% translate "مبلغ تخصیص (از این سرفصل)" %}</th>
+                                                        <th scope="col" class="text-center">{% translate "مانده کلی پروژه" %}</th>
+                                                        <th scope="col" class="text-center no-print">{% translate "عملیات" %}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for pba in ba.assigned_projects_details %}
+                                                        <tr data-bs-toggle="collapse" data-bs-target="#tankhahCollapse-{{ pba.pba_pk }}"
+                                                            aria-expanded="false" aria-controls="tankhahCollapse-{{ pba.pba_pk }}"
+                                                            class="table-row-clickable" style="cursor: pointer;"
+                                                            data-ajax-load-url="{% url 'api_tankhahs_for_pba' pba_pk=pba.pba_pk %}"
+                                                            data-target-id="tankhah-detail-{{ pba.pba_pk }}">
+                                                            <td class="fw-bold">{{ pba.project_name_display|to_persian_number }}</td>
+                                                            <td class="text-center">{{ pba.allocated_to_pba_formatted|to_persian_number }}</td>
+                                                            <td class="text-center">{{ pba.project_overall_remaining_formatted|to_persian_number }}</td>
+                                                            <td class="text-center no-print">
+                                                                <a href="{{ pba.pba_detail_url }}" class="btn btn-sm btn-info me-1" title="{% translate 'جزئیات تخصیص پروژه' %}">
+                                                                    <i class="fas fa-info-circle"></i>
+                                                                </a>
+                                                                <a href="{% url 'tankhah_create' %}?project_budget_allocation_id={{ pba.pba_pk }}" class="btn btn-sm btn-outline-success" title="{% translate 'افزودن تنخواه' %}">
+                                                                    <i class="fas fa-plus"></i>
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td colspan="4" class="p-0 border-0">
+                                                                <div class="collapse" id="tankhahCollapse-{{ pba.pba_pk }}">
+                                                                    <div class="card card-body border-0 rounded-0 bg-light">
+                                                                        <div id="tankhah-detail-{{ pba.pba_pk }}" class="p-3">
+                                                                            <p class="text-muted text-center py-4">
+                                                                                <i class="fas fa-spinner fa-spin me-2"></i>{% translate "در حال بارگذاری تنخواه‌ها..." %}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    {% else %}
+                                        <div class="alert alert-info text-center mt-3 small">{% translate "هیچ تخصیص پروژه‌ای برای این سرفصل بودجه یافت نشد." %}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4">{% translate "هیچ سرفصل بودجه‌ای برای این سازمان یافت نشد." %}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

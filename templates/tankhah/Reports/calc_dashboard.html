@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load i18n rcms_custom_filters jformat static %}
+
+{% block extra_css %}
+      <style>
+         .container { max-width: 1200px; margin-top: 50px; }
+        .card { border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .table { background-color: #fff; border-radius: 8px; }
+        .chart-container { height: 300px; margin-bottom: 20px; }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title text-center mb-4">{% trans "داشبورد مالی" %}</h1>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h3>{% trans "آمار کلی" %}</h3>
+                        <table class="table">
+                            <tr>
+                                <th>{% trans "مجموع مبلغ تنخواه‌ها" %}</th>
+                                <td>{{ total_tanbakh_amount  |format_negative }}</td>
+                            </tr>
+                            <tr>
+                                <th>{% trans "تعداد تنخواه‌های آرشیو شده" %}</th>
+                                <td>{{ archived_tanbakhs |format_negative }}</td>
+                            </tr>
+                            <tr>
+                                <th>{% trans "تعداد کل تنخواه‌ها" %}</th>
+                                <td>{{ total_tankhahs |format_negative }}</td>
+                            </tr>
+                            <tr>
+                                <th>{% trans "میانگین زمان پردازش" %}</th>
+                                <td>{{ avg_processing_time.days|format_negative }} {% trans "روز" %}</td>
+                            </tr>
+                            <tr>
+                                <th>{% trans "حجم تصاویر (مگابایت)" %}</th>
+                                <td>{{ total_image_size_mb|floatformat:2 |format_negative }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h3>{% trans "وضعیت تنخواه‌ها" %}</h3>
+                        <canvas id="statusChart" class="chart-container"></canvas>
+                    </div>
+                </div>
+
+                <h3>{% trans "تنخواه‌های صفحه فعلی" %}</h3>
+                {% if page_obj %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>{% trans "ردیف" %}</th>
+                                <th>{% trans "شماره" %}</th>
+                                <th>{% trans "مبلغ ريال" %}</th>
+                                <th>{% trans "وضعیت" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tankhah in page_obj %}
+                                <tr>
+                                    <td>{{ forloop.counter|format_negative  }}</td>
+                                    <td>{{ tankhah.number|to_persian_number_with_comma  }}</td>
+                                    <td>{{ tankhah.amount|format_negative  }}</td>
+                                    <td>{{ tankhah.status  }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <nav>
+                        <ul class="pagination">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number |format_negative }}">{% trans "قبلی" %}</a></li>
+                            {% endif %}
+                            {% for num in page_obj.paginator.page_range %}
+                                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endfor %}
+                            {% if page_obj.has_next %}
+                                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number|format_negative  }}">{% trans "بعدی" %}</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% else %}
+                    <p>{% trans "تنخواهی یافت نشد." %}</p>
+                {% endif %}
+
+                <h3>{% trans "عملکرد سازمان‌ها" %}</h3>
+                <canvas id="orgChart" class="chart-container"></canvas>
+
+                <h3>{% trans "عملکرد کاربران" %}</h3>
+                <canvas id="userChart" class="chart-container"></canvas>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{#    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>#}
+    <script src="{% static 'admin/js/chart.umd.min.js' %}"></script>
+    <script>
+        new Chart(document.getElementById('statusChart'), {
+            type: 'pie',
+            data: {{ status_chart_data|safe }},
+            options: { responsive: true }
+        });
+        new Chart(document.getElementById('orgChart'), {
+            type: 'bar',
+            data: {{ chart_data|safe }},
+            options: { responsive: true }
+        });
+        new Chart(document.getElementById('userChart'), {
+            type: 'bar',
+            data: {{ user_chart_data|safe }},
+            options: { responsive: true }
+        });
+    </script>
+{% endblock %}

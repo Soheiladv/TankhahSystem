@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_head %}
+    {# لینک به CSS برای Select2 (اگر از CDN استفاده نمی‌کنید) #}
+     <script src="{% static 'admin/css/select2.min.css' %}"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <style>
+        .select2-container--bootstrap-5 .select2-selection--single {
+            height: calc(1.5em + .75rem + 2px) !important;
+            padding: .375rem .75rem !important;
+        }
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+            line-height: 1.5 !important;
+        }
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+            height: calc(1.5em + .75rem) !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-title">{{ title }}</h4>
+        </div>
+        <div class="card-body">
+            {% include "partials/_form_errors.html" with form=form %} {# نمایش خطاهای کلی فرم #}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.source_allocation.id_for_label }}"
+                               class="form-label">{{ form.source_allocation.label }} <span class="text-danger">*</span></label>
+                        {{ form.source_allocation }}
+                        {% if form.source_allocation.errors %}
+                            <div class="invalid-feedback d-block">{{ form.source_allocation.errors|first }}</div>
+                        {% endif %}
+                        <div class="form-text small" id="source-allocation-info"></div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.destination_allocation.id_for_label }}" class="form-label">{{ form.destination_allocation.label }} <span class="text-danger">*</span></label>
+                        {{ form.destination_allocation }}
+                        {% if form.destination_allocation.errors %}
+                            <div class="invalid-feedback d-block">{{ form.destination_allocation.errors|first }}</div>
+                        {% endif %}
+                         <div class="form-text small" id="destination-allocation-info"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.amount.id_for_label }}" class="form-label">{{ form.amount.label }} <span class="text-danger">*</span></label>
+                        {{ form.amount }}
+                        {% if form.amount.errors %}
+                            <div class="invalid-feedback d-block">{{ form.amount.errors|first }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="invalid-feedback d-block">{{ form.description.errors|first }}</div>
+                    {% endif %}
+                </div>
+
+                <hr>
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'budgetallocation_list' %}" class="btn btn-outline-secondary me-2">{% trans "انصراف" %}</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-exchange-alt me-1"></i> {% trans "انجام جابجایی" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+ <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('.select2-ajax').each(function() {
+        var $select = $(this);
+        var apiUrl = $select.data('url');
+        $select.select2({
+            theme: "bootstrap-5",
+            dir: "rtl",
+            width: $(this).data('width') ? $(this).data('width') : $(this).hasClass('w-100') ? '100%' : 'style',
+            placeholder: $select.attr('placeholder') || "{% trans 'انتخاب کنید...' %}",
+            allowClear: true,
+            ajax: {
+                url: apiUrl,
+                dataType: 'json',
+                delay: 250, // صبر قبل از ارسال درخواست
+                data: function (params) {
+                    return {
+                        search: params.term, // متن جستجو شده توسط کاربر
+                        page: params.page || 1
+                    };
+                },
+                processResults: function (data, params) {
+                    params.page = params.page || 1;
+                    return {
+                        results: data.results.map(function(item) {
+                            // فرمت نمایش آیتم‌ها در دراپ‌دان
+                            return {
+                                id: item.id,
+                                text: `${item.project_name} (${item.organization_name}) - {% trans "موجودی:" %} ${parseFloat(item.free_budget || 0).toLocaleString('fa-IR')} {% trans "ریال" %}`
+                            };
+                        }),
+                        pagination: {
+                            more: data.pagination.more
+                        }
+                    };
+                },
+                cache: true
+            },
+            minimumInputLength: 1 // حداقل کاراکتر برای شروع جستجو
+        });
+
+        // نمایش اطلاعات بودجه برای تخصیص انتخاب شده
+        $select.on('select2:select', function (e) {
+            var data = e.params.data;
+            var allocationId = data.id;
+            var infoDivId = $select.attr('name') + '-info'; // e.g., source_allocation-info
+            var $infoDiv = $('#' + infoDivId);
+
+            if (allocationId && $infoDiv.length) {
+                 // شما می‌توانید یک درخواست AJAX دیگر برای گرفتن جزئیات بیشتر ارسال کنید
+                 // یا اگر free_budget از سریالایزر می‌آید، مستقیماً نمایش دهید
+                 const selectedOption = $select.select2('data')[0];
+                 if(selectedOption && selectedOption.text) {
+                     // متن کامل شامل بودجه است، یا می‌توانید از data.free_budget استفاده کنید
+                     $infoDiv.html(`<small class="text-success">${selectedOption.text}</small>`);
+                 } else {
+                     $infoDiv.html('');
+                 }
+            } else if ($infoDiv.length) {
+                 $infoDiv.html('');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

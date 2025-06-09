@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+{% load i18n static humanize jalali_tags rcms_custom_filters %} {# rcms_custom_filters شامل to_persian_number است #}
+
+{% block title %}{{ report_main_title }}{% endblock %}
+
+{% block page_title %}
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 class="fw-bold text-gradient-animated">
+            <i class="fas fa-layer-group me-2"></i>{{ report_main_title }}
+        </h2>
+        <div class="no-print">
+            <button class="btn btn-sm btn-outline-secondary me-2" onclick="window.print();" title="{% translate 'چاپ گزارش' %}">
+                <i class="fas fa-print me-1"></i>{% translate "چاپ" %}
+            </button>
+            <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="{% translate 'دریافت خروجی' %}">
+                    <i class="fas fa-file-export me-1"></i>{% translate "خروجی" %}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="?{{ request.GET.urlencode }}&output_format=excel"><i class="fas fa-file-excel me-2 text-success"></i>{% translate "خروجی اکسل" %}</a></li>
+                    <li><a class="dropdown-item" href="?{{ request.GET.urlencode }}&output_format=pdf"><i class="fas fa-file-pdf me-2 text-danger"></i>{% translate "خروجی PDF" %}</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+     .text-gradient-animated {
+        font-size: 2rem;
+        background: linear-gradient(45deg, #0d6efd, #0dcaf0, #6f42c1, #d63384);
+        background-size: 400% 400%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: gradientBG 15s ease infinite;
+    }
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .report-card {
+        border: none;
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+        overflow: hidden; /* برای اینکه هدر گرد شود */
+    }
+    .report-card-header {
+        background-color: #fff; /* تغییر به سفید برای ظاهر مدرن تر */
+        color: #343a40;
+        border-bottom: 1px solid #e9ecef;
+        font-weight: 600;
+        padding: 1rem 1.25rem;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .report-card-header:hover { background-color: #f8f9fa; }
+    .report-card-header .accordion-icon {
+        transition: transform 0.3s ease;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    .report-card-header[aria-expanded="true"] .accordion-icon { transform: rotate(180deg); }
+
+    .stat-highlight-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.5rem;
+        border-radius: .5rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,.05);
+    }
+    .stat-highlight-card .label { font-size: 0.9rem; color: #495057; margin-bottom: 0.3rem; display: block; }
+    .stat-highlight-card .value { font-size: 1.75rem; font-weight: 700; }
+    .progress-container { padding: 0.5rem 0; }
+    .progress { height: 8px; border-radius: 8px; background-color: #e9ecef;}
+
+    .sub-accordion-item .card-header {
+        background-color: #f8f9fa;
+        font-size: 0.95rem;
+        padding: .75rem 1rem;
+        border-left: 4px solid var(--bs-info);
+    }
+    .sub-accordion-item .card-body { padding: 1rem; font-size: 0.9rem; background-color: #fff; }
+    .details-link-btn { font-size: 0.85rem; padding: .25rem .6rem; }
+
+    /* انیمیشن برای باز شدن آکاردئون */
+    .accordion-collapse.collapse { transition: height 0.35s ease; }
+
+    @media print {
+        /* ... (استایل‌های چاپ مانند قبل، با کمی تغییرات احتمالی برای این ساختار) ... */
+        body { background-color: #fff !important; font-size: 10pt; }
+        .no-print, .btn, footer, header, .page-title-actions, .accordion-button::after { display: none !important; }
+        .report-card, .sub-accordion-item .card { box-shadow: none !important; border: 1px solid #ccc !important; margin-bottom: 0.5rem !important; page-break-inside: avoid;}
+        .report-card-header, .sub-accordion-item .card-header { background-color: #f0f0f0 !important; padding: 0.4rem 0.8rem !important; color: #000 !important;}
+        .card-body, .sub-accordion-item .card-body { padding: 0.5rem !important; }
+        .container-fluid { padding: 0 !important; margin: 0 !important; }
+        .text-gradient-animated { color: #000 !important; -webkit-text-fill-color: initial; background: none; font-size: 1.5rem !important;}
+        .accordion-collapse.show, .accordion-collapse.collapsing { display: block !important; height: auto !important; visibility: visible !important; }
+        .collapse { display: none !important; }
+        h1,h2,h3,h4,h5,h6 { color: #000 !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 report-page">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show no-print" role="alert">
+                {{ message|safe }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'بستن' %}"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if budget_periods_report_data %}
+    <div class="accordion" id="comprehensiveReportAccordionRoot">
+        {% for period_item in budget_periods_report_data %}
+            <div class="report-card accordion-item">
+                <h2 class="report-card-header accordion-header" id="headerPeriod{{ period_item.period.pk }}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapsePeriod{{ period_item.period.pk }}"
+                            aria-expanded="false" aria-controls="collapsePeriod{{ period_item.period.pk }}">
+                        <div class="flex-grow-1">
+                            <i class="fas fa-calendar-check me-2 text-primary"></i>
+                            <strong>{{ period_item.period.name }}</strong>
+                            <small class="text-muted ms-2">({{ period_item.period.organization.name |to_persian_number_with_comma}})</small>
+                            <small class="ms-3">{% translate "تاریخ:" %} {{ period_item.summary.start_date_jalali|to_persian_number }} - {{ period_item.summary.end_date_jalali|to_persian_number }}</small>
+                        </div>
+                        <span class="badge rounded-pill {% if period_item.period.is_active and not period_item.period.is_completed %}bg-success-soft text-success border border-success{% elif period_item.period.is_completed %}bg-secondary-soft text-secondary border border-secondary{% else %}bg-danger-soft text-danger border border-danger{% endif %} me-3">
+                            {% if period_item.period.is_completed %}{% trans "تکمیل شده" %}
+                            {% elif period_item.period.is_active %}{% trans "فعال" %}
+                            {% else %}{% trans "غیرفعال" %}{% endif %}
+                        </span>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </button>
+                </h2>
+                <div id="collapsePeriod{{ period_item.period.pk }}" class="accordion-collapse collapse"
+                     aria-labelledby="headerPeriod{{ period_item.period.pk }}" data-bs-parent="#comprehensiveReportAccordionRoot">
+                    <div class="card-body">
+                        <div class="row mb-3 g-3">
+                            <div class="col-lg-3 col-md-6">
+                                <div class="stat-highlight-card">
+                                    <span class="label">{% translate "کل بودجه تعریف شده دوره" %}</span>
+                                    <span class="value text-primary">{{ period_item.summary.total_budget|intcomma:False|to_persian_number }}</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="stat-highlight-card">
+                                    <span class="label">{% translate "کل تخصیص یافته از دوره" %}</span>
+                                    <span class="value text-info">{{ period_item.summary.total_allocated|intcomma:False|to_persian_number }}</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="stat-highlight-card">
+                                    <span class="label">{% translate "کل مصرف واقعی از دوره" %}</span>
+                                    <span class="value text-danger">{{ period_item.summary.net_consumed|intcomma:False|to_persian_number }}</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="stat-highlight-card">
+                                    <span class="label">{% translate "مانده کل دوره (نسبت به مصرف)" %}</span>
+                                    <span class="value {% if period_item.summary.remaining_vs_consumed < 0 %}text-danger{% else %}text-success{% endif %}">
+                                        {{ period_item.summary.remaining_vs_consumed|intcomma:False|to_persian_number }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress-container mb-4">
+                             <span class="label d-block mb-1">{% translate "درصد مصرف از کل بودجه دوره:" %} <strong>{{ period_item.summary.utilization_percentage|floatformat:1|to_persian_number }}%</strong></span>
+                             <div class="progress">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated {% if period_item.summary.utilization_percentage > 85 %}bg-danger{% elif period_item.summary.utilization_percentage > 60 %}bg-warning{% else %}bg-success{% endif %}"
+                                     role="progressbar" style="width: {{ period_item.summary.utilization_percentage|floatformat:2 }}%;"
+                                     aria-valuenow="{{ period_item.summary.utilization_percentage|floatformat:2 }}" aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                        </div>
+
+                        <h5 class="mt-4 mb-3"><i class="fas fa-sitemap text-info me-2"></i>{% translate "تخصیص‌ها به سازمان‌ها از این دوره بودجه" %}</h5>
+                        {% if period_item.organization_allocations %}
+                            <div class="accordion" id="orgAccordionForPeriod{{ period_item.period.pk }}">
+                                {% for org_sum in period_item.organization_allocations %}
+                                <div class="accordion-item sub-accordion-item mb-2">
+                                    <h2 class="card-header accordion-header" id="headerOrg{{ org_sum.id }}Period{{ period_item.period.pk }}">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                                data-bs-target="#collapseOrg{{ org_sum.id }}Period{{ period_item.period.pk }}"
+                                                aria-expanded="false" aria-controls="collapseOrg{{ org_sum.id }}Period{{ period_item.period.pk }}">
+                                            <div class="flex-grow-1">
+                                                <i class="fas fa-building me-2"></i>{{ org_sum.name }} <small class="text-muted">({{ org_sum.code }})</small>
+                                            </div>
+                                            <div class="ms-auto text-end small me-3">
+                                                <div>{% trans "تخصیص:" %} <span class="fw-bold">{{ org_sum.total_allocated|intcomma:False|to_persian_number }}</span></div>
+                                                <div>{% trans "مصرف:" %} <span class="fw-bold text-negative">{{ org_sum.net_consumed|intcomma:False|to_persian_number }}</span></div>
+                                                <div>{% trans "مانده:" %} <span class="fw-bold {% if org_sum.remaining < 0 %}text-danger{% else %}text-success{% endif %}">{{ org_sum.remaining|intcomma:False|to_persian_number }}</span></div>
+                                            </div>
+                                             <i class="fas fa-chevron-down accordion-icon"></i>
+                                        </button>
+                                    </h2>
+                                    <div id="collapseOrg{{ org_sum.id }}Period{{ period_item.period.pk }}" class="accordion-collapse collapse"
+                                         aria-labelledby="headerOrg{{ org_sum.id }}Period{{ period_item.period.pk }}"
+                                         data-bs-parent="#orgAccordionForPeriod{{ period_item.period.pk }}">
+                                        <div class="card-body">
+                                            <p class="mb-2">
+                                                <i class="fas fa-info-circle text-primary me-1"></i>
+                                                {% blocktranslate with org_name=org_sum.name num_items=org_sum.num_budget_items|to_persian_number %}
+                                                سازمان <strong>{{ org_name }}</strong> از این دوره بودجه برای <strong>{{ num_items }}</strong> سرفصل، بودجه دریافت کرده است.
+                                                {% endblocktranslate %}
+                                            </p>
+                                            {# دکمه برای بارگذاری AJAX سرفصل‌ها و پروژه‌ها در آینده #}
+                                            <button class="btn btn-sm btn-outline-primary details-link-btn load-budget-items-btn no-print"
+                                                    data-period-pk="{{ period_item.period.pk }}"
+                                                    data-org-pk="{{ org_sum.id }}"
+                                                    data-bs-target="#budgetItemsForOrg{{ org_sum.id }}Period{{ period_item.period.pk }}">
+                                                <i class="fas fa-list-alt me-1"></i> {% translate "نمایش/بروزرسانی سرفصل‌های بودجه و پروژه‌ها" %}
+                                                <span class="spinner-border spinner-border-sm d-none ms-1" role="status" aria-hidden="true"></span>
+                                            </button>
+                                            {% if org_sum.first_ba_instance_pk_for_report_link %}
+                                                <a href="{% url 'budget_allocation_report' org_sum.first_ba_instance_pk_for_report_link %}" class="btn btn-sm btn-outline-secondary details-link-btn ms-2 no-print">
+                                                    <i class="fas fa-file-alt me-1"></i> {% trans "گزارش نمونه یک سرفصل" %}
+                                                </a>
+                                            {% endif %}
+                                            <div id="budgetItemsForOrg{{ org_sum.id }}Period{{ period_item.period.pk }}" class="mt-3">
+                                                {# محتوای سرفصل‌ها و پروژه‌ها با AJAX اینجا بارگذاری می‌شود #}
+                                                <p class="text-muted small"><em>{% translate "برای بارگذاری جزئیات، روی دکمه بالا کلیک کنید." %}</em></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-light text-center small py-2">
+                                <i class="fas fa-info-circle me-1"></i> {% trans "از این دوره بودجه به هیچ سازمانی تخصیص داده نشده است." %}
+                            </div>
+                        {% endif %}
+                        <hr class="my-4">
+                         <a href="{% url 'budgetallocation_create' %}?budget_period_id={{ period_item.period.pk }}" class="btn btn-success btn-sm no-print">
+                            <i class="fas fa-plus-circle me-1"></i> {% trans "ایجاد تخصیص جدید از این دوره" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="alert alert-warning text-center mt-5">
+                <h4 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>{% trans "اطلاعاتی یافت نشد" %}</h4>
+                <p>{% trans "هیچ دوره بودجه فعالی برای نمایش در این گزارش وجود ندارد." %}</p>
+                {% if perms.budgets.add_budgetperiod %}
+                <a href="{% url 'budget_period_create' %}" class="btn btn-primary mt-2 no-print">
+                    <i class="fas fa-plus me-1"></i> {% translate "ایجاد دوره بودجه جدید" %}
+                </a>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+    {% if is_paginated %} {# صفحه‌بندی برای ListView اصلی (BudgetPeriod) #}
+        <nav aria-label="Page navigation" class="mt-4 no-print">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{% trans "قبلی" %}</a></li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num|to_persian_number }}</a>
+                    </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{% trans "بعدی" %}</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // انیمیشن ساده برای باز شدن آکاردئون (اختیاری)
+    // var accordionButtons = document.querySelectorAll('.accordion-button');
+    // accordionButtons.forEach(function(button) {
+    //     button.addEventListener('click', function() {
+    //         // ...
+    //     });
+    // });
+
+    // منطق بارگذاری AJAX برای سرفصل‌ها و پروژه‌ها
+    document.querySelectorAll('.load-budget-items-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const periodPk = this.dataset.periodPk;
+            const orgPk = this.dataset.orgPk;
+            const targetDivId = this.dataset.bsTarget; // باید به #budgetItemsForOrg... اشاره کند
+            const targetDiv = document.querySelector(targetDivId); // انتخاب صحیح div
+            const spinner = this.querySelector('.spinner-border');
+
+            if (!targetDiv) {
+                console.error('Target div for AJAX content not found:', targetDivId);
+                return;
+            }
+
+            // اگر محتوا قبلا بارگذاری شده و نمی‌خواهید دوباره بارگذاری شود (اختیاری)
+            // if (targetDiv.dataset.loaded === 'true' && !confirm('محتوا قبلا بارگذاری شده، آیا مایل به بارگذاری مجدد هستید؟')) {
+            //     return;
+            // }
+
+            spinner.classList.remove('d-none'); // نمایش اسپینر
+            targetDiv.innerHTML = '<p class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin fa-2x"></i> {% translate "در حال بارگذاری جزئیات..." %}</p>';
+
+            // URL برای API endpoint که جزئیات BudgetAllocation ها و ProjectBudgetAllocation ها را برمی‌گرداند
+            // شما باید این API endpoint را در urls.py و views.py خود ایجاد کنید
+            const apiUrl = `/api/reports/budget-allocations-for-org-period/${periodPk}/${orgPk}/`; // مثال URL API
+
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    spinner.classList.add('d-none'); // پنهان کردن اسپینر
+                    if (data.html_content) { // فرض کنید API یک رشته HTML آماده برمی‌گرداند
+                        targetDiv.innerHTML = data.html_content;
+                        targetDiv.dataset.loaded = 'true'; // علامت‌گذاری به عنوان بارگذاری شده
+                        // اگر نیاز به فعال‌سازی مجدد آکاردئون‌های داخلی دارید:
+                        // reinitializeInnerAccordions(targetDiv);
+                    } else if (data.allocations && data.allocations.length > 0) {
+                        // یا اگر API داده JSON برمی‌گرداند و شما در فرانت‌اند HTML را می‌سازید
+                        let htmlContent = '<div class="accordion" id="innerAccordion' + orgPk + periodPk + '">';
+                        data.allocations.forEach((alloc, index) => {
+                            htmlContent += `
+                                <div class="accordion-item mb-2 border rounded">
+                                    <h2 class="accordion-header" id="headerBA${alloc.id}">
+                                        <button class="accordion-button collapsed small py-2" type="button" data-bs-toggle="collapse"
+                                                data-bs-target="#collapseBA${alloc.id}" aria-expanded="false">
+                                            <i class="fas fa-clipboard-list me-2 text-success"></i>
+                                            <strong>${alloc.budget_item_name}</strong>
+                                            <span class="ms-auto me-3 text-muted">تخصیص: ${alloc.allocated_amount_formatted} | مصرف: ${alloc.consumed_amount_formatted} | مانده: ${alloc.remaining_amount_formatted}</span>
+                                            <i class="fas fa-chevron-down accordion-icon"></i>
+                                        </button>
+                                    </h2>
+                                    <div id="collapseBA${alloc.id}" class="accordion-collapse collapse" data-bs-parent="#innerAccordion${orgPk}${periodPk}">
+                                        <div class="card-body small bg-light-subtle">
+                                            <p><strong>پروژه‌های مرتبط با این سرفصل:</strong></p>`;
+                            if(alloc.projects && alloc.projects.length > 0){
+                                htmlContent += '<ul class="list-unstyled ps-3">';
+                                alloc.projects.forEach(proj_alloc => {
+                                     htmlContent += `<li>
+                                                        <i class="fas fa-folder-open me-1 text-warning"></i>
+                                                        <a href="${proj_alloc.detail_url}">${proj_alloc.project_name}</a>
+                                                        ( تخصیص: ${proj_alloc.allocated_amount_formatted}
+                                                        {% if proj_alloc.subproject_name %} / ${proj_alloc.subproject_name}{% endif %} )
+                                                     </li>`;
+                                });
+                                htmlContent += '</ul>';
+                            } else {
+                                htmlContent += '<p class="text-muted"><em>هیچ پروژه‌ای به این سرفصل تخصیص نیافته است.</em></p>';
+                            }
+                            htmlContent += `<a href="${alloc.report_url}" class="btn btn-sm btn-outline-dark details-link-btn mt-2">جزئیات کامل این سرفصل</a>`;
+                            htmlContent += `    </div>
+                                    </div>
+                                </div>`;
+                        });
+                        htmlContent += '</div>';
+                        targetDiv.innerHTML = htmlContent;
+                        targetDiv.dataset.loaded = 'true';
+                    } else {
+                        targetDiv.innerHTML = '<p class="text-center text-warning py-3">{% translate "جزئیاتی برای نمایش یافت نشد." %}</p>';
+                    }
+                })
+                .catch(error => {
+                    spinner.classList.add('d-none');
+                    targetDiv.innerHTML = `<p class="text-center text-danger py-3">{% translate "خطا در بارگذاری جزئیات:" %} ${error.message}</p>`;
+                    console.error('Error fetching budget item details:', error);
+                });
+        });
+    });
+});
+</script>
+{% endblock %}

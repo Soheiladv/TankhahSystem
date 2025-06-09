@@ -1,0 +1,456 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'admin/css/datatables.min.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/select2.min.css' %}">
+<style>
+    .budget-details, .tankhah-table { margin-top: 20px; }
+    .amount { text-align: right; }
+    .table th, .table td { vertical-align: middle; text-align: right; }
+    .error { color: red; }
+    .filters { margin-bottom: 15px; }
+    .form-control { direction: rtl; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ title }}</h2>
+
+    <!-- فرم جابجایی یا برگشت -->
+    <form method="post" id="budget-form">
+        {% csrf_token %}
+        <div class="row">
+            {% if operation == 'transfer' %}
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.source_allocation.id_for_label }}">{% trans 'تخصیص مبدأ' %}</label>
+                        {{ form.source_allocation }}
+                        {% if form.source_allocation.errors %}
+                            <span class="error">{{ form.source_allocation.errors }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.destination_allocation.id_for_label }}">{% trans 'تخصیص مقصد' %}</label>
+                        {{ form.destination_allocation }}
+                        {% if form.destination_allocation.errors %}
+                            <span class="error">{{ form.destination_allocation.errors }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <input type="hidden" name="{{ form.allocation.name }}" value="{{ allocation.id }}">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label>{% trans 'تخصیص بودجه' %}</label>
+                        <p>{{ allocation.project.name }} ({{ allocation.budget_allocation.organization.name }})</p>
+                    </div>
+                </div>
+            {% endif %}
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="{{ form.amount.id_for_label }}">{% trans 'مبلغ (ریال)' %}</label>
+                    {{ form.amount }}
+                    {% if form.amount.errors %}
+                        <span class="error">{{ form.amount.errors }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="{{ form.description.id_for_label }}">{% trans 'توضیحات' %}</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <span class="error">{{ form.description.errors }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">{% trans 'ثبت' %}</button>
+    </form>
+
+    <!-- بخش نمایش جزئیات بودجه -->
+    <div class="budget-details" id="budget-details" style="display: none;">
+        <h4>{% trans 'جزئیات بودجه' %}</h4>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>{% trans 'مورد' %}</th>
+                    <th>{% trans 'مبلغ (ریال)' %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{% trans 'بودجه تخصیص‌یافته' %}</td>
+                    <td class="amount" id="allocated-amount"></td>
+                </tr>
+                <tr>
+                    <td>{% trans 'بودجه مصرف‌شده' %}</td>
+                    <td class="amount" id="consumed-amount"></td>
+                </tr>
+                <tr>
+                    <td>{% trans 'بودجه برگشتی' %}</td>
+                    <td class="amount" id="returned-amount"></td>
+                </tr>
+                <tr>
+                    <td>{% trans 'تنخواه‌های مصرف‌شده' %}</td>
+                    <td class="amount" id="tankhah-consumed"></td>
+                </tr>
+                <tr>
+                    <td>{% trans 'فاکتورهای پرداخت‌شده' %}</td>
+                    <td class="amount" id="factor-consumed"></td>
+                </tr>
+                <tr>
+                    <td>{% trans 'بودجه آزاد' %}</td>
+                    <td class="amount" id="free-budget"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- فیلترهای تنخواه -->
+    <div class="filters" id="tankhah-filters" style="display: none;">
+        <h4>{% trans 'فیلتر تنخواه‌ها' %}</h4>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>{% trans 'وضعیت' %}</label>
+                    <select id="status-filter" class="form-control">
+                        <option value="">{% trans 'همه' %}</option>
+                        <option value="APPROVED">{% trans 'تأییدشده' %}</option>
+                        <option value="PAID">{% trans 'پرداخت‌شده' %}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>{% trans 'از تاریخ' %}</label>
+                    <input type="date" id="start-date-filter" class="form-control">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>{% trans 'تا تاریخ' %}</label>
+                    <input type="date" id="end-date-filter" class="form-control">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول تنخواه‌ها -->
+    <div class="tankhah-table" id="tankhah-table" style="display: none;">
+        <h4>{% trans 'تنخواه‌های مرتبط' %}</h4>
+        <table class="table table-bordered" id="tankhah-datatable">
+            <thead>
+                <tr>
+                    <th>{% trans 'شماره تنخواه' %}</th>
+                    <th>{% trans 'وضعیت' %}</th>
+                    <th>{% trans 'مبلغ (ریال)' %}</th>
+                    <th>{% trans 'مانده (ریال)' %}</th>
+                    <th>{% trans 'جزئیات' %}</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'admin/js/datatables.min.js' %}"></script>
+<script src="{% static 'admin/js/select2.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    console.log('Initializing budget management page');
+
+    // تنظیم Select2 برای انتخاب تخصیص‌ها
+    $('.datatable-select').each(function() {
+        var $select = $(this);
+        console.log('Setting up Select2 for:', $select.attr('name'));
+        $select.select2({
+            placeholder: $select.data('placeholder'),
+            dir: 'rtl',
+            ajax: {
+                url: $select.data('api'),
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    console.log('Requesting allocations:', {
+                        search: params.term,
+                        page: params.page || 1,
+                        url: $select.data('api')
+                    });
+                    return {
+                        search: params.term,
+                        page: params.page || 1
+                    };
+                },
+                processResults: function(data, params) {
+                    console.log('Received allocations response:', data);
+                    params.page = params.page || 1;
+                    return {
+                        results: data.results.map(function(item) {
+                            return {
+                                id: item.id,
+                                text: `${item.project_name} (${item.organization_name}) - ${item.allocated_amount.toLocaleString('fa-IR')} ریال`
+                            };
+                        }),
+                        pagination: {
+                            more: data.pagination.more
+                        }
+                    };
+                },
+                error: function(xhr) {
+                    console.error('Error fetching allocations:', xhr.status, xhr.responseJSON);
+                }
+            }
+        });
+
+        // بارگذاری جزئیات بودجه و تنخواه‌ها
+        $select.on('change', function() {
+            var allocationId = $(this).val();
+            console.log('Selected allocation ID:', allocationId);
+
+            if (allocationId) {
+                var apiUrl = '{% url "project_allocation_free_budget" pk=0 %}'.replace('0', allocationId);
+                console.log('Preparing AJAX request:', {
+                    url: apiUrl,
+                    method: 'GET'
+                });
+                $.ajax({
+                    url: apiUrl,
+                    method: 'GET',
+                    dataType: 'json',
+                    beforeSend: function() {
+                        console.log('Sending AJAX request to:', apiUrl);
+                    },
+                    success: function(data) {
+                        console.log('Received budget details:', data);
+                        console.log('Tankhahs data:', data.tankhahs);
+
+                        // نمایش جزئیات بودجه
+                        console.log('Populating budget details');
+                        $('#budget-details').show();
+                        $('#allocated-amount').text((data.allocated_amount || 0).toLocaleString('fa-IR') + ' ریال');
+                        $('#consumed-amount').text((data.consumed_amount || 0).toLocaleString('fa-IR') + ' ریال');
+                        $('#returned-amount').text((data.returned_amount || 0).toLocaleString('fa-IR') + ' ریال');
+                        $('#tankhah-consumed').text((data.tankhah_consumed || 0).toLocaleString('fa-IR') + ' ریال');
+                        $('#factor-consumed').text((data.factor_consumed || 0).toLocaleString('fa-IR') + ' ریال');
+                        $('#free-budget').text((data.free_budget || 0).toLocaleString('fa-IR') + ' ریال');
+
+                        // نمایش فیلترها و جدول تنخواه‌ها
+                        console.log('Showing tankhah filters and table');
+                        $('#tankhah-filters').show();
+                        $('#tankhah-table').show();
+                        console.log('Destroying existing Datatable');
+                        $('#tankhah-datatable').DataTable().destroy();
+
+                        // تنظیم Datatable برای تنخواه‌ها
+                        console.log('Setting up tankhah Datatable');
+                        var tankhahTable = $('#tankhah-datatable').DataTable({
+                            data: data.tankhahs || [],
+                            columns: [
+                                { data: 'number' },
+                                {
+                                    data: 'status',
+                                    render: function(data) {
+                                        return {
+                                            'APPROVED': 'تأییدشده',
+                                            'PAID': 'پرداخت‌شده'
+                                        }[data] || data;
+                                    }
+                                },
+                                {
+                                    data: 'amount',
+                                    render: function(data) {
+                                        return (data || 0).toLocaleString('fa-IR') + ' ریال';
+                                    }
+                                },
+                                {
+                                    data: 'remaining_budget',
+                                    render: function(data) {
+                                        return (data || 0).toLocaleString('fa-IR') + ' ریال';
+                                    }
+                                },
+                                {
+                                    data: 'number',
+                                    render: function(data) {
+                                        return `<a href="/tankhah/${data}/" class="btn btn-info btn-sm">جزئیات</a>`;
+                                    }
+                                }
+                            ],
+                            language: {
+                                url: '{% static "admin/fa.json" %}'
+                            },
+                            destroy: true,
+                            ordering: true,
+                            searching: false,
+                            paging: true,
+                            info: false
+                        });
+                        console.log('Tankhah Datatable initialized');
+
+                        // اعمال فیلترهای تنخواه
+                        $('#status-filter, #start-date-filter, #end-date-filter').on('change', function() {
+                            var status = $('#status-filter').val();
+                            var startDate = $('#start-date-filter').val();
+                            var endDate = $('#end-date-filter').val();
+                            console.log('Applying tankhah filters:', { status, startDate, endDate });
+
+                            tankhahTable.clear();
+                            var filteredTankhahs = (data.tankhahs || []).filter(function(tankhah) {
+                                var matchesStatus = !status || tankhah.status === status;
+                                var matchesDate = true;
+                                if (startDate && tankhah.date_approved) {
+                                    matchesDate = tankhah.date_approved >= startDate;
+                                }
+                                if (endDate && tankhah.date_approved) {
+                                    matchesDate = matchesDate && tankhah.date_approved <= endDate;
+                                }
+                                return matchesStatus && matchesDate;
+                            });
+                            console.log('Filtered tankhahs:', filteredTankhahs);
+                            tankhahTable.rows.add(filteredTankhahs).draw();
+                        });
+                    },
+                    error: function(xhr) {
+                        console.error('Error fetching budget details:', {
+                            status: xhr.status,
+                            response: xhr.responseJSON,
+                            url: apiUrl
+                        });
+                        $('#budget-details').hide();
+                        $('#tankhah-filters').hide();
+                        $('#tankhah-table').hide();
+                        alert('خطا در بارگذاری اطلاعات: ' + (xhr.responseJSON?.error || 'خطای ناشناخته'));
+                    }
+                });
+            } else {
+                console.log('No allocation selected, hiding details');
+                $('#budget-details').hide();
+                $('#tankhah-filters').hide();
+                $('#tankhah-table').hide();
+            }
+        });
+    });
+
+    // برای برگشت بودجه، اگر تخصیص از قبل مشخص باشه
+    {% if operation == 'return' and allocation %}
+        console.log('Triggering budget details load for return operation with allocation:', {{ allocation.id }});
+        var apiUrl = '{% url "project_allocation_free_budget" pk=allocation.id %}';
+        console.log('Preparing AJAX request for return:', {
+            url: apiUrl,
+            method: 'GET'
+        });
+        $.ajax({
+            url: apiUrl,
+            method: 'GET',
+            dataType: 'json',
+            beforeSend: function() {
+                console.log('Sending AJAX request for return to:', apiUrl);
+            },
+            success: function(data) {
+                console.log('Received budget details for return:', data);
+                console.log('Tankhahs data for return:', data.tankhahs);
+
+                console.log('Populating budget details for return');
+                $('#budget-details').show();
+                $('#allocated-amount').text((data.allocated_amount || 0).toLocaleString('fa-IR') + ' ریال');
+                $('#consumed-amount').text((data.consumed_amount || 0).toLocaleString('fa-IR') + ' ریال');
+                $('#returned-amount').text((data.returned_amount || 0).toLocaleString('fa-IR') + ' ریال');
+                $('#tankhah-consumed').text((data.tankhah_consumed || 0).toLocaleString('fa-IR') + ' ریال');
+                $('#factor-consumed').text((data.factor_consumed || 0).toLocaleString('fa-IR') + ' ریال');
+                $('#free-budget').text((data.free_budget || 0).toLocaleString('fa-IR') + ' ریال');
+
+                console.log('Showing tankhah filters and table for return');
+                $('#tankhah-filters').show();
+                $('#tankhah-table').show();
+                console.log('Destroying existing Datatable for return');
+                $('#tankhah-datatable').DataTable().destroy();
+
+                console.log('Setting up tankhah Datatable for return');
+                var tankhahTable = $('#tankhah-datatable').DataTable({
+                    data: data.tankhahs || [],
+                    columns: [
+                        { data: 'number' },
+                        {
+                            data: 'status',
+                            render: function(data) {
+                                return {
+                                    'APPROVED': 'تأییدشده',
+                                    'PAID': 'پرداخت‌شده'
+                                }[data] || data;
+                            }
+                        },
+                        {
+                            data: 'amount',
+                            render: function(data) {
+                                return (data || 0).toLocaleString('fa-IR') + ' ریال';
+                            }
+                        },
+                        {
+                            data: 'remaining_budget',
+                            render: function(data) {
+                                return (data || 0).toLocaleString('fa-IR') + ' ریال';
+                            }
+                        },
+                        {
+                            data: 'number',
+                            render: function(data) {
+                                return `<a href="/tankhah/${data}/" class="btn btn-info btn-sm">جزئیات</a>`;
+                            }
+                        }
+                    ],
+                    language: {
+                        url: '{% static "admin/fa.json" %}'
+                    },
+                    destroy: true,
+                    ordering: true,
+                    searching: false,
+                    paging: true,
+                    info: false
+                });
+                console.log('Tankhah Datatable initialized for return');
+
+                $('#status-filter, #start-date-filter, #end-date-filter').on('change', function() {
+                    var status = $('#status-filter').val();
+                    var startDate = $('#start-date-filter').val();
+                    var endDate = $('#end-date-filter').val();
+                    console.log('Applying tankhah filters for return:', { status, startDate, endDate });
+
+                    tankhahTable.clear();
+                    var filteredTankhahs = (data.tankhahs || []).filter(function(tankhah) {
+                        var matchesStatus = !status || tankhah.status === status;
+                        var matchesDate = true;
+                        if (startDate && tankhah.date_approved) {
+                            matchesDate = tankhah.date_approved >= startDate;
+                        }
+                        if (endDate && tankhah.date_approved) {
+                            matchesDate = matchesDate && tankhah.date_approved <= endDate;
+                        }
+                        return matchesStatus && matchesDate;
+                    });
+                    console.log('Filtered tankhahs for return:', filteredTankhahs);
+                    tankhahTable.rows.add(filteredTankhahs).draw();
+                });
+            },
+            error: function(xhr) {
+                console.error('Error fetching budget details for return:', {
+                    status: xhr.status,
+                    response: xhr.responseJSON,
+                    url: apiUrl
+                });
+                $('#budget-details').hide();
+                $('#tankhah-filters').hide();
+                $('#tankhah-table').hide();
+                alert('خطا در بارگذاری اطلاعات: ' + (xhr.responseJSON?.error || 'خطای ناشناخته'));
+            }
+        });
+    {% endif %}
+});
+</script>
+{% endblock %}

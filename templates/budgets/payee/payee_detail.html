@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block extra_css %}
+
+    <style>
+         .container { max-width: 800px; margin-top: 50px; }
+        .card { border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .table { background-color: #fff; border-radius: 8px; }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title text-center mb-4">{% trans "جزئیات دریافت‌کننده" %}</h1>
+                <table class="table table-bordered">
+                    <tr>
+                        <th>{% trans "نام" %}</th>
+                        <td>{{ payee.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "نام خانوادگی" %}</th>
+                        <td>{{ payee.family }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "نوع" %}</th>
+                        <td>{{ payee.get_payee_type_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "کد ملی/اقتصادی" %}</th>
+                        <td>{{ payee.national_id|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "شماره حساب" %}</th>
+                        <td>{{ payee.account_number|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "شبا" %}</th>
+                        <td>{{ payee.iban|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "آدرس" %}</th>
+                        <td>{{ payee.address|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "تلفن" %}</th>
+                        <td>{{ payee.phone|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "ایجادکننده" %}</th>
+                        <td>{{ payee.created_by|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>{% trans "وضعیت" %}</th>
+                        <td>{% if payee.is_active %}{% trans "فعال" %}{% else %}{% trans "غیرفعال" %}{% endif %}</td>
+                    </tr>
+                </table>
+                <div class="text-center mt-4">
+                    <a href="{% url 'payee_list' %}" class="btn btn-secondary">{% trans "بازگشت به لیست" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+ {% endblock %}

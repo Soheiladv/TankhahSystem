@@ -1,0 +1,116 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{# ================================================== #}
+{# ===== بلوک Extrahead برای متاتگ‌ها و لینک‌های خاص ===== #}
+{# ================================================== #}
+{% block extrahead %}
+    {{ block.super }} {# حفظ محتوای extrahead والد #}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{% static 'admin/img/favicon.ico' %}" type="image/x-icon">
+
+    <link href="{% static 'admin/css/all.min.css' %}" rel="stylesheet">
+    <link href="{% static 'admin/css/animate.min.css' %}" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'admin/jquery.ui.datepicker.jalali/themes/base/jquery-ui.min.css' %}">
+
+    <script src="{% static "admin/js/them1.js" %}" defer></script>
+{% endblock %}
+
+
+{# ================================================== #}
+{# ===== بلوک Extrastyle فقط برای لینک‌های CSS ===== #}
+{# ================================================== #}
+{% block extrastyle %}
+    {{ block.super }} {# حفظ محتوای extrastyle والد (مهم برای استایل‌های پایه ادمین) #}
+
+    <link href="{% static 'admin/css/custom.css' %}" rel="stylesheet">
+
+    {% comment %}
+    اگر قوانین RTL را در custom.css ادغام کرده‌اید، این خط را حذف کنید.
+    در غیر این صورت، آن را نگه دارید و فایل admin_rtl.css را مدیریت کنید.
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/admin_rtl.css' %}">
+    {% endcomment %}
+
+{% endblock %}
+
+
+{# ================================================== #}
+{# ========= override کردن عنوان صفحه ========= #}
+{# ================================================== #}
+{% block title %}{{ title }} | {{ site_title|default:_('پنل مدیریت تنخواه') }}{% endblock %}
+
+
+{# ================================================== #}
+{# ========== override کردن برندینگ هدر ========== #}
+{# ================================================== #}
+{% block branding %}
+    <div id="site-name" class="animate__animated animate__fadeInDown"> {# کمی انیمیشن #}
+        <a href="{% url 'admin:index' %}">
+             {% trans 'پنل مدیریت تنخواه' %}
+        </a>
+    </div>
+{% endblock %}
+
+
+{# ================================================== #}
+{# ======== افزودن دکمه تغییر تم به یوزرتولز ======== #}
+{# ================================================== #}
+{% block userlinks %}
+    {{ block.super }} {# حفظ لینک‌های پیش‌فرض یوزرتولز #}
+    {# اضافه کردن دکمه تغییر تم در اینجا اگر در base.html والد نیست #}
+    {# اگر دکمه در base.html شما وجود دارد، این خطوط لازم نیست #}
+     {% include "admin/color_theme_toggle.html" %}
+{% endblock %}
+
+{# ================================================== #}
+{# ===== افزودن فوتر سفارشی (اختیاری) ===== #}
+{# ================================================== #}
+{% block footer %}
+<div id="footer" class="animate__animated animate__fadeInUp">
+    <p>
+      {% trans 'سیستم مدیریت تنخواه' %} &copy; {% now "Y" %} |
+      {% trans 'طراحی توسط: [نام شما/شرکت شما]' %} |
+      <a href="#">{% trans 'لینک مفید' %}</a>
+    </p>
+</div>
+{% endblock %}
+
+{#{% extends "admin/base.html" %}#}
+{#{% load i18n static %}#}
+{##}
+{#{% block extrastyle %}#}
+{##}
+{#    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/admin_rtl.css' %}">#}
+{#    <meta charset="UTF-8">#}
+{#<meta name="viewport" content="width=device-width, initial-scale=1.0">#}
+{#<link rel="icon" href="{% static 'admin/img/favicon.ico' %}" type="image/x-icon">#}
+{#<!-- New Clean Code-->#}
+{##}
+{#<!-- Font Awesome -->#}
+{#<link href="{% static 'admin/css/all.min.css' %}" rel="stylesheet">#}
+{#<!-- Animate.css -->#}
+{#<link href="{% static 'admin/css/animate.min.css' %}" rel="stylesheet">#}
+{#<!-- Custom CSS -->#}
+{#<link href="{% static 'admin/css/custom.css' %}" rel="stylesheet">#}
+{#<!-- jQuery UI CSS for Datepicker -->#}
+{#<link rel="stylesheet" href="{% static 'admin/jquery.ui.datepicker.jalali/themes/base/jquery-ui.min.css' %}">#}
+{#<!-- jQuery UI CSS (اختیاری، اگر نیاز ندارید حذف کنید) -->#}
+{#<link rel="stylesheet" href="{% static 'admin/jquery.ui.datepicker.jalali/themes/base/jquery-ui.min.css' %}">#}
+{##}
+{#     <style>#}
+{#    @font-face {#}
+{#    font-family: 'Parastoo';#}
+{#    src: url('{% static "admin/fonts/Parastoo.ttf" %}') format('truetype');#}
+{#    font-weight: normal;#}
+{#    font-style: normal;#}
+{#    </style>#}
+{##}
+{#{% endblock %}#}
+{##}
+{#{% block title %}{{ title }} | {{ site_title|default:_('پنل مدیریت تنخواه') }}{% endblock %}#}
+{##}
+{#{% block branding %}#}
+{#    <h1 id="site-name"><a href="{% url 'admin:index' %}">{% trans 'پنل مدیریت تنخواه' %}</a></h1>#}
+{#{% endblock %}#}

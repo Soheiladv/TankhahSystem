@@ -1,0 +1,1239 @@
+
+{% extends "base.html" %}
+{% load static i18n humanize  rcms_custom_filters%}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-gradient-primary text-white p-4 rounded-top-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0 fs-4 fw-bold">
+                            <i class="fas fa-tachometer-alt me-3"></i>{% translate "داشبورد گردش کار" %}
+                        </h3>
+                        <div>
+                            <a href="?refresh=true" class="btn btn-light btn-sm px-4 py-2 rounded-pill shadow-sm">
+                                <i class="fas fa-sync-alt me-2"></i>{% translate "بروزرسانی" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    {% if error_message %}
+                        <div class="alert alert-danger alert-dismissible fade show rounded-3" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>{{ error_message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% else %}
+                        <div class="card mb-4 border-0 shadow-sm rounded-3">
+                            <div class="card-body p-3">
+                                <div class="row align-items-center">
+                                    <div class="col-md-auto text-center px-md-4">
+                                        <div class="avatar avatar-xl bg-primary-subtle text-primary rounded-circle shadow-sm">
+                                            <span class="avatar-initials fs-1 fw-bold">
+                                                {{ user_info.user.get_full_name|slice:":1"|default:user_info.user.username|slice:":1" }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md">
+                                        <div class="row g-2">
+                                            <div class="col-md-4 col-sm-6 mb-2 mb-md-0">
+                                                <h5 class="mb-1 text-primary fw-bold">{{ user_info.user.get_full_name|default:user_info.user.username }}</h5>
+                                                <p class="text-muted mb-0 small">
+                                                    <i class="fas fa-user-tag me-2 text-secondary"></i>
+                                                    {% for post in user_info.user_posts %}
+                                                        {{ post.post.name }}{% if not forloop.last %}, {% endif %}
+                                                    {% endfor %}
+                                                </p>
+                                            </div>
+                                            <div class="col-md-4 col-sm-6 mb-2 mb-md-0">
+                                                <p class="mb-1 small">
+                                                    <i class="fas fa-building me-2 text-secondary"></i>
+                                                    {% for org in user_info.user_orgs %}
+                                                        {{ org.name }}{% if not forloop.last %}, {% endif %}
+                                                    {% endfor %}
+                                                </p>
+                                                {% if user_info.is_hq_user %}
+                                                    <span class="badge bg-success-subtle text-success fw-bold px-3 py-2 rounded-pill">
+                                                        <i class="fas fa-check-circle me-1"></i>{% translate "دفتر مرکزی" %}
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-4 d-flex justify-content-md-end justify-content-start align-items-center pt-3 pt-md-0">
+                                                <div class="text-center me-4">
+                                                    <h6 class="mb-0 fs-5 fw-bold text-info">{{ summary_stats.my_tasks|format_negative }}</h6>
+                                                    <small class="text-muted">{% translate "وظایف من" %}</small>
+                                                </div>
+                                                <div class="text-center">
+                                                    <h6 class="mb-0 fs-5 fw-bold text-warning">{{ summary_stats.pending_tankhahs|format_negative }}</h6>
+                                                    <small class="text-muted">{% translate "در انتظار تایید" %}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if not error_message %}
+    <div class="row mb-5 g-4">  
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-start-lg border-start-primary shadow-sm rounded-3 hover-effect">  
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-primary mb-1 fw-bold">{% translate "کل تنخواه‌ها" %}</h6>
+                            <h4 class="fw-bolder mb-0 text-dark">{{ summary_stats.total_tankhahs|format_negative }}</h4> 
+                        </div>
+                        <div class="icon-circle bg-primary-subtle text-primary shadow-sm">  
+                            <i class="fas fa-file-invoice-dollar fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-start-lg border-start-warning shadow-sm rounded-3 hover-effect">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-warning mb-1 fw-bold">{% translate "تنخواه‌های در انتظار" %}</h6>
+                            <h4 class="fw-bolder mb-0 text-dark">{{ summary_stats.pending_tankhahs|format_negative }}</h4>
+                        </div>
+                        <div class="icon-circle bg-warning-subtle text-warning shadow-sm">
+                            <i class="fas fa-clock fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-start-lg border-start-info shadow-sm rounded-3 hover-effect">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-info mb-1 fw-bold">{% translate "کل بودجه‌ها" %}</h6>
+                            <h4 class="fw-bolder mb-0 text-dark">{{ summary_stats.total_budgets|format_negative }}</h4>
+                        </div>
+                        <div class="icon-circle bg-info-subtle text-info shadow-sm">
+                            <i class="fas fa-wallet fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100 border-start-lg border-start-danger shadow-sm rounded-3 hover-effect">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-danger mb-1 fw-bold">{% translate "بودجه‌های در انتظار" %}</h6>
+                            <h4 class="fw-bolder mb-0 text-dark">{{ summary_stats.pending_budgets|format_negative }}</h4>
+                        </div>
+                        <div class="icon-circle bg-danger-subtle text-danger shadow-sm">
+                            <i class="fas fa-exclamation-circle fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-gradient-dark text-white p-4 rounded-top-4">
+                    <h5 class="mb-0 fs-4 fw-bold">
+                        <i class="fas fa-project-diagram me-3"></i>{% translate "گردش کار تنخواه‌ها" %}
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if workflow_data %}
+                        <div class="workflow-container d-flex flex-nowrap overflow-auto pb-3"> 
+                            {% for stage_data in workflow_data %}
+                            <div class="workflow-stage flex-shrink-0 rounded-3 shadow-sm hover-effect">  
+                                <div class="stage-header py-3 px-4 d-flex justify-content-between align-items-center
+                                    {% if stage_data.tankhah_stats.total > 0 %}has-items{% endif %}">
+                                    <h6 class="stage-title text-primary fw-bold mb-0">{{ stage_data.stage.name }}</h6>
+                                    <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2 fw-bold">
+                                        {{ stage_data.tankhah_stats.total|format_negative }}
+                                    </span>
+                                </div>
+
+                                <div class="stage-body p-4">
+                                    <div class="stage-stats mb-3">
+                                        <div class="stat-item bg-light text-dark rounded-2 p-2">
+                                            <span class="stat-label small">{% translate "پیش‌نویس" %}</span>
+                                            <span class="stat-value fw-bold">{{ stage_data.tankhah_stats.draft|format_negative }}</span>
+                                        </div>
+                                        <div class="stat-item bg-light text-dark rounded-2 p-2">
+                                            <span class="stat-label small">{% translate "در انتظار" %}</span>
+                                            <span class="stat-value fw-bold">{{ stage_data.tankhah_stats.pending|format_negative }}</span>
+                                        </div>
+                                        <div class="stat-item bg-light text-dark rounded-2 p-2">
+                                            <span class="stat-label small">{% translate "تایید شده" %}</span>
+                                            <span class="stat-value fw-bold">{{ stage_data.tankhah_stats.approved|format_negative }}</span>
+                                        </div>
+                                        <div class="stat-item bg-light text-dark rounded-2 p-2">
+                                            <span class="stat-label small">{% translate "رد شده" %}</span>
+                                            <span class="stat-value fw-bold">{{ stage_data.tankhah_stats.rejected|format_negative }}</span>
+                                        </div>
+                                    </div>
+
+                                    {% if stage_data.permissions.can_approve_tankhah or stage_data.permissions.can_reject_tankhah %}
+                                    <div class="stage-actions d-flex justify-content-center gap-2 mb-3">
+                                        {% if stage_data.permissions.can_approve_tankhah %}
+                                            <a href="{% url 'tankhah_list' %}?stage={{ stage_data.stage.id }}&status=PENDING"
+                                               class="btn btn-sm btn-success-subtle text-success fw-bold px-3 py-2 rounded-pill">
+                                                <i class="fas fa-check-circle me-2"></i>{% translate "تایید" %}
+                                            </a>
+                                        {% endif %}
+                                        {% if stage_data.permissions.can_reject_tankhah %}
+                                            <a href="{% url 'tankhah_list' %}?stage={{ stage_data.stage.id }}&status=REJECTED"
+                                               class="btn btn-sm btn-danger-subtle text-danger fw-bold px-3 py-2 rounded-pill">
+                                                <i class="fas fa-times-circle me-2"></i>{% translate "رد" %}
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+
+                                    <div class="stage-approvers mt-3">
+                                        <small class="text-secondary fw-bold d-block mb-2">{% translate "تاییدکنندگان این مرحله:" %}</small>
+                                        <div class="approvers-list">
+                                            {% for approver in stage_data.approvers %}
+                                                <span class="badge bg-secondary-subtle text-dark me-1 mb-1 px-2 py-1 rounded-pill">
+                                                    {{ approver.name }}
+                                                    {% if approver.organization %}
+                                                        ({{ approver.organization }})
+                                                    {% endif %}
+                                                </span>
+                                            {% empty %}
+                                                <small class="text-muted">{% translate "تاییدکننده‌ای تعریف نشده است." %}</small>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="stage-footer p-3 border-top border-light-subtle rounded-bottom-3">
+                                    <a href="{% url 'tankhah_list' %}?stage={{ stage_data.stage.id }}"
+                                       class="btn btn-outline-primary btn-sm w-100 rounded-pill">
+                                        <i class="fas fa-eye me-2"></i>{% translate "مشاهده همه" %}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info text-center rounded-3 shadow-sm" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>{% translate "هیچ مرحله گردش کاری برای نمایش یافت نشد." %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-0 rounded-4 h-100">
+                <div class="card-header bg-gradient-info text-white p-4 rounded-top-4">
+                    <h5 class="mb-0 fs-4 fw-bold">
+                        <i class="fas fa-file-invoice me-3"></i>{% translate "آخرین تنخواه‌ها" %}
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if workflow_data|length > 0 and workflow_data.0.recent_items.tankhahs %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped recent-items-table">
+                                <thead>
+                                    <tr class="text-primary fw-bold">
+                                        <th>{% translate "شماره" %}</th>
+                                        <th>{% translate "سازمان" %}</th>
+                                        <th>{% translate "مبلغ" %}</th>
+                                        <th>{% translate "وضعیت" %}</th>
+                                        <th class="text-center">{% translate "عملیات" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tankhah in workflow_data.0.recent_items.tankhahs %}
+                                    <tr>
+                                        <td><a href="{% url 'tankhah_detail' pk=tankhah.id %}" class="text-primary fw-bold text-decoration-none">{{ tankhah.number|default:"-" }}</a></td>
+                                        <td>{{ tankhah.organization__name|truncatechars:20 }}</td>
+                                        <td class="fw-bold">{{ tankhah.amount|format_negative }} ریال</td>
+                                        <td>
+                                              
+                                            <span class="badge rounded-pill status-badge-{{ tankhah.status }} text-dark px-3 py-2 fw-bold">
+                                                {% with tankhah_obj=tankhah.id %} 
+                                                    {{ tankhah_obj.get_status_display }}
+                                                {% endwith %}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="{% url 'tankhah_detail' pk=tankhah.id %}"
+                                               class="btn btn-sm btn-outline-info rounded-pill px-3">
+                                                <i class="fas fa-eye me-1"></i>{% translate "جزئیات" %}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center mt-4">
+                            <a href="{% url 'tankhah_list' %}" class="btn btn-info rounded-pill px-4 py-2 shadow-sm">
+                                {% translate "مشاهده همه تنخواه‌ها" %} <i class="fas fa-arrow-left ms-2"></i>
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info text-center rounded-3 shadow-sm py-4" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>{% translate "هیچ تنخواه اخیر برای نمایش یافت نشد." %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-0 rounded-4 h-100">
+                <div class="card-header bg-gradient-success text-white p-4 rounded-top-4">
+                    <h5 class="mb-0 fs-4 fw-bold">
+                        <i class="fas fa-wallet me-3"></i>{% translate "آخرین تخصیص‌های بودجه" %}
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if workflow_data|length > 0 and workflow_data.0.recent_items.budgets %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped recent-items-table">
+                                <thead>
+                                    <tr class="text-success fw-bold">
+                                        <th>{% translate "دوره بودجه" %}</th>
+                                        <th>{% translate "سازمان" %}</th>
+                                        <th>{% translate "مبلغ تخصیص" %}</th>
+                                        <th>{% translate "وضعیت" %}</th>
+                                        <th class="text-center">{% translate "عملیات" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for budget in workflow_data.0.recent_items.budgets %}
+                                    <tr>
+                                        <td><a href="{% url 'budgetallocation_detail' pk=budget.id %}" class="text-success fw-bold text-decoration-none">{{ budget.budget_period__name|default:"-" }}</a></td>
+                                        <td>{{ budget.organization__name|truncatechars:20 }}</td>
+                                        <td class="fw-bold">{{ budget.allocated_amount|format_negative }} ریال</td>
+                                        <td>
+                                            {% if budget.is_locked %}
+                                                <span class="badge rounded-pill bg-danger text-white px-3 py-2 fw-bold"><i class="fas fa-lock me-1"></i>{% translate "قفل شده" %}</span>
+                                            {% elif budget.is_active %}
+                                                <span class="badge rounded-pill bg-success text-white px-3 py-2 fw-bold"><i class="fas fa-check-circle me-1"></i>{% translate "فعال" %}</span>
+                                            {% else %}
+                                                <span class="badge rounded-pill bg-secondary text-white px-3 py-2 fw-bold"><i class="fas fa-times-circle me-1"></i>{% translate "غیرفعال" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="{% url 'budgetallocation_detail' pk=budget.id %}"
+                                               class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                                <i class="fas fa-eye me-1"></i>{% translate "جزئیات" %}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center mt-4">
+                            <a href="{% url 'budgetallocation_list' %}" class="btn btn-success rounded-pill px-4 py-2 shadow-sm">
+                                {% translate "مشاهده همه بودجه‌ها" %} <i class="fas fa-arrow-left ms-2"></i>
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info text-center rounded-3 shadow-sm py-4" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>{% translate "هیچ تخصیص بودجه اخیر برای نمایش یافت نشد." %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="row mt-5">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-lg border-0 rounded-4 h-100">
+                <div class="card-header bg-gradient-dark text-white p-4 rounded-top-4">
+                    <h5 class="mb-0 fs-4 fw-bold">
+                        <i class="fas fa-chart-bar me-3"></i>{% translate "نمودار وضعیت تنخواه‌ها" %}
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="chart-container">
+                        <canvas id="tankhahStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-lg border-0 rounded-4 h-100">
+                <div class="card-header bg-gradient-info text-white p-4 rounded-top-4">
+                    <h5 class="mb-0 fs-4 fw-bold">
+                        <i class="fas fa-chart-pie me-3"></i>{% translate "نمودار بودجه‌ها بر اساس وضعیت" %}
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="chart-container">
+                        <canvas id="budgetStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+<script src="{% static 'admin/js/chart.min.js' %}"></script>
+<script src="{% static 'admin/js/chart.js' %}"></script>
+<script src="{% static 'admin/js/chart.umd.min.js' %}"></script>
+{% block extra_css %}
+<style>
+    /* Global Styles & Variables */
+    :root {
+        --bs-primary: #4e73df;
+        --bs-primary-rgb: 78,115,223;
+        --bs-primary-subtle: #e0f2f7; /* Light blue */
+        --bs-secondary: #6c757d;
+        --bs-secondary-rgb: 108,117,125;
+        --bs-secondary-subtle: #f0f2f5; /* Light gray */
+        --bs-success: #1cc88a;
+        --bs-success-rgb: 28,200,138;
+        --bs-success-subtle: #d1e7dd; /* Light green */
+        --bs-info: #36b9cc;
+        --bs-info-rgb: 54,185,204;
+        --bs-info-subtle: #cff4fc; /* Light cyan */
+        --bs-warning: #ffc107;
+        --bs-warning-rgb: 255,193,7;
+        --bs-warning-subtle: #fff3cd; /* Light yellow */
+        --bs-danger: #dc3545;
+        --bs-danger-rgb: 220,53,69;
+        --bs-danger-subtle: #f8d7da; /* Light red */
+        --bs-dark: #343a40;
+        --bs-dark-rgb: 52,58,64;
+        --bs-light: #f8f9fa;
+
+        --card-border-radius: 0.75rem; /* 12px */
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    body {
+         background-color: var(--bs-light);
+        color: var(--bs-dark);
+        direction: rtl;
+        text-align: right;
+        line-height: 1.6;
+    }
+
+    /* General Card Styling */
+    .card {
+        border-radius: var(--card-border-radius);
+        overflow: hidden;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .card.hover-effect:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg) !important;
+    }
+
+    .card-header {
+        border-bottom: none;
+    }
+
+    /* Gradient Backgrounds (from original code, kept for consistency) */
+    .bg-gradient-primary { background: linear-gradient(135deg, var(--bs-primary) 0%, #224abe 100%); }
+    .bg-gradient-dark { background: linear-gradient(135deg, #5a5c69 0%, #373840 100%); }
+    .bg-gradient-info { background: linear-gradient(135deg, var(--bs-info) 0%, #258391 100%); }
+    .bg-gradient-success { background: linear-gradient(135deg, var(--bs-success) 0%, #13855c 100%); }
+
+    /* Avatar Styling */
+    .avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+
+    .avatar-xl {
+        width: 90px; /* Slightly larger */
+        height: 90px;
+        font-size: 2.5rem; /* Larger font for initials */
+    }
+
+    /* Icon Circle for Summary Stats */
+    .icon-circle {
+        width: 50px; /* Slightly larger */
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem; /* Icon size */
+    }
+
+    /* Workflow Container */
+    .workflow-container {
+        display: flex;
+        overflow-x: auto; /* Enable horizontal scrolling */
+        padding-bottom: 15px; /* Space for scrollbar */
+        gap: 20px; /* More space between stages */
+    }
+
+    .workflow-stage {
+        min-width: 280px; /* Wider stages */
+        max-width: 280px;
+        border-radius: var(--card-border-radius);
+        background-color: var(--bs-white);
+        border: 1px solid var(--bs-light);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .workflow-stage:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stage-header {
+        padding: 15px 20px;
+        background-color: var(--bs-light);
+        border-bottom: 1px solid var(--bs-border-color);
+        border-radius: var(--card-border-radius) var(--card-border-radius) 0 0;
+    }
+
+    .stage-header.has-items {
+        background-color: var(--bs-primary-subtle);
+        border-color: var(--bs-primary);
+    }
+
+    .stage-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--bs-primary);
+        margin-bottom: 0;
+    }
+
+    .stage-body {
+        padding: 20px;
+        flex-grow: 1;
+    }
+
+    .stage-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+        background-color: var(--bs-light);
+        border-radius: 8px;
+        border: 1px solid var(--bs-border-color);
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--bs-secondary);
+        margin-bottom: 3px;
+    }
+
+    .stat-value {
+        font-weight: bold;
+        font-size: 1.25rem;
+        color: var(--bs-dark);
+    }
+
+    .stage-actions .btn {
+        font-weight: 600;
+    }
+
+    .stage-approvers {
+        margin-top: 15px;
+        border-top: 1px dashed var(--bs-border-color);
+        padding-top: 15px;
+    }
+
+    .approvers-list .badge {
+        font-size: 0.75rem;
+        margin-left: 5px; /* RTL fix */
+    }
+
+    .stage-footer {
+        padding: 15px;
+        border-top: 1px solid var(--bs-border-color);
+        background-color: var(--bs-light);
+        border-radius: 0 0 var(--card-border-radius) var(--card-border-radius);
+    }
+
+    /* Custom scrollbar */
+    .workflow-container::-webkit-scrollbar {
+        height: 10px;
+    }
+
+    .workflow-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .workflow-container::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+
+    .workflow-container::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    /* Table Styling for Recent Items */
+    .recent-items-table {
+        margin-top: 0 !important;
+        border-spacing: 0;
+        border-collapse: separate;
+    }
+    .recent-items-table th, .recent-items-table td {
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
+    .recent-items-table thead th {
+        background-color: var(--bs-light);
+        color: var(--bs-primary);
+        font-weight: 600;
+        border-bottom: 2px solid var(--bs-primary);
+    }
+    .recent-items-table tbody tr {
+        background-color: var(--bs-white);
+        transition: all 0.2s ease-in-out;
+    }
+    .recent-items-table tbody tr:hover {
+        background-color: var(--bs-light) !important;
+        transform: scale(1.01);
+    }
+    .recent-items-table tbody td {
+        border-top: 1px solid var(--bs-border-color);
+    }
+    .recent-items-table tbody tr:first-child td {
+        border-top: none;
+    }
+
+    /* Badge styles for status */
+    .status-badge-DRAFT { background-color: #ffedcc; color: #cc8400; } /* Lighter Orange */
+    .status-badge-PENDING { background-color: #d1ecf1; color: #0c5460; } /* Lighter Info */
+    .status-badge-APPROVED { background-color: #d4edda; color: #155724; } /* Lighter Success */
+    .status-badge-SENT_TO_HQ { background-color: #e2d9fd; color: #5f3e82; } /* Light Purple */
+    .status-badge-HQ_OPS_PENDING { background-color: #f8d7da; color: #721c24; } /* Light Danger */
+    .status-badge-HQ_OPS_APPROVED { background-color: #cce5ff; color: #004085; } /* Lighter Primary */
+    .status-badge-HQ_FIN_PENDING { background-color: #fff3cd; color: #664d03; } /* Lighter Warning */
+    .status-badge-PAID { background-color: #d6e9c6; color: #3c763d; } /* Custom Paid Green */
+    .status-badge-REJECTED { background-color: #f5c6cb; color: #721c24; } /* Lighter Danger */
+
+    /* Responsive Adjustments */
+    @media (max-width: 992px) { /* Medium devices */
+        .sidebar {
+            position: relative;
+            height: auto;
+            width: 100%;
+        }
+        .content {
+            margin-right: 0;
+        }
+    }
+
+    @media (max-width: 768px) { /* Small devices */
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .dashboard-header .btn-toolbar {
+            width: 100%;
+            margin-top: 15px;
+            justify-content: flex-start;
+        }
+        .stat-card .icon {
+            font-size: 2rem;
+            width: 60px;
+            height: 60px;
+        }
+        .stat-card .value {
+            font-size: 1.8rem;
+        }
+        .avatar-xl {
+            width: 70px;
+            height: 70px;
+            font-size: 2rem;
+        }
+        .workflow-stage {
+            min-width: 90%; /* Wider on small screens */
+            max-width: 90%;
+        }
+    }
+</style>
+{% endblock %}
+
+<!-------
+{##}
+{#{% extends "base.html" %}#}
+{#{% load static i18n rcms_custom_filters humanize %}#}
+{##}
+{#{% block title %}{{ page_title }}{% endblock %}#}
+{##}
+{#{% block content %}#}
+{#<div class="container-fluid py-4">#}
+{#<!-- Header Section -->#}
+{#<div class="row mb-4">#}
+{#    <div class="col-12">#}
+{#        <div class="card shadow-lg">#}
+{#            <div class="card-header bg-gradient-primary text-white">#}
+{#                <div class="d-flex justify-content-between align-items-center">#}
+{#                    <h3 class="mb-0">#}
+{#                        <i class="fas fa-tachometer-alt me-2"></i>{{ page_title }}#}
+{#                    </h3>#}
+{#                    <div>#}
+{#                        <a href="?refresh=true" class="btn btn-light btn-sm">#}
+{#                            <i class="fas fa-sync-alt me-1"></i>بروزرسانی#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#            <div class="card-body">#}
+{#                {% if error_message %}#}
+{#                    <div class="alert alert-danger">{{ error_message }}</div>#}
+{#                {% else %}#}
+{#                    <!-- User Info Card -->#}
+{#                    <div class="card mb-4">#}
+{#                        <div class="card-body">#}
+{#                            <div class="row align-items-center">#}
+{#                                <div class="col-md-2 text-center">#}
+{#                                    <div class="avatar avatar-xl bg-primary rounded-circle shadow">#}
+{#                                        <span class="avatar-initials text-white">#}
+{#                                            {{ user_info.user.get_full_name|slice:":1"|default:user_info.user.username|slice:":1" }}#}
+{#                                        </span>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                                <div class="col-md-10">#}
+{#                                    <div class="row">#}
+{#                                        <div class="col-md-4">#}
+{#                                            <h5 class="mb-1">{{ user_info.user.get_full_name|default:user_info.user.username }}</h5>#}
+{#                                            <p class="text-muted mb-2">#}
+{#                                                <i class="fas fa-user-tag me-2"></i>#}
+{#                                                {% for post in user_info.user_posts %}#}
+{#                                                    {{ post.post.name }}{% if not forloop.last %}, {% endif %}#}
+{#                                                {% endfor %}#}
+{#                                            </p>#}
+{#                                        </div>#}
+{#                                        <div class="col-md-4">#}
+{#                                            <p class="mb-1">#}
+{#                                                <i class="fas fa-building me-2"></i>#}
+{#                                                {% for org in user_info.user_orgs %}#}
+{#                                                    {{ org.name }}{% if not forloop.last %}, {% endif %}#}
+{#                                                {% endfor %}#}
+{#                                            </p>#}
+{#                                            {% if user_info.is_hq_user %}#}
+{#                                                <span class="badge bg-success">#}
+{#                                                    <i class="fas fa-check-circle me-1"></i>دفتر مرکزی#}
+{#                                                </span>#}
+{#                                            {% endif %}#}
+{#                                        </div>#}
+{#                                        <div class="col-md-4">#}
+{#                                            <div class="d-flex justify-content-end">#}
+{#                                                <div class="text-center me-4">#}
+{#                                                    <h6 class="mb-0">{{ summary_stats.my_tasks }}</h6>#}
+{#                                                    <small class="text-muted">وظایف من</small>#}
+{#                                                </div>#}
+{#                                                <div class="text-center">#}
+{#                                                    <h6 class="mb-0">{{ summary_stats.pending_tankhahs }}</h6>#}
+{#                                                    <small class="text-muted">در انتظار تایید</small>#}
+{#                                                </div>#}
+{#                                            </div>#}
+{#                                        </div>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                {% endif %}#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+{##}
+{#{% if not error_message %}#}
+{#<!-- Summary Stats Section -->#}
+{#<div class="row mb-4">#}
+{#    <!-- Total Tankhahs -->#}
+{#    <div class="col-xl-3 col-md-6 mb-4">#}
+{#        <div class="card border-start-lg border-start-primary h-100">#}
+{#            <div class="card-body">#}
+{#                <div class="d-flex justify-content-between align-items-center">#}
+{#                    <div>#}
+{#                        <h6 class="text-primary mb-0">کل تنخواه‌ها</h6>#}
+{#                        <h4 class="font-weight-bold mb-0">{{ summary_stats.total_tankhahs|format_negative }}</h4>#}
+{#                    </div>#}
+{#                    <div class="icon-circle bg-primary text-white">#}
+{#                        <i class="fas fa-file-invoice-dollar"></i>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{##}
+{#    <!-- Pending Tankhahs -->#}
+{#    <div class="col-xl-3 col-md-6 mb-4">#}
+{#        <div class="card border-start-lg border-start-warning h-100">#}
+{#            <div class="card-body">#}
+{#                <div class="d-flex justify-content-between align-items-center">#}
+{#                    <div>#}
+{#                        <h6 class="text-warning mb-0">تنخواه‌های در انتظار</h6>#}
+{#                        <h4 class="font-weight-bold mb-0">{{ summary_stats.pending_tankhahs|format_negative }}</h4>#}
+{#                    </div>#}
+{#                    <div class="icon-circle bg-warning text-white">#}
+{#                        <i class="fas fa-clock"></i>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{##}
+{#    <!-- Total Budgets -->#}
+{#    <div class="col-xl-3 col-md-6 mb-4">#}
+{#        <div class="card border-start-lg border-start-info h-100">#}
+{#            <div class="card-body">#}
+{#                <div class="d-flex justify-content-between align-items-center">#}
+{#                    <div>#}
+{#                        <h6 class="text-info mb-0">کل بودجه‌ها</h6>#}
+{#                        <h4 class="font-weight-bold mb-0">{{ summary_stats.total_budgets|format_negative }}</h4>#}
+{#                    </div>#}
+{#                    <div class="icon-circle bg-info text-white">#}
+{#                        <i class="fas fa-wallet"></i>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{##}
+{#    <!-- Pending Budgets -->#}
+{#    <div class="col-xl-3 col-md-6 mb-4">#}
+{#        <div class="card border-start-lg border-start-danger h-100">#}
+{#            <div class="card-body">#}
+{#                <div class="d-flex justify-content-between align-items-center">#}
+{#                    <div>#}
+{#                        <h6 class="text-danger mb-0">بودجه‌های در انتظار</h6>#}
+{#                        <h4 class="font-weight-bold mb-0">{{ summary_stats.pending_budgets|format_negative }}</h4>#}
+{#                    </div>#}
+{#                    <div class="icon-circle bg-danger text-white">#}
+{#                        <i class="fas fa-exclamation-circle"></i>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+{##}
+{#<!-- Workflow Stages Section -->#}
+{#<div class="row mb-4">#}
+{#    <div class="col-12">#}
+{#        <div class="card shadow-sm">#}
+{#            <div class="card-header bg-gradient-dark text-white">#}
+{#                <h5 class="mb-0">#}
+{#                    <i class="fas fa-project-diagram me-2"></i>گردش کار#}
+{#                </h5>#}
+{#            </div>#}
+{#            <div class="card-body">#}
+{#                <div class="workflow-container">#}
+{#                    {% for stage_data in workflow_data %}#}
+{#                    <div class="workflow-stage">#}
+{#                        <div class="stage-header {% if stage_data.tankhah_stats.total > 0 %}has-items{% endif %}">#}
+{#                            <h6 class="stage-title">{{ stage_data.stage.name }}</h6>#}
+{#                            <span class="badge bg-{{ stage_data.tankhah_stats.total }}">#}
+{#                                {{ stage_data.tankhah_stats.total }}#}
+{#                            </span>#}
+{#                        </div>#}
+{##}
+{#                        <div class="stage-body">#}
+{#                            <div class="stage-stats">#}
+{#                                <div class="stat-item">#}
+{#                                    <span class="stat-label">پیش‌نویس</span>#}
+{#                                    <span class="stat-value">{{ stage_data.tankhah_stats.draft }}</span>#}
+{#                                </div>#}
+{#                                <div class="stat-item">#}
+{#                                    <span class="stat-label">در انتظار</span>#}
+{#                                    <span class="stat-value">{{ stage_data.tankhah_stats.pending }}</span>#}
+{#                                </div>#}
+{#                                <div class="stat-item">#}
+{#                                    <span class="stat-label">تایید شده</span>#}
+{#                                    <span class="stat-value">{{ stage_data.tankhah_stats.approved }}</span>#}
+{#                                </div>#}
+{#                                <div class="stat-item">#}
+{#                                    <span class="stat-label">رد شده</span>#}
+{#                                    <span class="stat-value">{{ stage_data.tankhah_stats.rejected }}</span>#}
+{#                                </div>#}
+{#                            </div>#}
+{##}
+{#                            {% if stage_data.permissions.can_approve_tankhah or stage_data.permissions.can_reject_tankhah %}#}
+{#                            <div class="stage-actions mt-2">#}
+{#                                {% if stage_data.permissions.can_approve_tankhah %}#}
+{#                                    <a href="{% url 'tankhah_list' %}?stage={{ stage_data.stage.id }}&status=PENDING"#}
+{#                                       class="btn btn-sm btn-success me-1">#}
+{#                                        <i class="fas fa-check-circle me-1"></i>تایید#}
+{#                                    </a>#}
+{#                                {% endif %}#}
+{#                                {% if stage_data.permissions.can_reject_tankhah %}#}
+{#                                    <a href="{% url 'tankhah_list' %}?stage={{ stage_data.stage.id }}&status=REJECTED"#}
+{#                                       class="btn btn-sm btn-danger">#}
+{#                                        <i class="fas fa-times-circle me-1"></i>رد#}
+{#                                    </a>#}
+{#                                {% endif %}#}
+{#                            </div>#}
+{#                            {% endif %}#}
+{##}
+{#                            <div class="stage-approvers mt-2">#}
+{#                                <small class="text-muted">تاییدکنندگان:</small>#}
+{#                                <div class="approvers-list">#}
+{#                                    {% for approver in stage_data.approvers %}#}
+{#                                        <span class="badge bg-light text-dark me-1 mb-1">#}
+{#                                            {{ approver.name }}#}
+{#                                            {% if approver.organization %}#}
+{#                                                ({{ approver.organization }})#}
+{#                                            {% endif %}#}
+{#                                        </span>#}
+{#                                    {% endfor %}#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{##}
+{#                        <div class="stage-footer">#}
+{#                            <a href="{% url 'tankhah_list' %}?stage={{ stage_data.stage.id }}"#}
+{#                               class="btn btn-sm btn-outline-primary w-100">#}
+{#                                <i class="fas fa-eye me-1"></i>مشاهده همه#}
+{#                            </a>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                    {% endfor %}#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+{##}
+{#<!-- Recent Activities Section -->#}
+{#<div class="row">#}
+{#    <!-- Recent Tankhahs -->#}
+{#    <div class="col-lg-6 mb-4">#}
+{#        <div class="card shadow-sm h-100">#}
+{#            <div class="card-header bg-gradient-info text-white">#}
+{#                <h5 class="mb-0">#}
+{#                    <i class="fas fa-file-invoice me-2"></i>آخرین تنخواه‌ها#}
+{#                </h5>#}
+{#            </div>#}
+{#            <div class="card-body">#}
+{#                {% if workflow_data.0.recent_items.tankhahs %}#}
+{#                    <div class="table-responsive">#}
+{#                        <table class="table table-hover">#}
+{#                            <thead>#}
+{#                                <tr>#}
+{#                                    <th>شماره</th>#}
+{#                                    <th>سازمان</th>#}
+{#                                    <th>مبلغ</th>#}
+{#                                    <th>وضعیت</th>#}
+{#                                    <th>عملیات</th>#}
+{#                                </tr>#}
+{#                            </thead>#}
+{#                            <tbody>#}
+{#                                {% for tankhah in workflow_data.0.recent_items.tankhahs %}#}
+{#                                <tr>#}
+{#                                    <td>{{ tankhah.number|default:"-" }}</td>#}
+{#                                    <td>{{ tankhah.organization__name|truncatechars:15 }}</td>#}
+{#                                    <td>{{ tankhah.amount|format_negative }} ریال</td>#}
+{#                                    <td>#}
+{#                                        <span class="badge bg-{{ tankhah.status }}">#}
+{#                                            {{ tankhah.get_status_display }}#}
+{#                                        </span>#}
+{#                                    </td>#}
+{#                                    <td>#}
+{#                                        <a href="{% url 'tankhah_detail' pk=tankhah.id %}"#}
+{#                                           class="btn btn-sm btn-outline-primary">#}
+{#                                            <i class="fas fa-eye"></i>#}
+{#                                        </a>#}
+{#                                    </td>#}
+{#                                </tr>#}
+{#                                {% endfor %}#}
+{#                            </tbody>#}
+{#                        </table>#}
+{#                    </div>#}
+{#                    <div class="text-center mt-2">#}
+{#                        <a href="{% url 'tankhah_list' %}" class="btn btn-sm btn-info">#}
+{#                            مشاهده همه تنخواه‌ها <i class="fas fa-arrow-left me-1"></i>#}
+{#                        </a>#}
+{#                    </div>#}
+{#                {% else %}#}
+{#                    <div class="alert alert-info">#}
+{#                        هیچ تنخواهی یافت نشد.#}
+{#                    </div>#}
+{#                {% endif %}#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{##}
+{#    <!-- Recent Budgets -->#}
+{#    <div class="col-lg-6 mb-4">#}
+{#        <div class="card shadow-sm h-100">#}
+{#            <div class="card-header bg-gradient-success text-white">#}
+{#                <h5 class="mb-0">#}
+{#                    <i class="fas fa-wallet me-2"></i>آخرین بودجه‌ها#}
+{#                </h5>#}
+{#            </div>#}
+{#            <div class="card-body">#}
+{#                {% if workflow_data.0.recent_items.budgets %}#}
+{#                    <div class="table-responsive">#}
+{#                        <table class="table table-hover">#}
+{#                            <thead>#}
+{#                                <tr>#}
+{#                                    <th>دوره</th>#}
+{#                                    <th>سازمان</th>#}
+{#                                    <th>مبلغ</th>#}
+{#                                    <th>وضعیت</th>#}
+{#                                    <th>عملیات</th>#}
+{#                                </tr>#}
+{#                            </thead>#}
+{#                            <tbody>#}
+{#                                {% for budget in workflow_data.0.recent_items.budgets %}#}
+{#                                <tr>#}
+{#                                    <td>{{ budget.budget_period__name|default:"-" }}</td>#}
+{#                                    <td>{{ budget.organization__name|truncatechars:15 }}</td>#}
+{#                                    <td>{{ budget.allocated_amount|format_negative }} ریال</td>#}
+{#                                    <td>#}
+{#                                        {% if budget.is_locked %}#}
+{#                                            <span class="badge bg-danger">قفل شده</span>#}
+{#                                        {% else %}#}
+{#                                            <span class="badge bg-success">فعال</span>#}
+{#                                        {% endif %}#}
+{#                                    </td>#}
+{#                                    <td>#}
+{#                                        <a href="{% url 'budgetallocation_detail' pk=budget.id %}"#}
+{#                                           class="btn btn-sm btn-outline-primary">#}
+{#                                            <i class="fas fa-eye"></i>#}
+{#                                        </a>#}
+{#                                    </td>#}
+{#                                </tr>#}
+{#                                {% endfor %}#}
+{#                            </tbody>#}
+{#                        </table>#}
+{#                    </div>#}
+{#                    <div class="text-center mt-2">#}
+{#                        <a href="{% url 'budgetallocation_list' %}" class="btn btn-sm btn-success">#}
+{#                            مشاهده همه بودجه‌ها <i class="fas fa-arrow-left me-1"></i>#}
+{#                        </a>#}
+{#                    </div>#}
+{#                {% else %}#}
+{#                    <div class="alert alert-info">#}
+{#                        هیچ بودجه‌ای یافت نشد.#}
+{#                    </div>#}
+{#                {% endif %}#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+{#{% endif %}#}
+{#</div>#}
+{#{% endblock %}#}
+{##}
+{#{% block extra_css %}#}
+<style>
+    .avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+
+    .avatar-xl {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+    }
+
+    .icon-circle {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .workflow-container {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 10px;
+        gap: 15px;
+    }
+
+    .workflow-stage {
+        min-width: 250px;
+        max-width: 250px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stage-header {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+        background-color: #f8f9fa;
+        border-radius: 8px 8px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .stage-header.has-items {
+        background-color: #f0f7ff;
+    }
+
+    .stage-title {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    .stage-body {
+        padding: 15px;
+        flex-grow: 1;
+    }
+
+    .stage-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 8px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+
+    .stat-value {
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
+    .stage-actions {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .stage-approvers {
+        margin-top: 10px;
+    }
+
+    .approvers-list {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 5px;
+    }
+
+    .stage-footer {
+        padding: 10px 15px;
+        border-top: 1px solid #eee;
+        background-color: #f8f9fa;
+        border-radius: 0 0 8px 8px;
+    }
+
+    /* Custom scrollbar for workflow container */
+    .workflow-container::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .workflow-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .workflow-container::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+    }
+
+    .workflow-container::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+
+    /* Gradient backgrounds */
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    }
+
+    .bg-gradient-dark {
+        background: linear-gradient(135deg, #5a5c69 0%, #373840 100%);
+    }
+
+    .bg-gradient-info {
+        background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+    }
+
+    .bg-gradient-success {
+        background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+    }
+</style>
+{#{% endblock %}#}
+{##}
+{#{% block extra_js %}#}
+<script>
+$(document).ready(function() {
+    // Initialize tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+
+    // Workflow stage hover effect
+    $('.workflow-stage').hover(
+        function() {
+            $(this).css('transform', 'translateY(-5px)');
+            $(this).css('box-shadow', '0 5px 15px rgba(0,0,0,0.1)');
+        },
+        function() {
+            $(this).css('transform', 'translateY(0)');
+            $(this).css('box-shadow', '0 2px 4px rgba(0,0,0,0.05)');
+        }
+    );
+});
+</script>
+{#{% endblock %}#}
+
+
+------->

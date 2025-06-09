@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+    <h1 class="mb-4"><i class="fas fa-info-circle me-2"></i>{{ title }}</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-bordered">
+                <tr><th>{% trans "کد" %}</th><td>{{ organization.code }}</td></tr>
+                <tr><th>{% trans "نام" %}</th><td>{{ organization.name }}</td></tr>
+                <tr><th>{% trans "نوع" %}</th><td>{{ organization.get_org_type_display }}</td></tr>
+                <tr><th>{% trans "توضیحات" %}</th><td>{{ organization.description|default:'-' }}</td></tr>
+                <tr><th>{% trans "تخصیص بودجه به پروژه‌ها" %}</th><td>
+{#                    <a href="{% url 'project_budget_allocation' organization_id=organization.id %}"#}
+                    <a href="{% url 'project_budget_allocation_list' organization_id=organization.id %}"
+                   class="btn btn-primary">
+                    تخصیص بودجه به پروژه‌ها
+                </a></td></tr>
+
+            </table>
+            <a href="{% url 'organization_list' %}" class="btn btn-secondary"><i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت" %}</a>
+        </div>
+    </div>
+{% endblock %}

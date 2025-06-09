@@ -1,0 +1,1103 @@
+[2025-06-09 23:28:11] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=5000000, type=RETURN, allocation ID=76
+[2025-06-09 23:28:11] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=5000000, allocation ID=76
+[2025-06-09 23:28:11] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-09 23:28:11] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=5000000, type=RETURN, allocation ID=76
+[2025-06-09 23:28:11] INFO [budgets.models:1364] save - Generated transaction_id: TX-RETURN-76-276d9fa722e8
+[2025-06-09 23:28:11] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=5000000, type=RETURN, allocation ID=76
+[2025-06-09 23:28:11] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=5000000, allocation ID=76
+[2025-06-09 23:28:11] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-09 23:28:11] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-276d9fa722e8 created. Invalidating cache for allocation 76
+[2025-06-09 23:28:11] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'budget_transfers_21_no_filters', 'project_remaining_budget_8', 'free_budget_76', 'returned_budgets_21_all_no_filters'}
+[2025-06-09 23:28:11] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 66
+[2025-06-09 23:28:11] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=1191000000.00)
+[2025-06-09 23:28:11] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=1191000000.00, allocation_type=percent
+[2025-06-09 23:28:11] DEBUG [budgets.models:645] clean - Clean validation passed (Model IS : BudgetsAllocations )
+[2025-06-09 23:28:11] DEBUG [budgets.signals:22] update_total_allocated - Updated total_allocated=43191000000.00 for BudgetPeriod 21
+[2025-06-09 23:28:11] DEBUG [budgets.signals:71] invalidate_allocation_cache - Invalidated cache keys after BudgetAllocation change: {'budget_transfers_21_no_filters', 'project_remaining_budget_8', 'tankhah_report_21_no_filters', 'free_budget_76'}
+[2025-06-09 23:28:11] INFO [budgets.models:731] save - BudgetAllocation saved with ID: 76
+[2025-06-09 23:28:11] DEBUG [budgets.models:733] save - Allocation status: normal, message: وضعیت عادی
+[2025-06-09 23:28:11] DEBUG [budgets.models:1376] save - Updated BudgetAllocation 76: allocated_amount=1191000000.00, returned_amount=9000000.00
+[2025-06-09 23:28:11] DEBUG [budgets.models:1385] save - Updated BudgetPeriod 21: returned_amount=9000000.00
+[2025-06-09 23:28:11] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:28:11] INFO [budgets.budget_calculations:169] send_notification - Notification sent to 2 users: مبلغ 5,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-09 23:28:11] INFO [budgets.models:753] send_notification - Notification sent for BudgetAllocation 76: return - مبلغ 5,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-09 23:28:11] INFO [budgets.BudgetReturn.view_BudgetReturn:364] form_valid - User admin created return transaction for allocation 76 with amount 5,000,000
+[2025-06-09 23:28:11] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=5000000, type=RETURN, allocation ID=76
+[2025-06-09 23:28:11] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=5000000, type=RETURN, allocation ID=76
+[2025-06-09 23:28:11] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=5000000, allocation ID=76
+[2025-06-09 23:28:11] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-09 23:28:12] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-276d9fa722e8 created. Invalidating cache for allocation 76
+[2025-06-09 23:28:12] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'budget_transfers_21_no_filters', 'project_remaining_budget_8', 'free_budget_76', 'returned_budgets_21_all_no_filters'}
+[2025-06-09 23:28:12] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 66
+[2025-06-09 23:28:12] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=1186000000.00)
+[2025-06-09 23:28:12] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=1186000000.00, allocation_type=percent
+[2025-06-09 23:28:12] DEBUG [budgets.models:645] clean - Clean validation passed (Model IS : BudgetsAllocations )
+[2025-06-09 23:28:12] DEBUG [budgets.signals:22] update_total_allocated - Updated total_allocated=43186000000.00 for BudgetPeriod 21
+[2025-06-09 23:28:12] DEBUG [budgets.signals:71] invalidate_allocation_cache - Invalidated cache keys after BudgetAllocation change: {'budget_transfers_21_no_filters', 'project_remaining_budget_8', 'tankhah_report_21_no_filters', 'free_budget_76'}
+[2025-06-09 23:28:12] INFO [budgets.models:731] save - BudgetAllocation saved with ID: 76
+[2025-06-09 23:28:12] DEBUG [budgets.models:733] save - Allocation status: normal, message: وضعیت عادی
+[2025-06-09 23:28:12] DEBUG [budgets.models:1376] save - Updated BudgetAllocation 76: allocated_amount=1186000000.00, returned_amount=14000000.00
+[2025-06-09 23:28:12] DEBUG [budgets.models:1385] save - Updated BudgetPeriod 21: returned_amount=9000000.00
+[2025-06-09 23:28:12] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:28:12] INFO [budgets.budget_calculations:169] send_notification - Notification sent to 2 users: مبلغ 5,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-09 23:28:12] INFO [budgets.models:753] send_notification - Notification sent for BudgetAllocation 76: return - مبلغ 5,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-09 23:29:37] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=5000000, type=RETURN, allocation ID=76
+[2025-06-09 23:29:37] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=5000000, allocation ID=76
+[2025-06-09 23:29:37] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-09 23:29:37] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=5000000, type=RETURN, allocation ID=76
+[2025-06-09 23:29:37] INFO [budgets.models:1364] save - Generated transaction_id: TX-RETURN-76-920bd86c1252
+[2025-06-09 23:29:37] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=5000000, type=RETURN, allocation ID=76
+[2025-06-09 23:29:37] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=5000000, allocation ID=76
+[2025-06-09 23:29:37] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-09 23:29:37] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-920bd86c1252 created. Invalidating cache for allocation 76
+[2025-06-09 23:29:37] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'free_budget_76', 'project_remaining_budget_8', 'returned_budgets_21_all_no_filters', 'budget_transfers_21_no_filters'}
+[2025-06-09 23:29:37] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 67
+[2025-06-09 23:29:37] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=1181000000.00)
+[2025-06-09 23:29:37] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=1181000000.00, allocation_type=percent
+[2025-06-09 23:29:37] DEBUG [budgets.models:645] clean - Clean validation passed (Model IS : BudgetsAllocations )
+[2025-06-09 23:29:37] DEBUG [budgets.signals:22] update_total_allocated - Updated total_allocated=43181000000.00 for BudgetPeriod 21
+[2025-06-09 23:29:37] DEBUG [budgets.signals:71] invalidate_allocation_cache - Invalidated cache keys after BudgetAllocation change: {'free_budget_76', 'project_remaining_budget_8', 'tankhah_report_21_no_filters', 'budget_transfers_21_no_filters'}
+[2025-06-09 23:29:37] INFO [budgets.models:731] save - BudgetAllocation saved with ID: 76
+[2025-06-09 23:29:37] DEBUG [budgets.models:733] save - Allocation status: normal, message: وضعیت عادی
+[2025-06-09 23:29:37] DEBUG [budgets.models:1376] save - Updated BudgetAllocation 76: allocated_amount=1181000000.00, returned_amount=19000000.00
+[2025-06-09 23:29:37] DEBUG [budgets.models:1385] save - Updated BudgetPeriod 21: returned_amount=14000000.00
+[2025-06-09 23:29:37] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:29:37] INFO [budgets.budget_calculations:169] send_notification - Notification sent to 2 users: مبلغ 5,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-09 23:29:37] INFO [budgets.models:753] send_notification - Notification sent for BudgetAllocation 76: return - مبلغ 5,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-09 23:29:37] INFO [budgets.BudgetReturn.view_BudgetReturn:364] form_valid - User admin created return transaction for allocation 76 with amount 5,000,000
+[2025-06-09 23:29:37] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=5000000, type=RETURN, allocation ID=76
+[2025-06-09 23:29:37] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=5000000, type=RETURN, allocation ID=76
+[2025-06-09 23:29:37] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=5000000, allocation ID=76
+[2025-06-09 23:29:37] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-09 23:29:37] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-920bd86c1252 created. Invalidating cache for allocation 76
+[2025-06-09 23:29:37] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'free_budget_76', 'project_remaining_budget_8', 'returned_budgets_21_all_no_filters', 'budget_transfers_21_no_filters'}
+[2025-06-09 23:29:37] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 67
+[2025-06-09 23:29:37] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=1176000000.00)
+[2025-06-09 23:29:37] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=1176000000.00, allocation_type=percent
+[2025-06-09 23:29:37] DEBUG [budgets.models:645] clean - Clean validation passed (Model IS : BudgetsAllocations )
+[2025-06-09 23:29:37] DEBUG [budgets.signals:22] update_total_allocated - Updated total_allocated=43176000000.00 for BudgetPeriod 21
+[2025-06-09 23:29:37] DEBUG [budgets.signals:71] invalidate_allocation_cache - Invalidated cache keys after BudgetAllocation change: {'free_budget_76', 'project_remaining_budget_8', 'tankhah_report_21_no_filters', 'budget_transfers_21_no_filters'}
+[2025-06-09 23:29:37] INFO [budgets.models:731] save - BudgetAllocation saved with ID: 76
+[2025-06-09 23:29:37] DEBUG [budgets.models:733] save - Allocation status: normal, message: وضعیت عادی
+[2025-06-09 23:29:37] DEBUG [budgets.models:1376] save - Updated BudgetAllocation 76: allocated_amount=1176000000.00, returned_amount=24000000.00
+[2025-06-09 23:29:37] DEBUG [budgets.models:1385] save - Updated BudgetPeriod 21: returned_amount=14000000.00
+[2025-06-09 23:29:37] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:29:37] INFO [budgets.budget_calculations:169] send_notification - Notification sent to 2 users: مبلغ 5,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-09 23:29:37] INFO [budgets.models:753] send_notification - Notification sent for BudgetAllocation 76: return - مبلغ 5,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-09 23:30:05] DEBUG [budgets.views:92] get_context_data - TransactionTypeListView context: {'paginator': <django.core.paginator.Paginator object at 0x0000011DEF9AAF90>, 'page_obj': <Page 1 of 1>, 'is_paginated': False, 'object_list': <QuerySet [<TransactionType: بیمه تامین اجتماعی شرکت توسعه گردشگری ایران>, <TransactionType: بیمه تامین اجتماعی میراث>]>, 'transaction_types': <QuerySet [<TransactionType: بیمه تامین اجتماعی شرکت توسعه گردشگری ایران>, <TransactionType: بیمه تامین اجتماعی میراث>]>, 'view': <budgets.views.TransactionTypeListView object at 0x0000011DEF9AA510>, 'query': '', 'requires_extra_approval': ''}
+[2025-06-09 23:30:11] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 1176000000.00 (Total Allocations: 1)
+[2025-06-09 23:30:11] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 1176000000.00 (Total Allocations: 1)
+[2025-06-09 23:30:11] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('1176000000.00')]
+[2025-06-09 23:30:11] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=1176000000.00, consumptions=0, returns=14000000.00, remaining=1190000000.00, consumptions_count=0, returns_count=4
+[2025-06-09 23:30:11] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-09 23:30:11] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:30:11] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:30:22] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=190000000, type=RETURN, allocation ID=76
+[2025-06-09 23:30:22] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=190000000, allocation ID=76
+[2025-06-09 23:30:22] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-09 23:30:22] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=190000000, type=RETURN, allocation ID=76
+[2025-06-09 23:30:22] INFO [budgets.models:1364] save - Generated transaction_id: TX-RETURN-76-2b045bdc5a0b
+[2025-06-09 23:30:22] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=190000000, type=RETURN, allocation ID=76
+[2025-06-09 23:30:22] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=190000000, allocation ID=76
+[2025-06-09 23:30:22] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-09 23:30:22] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-2b045bdc5a0b created. Invalidating cache for allocation 76
+[2025-06-09 23:30:22] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'free_budget_76', 'project_remaining_budget_8', 'returned_budgets_21_all_no_filters', 'budget_transfers_21_no_filters'}
+[2025-06-09 23:30:22] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 68
+[2025-06-09 23:30:22] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=986000000.00)
+[2025-06-09 23:30:22] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=986000000.00, allocation_type=percent
+[2025-06-09 23:30:22] DEBUG [budgets.models:645] clean - Clean validation passed (Model IS : BudgetsAllocations )
+[2025-06-09 23:30:22] DEBUG [budgets.signals:22] update_total_allocated - Updated total_allocated=42986000000.00 for BudgetPeriod 21
+[2025-06-09 23:30:22] DEBUG [budgets.signals:71] invalidate_allocation_cache - Invalidated cache keys after BudgetAllocation change: {'free_budget_76', 'project_remaining_budget_8', 'tankhah_report_21_no_filters', 'budget_transfers_21_no_filters'}
+[2025-06-09 23:30:22] INFO [budgets.models:731] save - BudgetAllocation saved with ID: 76
+[2025-06-09 23:30:22] DEBUG [budgets.models:733] save - Allocation status: normal, message: وضعیت عادی
+[2025-06-09 23:30:22] DEBUG [budgets.models:1376] save - Updated BudgetAllocation 76: allocated_amount=986000000.00, returned_amount=214000000.00
+[2025-06-09 23:30:22] DEBUG [budgets.models:1385] save - Updated BudgetPeriod 21: returned_amount=204000000.00
+[2025-06-09 23:30:22] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:30:22] INFO [budgets.budget_calculations:169] send_notification - Notification sent to 2 users: مبلغ 190,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-09 23:30:22] INFO [budgets.models:753] send_notification - Notification sent for BudgetAllocation 76: return - مبلغ 190,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-09 23:30:22] INFO [budgets.BudgetReturn.view_BudgetReturn:364] form_valid - User admin created return transaction for allocation 76 with amount 190,000,000
+[2025-06-09 23:30:22] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=190000000, type=RETURN, allocation ID=76
+[2025-06-09 23:30:22] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=190000000, type=RETURN, allocation ID=76
+[2025-06-09 23:30:22] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=190000000, allocation ID=76
+[2025-06-09 23:30:22] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-09 23:30:22] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-2b045bdc5a0b created. Invalidating cache for allocation 76
+[2025-06-09 23:30:22] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'free_budget_76', 'project_remaining_budget_8', 'returned_budgets_21_all_no_filters', 'budget_transfers_21_no_filters'}
+[2025-06-09 23:30:22] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 68
+[2025-06-09 23:30:22] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=796000000.00)
+[2025-06-09 23:30:22] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=796000000.00, allocation_type=percent
+[2025-06-09 23:30:22] DEBUG [budgets.models:645] clean - Clean validation passed (Model IS : BudgetsAllocations )
+[2025-06-09 23:30:22] DEBUG [budgets.signals:22] update_total_allocated - Updated total_allocated=42796000000.00 for BudgetPeriod 21
+[2025-06-09 23:30:22] DEBUG [budgets.signals:71] invalidate_allocation_cache - Invalidated cache keys after BudgetAllocation change: {'free_budget_76', 'project_remaining_budget_8', 'tankhah_report_21_no_filters', 'budget_transfers_21_no_filters'}
+[2025-06-09 23:30:22] INFO [budgets.models:731] save - BudgetAllocation saved with ID: 76
+[2025-06-09 23:30:22] DEBUG [budgets.models:733] save - Allocation status: normal, message: وضعیت عادی
+[2025-06-09 23:30:22] DEBUG [budgets.models:1376] save - Updated BudgetAllocation 76: allocated_amount=796000000.00, returned_amount=404000000.00
+[2025-06-09 23:30:22] DEBUG [budgets.models:1385] save - Updated BudgetPeriod 21: returned_amount=204000000.00
+[2025-06-09 23:30:22] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:30:22] INFO [budgets.budget_calculations:169] send_notification - Notification sent to 2 users: مبلغ 190,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-09 23:30:22] INFO [budgets.models:753] send_notification - Notification sent for BudgetAllocation 76: return - مبلغ 190,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-09 23:35:46] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 10: 30000000000.00 (Total Allocations: 1)
+[2025-06-09 23:35:46] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 9: 12000000000.00 (Total Allocations: 1)
+[2025-06-09 23:35:46] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-09 23:35:55] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-09 23:35:55] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-09 23:35:55] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-09 23:35:55] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-09 23:35:55] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-09 23:35:55] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:35:55] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:36:55] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 10: 30000000000.00 (Total Allocations: 1)
+[2025-06-09 23:36:55] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 10: 30000000000.00 (Total Allocations: 1)
+[2025-06-09 23:36:55] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 10 allocations: count=1, amounts=[Decimal('30000000000.00')]
+[2025-06-09 23:36:55] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=10, total=30000000000.00, consumptions=10000000.00, returns=0, remaining=29990000000.00, consumptions_count=3, returns_count=0
+[2025-06-09 23:36:55] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-09 23:36:55] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:36:55] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:37:26] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 10: 30000000000.00 (Total Allocations: 1)
+[2025-06-09 23:37:26] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 10: 30000000000.00 (Total Allocations: 1)
+[2025-06-09 23:37:26] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 10 allocations: count=1, amounts=[Decimal('30000000000.00')]
+[2025-06-09 23:37:26] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=10, total=30000000000.00, consumptions=10000000.00, returns=0, remaining=29990000000.00, consumptions_count=3, returns_count=0
+[2025-06-09 23:37:26] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-09 23:37:26] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:37:26] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:37:56] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 10: 30000000000.00 (Total Allocations: 1)
+[2025-06-09 23:37:56] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 10: 30000000000.00 (Total Allocations: 1)
+[2025-06-09 23:37:56] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 10 allocations: count=1, amounts=[Decimal('30000000000.00')]
+[2025-06-09 23:37:56] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=10, total=30000000000.00, consumptions=10000000.00, returns=0, remaining=29990000000.00, consumptions_count=3, returns_count=0
+[2025-06-09 23:37:56] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-09 23:37:56] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:37:56] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:37:58] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 10: 30000000000.00 (Total Allocations: 1)
+[2025-06-09 23:37:58] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 10: 30000000000.00 (Total Allocations: 1)
+[2025-06-09 23:37:58] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 10 allocations: count=1, amounts=[Decimal('30000000000.00')]
+[2025-06-09 23:37:58] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=10, total=30000000000.00, consumptions=10000000.00, returns=0, remaining=29990000000.00, consumptions_count=3, returns_count=0
+[2025-06-09 23:37:58] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-09 23:37:58] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:37:58] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:51:45] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 10: 30000000000.00 (Total Allocations: 1)
+[2025-06-09 23:51:45] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 10: 30000000000.00 (Total Allocations: 1)
+[2025-06-09 23:51:45] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 10 allocations: count=1, amounts=[Decimal('30000000000.00')]
+[2025-06-09 23:51:45] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=10, total=30000000000.00, consumptions=10000000.00, returns=0, remaining=29990000000.00, consumptions_count=3, returns_count=0
+[2025-06-09 23:51:45] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-09 23:53:06] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 10: 30000000000.00 (Total Allocations: 1)
+[2025-06-09 23:53:06] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 10: 30000000000.00 (Total Allocations: 1)
+[2025-06-09 23:53:06] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 10 allocations: count=1, amounts=[Decimal('30000000000.00')]
+[2025-06-09 23:53:06] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=10, total=30000000000.00, consumptions=10000000.00, returns=0, remaining=29990000000.00, consumptions_count=3, returns_count=0
+[2025-06-09 23:53:06] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-09 23:53:06] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:53:06] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:53:06] DEBUG [budgets.BudgetReturn.view_BudgetReturn:380] get_context_data - Budget context generated and cached for allocation ID: 74
+[2025-06-09 23:54:50] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 10: 30000000000.00 (Total Allocations: 1)
+[2025-06-09 23:54:50] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 10: 30000000000.00 (Total Allocations: 1)
+[2025-06-09 23:54:50] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 10 allocations: count=1, amounts=[Decimal('30000000000.00')]
+[2025-06-09 23:54:50] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=10, total=30000000000.00, consumptions=10000000.00, returns=0, remaining=29990000000.00, consumptions_count=3, returns_count=0
+[2025-06-09 23:54:50] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-09 23:54:50] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:54:50] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:54:50] DEBUG [budgets.BudgetReturn.view_BudgetReturn:380] get_context_data - Budget context generated and cached for allocation ID: 74
+[2025-06-09 23:56:13] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-09 23:56:13] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-09 23:56:13] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-09 23:56:13] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-09 23:56:13] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-09 23:56:13] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-09 23:56:13] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:03:47] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:03:47] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:03:47] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:03:47] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:03:47] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:03:47] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:03:47] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:09:46] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:09:46] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:09:46] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:09:46] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:09:46] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:09:46] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:09:46] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:10:14] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:10:14] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:10:14] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:10:14] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:10:14] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:10:14] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:10:14] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:10:43] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:10:43] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:10:43] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:10:43] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:10:43] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:10:43] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:10:43] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:21:22] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:21:22] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:21:22] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:21:22] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:21:22] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:21:22] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:21:22] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:29:51] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:29:51] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:29:51] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:29:51] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:29:51] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:29:51] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:29:51] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:32:11] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:32:11] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:32:11] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:32:11] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:32:11] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:32:11] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:32:11] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:34:52] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:34:52] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:34:52] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:34:52] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:34:52] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:34:52] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:34:52] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:35:10] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:35:10] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:35:10] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:35:10] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:35:10] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:35:10] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:35:10] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:35:46] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:35:46] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:35:46] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:35:46] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:35:46] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:35:46] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:35:46] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:13] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:13] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:13] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:36:13] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:36:13] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:36:13] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:13] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:14] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:14] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:14] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:36:14] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:36:14] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:36:14] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:14] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:15] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:15] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:15] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:36:15] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:36:15] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:36:15] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:15] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:34] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:34] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:34] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:36:34] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:36:34] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:36:34] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:34] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:35] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:35] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:35] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:36:35] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:36:35] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:36:35] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:35] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:41] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:41] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:41] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:36:41] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:36:41] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:36:41] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:41] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:42] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:42] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:42] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:36:42] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:36:42] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:36:42] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:42] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:42] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:42] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:42] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:36:42] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:36:42] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:36:42] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:42] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:43] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:43] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:36:43] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:36:43] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:36:43] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:36:43] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:36:43] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:37:41] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:37:41] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:37:41] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:37:41] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:37:41] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:37:41] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:37:41] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:38:05] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:38:05] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:38:05] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:38:05] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:38:05] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:38:05] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:38:05] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:38:06] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:38:06] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:38:06] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:38:06] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:38:06] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:38:06] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:38:06] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:38:18] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:38:18] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:38:18] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:38:18] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:38:18] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:38:18] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:38:18] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:38:26] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:38:26] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:38:26] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:38:26] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:38:26] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:38:26] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:38:26] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:39:59] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:39:59] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:39:59] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:39:59] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:39:59] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:39:59] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:39:59] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:40:00] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:40:00] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:40:00] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:40:00] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:40:00] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:40:00] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:40:00] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:40:12] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:40:12] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:40:12] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:40:12] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:40:12] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:40:12] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:40:12] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:42:02] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:42:02] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:42:02] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:42:02] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:42:02] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:42:02] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:42:02] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:43:16] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:43:16] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:43:16] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:43:16] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:43:16] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:43:16] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:43:16] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:43:28] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:43:28] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:43:28] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:43:28] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:43:28] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:43:28] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:43:28] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:43:28] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:43:28] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:43:28] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:43:28] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:43:28] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:43:28] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:43:28] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:43:29] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:43:29] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:43:29] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:43:29] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:43:29] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:43:29] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:43:29] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:43:40] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:43:40] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:43:40] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:43:40] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:43:40] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:43:40] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:43:40] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:43:57] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:43:57] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:43:57] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:43:57] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:43:57] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:43:58] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:43:58] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:45:54] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:45:54] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:45:54] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:45:54] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:45:54] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:45:54] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:45:54] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:46:03] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:46:03] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:46:03] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:46:03] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:46:03] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:46:03] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:46:03] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:46:03] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:46:03] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:46:03] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:46:03] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:46:03] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:46:03] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:46:03] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:49:10] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:49:10] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:49:10] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:49:10] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:49:10] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:49:10] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:49:10] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:49:11] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:49:11] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:49:11] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:49:11] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:49:11] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:49:11] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:49:11] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:49:12] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:49:12] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:49:12] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:49:12] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:49:12] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:49:12] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:49:12] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:55:22] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:55:22] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:55:22] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:55:23] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:55:23] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:55:23] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:55:23] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:55:24] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:55:24] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:55:24] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:55:24] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:55:24] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:55:24] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:55:24] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:55:39] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:55:39] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 796000000.00 (Total Allocations: 1)
+[2025-06-10 00:55:39] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('796000000.00')]
+[2025-06-10 00:55:39] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=796000000.00, consumptions=0, returns=204000000.00, remaining=1000000000.00, consumptions_count=0, returns_count=5
+[2025-06-10 00:55:39] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:55:39] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:55:39] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:56:04] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=6000000, type=RETURN, allocation ID=76
+[2025-06-10 00:56:04] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=6000000, allocation ID=76
+[2025-06-10 00:56:04] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 00:56:04] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=6000000, type=RETURN, allocation ID=76
+[2025-06-10 00:56:04] INFO [budgets.models:1364] save - Generated transaction_id: TX-RETURN-76-c9e24c7cb451
+[2025-06-10 00:56:04] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=6000000, type=RETURN, allocation ID=76
+[2025-06-10 00:56:04] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=6000000, allocation ID=76
+[2025-06-10 00:56:04] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 00:56:04] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-c9e24c7cb451 created. Invalidating cache for allocation 76
+[2025-06-10 00:56:04] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'free_budget_76', 'returned_budgets_21_all_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8'}
+[2025-06-10 00:56:04] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 69
+[2025-06-10 00:56:04] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=790000000.00)
+[2025-06-10 00:56:04] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=790000000.00, allocation_type=percent
+[2025-06-10 00:56:04] DEBUG [budgets.models:645] clean - Clean validation passed (Model IS : BudgetsAllocations )
+[2025-06-10 00:56:04] DEBUG [budgets.signals:22] update_total_allocated - Updated total_allocated=42790000000.00 for BudgetPeriod 21
+[2025-06-10 00:56:04] DEBUG [budgets.signals:71] invalidate_allocation_cache - Invalidated cache keys after BudgetAllocation change: {'free_budget_76', 'tankhah_report_21_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8'}
+[2025-06-10 00:56:04] INFO [budgets.models:731] save - BudgetAllocation saved with ID: 76
+[2025-06-10 00:56:04] DEBUG [budgets.models:733] save - Allocation status: normal, message: وضعیت عادی
+[2025-06-10 00:56:04] DEBUG [budgets.models:1376] save - Updated BudgetAllocation 76: allocated_amount=790000000.00, returned_amount=410000000.00
+[2025-06-10 00:56:04] DEBUG [budgets.models:1385] save - Updated BudgetPeriod 21: returned_amount=210000000.00
+[2025-06-10 00:56:04] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:56:04] INFO [budgets.budget_calculations:169] send_notification - Notification sent to 2 users: مبلغ 6,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 00:56:04] INFO [budgets.models:753] send_notification - Notification sent for BudgetAllocation 76: return - مبلغ 6,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 00:56:04] INFO [budgets.BudgetReturn.view_BudgetReturn:401] form_valid - User admin created return transaction for allocation 76 with amount 6,000,000
+[2025-06-10 00:56:04] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=6000000, type=RETURN, allocation ID=76
+[2025-06-10 00:56:04] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=6000000, type=RETURN, allocation ID=76
+[2025-06-10 00:56:04] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=6000000, allocation ID=76
+[2025-06-10 00:56:04] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 00:56:04] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-c9e24c7cb451 created. Invalidating cache for allocation 76
+[2025-06-10 00:56:04] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'free_budget_76', 'returned_budgets_21_all_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8'}
+[2025-06-10 00:56:04] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 69
+[2025-06-10 00:56:04] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=784000000.00)
+[2025-06-10 00:56:04] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=784000000.00, allocation_type=percent
+[2025-06-10 00:56:04] DEBUG [budgets.models:645] clean - Clean validation passed (Model IS : BudgetsAllocations )
+[2025-06-10 00:56:04] DEBUG [budgets.signals:22] update_total_allocated - Updated total_allocated=42784000000.00 for BudgetPeriod 21
+[2025-06-10 00:56:04] DEBUG [budgets.signals:71] invalidate_allocation_cache - Invalidated cache keys after BudgetAllocation change: {'free_budget_76', 'tankhah_report_21_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8'}
+[2025-06-10 00:56:04] INFO [budgets.models:731] save - BudgetAllocation saved with ID: 76
+[2025-06-10 00:56:04] DEBUG [budgets.models:733] save - Allocation status: normal, message: وضعیت عادی
+[2025-06-10 00:56:04] DEBUG [budgets.models:1376] save - Updated BudgetAllocation 76: allocated_amount=784000000.00, returned_amount=416000000.00
+[2025-06-10 00:56:04] DEBUG [budgets.models:1385] save - Updated BudgetPeriod 21: returned_amount=210000000.00
+[2025-06-10 00:56:04] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:56:04] INFO [budgets.budget_calculations:169] send_notification - Notification sent to 2 users: مبلغ 6,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 00:56:04] INFO [budgets.models:753] send_notification - Notification sent for BudgetAllocation 76: return - مبلغ 6,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 00:56:13] DEBUG [budgets.BudgetAllocation.forms_BudgetAllocation:498] __init__ - Set initial allocation_date from instance: 1404/03/14
+[2025-06-10 00:56:13] DEBUG [budgets.BudgetAllocation.forms_BudgetAllocation:518] __init__ - Organization queryset set for active, allocatable orgs.
+[2025-06-10 00:56:22] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 784000000.00 (Total Allocations: 1)
+[2025-06-10 00:56:22] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 784000000.00 (Total Allocations: 1)
+[2025-06-10 00:56:22] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('784000000.00')]
+[2025-06-10 00:56:22] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=784000000.00, consumptions=0, returns=210000000.00, remaining=994000000.00, consumptions_count=0, returns_count=6
+[2025-06-10 00:56:22] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:56:22] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:56:22] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:56:40] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=4000000, type=RETURN, allocation ID=76
+[2025-06-10 00:56:40] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=4000000, allocation ID=76
+[2025-06-10 00:56:40] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 00:56:40] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=4000000, type=RETURN, allocation ID=76
+[2025-06-10 00:56:40] INFO [budgets.models:1364] save - Generated transaction_id: TX-RETURN-76-3ae7259fe7ed
+[2025-06-10 00:56:40] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=4000000, type=RETURN, allocation ID=76
+[2025-06-10 00:56:40] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=4000000, allocation ID=76
+[2025-06-10 00:56:40] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 00:56:40] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-3ae7259fe7ed created. Invalidating cache for allocation 76
+[2025-06-10 00:56:40] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'free_budget_76', 'returned_budgets_21_all_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8'}
+[2025-06-10 00:56:40] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 70
+[2025-06-10 00:56:40] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=780000000.00)
+[2025-06-10 00:56:40] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=780000000.00, allocation_type=percent
+[2025-06-10 00:56:40] DEBUG [budgets.models:645] clean - Clean validation passed (Model IS : BudgetsAllocations )
+[2025-06-10 00:56:40] DEBUG [budgets.signals:22] update_total_allocated - Updated total_allocated=42780000000.00 for BudgetPeriod 21
+[2025-06-10 00:56:40] DEBUG [budgets.signals:71] invalidate_allocation_cache - Invalidated cache keys after BudgetAllocation change: {'free_budget_76', 'tankhah_report_21_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8'}
+[2025-06-10 00:56:40] INFO [budgets.models:731] save - BudgetAllocation saved with ID: 76
+[2025-06-10 00:56:40] DEBUG [budgets.models:733] save - Allocation status: normal, message: وضعیت عادی
+[2025-06-10 00:56:40] DEBUG [budgets.models:1376] save - Updated BudgetAllocation 76: allocated_amount=780000000.00, returned_amount=420000000.00
+[2025-06-10 00:56:40] DEBUG [budgets.models:1385] save - Updated BudgetPeriod 21: returned_amount=214000000.00
+[2025-06-10 00:56:40] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:56:40] INFO [budgets.budget_calculations:169] send_notification - Notification sent to 2 users: مبلغ 4,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 00:56:40] INFO [budgets.models:753] send_notification - Notification sent for BudgetAllocation 76: return - مبلغ 4,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 00:56:40] INFO [budgets.BudgetReturn.view_BudgetReturn:401] form_valid - User admin created return transaction for allocation 76 with amount 4,000,000
+[2025-06-10 00:56:40] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=4000000, type=RETURN, allocation ID=76
+[2025-06-10 00:56:40] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=4000000, type=RETURN, allocation ID=76
+[2025-06-10 00:56:40] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=4000000, allocation ID=76
+[2025-06-10 00:56:40] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 00:56:40] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-3ae7259fe7ed created. Invalidating cache for allocation 76
+[2025-06-10 00:56:40] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'free_budget_76', 'returned_budgets_21_all_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8'}
+[2025-06-10 00:56:40] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 70
+[2025-06-10 00:56:40] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=776000000.00)
+[2025-06-10 00:56:40] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=776000000.00, allocation_type=percent
+[2025-06-10 00:56:40] DEBUG [budgets.models:645] clean - Clean validation passed (Model IS : BudgetsAllocations )
+[2025-06-10 00:56:40] DEBUG [budgets.signals:22] update_total_allocated - Updated total_allocated=42776000000.00 for BudgetPeriod 21
+[2025-06-10 00:56:40] DEBUG [budgets.signals:71] invalidate_allocation_cache - Invalidated cache keys after BudgetAllocation change: {'free_budget_76', 'tankhah_report_21_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8'}
+[2025-06-10 00:56:40] INFO [budgets.models:731] save - BudgetAllocation saved with ID: 76
+[2025-06-10 00:56:40] DEBUG [budgets.models:733] save - Allocation status: normal, message: وضعیت عادی
+[2025-06-10 00:56:40] DEBUG [budgets.models:1376] save - Updated BudgetAllocation 76: allocated_amount=776000000.00, returned_amount=424000000.00
+[2025-06-10 00:56:40] DEBUG [budgets.models:1385] save - Updated BudgetPeriod 21: returned_amount=214000000.00
+[2025-06-10 00:56:40] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:56:40] INFO [budgets.budget_calculations:169] send_notification - Notification sent to 2 users: مبلغ 4,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 00:56:40] INFO [budgets.models:753] send_notification - Notification sent for BudgetAllocation 76: return - مبلغ 4,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 00:56:48] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 776000000.00 (Total Allocations: 1)
+[2025-06-10 00:56:48] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 776000000.00 (Total Allocations: 1)
+[2025-06-10 00:56:48] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('776000000.00')]
+[2025-06-10 00:56:48] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=776000000.00, consumptions=0, returns=214000000.00, remaining=990000000.00, consumptions_count=0, returns_count=7
+[2025-06-10 00:56:48] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:56:48] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:56:48] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:57:07] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=76000000, type=RETURN, allocation ID=76
+[2025-06-10 00:57:07] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=76000000, allocation ID=76
+[2025-06-10 00:57:07] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 00:57:07] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=76000000, type=RETURN, allocation ID=76
+[2025-06-10 00:57:07] INFO [budgets.models:1364] save - Generated transaction_id: TX-RETURN-76-c748dd0f72d4
+[2025-06-10 00:57:07] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=76000000, type=RETURN, allocation ID=76
+[2025-06-10 00:57:07] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=76000000, allocation ID=76
+[2025-06-10 00:57:07] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 00:57:07] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-c748dd0f72d4 created. Invalidating cache for allocation 76
+[2025-06-10 00:57:07] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'free_budget_76', 'returned_budgets_21_all_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8'}
+[2025-06-10 00:57:07] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 71
+[2025-06-10 00:57:07] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=700000000.00)
+[2025-06-10 00:57:07] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=700000000.00, allocation_type=percent
+[2025-06-10 00:57:07] DEBUG [budgets.models:645] clean - Clean validation passed (Model IS : BudgetsAllocations )
+[2025-06-10 00:57:07] DEBUG [budgets.signals:22] update_total_allocated - Updated total_allocated=42700000000.00 for BudgetPeriod 21
+[2025-06-10 00:57:07] DEBUG [budgets.signals:71] invalidate_allocation_cache - Invalidated cache keys after BudgetAllocation change: {'free_budget_76', 'tankhah_report_21_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8'}
+[2025-06-10 00:57:07] INFO [budgets.models:731] save - BudgetAllocation saved with ID: 76
+[2025-06-10 00:57:07] DEBUG [budgets.models:733] save - Allocation status: normal, message: وضعیت عادی
+[2025-06-10 00:57:07] DEBUG [budgets.models:1376] save - Updated BudgetAllocation 76: allocated_amount=700000000.00, returned_amount=500000000.00
+[2025-06-10 00:57:07] DEBUG [budgets.models:1385] save - Updated BudgetPeriod 21: returned_amount=290000000.00
+[2025-06-10 00:57:07] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:57:07] INFO [budgets.budget_calculations:169] send_notification - Notification sent to 2 users: مبلغ 76,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 00:57:07] INFO [budgets.models:753] send_notification - Notification sent for BudgetAllocation 76: return - مبلغ 76,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 00:57:07] INFO [budgets.BudgetReturn.view_BudgetReturn:401] form_valid - User admin created return transaction for allocation 76 with amount 76,000,000
+[2025-06-10 00:57:07] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=76000000, type=RETURN, allocation ID=76
+[2025-06-10 00:57:07] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=76000000, type=RETURN, allocation ID=76
+[2025-06-10 00:57:07] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=76000000, allocation ID=76
+[2025-06-10 00:57:07] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 00:57:07] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-c748dd0f72d4 created. Invalidating cache for allocation 76
+[2025-06-10 00:57:07] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'free_budget_76', 'returned_budgets_21_all_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8'}
+[2025-06-10 00:57:07] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 71
+[2025-06-10 00:57:07] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=624000000.00)
+[2025-06-10 00:57:07] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=624000000.00, allocation_type=percent
+[2025-06-10 00:57:07] DEBUG [budgets.models:645] clean - Clean validation passed (Model IS : BudgetsAllocations )
+[2025-06-10 00:57:07] DEBUG [budgets.signals:22] update_total_allocated - Updated total_allocated=42624000000.00 for BudgetPeriod 21
+[2025-06-10 00:57:07] DEBUG [budgets.signals:71] invalidate_allocation_cache - Invalidated cache keys after BudgetAllocation change: {'free_budget_76', 'tankhah_report_21_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8'}
+[2025-06-10 00:57:07] INFO [budgets.models:731] save - BudgetAllocation saved with ID: 76
+[2025-06-10 00:57:07] DEBUG [budgets.models:733] save - Allocation status: normal, message: وضعیت عادی
+[2025-06-10 00:57:07] DEBUG [budgets.models:1376] save - Updated BudgetAllocation 76: allocated_amount=624000000.00, returned_amount=576000000.00
+[2025-06-10 00:57:07] DEBUG [budgets.models:1385] save - Updated BudgetPeriod 21: returned_amount=290000000.00
+[2025-06-10 00:57:07] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:57:07] INFO [budgets.budget_calculations:169] send_notification - Notification sent to 2 users: مبلغ 76,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 00:57:07] INFO [budgets.models:753] send_notification - Notification sent for BudgetAllocation 76: return - مبلغ 76,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 00:57:12] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 00:57:12] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 00:57:12] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 00:57:12] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 00:57:12] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:57:12] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:57:12] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:59:34] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 00:59:34] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 00:59:34] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 00:59:34] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 00:59:34] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:59:34] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:59:34] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:59:40] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 00:59:40] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 00:59:40] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 00:59:40] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 00:59:40] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:59:40] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:59:40] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:59:41] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 00:59:41] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 00:59:41] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 00:59:41] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 00:59:41] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:59:41] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:59:41] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:59:41] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 00:59:41] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 00:59:42] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 00:59:42] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 00:59:42] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 00:59:42] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 00:59:42] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:00:48] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:00:48] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:00:48] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:00:48] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:00:48] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:00:48] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:00:48] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:06:14] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:06:14] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:06:14] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:06:14] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:06:14] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:06:14] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:06:14] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:06:15] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:06:15] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:06:15] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:06:15] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:06:15] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:06:15] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:06:15] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:07:48] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:07:48] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:07:48] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:07:48] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:07:48] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:07:48] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:07:48] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:07:50] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:07:50] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:07:50] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:07:50] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:07:50] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:07:50] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:07:50] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:08:42] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:08:42] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:08:42] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:08:42] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:08:42] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:08:42] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:08:42] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:08:46] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:08:46] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:08:46] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:08:46] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:08:46] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:08:46] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:08:46] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:11:46] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:11:46] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:11:46] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:11:46] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:11:46] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:11:46] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:11:46] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:12:50] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:12:50] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:12:50] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:12:50] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:12:50] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:12:50] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:12:50] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:13:02] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:13:02] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:13:02] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:13:02] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:13:02] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:13:02] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:13:02] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:17:38] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:17:38] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:17:38] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:17:38] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:17:38] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:17:38] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:17:38] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:17:38] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=1111, type=RETURN, allocation ID=76
+[2025-06-10 01:17:38] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=1111, allocation ID=76
+[2025-06-10 01:17:38] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 01:17:38] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:17:38] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:17:38] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:17:38] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:17:38] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:17:38] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:17:38] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:17:53] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=1111, type=RETURN, allocation ID=76
+[2025-06-10 01:17:53] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=1111, allocation ID=76
+[2025-06-10 01:17:53] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 01:17:53] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:17:53] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:17:53] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:17:53] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:17:53] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:17:53] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:17:53] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:18:15] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=1111, type=RETURN, allocation ID=76
+[2025-06-10 01:18:15] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=1111, allocation ID=76
+[2025-06-10 01:18:15] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 01:18:15] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:18:15] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:18:15] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:18:15] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:18:15] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:18:15] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:18:15] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:19:25] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:19:25] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:19:25] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:19:25] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:19:25] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:19:25] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:19:25] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:21:10] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:21:11] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:21:11] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:21:11] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:21:11] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:21:11] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:21:11] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:23:45] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:23:45] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:23:45] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:23:45] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:23:45] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:23:45] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:23:45] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:24:23] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:24:23] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:24:23] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:24:23] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:24:23] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:24:23] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:24:23] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:24:52] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:24:52] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:24:52] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:24:52] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:24:52] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:24:52] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:24:52] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:24:53] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:24:53] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:24:53] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:24:53] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:24:53] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:24:53] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:24:53] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:24:54] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:24:54] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:24:54] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:24:54] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:24:54] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:24:54] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:24:54] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:25:35] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:25:35] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:25:35] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:25:35] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:25:35] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:25:35] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:25:35] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:25:36] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:25:36] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:25:36] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:25:36] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:25:36] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:25:36] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:25:36] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:25:37] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:25:37] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:25:37] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:25:37] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:25:37] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:25:37] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:25:37] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:25:49] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:25:49] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 624000000.00 (Total Allocations: 1)
+[2025-06-10 01:25:49] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('624000000.00')]
+[2025-06-10 01:25:49] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=624000000.00, consumptions=0, returns=290000000.00, remaining=914000000.00, consumptions_count=0, returns_count=8
+[2025-06-10 01:25:49] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:25:49] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:25:49] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:26:02] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=24000000, type=RETURN, allocation ID=76
+[2025-06-10 01:26:02] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=24000000, allocation ID=76
+[2025-06-10 01:26:02] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 01:26:02] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=24000000, type=RETURN, allocation ID=76
+[2025-06-10 01:26:02] INFO [budgets.models:1364] save - Generated transaction_id: TX-RETURN-76-f799e9671b9a
+[2025-06-10 01:26:02] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=24000000, type=RETURN, allocation ID=76
+[2025-06-10 01:26:02] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=24000000, allocation ID=76
+[2025-06-10 01:26:02] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 01:26:02] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-f799e9671b9a created. Invalidating cache for allocation 76
+[2025-06-10 01:26:02] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'returned_budgets_21_all_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8', 'free_budget_76'}
+[2025-06-10 01:26:02] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 72
+[2025-06-10 01:26:02] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=600000000.00)
+[2025-06-10 01:26:02] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=600000000.00, allocation_type=percent
+[2025-06-10 01:26:02] DEBUG [budgets.models:645] clean - Clean validation passed (Model IS : BudgetsAllocations )
+[2025-06-10 01:26:02] DEBUG [budgets.signals:22] update_total_allocated - Updated total_allocated=42600000000.00 for BudgetPeriod 21
+[2025-06-10 01:26:02] DEBUG [budgets.signals:71] invalidate_allocation_cache - Invalidated cache keys after BudgetAllocation change: {'budget_transfers_21_no_filters', 'tankhah_report_21_no_filters', 'project_remaining_budget_8', 'free_budget_76'}
+[2025-06-10 01:26:02] INFO [budgets.models:731] save - BudgetAllocation saved with ID: 76
+[2025-06-10 01:26:02] DEBUG [budgets.models:733] save - Allocation status: normal, message: وضعیت عادی
+[2025-06-10 01:26:02] DEBUG [budgets.models:1376] save - Updated BudgetAllocation 76: allocated_amount=600000000.00, returned_amount=600000000.00
+[2025-06-10 01:26:02] DEBUG [budgets.models:1385] save - Updated BudgetPeriod 21: returned_amount=314000000.00
+[2025-06-10 01:26:02] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:26:02] INFO [budgets.budget_calculations:169] send_notification - Notification sent to 2 users: مبلغ 24,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 01:26:02] INFO [budgets.models:753] send_notification - Notification sent for BudgetAllocation 76: return - مبلغ 24,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 01:26:02] INFO [budgets.BudgetReturn.view_BudgetReturn:401] form_valid - User admin created return transaction for allocation 76 with amount 24,000,000
+[2025-06-10 01:26:02] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=24000000, type=RETURN, allocation ID=76
+[2025-06-10 01:26:02] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=24000000, type=RETURN, allocation ID=76
+[2025-06-10 01:26:02] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=24000000, allocation ID=76
+[2025-06-10 01:26:02] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 01:26:02] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-f799e9671b9a created. Invalidating cache for allocation 76
+[2025-06-10 01:26:02] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'returned_budgets_21_all_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8', 'free_budget_76'}
+[2025-06-10 01:26:02] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 72
+[2025-06-10 01:26:02] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=576000000.00)
+[2025-06-10 01:26:02] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=576000000.00, allocation_type=percent
+[2025-06-10 01:26:02] DEBUG [budgets.models:645] clean - Clean validation passed (Model IS : BudgetsAllocations )
+[2025-06-10 01:26:02] DEBUG [budgets.signals:22] update_total_allocated - Updated total_allocated=42576000000.00 for BudgetPeriod 21
+[2025-06-10 01:26:02] DEBUG [budgets.signals:71] invalidate_allocation_cache - Invalidated cache keys after BudgetAllocation change: {'budget_transfers_21_no_filters', 'tankhah_report_21_no_filters', 'project_remaining_budget_8', 'free_budget_76'}
+[2025-06-10 01:26:02] INFO [budgets.models:731] save - BudgetAllocation saved with ID: 76
+[2025-06-10 01:26:02] DEBUG [budgets.models:733] save - Allocation status: normal, message: وضعیت عادی
+[2025-06-10 01:26:02] DEBUG [budgets.models:1376] save - Updated BudgetAllocation 76: allocated_amount=576000000.00, returned_amount=624000000.00
+[2025-06-10 01:26:02] DEBUG [budgets.models:1385] save - Updated BudgetPeriod 21: returned_amount=314000000.00
+[2025-06-10 01:26:02] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:26:02] INFO [budgets.budget_calculations:169] send_notification - Notification sent to 2 users: مبلغ 24,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 01:26:02] INFO [budgets.models:753] send_notification - Notification sent for BudgetAllocation 76: return - مبلغ 24,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 01:26:20] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 576000000.00 (Total Allocations: 1)
+[2025-06-10 01:26:20] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 576000000.00 (Total Allocations: 1)
+[2025-06-10 01:26:20] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('576000000.00')]
+[2025-06-10 01:26:20] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=576000000.00, consumptions=0, returns=314000000.00, remaining=890000000.00, consumptions_count=0, returns_count=9
+[2025-06-10 01:26:20] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:26:20] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:26:20] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:26:22] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 576000000.00 (Total Allocations: 1)
+[2025-06-10 01:26:23] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 576000000.00 (Total Allocations: 1)
+[2025-06-10 01:26:23] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('576000000.00')]
+[2025-06-10 01:26:23] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=576000000.00, consumptions=0, returns=314000000.00, remaining=890000000.00, consumptions_count=0, returns_count=9
+[2025-06-10 01:26:23] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:26:23] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:26:23] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:26:24] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 576000000.00 (Total Allocations: 1)
+[2025-06-10 01:26:24] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 576000000.00 (Total Allocations: 1)
+[2025-06-10 01:26:24] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('576000000.00')]
+[2025-06-10 01:26:24] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=576000000.00, consumptions=0, returns=314000000.00, remaining=890000000.00, consumptions_count=0, returns_count=9
+[2025-06-10 01:26:24] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:26:24] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:26:24] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:26:25] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 576000000.00 (Total Allocations: 1)
+[2025-06-10 01:26:25] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 576000000.00 (Total Allocations: 1)
+[2025-06-10 01:26:25] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('576000000.00')]
+[2025-06-10 01:26:25] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=576000000.00, consumptions=0, returns=314000000.00, remaining=890000000.00, consumptions_count=0, returns_count=9
+[2025-06-10 01:26:25] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:26:25] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:26:25] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:26:31] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=576000000, type=RETURN, allocation ID=76
+[2025-06-10 01:26:31] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=576000000, allocation ID=76
+[2025-06-10 01:26:31] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 01:26:31] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=576000000, type=RETURN, allocation ID=76
+[2025-06-10 01:26:31] INFO [budgets.models:1364] save - Generated transaction_id: TX-RETURN-76-b14c9c5ae457
+[2025-06-10 01:26:31] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=576000000, type=RETURN, allocation ID=76
+[2025-06-10 01:26:31] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=576000000, allocation ID=76
+[2025-06-10 01:26:31] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 01:26:31] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-b14c9c5ae457 created. Invalidating cache for allocation 76
+[2025-06-10 01:26:31] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'returned_budgets_21_all_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8', 'free_budget_76'}
+[2025-06-10 01:26:31] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 73
+[2025-06-10 01:26:31] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=0.00)
+[2025-06-10 01:26:31] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=0.00, allocation_type=percent
+[2025-06-10 01:26:31] ERROR [budgets.models:738] save - Error saving BudgetAllocation: ['مبلغ تخصیص باید مثبت باشد.']
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 726, in save
+    self.clean()
+    ~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 607, in clean
+    raise ValidationError(_("مبلغ تخصیص باید مثبت باشد."))
+django.core.exceptions.ValidationError: ['مبلغ تخصیص باید مثبت باشد.']
+[2025-06-10 01:26:31] ERROR [budgets.models:1388] save - Error saving BudgetTransaction: ['مبلغ تخصیص باید مثبت باشد.']
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 1375, in save
+    self.allocation.save(update_fields=['allocated_amount', 'returned_amount'])
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 726, in save
+    self.clean()
+    ~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 607, in clean
+    raise ValidationError(_("مبلغ تخصیص باید مثبت باشد."))
+django.core.exceptions.ValidationError: ['مبلغ تخصیص باید مثبت باشد.']
+[2025-06-10 01:26:31] ERROR [budgets.BudgetReturn.view_BudgetReturn:407] form_valid - Error creating return transaction for allocation 76: ['مبلغ تخصیص باید مثبت باشد.']
+[2025-06-10 01:26:31] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 576000000.00 (Total Allocations: 1)
+[2025-06-10 01:26:31] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 576000000.00 (Total Allocations: 1)
+[2025-06-10 01:26:31] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('576000000.00')]
+[2025-06-10 01:26:31] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=576000000.00, consumptions=0, returns=314000000.00, remaining=890000000.00, consumptions_count=0, returns_count=9
+[2025-06-10 01:26:31] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:26:31] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:26:31] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:26:44] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=576000000, type=RETURN, allocation ID=76
+[2025-06-10 01:26:44] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=576000000, allocation ID=76
+[2025-06-10 01:26:44] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 01:26:44] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=576000000, type=RETURN, allocation ID=76
+[2025-06-10 01:26:44] INFO [budgets.models:1364] save - Generated transaction_id: TX-RETURN-76-463edebb475a
+[2025-06-10 01:26:44] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=576000000, type=RETURN, allocation ID=76
+[2025-06-10 01:26:44] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=576000000, allocation ID=76
+[2025-06-10 01:26:44] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 01:26:44] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-463edebb475a created. Invalidating cache for allocation 76
+[2025-06-10 01:26:44] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'returned_budgets_21_all_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8', 'free_budget_76'}
+[2025-06-10 01:26:44] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 74
+[2025-06-10 01:26:44] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=0.00)
+[2025-06-10 01:26:44] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=0.00, allocation_type=percent
+[2025-06-10 01:26:44] ERROR [budgets.models:738] save - Error saving BudgetAllocation: ['مبلغ تخصیص باید مثبت باشد.']
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 726, in save
+    self.clean()
+    ~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 607, in clean
+    raise ValidationError(_("مبلغ تخصیص باید مثبت باشد."))
+django.core.exceptions.ValidationError: ['مبلغ تخصیص باید مثبت باشد.']
+[2025-06-10 01:26:44] ERROR [budgets.models:1388] save - Error saving BudgetTransaction: ['مبلغ تخصیص باید مثبت باشد.']
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 1375, in save
+    self.allocation.save(update_fields=['allocated_amount', 'returned_amount'])
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 726, in save
+    self.clean()
+    ~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 607, in clean
+    raise ValidationError(_("مبلغ تخصیص باید مثبت باشد."))
+django.core.exceptions.ValidationError: ['مبلغ تخصیص باید مثبت باشد.']
+[2025-06-10 01:26:44] ERROR [budgets.BudgetReturn.view_BudgetReturn:407] form_valid - Error creating return transaction for allocation 76: ['مبلغ تخصیص باید مثبت باشد.']
+[2025-06-10 01:26:44] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 576000000.00 (Total Allocations: 1)
+[2025-06-10 01:26:44] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 576000000.00 (Total Allocations: 1)
+[2025-06-10 01:26:44] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('576000000.00')]
+[2025-06-10 01:26:44] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=576000000.00, consumptions=0, returns=314000000.00, remaining=890000000.00, consumptions_count=0, returns_count=9
+[2025-06-10 01:26:44] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:26:44] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:26:44] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:26:50] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=576000000, type=RETURN, allocation ID=76
+[2025-06-10 01:26:50] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=576000000, allocation ID=76
+[2025-06-10 01:26:50] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 01:26:50] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=576000000, type=RETURN, allocation ID=76
+[2025-06-10 01:26:50] INFO [budgets.models:1364] save - Generated transaction_id: TX-RETURN-76-c3efedd27688
+[2025-06-10 01:26:50] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=576000000, type=RETURN, allocation ID=76
+[2025-06-10 01:26:50] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=576000000, allocation ID=76
+[2025-06-10 01:26:50] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 01:26:50] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-c3efedd27688 created. Invalidating cache for allocation 76
+[2025-06-10 01:26:50] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'returned_budgets_21_all_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8', 'free_budget_76'}
+[2025-06-10 01:26:50] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 75
+[2025-06-10 01:26:50] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=0.00)
+[2025-06-10 01:26:50] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=0.00, allocation_type=percent
+[2025-06-10 01:26:50] ERROR [budgets.models:738] save - Error saving BudgetAllocation: ['مبلغ تخصیص باید مثبت باشد.']
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 726, in save
+    self.clean()
+    ~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 607, in clean
+    raise ValidationError(_("مبلغ تخصیص باید مثبت باشد."))
+django.core.exceptions.ValidationError: ['مبلغ تخصیص باید مثبت باشد.']
+[2025-06-10 01:26:50] ERROR [budgets.models:1388] save - Error saving BudgetTransaction: ['مبلغ تخصیص باید مثبت باشد.']
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 1375, in save
+    self.allocation.save(update_fields=['allocated_amount', 'returned_amount'])
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 726, in save
+    self.clean()
+    ~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 607, in clean
+    raise ValidationError(_("مبلغ تخصیص باید مثبت باشد."))
+django.core.exceptions.ValidationError: ['مبلغ تخصیص باید مثبت باشد.']
+[2025-06-10 01:26:50] ERROR [budgets.BudgetReturn.view_BudgetReturn:407] form_valid - Error creating return transaction for allocation 76: ['مبلغ تخصیص باید مثبت باشد.']
+[2025-06-10 01:26:50] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 576000000.00 (Total Allocations: 1)
+[2025-06-10 01:26:50] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 576000000.00 (Total Allocations: 1)
+[2025-06-10 01:26:50] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('576000000.00')]
+[2025-06-10 01:26:50] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=576000000.00, consumptions=0, returns=314000000.00, remaining=890000000.00, consumptions_count=0, returns_count=9
+[2025-06-10 01:26:50] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:26:50] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:26:50] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:27:06] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=570000000, type=RETURN, allocation ID=76
+[2025-06-10 01:27:06] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=570000000, allocation ID=76
+[2025-06-10 01:27:06] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 01:27:06] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=570000000, type=RETURN, allocation ID=76
+[2025-06-10 01:27:06] INFO [budgets.models:1364] save - Generated transaction_id: TX-RETURN-76-15fd0eea4e37
+[2025-06-10 01:27:06] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=570000000, type=RETURN, allocation ID=76
+[2025-06-10 01:27:06] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=570000000, allocation ID=76
+[2025-06-10 01:27:06] INFO [budgets.models:1354] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-06-10 01:27:06] DEBUG [budgets.signals:30] update_remaining_amount - BudgetTransaction TX-RETURN-76-15fd0eea4e37 created. Invalidating cache for allocation 76
+[2025-06-10 01:27:06] DEBUG [budgets.signals:54] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'returned_budgets_21_all_no_filters', 'budget_transfers_21_no_filters', 'project_remaining_budget_8', 'free_budget_76'}
+[2025-06-10 01:27:06] INFO [budgets.models:1368] save - BudgetTransaction saved with ID: 76
+[2025-06-10 01:27:06] DEBUG [budgets.models:723] save - Starting save for BudgetAllocation (pk=76, allocated_amount=6000000.00)
+[2025-06-10 01:27:06] DEBUG [budgets.models:597] clean - Cleaning BudgetAllocation: allocated_amount=6000000.00, allocation_type=percent
+[2025-06-10 01:27:06] DEBUG [budgets.models:645] clean - Clean validation passed (Model IS : BudgetsAllocations )
+[2025-06-10 01:27:06] DEBUG [budgets.signals:22] update_total_allocated - Updated total_allocated=42006000000.00 for BudgetPeriod 21
+[2025-06-10 01:27:06] DEBUG [budgets.signals:71] invalidate_allocation_cache - Invalidated cache keys after BudgetAllocation change: {'budget_transfers_21_no_filters', 'tankhah_report_21_no_filters', 'project_remaining_budget_8', 'free_budget_76'}
+[2025-06-10 01:27:06] INFO [budgets.models:731] save - BudgetAllocation saved with ID: 76
+[2025-06-10 01:27:06] DEBUG [budgets.models:733] save - Allocation status: normal, message: وضعیت عادی
+[2025-06-10 01:27:06] DEBUG [budgets.models:1376] save - Updated BudgetAllocation 76: allocated_amount=6000000.00, returned_amount=1194000000.00
+[2025-06-10 01:27:06] DEBUG [budgets.models:1385] save - Updated BudgetPeriod 21: returned_amount=884000000.00
+[2025-06-10 01:27:06] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:27:06] INFO [budgets.budget_calculations:169] send_notification - Notification sent to 2 users: مبلغ 570,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 01:27:06] INFO [budgets.models:753] send_notification - Notification sent for BudgetAllocation 76: return - مبلغ 570,000,000 ریال از تخصیص 76 برگشت داده شد.
+[2025-06-10 01:27:06] INFO [budgets.BudgetReturn.view_BudgetReturn:401] form_valid - User admin created return transaction for allocation 76 with amount 570,000,000
+[2025-06-10 01:27:06] DEBUG [budgets.models:1358] save - Starting save for BudgetTransaction: amount=570000000, type=RETURN, allocation ID=76
+[2025-06-10 01:27:06] DEBUG [budgets.models:1347] clean - Cleaning BudgetTransaction: amount=570000000, type=RETURN, allocation ID=76
+[2025-06-10 01:27:06] DEBUG [budgets.models:1322] validate_return - Validating RETURN transaction: amount=570000000, allocation ID=76
+[2025-06-10 01:27:06] ERROR [budgets.models:1329] validate_return - Return amount 570,000,000 exceeds allocated_amount 6,000,000 for allocation ID: 76
+[2025-06-10 01:27:06] ERROR [budgets.models:1388] save - Error saving BudgetTransaction: ['مبلغ بازگشت (570,000,000 ریال) نمی\u200cتواند بیشتر از مبلغ تخصیص\u200cیافته (6,000,000 ریال) باشد.']
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 1366, in save
+    self.clean()
+    ~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\budgets\models.py", line 1351, in clean
+    raise ValidationError(error_message)
+django.core.exceptions.ValidationError: ['مبلغ بازگشت (570,000,000 ریال) نمی\u200cتواند بیشتر از مبلغ تخصیص\u200cیافته (6,000,000 ریال) باشد.']
+[2025-06-10 01:27:06] ERROR [budgets.BudgetReturn.view_BudgetReturn:407] form_valid - Error creating return transaction for allocation 76: ['مبلغ بازگشت (570,000,000 ریال) نمی\u200cتواند بیشتر از مبلغ تخصیص\u200cیافته (6,000,000 ریال) باشد.']
+[2025-06-10 01:27:06] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 6000000.00 (Total Allocations: 1)
+[2025-06-10 01:27:06] DEBUG [budgets.budget_calculations:455] get_project_total_budget - Calculated project_total_budget for Project 8: 6000000.00 (Total Allocations: 1)
+[2025-06-10 01:27:06] DEBUG [budgets.budget_calculations:689] get_project_remaining_budget - Project 8 allocations: count=1, amounts=[Decimal('6000000.00')]
+[2025-06-10 01:27:06] DEBUG [budgets.budget_calculations:713] get_project_remaining_budget - get_project_remaining_budget: project=8, total=6000000.00, consumptions=0, returns=884000000.00, remaining=890000000.00, consumptions_count=0, returns_count=10
+[2025-06-10 01:27:06] DEBUG [budgets.budget_calculations:237] get_organization_total_budget - get_organization_total_budget: organization=HSarein - هتل لاله سرعین (هتل), total=0
+[2025-06-10 01:27:06] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-06-10 01:27:06] DEBUG [budgets.budget_calculations:1053] check_budget_status - check_budget_status: obj=سال 1404 - شش ماه اول سال (HQ_ITDC), result=('normal', 'وضعیت عادی')

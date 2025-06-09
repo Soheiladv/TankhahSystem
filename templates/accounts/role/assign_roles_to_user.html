@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h1 class="card-title">
+                <i class="fas fa-user-tag"></i> اختصاص نقش به کاربر
+            </h1>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="user" class="form-label">
+                        <i class="fas fa-user"></i> کاربر
+                    </label>
+                    {{ form.user }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="roles" class="form-label">
+                        <i class="fas fa-users-cog"></i> نقش‌ها
+                    </label>
+                    {{ form.roles }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="groups" class="form-label">
+                        <i class="fas fa-users"></i> گروه‌ها
+                    </label>
+                    {{ form.groups }}
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> ذخیره
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

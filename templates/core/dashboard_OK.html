@@ -1,0 +1,485 @@
+{% extends 'base.html' %}
+{% load i18n static rcms_custom_filters jformat version_tags %}
+{% load active_users_tags %}
+
+{% block content %}
+    <div class="dashboard-container">
+        <!-- هدر شیشه‌ای -->
+        <div class="glass-header animate__animated animate__fadeInDown">
+            <div class="header-content">
+                <h1 class="title animate__animated animate__fadeInRight">
+                    <i class="fas fa-chart-network"></i>
+                    <i class="fas fa-tachometer-alt me-3"></i> {{ title }}
+                </h1>
+                <div class="user-info animate__animated animate__fadeInLeft">
+                    <span class="welcome-msg">{% trans "خوش آمدید" %}</span>
+                    <div class="user-avatar">
+                        <i class="fas fa-user-circle"></i>
+                        <span>{{ user.first_name }} {{ user.last_name }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- محتوای اصلی -->
+        <div class="dashboard-content">
+            {% if user.is_authenticated %}
+                <!-- کارت‌های دسته‌بندی -->
+                <div class="category-grid">
+                    {% for category, links in dashboard_links.items %}
+                        <div class="category-card animate__animated animate__zoomIn"
+                             style="--delay: {{ forloop.counter }}">
+                            <div class="category-header">
+                                <i class="fas fa-{{ category|slice:':1'|lower }}"></i>
+                                <h3>{{ category }}</h3>
+                            </div>
+                            <div class="category-links">
+                                {% for link in links %}
+                                    <a href="{% url link.url %}"
+                                       class="dashboard-link animate__animated animate__fadeInUp"
+                                       style="--link-delay: {{ forloop.counter }}">
+                                        <div class="link-icon">
+                                            <i class="{{ link.icon }}"></i>
+                                        </div>
+                                        <span>{{ link.name }}</span>
+                                        <i class="fas fa-chevron-left link-arrow"></i>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- ویجت‌های پایینی -->
+                <div class="dashboard-widgets">
+                    <div class="widget quick-access animate__animated animate__fadeInLeft">
+                        <h3><i class="fas fa-bolt"></i> دسترسی سریع</h3>
+                        <div class="quick-links">
+                            <a href="#" class="quick-link">
+                                <i class="fas fa-file-invoice"></i>
+                                <span>گزارش جدید</span>
+                            </a>
+                            <a href="#" class="quick-link">
+                                <i class="fas fa-chart-pie"></i>
+                                <span>آمار سیستم</span>
+                            </a>
+                            <a href="#" class="quick-link">
+                                <i class="fas fa-cog"></i>
+                                <span>تنظیمات</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="widget version-info animate__animated animate__fadeInRight">
+                        <div class="version-badge">
+                            <i class="fas fa-code-branch"></i>
+                            <span>نسخه: {% get_final_version %}</span>
+                        </div>
+                        <div class="system-status">
+                            <div class="status-item online">
+                                <i class="fas fa-server"></i>
+                                <span>سیستم آنلاین</span>
+                            </div>
+                            <div class="status-item users">
+                                <i class="fas fa-users"></i>
+                                <span>کاربران فعال:  </span>
+                                <div class="user-status-badge">
+    <span class="badge bg-info">
+        <i class="fas fa-users"></i>
+        {% get_active_users_count %} / {% get_max_active_users %}
+    </span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <!-- حالت عدم احراز هویت -->
+                <div class="auth-required animate__animated animate__shakeX">
+                    <div class="lock-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h3>{% trans "دسترسی محدود" %}</h3>
+                    <p>{% trans "برای مشاهده داشبورد باید وارد سیستم شوید" %}</p>
+                    <a href="{% url 'accounts:login' %}" class="login-btn animate__animated animate__pulse">
+                        <i class="fas fa-sign-in-alt"></i>
+                        {% trans "ورود به سیستم" %}
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #7209b7;
+            --text-color: #2b2d42;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --glass-effect: rgba(255, 255, 255, 0.15);
+        }
+
+        .dashboard-container {
+            background-color: var(--light-bg);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        /* هدر شیشه‌ای */
+        .glass-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: 0;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .title {
+            color: white;
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .title i {
+            font-size: 1.5rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .welcome-msg {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+        }
+
+        .user-avatar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            color: white;
+        }
+
+        .user-avatar i {
+            font-size: 1.5rem;
+        }
+
+        /* محتوای اصلی */
+        .dashboard-content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+            animation-delay: calc(var(--delay) * 0.1s);
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .category-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 1.2rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .category-header i {
+            font-size: 1.5rem;
+        }
+
+        .category-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .category-links {
+            padding: 1rem;
+        }
+
+        .dashboard-link {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 10px;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.02);
+            animation-delay: calc(var(--link-delay) * 0.1s);
+        }
+
+        .dashboard-link:hover {
+            background: rgba(67, 97, 238, 0.1);
+            transform: translateX(-5px);
+        }
+
+        .link-icon {
+            width: 35px;
+            height: 35px;
+            background: rgba(67, 97, 238, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+            color: var(--primary-color);
+        }
+
+        .link-arrow {
+            margin-right: auto;
+            color: #adb5bd;
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-link:hover .link-arrow {
+            color: var(--primary-color);
+            transform: translateX(-5px);
+        }
+
+        /* ویجت‌ها */
+        .dashboard-widgets {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .widget {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .widget h3 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .quick-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.02);
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .quick-link:hover {
+            background: rgba(67, 97, 238, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .quick-link i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .version-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .version-badge {
+            background: rgba(67, 97, 238, 0.1);
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: fit-content;
+        }
+
+        .system-status {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .status-item {
+            padding: 1rem;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-item i {
+            font-size: 1.2rem;
+        }
+
+        .online {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+
+        .users {
+            background: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
+        }
+
+        /* حالت عدم احراز هویت */
+        .auth-required {
+            background: white;
+            border-radius: 15px;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            max-width: 500px;
+            margin: 2rem auto;
+        }
+
+        .lock-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(220, 53, 69, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        .lock-icon i {
+            font-size: 2.5rem;
+            color: #dc3545;
+        }
+
+        .auth-required h3 {
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-required p {
+            color: #6c757d;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4);
+            color: white;
+        }
+
+        /* انیمیشن‌ها */
+        .animate__animated {
+            --animate-duration: 0.5s;
+        }
+
+        /* رسپانسیو */
+        @media (max-width: 992px) {
+            .dashboard-widgets {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-links {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .user-info {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-links {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}

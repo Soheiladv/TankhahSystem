@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% load i18n static humanize rcms_custom_filters   %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <h1 class="text-center mb-4">
+        {% trans "جزئیات دوره بودجه:" %} <span class="text-primary">{{ budget_period.name |to_persian_number_with_comma }}</span>
+    </h1>
+
+    {# Display messages from Django messages framework #}
+    {% if messages %}
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-8">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row">
+        {# اطلاعات کلی دوره بودجه #}
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-lg h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{% trans "مشخصات دوره بودجه" %}</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>{% trans "سازمان" %}:</strong>
+                            <span>{{ budget_period.organization.name }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>{% trans "تاریخ شروع" %}:</strong>
+                            <span>{{ budget_period.start_date|date:"Y/m/d"|to_persian_number }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>{% trans "تاریخ پایان" %}:</strong>
+                            <span>{{ budget_period.end_date|date:"Y/m/d"|to_persian_number }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>{% trans "ایجاد کننده" %}:</strong>
+                            <span>{{ budget_period.created_by.get_full_name }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>{% trans "تاریخ ایجاد" %}:</strong>
+                            <span>{{ budget_period.created_at|date:"Y/m/d H:i"|to_persian_number }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>{% trans "آستانه هشدار" %}:</strong>
+                            <span>{{ budget_period.warning_threshold|to_persian_number }}%</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>{% trans "درصد قفل شدن" %}:</strong>
+                            <span>{{ budget_period.locked_percentage|to_persian_number }}%</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>{% trans "وضعیت قفل" %}:</strong>
+                            {% if budget_period.is_locked %}
+                                <span class="badge bg-danger">{% trans "قفل شده" %}</span>
+                            {% else %}
+                                <span class="badge bg-success">{% trans "باز" %}</span>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        {# خلاصه وضعیت بودجه و اعلان‌ها #}
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-lg h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{% trans "خلاصه و وضعیت بودجه" %}</h5>
+                </div>
+                <div class="card-body">
+                    {# وضعیت کلی بودجه #}
+                    <div class="row text-center mb-4">
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded h-100 d-flex flex-column justify-content-between">
+                                <h6 class="text-muted">{% trans "بودجه کل" %}</h6>
+                                <p class="h4 text-success">{{ budget_details.total_budget|intcomma|to_persian_number }} {% trans "تومان" %}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded h-100 d-flex flex-column justify-content-between">
+                                <h6 class="text-muted">{% trans "تخصیص یافته" %}</h6>
+                                <p class="h4 text-info">{{ budget_details.total_allocated|intcomma|to_persian_number }} {% trans "تومان" %}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded h-100 d-flex flex-column justify-content-between">
+                                <h6 class="text-muted">{% trans "باقی‌مانده" %}</h6>
+                                <p class="h4 text-warning">{{ budget_details.remaining_budget|intcomma|to_persian_number }} {% trans "تومان" %}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% comment %} نوار پیشرفت بودجه {% endcomment %}
+{% if budget_details.total_budget|floatformat:"0" != "0" and budget_details.total_allocated|floatformat:"0" > "0" %}
+    {% with spent_percentage=budget_details.total_allocated|div:budget_details.total_budget|mul:100|floatformat:"0" %}
+        <div class="mb-3">
+            <h6 class="text-muted">{% trans "میزان مصرف بودجه" %} ({{ spent_percentage|to_persian_number }}%)</h6>
+            <div class="progress" role="progressbar" aria-label="Budget Progress" aria-valuenow="{{ spent_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar {% if spent_percentage > budget_period.locked_percentage %}bg-danger{% elif spent_percentage > budget_period.warning_threshold %}bg-warning{% else %}bg-success{% endif %}" style="width: {{ spent_percentage }}%"></div>
+            </div>
+        </div>
+    {% endwith %}
+{% else %}
+    {% with spent_percentage=0 %}
+        <div class="mb-3">
+            <h6 class="text-muted">{% trans "میزان مصرف بودجه" %} ({{ spent_percentage|to_persian_number }}%)</h6>
+            <div class="progress" role="progressbar" aria-label="Budget Progress" aria-valuenow="{{ spent_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar bg-success" style="width: {{ spent_percentage }}%"></div>
+            </div>
+        </div>
+    {% endwith %}
+{% endif %}
+
+                    {# وضعیت بودجه از check_budget_status #}
+                    <div class="alert alert-{% if budget_status.status == 'warning' %}warning{% elif budget_status.status == 'locked' %}danger{% elif budget_status.status == 'completed' %}success{% else %}info{% endif %} mt-4" role="alert">
+                        <i class="fas fa-info-circle me-2"></i><strong>{% trans "وضعیت:" %}</strong> {{ budget_status.message }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# تخصیص‌های بودجه #}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-lg">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">{% trans "تخصیص‌های بودجه" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if budget_period.allocations.all %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>{% trans "ردیف " %}</th>
+                                    <th>{% trans "ردیف بودجه" %}</th>
+                                    <th>{% trans "پروژه" %}</th>
+                                    <th>{% trans "مبلغ تخصیص" %}</th>
+                                    <th>{% trans "سازمان تخصیص" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for allocation in budget_period.allocations.all %}
+                                <tr>
+                                    <td>{{ forloop.counter |to_persian_number }}</td>
+                                    <td>{{ allocation.budget_item.name }}</td>
+                                    <td>{{ allocation.project.name|default:_("فاقد پروژه") }}</td>
+                                    <td>{{ allocation.allocated_amount|intcomma|to_persian_number }} {% trans "تومان" %}</td>
+                                    <td>{{ allocation.organization.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info text-center" role="alert">
+                        {% trans "هیچ تخصیصی برای این دوره بودجه ثبت نشده است." %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# تراکنش‌های بودجه #}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-lg">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">{% trans "تراکنش‌های بودجه" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>{% trans "تاریخ" %}</th>
+                                    <th>{% trans "مبلغ" %}</th>
+                                    <th>{% trans "نوع تراکنش" %}</th>
+                                    <th>{% trans "توضیحات" %}</th>
+                                    <th>{% trans "ایجاد کننده" %}</th>
+                                    <th>{% trans "تنخواه مرتبط" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in transactions %}
+                                <tr>
+                                    <td>{{ transaction.timestamp|date:"Y/m/d H:i"|to_persian_number }}</td>
+                                    <td>{{ transaction.amount|intcomma|to_persian_number }} {% trans "تومان" %}</td>
+                                    <td>
+                                        <span class="badge bg-{% if transaction.transaction_type.is_debit %}danger{% else %}success{% endif %}">
+                                            {{ transaction.transaction_type.name }}
+                                        </span>
+                                    </td>
+                                    <td>{{ transaction.description|truncatechars:50 }}</td>
+                                    <td>{{ transaction.created_by.get_full_name }}</td>
+                                    <td>
+                                        {% if transaction.related_tankhah %}
+                                            <a href="{% url 'tankhah_detail' transaction.related_tankhah.pk %}">
+                                                {{ transaction.related_tankhah.number|to_persian_number }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">{% trans "ندارد" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {# صفحه‌بندی تراکنش‌ها #}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if transactions.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ transactions.previous_page_number }}{{ request.GET|urlencode_without_page:'page' }}">{% trans "قبلی" %}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">{% trans "قبلی" %}</span></li>
+                            {% endif %}
+
+                            {% for num in transactions.paginator.page_range %}
+                                {% if transactions.number == num %}
+                                    <li class="page-item active" aria-current="page"><span class="page-link">{{ num|to_persian_number }}</span></li>
+                                {% elif num > transactions.number|add:"-3" and num < transactions.number|add:"3" %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{{ request.GET|urlencode_without_page:'page' }}">{{ num|to_persian_number }}</a>
+                                    </li>
+                                {% elif num == transactions.number|add:"-3" or num == transactions.number|add:"3" %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if transactions.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ transactions.next_page_number }}{{ request.GET|urlencode_without_page:'page' }}">{% trans "بعدی" %}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">{% trans "بعدی" %}</span></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% else %}
+                    <div class="alert alert-info text-center" role="alert">
+                        {% trans "هیچ تراکنشی برای این دوره بودجه یافت نشد." %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Custom CSS for visual enhancements */
+    .card-header.bg-primary { background-color: #0d6efd !important; }
+    .card-header.bg-secondary { background-color: #6c757d !important; }
+    .card-header.bg-dark { background-color: #343a40 !important; }
+
+    .p-3.border.rounded {
+        border-color: #e9ecef !important;
+        background-color: #f8f9fa;
+        min-height: 120px; /* Ensure consistent height for cards */
+    }
+
+    .progress-bar {
+        transition: width 0.6s ease;
+    }
+
+    /* Adjust font sizes and spacing for better readability */
+    h1 { font-size: 2.2rem; }
+    h5 { font-size: 1.2rem; }
+    .list-group-item strong { font-size: 0.95rem; }
+    .list-group-item span { font-size: 0.9rem; }
+
+    .badge { font-size: 0.8rem; padding: 0.4em 0.7em; }
+    .table th, .table td { vertical-align: middle; }
+    .table thead th { font-weight: 600; } /* Make table headers bolder */
+</style>
+{% endblock %}

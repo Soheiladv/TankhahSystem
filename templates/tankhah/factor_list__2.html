@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load i18n static factor_tags jformat rcms_custom_filters jalali_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg animate__animated animate__fadeIn" style="border-radius: 15px;">
+        <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
+            <h1 class="card-title mb-0"><i class="fas fa-file-invoice me-2"></i>{% trans "لیست فاکتورها" %}</h1>
+            <a href="{% url 'Nfactor_create' %}" class="btn btn-success btn-sm animate__animated animate__pulse">
+                <i class="fas fa-plus me-2"></i>{% trans "ایجاد فاکتور" %}
+            </a>
+        </div>
+        <div class="card-body p-4">
+            <form method="get" class="mb-4 animate__animated animate__fadeInUp">
+                <div class="input-group shadow-sm">
+                    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="{% trans 'شماره، مبلغ...' %}" aria-label="جستجو">
+                    <input type="text" id="date-picker" name="date" value="{{ date_query }}" class="form-control" placeholder="{% trans 'تاریخ (شمسی)' %}" aria-label="تاریخ">
+                    <select name="status" class="form-select" aria-label="وضعیت">
+                        <option value="" {% if not status_query %}selected{% endif %}>{% trans "همه وضعیت‌ها" %}</option>
+                        <option value="pending" {% if status_query == 'pending' %}selected{% endif %}>{% trans "در حال بررسی" %}</option>
+                        <option value="approved" {% if status_query == 'approved' %}selected{% endif %}>{% trans "تأیید شده" %}</option>
+                        <option value="rejected" {% if status_query == 'rejected' %}selected{% endif %}>{% trans "رد شده" %}</option>
+                    </select>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search me-2"></i>{% trans "جستجو" %}
+                    </button>
+                </div>
+            </form>
+
+            <div class="row">
+                {% for factor in factors %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm animate__animated animate__fadeInUp" style="border-radius: 10px;">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary">
+                                    <i class="fas fa-barcode me-2"></i>{{ factor.number|to_persian_number }}
+                                </h5>
+                                <p class="card-text">
+                                    <i class="fas fa-wallet me-2 text-muted"></i>
+                                    <strong>{% trans "مبلغ کل:" %}</strong>
+                                    <span class="badge bg-info text-white">{{ factor.items.all|sum_items_amount|format_negative }}</span> {% trans "ریال" %}
+                                </p>
+                                <p class="card-text">
+                                    <i class="fas fa-calendar me-2 text-muted"></i>
+                                    <strong>{% trans "تاریخ:" %}</strong> {{ factor.date|to_jalali:'%Y/%m/%d'|to_persian_number }}
+                                </p>
+                                <p class="card-text">
+                                    <i class="fas fa-info-circle me-2 text-muted"></i>
+                                    <strong>{% trans "وضعیت:" %}</strong>
+                                    <span class="badge {{ factor.status|lower }}-badge">{{ factor.get_status_display }}</span>
+                                </p>
+                                <p class="card-text">
+                                    <i class="fas fa-list me-2 text-muted"></i>
+                                    <strong>{% trans "تعداد ردیف‌ها:" %}</strong> {{ factor.items.count|to_persian_number }}
+                                </p>
+                                <div class="d-flex flex-wrap gap-2 mt-3">
+                                    <a href="{% url 'factor_detail' factor.pk %}" class="btn btn-info btn-sm">
+                                        <i class="fas fa-eye me-1"></i>{% trans "جزئیات" %}
+                                    </a>
+                                    <!-- -->
+{#                                 <a href="{% url 'factor_update' factor.pk %}" class="btn btn-warning btn-sm">#}
+                                 <a href="{% url 'factor_edit' factor.pk %}" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-edit me-1"></i>{% trans "ویرایش" %}
+                                    </a>
+                                    <!-- -->
+{#                                    {% if factor.status = ['DRAFT', 'PENDING'] %}#}
+{#                                        <a href="{% url 'factor_edit' factor.pk %}" class="btn btn-sm btn-warning">#}
+{#                                            <i class="fas fa-edit"></i> ویرایش#}
+{#                                        </a>#}
+{#                                    {% endif %}#}
+                                    <!-- -->
+                                    <a href="{% url 'factor_delete' factor.pk %}" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash me-1"></i>{% trans "حذف" %}
+                                    </a>
+                                    <a href="{% url 'factor_item_approve' factor.pk %}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-external-link-alt me-1"></i>{% trans "تایید به ریز در فاکتور" %}
+                                    </a>
+                                    {% if factor.can_approve and not factor.is_locked %}
+                                        <a href="{% url 'factor_approve' pk=factor.pk %}" class="btn btn-success btn-sm">
+                                            <i class="fas fa-check me-1"></i>{% trans "تأیید/رد" %}
+                                        </a>
+                                    {% endif %}
+
+                                <a href="{% url 'approval_list'  %}" class="btn btn-success btn-sm">
+                                            <i class="fas fa-accusoft me-1"></i>{% trans "فهرست تأیید/رد" %}
+                                        </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <p class="text-center text-muted animate__animated animate__fadeIn">
+                            <i class="fas fa-exclamation-circle me-2"></i>{% trans "فاکتوری یافت نشد." %}
+                        </p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% if is_paginated %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&date={{ date_query }}&status={{ status_query }}">«</a>
+                            </li>
+                        {% endif %}
+                        {% for num in page_obj.paginator.page_range %}
+                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}&q={{ query }}&date={{ date_query }}&status={{ status_query }}">{{ num|to_persian_number }}</a>
+                            </li>
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&date={{ date_query }}&status={{ status_query }}">»</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-primary { background: linear-gradient(135deg, #007bff, #0056b3); }
+    .card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); }
+    .card-title { font-size: 1.25rem; font-weight: bold; }
+    .card-text { margin-bottom: 0.75rem; }
+    .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.875rem; }
+    .input-group { border-radius: 10px; overflow: hidden; }
+    .form-control, .form-select { border: 1px solid #ced4da; }
+    .form-control:focus, .form-select:focus { box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); border-color: #007bff; }
+    .pagination .page-link { color: #007bff; }
+    .pagination .page-item.active .page-link { background-color: #007bff; border-color: #007bff; }
+    .draft-badge { background-color: #6c757d; color: white; }
+    .pending-badge { background-color: #ffc107; color: black; }
+    .approved-badge { background-color: #28a745; color: white; }
+    .rejected-badge { background-color: #dc3545; color: white; }
+</style>
+
+{% endblock %}

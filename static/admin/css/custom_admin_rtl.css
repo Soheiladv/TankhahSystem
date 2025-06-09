@@ -1,0 +1,14 @@
+/* custom_admin_rtl.css */
+body {
+    direction: rtl;
+    text-align: right;
+    font-family: 'Parastoo', sans-serif; /* یا هر فونت فارسی دیگر */
+}
+#header, #content, #footer {
+    direction: rtl;
+    text-align: right;
+}
+.breadcrumbs, .messagelist, .user-tools {
+    direction: rtl;
+    text-align: right;
+}

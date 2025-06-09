@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+{% load i18n static jformat rcms_custom_filters %}
+
+{% block title %}{% trans "ویرایش تخصیص بودجه پروژه" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+    .edit-form {
+        max-width: 900px;
+        margin: 2rem auto;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        background: #fff;
+    }
+    .card-header {
+        background: linear-gradient(135deg, #ffca28, #ffa000);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 1.5rem;
+    }
+    .card-body {
+        padding: 2rem;
+    }
+    .form-label {
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    .form-control, .form-select {
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-size: 0.95rem;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #ffa000;
+        box-shadow: 0 0 0 0.2rem rgba(255, 160, 0, 0.25);
+    }
+    .input-group-text {
+        border-radius: 8px;
+        background: #f8f9fa;
+    }
+    .btn {
+        padding: 0.6rem 1.8rem;
+        font-size: 0.95rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .btn-success {
+        background: #28a745;
+        border-color: #28a745;
+    }
+    .btn-success:hover {
+        background: #218838;
+        border-color: #1e7e34;
+    }
+    .btn-secondary {
+        background: #6c757d;
+        border-color: #6c757d;
+    }
+    .btn-secondary:hover {
+        background: #5a6268;
+        border-color: #545b62;
+    }
+    .allocation-display {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+        margin-top: 1rem;
+    }
+    .allocation-display strong {
+        font-size: 1.2rem;
+        color: #333;
+    }
+    .word-display {
+        font-size: 0.9rem;
+        color: #555;
+    }
+    .budget-summary {
+        background: #e9ecef;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    .invalid-feedback {
+        font-size: 0.85rem;
+    }
+    .form-actions {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e9ecef;
+    }
+    @media (max-width: 576px) {
+        .edit-form {
+            margin: 1rem;
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card edit-form">
+        <div class="card-header d-flex align-items-center gap-2">
+            <i class="fas fa-edit fa-lg"></i>
+            <h4 class="mb-0">{% trans "ویرایش تخصیص بودجه پروژه" %}</h4>
+        </div>
+        <div class="card-body">
+            <!-- خلاصه بودجه -->
+            {% if organization %}
+            <div class="budget-summary mb-4">
+                <h5>{% trans "خلاصه بودجه" %}</h5>
+                <p><strong>{% trans "سازمان" %}:</strong> {{ organization.name }}</p>
+                <p><strong>{% trans "بودجه کل" %}:</strong> {{ total_org_budget|to_persian_number }} {% trans "ریال" %}</p>
+                <p><strong>{% trans "مبلغ مصرف‌شده" %}:</strong> {{ consumed_amount|to_persian_number }} {% trans "ریال" %}</p>
+                <p><strong>{% trans "باقی‌مانده" %}:</strong> {{ remaining_org_budget|to_persian_number }} {% trans "ریال" %}</p>
+                <p><strong>{% trans "دوره بودجه" %}:</strong> {{ allocation.budget_allocation.budget_period.name }}</p>
+            </div>
+            {% else %}
+            <div class="alert alert-warning mb-4">
+                {% trans "اطلاعات سازمان در دسترس نیست." %}
+            </div>
+            {% endif %}
+
+            <!-- نمایش پیام‌های خطا یا موفقیت -->
+            {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                    <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-times-circle{% else %}fa-info-circle{% endif %}"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- فرم ویرایش -->
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="row g-3">
+                    {% for field in form %}
+                    {% if field.name != 'is_active' %}
+                    <div class="col-md-6">
+                        <label for="{{ field.id_for_label }}" class="form-label">
+                            <i class="fas {% if field.name == 'project' %}fa-project-diagram{% elif field.name == 'subproject' %}fa-tasks{% elif field.name == 'allocated_amount' %}fa-money-bill-wave{% elif field.name == 'allocation_date' %}fa-calendar{% elif field.name == 'description' %}fa-comment{% endif %} fa-fw me-1 text-muted"></i>
+                            {{ field.label }}
+                        </label>
+                        {% if field.name == 'allocated_amount' %}
+                        <div class="input-group">
+                            {{ field }}
+                            <span class="input-group-text">{% trans "ریال" %}</span>
+                        </div>
+                        <div class="allocation-display">
+                            <small class="text-muted d-block">{% trans "مبلغ تخصیص:" %}</small>
+                            <strong id="allocated-amount-display">0</strong> {% trans "ریال" %}
+                            <div class="word-display" id="allocated-amount-words"></div>
+                        </div>
+                        {% elif field.name == 'allocation_date' %}
+                        <div class="input-group">
+                            {{ field }}
+                            <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                        </div>
+                        {% else %}
+                        {{ field }}
+                        {% endif %}
+                        {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% if field.errors %}
+                        <div class="invalid-feedback d-block">{{ field.errors|join:" " }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                    <div class="col-md-6">
+                        <div class="form-check mt-4">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                {% trans "فعال" %}
+                            </label>
+                            {% if form.is_active.errors %}
+                            <div class="invalid-feedback d-block">{{ form.is_active.errors|join:" " }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i> {% trans "ذخیره تغییرات" %}
+                    </button>
+                    {% if organization %}
+                    <a href="{% url 'project_budget_allocation_list' organization.id %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i> {% trans "انصراف" %}
+                    </a>
+                    {% else %}
+                    <a href="{% url 'organization_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i> {% trans "انصراف" %}
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'js/persian-date.min.js' %}"></script>
+<script src="{% static 'js/persian-datepicker.min.js' %}"></script>
+<script>
+(function () {
+    "use strict";
+
+    const NumberFormatter = {
+        separate: function (number) {
+            number = this.getRawNumber(number + '').replace(/[^0-9.]/g, '');
+            if (!number || isNaN(number)) return '۰';
+            let parts = number.split('.');
+            let y = parts[0];
+            let z = parts.length > 1 ? '.' + parts[1].substring(0, 2) : '';
+            let rgx = /(\d+)(\d{3})/;
+            while (rgx.test(y)) {
+                y = y.replace(rgx, '$1,$2');
+            }
+            return this.toPersianDigits(y + z).replace(/,/g, '،');
+        },
+        getRawNumber: function (number) {
+            return this.toEnglishDigits(number.replace(/،/g, ''));
+        },
+        toPersianDigits: function (number) {
+            const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+            const englishDigits = '0123456789';
+            let result = number + '';
+            for (let i = 0; i < 10; i++) {
+                result = result.replace(new RegExp(englishDigits[i], 'g'), persianDigits[i]);
+            }
+            return result;
+        },
+        toEnglishDigits: function (number) {
+            return number.replace(/[۰-۹]/g, function (d) {
+                return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);
+            });
+        }
+    };
+
+    const NumberToWords = {
+        units: ['', 'یک', 'دو', 'سه', 'چهار', 'پنج', 'شش', 'هفت', 'هشت', 'نه'],
+        teens: ['ده', 'یازده', 'دوازده', 'سیزده', 'چهارده', 'پانزده', 'شانزده', 'هفده', 'هجده', 'نوزده'],
+        tens: ['', 'ده', 'بیست', 'سی', 'چهل', 'پنجاه', 'شصت', 'هفتاد', 'هشتاد', 'نود'],
+        hundreds: ['', 'صد', 'دویست', 'سیصد', 'چهارصد', 'پانصد', 'ششصد', 'هفتصد', 'هشتصد', 'نهصد'],
+        thousands: ['هزار', 'میلیون', 'میلیارد', 'تریلیون'],
+
+        convert: function (number) {
+            number = parseInt(number);
+            if (isNaN(number) || number === 0) return 'صفر';
+            let parts = [];
+            let chunkCount = 0;
+            while (number > 0) {
+                let chunk = number % 1000;
+                if (chunk) {
+                    let chunkText = this.convertChunk(chunk);
+                    if (chunkCount > 0) {
+                        chunkText += ' ' + this.thousands[chunkCount - 1];
+                    }
+                    parts.unshift(chunkText);
+                }
+                number = Math.floor(number / 1000);
+                chunkCount++;
+            }
+            return parts.join(' و ');
+        },
+
+        convertChunk: function (number) {
+            let result = '';
+            if (number >= 100) {
+                result += this.hundreds[Math.floor(number / 100)];
+                number %= 100;
+                if (number > 0) result += ' و ';
+            }
+            if (number >= 20) {
+                result += this.tens[Math.floor(number / 10)];
+                number %= 10;
+                if (number > 0) result += ' و ';
+            }
+            if (number >= 10) {
+                result += this.teens[number - 10];
+            } else if (number > 0) {
+                result += this.units[number];
+            }
+            return result;
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const allocatedAmountInput = document.querySelector('#id_allocated_amount');
+        const allocatedAmountDisplay = document.getElementById('allocated-amount-display');
+        const allocatedAmountWords = document.getElementById('allocated-amount-words');
+
+        // Initialize Persian Datepicker
+        const dateInput = document.querySelector('#id_allocation_date');
+        if (dateInput) {
+            $(dateInput).persianDatepicker({
+                format: 'YYYY/MM/DD',
+                autoClose: true,
+                toolbox: { enabled: true, calendarSwitch: { enabled: false } },
+                observer: true,
+                altField: '#' + dateInput.id + '-alt',
+                altFormat: 'YYYY-MM-DD'
+            });
+        }
+
+        // Numeric input formatting
+        if (allocatedAmountInput) {
+            allocatedAmountInput.addEventListener('input', function (e) {
+                let value = e.target.value.replace(/[^۰-۹0-9,،.]/g, '');
+                e.target.value = value;
+                updateDisplay();
+            });
+
+            function updateDisplay() {
+                const rawValue = allocatedAmountInput.value;
+                const value = NumberFormatter.getRawNumber(rawValue);
+                let amount = parseFloat(value) || 0;
+                if (isNaN(amount)) amount = 0;
+                allocatedAmountDisplay.textContent = NumberFormatter.separate(amount);
+                allocatedAmountWords.textContent = amount > 0 ? NumberToWords.convert(amount) + ' ریال' : '';
+            }
+
+            updateDisplay();
+        }
+
+        // Form validation and AJAX submission
+        const form = document.querySelector('.needs-validation');
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                if (!form.checkValidity()) {
+                    form.classList.add('was-validated');
+                    return;
+                }
+
+                // Convert Persian numbers to English
+                if (allocatedAmountInput) {
+                    allocatedAmountInput.value = NumberFormatter.getRawNumber(allocatedAmountInput.value);
+                }
+
+                $.ajax({
+                    url: form.action,
+                    type: 'POST',
+                    data: $(form).serialize(),
+                    success: function (response) {
+                        if (response.success) {
+                            const alert = $('<div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2" role="alert">' +
+                                '<i class="fas fa-check-circle me-2"></i>{% trans "تخصیص با موفقیت ویرایش شد" %}' +
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
+                            $('.card-body').prepend(alert);
+                            setTimeout(() => alert.alert('close'), 3000);
+                            {% if organization %}
+                            setTimeout(() => window.location.href = '{% url 'project_budget_allocation_list' organization.id %}', 1000);
+                            {% else %}
+                            setTimeout(() => window.location.href = '{% url 'organization_list' %}', 1000);
+                            {% endif %}
+                        } else {
+                            const errorDiv = $('<div class="alert alert-danger mt-3"></div>').html(
+                                Object.entries(response.errors || {}).map(([field, errors]) =>
+                                    `<div>${field}: ${errors.join(', ')}</div>`
+                                ).join('') || '{% trans "خطایی در فرم وجود دارد." %}'
+                            );
+                            $('.card-body').prepend(errorDiv);
+                            setTimeout(() => errorDiv.remove(), 5000);
+                        }
+                    },
+                    error: function () {
+                        const errorDiv = $('<div class="alert alert-danger mt-3"></div>').text('{% trans "خطایی رخ داد. لطفاً دوباره تلاش کنید." %}');
+                        $('.card-body').prepend(errorDiv);
+                        setTimeout(() => errorDiv.remove(), 5000);
+                    }
+                });
+            });
+        }
+    });
+})();
+</script>
+{% endblock %}

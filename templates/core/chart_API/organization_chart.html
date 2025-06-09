@@ -1,0 +1,202 @@
+{% extends 'core/chart_API/organization_chart_base.html' %}
+{% load static i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+    <style>
+
+        .vis-tooltip {
+            max-width: 300px;
+            white-space: normal !important;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h3 class="mb-3">{{ title }}</h3>
+
+    <div class="card mb-4">
+        <div class="card-body p-2">
+            <div class="mb-4 space-y-4">
+                <input id="page-search-input" type="text" placeholder="{% trans 'جستجوی کاربر، پست، سازمان...' %}" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                <select id="page-role-filter" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                    <option value="">{% trans "همه نقش‌ها" %}</option>
+                    {% for role in roles %}
+                        <option value="{{ role }}">{{ role }}</option>
+                    {% endfor %}
+                </select>
+                <select id="page-org-filter" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                    <option value="">{% trans "همه سازمان‌ها" %}</option>
+                    {% for org in organizations %}
+                        <option value="{{ org.id }}">{{ org.name }}</option>
+                    {% endfor %}
+                </select>
+                <select id="page-status-filter" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                    <option value="">{% trans "همه وضعیت‌ها" %}</option>
+                    <option value="Pending">{% trans "در انتظار" %}</option>
+                    <option value="In Progress">{% trans "در حال انجام" %}</option>
+                    <option value="Completed">{% trans "تکمیل شده" %}</option>
+                </select>
+                <input id="page-date-filter" type="date" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50">
+                <button id="page-download-btn" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600">{% trans "دانلود نمودار" %}</button>
+            </div>
+            <div id="orgChartContainer">
+                <div id="loadingIndicator">{% trans "در حال بارگذاری نمودار..." %} <i class="fas fa-spinner fa-spin"></i></div>
+            </div>
+        </div>
+        <div class="card-footer text-muted small">
+            {% trans "راهنما:" %}
+            <span class="badge bg-light text-dark border me-1"><i class="fas fa-square me-1" style="color: #97C2FC;"></i> {% trans "سازمان" %}</span>
+            <span class="badge bg-light text-dark border me-1"><i class="fas fa-circle me-1" style="color: #FBDBA8;"></i> {% trans "پست" %}</span>
+            <span class="badge bg-light text-dark border"><i class="fas fa-user me-1" style="color: #5bc0de;"></i> {% trans "کاربر" %}</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('orgChartContainer');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        let network = null;
+
+        // تنظیمات Vis.js
+        const options = {
+            layout: {
+                hierarchical: {
+                    enabled: true,
+                    levelSeparation: 200,
+                    nodeSpacing: 150,
+                    treeSpacing: 220,
+                    direction: 'UD',
+                    sortMethod: 'directed'
+                }
+            },
+            physics: { enabled: false },
+            nodes: {
+                borderWidth: 1,
+                borderWidthSelected: 2,
+                font: {
+                    size: 12,
+                    face: 'Parastoo, Tahoma, sans-serif',
+                    multi: 'html',
+                    align: 'center'
+                },
+                shapeProperties: { interpolation: false }
+            },
+            edges: {
+                width: 1,
+                color: { color: '#848484', highlight: '#343a40', hover: '#5bc0de' },
+                arrows: { to: { enabled: true, scaleFactor: 0.7, type: 'arrow' } },
+                smooth: { enabled: true, type: 'cubicBezier', forceDirection: 'vertical', roundness: 0.5 }
+            },
+            groups: {
+                organization: {
+                    color: { background: '#97C2FC', border: '#286AA7' },
+                    shape: 'box',
+                    font: { size: 13, color: '#000' }
+                },
+                post: {
+                    color: { background: '#FBDBA8', border: '#FFA500' },
+                    shape: 'ellipse',
+                    font: { size: 11 }
+                },
+                user: {
+                    shape: 'icon',
+                    icon: { face: 'FontAwesome', code: '\uf007', size: 25, color: '#5bc0de' }
+                }
+            },
+            interaction: {
+                hover: true,
+                tooltipDelay: 200,
+                navigationButtons: true,
+                keyboard: true
+            }
+        };
+
+        // بارگذاری نمودار
+        function loadChart() {
+            const role = document.getElementById('page-role-filter').value;
+            const org = document.getElementById('page-org-filter').value;
+            const status = document.getElementById('page-status-filter').value;
+            const date = document.getElementById('page-date-filter').value;
+            let url = `/api/organization-chart/?role=${role}&org_id=${org}&status=${status}`;
+            if (date) url += `&date=${date}`;
+
+            fetch(url, {
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                const nodes = new vis.DataSet(data.nodes);
+                const edges = new vis.DataSet(data.edges);
+                const chartData = { nodes, edges };
+
+                if (network) network.destroy();
+                network = new vis.Network(container, chartData, options);
+
+                network.on("stabilizationIterationsDone", function () {
+                    loadingIndicator.style.display = 'none';
+                    network.fit();
+                });
+
+                setTimeout(() => {
+                    loadingIndicator.style.display = 'none';
+                }, 3000);
+            })
+            .catch(error => {
+                console.error('Error loading chart:', error);
+                loadingIndicator.textContent = '{% trans "خطا در بارگذاری نمودار!" %}';
+                loadingIndicator.style.color = 'red';
+                container.innerHTML = `<div class="alert alert-danger">{% trans "متاسفانه مشکلی در نمایش نمودار رخ داده است." %}</div>`;
+            });
+        }
+
+        // جستجو
+        document.getElementById('page-search-input').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            if (!network) return;
+            const nodes = network.body.data.nodes;
+            nodes.forEach(node => {
+                if (node.label.toLowerCase().includes(searchTerm)) {
+                    nodes.update({ id: node.id, hidden: false });
+                } else {
+                    nodes.update({ id: node.id, hidden: true });
+                }
+            });
+        });
+
+        // رویدادهای فیلتر
+        document.getElementById('page-role-filter').addEventListener('change', loadChart);
+        document.getElementById('page-org-filter').addEventListener('change', loadChart);
+        document.getElementById('page-status-filter').addEventListener('change', loadChart);
+        document.getElementById('page-date-filter').addEventListener('change', loadChart);
+
+        // دانلود نمودار
+        document.getElementById('page-download-btn').addEventListener('click', () => {
+            if (!network) return;
+            const canvas = container.querySelector('canvas');
+            const link = document.createElement('a');
+            link.download = 'org-chart.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        // بارگذاری اولیه
+        loadChart();
+    });
+</script>
+{% endblock %}

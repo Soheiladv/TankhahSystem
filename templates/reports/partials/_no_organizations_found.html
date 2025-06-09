@@ -1,0 +1,10 @@
+{% load i18n static rcms_custom_filters %}
+
+{# reports/partials/_no_organizations_found.html #}
+<div class="alert alert-info text-center mt-3">
+    {% translate "هیچ تخصیصی برای سازمان‌ها در دوره بودجه" %} "{{ period.name }}" {% translate "یافت نشد." %}
+</div>
+{# #}
+{#<p class="text-muted text-center small py-3">#}
+{#    <em>{% blocktranslate with period_name=period.name %}هیچ تخصیصی برای سازمان‌ها در دوره بودجه <strong>{{ period_name }}</strong> یافت نشد.{% endblocktranslate %}</em>#}
+{#</p>#}

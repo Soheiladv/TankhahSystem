@@ -1,0 +1,854 @@
+<!--
+{#{% extends 'base.html' %}#}
+{#{% load i18n static jformat rcms_custom_filters %}#}
+{##}
+{#{% block extra_head %}#}
+{# <style>#}
+{#    :root {#}
+{#        --primary-color: #4361ee;#}
+{#        --secondary-color: #3f37c9;#}
+{#        --success-color: #4cc9f0;#}
+{#        --info-color: #4895ef;#}
+{#        --warning-color: #f8961e;#}
+{#        --danger-color: #f72585;#}
+{#        --light-color: #f8f9fa;#}
+{#        --dark-color: #212529;#}
+{#        --gradient-primary: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);#}
+{#    }#}
+{##}
+{#    body {#}
+{#        background-color: #f8fafc;#}
+{#         color: #1e293b;#}
+{#    }#}
+{##}
+{#    .card-main {#}
+{#        border: none;#}
+{#        border-radius: 16px;#}
+{#        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);#}
+{#        overflow: hidden;#}
+{#        transition: all 0.3s ease;#}
+{#        background: white;#}
+{#    }#}
+{##}
+{#    .card-main:hover {#}
+{#        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);#}
+{#        transform: translateY(-5px);#}
+{#    }#}
+{##}
+{#    .card-header-custom {#}
+{#        background: var(--gradient-primary);#}
+{#        color: white;#}
+{#        padding: 1.5rem;#}
+{#        border-bottom: none;#}
+{#    }#}
+{##}
+{#    .card-title {#}
+{#        font-weight: 700;#}
+{#        letter-spacing: -0.5px;#}
+{#        text-shadow: 0 2px 4px rgba(0,0,0,0.1);#}
+{#    }#}
+{##}
+{#    .filter-section {#}
+{#        background: rgba(255, 255, 255, 0.9);#}
+{#        backdrop-filter: blur(10px);#}
+{#        border-radius: 12px;#}
+{#        padding: 1.5rem;#}
+{#        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);#}
+{#        margin-bottom: 2rem;#}
+{#    }#}
+{##}
+{#    .form-control, .form-select {#}
+{#        border-radius: 10px;#}
+{#        padding: 0.75rem 1rem;#}
+{#        border: 1px solid #e2e8f0;#}
+{#        transition: all 0.3s ease;#}
+{#    }#}
+{##}
+{#    .form-control:focus, .form-select:focus {#}
+{#        border-color: var(--primary-color);#}
+{#        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);#}
+{#    }#}
+{##}
+{#    .btn-primary-custom {#}
+{#        background: var(--gradient-primary);#}
+{#        border: none;#}
+{#        border-radius: 10px;#}
+{#        padding: 0.75rem 1.5rem;#}
+{#        font-weight: 600;#}
+{#        letter-spacing: 0.5px;#}
+{#        transition: all 0.3s ease;#}
+{#        box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);#}
+{#    }#}
+{##}
+{#    .btn-primary-custom:hover {#}
+{#        transform: translateY(-2px);#}
+{#        box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);#}
+{#    }#}
+{##}
+{#    .accordion-item {#}
+{#        border: none;#}
+{#        border-radius: 12px !important;#}
+{#        overflow: hidden;#}
+{#        margin-bottom: 1rem;#}
+{#        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);#}
+{#        transition: all 0.3s ease;#}
+{#    }#}
+{##}
+{#    .accordion-item:hover {#}
+{#        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);#}
+{#    }#}
+{##}
+{#    .accordion-button {#}
+{#        background: white;#}
+{#        color: var(--dark-color);#}
+{#        font-weight: 600;#}
+{#        padding: 1.25rem 1.5rem;#}
+{#        border-radius: 12px !important;#}
+{#        transition: all 0.3s ease;#}
+{#    }#}
+{##}
+{#    .accordion-button:not(.collapsed) {#}
+{#        background: var(--gradient-primary);#}
+{#        color: white;#}
+{#        box-shadow: none;#}
+{#    }#}
+{##}
+{#    .accordion-button:focus {#}
+{#        box-shadow: none;#}
+{#        border-color: transparent;#}
+{#    }#}
+{##}
+{#    .accordion-button::after {#}
+{#        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%234361ee'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");#}
+{#        transition: all 0.3s ease;#}
+{#    }#}
+{##}
+{#    .accordion-button:not(.collapsed)::after {#}
+{#        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffffff'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");#}
+{#    }#}
+{##}
+{#    .table-custom {#}
+{#        --bs-table-bg: transparent;#}
+{#        --bs-table-striped-bg: rgba(248, 249, 250, 0.5);#}
+{#        --bs-table-hover-bg: rgba(248, 249, 250, 0.75);#}
+{#        border-radius: 12px;#}
+{#        overflow: hidden;#}
+{#    }#}
+{##}
+{#    .table-custom thead th {#}
+{#        background: var(--gradient-primary);#}
+{#        color: white;#}
+{#        font-weight: 600;#}
+{#        padding: 1rem;#}
+{#        border: none;#}
+{#    }#}
+{##}
+{#    .table-custom tbody tr {#}
+{#        transition: all 0.3s ease;#}
+{#    }#}
+{##}
+{#    .table-custom tbody tr:hover {#}
+{#        transform: translateX(5px);#}
+{#        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);#}
+{#    }#}
+{##}
+{#    .status-badge {#}
+{#        padding: 0.5rem 0.75rem;#}
+{#        border-radius: 50px;#}
+{#        font-size: 0.8rem;#}
+{#        font-weight: 600;#}
+{#        display: inline-flex;#}
+{#        align-items: center;#}
+{#        gap: 0.5rem;#}
+{#    }#}
+{##}
+{#    .status-badge i {#}
+{#        font-size: 0.9rem;#}
+{#    }#}
+{##}
+{#    .status-draft { background: #fff3cd; color: #856404; }#}
+{#    .status-pending { background: #cce5ff; color: #004085; }#}
+{#    .status-approved { background: #d4edda; color: #155724; }#}
+{#    .status-rejected { background: #f8d7da; color: #721c24; }#}
+{#    .status-paid { background: #e2e3e5; color: #383d41; }#}
+{#    .status-sent_to_hq { background: #ffe8cc; color: #804d00; }#}
+{#    .status-hq_ops_pending { background: #d1ecf1; color: #0c5460; }#}
+{#    .status-hq_ops_approved { background: #d4edda; color: #155724; }#}
+{#    .status-hq_fin_pending { background: #e2e3e5; color: #383d41; }#}
+{##}
+{#    .btn-action {#}
+{#        width: 36px;#}
+{#        height: 36px;#}
+{#        border-radius: 50%;#}
+{#        display: inline-flex;#}
+{#        align-items: center;#}
+{#        justify-content: center;#}
+{#        transition: all 0.3s ease;#}
+{#        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);#}
+{#    }#}
+{##}
+{#    .btn-action:hover {#}
+{#        transform: scale(1.1);#}
+{#        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);#}
+{#    }#}
+{##}
+{#    .pagination .page-item .page-link {#}
+{#        border-radius: 10px !important;#}
+{#        margin: 0 5px;#}
+{#        border: none;#}
+{#        color: var(--dark-color);#}
+{#        font-weight: 600;#}
+{#        transition: all 0.3s ease;#}
+{#    }#}
+{##}
+{#    .pagination .page-item.active .page-link {#}
+{#        background: var(--gradient-primary);#}
+{#        color: white;#}
+{#        box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);#}
+{#    }#}
+{##}
+{#    .pagination .page-item:not(.active) .page-link:hover {#}
+{#        background: rgba(67, 97, 238, 0.1);#}
+{#        color: var(--primary-color);#}
+{#    }#}
+{##}
+{#    .empty-state {#}
+{#        background: white;#}
+{#        border-radius: 16px;#}
+{#        padding: 3rem;#}
+{#        text-align: center;#}
+{#        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);#}
+{#    }#}
+{##}
+{#    .empty-state-icon {#}
+{#        font-size: 5rem;#}
+{#        color: #cbd5e1;#}
+{#        margin-bottom: 1.5rem;#}
+{#    }#}
+{##}
+{#    .animate-delay-1 { animation-delay: 0.1s; }#}
+{#    .animate-delay-2 { animation-delay: 0.2s; }#}
+{#    .animate-delay-3 { animation-delay: 0.3s; }#}
+{#    .animate-delay-4 { animation-delay: 0.4s; }#}
+{#    .animate-delay-5 { animation-delay: 0.5s; }#}
+{##}
+{#    @media (max-width: 768px) {#}
+{#        .card-header-custom {#}
+{#            padding: 1rem;#}
+{#        }#}
+{##}
+{#        .filter-section {#}
+{#            padding: 1rem;#}
+{#        }#}
+{##}
+{#        .accordion-button {#}
+{#            padding: 1rem;#}
+{#            font-size: 0.9rem;#}
+{#        }#}
+{#    }#}
+{#</style>#}
+{#{% endblock %}#}
+{##}
+{#{% block content %}#}
+{#<div class="container py-4 animate__animated animate__fadeIn">#}
+{#    <div class="card card-main animate__animated animate__fadeInUp">#}
+{#        <div class="card-header card-header-custom">#}
+{#            <div class="d-flex justify-content-between align-items-center">#}
+{#                <h2 class="card-title mb-0">#}
+{#                    <i class="fas fa-wallet me-2"></i> {% trans "لیست تنخواه‌ها" %}#}
+{#                </h2>#}
+{#                <a href="{% url 'tankhah_create' %}" class="btn btn-light btn-sm rounded-pill">#}
+{#                    <i class="fas fa-plus me-1"></i> {% trans "تنخواه جدید" %}#}
+{#                </a>#}
+{#            </div>#}
+{#        </div>#}
+{##}
+{#        <div class="card-body">#}
+{#            <!-- فیلترهای پیشرفته -->#}
+{#            <div class="filter-section animate__animated animate__fadeIn animate-delay-1">#}
+{#                <form method="get" class="row g-3">#}
+{#                    <div class="col-md-4">#}
+{#                        <div class="input-group">#}
+{#                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search"></i></span>#}
+{#                            <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="{% trans 'جستجو بر اساس شماره، مبلغ یا توضیحات...' %}">#}
+{#                        </div>#}
+{#                    </div>#}
+{##}
+{#                    <div class="col-md-3">#}
+{#                        <select name="stage" class="form-select">#}
+{#                            <option value="">{% trans "همه مراحل" %}</option>#}
+{#                            {% for stage in stages %}#}
+{#                                <option value="{{ stage.order }}" {% if stage.order|stringformat:"s" == stage %}selected{% endif %}>#}
+{#                                    {{ stage.name }}#}
+{#                                </option>#}
+{#                            {% endfor %}#}
+{#                        </select>#}
+{#                    </div>#}
+{##}
+{#                    <div class="col-md-3">#}
+{#                        <div class="form-check form-switch">#}
+{#                            <input class="form-check-input" type="checkbox" name="show_archived" value="true" id="showArchived" {% if show_archived %}checked{% endif %}>#}
+{#                            <label class="form-check-label" for="showArchived">{% trans "نمایش آرشیو شده‌ها" %}</label>#}
+{#                        </div>#}
+{#                    </div>#}
+{##}
+{#                    <div class="col-md-2">#}
+{#                        <button type="submit" class="btn btn-primary-custom w-100">#}
+{#                            <i class="fas fa-filter me-1"></i> {% trans "اعمال فیلتر" %}#}
+{#                        </button>#}
+{#                    </div>#}
+{#                </form>#}
+{#            </div>#}
+{##}
+{#            <!-- پیام‌های سیستم -->#}
+{#            {% if messages %}#}
+{#                <div class="alert alert-dismissible fade show alert-{% if messages.tags %}{{ messages.tags }}{% else %}info{% endif %} animate__animated animate__fadeIn animate-delay-2" role="alert">#}
+{#                    <div class="d-flex align-items-center">#}
+{#                        <i class="fas fa-info-circle me-2"></i>#}
+{#                        <div>#}
+{#                            {% for message in messages %}#}
+{#                                <div>{{ message }}</div>#}
+{#                            {% endfor %}#}
+{#                        </div>#}
+{#                    </div>#}
+{#                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>#}
+{#                </div>#}
+{#            {% endif %}#}
+{##}
+{#            <!-- محتوای اصلی -->#}
+{#            {% if grouped_tankhahs %}#}
+{#                <div class="accordion animate__animated animate__fadeIn animate-delay-3" id="tankhahAccordion">#}
+{#                    {% for project_name, group in grouped_tankhahs.items %}#}
+{#                        <div class="accordion-item animate__animated animate__fadeInUp animate-delay-{{ forloop.counter|add:2 }}">#}
+{#                            <h2 class="accordion-header" id="heading{{ forloop.counter }}">#}
+{#                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"#}
+{#                                        data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false"#}
+{#                                        aria-controls="collapse{{ forloop.counter }}">#}
+{#                                    <div class="d-flex align-items-center w-100">#}
+{#                                        <i class="fas fa-project-diagram me-3 text-primary"></i>#}
+{#                                        <div class="flex-grow-1">#}
+{#                                            <span class="fw-bold">{{ project_name }}</span>#}
+{#                                            <div class="d-flex flex-wrap gap-3 mt-1">#}
+{#                                                <small class="text-muted">#}
+{#                                                    <i class="fas fa-list-ol me-1"></i>#}
+{#                                                    {{ group.tankhahs|length|to_persian_number }} {% trans "تنخواه" %}#}
+{#                                                </small>#}
+{#                                                <small class="text-muted">#}
+{#                                                    <i class="fas fa-coins me-1"></i>#}
+{#                                                    {% trans "مجموع:" %} {{ group.total_amount|floatformat:0|to_persian_number }} {% trans "ریال" %}#}
+{#                                                </small>#}
+{#                                                <small class="text-muted">#}
+{#                                                    <i class="fas fa-wallet me-1"></i>#}
+{#                                                    {% trans "باقیمانده:" %} {{ group.total_remaining|floatformat:0|to_persian_number }} {% trans "ریال" %}#}
+{#                                                </small>#}
+{#                                            </div>#}
+{#                                        </div>#}
+{#                                    </div>#}
+{#                                </button>#}
+{#                            </h2>#}
+{##}
+{#                            <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse"#}
+{#                                 aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#tankhahAccordion">#}
+{#                                <div class="accordion-body p-0">#}
+{#                                    <div class="table-responsive">#}
+{#                                        <table class="table table-custom table-hover mb-0">#}
+{#                                            <thead>#}
+{#                                                <tr>#}
+{#                                                    <th width="5%">{% trans "ردیف" %}</th>#}
+{#                                                    <th width="15%">{% trans "شماره تنخواه" %}</th>#}
+{#                                                    <th width="15%">{% trans "سازمان" %}</th>#}
+{#                                                    <th width="10%">{% trans "تاریخ" %}</th>#}
+{#                                                    <th width="15%">{% trans "مبلغ" %}</th>#}
+{#                                                    <th width="15%">{% trans "باقیمانده" %}</th>#}
+{#                                                    <th width="15%">{% trans "وضعیت" %}</th>#}
+{#                                                    <th width="10%">{% trans "عملیات" %}</th>#}
+{#                                                </tr>#}
+{#                                            </thead>#}
+{#                                            <tbody>#}
+{#                                                {% for tankhah in group.tankhahs %}#}
+{#                                                    <tr class="animate__animated animate__fadeIn animate-delay-{{ forloop.counter|add:3 }}">#}
+{#                                                        <td>{{ forloop.counter|to_persian_number }}</td>#}
+{#                                                        <td>#}
+{#                                                            <span class="fw-bold">{{ tankhah.number|to_persian_number }}</span>#}
+{#                                                        </td>#}
+{#                                                        <td>#}
+{#                                                            <div class="d-flex align-items-center">#}
+{#                                                                <i class="fas fa-building me-2 text-muted"></i>#}
+{#                                                                <span>{{ tankhah.organization.name }}</span>#}
+{#                                                            </div>#}
+{#                                                        </td>#}
+{#                                                        <td>{{ tankhah.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>#}
+{#                                                        <td class="fw-bold">{{ tankhah.amount|floatformat:0|to_persian_number }}</td>#}
+{#                                                        <td class="fw-bold">{{ tankhah.get_remaining_budget|floatformat:0|to_persian_number }}</td>#}
+{#                                                        <td>#}
+{#                                                            <span class="status-badge status-{{ tankhah.status|lower }}">#}
+{#                                                                <i class="fas#}
+{#                                                                    {% if tankhah.status == 'APPROVED' %}fa-check-circle#}
+{#                                                                    {% elif tankhah.status == 'REJECTED' %}fa-times-circle#}
+{#                                                                    {% elif tankhah.status == 'PENDING' %}fa-clock#}
+{#                                                                    {% elif tankhah.status == 'DRAFT' %}fa-edit#}
+{#                                                                    {% else %}fa-info-circle{% endif %}">#}
+{#                                                                </i>#}
+{#                                                                {{ tankhah.get_status_display }}#}
+{#                                                            </span>#}
+{#                                                        </td>#}
+{#                                                        <td>#}
+{#                                                            <div class="d-flex gap-2">#}
+{#                                                                <a href="{% url 'tankhah_detail' tankhah.pk %}"#}
+{#                                                                   class="btn-action btn-info"#}
+{#                                                                   title="{% trans 'جزئیات' %}"#}
+{#                                                                   data-bs-toggle="tooltip">#}
+{#                                                                    <i class="fas fa-eye"></i>#}
+{#                                                                </a>#}
+{#                                                                {% if not tankhah.is_locked %}#}
+{#                                                                <a href="{% url 'tankhah_update' tankhah.pk %}"#}
+{#                                                                   class="btn-action btn-primary"#}
+{#                                                                   title="{% trans 'ویرایش' %}"#}
+{#                                                                   data-bs-toggle="tooltip">#}
+{#                                                                    <i class="fas fa-edit"></i>#}
+{#                                                                </a>#}
+{#                                                                {% endif %}#}
+{#                                                            </div>#}
+{#                                                        </td>#}
+{#                                                    </tr>#}
+{#                                                {% endfor %}#}
+{#                                            </tbody>#}
+{#                                        </table>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    {% endfor %}#}
+{#                </div>#}
+{#            {% else %}#}
+{#                <div class="empty-state animate__animated animate__fadeIn animate-delay-2">#}
+{#                    <div class="empty-state-icon">#}
+{#                        <i class="fas fa-wallet"></i>#}
+{#                    </div>#}
+{#                    <h4 class="mb-3">{% trans "هیچ تنخواهی یافت نشد" %}</h4>#}
+{#                    <p class="text-muted mb-4">{% trans "شما می‌توانید با کلیک بر روی دکمه زیر یک تنخواه جدید ایجاد کنید." %}</p>#}
+{#                    <a href="{% url 'tankhah_create' %}" class="btn btn-primary-custom">#}
+{#                        <i class="fas fa-plus me-2"></i> {% trans "ایجاد تنخواه جدید" %}#}
+{#                    </a>#}
+{#                </div>#}
+{#            {% endif %}#}
+{##}
+{#            <!-- صفحه‌بندی -->#}
+{#            {% if is_paginated %}#}
+{#                <nav aria-label="Page navigation" class="mt-4 animate__animated animate__fadeIn animate-delay-4">#}
+{#                    <ul class="pagination justify-content-center">#}
+{#                        {% if page_obj.has_previous %}#}
+{#                            <li class="page-item">#}
+{#                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if stage %}&stage={{ stage }}{% endif %}{% if show_archived %}&show_archived=true{% endif %}">#}
+{#                                    <i class="fas fa-chevron-right"></i> {% trans "قبلی" %}#}
+{#                                </a>#}
+{#                            </li>#}
+{#                        {% endif %}#}
+{##}
+{#                        {% for num in page_obj.paginator.page_range %}#}
+{#                            {% if page_obj.number == num %}#}
+{#                                <li class="page-item active">#}
+{#                                    <span class="page-link">{{ num|to_persian_number }}</span>#}
+{#                                </li>#}
+{#                            {% elif num > page_obj.number|add:-3 and num < page_obj.number|add:3 %}#}
+{#                                <li class="page-item">#}
+{#                                    <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if stage %}&stage={{ stage }}{% endif %}{% if show_archived %}&show_archived=true{% endif %}">#}
+{#                                        {{ num|to_persian_number }}#}
+{#                                    </a>#}
+{#                                </li>#}
+{#                            {% endif %}#}
+{#                        {% endfor %}#}
+{##}
+{#                        {% if page_obj.has_next %}#}
+{#                            <li class="page-item">#}
+{#                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if stage %}&stage={{ stage }}{% endif %}{% if show_archived %}&show_archived=true{% endif %}">#}
+{#                                    {% trans "بعدی" %} <i class="fas fa-chevron-left"></i>#}
+{#                                </a>#}
+{#                            </li>#}
+{#                        {% endif %}#}
+{#                    </ul>#}
+{#                </nav>#}
+{#            {% endif %}#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+{#{% endblock %}#}
+{##}
+{#{% block extra_js %}#}
+{#<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>#}
+{#<script>#}
+{#    document.addEventListener('DOMContentLoaded', function() {#}
+{#        // فعال‌سازی tooltip#}
+{#        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));#}
+{#        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {#}
+{#            return new bootstrap.Tooltip(tooltipTriggerEl, {#}
+{#                trigger: 'hover'#}
+{#            });#}
+{#        });#}
+{##}
+{#        // انیمیشن‌های GSAP#}
+{#        gsap.from(".card-main", {#}
+{#            duration: 0.8,#}
+{#            y: 20,#}
+{#            opacity: 0,#}
+{#            ease: "power2.out"#}
+{#        });#}
+{##}
+{#        gsap.from(".filter-section", {#}
+{#            duration: 0.6,#}
+{#            y: 10,#}
+{#            opacity: 0,#}
+{#            delay: 0.2,#}
+{#            ease: "power2.out"#}
+{#        });#}
+{##}
+{#        document.querySelectorAll(".accordion-item").forEach((item, index) => {#}
+{#            gsap.from(item, {#}
+{#                duration: 0.5,#}
+{#                y: 10,#}
+{#                opacity: 0,#}
+{#                delay: 0.1 * index,#}
+{#                ease: "power2.out"#}
+{#            });#}
+{#        });#}
+{##}
+{#        // افکت hover برای دکمه‌های عملیات#}
+{#        document.querySelectorAll(".btn-action").forEach(btn => {#}
+{#            btn.addEventListener("mouseenter", function() {#}
+{#                gsap.to(this, {#}
+{#                    duration: 0.2,#}
+{#                    scale: 1.1,#}
+{#                    ease: "power2.out"#}
+{#                });#}
+{#            });#}
+{##}
+{#            btn.addEventListener("mouseleave", function() {#}
+{#                gsap.to(this, {#}
+{#                    duration: 0.2,#}
+{#                    scale: 1,#}
+{#                    ease: "power2.out"#}
+{#                });#}
+{#            });#}
+{#        });#}
+{#    });#}
+{#</script>#}
+{#{% endblock %}#}
+
+-->
+{% extends 'base.html' %}
+{% load i18n static humanize jformat rcms_custom_filters %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --primary: #007bff;
+        --success: #28a745;
+        --danger: #dc3545;
+        --warning: #ffc107;
+        --info: #17a2b8;
+        --purple: #6f42c1;
+        --light: #f8f9fa;
+        --bg: #f4f6f9;
+        --shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    body {
+        background-color: var(--bg);
+        font-family: 'Vazir', sans-serif;
+        direction: rtl;
+    }
+
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        margin-bottom: 2rem;
+    }
+
+    .table thead th {
+        background: var(--primary);
+        color: white;
+        font-weight: 500;
+        text-align: right;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .table tbody tr:hover {
+        background: #f1f3f5;
+        transform: translateY(-2px);
+    }
+
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        color: white;
+    }
+
+    .status-draft { background: var(--warning); }
+    .status-pending { background: var(--info); }
+    .status-approved { background: var(--success); }
+    .status-rejected { background: var(--danger); }
+    .status-paid { background: var(--purple); }
+
+    .btn-custom {
+        transition: all 0.2s ease;
+    }
+
+    .btn-custom:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .fade-in {
+        animation: fadeIn 0.4s ease-in forwards;
+    }
+
+    @keyframes fadeIn {
+        0% { opacity: 0; transform: translateY(10px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .accordion-button {
+        background: var(--light);
+        font-weight: 500;
+        text-align: right;
+    }
+
+    .accordion-button:not(.collapsed) {
+        background: var(--primary);
+        color: white;
+    }
+
+    .accordion-button:focus {
+        box-shadow: none;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+    }
+
+    .alert {
+        border-radius: 8px;
+    }
+
+    .pagination .page-link {
+        border-radius: 5px;
+        margin: 0 3px;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card fade-in">
+        <div class="card-body">
+            <h2 class="card-title text-center mb-4">
+                <i class="fas fa-wallet me-2"></i> {% trans "لیست تنخواه‌ها" %}
+            </h2>
+
+            <!-- فرم فیلتر -->
+            <form method="get" class="mb-4">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <input type="text" name="q" value="{{ query|default_if_none:'' }}" class="form-control" placeholder="{% trans 'شماره، سازمان، پروژه...' %}" aria-label="{% trans 'جستجو' %}">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="date" id="jalali-date" value="{{ date_query|default_if_none:'' }}" class="form-control" placeholder="1403-05-15" aria-label="{% trans 'تاریخ' %}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" name="amount" value="{{ amount_query|default_if_none:'' }}" class="form-control" placeholder="{% trans 'مبلغ (ریال)' %}" aria-label="{% trans 'مبلغ' %}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" name="remaining" value="{{ remaining_query|default_if_none:'' }}" class="form-control" placeholder="{% trans 'باقیمانده (ریال)' %}" aria-label="{% trans 'باقیمانده' %}">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="stage" class="form-select" aria-label="{% trans 'مرحله' %}">
+                            <option value="">{% trans "همه مراحل" %}</option>
+                            {% for stage in stages %}
+                                <option value="{{ stage.order }}" {% if stage.order|stringformat:"s" == stage %}selected{% endif %}>
+                                    {{ stage.name }} ({{ stage.order|to_persian_number }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-check">
+                            <input type="checkbox" name="show_archived" value="true" class="form-check-input" id="showArchived" {% if show_archived %}checked{% endif %} aria-label="{% trans 'نمایش آرشیو' %}">
+                            <label class="form-check-label" for="showArchived">{% trans "آرشیو" %}</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary btn-custom w-100">
+                            <i class="fas fa-filter me-2"></i> {% trans "فیلتر" %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- پیام‌ها -->
+            {% if messages %}
+                <div class="alert alert-dismissible fade show alert-info" role="alert">
+                    {% for message in messages %}
+                        <div class="alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+                    {% endfor %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'بستن' %}"></button>
+                </div>
+            {% endif %}
+
+            <!-- لیست تنخواه‌ها -->
+            {% if grouped_by_org %}
+                <div class="accordion" id="orgAccordion">
+                    {% for org_name, org_data in grouped_by_org.items %}
+                        <div class="accordion-item fade-in">
+                            <h2 class="accordion-header" id="orgHeading{{ forloop.counter }}">
+                                {% trans " مرکزهزینه  " %}<strong style="color: orangered">  {{ org_data.projects|length |to_persian_number}}   </strong>
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#orgCollapse{{ forloop.counter }}" aria-expanded="false" aria-controls="orgCollapse{{ forloop.counter }}">
+                                    <i class="fas fa-building me-2"></i>
+                                    {{ org_name  }}
+                                    <span class="ms-3">
+                                        - {% trans "مبلغ" %}: {{ org_data.total_amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
+                                        - {% trans "باقیمانده" %}: {{ org_data.total_remaining|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
+                                    </span>
+                                </button>
+                            </h2>
+                            <div id="orgCollapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="orgHeading{{ forloop.counter }}" data-bs-parent="#orgAccordion">
+                                <div class="accordion-body">
+                                    <div class="accordion" id="projectAccordion{{ forloop.counter }}">
+                                        {% for project_name, project_data in org_data.projects.items %}
+                                            <div class="accordion-item">
+                                                <h3 class="accordion-header" id="projectHeading{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                                   <strong style="color: green"> {{ project_data.tankhahs|length |to_persian_number}} </strong>
+                                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}" aria-expanded="false" aria-controls="projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                                        <i class="fas fa-project-diagram me-2"></i>
+                                                        {{ project_name }} {% trans "تنخواه" %}
+                                                        <span class="ms-3">
+                                                            - {% trans "مبلغ" %}: {{ project_data.total_amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
+                                                            - {% trans "باقیمانده" %}: {{ project_data.total_remaining|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
+                                                        </span>
+                                                    </button>
+                                                </h3>
+                                                <div id="projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="projectHeading{{ forloop.parentloop.counter }}_{{ forloop.counter }}" data-bs-parent="#projectAccordion{{ forloop.counter }}">
+                                                    <div class="accordion-body">
+                                                        <table class="table table-hover">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>{% trans "ردیف" %}</th>
+                                                                    <th>{% trans "شماره" %}</th>
+                                                                    <th>{% trans "تاریخ" %}</th>
+                                                                    <th>{% trans "مبلغ" %}</th>
+                                                                    <th>{% trans "باقیمانده" %}</th>
+                                                                    <th>{% trans "وضعیت" %}</th>
+                                                                    <th>{% trans "عملیات" %}</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {% for tankhah in project_data.tankhahs %}
+                                                                    <tr class="fade-in">
+                                                                        <td>{{ forloop.counter |to_persian_number }}</td>
+                                                                        <td>{{ tankhah.number|to_persian_number }}</td>
+                                                                        <td>{{ tankhah.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
+                                                                        <td>{{ tankhah.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
+                                                                        <td>{{ tankhah.get_remaining_budget|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
+                                                                        <td>
+                                                                            <span class="status-badge status-{{ tankhah.status|lower }}">
+                                                                                {{ tankhah.get_status_display }}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td>
+                                                                            <a href="{% url 'tankhah_detail' tankhah.pk %}" class="btn btn-sm btn-info btn-custom" title="{% trans 'جزئیات' %}" aria-label="{% trans 'مشاهده جزئیات تنخواه' %} {{ tankhah.number }}">
+                                                                                <i class="fas fa-eye"></i>
+                                                                            </a>
+
+                                                                            <a href="{% url 'tankhah_approval_timeline' tankhah.pk %}" class="btn btn-sm btn-info btn-custom" title="{% trans 'وضعیت' %}" aria-label="{% trans 'مشاهده وضعیت تنخواه' %} {{ tankhah.number }}">
+                                                                                <i class="fas fa-eye"></i>
+                                                                            </a>
+
+
+                                                                        </td>
+                                                                    </tr>
+                                                                {% endfor %}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted text-center">{% trans "هیچ تنخواهی یافت نشد." %}</p>
+            {% endif %}
+
+            <!-- صفحه‌بندی -->
+            {% if is_paginated %}
+                <nav aria-label="{% trans 'صفحه‌بندی' %}" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}{% if amount_query %}&amount={{ amount_query }}{% endif %}{% if remaining_query %}&remaining={{ remaining_query }}{% endif %}{% if stage %}&stage={{ stage }}{% endif %}{% if show_archived %}&show_archived=true{% endif %}" aria-label="{% trans 'صفحه قبلی' %}">
+                                    « {% trans "قبلی" %}
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% for num in page_obj.paginator.page_range %}
+                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}{% if amount_query %}&amount={{ amount_query }}{% endif %}{% if remaining_query %}&remaining={{ remaining_query }}{% endif %}{% if stage %}&stage={{ stage }}{% endif %}{% if show_archived %}&show_archived=true{% endif %}">{{ num|to_persian_number }}</a>
+                            </li>
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}{% if amount_query %}&amount={{ amount_query }}{% endif %}{% if remaining_query %}&remaining={{ remaining_query }}{% endif %}{% if stage %}&stage={{ stage }}{% endif %}{% if show_archived %}&show_archived=true{% endif %}" aria-label="{% trans 'صفحه بعدی' %}">
+                                    {% trans "بعدی" %} »
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(function() {
+        // انیمیشن‌های lazy
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.accordion-item, .table tbody tr').forEach((el, index) => {
+            el.style.animationDelay = `${index * 0.1}s`;
+            observer.observe(el);
+        });
+
+        // دیتاپیکر جلالی
+        $('#jalali-date').persianDatepicker({
+            format: 'YYYY-MM-DD',
+            altFormat: 'YYYY-MM-DD',
+            autoClose: true,
+            persianDigit: true,
+            calendar: { persian: { locale: 'fa' } }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}حذف {{ payment_order.order_number }}{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <h3 class="mb-0">حذف دستور پرداخت</h3>
+    </div>
+    <div class="card-body">
+        <p>آیا مطمئن هستید که می‌خواهید دستور پرداخت "<strong>{{ payment_order.order_number }}</strong>" را حذف کنید؟</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">بله، حذف کن</button>
+            <a href="{% url 'paymentorder_list' %}" class="btn btn-secondary">خیر، بازگشت</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load i18n rcms_custom_filters jformat %}
+
+{% block title %}{% trans "جزئیات تخصیص بودجه" %} - {{ budget_allocation }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card-header { background: linear-gradient(90deg, #17a2b8, #117a8b); }
+    .dl-horizontal dt { font-weight: bold; color: #343a40; }
+    .dl-horizontal dd { margin-bottom: 1rem; color: #495057; }
+    .btn-group .btn { border-radius: 0.5rem; }
+    .progress { height: 1.5rem; border-radius: 0.5rem; }
+    .progress-bar { background-color: #28a745; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card shadow-sm">
+        <div class="card-header text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0"><i class="bi bi-info-circle me-2"></i>{% trans "جزئیات تخصیص بودجه" %}</h3>
+            <div>
+                <a href="{% url 'budgetallocation_update' budget_allocation.pk %}" class="btn btn-outline-light btn-sm me-2"><i class="bi bi-pencil"></i> {% trans "ویرایش" %}</a>
+                <a href="{% url 'budgetallocation_list' %}" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-right"></i> {% trans "بازگشت" %}</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <dl class="row dl-horizontal">
+                <dt class="col-sm-3">{% trans "دوره بودجه" %}:</dt>
+                <dd class="col-sm-9">{{ budget_allocation.budget_period.name|to_persian_number }}</dd>
+
+                <dt class="col-sm-3">{% trans "سازمان" %}:</dt>
+                <dd class="col-sm-9">{{ budget_allocation.organization.name }}</dd>
+
+                <dt class="col-sm-3">{% trans "پروژه" %}:</dt>
+                <dd class="col-sm-9">{{ budget_allocation.project.name|default:"بدون پروژه" }}</dd>
+
+                <dt class="col-sm-3">{% trans "مبلغ تخصیص" %}:</dt>
+                <dd class="col-sm-9">{{ budget_allocation.allocated_amount|floatformat:0|format_negative|to_persian_number }} {% trans "ریال" %}</dd>
+
+                <dt class="col-sm-3">{% trans "باقی‌مانده" %}:</dt>
+                <dd class="col-sm-9">{{ budget_allocation.remaining_amount|floatformat:0|format_negative|to_persian_number }} {% trans "ریال" %}</dd>
+
+                <dt class="col-sm-3">{% trans "درصد تخصیص" %}:</dt>
+                <dd class="col-sm-9">
+                    {% with percentage=budget_allocation.allocated_amount|div:budget_allocation.budget_period.total_amount|mul:100 %}
+                    {{ percentage|floatformat:2|to_persian_number }}%
+                    <div class="progress mt-2">
+                        <div class="progress-bar" role="progressbar" style="width: {{ percentage|floatformat:0 }}%;"
+                             aria-valuenow="{{ percentage|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ percentage|floatformat:2|to_persian_number }}%
+                        </div>
+                    </div>
+                    {% endwith %}
+                </dd>
+
+                <dt class="col-sm-3">{% trans "تاریخ تخصیص" %}:</dt>
+                <dd class="col-sm-9">{{ budget_allocation.allocation_date|jformat:'%Y/%m/%d'|to_persian_number }}</dd>
+
+                <dt class="col-sm-3">{% trans "ایجادکننده" %}:</dt>
+                <dd class="col-sm-9">{{ budget_allocation.created_by.username|default:"نامشخص" }}</dd>
+
+                <dt class="col-sm-3">{% trans "توضیحات" %}:</dt>
+                <dd class="col-sm-9">{{ budget_allocation.description|default:"بدون توضیحات" }}</dd>
+            </dl>
+        </div>
+    </div>
+</div>
+{% endblock %}

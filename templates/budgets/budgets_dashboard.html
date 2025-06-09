@@ -1,0 +1,232 @@
+<!-- budgets/templates/budgets/dashboard.html -->
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "داشبورد مدیریت بودجه" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <h1 class="mb-4 text-center">{% trans "داشبورد مدیریت بودجه" %}</h1>
+
+    <!-- نوار جستجو -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-8 col-lg-6">
+            <form method="get" action="{% url 'budgets_dashboard' %}">
+                <div class="input-group shadow-sm">
+                    <input type="text" class="form-control" name="q" placeholder="{% trans 'جستجو در بخش‌های داشبورد...' %}" value="{{ request.GET.q|default:'' }}">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search me-1"></i> {% trans "جستجو" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- بخش‌های بودجه -->
+    <div class="accordion" id="budgetAccordion">
+
+        <!-- Budget Periods -->
+        <div class="accordion-item shadow-sm mb-2">
+            <h2 class="accordion-header" id="headingBudgetPeriod">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBudgetPeriod" aria-expanded="false" aria-controls="collapseBudgetPeriod">
+                    <i class="fas fa-calendar-alt me-2 text-primary"></i> {% trans " 1- دوره‌های بودجه" %}
+                </button>
+            </h2>
+            <div id="collapseBudgetPeriod" class="accordion-collapse collapse" aria-labelledby="headingBudgetPeriod" data-bs-parent="#budgetAccordion">
+                <div class="accordion-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {% trans "مشاهده و ویرایش دوره‌های مالی تعریف شده" %}
+                            <a href="{% url 'budgetperiod_list' %}" class="btn btn-link btn-sm text-decoration-none">{% trans "لیست دوره‌های بودجه" %} <i class="fas fa-arrow-left ms-1"></i></a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {% trans "تعریف یک دوره بودجه جدید (مثلا سال مالی)" %}
+                            <a href="{% url 'budgetperiod_create' %}" class="btn btn-link btn-sm text-decoration-none text-success">{% trans "ایجاد دوره بودجه جدید" %} <i class="fas fa-plus-circle ms-1"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Budget Items -->
+        <div class="accordion-item shadow-sm mb-2">
+            <h2 class="accordion-header" id="headingBudgetItems">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBudgetItems" aria-expanded="false" aria-controls="collapseBudgetItems">
+                    <i class="fas fa-list-alt me-2 text-primary"></i> {% trans "2- ردیف بودجه" %}
+                </button>
+            </h2>
+            <div id="collapseBudgetItems" class="accordion-collapse collapse" aria-labelledby="headingBudgetItems" data-bs-parent="#budgetAccordion">
+                <div class="accordion-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {% trans "مشاهده و ویرایش ردیف‌های بودجه موجود" %}
+                            <a href="{% url 'budgetitem_list' %}" class="btn btn-link btn-sm text-decoration-none">{% trans "لیست ردیف بودجه" %} <i class="fas fa-arrow-left ms-1"></i></a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {% trans "ایجاد یک ردیف بودجه جدید در سیستم" %}
+                            <a href="{% url 'budgetitem_create' %}" class="btn btn-link btn-sm text-decoration-none text-success">{% trans "ایجاد ردیف بودجه جدید" %} <i class="fas fa-plus-circle ms-1"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Budget Allocation -->
+        <div class="accordion-item shadow-sm mb-2">
+            <h2 class="accordion-header" id="headingBudgetAllocation">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBudgetAllocation" aria-expanded="false" aria-controls="collapseBudgetAllocation">
+                    <i class="fas fa-coins me-2 text-primary"></i> {% trans "4-تخصیص‌های بودجه شعبه" %}
+                </button>
+            </h2>
+            <div id="collapseBudgetAllocation" class="accordion-collapse collapse" aria-labelledby="headingBudgetAllocation" data-bs-parent="#budgetAccordion">
+                <div class="accordion-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                             {% trans "مشاهده و ویرایش بودجه تخصیص یافته به شعب" %}
+                            <a href="{% url 'budgetallocation_list' %}" class="btn btn-link btn-sm text-decoration-none">{% trans "لیست تخصیص‌های بودجه" %} <i class="fas fa-arrow-left ms-1"></i></a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {% trans "ثبت تخصیص بودجه جدید برای یک شعبه" %}
+                            <a href="{% url 'budgetallocation_create' %}" class="btn btn-link btn-sm text-decoration-none text-success">{% trans "ایجاد تخصیص بودجه جدید" %} <i class="fas fa-plus-circle ms-1"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Budget Allocation -->
+        <div class="accordion-item shadow-sm mb-2">
+            <h2 class="accordion-header" id="headingProjectBudgetAllocation">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProjectBudgetAllocation" aria-expanded="false" aria-controls="collapseProjectBudgetAllocation">
+                    <i class="fas fa-project-diagram me-2 text-primary"></i> {% trans "تخصیص‌های بودجه پروژه" %}
+                </button>
+            </h2>
+            <div id="collapseProjectBudgetAllocation" class="accordion-collapse collapse" aria-labelledby="headingProjectBudgetAllocation" data-bs-parent="#budgetAccordion">
+                <div class="accordion-body">
+                     <p class="text-muted">{% trans "برای مدیریت تخصیص بودجه پروژه‌ها، ابتدا باید سازمان مورد نظر را انتخاب کنید." %}</p>
+                     <a href="{% url 'organization_list' %}" class="btn btn-outline-primary btn-sm">
+                         <i class="fas fa-building me-1"></i> {% trans "انتخاب سازمان و مدیریت تخصیص‌های پروژه" %}
+                     </a>
+                     <!-- Original form removed for better UX -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Budget Transaction -->
+        <div class="accordion-item shadow-sm mb-2">
+            <h2 class="accordion-header" id="headingBudgetTransaction">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBudgetTransaction" aria-expanded="false" aria-controls="collapseBudgetTransaction">
+                    <i class="fas fa-exchange-alt me-2 text-primary"></i> {% trans "تراکنش‌های بودجه" %}
+                </button>
+            </h2>
+            <div id="collapseBudgetTransaction" class="accordion-collapse collapse" aria-labelledby="headingBudgetTransaction" data-bs-parent="#budgetAccordion">
+                <div class="accordion-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {% trans "مشاهده تاریخچه تمام تراکنش‌های بودجه ثبت شده" %}
+                            <a href="{% url 'budgettransaction_list' %}" class="btn btn-link btn-sm text-decoration-none">{% trans "لیست تراکنش‌های بودجه" %} <i class="fas fa-arrow-left ms-1"></i></a>
+                        </li>
+                        <!-- Add link to create transaction if applicable -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Order -->
+        <div class="accordion-item shadow-sm mb-2">
+            <h2 class="accordion-header" id="headingPaymentOrder">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePaymentOrder" aria-expanded="false" aria-controls="collapsePaymentOrder">
+                    <i class="fas fa-file-invoice-dollar me-2 text-primary"></i> {% trans "دستورات پرداخت" %}
+                </button>
+            </h2>
+            <div id="collapsePaymentOrder" class="accordion-collapse collapse" aria-labelledby="headingPaymentOrder" data-bs-parent="#budgetAccordion">
+                <div class="accordion-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {% trans "مشاهده و مدیریت دستورات پرداخت صادر شده" %}
+                            <a href="{% url 'paymentorder_list' %}" class="btn btn-link btn-sm text-decoration-none">{% trans "لیست دستورات پرداخت" %} <i class="fas fa-arrow-left ms-1"></i></a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {% trans "ایجاد یک دستور پرداخت جدید" %}
+                            <a href="{% url 'paymentorder_add' %}" class="btn btn-link btn-sm text-decoration-none text-success">{% trans "ایجاد دستور پرداخت جدید" %} <i class="fas fa-plus-circle ms-1"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Budget Transfare list -->
+        <div class="accordion-item shadow-sm mb-2">
+            <h2 class="accordion-header" id="headingBudgetItems">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBudgetItems" aria-expanded="false" aria-controls="collapseBudgetItems">
+                    <i class="fas fa-list-alt me-2 text-primary"></i> {% trans "انتقال بودجه " %}
+                </button>
+            </h2>
+            <div id="collapseBudgetItems" class="accordion-collapse collapse" aria-labelledby="headingBudgetItems" data-bs-parent="#budgetAccordion">
+                <div class="accordion-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {% trans " انتقال بودجه" %}
+                            <a href="{% url 'budget_transfer' %}" class="btn btn-link btn-sm text-decoration-none">{% trans "انتقال بودجه" %} <i class="fas fa-arrow-left ms-1"></i></a>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- Payee -->
+        <div class="accordion-item shadow-sm mb-2">
+            <h2 class="accordion-header" id="headingPayee">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePayee" aria-expanded="false" aria-controls="collapsePayee">
+                    <i class="fas fa-user-tie me-2 text-primary"></i> {% trans "دریافت‌کنندگان" %}
+                </button>
+            </h2>
+            <div id="collapsePayee" class="accordion-collapse collapse" aria-labelledby="headingPayee" data-bs-parent="#budgetAccordion">
+                <div class="accordion-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                             {% trans "مدیریت لیست افراد یا شرکت‌هایی که پرداخت به آن‌ها انجام می‌شود" %}
+                            <a href="{% url 'payee_list' %}" class="btn btn-link btn-sm text-decoration-none">{% trans "لیست دریافت‌کنندگان" %} <i class="fas fa-arrow-left ms-1"></i></a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {% trans "افزودن یک دریافت‌کننده جدید (فرد یا شرکت)" %}
+                            <a href="{% url 'payee_create' %}" class="btn btn-link btn-sm text-decoration-none text-success">{% trans "ایجاد دریافت‌کننده جدید" %} <i class="fas fa-plus-circle ms-1"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Type -->
+        <div class="accordion-item shadow-sm mb-2">
+            <h2 class="accordion-header" id="headingTransactionType">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTransactionType" aria-expanded="false" aria-controls="collapseTransactionType">
+                    <i class="fas fa-tags me-2 text-primary"></i> {% trans "انواع تراکنش" %}
+                </button>
+            </h2>
+            <div id="collapseTransactionType" class="accordion-collapse collapse" aria-labelledby="headingTransactionType" data-bs-parent="#budgetAccordion">
+                <div class="accordion-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {% trans "مدیریت انواع تراکنش‌های مالی (مثلا هزینه، درآمد، انتقال)" %}
+                            <a href="{% url 'transactiontype_list' %}" class="btn btn-link btn-sm text-decoration-none">{% trans "لیست انواع تراکنش" %} <i class="fas fa-arrow-left ms-1"></i></a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {% trans "تعریف نوع جدیدی از تراکنش" %}
+                            <a href="{% url 'transactiontype_add' %}" class="btn btn-link btn-sm text-decoration-none text-success">{% trans "ایجاد نوع تراکنش جدید" %} <i class="fas fa-plus-circle ms-1"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- End Accordion -->
+</div>
+
+<!-- اطمینان حاصل کنید که Font Awesome در base.html شما بارگذاری شده است -->
+<!-- مثال: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" /> -->
+
+<!-- Bootstrap JS (معمولا در base.html قرار دارد) -->
+{% endblock %}

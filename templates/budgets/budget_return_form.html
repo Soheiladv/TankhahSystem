@@ -1,0 +1,744 @@
+{% extends "base.html" %}
+{% load static i18n humanize rcms_custom_filters %} {# rcms_custom_filters برای فیلترهای فارسی‌ساز شما #}
+
+{% block title %}{% trans "ثبت بازگشت بودجه" %}{% endblock %}
+
+{% block page_title %}
+    {# ... (بخش page_title مانند قبل، بدون تغییر) ... #}
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bolder mb-1"><i class="fas fa-undo-alt text-warning me-2"></i>{% trans "بازگرداندن بودجه" %}</h2>
+            {% if allocation %}
+            <h5 class="text-muted fw-normal">
+                {% trans "برای تخصیص:" %} <a href="{% url 'budgets:budget_allocation_report' allocation.pk %}" class="text-decoration-none fw-bold">{{ allocation }}</a>
+            </h5>
+            {% endif %}
+        </div>
+        {% if allocation %}
+        <a href="{% url 'budgets:budget_allocation_report' allocation.pk %}" class="btn btn-sm btn-outline-secondary no-print">
+            <i class="fas fa-times me-1"></i>{% trans "انصراف" %}
+        </a>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ... (تمام استایل‌های CSS مانند قبل، بدون تغییر) ... */
+    body { background-color: #f8f9fa; }
+    .card { border-radius: .75rem; border: none; box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.07); }
+    .card-header { font-weight: 600; background-color: #f7f9fc; }
+    .budget-bar { display: flex; height: 1.5rem; font-size: 0.8rem; font-weight: 600; border-radius: .375rem; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+    .budget-bar-consumed { background-color: #dc3545; color: white; display:flex; align-items:center; justify-content:center; }
+    .budget-bar-remaining { background-color: #198754; color: white; display:flex; align-items:center; justify-content:center; }
+    #id_amount { font-size: 2rem; font-weight: 700; text-align: left; direction: ltr; height: auto; }
+    .amount-wrapper { position: relative; }
+    .btn-max-amount { position: absolute; top: 50%; right: 1rem; transform: translateY(-50%); font-size: 0.8rem; font-weight: bold; padding: 0.3rem 0.6rem; }
+    #amountInWords { min-height: 24px; font-weight: 600; color: var(--bs-primary); }
+    #newRemainingDisplay { min-height: 24px; font-weight: 500; color: var(--bs-secondary); }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid py-4">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %} me-2"></i>
+                {{ message|safe|to_persian_number }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'بستن' %}"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header bg-warning-subtle">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-pen-alt me-2"></i>{% trans "فرم ثبت بازگشت وجه" %}</h5>
+                </div>
+                <div class="card-body p-lg-4">
+                    <form id="budgetReturnForm" method="post" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}<p class="mb-0">{{ error|to_persian_number }}</p>{% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-4">
+                            <label for="{{ form.amount.id_for_label }}" class="form-label fw-bold fs-5">{{ form.amount.label }}</label>
+                            <div class="amount-wrapper">
+                                <!-- رندر دستی فیلد amount با کلاس‌های CSS -->
+                                <input type="text" name="{{ form.amount.name }}" id="{{ form.amount.id_for_label }}"
+                                       class="form-control form-control-lg {% if form.amount.errors %}is-invalid{% endif %}"
+                                       value="{{ form.amount.value|default_if_none:'' }}"
+                                       min="1" required>
+                                
+                                <button type="button" id="setMaxAmountBtn" class="btn btn-sm btn-outline-success btn-max-amount"
+                                    data-max-amount="{{ allocation.get_remaining_amount}}">
+                                    <i class="fas fa-wallet me-1"></i>{% trans "حداکثر" %}
+                                </button>
+                            </div>
+                            <div id="amountInWords" class="form-text mt-2"></div>
+                            <div id="newRemainingDisplay" class="form-text mt-1"></div>
+                            {% for error in form.amount.errors %}
+                                <div class="invalid-feedback d-block mt-1 fw-bold">{{ error|to_persian_number }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-4">
+                             <label for="{{ form.return_reason.id_for_label }}" class="form-label fw-bold">{{ form.return_reason.label }}</label>
+                             <!-- رندر دستی فیلد return_reason با کلاس‌های CSS -->
+                             <select name="{{ form.return_reason.name }}" id="{{ form.return_reason.id_for_label }}"
+                                     class="form-select {% if form.return_reason.errors %}is-invalid{% endif %}">
+                                {% for value, text in form.return_reason.field.choices %}
+                                    <option value="{{ value }}" {% if form.return_reason.value == value|stringformat:"s" %}selected{% endif %}>{{ text }}</option>
+                                {% endfor %}
+                             </select>
+                             {% for error in form.return_reason.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                             {% endfor %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">{{ form.description.label }}</label>
+                            <!-- رندر دستی فیلد description با کلاس‌های CSS -->
+                            <textarea name="{{ form.description.name }}" id="{{ form.description.id_for_label }}"
+                                      class="form-control {% if form.description.errors %}is-invalid{% endif %}"
+                                      rows="3" placeholder="{% translate 'در صورت نیاز، توضیحات تکمیلی را وارد کنید...' %}">{{ form.description.value|default_if_none:'' }}</textarea>
+                            {% for error in form.description.errors %}
+                                <div class="invalid-feedback d-block mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" id="submitBtn" class="btn btn-warning btn-lg fw-bold shadow">
+                                <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span>
+                                <i class="fas fa-check-circle me-2 icon"></i>
+                                {% trans "ثبت نهایی بازگشت بودجه" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            {% with remaining_amount=allocation.get_remaining_amount consumed_amount=allocation.get_consumed_amount %}
+            <div class="card">
+                 <div class="card-header">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-chart-pie me-2 text-primary"></i>{% trans "خلاصه وضعیت تخصیص" %}</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-muted">{% trans "وضعیت مالی این تخصیص" %}</h6>
+                    <div class="budget-bar mb-2">
+                        {% with consumed_percentage=consumed_amount|percentage_of:allocation.allocated_amount %}
+                        <div class="budget-bar-consumed" id="consumedBar" style="width: {{ consumed_percentage|default:0 }}%;" data-bs-toggle="tooltip" title="{% blocktrans with amount=consumed_amount|intcomma:False|to_persian_number %}مصرف شده: {{ amount }} ریال{% endblocktrans %}">
+                            <span class="p-1">{{ consumed_percentage|floatformat:0|to_persian_number }}%</span>
+                        </div>
+                        <div class="budget-bar-remaining" id="remainingBar" style="width: {{ 100|sub:consumed_percentage|default:100 }}%;" data-bs-toggle="tooltip" title="{% blocktrans with amount=remaining_amount|intcomma:False|to_persian_number %}باقیمانده: {{ amount }} ریال{% endblocktrans %}">
+                            <span class="p-1">{{ 100|sub:consumed_percentage|floatformat:0|to_persian_number }}%</span>
+                        </div>
+                        {% endwith %}
+                    </div>
+                    <div class="d-flex justify-content-between small mb-4">
+                        <span><i class="fas fa-circle text-danger me-1"></i>{% trans "مصرف شده" %}</span>
+                        <span><i class="fas fa-circle text-success me-1"></i>{% trans "باقیمانده" %}</span>
+                    </div>
+
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            <span>{% translate "مبلغ کل تخصیص" %}</span>
+                            <span class="fw-bold text-primary">{{ allocation.allocated_amount|intcomma:False|to_persian_number }} ریال</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            <span>{% translate "مبلغ مصرف شده" %}</span>
+                            <span class="fw-bold text-danger">{{ consumed_amount|intcomma:False|to_persian_number }} ریال</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 mt-1 bg-success-subtle rounded p-2">
+                            <span class="fw-bold">{% trans "قابل بازگشت" %}</span>
+                            <strong class="text-success fs-5" id="remainingAmountDisplay">{{ remaining_amount|intcomma:False|to_persian_number }} ریال</strong>
+                        </li>
+                    </ul>
+                    <hr>
+                     <h6 class="text-muted">{% translate "اطلاعات مرجع" %}</h6>
+                     <ul class="list-group list-group-flush small">
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            <span>{% translate "سازمان" %}</span>
+                            <span class="fw-bold">{{ allocation.organization.name }}</span>
+                        </li>
+                        {% if allocation.project %}
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span>{% translate "پروژه" %}</span>
+                                <span class="fw-bold">{{ allocation.project.name }}</span>
+                            </li>
+                        {% endif %}
+                     </ul>
+                </div>
+            </div>
+            {% endwith %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // فعال‌سازی تولتیپ‌های بوت‌استرپ
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+
+    // انتخاب عناصر کلیدی با استفاده از id آنها
+    const form = document.getElementById('budgetReturnForm');
+    const amountInput = document.getElementById('{{ form.amount.id_for_label }}');
+    const reasonSelect = document.getElementById('{{ form.return_reason.id_for_label }}');
+    const descriptionInput = document.getElementById('{{ form.description.id_for_label }}');
+    const setMaxBtn = document.getElementById('setMaxAmountBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // عناصر نمایش پویا
+    const amountInWordsDiv = document.getElementById('amountInWords');
+    const newRemainingDisplayDiv = document.getElementById('newRemainingDisplay');
+    const remainingAmountForCalc = parseFloat('{{ allocation.get_remaining_amount}}'.replace(/,/g, '')) || 0;
+
+    // بررسی وجود تمام عناصر قبل از اجرای اسکریپت
+    if (!form || !amountInput || !reasonSelect || !descriptionInput || !setMaxBtn || !submitBtn || !amountInWordsDiv || !newRemainingDisplayDiv) {
+        console.error('یک یا چند عنصر کلیدی فرم در DOM یافت نشد. اسکریپت اجرا نمی‌شود.');
+        return;
+    }
+
+    // --- توابع کمکی ---
+    const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    const toEnglishNumber = str => String(str).replace(/[۰-۹]/g, d => persianDigits.indexOf(d));
+    const toPersianNumber = str => String(str).replace(/[0-9]/g, d => persianDigits[d]);
+    const cleanNumberString = str => toEnglishNumber(str).replace(/[^0-9.]/g, ''); // فقط اعداد و نقطه اعشار
+    const formatWithCommas = numStr => String(numStr).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+    // تابع کامل‌تر تبدیل عدد به حروف فارسی
+    function numberToFarsiWords(num) {
+        if (num === 0) return "صفر";
+        if (isNaN(num) || !num) return "";
+
+        const units = ["", "هزار", "میلیون", "میلیارد", "تریلیون"];
+        const ones = ["", "یک", "دو", "سه", "چهار", "پنج", "شش", "هفت", "هشت", "نه"];
+        const teens = ["ده", "یازده", "دوازده", "سیزده", "چهارده", "پانزده", "شانزده", "هفده", "هجده", "نوزده"];
+        const tens = ["", "", "بیست", "سی", "چهل", "پنجاه", "شصت", "هفتاد", "هشتاد", "نود"];
+        const hundreds = ["", "صد", "دویست", "سیصد", "چهارصد", "پانصد", "ششصد", "هفتصد", "هشتصد", "نهصد"];
+
+        function convertThreeDigits(n) {
+            let parts = [];
+            if (n >= 100) { parts.push(hundreds[Math.floor(n / 100)]); n %= 100; }
+            if (n >= 20) { parts.push(tens[Math.floor(n / 10)]); n %= 10; }
+            else if (n >= 10) { parts.push(teens[n - 10]); n = 0; }
+           return parts.join(" و ");
+        }
+
+        let result = [];
+        let unitIndex = 0;
+        let numInt = Math.floor(num);
+        while (numInt > 0) {
+            let chunk = numInt % 1000;
+            if (chunk > 0) {
+                result.unshift(convertThreeDigits(chunk) + " " + units[unitIndex]);
+            }
+            numInt = Math.floor(numInt / 1000);
+            unitIndex++;
+        }
+        return result.join(" و ").trim();
+    }
+
+    // تابع برای به‌روزرسانی تمام بخش‌های وابسته
+    function updateAllDisplays() {
+        const amountValueStr = cleanNumberString(amountInput.value) || '0';
+        const amountValue = parseInt(amountValueStr, 10);
+
+        // ۱. نمایش مبلغ به حروف
+        amountInWordsDiv.textContent = numberToFarsiWords(amountValue) + (amountValue > 0 ? " ریال" : "");
+
+        // ۲. کسر از مانده بودجه و نمایش مانده جدید
+        const newRemaining = remainingAmountForCalc - amountValue;
+        if (amountValue > 0) {
+            const newRemainingFormatted = toPersianNumber(formatWithCommas(String(Math.floor(newRemaining))));
+            newRemainingDisplayDiv.innerHTML = `{% translate "مانده جدید پس از بازگشت:" %} <strong class="${newRemaining >= 0 ? 'text-success' : 'text-danger'}">${newRemainingFormatted}</strong>`;
+        } else {
+            newRemainingDisplayDiv.innerHTML = "";
+        }
+
+        // ۳. تولید خودکار توضیحات
+        const reasonText = reasonSelect.options[reasonSelect.selectedIndex]?.text || '';
+        const projectName = "{{ allocation.project.name|default:'پروژه'|escapejs }}";
+        const orgName = "{{ allocation.organization.name|default:'سازمان'|escapejs }}";
+        const formattedAmount = toPersianNumber(formatWithCommas(amountValueStr));
+        const amountInWords = numberToFarsiWords(amountValue);
+
+        descriptionInput.value = `بازگشت مبلغ ${formattedAmount} (${amountInWords}) ریال از بودجه تخصیص یافته به سازمان «${orgName}» برای پروژه «${projectName}» به دلیل «${reasonText}».`;
+    }
+
+    // --- رویدادها ---
+    amountInput.addEventListener('input', function() {
+        const cleanedValue = cleanNumberString(this.value);
+        this.value = cleanedValue ? toPersianNumber(formatWithCommas(cleanedValue)) : '';
+        updateAllDisplays();
+    });
+
+    reasonSelect.addEventListener('change', updateAllDisplays);
+
+    setMaxBtn.addEventListener('click', function() {
+        const maxAmountStr = String(Math.floor(remainingAmountForCalc));
+        amountInput.value = toPersianNumber(formatWithCommas(maxAmountStr));
+        amountInput.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    form.addEventListener('submit', function(e) {
+        if (amountInput) {
+            // تبدیل مبلغ به عدد انگلیسی خالص برای ارسال به بک‌اند
+            amountInput.value = cleanNumberString(amountInput.value);
+        }
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.querySelector('.spinner-border').classList.remove('d-none');
+            submitBtn.querySelector('.icon').classList.add('d-none');
+        }
+    });
+
+    // اجرای اولیه برای تنظیم مقادیر در صورت وجود داده اولیه
+    if (amountInput.value) {
+        amountInput.dispatchEvent(new Event('input', { bubbles: true }));
+    } else {
+        updateAllDisplays();
+    }
+});
+</script>
+{% endblock %}
+
+{#{% extends "base.html" %}#}
+{#{% load static i18n humanize rcms_custom_filters jalali_tags %}#}
+{##}
+{#{% block title %}{% trans "بازگرداندن بودجه تخصیص" %}{% endblock %}#}
+{##}
+{#{% block page_title %}#}
+{#    <div class="d-flex justify-content-between align-items-center">#}
+{#        <div>#}
+{#            <h2 class="fw-bolder mb-1"><i class="fas fa-undo-alt text-warning me-2"></i>{% trans "بازگرداندن بودجه" %}#}
+{#            </h2>#}
+{#            <h5 class="text-muted fw-normal">#}
+{#                {% trans "برای تخصیص:" %} <span class="fw-bold">{{ allocation.code }}</span>#}
+{#            </h5>#}
+{#        </div>#}
+{#        <a href="{% url 'project_budget_allocation_detail' allocation.pk %}"#}
+{#           class="btn btn-sm btn-outline-secondary no-print">#}
+{#            <i class="fas fa-times me-1"></i>{% trans "انصراف" %}#}
+{#        </a>#}
+{#    </div>#}
+{#{% endblock %}#}
+{##}
+{#{% block extra_css %}#}
+{#    <style>#}
+{#        body {#}
+{#            background-color: #f8f9fa;#}
+{#        }#}
+{##}
+{#        .card {#}
+{#            border-radius: .75rem;#}
+{#            border: none;#}
+{#            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.07);#}
+{#        }#}
+{##}
+{#        .card-header {#}
+{#            font-weight: 600;#}
+{#            background-color: #f7f9fc;#}
+{#        }#}
+{##}
+{#        .budget-bar {#}
+{#            display: flex;#}
+{#            height: 1.5rem;#}
+{#            font-size: 0.8rem;#}
+{#            font-weight: 600;#}
+{#            border-radius: .375rem;#}
+{#            overflow: hidden;#}
+{#            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);#}
+{#        }#}
+{##}
+{#        .budget-bar-consumed {#}
+{#            background-color: #dc3545;#}
+{#            color: white;#}
+{#        }#}
+{##}
+{#        .budget-bar-remaining {#}
+{#            background-color: #198754;#}
+{#            color: white;#}
+{#        }#}
+{##}
+{#        #id_amount {#}
+{#            font-size: 1.5rem;#}
+{#            font-weight: 700;#}
+{#            text-align: left;#}
+{#            direction: ltr;#}
+{#            height: auto;#}
+{#            padding: 0.75rem;#}
+{#        }#}
+{##}
+{#        .amount-wrapper {#}
+{#            position: relative;#}
+{#        }#}
+{##}
+{#        .btn-max-amount {#}
+{#            position: absolute;#}
+{#            top: 50%;#}
+{#            right: 1rem;#}
+{#            transform: translateY(-50%);#}
+{#            font-size: 0.8rem;#}
+{#            font-weight: bold;#}
+{#            padding: 0.3rem 0.6rem;#}
+{#        }#}
+{##}
+{#        .form-control:focus {#}
+{#            border-color: #ffc107;#}
+{#            box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);#}
+{#        }#}
+{##}
+{#        .text-danger {#}
+{#            font-size: 0.875rem;#}
+{#            margin-top: 0.25rem;#}
+{#        }#}
+{#    </style>#}
+{#{% endblock %}#}
+{##}
+{#{% block content %}#}
+{#    <div class="container-fluid py-4">#}
+{#        {% if messages %}#}
+{#            {% for message in messages %}#}
+{#                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">#}
+{#                    <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %} me-2"></i>#}
+{#                    {{ message|to_persian_number }}#}
+{#                    <button type="button" class="btn-close" data-bs-dismiss="alert"#}
+{#                            aria-label="{% trans 'بستن' %}"></button>#}
+{#                </div>#}
+{#            {% endfor %}#}
+{#        {% endif %}#}
+{##}
+{#        <div class="row g-4">#}
+{#            <div class="col-lg-7">#}
+{#                <div class="card">#}
+{#                    <div class="card-header bg-warning-subtle">#}
+{#                        <h5 class="mb-0 fw-bold"><i class="fas fa-pen-alt me-2"></i>{% trans "فرم ثبت بازگشت وجه" %}#}
+{#                        </h5>#}
+{#                    </div>#}
+{#                    <div class="card-body p-lg-4">#}
+{#                        <form id="budgetReturnForm" method="post" novalidate>#}
+{#                            {% csrf_token %}#}
+{#                            {% if form.non_field_errors %}#}
+{#                                <div class="alert alert-danger">#}
+{#                                    {% for error in form.non_field_errors %}#}
+{#                                        <p class="mb-0">{{ error|to_persian_number }}</p>#}
+{#                                    {% endfor %}#}
+{#                                </div>#}
+{#                            {% endif %}#}
+{#                            <div class="mb-4">#}
+{#                                <label for="id_amount" class="form-label fw-bold fs-5">#}
+{#                                    {{ form.amount.label }}#}
+{#                                    <small class="text-muted">(حداکثر {{ allocation.get_remaining_amount|intcomma|to_persian_number }}#}
+{#                                        ریال)</small>#}
+{#                                </label>#}
+{#                                <div class="amount-wrapper">#}
+{#                                    {{ form.amount }}#}
+{#                                    <button type="button" id="setMaxAmountBtn"#}
+{#                                            class="btn btn-sm btn-outline-success btn-max-amount"#}
+{#                                            data-max-amount="{{ allocation.get_remaining_amount }}">#}
+{#                                        <i class="fas fa-wallet me-1"></i>{% trans "حداکثر" %}#}
+{#                                    </button>#}
+{#                                </div>#}
+{#                                {% for error in form.amount.errors %}#}
+{#                                    <div class="invalid-feedback d-block mt-1 fw-bold">{{ error|to_persian_number }}</div>#}
+{#                                {% endfor %}#}
+{#                                <div id="amountError" class="text-danger small mt-1"></div>#}
+{#                                <div id="amountInWords" class="form-text text-primary fw-bold mt-2"></div>#}
+{#                                <div id="newRemainingDisplay" class="form-text text-muted mt-1">#}
+{#                                    {% trans "باقیمانده پس از کسر" %}: <span#}
+{#                                        id="remainingValue">{{ allocation.get_remaining_amount|intcomma|to_persian_number }}</span> {% trans "ریال" %}#}
+{#                                </div>#}
+{#                            </div>#}
+{#                            <div class="mb-4">#}
+{#                                <label for="id_return_reason"#}
+{#                                       class="form-label fw-bold">{{ form.return_reason.label }}</label>#}
+{#                                {{ form.return_reason }}#}
+{#                                {% for error in form.return_reason.errors %}#}
+{#                                    <div class="invalid-feedback d-block mt-1">{{ error|to_persian_number }}</div>#}
+{#                                {% endfor %}#}
+{#                            </div>#}
+{#                            <div class="mb-4">#}
+{#                                <label for="id_description"#}
+{#                                       class="form-label fw-semibold">{{ form.description.label }}</label>#}
+{#                                {{ form.description }}#}
+{#                                {% for error in form.description.errors %}#}
+{#                                    <div class="invalid-feedback d-block mt-1">{{ error|to_persian_number }}</div>#}
+{#                                {% endfor %}#}
+{#                            </div>#}
+{#                            <div class="d-grid mt-4">#}
+{#                                <button type="submit" id="submitBtn" class="btn btn-warning btn-lg fw-bold shadow">#}
+{#                                    <span class="spinner-border spinner-border-sm d-none me-2" role="status"#}
+{#                                          aria-hidden="true"></span>#}
+{#                                    <i class="fas fa-check-circle me-2 icon"></i>#}
+{#                                    {% trans "ثبت نهایی بازگشت بودجه" %}#}
+{#                                </button>#}
+{#                            </div>#}
+{#                        </form>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#            <div class="col-lg-5">#}
+{#                {% with remaining_amount=allocation.get_remaining_amount consumed_amount=allocation.get_consumed_amount %}#}
+{#                    <div class="card">#}
+{#                        <div class="card-header">#}
+{#                            <h5 class="mb-0 fw-bold"><i#}
+{#                                    class="fas fa-chart-pie me-2 text-primary"></i>{% trans "خلاصه وضعیت تخصیص" %}</h5>#}
+{#                        </div>#}
+{#                        <div class="card-body">#}
+{#                            <h6 class="text-muted">{% trans "وضعیت مالی این تخصیص" %}</h6>#}
+{#                            <div class="budget-bar mb-2">#}
+{#                                {% with consumed_percentage=consumed_amount|percentage_of:allocation.allocated_amount %}#}
+{#                                    <div class="budget-bar-consumed" style="width: {{ consumed_percentage }}%;"#}
+{#                                         data-bs-toggle="tooltip"#}
+{#                                         title="{% blocktrans %}مصرف شده: {{ consumed_amount|intcomma|to_persian_number }} ریال{% endblocktrans %}">#}
+{#                                        <span class="p-1">{{ consumed_percentage|floatformat:0|to_persian_number }}%</span>#}
+{#                                    </div>#}
+{#                                    <div class="budget-bar-remaining" style="width: {{ 100|sub:consumed_percentage }}%;"#}
+{#                                         data-bs-toggle="tooltip"#}
+{#                                         title="{% blocktrans %}باقیمانده: {{ remaining_amount|intcomma|to_persian_number }} ریال{% endblocktrans %}">#}
+{#                                        <span class="p-1">{{ 100|sub:consumed_percentage|floatformat:0|to_persian_number }}%</span>#}
+{#                                    </div>#}
+{#                                {% endwith %}#}
+{#                            </div>#}
+{#                            <div class="d-flex justify-content-between small mb-4">#}
+{#                                <span><i class="fas fa-circle text-danger me-1"></i>{% trans "مصرف شده" %}</span>#}
+{#                                <span><i class="fas fa-circle text-success me-1"></i>{% trans "باقیمانده" %}</span>#}
+{#                            </div>#}
+{#                            <ul class="list-group list-group-flush">#}
+{#                                <li class="list-group-item d-flex justify-content-between px-0">#}
+{#                                    <span>{% trans "مبلغ کل تخصیص" %}</span>#}
+{#                                    <span class="fw-bold text-primary">{{ allocation.allocated_amount|intcomma|to_persian_number }} ریال</span>#}
+{#                                </li>#}
+{#                                <li class="list-group-item d-flex justify-content-between px-0">#}
+{#                                    <span>{% trans "مبلغ مصرف شده" %}</span>#}
+{#                                    <span class="fw-bold text-danger">{{ consumed_amount|intcomma|to_persian_number }} ریال</span>#}
+{#                                </li>#}
+{#                                <li class="list-group-item d-flex justify-content-between px-0 mt-1 bg-success-subtle rounded p-2">#}
+{#                                    <span class="fw-bold">{% trans "قابل بازگشت" %}</span>#}
+{#                                    <strong class="text-success fs-5">{{ remaining_amount|intcomma|to_persian_number }}#}
+{#                                        ریال</strong>#}
+{#                                </li>#}
+{#                            </ul>#}
+{#                            <hr>#}
+{#                            <h6 class="text-muted">{% trans "اطلاعات مرجع" %}</h6>#}
+{#                            <ul class="list-group list-group-flush small">#}
+{#                                <li class="list-group-item d-flex justify-content-between px-0">#}
+{#                                    <span>{% trans "سازمان" %}</span>#}
+{#                                    <span class="fw-bold">{{ allocation.organization.name }}</span>#}
+{#                                </li>#}
+{#                                {% if allocation.project %}#}
+{#                                    <li class="list-group-item d-flex justify-content-between px-0">#}
+{#                                        <span>{% trans "پروژه" %}</span>#}
+{#                                        <span class="fw-bold">{{ allocation.project.name }}</span>#}
+{#                                    </li>#}
+{#                                {% endif %}#}
+{#                                <li class="list-group-item d-flex justify-content-between px-0">#}
+{#                                    <span>{% trans "دوره بودجه" %}</span>#}
+{#                                    <span class="fw-bold">{{ allocation.budget_period.name }}</span>#}
+{#                                </li>#}
+{#                            </ul>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                {% endwith %}#}
+{#            </div>#}
+{#        </div>#}
+{#</div>#}
+{#{% endblock %}#}
+{##}
+{#{% block extra_js %}#}
+{#    <script>#}
+{#        document.addEventListener('DOMContentLoaded', function () {#}
+{#            // فعال‌سازی تولتیپ‌های بوت‌استرپ#}
+{#            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));#}
+{##}
+{#            // انتخاب عناصر#}
+{#            const form = document.getElementById('budgetReturnForm');#}
+{#            const amountInput = document.getElementById('id_amount');#}
+{#            const reasonSelect = document.getElementById('id_return_reason');#}
+{#            const descriptionInput = document.getElementById('id_description');#}
+{#            const setMaxAmountBtn = document.getElementById('setMaxAmountBtn');#}
+{#            const submitBtn = document.getElementById('submitBtn');#}
+{#            const amountError = document.getElementById('amountError');#}
+{#            const amountInWords = document.getElementById('amountInWords');#}
+{#            const newRemainingDisplay = document.getElementById('remainingValue');#}
+{##}
+{#            if (!form || !amountInput || !reasonSelect || !descriptionInput || !setMaxAmountBtn || !submitBtn || !amountError || !amountInWords || !newRemainingDisplay) {#}
+{#                console.error('یکی از عناصر فرم یافت نشد:', {#}
+{#                    form: !!form,#}
+{#                    amountInput: !!amountInput,#}
+{#                    reasonSelect: !!reasonSelect,#}
+{#                    descriptionInput: !!descriptionInput,#}
+{#                    setMaxAmountBtn: !!setMaxAmountBtn,#}
+{#                    submitBtn: !!submitBtn,#}
+{#                    amountError: !!amountError,#}
+{#                    amountInWords: !!amountInWords,#}
+{#                    newRemainingDisplay: !!newRemainingDisplay#}
+{#                });#}
+{#                return;#}
+{#            }#}
+{##}
+{#            // متغیرهای بودجه#}
+{#            const maxAmount = parseFloat(setMaxAmountBtn.dataset.maxAmount || '0');#}
+{#            console.log('حداکثر مبلغ:', maxAmount);#}
+{##}
+{#            // توابع کمکی#}
+{#            const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];#}
+{#            const toEnglish = str => String(str).replace(/[۰-۹]/g, d => persianDigits.indexOf(d));#}
+{#            const toPersian = str => String(str).replace(/[0-9]/g, d => persianDigits[d]);#}
+{#            const cleanNumber = str => toEnglish(str).replace(/[^0-9]/g, '');#}
+{#            const formatNumber = num => String(num).replace(/\B(?=(\d{3})+(?!\d))/g, ',');#}
+{##}
+{#            // تبدیل عدد به حروف فارسی#}
+{#            function numberToPersianWords(num) {#}
+{#                if (num === 0) return 'صفر';#}
+{#                const units = ['', 'هزار', 'میلیون', 'میلیارد'];#}
+{#                const ones = ['', 'یک', 'دو', 'سه', 'چهار', 'پنج', 'شش', 'هفت', 'هشت', 'نه'];#}
+{#                const teens = ['ده', 'یازده', 'دوازده', 'سیزده', 'چهارده', 'پانزده', 'شانزده', 'هفده', 'هجده', 'نوزده'];#}
+{#                const tens = ['', '', 'بیست', 'سی', 'چهل', 'پنجاه', 'شصت', 'هفتاد', 'هشتاد', 'نود'];#}
+{#                const hundreds = ['', 'صد', 'دویست', 'سیصد', 'چهارصد', 'پانصد', 'ششصد', 'هفتصد', 'هشتصد', 'نهصد'];#}
+{##}
+{#                function convertChunk(chunk, unitIndex) {#}
+{#                    if (chunk === 0) return '';#}
+{#                    let result = '';#}
+{#                    const hundred = Math.floor(chunk / 100);#}
+{#                    const ten = Math.floor((chunk % 100) / 10);#}
+{#                    const one = chunk % 10;#}
+{##}
+{#                    if (hundred > 0) result += hundreds[hundred] + (ten || one ? ' و ' : '');#}
+{#                    if (ten === 1) {#}
+{#                        result += teens[one];#}
+{#                    } else {#}
+{#                        if (ten > 1) result += tens[ten] + (one ? ' و ' : '');#}
+{#                        if (one > 0 && ten !== 1) result += ones[one];#}
+{#                    }#}
+{#                    return result + (result && unitIndex > 0 ? ' ' + units[unitIndex] : '');#}
+{#                }#}
+{##}
+{#                let numStr = num.toString();#}
+{#                let chunks = [];#}
+{#                while (numStr.length > 0) {#}
+{#                    chunks.push(parseInt(numStr.slice(-3)) || 0);#}
+{#                    numStr = numStr.slice(0, -3);#}
+{#                }#}
+{##}
+{#                let words = '';#}
+{#                for (let i = chunks.length - 1; i >= 0; i--) {#}
+{#                    if (chunks[i] > 0) {#}
+{#                        let chunkWords = convertChunk(chunks[i], i);#}
+{#                        words += chunkWords + (words && i > 0 ? ' و ' : '');#}
+{#                    }#}
+{#                }#}
+{#                return words || 'صفر';#}
+{#            }#}
+{##}
+{#            // به‌روزرسانی باقی‌مانده و لیبل حروف#}
+{#            function updateRemainingAndWords() {#}
+{#                const amount = parseFloat(cleanNumber(amountInput.value)) || 0;#}
+{#                const remaining = maxAmount - amount;#}
+{#                newRemainingDisplay.textContent = toPersian(formatNumber(remaining.toString()));#}
+{#                amountInWords.textContent = amount ? numberToPersianWords(amount) + ' ریال' : '';#}
+{#                console.log('باقیمانده:', remaining, 'حروف:', amountInWords.textContent);#}
+{#            }#}
+{##}
+{#            // به‌روزرسانی توضیحات#}
+{#            function updateDescription() {#}
+{#                const amount = cleanNumber(amountInput.value) || '0';#}
+{#                const formattedAmount = toPersian(formatNumber(amount));#}
+{#                const amountInWords = numberToPersianWords(parseInt(amount));#}
+{#                const reasonText = reasonSelect && reasonSelect.selectedIndex >= 0#}
+{#                    ? reasonSelect.options[reasonSelect.selectedIndex].text#}
+{#                    : 'نامشخص';#}
+{#                const projectName = '{{ allocation.project.name|default:"پروژه نامشخص"|escapejs }}';#}
+{#                const orgName = '{{ allocation.organization.name|default:"سازمان نامشخص"|escapejs }}';#}
+{##}
+{#                descriptionInput.value = `بازگشت مبلغ ${formattedAmount} ریال (${amountInWords}) از بودجه تخصیص یافته به ${orgName} برای ${projectName} به دلیل «${reasonText}».`;#}
+{#                updateRemainingAndWords();#}
+{#                console.log('توضیحات:', descriptionInput.value);#}
+{#            }#}
+{##}
+{#            // فرمت‌دهی مبلغ هنگام تایپ#}
+{#            amountInput.addEventListener('input', () => {#}
+{#                const cursorPosition = amountInput.selectionStart;  // مکان فعلی نشانگر را بگیر#}
+{#                const cleanValue = getCleanEnglishDigits(amountInput.value);#}
+{##}
+{#                if (cleanValue === '') return;#}
+{##}
+{#                // فقط اگر عدد معتبر بود، مقدار را فرمت کن#}
+{#                const formatted = formatToPersianWithCommas(cleanValue);#}
+{#                amountInput.value = formatted;#}
+{##}
+{#                try {#}
+{#                    updateAmountDisplays();#}
+{#                } catch (e) {#}
+{#                    console.warn('Error in updateAmountDisplays:', e);#}
+{#                }#}
+{##}
+{#                // سعی کن مکان نشانگر را بازگردانی#}
+{#                setTimeout(() => {#}
+{#                    amountInput.setSelectionRange(formatted.length, formatted.length);#}
+{#                }, 0);#}
+{#            });#}
+{##}
+{##}
+{#            // تغییر دلیل بازگشت#}
+{#            reasonSelect.addEventListener('change', () => {#}
+{#                updateDescription();#}
+{#                console.log('دلیل تغییر کرد:', reasonSelect.value);#}
+{#            });#}
+{##}
+{#            // کلیک روی دکمه حداکثر#}
+{#            setMaxAmountBtn.addEventListener('click', () => {#}
+{#                amountInput.value = toPersian(formatNumber(maxAmount.toString()));#}
+{#                amountInput.dispatchEvent(new Event('input'));#}
+{#                console.log('حداکثر مبلغ تنظیم شد:', maxAmount);#}
+{#            });#}
+{##}
+{#            // اعتبارسنجی هنگام ارسال فرم#}
+{#            form.addEventListener('submit', (e) => {#}
+{#                amountError.textContent = '';#}
+{#                const rawAmount = cleanNumber(amountInput.value) || '0';#}
+{#                const amount = parseFloat(rawAmount);#}
+{##}
+{#                if (isNaN(amount) || amount <= 0) {#}
+{#                    amountError.textContent = '{% trans "مبلغ بازگشتی باید بیشتر از صفر باشد" %}';#}
+{#                    e.preventDefault();#}
+{#                    console.error('خطا: مبلغ نامعتبر', amount);#}
+{#                    return;#}
+{#                }#}
+{##}
+{#                if (amount > maxAmount) {#}
+{#                    amountError.textContent = `{% trans "مبلغ بازگشتی نمی‌تواند از" %} ${toPersian(formatNumber(maxAmount.toString()))} {% trans "ریال بیشتر باشد" %}`;#}
+{#                    e.preventDefault();#}
+{#                    console.error('خطا: مبلغ بیش از حد', amount, maxAmount);#}
+{#                    return;#}
+{#                }#}
+{##}
+{#                // آماده‌سازی مبلغ برای بک‌اند#}
+{#                amountInput.value = rawAmount;#}
+{##}
+{#                // نمایش اسپینر#}
+{#                submitBtn.disabled = true;#}
+{#                submitBtn.querySelector('.spinner-border').classList.remove('d-none');#}
+{#                submitBtn.querySelector('.icon').classList.add('d-none');#}
+{##}
+{#                updateDescription();#}
+{#                console.log('فرم در حال ارسال:', {amount: rawAmount, description: descriptionInput.value});#}
+{#            });#}
+{##}
+{#            // اجرای اولیه#}
+{#            updateDescription();#}
+{#        });#}
+{#    </script>#}
+{#{% endblock %}#}

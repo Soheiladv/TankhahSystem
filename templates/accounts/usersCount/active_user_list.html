@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize jalali_tags jformat static %}
+
+{% block title %}کاربران فعال{% endblock %}
+
+{% block content %}
+    <link href="{% static 'admin/css/accountsStyle.css' %}" rel="stylesheet">
+
+    <div class="container">
+        <h1><i class="fas fa-users me-2"></i> کاربران فعال</h1>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <p>حداکثر کاربران مجاز: {{ max_active_users }} | تعداد فعلی: {{ active_users.count }}</p>
+        <a href="{% url 'accounts:active_user_create' %}" class="btn btn-primary mb-3">
+            <i class="fas fa-plus me-2"></i> افزودن کاربر فعال
+        </a>
+
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>کاربر</th>
+                <th>کلید سشن</th>
+                <th>زمان ورود</th>
+                <th>هش تعداد</th>
+                <th>عملیات</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in active_users %}
+                <tr>
+                    <td>{{ user.user.username }}</td>
+                    <td>{{ user.session_key }}</td>
+                    <td>{{ user.login_time|to_jalali:'%Y/%m/%d %H:%M:%S' }}</td>
+                    <td>{{ user.hashed_count|truncatechars:10 }}</td>
+{#                    {% if user_permissions.ActiveUser_Update %}#}
+                        <td>
+                        <a href="{% url 'accounts:active_user_update' user.pk %}" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit"></i>
+                        </a>
+{#                    {% endif %}#}
+{#                    {% if user_permissions.ActiveUser_delete %}#}
+                        <a href="{% url 'accounts:active_user_delete' user.pk %}" class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash"></i>
+                        </a>
+{#                    {% endif %}#}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">هیچ کاربر فعالی وجود ندارد.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

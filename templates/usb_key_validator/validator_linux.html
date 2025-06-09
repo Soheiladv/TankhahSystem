@@ -1,0 +1,68 @@
+{% extends "base.html" %} {# Optional: if you have a base.html #}
+{% load i18n %}
+
+{% block title %}{% trans "بررسی کلید USB" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>{% trans "بررسی و نوشتن کلید USB" %}</h2>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.usb_device.label_tag }}
+            {% for radio in form.usb_device %}
+                <div class="form-check">
+                    {{ radio.tag }}
+                    <label class="form-check-label" for="{{ radio.id_for_label }}">
+                        {{ radio.choice_label }}
+                    </label>
+                </div>
+            {% endfor %}
+            <div class="form-text text-muted">{{ form.usb_device.help_text }}</div>
+        </div>
+        <button type="submit" class="btn btn-primary">{% trans "نوشتن و بررسی کلید" %}</button>
+    </form>
+
+    {% if result %}
+    <h3 class="mt-4">{% trans "نتیجه عملیات" %}</h3>
+    <p>{% trans "نتیجه نوشتن کلید:" %}
+        {% if result.write_result %}
+            <strong style="color: green;">{% trans "موفق" %}</strong>
+        {% else %}
+            <strong style="color: red;">{% trans "ناموفق" %}</strong>
+        {% endif %}
+    </p>
+    <p>{% trans "پیام نوشتن:" %} <strong>{{ result.write_message }}</strong></p>
+    <p>{% trans "کلید اصلی در USB معتبر است؟" %}
+        {% if result.is_valid_key_on_usb %}
+            <strong style="color: green;">{% trans "بله" %}</strong>
+        {% else %}
+            <strong style="color: red;">{% trans "خیر" %}</strong>
+        {% endif %}
+    </p>
+    <p>{% trans "اطلاعات لایسنس قابل رمزگشایی است؟" %}
+        {% if result.decryption_successful %}
+            <strong style="color: green;">{% trans "بله" %}</strong>
+        {% else %}
+            <strong style="color: red;">{% trans "خیر (ممکن است کلید اصلی نادرست باشد یا داده خراب شده باشد)" %}</strong>
+        {% endif %}
+    </p>
+
+    {% if result.decryption_successful %}
+        <h4 class="mt-3">{% trans "اطلاعات لایسنس رمزگشایی شده (فقط برای تأیید):" %}</h4>
+        <p>{% trans "تاریخ انقضا:" %} <strong>{{ result.lock_expiry_date|default_if_none:"نامشخص" }}</strong></p>
+        <p>{% trans "حداکثر کاربران:" %} <strong>{{ result.lock_max_users|default_if_none:"نامشخص" }}</strong></p>
+        <p>{% trans "نام مجموعه:" %} <strong>{{ result.lock_org_name|default_if_none:"نامشخص" }}</strong></p>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

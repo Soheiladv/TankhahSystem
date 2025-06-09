@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}
+403 - دسترسی ممنوع
+{% endblock title %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center vh-100 animate__animated animate__fadeIn">
+    <div class="card shadow-lg border-0 animate__animated animate__zoomIn" style="max-width: 400px;">
+        <div class="card-header bg-primary text-white text-center py-3 rounded-top animate__animated animate__bounceIn">
+            <h5 class="mb-0">دسترسی ممنوع</h5>
+        </div>
+        <div class="card-body text-center bg-light p-4 animate__animated animate__slideInUp">
+            <i class="fas fa-exclamation-circle fa-3x text-danger mb-3 animate__animated animate__pulse"></i>
+            <p class="text-dark mb-4">شما اجازه دسترسی به این صفحه را ندارید.</p>
+            <p class="text-muted">دلایل ممکن:</p>
+            <ul class="list-group list-group-flush text-start mb-4">
+                <li class="list-group-item bg-light text-muted border-0 animate__animated animate__fadeInLeft">
+                    <i class="fas fa-times-circle text-danger"></i> مجوزهای شما برای این صفحه کافی نیست.
+                </li>
+                <li class="list-group-item bg-light text-muted border-0 animate__animated animate__fadeInLeft">
+                    <i class="fas fa-file-alt text-warning"></i> ممکن است صفحه حذف شده یا غیرفعال باشد.
+                </li>
+                <li class="list-group-item bg-light text-muted border-0 animate__animated animate__fadeInLeft">
+                    <i class="fas fa-cogs text-info"></i> مشکلی در سرور وجود دارد.
+                </li>
+            </ul>
+            <p class="text-muted small">لطفاً یکی از گزینه‌های زیر را امتحان کنید:</p>
+
+            <div class="d-grid gap-2">
+                <a href="/" class="btn btn-primary btn-sm animate__animated animate__tada">
+                    <i class="fas fa-home"></i> بازگشت به صفحه اصلی
+                </a>
+                <a href="mailto:Admin:Soheiladv@gmail.com" class="btn btn-outline-primary btn-sm animate__animated animate__flipInX">
+                    <i class="fas fa-envelope"></i> تماس با مدیر سایت
+                </a>
+            </div>
+        </div>
+        <div class="card-footer text-center bg-white py-2 animate__animated animate__flipInY">
+            <small class="text-muted">کد خطا: 403</small>
+            <small class="text-muted">
+                <p>
+                    کد وضعیت 403 forbidden نشان می‌دهد که سرور درخواست را درک کرده است اما از اجازه دادن به آن خودداری می‌کند. سروری که مایل باشد می‌تواند علت ممنون بودن دسترسی را به کاربر نمایش دهد. از نظر فنی خطای ۴۰۳ یکی از کدهای وضعیت HTTP است که وب سرور هنگام بروز مشکل برای کاربر ارسال می‌کند.
+
+                </p>
+            </small>
+        </div>
+    </div>
+</div>
+{% endblock %}

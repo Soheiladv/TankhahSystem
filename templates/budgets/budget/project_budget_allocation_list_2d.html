@@ -1,0 +1,145 @@
+<!-- templates/budgets/project_budget_allocation_list.html -->
+{% extends 'base.html' %}
+{% load i18n humanize %}
+
+{% block title %}{% trans "لیست تخصیص‌های بودجه پروژه" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4 text-center">
+        {% if organization %}
+            {% trans "تخصیص‌های بودجه پروژه برای" %} {{ organization.name }}
+        {% else %}
+            {% trans "لیست تخصیص‌های بودجه پروژه" %}
+        {% endif %}
+    </h1>
+
+    <!-- فرم فیلتر -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-info text-white">
+            <h3 class="mb-0">{% trans "فیلترها" %}</h3>
+        </div>
+        <div class="card-body">
+            <form method="get" class="form-row">
+                <div class="col-md-3 mb-3">
+                    <label for="q" class="form-label">{% trans "جستجو" %}</label>
+                    <input type="text" name="q" id="q" value="{{ query }}" class="form-control" placeholder="{% trans 'نام یا کد پروژه' %}">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="organization" class="form-label">{% trans "سازمان" %}</label>
+                    <select name="organization" id="organization" class="form-control">
+                        <option value="">{% trans "همه سازمان‌ها" %}</option>
+                        {% for org in organizations %}
+                            <option value="{{ org.id }}" {% if selected_organization == org.id|stringformat:"s" %}selected{% endif %}>{{ org.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="project" class="form-label">{% trans "پروژه" %}</label>
+                    <select name="project" id="project" class="form-control">
+                        <option value="">{% trans "همه پروژه‌ها" %}</option>
+                        {% for proj in projects %}
+                            <option value="{{ proj.id }}" {% if selected_project == proj.id|stringformat:"s" %}selected{% endif %}>{{ proj.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="date_from" class="form-label">{% trans "از تاریخ" %}</label>
+                    <input type="text" name="date_from" id="date_from" value="{{ date_from }}" class="form-control" placeholder="YYYY/MM/DD">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="date_to" class="form-label">{% trans "تا تاریخ" %}</label>
+                    <input type="text" name="date_to" id="date_to" value="{{ date_to }}" class="form-control" placeholder="YYYY/MM/DD">
+                </div>
+                <div class="col-md-12 text-center mt-3">
+                    <button type="submit" class="btn btn-primary">{% trans "فیلتر" %}</button>
+                    <a href="{% url 'project_budget_allocation_list' organization_id=organization.id %}" class="btn btn-secondary">{% trans "بازنشانی" %}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- اطلاعات کلی -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">{% trans "خلاصه بودجه" %}</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>{% trans "کل تخصیص‌یافته" %}:</strong> {{ total_allocated|intcomma }} {% trans "ریال" %}</p>
+            <p><strong>{% trans "کل مصرف‌شده" %}:</strong> {{ total_used|intcomma }} {% trans "ریال" %}</p>
+            <p><strong>{% trans "کل باقی‌مانده" %}:</strong> {{ total_remaining|intcomma }} {% trans "ریال" %}</p>
+            {% if organization %}
+                <p><strong>{% trans "بودجه سازمان" %}:</strong> {{ org_budget.total_budget|intcomma }} {% trans "ریال" %}</p>
+            {% endif %}
+            {% if project_data %}
+                <p><strong>{% trans "بودجه پروژه" %}:</strong> {{ project_data.total|intcomma }} {% trans "ریال" %}</p>
+                <p><strong>{% trans "مصرف‌شده پروژه" %}:</strong> {{ project_data.used|intcomma }} {% trans "ریال" %}</p>
+                <p><strong>{% trans "باقی‌مانده پروژه" %}:</strong> {{ project_data.remaining|intcomma }} {% trans "ریال" %}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- جدول تخصیص‌ها -->
+    <div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h3 class="mb-0">{% trans "تخصیص‌های بودجه پروژه" %}</h3>
+        </div>
+        <div class="card-body">
+            {% if project_allocations %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>{% trans "شناسه" %}</th>
+                            <th>{% trans "پروژه" %}</th>
+                            <th>{% trans "سازمان" %}</th>
+                            <th>{% trans "مبلغ تخصیص" %}</th>
+                            <th>{% trans "تاریخ تخصیص" %}</th>
+                            <th>{% trans "عملیات" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for allocation in project_allocations %}
+                            <tr>
+                                <td>{{ allocation.id }}</td>
+                                <td>{{ allocation.project.name }} ({{ allocation.project.code }})</td>
+                                <td>{{ allocation.budget_allocation.organization.name }}</td>
+                                <td>{{ allocation.allocated_amount|intcomma }} {% trans "ریال" %}</td>
+                                <td>{{ allocation.allocation_date|date:"Y/m/d" }}</td>
+                                <td>
+                                    <a href="{% url 'project_budget_allocation_detail' pk=allocation.id %}" class="btn btn-info btn-sm">{% trans "جزئیات" %}</a>
+                                    <a href="{% url 'budget_return' allocation_id=allocation.id %}" class="btn btn-warning btn-sm">{% trans "بازگشت بودجه" %}</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- صفحه‌بندی -->
+                {% if is_paginated %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{% trans "قبلی" %}</a>
+                                </li>
+                            {% endif %}
+                            {% for num in page_obj.paginator.page_range %}
+                                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                    <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                </li>
+                            {% endfor %}
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{% trans "بعدی" %}</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <p class="text-center">{% trans "هیچ تخصیص بودجه‌ای یافت نشد." %}</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

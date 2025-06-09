@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-5">مدیریت نسخه‌ها</h1>
+
+    <!-- نمایش آخرین نسخه‌های هر اپلیکیشن -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-history me-2"></i> آخرین نسخه‌های اپلیکیشن‌ها
+                </div>
+                <div class="card-body">
+                    {% for version in latest_versions %}
+                        <div class="alert alert-light border">
+                            <strong>اپلیکیشن:</strong> {{ version.app_name }}  
+                            <br>
+                            <strong>آخرین نسخه:</strong> {{ version.version }}  
+                            <br>
+                            <strong>تاریخ:</strong> {{ version.created_at|date:"Y-m-d H:i" }}
+                        </div>
+                    {% empty %}
+                        <p class="text-muted">هنوز نسخه‌ای ثبت نشده است.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نمایش کارت‌های مدیریت نسخه‌ها -->
+    <div class="row justify-content-center">
+        {% for card in cards %}
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <i class="{{ card.icon }} me-2"></i>{{ card.title }}
+                    </div>
+                    
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% for item in card.items %}
+                                {% if item.permission %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="{{ item.icon }} me-2 text-{{ item.color }}"></i>
+                                            {{ item.label }}
+                                        </div>
+                                        {% if item.needs_pk %}
+                                            <span class="badge bg-secondary">نیاز به شناسه</span>
+                                        {% else %}
+                                            <a href="{% url item.url %}" class="btn btn-sm btn-{{ item.color }}">برو</a>
+                                        {% endif %}
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .card-header {
+        border-radius: 10px 10px 0 0;
+    }
+    .card {
+        border-radius: 10px;
+    }
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+{% endblock %}

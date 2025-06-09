@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load rcms_custom_filters static jalali_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h1 class="card-title mb-0"><i class="fas fa-list me-2"></i>{{ title }}</h1>
+            <a href="{% url 'userpost_create' %}" class="btn btn-light btn-sm"><i class="fas fa-plus me-1"></i>{% trans "ایجاد اتصال" %}</a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>{% trans "ردیف" %}</th>
+                            <th>{% trans "کاربر" %}</th>
+                            <th>{% trans "پست" %}</th>
+                            <th>{% trans "اقدامات" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for userpost in userposts %}
+                            <tr>
+                                <td>{{ forloop.counter  |to_persian_number }}</td>
+                                <td>{{ userpost.user.username }}</td>
+                                <td>{{ userpost.post.name }}</td>
+                                <td>
+                                    <a href="{% url 'userpost_update' userpost.pk %}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
+                                    <a href="{% url 'userpost_delete' userpost.pk %}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center">{% trans "اتصالی یافت نشد." %}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% include 'core/pagination.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}

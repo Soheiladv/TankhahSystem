@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load i18n jalali_tags rcms_custom_filters %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h1 class="mb-4">{{ title }}</h1>
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">{% trans "جزئیات تنخواه" %} {{ tankhah.number }}</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>{% trans "مبلغ" %}:</strong> {{ tankhah.amount|to_persian_number }} {% trans "ریال" %}</p>
+            <p><strong>{% trans "وضعیت" %}:</strong> {{ tankhah.get_status_display }}</p>
+            <p><strong>{% trans "بودجه کل پروژه" %}:</strong> {{ budget_info.total|to_persian_number }} {% trans "ریال" %}</p>
+            <p><strong>{% trans "باقیمانده پروژه" %}:</strong> {{ budget_info.remaining|to_persian_number }} {% trans "ریال" %}</p>
+        </div>
+    </div>
+
+    <h3>{% trans "خط زمانی تأییدات" %}</h3>
+    {% for entry in timeline_data %}
+        <div class="card mb-3 {% if entry.is_current %}border-primary{% endif %}">
+            <div class="card-header {% if entry.is_current %}bg-primary text-white{% else %}bg-light{% endif %}">
+                <h5 class="mb-0">{{ entry.stage.name }} (مرحله {{ entry.stage.order }})</h5>
+            </div>
+            <div class="card-body">
+                <h6>{% trans "تأییدات تنخواه" %}</h6>
+                {% if entry.tankhah_approvals %}
+                    <ul class="list-group">
+                        {% for approval in entry.tankhah_approvals %}
+                            <li class="list-group-item">
+                                <strong>{{ approval.action }}:</strong> توسط {{ approval.user }} ({{ approval.post }})
+                                در {{ approval.date|to_jalali:"%Y/%m/%d %H:%M" }}
+                                <p>{{ approval.comment }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">{% trans "بدون تأیید" %}</p>
+                {% endif %}
+
+                <h6 class="mt-3">{% trans "تأییدات فاکتورها" %}</h6>
+                {% for factor in entry.factors %}
+                    <h6>{{ factor.factor_number }}</h6>
+                    {% if factor.approvals %}
+                        <ul class="list-group">
+                            {% for approval in factor.approvals %}
+                                <li class="list-group-item">
+                                    <strong>{{ approval.action }}:</strong> توسط {{ approval.user }} ({{ approval.post }})
+                                    در {{ approval.date|to_jalali:"%Y/%m/%d %H:%M" }}
+                                    <p>{{ approval.comment }}</p>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">{% trans "بدون تأیید" %}</p>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    {% empty %}
+        <div class="alert alert-info">{% trans "هیچ مرحله‌ای یافت نشد." %}</div>
+    {% endfor %}
+
+    {% if can_create_payment %}
+        <a href="{% url 'payment_order_create' tankhah.id %}" class="btn btn-success">
+            {% trans "ایجاد دستور پرداخت" %}
+        </a>
+    {% endif %}
+</div>
+{% endblock %}
+
+{#{% extends 'base.html' %}#}
+{#{% load i18n static %}#}
+{##}
+{#{% block extra_css %}#}
+{# #}
+{#    <style>#}
+{#        body { font-family: 'Vazirmatn', sans-serif; }#}
+{#        .container { max-width: 1200px; margin-top: 50px; }#}
+{#        .card { border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }#}
+{#        .timeline { position: relative; padding: 20px 0; }#}
+{#        .timeline-item { margin-bottom: 30px; padding-left: 40px; border-left: 4px solid #007bff; position: relative; }#}
+{#        .timeline-item.current { border-left-color: #28a745; }#}
+{#        .timeline-item::before { content: ''; width: 16px; height: 16px; background: #007bff; border-radius: 50%; position: absolute; left: -10px; top: 0; }#}
+{#        .timeline-item.current::before { background: #28a745; }#}
+{#        .action-approve { color: #28a745; font-weight: bold; }#}
+{#        .action-reject { color: #dc3545; font-weight: bold; }#}
+{#        .action-pending { color: #ffc107; font-weight: bold; }#}
+{#        .badge { font-size: 0.9em; }#}
+{#        .table { background-color: #fff; border-radius: 8px; }#}
+{#    </style>#}
+{#{% endblock %}#}
+{##}
+{#{% block content %}#}
+{#    <div class="container">#}
+{#        <div class="card">#}
+{#            <div class="card-body">#}
+{#                <h1 class="card-title text-center mb-4">{% trans "خط زمانی تأیید تنخواه" %} - {{ tankhah.number }}</h1>#}
+{#                #}
+{#                <!-- اطلاعات تنخواه -->#}
+{#                <div class="mb-4">#}
+{#                    <h5>{% trans "اطلاعات تنخواه" %}</h5>#}
+{#                    <ul class="list-unstyled">#}
+{#                        <li><strong>{% trans "سازمان" %}:</strong> {{ tankhah.organization.name }}</li>#}
+{#                        <li><strong>{% trans "وضعیت" %}:</strong> #}
+{#                            <span class="badge status-{{ tankhah.status|lower }}">{{ tankhah.get_status_display }}</span>#}
+{#                        </li>#}
+{#                        <li><strong>{% trans "مرحله فعلی" %}:</strong> #}
+{#                            <span class="badge bg-primary">{{ tankhah.current_stage.name|default:"نامشخص" }}</span>#}
+{#                        </li>#}
+{#                        <li><strong>{% trans "بودجه" %}:</strong> #}
+{#                            {% trans "کل" %}: {{ budget_info.total|floatformat:0 }} {% trans "ریال" %}, #}
+{#                            {% trans "باقیمانده" %}: {{ budget_info.remaining|floatformat:0 }} {% trans "ریال" %}#}
+{#                        </li>#}
+{#                    </ul>#}
+{#                </div>#}
+{##}
+{#                <!-- خط زمانی -->#}
+{#                <h5>{% trans "خط زمانی تأیید" %}</h5>#}
+{#                <div class="timeline">#}
+{#                    {% for stage_data in timeline_data %}#}
+{#                        <div class="timeline-item {% if stage_data.is_current %}current{% endif %}">#}
+{#                            <h6 class="fw-bold mb-3">{{ stage_data.stage.name }} (مرحله {{ stage_data.stage.order }})</h6>#}
+{#                            #}
+{#                            <!-- تأییدهای تنخواه -->#}
+{#                            <div class="mb-3">#}
+{#                                <strong>{% trans "تأییدهای تنخواه" %}:</strong>#}
+{#                                {% if stage_data.tankhah_approvals %}#}
+{#                                    <table class="table table-sm">#}
+{#                                        <thead>#}
+{#                                            <tr>#}
+{#                                                <th>{% trans "اقدام" %}</th>#}
+{#                                                <th>{% trans "کاربر" %}</th>#}
+{#                                                <th>{% trans "پست" %}</th>#}
+{#                                                <th>{% trans "تاریخ" %}</th>#}
+{#                                                <th>{% trans "توضیحات" %}</th>#}
+{#                                            </tr>#}
+{#                                        </thead>#}
+{#                                        <tbody>#}
+{#                                            {% for approval in stage_data.tankhah_approvals %}#}
+{#                                                <tr>#}
+{#                                                    <td><span class="action-{{ approval.action|lower }}">{{ approval.action }}</span></td>#}
+{#                                                    <td>{{ approval.user }}</td>#}
+{#                                                    <td>{{ approval.post }}</td>#}
+{#                                                    <td>{{ approval.date|date:"Y-m-d H:i" }}</td>#}
+{#                                                    <td>{{ approval.comment }}</td>#}
+{#                                                </tr>#}
+{#                                            {% endfor %}#}
+{#                                        </tbody>#}
+{#                                    </table>#}
+{#                                {% else %}#}
+{#                                    <p class="text-muted">{% trans "بدون اقدام برای تنخواه در این مرحله" %}</p>#}
+{#                                {% endif %}#}
+{#                            </div>#}
+{##}
+{#                            <!-- تأییدهای فاکتورها -->#}
+{#                            <div>#}
+{#                                <strong>{% trans "تأییدهای فاکتورها" %}:</strong>#}
+{#                                {% for factor_data in stage_data.factors %}#}
+{#                                    <div class="ms-3 mb-2">#}
+{#                                        <strong>{{ factor_data.factor_number }}:</strong>#}
+{#                                        {% if factor_data.approvals %}#}
+{#                                            <table class="table table-sm">#}
+{#                                                <thead>#}
+{#                                                    <tr>#}
+{#                                                        <th>{% trans "اقدام" %}</th>#}
+{#                                                        <th>{% trans "کاربر" %}</th>#}
+{#                                                        <th>{% trans "پست" %}</th>#}
+{#                                                        <th>{% trans "تاریخ" %}</th>#}
+{#                                                        <th>{% trans "توضیحات" %}</th>#}
+{#                                                    </tr>#}
+{#                                                </thead>#}
+{#                                                <tbody>#}
+{#                                                    {% for approval in factor_data.approvals %}#}
+{#                                                        <tr>#}
+{#                                                            <td><span class="action-{{ approval.action|lower }}">{{ approval.action }}</span></td>#}
+{#                                                            <td>{{ approval.user }}</td>#}
+{#                                                            <td>{{ approval.post }}</td>#}
+{#                                                            <td>{{ approval.date|date:"Y-m-d H:i" }}</td>#}
+{#                                                            <td>{{ approval.comment }}</td>#}
+{#                                                        </tr>#}
+{#                                                    {% endfor %}#}
+{#                                                </tbody>#}
+{#                                            </table>#}
+{#                                        {% else %}#}
+{#                                            <p class="text-muted">{% trans "بدون اقدام برای این فاکتور در این مرحله" %}</p>#}
+{#                                        {% endif %}#}
+{#                                    </div>#}
+{#                                {% empty %}#}
+{#                                    <p class="text-muted">{% trans "بدون فاکتور" %}</p>#}
+{#                                {% endfor %}#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    {% endfor %}#}
+{#                </div>#}
+{##}
+{#                <!-- فاکتورهای مرتبط -->#}
+{#                <h5 class="mt-4">{% trans "فاکتورهای مرتبط" %}</h5>#}
+{#                {% if factors %}#}
+{#                    <ul class="list-group">#}
+{#                        {% for factor in factors %}#}
+{#                            <li class="list-group-item">#}
+{#                                {{ factor.number }} - #}
+{#                                <span class="badge bg-info">{{ factor.current_stage.name|default:"نامشخص" }}</span>#}
+{#                                <span class="badge status-{{ factor.status|lower }}">{{ factor.get_status_display }}</span>#}
+{#                            </li>#}
+{#                        {% endfor %}#}
+{#                    </ul>#}
+{#                {% else %}#}
+{#                    <p class="text-muted">{% trans "بدون فاکتور" %}</p>#}
+{#                {% endif %}#}
+{##}
+{#                <!-- اقدامات -->#}
+{#                <div class="text-center mt-4">#}
+{#                    {% if can_create_payment %}#}
+{#                        <a href="{% url 'payment_order_create' %}" class="btn btn-primary">#}
+{#                            {% trans "ایجاد دستور پرداخت" %}#}
+{#                        </a>#}
+{#                    {% endif %}#}
+{#                    <a href="{% url 'tankhah_status' %}" class="btn btn-secondary">#}
+{#                        {% trans "بازگشت به لیست" %}#}
+{#                    </a>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#{% endblock %}#}
+{##}
+{#{% block extra_js %}#}
+{# {% endblock %}#}

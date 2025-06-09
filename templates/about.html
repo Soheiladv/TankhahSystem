@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}
+درباره ما
+{% endblock title %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row align-items-center">
+        <div class="col-md-6 mb-4 mb-md-0">
+            <h1 class="display-4 fw-bold animate__animated animate__fadeInLeft">درباره ما</h1>
+            <p class="lead animate__animated animate__fadeInLeft" style="animation-delay: 0.5s;">
+                ما در شرکت RCMS متعهد به ارائه راهکارهای نوآورانه برای مدیریت منابع و بهینه‌سازی فرآیندهای کسب‌وکار هستیم. نرم‌افزار ما با طراحی کاربرپسند و تکنولوژی‌های برتر، امکان مدیریت آسان‌تر و کارآمدتر را فراهم می‌کند.
+            </p>
+            <ul class="list-unstyled animate__animated animate__fadeInLeft" style="animation-delay: 1s;">
+                <li><i class="fas fa-check text-success me-2"></i> مدیریت یکپارچه منابع</li>
+                <li><i class="fas fa-check text-success me-2"></i> گزارش‌گیری پیشرفته</li>
+                <li><i class="fas fa-check text-success me-2"></i> پشتیبانی ۲۴/۷</li>
+                <li><i class="fas fa-check text-success me-2"></i> امنیت بالا</li>
+            </ul>
+        </div>
+        <div class="col-md-6 text-center">
+{#            <img src="{% static 'admin/img/about-us.jpg' %}" alt="درباره ما" class="img-fluid rounded animate__animated animate__fadeInRight" style="animation-delay: 1s;">#}
+        </div>
+    </div>
+</div>
+{% endblock %}

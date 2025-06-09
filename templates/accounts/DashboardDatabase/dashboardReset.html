@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load i18n static jformat rcms_custom_filters jalali_tags %}
+
+{% block extra_css %}
+    <link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.0/Vazirmatn-font-face.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Parastoo', 'Vazirmatn', sans-serif !important;
+        }
+
+        :root {
+            --primary-color: #6a0572;
+            --secondary-color: #892cdc;
+            --success-color: #2ecc71;
+            --danger-color: #dc3545;
+            --light-bg: #ffffff;
+            --shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+        }
+
+        .reset-card {
+            background-color: var(--light-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .table {
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table th, .table td {
+            vertical-align: middle;
+            padding: 12px;
+        }
+
+        .form-check-label {
+            font-size: 1rem;
+            margin-right: 10px;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+            transition: all 0.3s ease;
+        }
+
+        .btn-danger:hover {
+            background-color: darken(var(--danger-color), 10%);
+            border-color: darken(var(--danger-color), 10%);
+            transform: scale(1.05);
+        }
+
+        .alert {
+            border-radius: 8px;
+        }
+
+        .relations-list {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .relations-list li {
+            margin-bottom: 5px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid mt-5 pt-3">
+        <h1>{% trans "ریست انتخابی دیتابیس" %}</h1>
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="reset-card">
+                    <h5>{% trans "انتخاب مدل‌ها برای ریست" %}</h5>
+                    <div class="alert alert-warning">
+                        {% trans "هشدار: این عملیات تمام داده‌های جداول انتخاب‌شده را حذف می‌کند و قابل بازگشت نیست. روابط مدل‌ها را بررسی کنید تا از تأثیرات حذف مطمئن شوید." %}
+                    </div>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-info{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" onsubmit="return confirm('{% trans "آیا مطمئن هستید که می‌خواهید داده‌های مدل‌های انتخاب‌شده را حذف کنید؟ این عملیات غیرقابل بازگشت است." %}');">
+                        {% csrf_token %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "انتخاب" %}</th>
+                                        <th>{% trans "نام مدل" %}</th>
+                                        <th>{% trans "اپلیکیشن" %}</th>
+                                        <th>{% trans "روابط (ForeignKey, ManyToMany, OneToOne)" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for model in models %}
+                                        <tr>
+                                            <td>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="models" value="{{ model.key }}" id="model-{{ model.key }}">
+                                                </div>
+                                            </td>
+                                            <td>{{ model.verbose_name }}</td>
+                                            <td>{{ model.app_label }}</td>
+                                            <td>
+                                                {% if model.relations %}
+                                                    <ul class="relations-list">
+                                                        {% for relation in model.relations %}
+                                                            <li>
+                                                                {{ relation.field_name }} ({{ relation.type }}) → {{ relation.related_model }}
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% else %}
+                                                    {% trans "بدون رابطه" %}
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="submit" class="btn btn-danger mt-3">{% trans "ریست دیتابیس" %}</button>
+                        <a href="{% url 'index' %}" class="btn btn-secondary mt-3">{% trans "لغو" %}</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

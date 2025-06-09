@@ -1,0 +1,77 @@
+{% load i18n rcms_custom_filters %}
+
+{# نمایش خطاهای غیرفیلدی فرم اصلی (form.non_field_errors) #}
+{% if form.non_field_errors %}
+    <div class="alert alert-danger alert-dismissible fade show small py-2 px-3 mb-3" role="alert">
+        <strong class="d-block mb-1"><i class="fas fa-exclamation-triangle me-1"></i>{% trans "خطاهای کلی فرم:" %}</strong>
+        <ul class="list-unstyled mb-0 ps-3">
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        <button type="button" class="btn-close btn-sm p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endif %}
+
+{# نمایش خطاهای غیرفرم فرم‌ست (formset.non_form_errors) #}
+{% if formset.non_form_errors %}
+    <div class="alert alert-warning alert-dismissible fade show small py-2 px-3 mb-3" role="alert">
+        <strong class="d-block mb-1"><i class="fas fa-exclamation-circle me-1"></i>{% trans "خطاهای کلی مربوط به ردیف‌ها:" %}</strong>
+        <ul class="list-unstyled mb-0 ps-3">
+            {% for error in formset.non_form_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        <button type="button" class="btn-close btn-sm p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endif %}
+
+{# نمایش خطاهای فیلدی فرم اصلی (اگر لازم است در بالا هم نمایش داده شوند) #}
+{# معمولاً خطاهای فیلدی کنار خود فیلد نمایش داده می‌شوند، اما اگر خواستید می‌توانید اینجا هم اضافه کنید #}
+
+{% if form.errors %}
+    <div class="alert alert-danger alert-dismissible fade show small py-2 px-3 mb-3" role="alert">
+        <strong class="d-block mb-1"><i class="fas fa-exclamation-triangle me-1"></i>{% trans "خطاهای فیلدهای فرم:" %}</strong>
+        {% for field, errors in form.errors.items %}
+            {% if field != '__all__' %} {# __all__ همان non_field_errors است #}
+                <p class="mb-1 ms-3"><strong>{{ form|get_field_label:field }}:</strong>
+                    <ul class="list-unstyled d-inline mb-0">
+                        {% for error in errors %}
+                            <li class="d-inline">{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </p>
+            {% endif %}
+        {% endfor %}
+        <button type="button" class="btn-close btn-sm p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endif %}
+
+
+{# نمایش خطاهای فرم‌های داخل فرم‌ست (اگر لازم است در بالا هم نمایش داده شوند) #}
+{# این بخش معمولاً خطاهای هر فرم را در کنار همان فرم نمایش می‌دهد، اما برای جمع‌بندی می‌توانید اینجا هم اضافه کنید #}
+
+{% if formset.errors %}
+    {% for single_form_errors in formset.errors %}
+        {% if single_form_errors %} {# فقط اگر خطایی برای این فرم خاص وجود دارد #}
+            <div class="alert alert-warning alert-dismissible fade show small py-2 px-3 mb-3" role="alert">
+                <strong class="d-block mb-1"><i class="fas fa-exclamation-circle me-1"></i>{% trans "خطا در یکی از ردیف‌ها:" %}</strong>
+                {% for field, errors in single_form_errors.items %}
+                     <p class="mb-1 ms-3">
+                        {% if field != '__all__' and field != 'id' and formset.forms|get_item:forloop.parentloop.counter0|get_field_label:field %}
+                             <strong>{{ formset.forms|get_item:forloop.parentloop.counter0|get_field_label:field }}:</strong>
+                         {% elif field == '__all__' %}
+                             <strong>{% trans "خطای کلی ردیف:" %}</strong>
+                         {% endif %}
+                        <ul class="list-unstyled d-inline mb-0">
+                            {% for error in errors %}
+                                <li class="d-inline">{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </p>
+                {% endfor %}
+                <button type="button" class="btn-close btn-sm p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}

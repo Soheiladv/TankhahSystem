@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="role-management-container animate__animated animate__fadeIn">
+        <!-- Header -->
+        <div class="role-header animate__animated animate__fadeInDown">
+            <h1 class="text-center">
+                <i class="fas fa-user-tag"></i> مدیریت نقش‌های سیستم
+            </h1>
+            <p class="text-muted text-center">مدیریت دسترسی‌ها و مجوزهای کاربران سیستم</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="card role-card shadow-lg animate__animated animate__zoomIn">
+            <div class="card-header bg-gradient-primary">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-list"></i> لیست نقش‌ها
+                    </h3>
+                    <div class="status-filter">
+                        <a href="?show_inactive=false"
+                           class="btn btn-sm btn-success custom-btn {% if not show_inactive %}active{% endif %}">
+                            <i class="fas fa-check-circle"></i> فعال
+                        </a>
+                        <a href="?show_inactive=true"
+                           class="btn btn-sm btn-warning custom-btn {% if show_inactive %}active{% endif %}">
+                            <i class="fas fa-ban"></i> غیرفعال
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <!-- نوار ابزار جستجو و اقدامات -->
+                <div class="role-toolbar mb-4 animate__animated animate__fadeIn">
+                    <div class="row align-items-center g-3">
+                        <!-- بخش جستجو -->
+                        <div class="col-lg-8 col-md-7 mb-3 mb-md-0">
+                            <div class="search-container input-group shadow-sm">
+                                <span class="input-group-text bg-white border-end-0">
+                                    <i class="fas fa-search text-primary"></i>
+                                </span>
+                                <input type="text"
+                                       id="roleSearch"
+                                       class="form-control border-start-0 ps-0"
+                                       placeholder="جستجو بر اساس نام نقش، توضیحات یا مجوزها..."
+                                       autocomplete="off">
+                                <button class="btn btn-outline-secondary border-start-0"
+                                        type="button"
+                                        id="clearSearch">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- دکمه ایجاد نقش جدید -->
+                        <div class="col-lg-4 col-md-5 text-md-end text-center">
+                            <a href="{% url 'accounts:role_create' %}"
+                               class="btn btn-primary btn-add-role shadow-sm">
+                                <i class="fas fa-plus-circle me-2"></i>
+                                <span class="d-none d-md-inline">ایجاد نقش جدید</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Roles Table -->
+                <div class="table-responsive">
+                    <table class="table role-table table-hover">
+                        <thead class="table-light">
+                        <tr class="role-item"> <!-- اینجا role-item رو برداشتم -->
+                            <th width="15%">نام نقش</th>
+                            <th width="45%">مجوزها</th>
+                            <th width="5%">وضعیت</th>
+                            <th width="5%">عملیات</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for role in roles %}
+                            <tr class="role-item animate__animated animate__fadeInUp"> <!-- اینجا role-item رو گذاشتم -->
+                                <td>
+                                    <strong>{{ role.name }}</strong>
+                                    {% if role.description %}
+                                        <small class="text-muted d-block">{{ role.description|truncatechars:50 }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% for perm in role.permissions.all %}
+                                        <span class="badge bg-info animate__animated animate__zoomIn">{{ perm.name }}</span>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% if role.is_active %}
+                                        <span class="badge bg-success animate__animated animate__zoomIn">فعال</span>
+                                    {% else %}
+                                        <span class="badge bg-danger animate__animated animate__zoomIn">غیرفعال</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="role-actions">
+                                        <a href="{% url 'accounts:role_update' role.id %}"
+                                           class="btn-action edit animate__animated animate__tada"
+                                           data-toggle="tooltip" title="ویرایش نقش">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% if role.is_active %}
+                                            <form method="post" action="{% url 'accounts:deactivate_role' role.id %}"
+                                                  class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit"
+                                                        class="btn-action deactivate animate__animated animate__shakeX"
+                                                        data-toggle="tooltip" title="غیرفعال کردن">
+                                                    <i class="fas fa-ban"></i>
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span class="text-muted">غیرفعال</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr class="role-item"> <!-- اینجا هم role-item گذاشتم -->
+                                <td colspan="4" class="text-center py-4">
+                                    <i class="fas fa-info-circle fa-2x text-muted mb-2"></i>
+                                    <p>هیچ نقشی یافت نشد</p>
+                                    <a href="{% url 'accounts:role_create' %}" class="btn btn-primary custom-btn">
+                                        ایجاد نقش جدید
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                    <nav class="pagination-container mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        /* استایل‌های قبلی رو نگه می‌دارم، فقط اینا رو درست می‌کنم */
+        .search-container.input-group {
+            max-width: 500px;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-container .form-control {
+            padding: 12px 15px;
+            border: none;
+            background: #fff;
+            transition: all 0.3s ease;
+        }
+
+        .search-container .form-control:focus {
+            box-shadow: none;
+            background: #f8fafc;
+        }
+
+        .search-container .input-group-text {
+            background: #fff;
+            border: none;
+            padding: 0.75rem 1rem;
+        }
+
+        .search-container .btn-outline-secondary {
+            border: none;
+            color: #e74c3c;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-container .btn-outline-secondary:hover {
+            color: #c0392b;
+            background: #f8f9fa;
+        }
+
+        #clearSearch {
+            visibility: hidden; /* اولش مخفیه */
+        }
+
+
+    </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // چک کن jQuery کار می‌کنه
+    console.log('عشقم jQuery لود شد!');
+
+    // وقتی تو جستجو چیزی تایپ می‌کنی
+    $('#roleSearch').on('input', function() {
+        let keyword = $(this).val().toLowerCase().trim();
+
+        // دکمه × رو نشون بده یا مخفیش کن
+        $('#clearSearch').css('visibility', keyword.length > 0 ? 'visible' : 'hidden');
+
+        // بگرد بین نقش‌ها و هایلایت کن
+        $('.role-item').each(function() {
+            let $row = $(this);
+            let roleText = $row.text().toLowerCase();
+
+            // اول هایلایت‌های قبلی رو پاک کن
+            $row.find('.highlight').contents().unwrap();
+
+            if (keyword && roleText.includes(keyword)) {
+                // اگه پیدا شد، نشون بده و هایلایت کن
+                $row.slideDown(300);
+
+                // متن داخل هر سلول رو چک کن و هایلایت کن
+                $row.find('td').each(function() {
+                    let $cell = $(this);
+                    let cellText = $cell.text();
+                    let lowerCellText = cellText.toLowerCase();
+
+                    if (lowerCellText.includes(keyword)) {
+                        let regex = new RegExp(`(${keyword})`, 'gi');
+                        let newHtml = cellText.replace(regex, '<span class="highlight">$1</span>');
+                        $cell.html(newHtml);
+                    }
+                });
+            } else {
+                // اگه پیدا نشد، غیبش بزن
+                $row.slideUp(300);
+            }
+        });
+    });
+
+    // وقتی دکمه × رو می‌زنی
+    $('#clearSearch').on('click', function() {
+        $('#roleSearch').val('').trigger('input');
+        $('.role-item').each(function() {
+            $(this).slideDown(300);
+            // هایلایت‌ها رو پاک کن
+            $(this).find('.highlight').contents().unwrap();
+        });
+    });
+
+    // انیمیشن برای دکمه "نقش جدید"
+    $('.btn-add-role').hover(
+        function() {
+            $(this).addClass('animate__animated animate__pulse');
+        },
+        function() {
+            $(this).removeClass('animate__animated animate__pulse');
+        }
+    );
+
+    // تأیید برای غیرفعال کردن
+    $('.deactivate').on('click', function(e) {
+        if (!confirm('مطمئنی می‌خوای این نقش رو غیرفعال کنی عشقم؟')) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,499 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% load rcms_custom_filters jformat %} {# اضافه کردن فیلترهای humanize برای نمایش بهتر اعداد #}
+
+{% block title %}{% trans "ایجاد/ویرایش دوره بودجه" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ... (استایل‌های قبلی شما) ... */
+    .form-control-plaintext {
+        padding-top: 0.375rem;
+        padding-bottom: 0.375rem;
+        margin-bottom: 0;
+        line-height: 1.8; /* تنظیم مشابه سایر فیلدها */
+        background-color: transparent;
+        border: solid transparent;
+        border-width: 1px 0;
+        color: #555; /* رنگ متن مشابه سایر فیلدها */
+        font-weight: 500; /* کمی برجسته‌تر */
+    }
+
+    .form-label {
+        margin-bottom: 0.3rem;
+    }
+
+    /* کمی کاهش فاصله لیبل */
+    .info-label { /* استایل برای لیبل‌های فیلدهای نمایشی */
+        color: #6c757d; /* خاکستری */
+        font-weight: 500;
+        font-size: 0.9rem; /* کمی کوچکتر */
+    }
+
+    .info-value { /* استایل برای مقادیر فیلدهای نمایشی */
+        font-size: 0.95rem;
+        font-weight: bold;
+        color: #343a40; /* مشکی مایل به خاکستری */
+    }
+
+    .amount-words {
+        font-size: 0.85rem; /* کمی کوچکتر */
+        color: #6c757d;
+        margin-top: 0.2rem;
+        display: block; /* اطمینان از نمایش در خط جدید */
+    }
+
+    .input-group-text {
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="container-lg budget-form-page">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-landmark me-2"></i>
+                    {% if form.instance.pk %}
+                        {% blocktrans with name=form.instance.name %}ویرایش دوره بودجه: {{ name }}{% endblocktrans %}
+                    {% else %}
+                        {% trans "ایجاد دوره بودجه جدید" %}
+                    {% endif %}
+                </h4>
+        </div>
+        <div class="card-body">
+            {% if form.errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <h5 class="alert-heading">{% trans "خطا در فرم:" %}</h5>
+                    <ul class="mb-0">
+                        {% for field_name, errors in form.errors.items %} {# <-- نام متغیر را field_name بگذارید #}
+                            {% if field_name == '__all__' %}
+                                {% for error in errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            {% else %}
+                                {# تلاش برای گرفتن لیبل از فیلد فرم #}
+                                <li>
+                                    <strong>{{ form.fields  }}</strong>: {{ errors|striptags }}
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+
+            <form method="post" id="budgetPeriodForm">
+                {% csrf_token %}
+                <div class="row g-3 mb-3"> {# بخش اطلاعات اصلی #}
+                    <div class="col-md-6">
+                        <label for="{{ form.organization.id_for_label }}"
+                               class="form-label">{{ form.organization.label }} <span
+                                class="text-danger">*</span></label>
+                        {{ form.organization }}
+                        {% if form.organization.errors %}
+                            <div class="invalid-feedback d-block">{{ form.organization.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }} <span
+                                class="text-danger">*</span></label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.name.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.start_date.id_for_label }}" class="form-label">{{ form.start_date.label }}
+                            <span class="text-danger">*</span></label>
+                        {{ form.start_date }}
+                        {% if form.start_date.errors %}
+                            <div class="invalid-feedback d-block">{{ form.start_date.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.end_date.id_for_label }}" class="form-label">{{ form.end_date.label }} <span
+                                class="text-danger">*</span></label>
+                        {{ form.end_date }}
+                        {% if form.end_date.errors %}
+                            <div class="invalid-feedback d-block">{{ form.end_date.errors|striptags }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <hr/>
+
+                <div class="row g-3 mb-3"> {# بخش مبالغ #}
+                    <div class="col-md-6">
+                        <label for="{{ form.total_amount.id_for_label }}" class="form-label">
+                            <i class="fas fa-coins fa-fw me-1 text-muted"></i> {{ form.total_amount.label }} <span
+                                class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            {{ form.total_amount }}
+                            <span class="input-group-text">{% trans "ریال" %}</span>
+                        </div>
+                        {% if form.total_amount.errors %}
+                            <div class="invalid-feedback d-block">{{ form.total_amount.errors|striptags }}</div>
+                        {% endif %}
+                        {# نمایش مقدار به حروف #}
+                        <div id="total_amount_words_display" class="amount-words">
+                            {% if form.total_amount_words %}{% trans "به حروف" %}:
+                                {{ form.total_amount_words }}{% endif %}
+                        </div>
+                    </div>
+
+                    {# --- نمایش فیلدهای محاسباتی (فقط در حالت ویرایش) --- #}
+                    {% if form.instance.pk %}
+                        <div class="col-md-6">
+                            <label class="info-label d-block mb-1">
+                                <i class="fas fa-chart-pie fa-fw me-1 text-muted"></i> {% trans "مبلغ کل تخصیص یافته" %}
+                            </label>
+                            <span class="info-value">{{ form.instance.total_allocated|default:"0"|to_persian_number }} {% trans "ریال" %}</span>
+                            {# نمایش درصد تخصیص یافته #}
+                            {% if form.instance.total_amount and form.instance.total_amount > 0 %}
+                                <small class="text-muted d-block">(%{{ form.instance.get_allocated_percentage|floatformat:2 }})</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="info-label d-block mb-1">
+                                <i class="fas fa-undo fa-fw me-1 text-muted"></i> {% trans "مبلغ کل برگشتی" %}
+                            </label>
+                            <span class="info-value">{{ form.instance.returned_amount|default:"0"|to_persian_number }} {% trans "ریال" %}</span>
+                            {# نمایش درصد برگشتی #}
+                            {% if form.instance.total_allocated and form.instance.total_allocated > 0 %}
+                                <small class="text-muted d-block">(%{{ form.instance.get_returned_percentage|floatformat:2 }} {% trans "از تخصیص یافته" %})</small>
+                            {% elif form.instance.total_amount and form.instance.total_amount > 0 %}
+                                <small class="text-muted d-block">(%{{ form.instance.get_returned_percentage_from_total|floatformat:2 }} {% trans "از کل بودجه" %})</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="info-label d-block mb-1">
+                                <i class="fas fa-tasks fa-fw me-1 text-muted"></i> {% trans "فاز تخصیص" %}
+                            </label>
+                            {# فرض می‌کنیم مدلی برای فازها دارید یا از choices استفاده می‌کنید #}
+                            <span class="info-value">{{ form.instance.get_allocation_phase_display|default:"-" }}</span>
+                        </div>
+                    {% endif %}
+                    {# --- پایان نمایش فیلدهای محاسباتی --- #}
+                </div>
+
+                <hr/>
+
+                <div class="row g-3 mb-3"> {# بخش تنظیمات #}
+                    <div class="col-md-6 col-lg-3">
+                        <label for="{{ form.lock_condition.id_for_label }}"
+                               class="form-label">{{ form.lock_condition.label }}</label>
+                        {{ form.lock_condition }}
+                        {% if form.lock_condition.errors %}
+                            <div class="invalid-feedback d-block">{{ form.lock_condition.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <label for="{{ form.locked_percentage.id_for_label }}"
+                               class="form-label">{{ form.locked_percentage.label }}</label>
+                        <div class="input-group">
+                            {{ form.locked_percentage }}
+                            <span class="input-group-text">%</span>
+                        </div>
+                        {% if form.locked_percentage.errors %}
+                            <div class="invalid-feedback d-block">{{ form.locked_percentage.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <label for="{{ form.warning_threshold.id_for_label }}"
+                               class="form-label">{{ form.warning_threshold.label }}</label>
+                        <div class="input-group">
+                            {{ form.warning_threshold }}
+                            <span class="input-group-text">%</span>
+                        </div>
+                        {% if form.warning_threshold.errors %}
+                            <div class="invalid-feedback d-block">{{ form.warning_threshold.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <label for="{{ form.warning_action.id_for_label }}"
+                               class="form-label">{{ form.warning_action.label }}</label>
+                        {{ form.warning_action }}
+                        {% if form.warning_action.errors %}
+                            <div class="invalid-feedback d-block">{{ form.warning_action.errors|striptags }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3"> {# بخش توضیحات و وضعیت‌ها #}
+                    <div class="col-12">
+                        <label for="{{ form.description.id_for_label }}"
+                               class="form-label">{{ form.description.label }}</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ form.description.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch mt-2"> {# استفاده از form-switch برای ظاهر بهتر #}
+                            {{ form.is_active }}
+                            <label class="form-check-label"
+                                   for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+                            {% if form.is_active.errors %}
+                                <div class="invalid-feedback d-block">{{ form.is_active.errors|striptags }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch mt-2">
+                            {{ form.is_archived }}
+                            <label class="form-check-label"
+                                   for="{{ form.is_archived.id_for_label }}">{{ form.is_archived.label }}</label>
+                            {% if form.is_archived.errors %}
+                                <div class="invalid-feedback d-block">{{ form.is_archived.errors|striptags }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch mt-2">
+                            {{ form.is_completed }}
+                            <label class="form-check-label"
+                                   for="{{ form.is_completed.id_for_label }}">{{ form.is_completed.label }}</label>
+                            {% if form.is_completed.errors %}
+                                <div class="invalid-feedback d-block">{{ form.is_completed.errors|striptags }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top">
+                    <button type="submit" class="btn btn-success"> {# تغییر رنگ به سبز برای ذخیره #}
+                        <i class="fas fa-save me-1"></i> {% trans "ذخیره تغییرات" %}
+                    </button>
+                    <a href="{% url 'budgetperiod_list' %}" class="btn btn-outline-secondary">
+                        {# دکمه بازگشت با استایل متفاوت #}
+                        <i class="fas fa-times me-1"></i> {% trans "انصراف" %}
+                    </a>
+                    {% if form.instance.pk %} {# دکمه حذف فقط در ویرایش #}
+                        <button type="button" class="btn btn-outline-danger float-end" data-bs-toggle="modal"
+                                data-bs-target="#deleteConfirmModal">
+                            <i class="fas fa-trash-alt me-1"></i> {% trans "حذف دوره" %}
+                        </button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    {% if form.instance.pk %}
+        {# Modal تأیید حذف #}
+        <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="deleteModalLabel"><i
+                                class="fas fa-exclamation-triangle me-2"></i> {% trans "تأیید حذف" %}</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {% blocktrans %}آیا از حذف دوره بودجه "{{ form.instance.name }}" مطمئن هستید؟ این عمل غیرقابل
+                            بازگشت است.{% endblocktrans %}
+                        <p class="text-muted small mt-2">{% trans "توجه: حذف دوره ممکن است بر تخصیص‌ها و تراکنش‌های مرتبط تأثیر بگذارد." %}</p>
+                    </div>
+                    <div class="modal-footer">
+                        {# فرم حذف باید جداگانه ارسال شود #}
+                        <form method="post" action="{% url 'budgetperiod_delete' pk=form.instance.pk %}">
+                            {# فرض وجود url delete #}
+                            {% csrf_token %}
+                            <button type="button" class="btn btn-secondary"
+                                    data-bs-dismiss="modal">{% trans "انصراف" %}</button>
+                            <button type="submit" class="btn btn-danger">{% trans "بله، حذف کن" %}</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/jquery.min.js' %}"></script> {# اگر از jQuery استفاده می‌کنید #}
+    <script src="{% static 'persian-date/persian-date.min.js' %}"></script>
+    <script src="{% static 'persian-datepicker/persian-datepicker.min.js' %}"></script>
+    {# اگر از Bootstrap 5 استفاده می‌کنید، Popper.js و Bootstrap JS را اضافه کنید #}
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    {# یا مسیر لوکال #}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // اطمینان از بارگذاری کتابخانه‌ها
+        if (typeof jQuery === 'undefined' || typeof persianDatepicker === 'undefined') {
+            console.error('jQuery or persianDatepicker is not loaded');
+            // return; // شاید بدون جی‌کوئری هم کار کند، فعلا ادامه می‌دهیم
+        }
+
+        // --- راه‌اندازی Datepicker ---
+        const datepickerOptions = {
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            persianDigit: true, // نمایش اعداد فارسی
+            inputDelay: 800, // تاخیر برای جلوگیری از خطای همزمان
+            observer: true, // بروزرسانی خودکار با تغییرات DOM
+            // initialValue: true, // این گزینه ممکن است باعث انتخاب خودکار تاریخ فعلی شود، حذف شد
+            minDate: new persianDate([1380, 1, 1]).valueOf(),
+            maxDate: new persianDate([1450, 12, 29]).valueOf(),
+            toolbox: {calendarSwitch: {enabled: false}},
+            // اعتبارسنجی پایه تاریخ‌ها در انتخاب
+            onSelect: function (unix) {
+                const startDateInput = document.getElementById('{{ form.start_date.id_for_label }}');
+                const endDateInput = document.getElementById('{{ form.end_date.id_for_label }}');
+                if (!startDateInput || !endDateInput) return;
+
+                const startDateVal = startDateInput.value;
+                const endDateVal = endDateInput.value;
+
+                if (startDateVal && endDateVal) {
+                    // تبدیل تاریخ‌ها به میلادی برای مقایسه آسان‌تر
+                    try {
+                        const startJDate = persianDate.parse(startDateVal, 'YYYY/MM/DD');
+                        const endJDate = persianDate.parse(endDateVal, 'YYYY/MM/DD');
+                        if (startJDate.valueOf() > endJDate.valueOf()) {
+                            alert('{% trans "تاریخ شروع نمی‌تواند بعد از تاریخ پایان باشد." %}');
+                            // مقدار فیلدی که تغییر کرده را پاک کنیم (سخت است بفهمیم کدام تغییر کرده، شاید هر دو را پاک کنیم؟)
+                            // یا می‌توانیم در submit نهایی چک کنیم
+                        }
+                    } catch (e) {
+                        console.warn("Could not parse dates for comparison on select:", e);
+                    }
+                }
+            }
+        };
+
+        // اعمال Datepicker به هر دو فیلد
+        if (typeof $ !== 'undefined') { // اگر jQuery هست
+            $('.jalali-datepicker').persianDatepicker(datepickerOptions);
+        } else { // اگر jQuery نیست (Vanilla JS)
+            document.querySelectorAll('.jalali-datepicker').forEach(el => {
+                // نیاز به پیاده‌سازی یا استفاده از نسخه Vanilla JS datepicker
+                // فعلاً فرض می‌کنیم jQuery هست یا اینکه این بخش کار نخواهد کرد
+                console.warn("Persian Datepicker initialization might require jQuery if not using a Vanilla JS version.");
+                // el.pDatePicker(datepickerOptions); // این متد وجود ندارد
+            });
+        }
+
+
+        // --- اعتبارسنجی فرمت تاریخ قبل از ارسال ---
+        const budgetForm = document.getElementById('budgetPeriodForm');
+        if (budgetForm) {
+            budgetForm.addEventListener('submit', function (e) {
+                let formIsValid = true;
+                const dateRegex = /^[1-4]\d{3}\/(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])$/;
+                const dateFields = [
+                    {
+                        input: document.getElementById('{{ form.start_date.id_for_label }}'),
+                        name: '{% trans "تاریخ شروع" %}'
+                    },
+                    {
+                        input: document.getElementById('{{ form.end_date.id_for_label }}'),
+                        name: '{% trans "تاریخ پایان" %}'
+                    }
+                ];
+
+                dateFields.forEach(field => {
+                    if (field.input && field.input.value && !dateRegex.test(field.input.value)) {
+                        alert(`${field.name}: {% trans "فرمت تاریخ نامعتبر است. لطفا از YYYY/MM/DD استفاده کنید (مثال: 1404/01/01)." %}`);
+                        field.input.focus();
+                        formIsValid = false;
+                        // جلوگیری از ادامه بررسی‌های دیگر
+                        return;
+                    }
+                });
+
+                // بررسی اضافی: تاریخ شروع قبل از پایان باشد
+                const startDateInput = document.getElementById('{{ form.start_date.id_for_label }}');
+                const endDateInput = document.getElementById('{{ form.end_date.id_for_label }}');
+                if (startDateInput && endDateInput && startDateInput.value && endDateInput.value && dateRegex.test(startDateInput.value) && dateRegex.test(endDateInput.value)) {
+                    try {
+                        const startJDate = persianDate.parse(startDateInput.value, 'YYYY/MM/DD');
+                        const endJDate = persianDate.parse(endDateInput.value, 'YYYY/MM/DD');
+                        if (startJDate.valueOf() > endJDate.valueOf()) {
+                            alert('{% trans "تاریخ شروع نمی‌تواند بعد از تاریخ پایان باشد." %}');
+                            startDateInput.focus();
+                            formIsValid = false;
+                        }
+                    } catch (e) {
+                        console.error("Error comparing dates on submit:", e);
+                        // شاید بهتر باشد اجازه دهیم سمت سرور خطا دهد
+                    }
+                }
+
+
+                if (!formIsValid) {
+                    e.preventDefault(); // جلوگیری از ارسال فرم
+                }
+            });
+        }
+
+        // --- به‌روزرسانی مقدار به حروف به صورت پویا ---
+        const totalAmountInput = document.getElementById('{{ form.total_amount.id_for_label }}');
+        const amountWordsDiv = document.getElementById('total_amount_words_display'); // استفاده از id جدید
+
+        async function updateAmountWords() {
+            if (!totalAmountInput || !amountWordsDiv) return;
+
+            // برای اعداد فارسی در ورودی، آن‌ها را به انگلیسی تبدیل می‌کنیم
+            const englishValue = totalAmountInput.value.replace(/[\u0660-\u0669\u06F0-\u06F9]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/,/g, '');
+
+            // فقط اگر مقدار عددی معتبر و مثبت باشد
+            if (englishValue && !isNaN(englishValue) && Number(englishValue) > 0) {
+                amountWordsDiv.textContent = '{% trans "در حال تبدیل..." %}'; // نمایش پیام موقت
+                try {
+                    const response = await fetch('/convert_number_to_words/', { // URL باید درست باشد
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}' // اطمینان از وجود توکن
+                        },
+                        body: JSON.stringify({number: englishValue})
+                    });
+                    if (!response.ok) {
+                        throw new Error(`Server responded with status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    if (data.words) {
+                        amountWordsDiv.textContent = '{% trans "به حروف" %}: ' + data.words;
+                    } else if (data.error) {
+                        amountWordsDiv.textContent = '{% trans "خطا در تبدیل" %}: ' + data.error;
+                        console.error("Error from conversion API:", data.error);
+                    } else {
+                        amountWordsDiv.textContent = ''; // پاک کردن در صورت عدم وجود کلمات یا خطا
+                    }
+                } catch (error) {
+                    console.error('Error fetching/processing words:', error);
+                    amountWordsDiv.textContent = '{% trans "خطا در ارتباط با سرور" %}';
+                }
+            } else {
+                amountWordsDiv.textContent = ''; // پاک کردن اگر ورودی نامعتبر است
+            }
+        }
+
+        // اجرای تابع در زمان تغییر ورودی و در بارگذاری اولیه
+        if (totalAmountInput) {
+            totalAmountInput.addEventListener('input', debounce(updateAmountWords, 500)); // استفاده از debounce برای کاهش تعداد درخواست‌ها
+            updateAmountWords(); // اجرا در بارگذاری اولیه
+        }
+
+        // --- تابع Debounce ---
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // --- فعال کردن Tooltip های Bootstrap (اگر استفاده می‌کنید) ---
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+    });
+</script>
+{% endblock %}

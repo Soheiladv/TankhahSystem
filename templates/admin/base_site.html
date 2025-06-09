@@ -1,0 +1,99 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+    {# لود کردن موارد پایه از والد #}
+    {{ block.super }}
+
+    {# متاتگ‌ها و آیکون #}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1abc9c"> {# ! رنگ تم اصلی شما #}
+    <link rel="icon" href="{% static 'admin/img/favicon.ico' %}" type="image/x-icon">
+
+    {# Font Awesome و Animate.css اگر لازم دارید #}
+    <link href="{% static 'admin/css/all.min.css' %}" rel="stylesheet">
+    {# <link href="{% static 'admin/css/animate.min.css' %}" rel="stylesheet"> #} {# انیمیشن‌ها در CSS سفارشی مدیریت می‌شوند #}
+
+    {# jQuery UI Datepicker اگر لازم دارید #}
+    {# <link rel="stylesheet" href="{% static 'admin/jquery.ui.datepicker.jalali/themes/base/jquery-ui.min.css' %}"> #}
+
+    {# ! لود کردن اسکریپت تم #}
+    <script src="{% static 'admin/js/theme.js' %}" defer></script>
+
+    {# ! حذف لینک custom.css از اینجا #}
+
+{% endblock %}
+
+
+{% block extrastyle %}
+    {# ! لود کردن استایل‌های پایه ادمین از والد (اگر وجود دارد) #}
+    {# {{ block.super }} #} {# این را کامنت می‌کنیم تا مطمئن شویم خودمان پایه‌ها را لود می‌کنیم #}
+
+    {# ! لود صریح استایل‌های پایه ادمین جنگو #}
+{#    <link rel="stylesheet" href="{% static 'admin/css/base.css' %}">#}
+{#    <link rel="stylesheet" href="{% static 'admin/css/responsive.css' %}">#}
+    {% if LANGUAGE_BIDI %}
+{#        <link rel="stylesheet" href="{% static 'admin/css/rtl.css' %}">#}
+    {% endif %}
+
+    {# ! لود کردن فایل CSS سفارشی شما (باید بعد از پایه‌ها باشد) #}
+    <link href="{% static 'admin/css/admin_custom.css' %}" rel="stylesheet">
+{#    <link href="{% static 'admin/css/base.css' %}" rel="stylesheet">#}
+
+{% endblock %}
+
+
+{% block title %}{{ title }} | {% trans 'پنل مدیریت تنخواه RCMS' %}{% endblock %}
+
+
+{% block branding %}
+    {# استایل برندینگ شما خوب بود #}
+    <div id="site-name" class="animate__animated animate__fadeInDown">
+        <a href="{% url 'admin:index' %}">
+             {# لوگوی شما یا آیکون #}
+             <img src="{% static 'admin/img/RCMS2.svg' %}" alt="RCMS Logo" style="height: 30px; vertical-align: middle; margin-left: 8px;">
+             <span style="vertical-align: middle;">{% trans 'پنل مدیریت تنخواه' %}</span>
+        </a>
+    </div>
+{% endblock %}
+
+
+{% block userlinks %}
+    {# ! لود کردن لینک‌های پیش‌فرض کاربر از والد #}
+    {% if user.is_active and user.is_staff %} {# جنگو خودش این رو در block.super انجام میده #}
+        {% block welcome-msg %}
+             {% trans 'خوش آمدید,' %}
+             <strong>{% firstof user.get_short_name user.get_username %}</strong>.
+        {% endblock %}
+         /
+        {% if site_url %}
+            <a href="{{ site_url }}">{% translate 'مشاهده سایت' %}</a> /
+        {% endif %}
+        {% if user.has_usable_password %}
+            <a href="{% url 'admin:password_change' %}">{% trans 'تغییر رمز عبور' %}</a> /
+        {% endif %}
+        <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
+            {% csrf_token %}
+            <button type="submit">{% translate 'خروج' %}</button>
+        </form>
+         /
+    {% endif %}
+
+    {# ! اضافه کردن دکمه تغییر تم #}
+    {% include "admin/color_theme_toggle.html" %}
+{% endblock %}
+
+
+{% block footer %}
+     {# استایل فوتر شما خوب بود #}
+    <div id="footer" class="animate__animated animate__fadeInUp">
+        <p>
+            {% trans 'سیستم مدیریت تنخواه' %} &copy; {% now "Y" %} |
+            {% trans 'توسعه داده شده توسط تیم ارجمند' %}
+        </p>
+    </div>
+{% endblock %}
+
+{# ! حذف بلوک bodyclass - تم توسط theme.js روی <html> اعمال می‌شود #}
+{% block bodyclass %}{{ block.super }}{% endblock %}

@@ -1,0 +1,132 @@
+{#{% load i18n rcms_custom_filters static %}#}
+{##}
+{#<h6 class="mb-3 mt-4 text-warning">#}
+{#    <i class="fas fa-project-diagram me-2"></i>{% translate "تخصیص‌های پروژه برای سرفصل:" %} <span class="fw-bold">{{ budget_item_name|to_persian_number }}</span>#}
+{#</h6>#}
+{#<div class="table-responsive">#}
+{#    <table class="table table-bordered table-striped table-hover small">#}
+{#        <thead class="table-light">#}
+{#            <tr>#}
+{#                <th scope="col">{% translate "پروژه / زیرپروژه" %}</th>#}
+{#                <th scope="col" class="text-center">{% translate "مبلغ تخصیص" %}</th>#}
+{#                <th scope="col" class="text-center">{% translate "مانده" %}</th>#}
+{#                <th scope="col" class="text-center no-print">{% translate "عملیات" %}</th>#}
+{#            </tr>#}
+{#        </thead>#}
+{#        <tbody>#}
+{#            {% for pba in project_allocations %}#}
+{#                <tr data-bs-toggle="collapse" data-bs-target="#tankhahCollapse-{{ pba.id }}"#}
+{#                    aria-expanded="false" aria-controls="tankhahCollapse-{{ pba.id }}"#}
+{#                    class="table-row-clickable" style="cursor: pointer;"#}
+{#                    data-ajax-load-url="{{ pba.tankhahs_ajax_url }}"#}
+{#                    data-target-id="tankhah-detail-{{ pba.id }}">#}
+{#                    <td class="fw-bold">{{ pba.target_name|to_persian_number }}</td>#}
+{#                    <td class="text-center">{{ pba.allocated_formatted|to_persian_number }}</td>#}
+{#                    <td class="text-center">{{ pba.remaining_formatted|to_persian_number }}</td> {# این فیلد نیاز به محاسبه دقیق دارد #}
+{#                    <td class="text-center no-print">#}
+{#                        <a href="{{ pba.detail_url }}" class="btn btn-sm btn-info me-1" title="{% translate 'جزئیات تخصیص پروژه' %}">#}
+{#                            <i class="fas fa-info-circle"></i>#}
+{#                        </a>#}
+{#                        <a href="{{ pba.add_tankhah_url }}" class="btn btn-sm btn-outline-success" title="{% translate 'افزودن تنخواه' %}">#}
+{#                            <i class="fas fa-plus"></i>#}
+{#                        </a>#}
+{#                    </td>#}
+{#                </tr>#}
+{#                <tr>#}
+{#                    <td colspan="4" class="p-0 border-0">#}
+{#                        <div class="collapse" id="tankhahCollapse-{{ pba.id }}">#}
+{#                            <div class="card card-body border-0 rounded-0 bg-light">#}
+{#                                <div id="tankhah-detail-{{ pba.id }}" class="p-3">#}
+{#                                    <p class="text-muted text-center py-4">#}
+{#                                        <i class="fas fa-spinner fa-spin me-2"></i>{% translate "در حال بارگذاری تنخواه‌ها..." %}#}
+{#                                    </p>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </td>#}
+{#                </tr>#}
+{#            {% empty %}#}
+{#                <tr>#}
+{#                    <td colspan="4" class="text-center py-4">{% translate "هیچ تخصیص پروژه‌ای برای این سرفصل بودجه یافت نشد." %}</td>#}
+{#                </tr>#}
+{#            {% endfor %}#}
+{#        </tbody>#}
+{#    </table>#}
+{#</div>#}
+
+
+
+
+{% load i18n static humanize jalali_tags rcms_custom_filters %} {# اطمینان از وجود فیلترها #}
+
+<h6 class="mb-3 mt-3 text-primary-emphasis"> {# رنگ متفاوت برای این سطح #}
+    <i class="fas fa-project-diagram me-2"></i>{% translate "تخصیص‌های پروژه از سرفصل:" %}
+    <span class="fw-bold">{{ parent_budget_item_name|default:_("نامشخص")|to_persian_number }}</span>
+    <small class="text-muted">({% translate "سازمان:" %} {{ parent_org_name|to_persian_number }} | {% translate "دوره:" %} {{ parent_period_name|to_persian_number }})</small>
+</h6>
+
+{% if project_allocations_list_data %} {# نام متغیر از context ویو API #}
+    <div class="table-responsive">
+        <table class="table table-sm table-bordered table-striped table-hover small">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" style="width: 40%;">{% translate "پروژه / زیرپروژه" %} (ID)</th>
+                    <th scope="col" class="text-center">{% translate "تخصیص از این سرفصل (ریال)" %}</th>
+                    <th scope="col" class="text-center">{% translate "مانده تخصیص پروژه (از این سرفصل)" %}</th>
+                    <th scope="col" class="text-center no-print" style="width: 15%;">{% translate "عملیات" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pba_data in project_allocations_list_data %}
+                    {# هر ردیف اصلی، یک دکمه برای باز کردن آکاردئون تنخواه‌ها است #}
+                    <tr class="ajax-load-trigger table-row-clickable"
+                        data-bs-toggle="collapse" data-bs-target="#tankhahsCollapseForPBA{{ pba_data.pba_pk }}"
+                        aria-expanded="false" aria-controls="tankhahsCollapseForPBA{{ pba_data.pba_pk }}"
+                        style="cursor: pointer;"
+                        data-level="tankhahs" {# سطح بعدی برای بارگذاری #}
+                        data-target-div-id="tankhahsForPBA{{ pba_data.pba_pk }}" {# ID دیوی که محتوا در آن لود می‌شود #}
+                        data-ajax-url="{{ pba_data.tankhahs_ajax_url }}"> {# URL از API ویو #}
+                        <td class="fw-bold">
+                            {{ pba_data.target_name_display|to_persian_number }}
+                            <small class="text-muted">({{ pba_data.pba_pk|to_persian_number }})</small>
+                        </td>
+                        <td class="text-center">{{ pba_data.allocated_to_pba_formatted|to_persian_number }}</td>
+                        <td class="text-center fw-bold {% if pba_data.pba_remaining_formatted|format_negative < 0 %}text-danger{% else %}text-success{% endif %}">
+                            {{ pba_data.pba_remaining_formatted|to_persian_number }}
+                        </td>
+                        <td class="text-center no-print">
+                            <a href="{{ pba_data.pba_detail_url }}" class="btn btn-sm btn-outline-info py-0 px-1 me-1" title="{% translate 'جزئیات این تخصیص پروژه' %}" target="_blank">
+                                <i class="fas fa-eye fa-xs"></i>
+                            </a>
+                            <a href="{{ pba_data.add_tankhah_url }}" class="btn btn-sm btn-outline-success py-0 px-1" title="{% translate 'افزودن تنخواه به این تخصیص' %}">
+                                <i class="fas fa-plus-circle fa-xs"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {# ردیف برای محتوای آکاردئون تنخواه‌ها (در ابتدا مخفی) #}
+                    <tr>
+                        <td colspan="4" class="p-0 border-0">
+                            <div class="collapse" id="tankhahsCollapseForPBA{{ pba_data.pba_pk }}">
+                                <div class="card card-body border-0 rounded-0 bg-light-subtle child-accordion-content" id="tankhahsForPBA{{ pba_data.pba_pk }}"> {# ID برای محتوای AJAX #}
+                                    <div class="ajax-loader"><i class="fas fa-spinner fa-spin fa-lg"></i> <p>{% translate "در حال بارگذاری تنخواه‌ها..." %}</p></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-light text-center mt-3 small py-2">
+        <i class="fas fa-info-circle me-1"></i> {% translate "هیچ پروژه یا زیرپروژه‌ای از این سرفصل بودجه، بودجه دریافت نکرده است." %}
+    </div>
+{% endif %}
+<div class="mt-2 border-top pt-2">
+    <a href="{% url 'projectbudgetallocation' %}?budget_allocation_id={{ parent_ba_pk }}" class="btn btn-sm btn-outline-success no-print">
+         <i class="fas fa-plus-circle me-1"></i> {% translate "تخصیص این سرفصل به پروژه/زیرپروژه دیگر" %}
+    </a>
+</div>
+
+
+

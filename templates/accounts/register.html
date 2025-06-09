@@ -1,0 +1,10 @@
+{% extends 'base.html' %} {% load static %} {% block title %} ورود کاربران
+{%endblock %} {% block content %}
+<div class="container">
+  <h5>فرم ایجاد کاربری</h5>
+  <form action="" class="form" nivalidate method="post">
+    {% csrf_token %} {{form.as_p}}
+    <input type="submit" name="" id="" value="Register" />
+  </form>
+</div>
+{% endblock %}

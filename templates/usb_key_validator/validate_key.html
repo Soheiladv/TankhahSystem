@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block extra_css %}
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 50px;
+        }
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .table {
+            background-color: #fff;
+            border-radius: 8px;
+        }
+        .form-check {
+            margin: 0;
+        }
+        .btn-primary {
+            border-radius: 8px;
+            padding: 10px 20px;
+        }
+        .alert, .result-box, .info-table, .key-table {
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .info-table th, .key-table th {
+            width: 30%;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title text-center mb-4">{% trans "بررسی کلید USB" %}</h1>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-info{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if result %}
+                    <div class="result-box">
+                        <div class="alert {% if result.write_result %}alert-success{% else %}alert-danger{% endif %}">
+                            {{ result.write_message }}
+                        </div>
+                        <div class="alert {% if result.is_valid %}alert-success{% else %}alert-danger{% endif %}">
+                            {% if result.is_valid %}
+                                {% trans "کلید USB با کلید دیتابیس تطبیق دارد." %}
+                            {% else %}
+                                {% trans "کلید USB با کلید دیتابیس تطبیق ندارد." %}
+                            {% endif %}
+                        </div>
+                        <table class="table key-table">
+                            <tr>
+                                <th>{% trans "کلید دیتابیس" %}</th>
+                                <td>{{ result.db_key }}</td>
+                            </tr>
+                            <tr>
+                                <th>{% trans "کلید USB" %}</th>
+                                <td>{{ result.usb_key }}</td>
+                            </tr>
+                        </table>
+                        <table class="table info-table">
+                            <tr>
+                                <th>{% trans "تاریخ انقضا" %}</th>
+                                <td>{{ result.decrypted_data.expiry_date }}</td>
+                            </tr>
+                            <tr>
+                                <th>{% trans "حداکثر کاربران" %}</th>
+                                <td>{{ result.decrypted_data.max_users }}</td>
+                            </tr>
+                            <tr>
+                                <th>{% trans "نام شرکت" %}</th>
+                                <td>{{ result.decrypted_data.organization_name }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "انتخاب USB" %}</label>
+                        {% if usb_drives %}
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "انتخاب" %}</th>
+                                        <th>{% trans "درایو" %}</th>
+                                        <th>{% trans "نام دستگاه" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for drive in usb_drives %}
+                                        <tr>
+                                            <td>
+                                                <input type="radio" name="usb_device" value="{{ drive.device_id }}" class="form-check-input" id="usb_{{ forloop.counter }}" {% if forloop.first %}checked{% endif %}>
+                                            </td>
+                                            <td>{{ drive.drive_letter }}</td>
+                                            <td>{{ drive.caption }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                {% trans "هیچ USB متصلی یافت نشد." %}
+                            </div>
+                        {% endif %}
+                        {% if form.usb_device.errors %}
+                            <div class="text-danger">{{ form.usb_device.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">{% trans "یک درایو USB را از جدول انتخاب کنید." %}</div>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">{% trans "نوشتن و بررسی کلید" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

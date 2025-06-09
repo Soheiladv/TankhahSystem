@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4 text-right">{% trans "گزارش قوانین دسترسی پست‌ها" %}</h1>
+    <div class="card shadow-sm">
+        <div class="card-header bg-light text-dark text-right">
+            <h5 class="my-1">{% trans "لیست پست‌ها و قوانین" %}</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info text-right">
+                <p>{% trans "این جدول نشان می‌دهد هر پست چه قوانینی دارد. برای تغییر قوانین، به صفحه 'مدیریت پست‌ها و قوانین دسترسی' بروید." %}</p>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover text-right">
+                    <thead>
+                        <tr>
+                            <th>{% trans "پست" %}</th>
+                            <th>{% trans "سازمان" %}</th>
+                            <th>{% trans "شاخه" %}</th>
+                            <th>{% trans "سطح" %}</th>
+                            <th>{% trans "قوانین دسترسی" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for post in posts %}
+                        <tr>
+                            <td>{{ post }}</td>
+                            <td>{{ post.organization }}</td>
+                            <td>{{ post.get_branch_display|default:_("نامشخص") }}</td>
+                            <td>{{ post.level }}</td>
+                            <td>
+                                {% for rule in post.accessrule_set.all %}
+                                <span class="badge bg-primary m-1">
+                                    {{ rule.get_entity_type_display }} - {{ rule.get_action_type_display }} ({{ rule.stage }})
+                                </span>
+                                {% empty %}
+                                <span class="text-muted">{% trans "بدون قانون" %}</span>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <a href="{% url 'post_access_rule_assign' %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> {% trans "ویرایش قوانین" %}
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

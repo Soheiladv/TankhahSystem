@@ -1,0 +1,265 @@
+{% extends "base.html" %} {# یا نام قالب پایه شما #}
+{% load i18n static rcms_custom_filters %} {# rcms_custom_filters را اگر به هیچ فیلتر دیگری از آن نیاز ندارید، حذف کنید #}
+ 
+
+{% block title %}{{ report_main_title }}{% endblock %}
+
+{% block breadcrumbs %}
+    <nav aria-label="breadcrumb" class="mt-3 mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">{% translate "خانه" %}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ report_main_title }}</li>
+        </ol>
+    </nav>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h1 class="mb-4 text-center text-primary fw-bold">{{ report_main_title }}</h1>
+
+    {# فرم فیلتر دوره بودجه - بدون تغییر عمده #}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light py-3">
+            <h5 class="mb-0">{% translate "فیلتر گزارش" %}</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-center">
+                <div class="col-md-6">
+                    <label for="id_search_period" class="form-label visually-hidden">{% translate "جستجو بر اساس نام دوره" %}</label>
+                    <input type="text" class="form-control" id="id_search_period" name="search_period"
+                           placeholder="{% translate 'جستجو بر اساس نام دوره بودجه...' %}"
+                           value="{{ current_search_period }}">
+                </div>
+                <div class="col-md-auto">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>{% translate "جستجو" %}
+                    </button>
+                </div>
+                <div class="col-md-auto">
+                    <a href="{% url 'comprehensive_budget_report' %}" class="btn btn-secondary w-100">
+                        <i class="fas fa-redo-alt me-2"></i>{% translate "حذف فیلتر" %}
+                    </a>
+                </div>
+                <div class="col-md-auto ms-auto d-flex gap-2">
+                    <a href="?output_format=excel{% if current_search_period %}&search_period={{ current_search_period }}{% endif %}"
+                       class="btn btn-success" download>
+                        <i class="fas fa-file-excel me-2"></i>{% translate "خروجی اکسل" %}
+                    </a>
+                    <a href="?output_format=pdf{% if current_search_period %}&search_period={{ current_search_period }}{% endif %}"
+                       target="_blank" class="btn btn-danger">
+                        <i class="fas fa-file-pdf me-2"></i>{% translate "خروجی PDF" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# نمایش پیام‌ها #}
+    {% if messages %}
+        <div class="messages mb-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {# محتوای اصلی گزارش #}
+    {% if budget_periods_report_data_from_context %}
+        <div class="accordion" id="budgetReportAccordion">
+            {% for period_data in budget_periods_report_data_from_context %}
+                <div class="accordion-item shadow-sm mb-3 rounded">
+                    <h2 class="accordion-header" id="heading{{ period_data.period.pk }}">
+                        <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} fw-bold"
+                                type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapse{{ period_data.period.pk }}"
+                                aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                                aria-controls="collapse{{ period_data.period.pk }}"
+                                {# این دو خط برای بارگذاری AJAX سازمان‌ها اضافه شد #}
+                                data-ajax-load-url="{% url 'api_organizations_for_period' period_pk=period_data.period.pk %}"
+                                data-target-id="org-container-{{ period_data.period.pk }}">
+                            <span class="flex-grow-1 text-primary">
+                                {{ forloop.counter |format_negative }} : {% translate "دوره بودجه:" %} {{ period_data.period.name |to_persian_number }}
+                                <span class="badge bg-secondary ms-2">{{ period_data.period.organization.name }}</span>
+                            </span>
+                            <span class="badge bg-{% if period_data.summary.utilization_percentage > 90 %}danger{% elif period_data.summary.utilization_percentage > 70 %}warning{% else %}success{% endif %}"
+                                  title="{% translate 'میزان مصرف' %}">
+                                <i class="fas fa-chart-pie me-1"></i>
+                                {{ period_data.summary.utilization_percentage|floatformat:"0"|to_persian_number }}%
+                            </span>
+                        </button>
+                    </h2>
+                    <div id="collapse{{ period_data.period.pk }}"
+                         class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+                         aria-labelledby="heading{{ period_data.period.pk }}"
+                         data-bs-parent="#budgetReportAccordion">
+                        <div class="accordion-body">
+                            {# خلاصه برای کل دوره بودجه #}
+                            <div class="card card-body bg-light-subtle mb-3 border-0">
+                                <div class="row text-center fw-bold text-dark">
+                                    <div class="col-md-3">{% translate "تاریخ شروع:" %} <br> {{ period_data.summary.start_date_jalali|to_persian_number }}</div>
+                                    <div class="col-md-3">{% translate "تاریخ پایان:" %} <br> {{ period_data.summary.end_date_jalali|to_persian_number }}</div>
+                                    <div class="col-md-3">{% translate "کل تخصیص:" %} <br> {{ period_data.summary.total_allocated_from_period|format_negative }}</div>
+                                    <div class="col-md-3">{% translate "مانده:" %} <br> {{ period_data.summary.remaining_vs_consumed|format_negative }}</div>
+                                </div>
+                            </div>
+
+                            {# این div جایی است که محتوای AJAX (سازمان‌ها) در آن بارگذاری می‌شود #}
+                            <div id="org-container-{{ period_data.period.pk }}" class="p-3">
+                                <p class="text-muted text-center py-5">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>{% translate "در حال بارگذاری سازمان‌ها..." %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning text-center mt-4" role="alert">
+            {% translate "هیچ دوره بودجه‌ای برای نمایش گزارش یافت نشد. می‌توانید از فیلتر بالا برای جستجو استفاده کنید." %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // تابع اصلی برای اتصال شنونده‌های رویداد AJAX به عناصر قابل کلیک (آکاردئون‌ها، سطرهای جدول)
+            function setupAjaxLoadTriggers(containerElement) {
+                // انتخاب تمام عناصری که دارای `data-ajax-load-url` و `data-target-id` هستند
+                // و هنوز شنونده‌ای به آن‌ها متصل نشده است.
+                containerElement.querySelectorAll('[data-ajax-load-url][data-target-id]').forEach(triggerElement => {
+                    // جلوگیری از اتصال چندباره شنونده
+                    if (triggerElement.dataset.listenerAttached === 'true') {
+                        return;
+                    }
+
+                    // شنونده رویداد 'click' را اضافه می‌کنیم
+                    triggerElement.addEventListener('click', function(event) {
+                        // این شرط برای جلوگیری از bubbling رویداد و فراخوانی‌های متعدد AJAX است.
+                        if (event.target !== this && !this.contains(event.target)) {
+                            const closestTrigger = event.target.closest('[data-ajax-load-url][data-target-id]');
+                            if (closestTrigger && closestTrigger !== this) {
+                                return;
+                            }
+                        }
+
+                        const ajaxUrl = this.getAttribute('data-ajax-load-url');
+                        const targetId = this.getAttribute('data-target-id');
+                        const targetElement = document.getElementById(targetId);
+
+                        if (ajaxUrl && targetElement && targetElement.dataset.loaded !== 'true' && targetElement.dataset.loading !== 'true') {
+                            targetElement.innerHTML = `
+                                <p class="text-muted text-center py-4">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>{% translate "در حال بارگذاری..." %}
+                                </p>
+                            `;
+                            targetElement.dataset.loading = 'true';
+
+                            fetch(ajaxUrl)
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(`HTTP error! status: ${response.status}`);
+                                    }
+                                    return response.json();
+                                })
+                                .then(data => {
+                                    if (data.status === 'success' && data.html_content) {
+                                        targetElement.innerHTML = data.html_content;
+                                        targetElement.dataset.loaded = 'true';
+                                        delete targetElement.dataset.loading;
+
+                                        // مهم: پس از بارگذاری محتوای جدید، شنونده‌ها را برای عناصر جدید درون آن دوباره راه‌اندازی کنید.
+                                        setupAjaxLoadTriggers(targetElement);
+                                    } else {
+                                        targetElement.innerHTML = `
+                                            <div class="alert alert-danger text-center">
+                                                <i class="fas fa-exclamation-triangle me-2"></i>{% translate "خطا در بارگذاری داده‌ها." %}
+                                            </div>
+                                        `;
+                                        delete targetElement.dataset.loading;
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('AJAX Load Error:', error);
+                                    targetElement.innerHTML = `
+                                        <div class="alert alert-danger text-center">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>{% translate "خطا در ارتباط با سرور." %}
+                                        </div>
+                                    `;
+                                    delete targetElement.dataset.loading;
+                                });
+                        }
+                    }, { once: false });
+
+                    triggerElement.dataset.listenerAttached = 'true';
+                });
+            }
+
+            // --- راه‌اندازی اولیه ---
+            setupAjaxLoadTriggers(document);
+
+            // منطق برای بارگذاری محتوای اولین آکاردئون که به صورت پیش‌فرض باز است.
+            const firstMainAccordionButton = document.querySelector('#budgetReportAccordion .accordion-button:not(.collapsed)');
+            if (firstMainAccordionButton) {
+                const ajaxUrl = firstMainAccordionButton.getAttribute('data-ajax-load-url');
+                const targetId = firstMainAccordionButton.getAttribute('data-target-id');
+                const targetElement = document.getElementById(targetId);
+
+                if (ajaxUrl && targetElement && targetElement.dataset.loaded !== 'true' && targetElement.dataset.loading !== 'true') {
+                    targetElement.innerHTML = `
+                        <p class="text-muted text-center py-5">
+                            <i class="fas fa-spinner fa-spin me-2"></i>{% translate "در حال بارگذاری..." %}
+                        </p>
+                    `;
+                    targetElement.dataset.loading = 'true';
+
+                    fetch(ajaxUrl)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.status === 'success' && data.html_content) {
+                                targetElement.innerHTML = data.html_content;
+                                targetElement.dataset.loaded = 'true';
+                                delete targetElement.dataset.loading;
+                                setupAjaxLoadTriggers(targetElement);
+                            } else {
+                                targetElement.innerHTML = `
+                                    <div class="alert alert-danger text-center">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>{% translate "خطا در بارگذاری داده‌ها." %}
+                                    </div>
+                                `;
+                                delete targetElement.dataset.loading;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Initial AJAX Load Error:', error);
+                            targetElement.innerHTML = `
+                                <div class="alert alert-danger text-center">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>{% translate "خطا در ارتباط با سرور." %}
+                                </div>
+                            `;
+                            delete targetElement.dataset.loading;
+                        });
+                }
+            }
+
+            // بوت استرپ: فعال‌سازی بسته شدن پیام‌ها
+            var alertList = document.querySelectorAll('.alert');
+            alertList.forEach(function (alert) {
+                new bootstrap.Alert(alert);
+            });
+        });
+    </script>
+{% endblock %}

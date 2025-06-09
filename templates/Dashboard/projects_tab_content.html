@@ -1,0 +1,75 @@
+{% load i18n humanize %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header"><h6 class="m-0 fw-bold text-primary">{% translate "خلاصه KPIهای مراکز هزینه" %}</h6></div>
+            <div class="card-body">
+                {% if data.projects_kpis %}
+                    <dl class="row">
+                        <dt class="col-sm-7">{% translate "تعداد مراکز فعال" %}:</dt>
+                        <dd class="col-sm-5 text-end">{{ data.projects_kpis.active_projects_count|default:0|intcomma:False }}</dd>
+                        <dt class="col-sm-7">{% translate "کل بودجه تخصیصی" %}:</dt>
+                        <dd class="col-sm-5 text-end">{{ data.projects_kpis.total_projects_allocated_budget|default:0|intcomma:False }}</dd>
+                        <dt class="col-sm-7">{% translate "کل مصرف شده" %}:</dt>
+                        <dd class="col-sm-5 text-end">{{ data.projects_kpis.total_projects_consumed_budget|default:0|intcomma:False }}</dd>
+                        <dt class="col-sm-7">{% translate "درصد مصرف کلی" %}:</dt>
+                        <dd class="col-sm-5 text-end">{{ data.projects_kpis.overall_project_utilization|default:0|floatformat:1 }}%</dd>
+                    </dl>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header"><h6 class="m-0 fw-bold text-primary">{% translate "درصد مصرف بودجه مراکز هزینه (تاپ 7)" %}</h6></div>
+            <div class="card-body" style="min-height: 280px;">
+                <canvas id="projectUtilizationChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header"><h6 class="m-0 fw-bold text-primary">{% translate "جدول خلاصه وضعیت مراکز هزینه" %}</h6></div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover small">
+                        <thead>
+                            <tr>
+                                <th>{% translate "کد" %}</th>
+                                <th>{% translate "نام مرکز هزینه" %}</th>
+                                <th class="text-end">{% translate "بودجه تخصیص‌یافته" %}</th>
+                                <th class="text-end">{% translate "مصرف‌شده" %}</th>
+                                <th class="text-end">{% translate "باقیمانده" %}</th>
+                                <th class="text-center">{% translate "درصد مصرف" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for proj in data.projects_summary_table %}
+                            <tr>
+                                <td>{{ proj.code }}</td>
+                                <td><a href="#">{{ proj.name }}</a></td> {# Link to project detail #}
+                                <td class="text-end">{{ proj.allocated|intcomma:False }}</td>
+                                <td class="text-end">{{ proj.consumed|intcomma:False }}</td>
+                                <td class="text-end">{{ proj.remaining|intcomma:False }}</td>
+                                <td class="text-center">
+                                    <div class="progress" style="height: 16px; font-size: 0.7rem;">
+                                        <div class="progress-bar {% if proj.utilization > 85 %}bg-danger{% elif proj.utilization > 60 %}bg-warning{% else %}bg-success{% endif %}"
+                                             role="progressbar" style="width: {{ proj.utilization }}%;"
+                                             aria-valuenow="{{ proj.utilization }}" aria-valuemin="0" aria-valuemax="100">
+                                            {{ proj.utilization|floatformat:0 }}%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center">{% translate "مرکز هزینه‌ای یافت نشد." %}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,60 @@
+{% load i18n humanize jalali_tags rcms_custom_filters %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ report_main_title }}</title>
+    {# استایل‌های CSS در ویو به صورت رشته پاس داده می‌شوند، اینجا نیازی به تگ style نیست مگر برای تست #}
+</head>
+<body>
+    <h1>{{ report_main_title }}</h1>
+    <p style="text-align: center; font-size: 8pt;">{% translate "تاریخ گزارش:" %} {% now "Y/m/d H:i"|to_jalali:"%Y/%m/%d ساعت %H:%M"|to_persian_number %}</p>
+
+    {% for period_item_data in budget_periods_report_data %}
+        <div class="period-container" style="page-break-inside: avoid;">
+            <h2>
+                {% translate "دوره بودجه:" %} {{ period_item_data.period.name }}
+                <small style="font-weight:normal;">({{ period_item_data.period.organization.name }})</small>
+            </h2>
+            <div class="period-summary-pdf">
+                <strong>{% translate "کل بودجه:" %}</strong> {{ period_item_data.summary.total_budget|intcomma:False|to_persian_number }} |
+                <strong>{% translate "کل تخصیص:" %}</strong> {{ period_item_data.summary.total_allocated|intcomma:False|to_persian_number }} |
+                <strong>{% translate "کل مصرف:" %}</strong> {{ period_item_data.summary.net_consumed|intcomma:False|to_persian_number }} |
+                <strong>{% translate "مانده:" %}</strong> <span class="{% if period_item_data.summary.remaining_vs_consumed < 0 %}text-danger-pdf{% else %}text-success-pdf{% endif %}">{{ period_item_data.summary.remaining_vs_consumed|intcomma:False|to_persian_number }}</span> |
+                <strong>{% translate "% مصرف:" %}</strong> {{ period_item_data.summary.utilization_percentage|floatformat:1|to_persian_number }}%
+            </div>
+
+            {% if period_item_data.organization_summaries %}
+                <h3>{% translate "خلاصه تخصیص‌ها به سازمان‌ها" %}</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>{% translate "سازمان" %}</th>
+                            <th>{% translate "کد" %}</th>
+                            <th>{% translate "تخصیص از دوره" %}</th>
+                            <th>{% translate "مصرف از دوره" %}</th>
+                            <th>{% translate "مانده از دوره" %}</th>
+                            <th>{% translate "% مصرف" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for org_sum_data in period_item_data.organization_summaries %}
+                        <tr>
+                            <td>{{ org_sum_data.name }}</td>
+                            <td>{{ org_sum_data.code|to_persian_number }}</td>
+                            <td>{{ org_sum_data.total_allocated|intcomma:False|to_persian_number }}</td>
+                            <td class="{% if org_sum_data.net_consumed > org_sum_data.total_allocated %}text-danger-pdf{% endif %}">{{ org_sum_data.net_consumed|intcomma:False|to_persian_number }}</td>
+                            <td class="{% if org_sum_data.remaining < 0 %}text-danger-pdf{% else %}text-success-pdf{% endif %}">{{ org_sum_data.remaining|intcomma:False|to_persian_number }}</td>
+                            <td>{{ org_sum_data.utilization_percentage|floatformat:1|to_persian_number }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+        {% if not forloop.last %}<p style="page-break-after: always;"></p>{% endif %} {# شروع دوره جدید از صفحه جدید در PDF #}
+    {% empty %}
+        <p>{% translate "هیچ دوره بودجه‌ای برای گزارش یافت نشد." %}</p>
+    {% endfor %}
+</body>
+</html>

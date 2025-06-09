@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm mx-auto" style="max-width: 450px;">
+        <div class="card-header bg-danger text-white text-center">
+            <h2 class="mb-0">{% trans "تأیید حذف دسته‌بندی" %}</h2>
+        </div>
+        <div class="card-body text-center">
+            <p class="lead">
+                {% trans "آیا مطمئن هستید که دسته‌بندی" %} "<strong>{{ category.name }}</strong>" {% trans "حذف شود؟" %}
+            </p>
+            <p class="text-danger small">{% trans "این عملیات قابل بازگشت نیست." %}</p>
+
+            <form method="post" class="mt-4">
+                {% csrf_token %}
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-danger btn-lg">
+                        <i class="fas fa-trash-alt me-2"></i>{% trans "بله، حذف شود" %}
+                    </button>
+                    <a href="{% url 'itemcategory_list' %}" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-times me-2"></i>{% trans "انصراف" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<!-- templates/notifications/notification_bell.html -->
+<div class="dropdown notification-dropdown">
+    <button class="btn btn-link nav-link dropdown-toggle position-relative" type="button" id="notificationDropdown"
+            data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fas fa-bell"></i>
+        {% if unread_count > 0 %}
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            {{ unread_count }}
+            <span class="visually-hidden">unread notifications</span>
+        </span>
+        {% endif %}
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end notification-menu" aria-labelledby="notificationDropdown">
+        <li class="dropdown-header d-flex justify-content-between align-items-center">
+            <span>{% trans "اعلان‌ها" %}</span>
+            <a href="{% url 'notification_list' %}" class="btn btn-sm btn-outline-secondary">
+                {% trans "مشاهده همه" %}
+            </a>
+        </li>
+        {% if notifications %}
+            {% for notification in notifications|slice:":5" %}
+            <li class="notification-item {% if not notification.is_read %}unread{% endif %}">
+                <a class="dropdown-item" href="{% if notification.tankhah %}{% url 'tankhah_tracking' notification.tankhah.pk %}{% else %}#{% endif %}">
+                    <div class="d-flex align-items-center">
+                        <div class="notification-icon me-2">
+                            <i class="fas {% if notification.tankhah %}fa-file-invoice{% else %}fa-info-circle{% endif %}"></i>
+                        </div>
+                        <div class="notification-content">
+                            <p class="mb-0">{{ notification.message }}</p>
+                            <small class="text-muted">{{ notification.created_at|jformat:"%Y/%m/%d %H:%M" }}</small>
+                        </div>
+                        {% if not notification.is_read %}
+                        <button class="btn btn-sm mark-as-read" data-notification-id="{{ notification.id }}">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </a>
+            </li>
+            {% endfor %}
+        {% else %}
+            <li class="dropdown-item text-center text-muted py-3">
+                {% trans "اعلانی وجود ندارد" %}
+            </li>
+        {% endif %}
+        <li class="dropdown-footer">
+            <a href="{% url 'notification_list' %}" class="btn btn-sm btn-link w-100">
+                {% trans "مشاهده همه اعلان‌ها" %}
+            </a>
+        </li>
+    </ul>
+</div>
+
+<style>
+.notification-dropdown .dropdown-menu {
+    width: 350px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.notification-item.unread {
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+.notification-item .dropdown-item {
+    white-space: normal;
+}
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-icon {
+    font-size: 1.2rem;
+    color: var(--bs-primary);
+}
+
+.mark-as-read {
+    color: #6c757d;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.notification-item:hover .mark-as-read {
+    opacity: 1;
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    $('.mark-as-read').click(function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const notificationId = $(this).data('notification-id');
+        const $item = $(this).closest('.notification-item');
+
+        $.ajax({
+            url: `/notifications/mark-as-read/${notificationId}/`,
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function() {
+                $item.removeClass('unread');
+                $(this).remove();
+                updateNotificationCount(-1);
+            }.bind(this)
+        });
+    });
+
+    function updateNotificationCount(change) {
+        const $badge = $('.notification-dropdown .badge');
+        let count = parseInt($badge.text()) || 0;
+        count += change;
+
+        if (count > 0) {
+            $badge.text(count);
+        } else {
+            $badge.remove();
+        }
+    }
+});
+</script>
+</body>
+</html>

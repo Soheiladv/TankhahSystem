@@ -1,0 +1,507 @@
+{% extends 'base.html' %} {# فرض بر این است که از یک بیس تمپلیت ارث‌بری می‌کنید #}
+{% load i18n static jalali_tags rcms_custom_filters jformat %}
+{% load i18n %} {# برای استفاده از تگ‌های ترجمه Django #}
+{% load static %} {# برای لینک دادن به فایل‌های استاتیک مثل CSS و JS #}
+{% load humanize %} {# برای استفاده از فیلتر intcomma #}
+
+{% block title %}{{ title }}{% endblock %} {# تنظیم عنوان صفحه از کانتکست ویو #}
+
+{% block extra_head %}
+    {# لینک‌های Bootstrap، Font Awesome و CSS دلخواه در بیس تمپلیت شما باید قرار داشته باشند #}
+    {# اگر در بیس تمپلیت نیستند، اینجا اضافه کنید: #}
+    {# <link rel="stylesheet" href="{% static 'path/to/bootstrap.min.css' %}"> #}
+    {# <link rel="stylesheet" href="{% static 'path/to/all.min.css' %}"> #}
+    {# <link rel="stylesheet" href="{% static 'css/your-custom-styles.css' %}"> {# ارجاع به CSS مرتب شده قبلی #}
+
+    {# لینک به فایل CSS Jalali Date Picker #}
+
+    <style>
+        /* انیمیشن ساده برای نمایش کارت */
+        .fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* استایل دلخواه برای فیلدهای disabled */
+         .form-control:disabled, .form-select:disabled {
+             background-color: var(--light-bg); /* استفاده از متغیر css برای پس‌زمینه */
+             color: var(--secondary); /* رنگ خاکستری برای متن */
+             opacity: 0.8;
+         }
+
+        /* استفاده از متغیرهای CSS برای استایل دکمه‌ها و کارت‌ها که قبلا مرتب کردید */
+        /* این استایل‌ها باید در custom-styles.css شما باشند */
+        /* مثال: */
+        /*
+        .card { border-radius: 15px; box-shadow: var(--shadow); ... }
+        .card-header { background: var(--light-bg); color: var(--text-dark); ... }
+        .btn-primary { background-color: var(--primary); ... }
+        */
+
+    </style>
+{% endblock %}
+
+{% block content %}
+    {# نمایش پیام‌های Django (Success, Error, Warning, Info) #}
+    {# فرض بر این است که یک تمپلیت جزئی برای نمایش پیام‌ها دارید #}
+{#    {% include 'messages.html' %} {# اگر ندارید، باید کد نمایش پیام‌ها را اینجا اضافه کنید #}
+
+    <div class="container mt-4 mb-4"> {# فاصله از بالا و پایین #}
+        <div class="card fade-in"> {# اعمال کلاس انیمیشن fade-in و کلاس card بوت استرپ #}
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="fas fa-file-invoice-dollar me-2"></i> {{ title }}</h4> {# آیکون و عنوان #}
+                {# می‌توانید دکمه‌های اضافی مثل بازگشت به لیست را اینجا اضافه کنید #}
+                <a href="{% url 'tankhah_list' %}" class="btn btn-secondary btn-sm">
+                     <i class="fas fa-list me-1"></i> {% trans "بازگشت به لیست" %}
+                </a>
+            </div>
+            <div class="card-body">
+                <form method="post" id="tankhah-form"> {# اضافه کردن یک ID برای فرم برای استفاده احتمالی در JS #}
+                    {% csrf_token %} {# توکن CSRF برای امنیت #}
+
+                    {# نمایش خطاهای کلی فرم #}
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger" role="alert">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="row">
+                        {# فیلد تاریخ #}
+                        <div class="col-md-6 mb-3"> {# استفاده از گرید سیستم بوت استرپ #}
+                            <label for="{{ form.date.id_for_label }}" class="form-label">{{ form.date.label }} <span class="text-danger">*</span></label> {# برچسب فیلد #}
+                            {{ form.date }} {# رندر کردن فیلد فرم Django #}
+                            {% if form.date.errors %} {# نمایش خطاهای فیلد خاص #}
+                                {% for error in form.date.errors %}
+                                    <small class="text-danger d-block">{{ error }}</small>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        {# فیلد مهلت باقی مانده #}
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.due_date.id_for_label }}" class="form-label">{{ form.due_date.label }}</label>
+                            {{ form.due_date }}
+                            {% if form.due_date.errors %}
+                                {% for error in form.due_date.errors %}
+                                    <small class="text-danger d-block">{{ error }}</small>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        {# فیلد سازمان #}
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.organization.id_for_label }}" class="form-label">{{ form.organization.label }} <span class="text-danger">*</span></label>
+                            {{ form.organization }}
+                             {% if form.organization.errors %}
+                                {% for error in form.organization.errors %}
+                                    <small class="text-danger d-block">{{ error }}</small>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        {# فیلد پروژه #}
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.project.id_for_label }}" class="form-label">{{ form.project.label }} <span class="text-danger">*</span></label>
+                            {{ form.project }}
+                            {% if form.project.errors %}
+                                {% for error in form.project.errors %}
+                                    <small class="text-danger d-block">{{ error }}</small>
+                                {% endfor %}
+                            {% endif %}
+                            {# نمایش اطلاعات بودجه پروژه #}
+                            {% if total_budget is not None %} {# چک می‌کنیم آیا متغیر در کانتکست وجود دارد #}
+                                <small class="form-text text-muted d-block mt-1">
+                                    <i class="fas fa-money-bill-wave me-1"></i> {% trans "بودجه کل پروژه:" %} <span id="project_total_budget">{{ total_budget|floatformat:0|intcomma }}</span> {% trans "ریال" %} |
+                                    <i class="fas fa-coins me-1"></i> {% trans "بودجه باقی‌مانده پروژه:" %} <span id="project_remaining_budget">{{ remaining_budget|floatformat:0|intcomma }}</span> {% trans "ریال" %}
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                     <div class="row">
+                        {# فیلد ساب‌پروژه #}
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.subproject.id_for_label }}" class="form-label">{{ form.subproject.label }}</label>
+                            {{ form.subproject }}
+                            {% if form.subproject.errors %}
+                                {% for error in form.subproject.errors %}
+                                    <small class="text-danger d-block">{{ error }}</small>
+                                {% endfor %}
+                            {% endif %}
+                            {# نمایش اطلاعات بودجه ساب‌پروژه #}
+                            {% if subproject_total_budget is not None %} {# چک می‌کنیم آیا متغیر در کانتکست وجود دارد #}
+                                <small class="form-text text-muted d-block mt-1">
+                                    <i class="fas fa-money-bill me-1"></i> {% trans "بودجه کل زیرپروژه:" %} <span id="subproject_total_budget">{{ subproject_total_budget|floatformat:0|intcomma }}</span> {% trans "ریال" %} |
+                                    <i class="fas fa-hand-holding-usd me-1"></i> {% trans "بودجه باقی‌مانده زیرپروژه:" %} <span id="subproject_remaining_budget">{{ subproject_remaining_budget|floatformat:0|intcomma }}</span> {% trans "ریال" %}
+                                </small>
+                            {% endif %}
+                        </div>
+
+                        {# فیلد شماره نامه #}
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.letter_number.id_for_label }}" class="form-label">{{ form.letter_number.label }}</label>
+                            {{ form.letter_number }}
+                            {% if form.letter_number.errors %}
+                                {% for error in form.letter_number.errors %}
+                                    <small class="text-danger d-block">{{ error }}</small>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        {# فیلد مبلغ #}
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.amount.id_for_label }}" class="form-label">{{ form.amount.label }} <span class="text-danger">*</span></label>
+                            {{ form.amount }}
+                             {% if form.amount.errors %}
+                                {% for error in form.amount.errors %}
+                                    <small class="text-danger d-block">{{ error }}</small>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        {# فیلد توضیحات #}
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                {% for error in form.description.errors %}
+                                    <small class="text-danger d-block">{{ error }}</small>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                     {# فیلدهای Hidden (اگر در فرم تعریف شده باشند) #}
+                    {% for hidden in form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+
+                    <div class="text-center mt-4">
+                        {# دکمه ثبت #}
+                        <button type="submit" class="btn btn-primary btn-lg">
+                             <i class="fas fa-save me-2"></i> {% trans "ثبت تنخواه" %}
+                        </button>
+                        {# دکمه انصراف/بازگشت #}
+                        <a href="{% url 'tankhah_list' %}" class="btn btn-secondary btn-lg ms-2">
+                            <i class="fas fa-times-circle me-2"></i> {% trans "انصراف" %}
+                        </a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    {# لینک به فایل JS Bootstrap #}
+    {# <script src="{% static 'path/to/bootstrap.bundle.min.js' %}"></script> #}
+
+    {# لینک به فایل JS Jalali Date Picker #}
+     <script>
+        // اسکریپت برای راه‌اندازی Jalali Date Picker
+        // نحوه دقیق بسته به کتابخانه‌ای که استفاده می‌کنید ممکن است کمی متفاوت باشد
+        // مثال رایج:
+        jalaliDatepicker.startWatch();
+
+        // اسکریپت برای فیلتر دینامیک ساب‌پروژه‌ها بر اساس پروژه انتخابی
+        // این بخش نیاز به یک View در جنگو دارد که با دریافت project_id لیست ساب‌پروژه‌ها را برگرداند
+        document.addEventListener('DOMContentLoaded', function() {
+            const projectSelect = document.getElementById('{{ form.project.id_for_label }}');
+            const subprojectSelect = document.getElementById('{{ form.subproject.id_for_label }}');
+             const organizationSelect = document.getElementById('{{ form.organization.id_for_label }}'); // ممکن است برای فیلتر ساب‌پروژه نیاز باشد
+             const subprojectBudgetSpan = document.getElementById('subproject_remaining_budget'); // Span برای نمایش بودجه باقی‌مانده ساب‌پروژه
+
+            function updateSubprojects() {
+                const projectId = projectSelect.value;
+                // const organizationId = organizationSelect.value; // اگر ساب‌پروژه به سازمان هم وابسته است
+
+                // URL ای که لیست ساب‌پروژه‌ها را برمی‌گرداند (باید در urls.py تعریف شود)
+                let url = `/path/to/get-subprojects/?project_id=${projectId}`;
+                // اگر فیلتر سازمان هم نیاز است
+                // if (organizationId) {
+                //     url += `&organization_id=${organizationId}`;
+                // }
+
+
+                if (!projectId) {
+                    subprojectSelect.innerHTML = '<option value="">---------</option>'; // خالی کردن گزینه‌ها
+                    subprojectSelect.disabled = true;
+                    // در صورت لزوم، بودجه ساب‌پروژه را هم خالی کنید
+                    // if (subprojectBudgetSpan) { subprojectBudgetSpan.textContent = '0'; }
+                    return;
+                }
+
+                // ارسال درخواست AJAX برای گرفتن ساب‌پروژه‌ها
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        subprojectSelect.innerHTML = '<option value="">---------</option>'; // اضافه کردن گزینه پیش‌فرض
+                        data.forEach(subproject => {
+                            const option = document.createElement('option');
+                            option.value = subproject.id;
+                            option.textContent = subproject.name; // فرض بر این است که فیلد 'name' در ساب‌پروژه وجود دارد
+                            // اگر در ویرایش هستیم و یک ساب‌پروژه قبلا انتخاب شده، آن را سلکت نگه دارید
+                            if ({{ form.instance.subproject.id|default:"None" }} && subproject.id == {{ form.instance.subproject.id|default:"0" }}) {
+                                option.selected = true;
+                            }
+                            subprojectSelect.appendChild(option);
+                        });
+                        subprojectSelect.disabled = false; // فعال کردن Select ساب‌پروژه
+                    })
+                    .catch(error => {
+                        console.error('Error fetching subprojects:', error);
+                        subprojectSelect.innerHTML = '<option value="">Error loading subprojects</option>';
+                        subprojectSelect.disabled = true;
+                    });
+            }
+
+            // اضافه کردن Event Listener به Select پروژه
+            projectSelect.addEventListener('change', updateSubprojects);
+             // اگر سازمان هم روی ساب‌پروژه تاثیر می‌گذارد، Listener را به Organization هم اضافه کنید
+            // organizationSelect.addEventListener('change', updateSubprojects);
+
+
+            // اجرای اولیه تابع در زمان بارگذاری صفحه اگر پروژه‌ای از قبل انتخاب شده باشد (مثلا در حالت ویرایش یا بعد از خطای فرم)
+            if (projectSelect.value) {
+                updateSubprojects();
+            }
+
+            // --- اسکریپت اختیاری: نمایش بودجه ساب‌پروژه به صورت دینامیک ---
+            // این بخش نیاز به یک View در جنگو دارد که با دریافت subproject_id بودجه را برگرداند
+            /*
+            function updateSubprojectBudget() {
+                const subprojectId = subprojectSelect.value;
+                if (!subprojectId) {
+                     if (subprojectBudgetSpan) { subprojectBudgetSpan.textContent = '0'; }
+                    return;
+                }
+                // URL ای که بودجه ساب‌پروژه را برمی‌گرداند (باید در urls.py تعریف شود)
+                let url = `/path/to/get-subproject-budget/${subprojectId}/`;
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (subprojectBudgetSpan) {
+                            // فرض بر این است که پاسخ شامل فیلد remaining_budget_formatted باشد
+                            subprojectBudgetSpan.textContent = data.remaining_budget_formatted;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching subproject budget:', error);
+                         if (subprojectBudgetSpan) { subprojectBudgetSpan.textContent = 'Error'; }
+                    });
+            }
+
+            // اضافه کردن Event Listener به Select ساب‌پروژه
+            subprojectSelect.addEventListener('change', updateSubprojectBudget);
+
+            // اجرای اولیه تابع در زمان بارگذاری صفحه اگر ساب‌پروژه‌ای از قبل انتخاب شده باشد
+            if (subprojectSelect.value) {
+                 updateSubprojectBudget();
+            }
+            */
+
+
+        });
+
+    </script>
+{% endblock %}
+
+{#{% extends 'base.html' %}#}
+{#{% load i18n static %}#}
+{##}
+{#{% block extra_head %}#}
+{##}
+{#    <style>#}
+{#        body {#}
+{#            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);#}
+{#            font-family: 'Vazir', sans-serif; /* اگه فونت فارسی داری */#}
+{#        }#}
+{#        .card {#}
+{#            border: none;#}
+{#            border-radius: 15px;#}
+{#            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);#}
+{#            overflow: hidden;#}
+{#            transition: transform 0.3s ease;#}
+{#        }#}
+{#        .card:hover {#}
+{#            transform: translateY(-5px);#}
+{#        }#}
+{#        .card-header {#}
+{#            background: linear-gradient(90deg, #007bff, #00d4ff);#}
+{#            color: white;#}
+{#            padding: 1.5rem;#}
+{#            border-bottom: none;#}
+{#        }#}
+{#        .form-label {#}
+{#            font-weight: 600;#}
+{#            color: #333;#}
+{#        }#}
+{#        .form-control, .form-select {#}
+{#            border-radius: 8px;#}
+{#            border: 1px solid #ced4da;#}
+{#            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);#}
+{#            transition: border-color 0.3s ease, box-shadow 0.3s ease;#}
+{#        }#}
+{#        .form-control:focus, .form-select:focus {#}
+{#            border-color: #007bff;#}
+{#            box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);#}
+{#        }#}
+{#        .btn-primary {#}
+{#            background: #007bff;#}
+{#            border: none;#}
+{#            padding: 10px 20px;#}
+{#            border-radius: 8px;#}
+{#            transition: background 0.3s ease;#}
+{#        }#}
+{#        .btn-primary:hover {#}
+{#            background: #0056b3;#}
+{#        }#}
+{#        .btn-secondary {#}
+{#            background: #6c757d;#}
+{#            border: none;#}
+{#            padding: 10px 20px;#}
+{#            border-radius: 8px;#}
+{#            transition: background 0.3s ease;#}
+{#        }#}
+{#        .btn-secondary:hover {#}
+{#            background: #5a6268;#}
+{#        }#}
+{#        .alert {#}
+{#            border-radius: 8px;#}
+{#            box-shadow: 0 4px 10px rgba(0,0,0,0.1);#}
+{#        }#}
+{#        @media (max-width: 768px) {#}
+{#            .col-md-6 {#}
+{#                margin-bottom: 1rem;#}
+{#            }#}
+{#            .card-header {#}
+{#                padding: 1rem;#}
+{#            }#}
+{#            .btn {#}
+{#                width: 100%;#}
+{#                margin-bottom: 0.5rem;#}
+{#            }#}
+{#        }#}
+{#    </style>#}
+{#{% endblock %}#}
+{##}
+{#{% block content %}#}
+{#    <div class="container my-5">#}
+{#        <div class="card">#}
+{#            <div class="card-header">#}
+{#                <h1 class="mb-0">#}
+{#                    <i class="fas fa-edit me-2"></i>{% trans "ایجاد تنخواه جدید" %}#}
+{#                </h1>#}
+{#            </div>#}
+{#            <div class="card-body p-4">#}
+{#                {% if messages %}#}
+{#                    <div class="alert alert-danger alert-dismissible fade show" role="alert">#}
+{#                        {% for message in messages %}#}
+{#                            <div>{{ message }}</div>#}
+{#                        {% endfor %}#}
+{#                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>#}
+{#                    </div>#}
+{#                {% endif %}#}
+{#                <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>#}
+{#                    {% csrf_token %}#}
+{#                    <div class="row g-3">#}
+{#                        {% for field in form %}#}
+{#                            <div class="col-md-6">#}
+{#                                <label for="{{ field.id_for_label }}" class="form-label">#}
+{#                                    <i class="fas fa-{{ field.label|lower|slugify }} me-2"></i>{{ field.label }}#}
+{#                                </label>#}
+{#                                {{ field }}#}
+{#                                {% if field.errors %}#}
+{#                                    <div class="text-danger mt-1">{{ field.errors }}</div>#}
+{#                                {% endif %}#}
+{#                            </div>#}
+{#                        {% endfor %}#}
+{#                    </div>#}
+{#                    <div class="mt-4 d-flex flex-wrap gap-2">#}
+{#                        <button type="submit" class="btn btn-primary">#}
+{#                            <i class="fas fa-save me-2"></i>{% trans "ثبت" %}#}
+{#                        </button>#}
+{#                        <a href="{% url 'tankhah_list' %}" class="btn btn-secondary">#}
+{#                            <i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت" %}#}
+{#                        </a>#}
+{#                    </div>#}
+{#                </form>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#{% endblock %}#}
+{##}
+{#{% block extra_js %}#}
+{#    <script>#}
+{#        $(document).ready(function() {#}
+{#            console.log('jQuery لود شد');#}
+{##}
+{#            // ولیدیشن فرم بوتسترپ#}
+{#            $('form.needs-validation').on('submit', function(event) {#}
+{#                if (!this.checkValidity()) {#}
+{#                    event.preventDefault();#}
+{#                    event.stopPropagation();#}
+{#                }#}
+{#                $(this).addClass('was-validated');#}
+{#            });#}
+{##}
+{#            // لود ساب‌پروژه‌ها#}
+{#            $('#id_project').change(function() {#}
+{#                var projectId = $(this).val();#}
+{#                console.log('پروژه انتخاب شد: ' + projectId);#}
+{#                var $subproject = $('#id_subproject');#}
+{#                $subproject.prop('disabled', true).empty().append('<option value="">در حال بارگذاری...</option>');#}
+{##}
+{#                if (projectId) {#}
+{#                    $.ajax({#}
+{#                        url: '{% url "get_subprojects" %}',#}
+{#                        type: 'GET',#}
+{#                        data: {'project_id': projectId},#}
+{#                        success: function(data) {#}
+{#                            console.log('پاسخ دریافت شد: ', data);#}
+{#                            $subproject.empty().append('<option value="">---------</option>');#}
+{#                            if (data.subprojects.length === 0) {#}
+{#                                $subproject.append('<option value="">هیچ زیرپروژه‌ای یافت نشد</option>');#}
+{#                            } else {#}
+{#                                $.each(data.subprojects, function(index, subproject) {#}
+{#                                    $subproject.append(#}
+{#                                        $('<option>').val(subproject.id).text(subproject.name)#}
+{#                                    );#}
+{#                                });#}
+{#                            }#}
+{#                            $subproject.prop('disabled', false);#}
+{#                        },#}
+{#                        error: function(xhr, status, error) {#}
+{#                            console.error('خطای AJAX: ', status, error, xhr.responseText);#}
+{#                            $subproject.empty().append('<option value="">خطا در بارگذاری</option>');#}
+{#                            $subproject.prop('disabled', false);#}
+{#                        }#}
+{#                    });#}
+{#                } else {#}
+{#                    $subproject.empty().append('<option value="">---------</option>').prop('disabled', false);#}
+{#                }#}
+{#            });#}
+{#        });#}
+{#    </script>#}
+{#{% endblock %}#}

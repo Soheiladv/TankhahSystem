@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+    <h1>{% trans "امضای دستور پرداخت" %} #{{ payment_order.order_number }}</h1>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <div class="payment-order-details">
+        <p><strong>{% trans "شماره دستور پرداخت" %}:</strong> {{ payment_order.order_number }}</p>
+        <p><strong>{% trans "مبلغ" %}:</strong> {{ payment_order.amount|floatformat:2 }} {% trans "ریال" %}</p>
+        <p><strong>{% trans "دریافت‌کننده" %}:</strong> {{ payment_order.payee|default:"-" }}</p>
+        <p><strong>{% trans "وضعیت" %}:</strong> {{ payment_order.get_status_display }}</p>
+        <p><strong>{% trans "تاریخ صدور" %}:</strong> {{ payment_order.issue_date|date:"Y-m-d" }}</p>
+        <p><strong>{% trans "شرح پرداخت" %}:</strong> {{ payment_order.description }}</p>
+        <p><strong>{% trans "فاکتورهای مرتبط" %}:</strong>
+            {% for factor in payment_order.related_factors.all %}
+                <a href="{% url 'factor_detail' pk=factor.pk %}">{{ factor.id }}</a>{% if not forloop.last %}, {% endif %}
+            {% empty %}
+                {% trans "هیچ فاکتوری" %}
+            {% endfor %}
+        </p>
+        <p><strong>{% trans "تعداد امضاها" %}:</strong> {{ payment_order.approval_logs.filter(action='APPROVE').count }} / {{ payment_order.min_signatures }}</p>
+    </div>
+
+    {% if payment_order.status in 'DRAFT,PENDING_SIGNATURES' %}
+        <form method="post" action="{% url 'payment_order_sign' pk=payment_order.pk %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="comment">{% trans "توضیحات (اختیاری)" %}:</label>
+                <textarea name="comment" id="comment" class="form-control"></textarea>
+            </div>
+            <button type="submit" name="action" value="approve" class="btn btn-success">{% trans "امضا" %}</button>
+            <button type="submit" name="action" value="reject" class="btn btn-danger">{% trans "رد" %}</button>
+        </form>
+    {% else %}
+        <p>{% trans "این دستور پرداخت قابل امضا نیست (وضعیت:" %} {{ payment_order.get_status_display }}).</p>
+    {% endif %}
+
+    <h2>{% trans "تاریخچه امضاها" %}</h2>
+    <ul>
+        {% for log in payment_order.approval_logs.all %}
+            <li>{{ log.action }} توسط {{ log.user.username }} در {{ log.timestamp }}: {{ log.comment|default:"-" }}</li>
+        {% empty %}
+            <li>{% trans "هیچ امضایی ثبت نشده است." %}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+
+<style>
+    .payment-order-details {
+        margin-bottom: 20px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .btn {
+        margin-right: 10px;
+    }
+</style>

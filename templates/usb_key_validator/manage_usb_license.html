@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "مدیریت لایسنس USB" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>{% trans "مدیریت لایسنس USB" %}</h2>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|safe }}</li> {# |safe برای نمایش HTML در پیام‌ها #}
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <p>{% trans "در این بخش می‌توانید اطلاعات لایسنس (شامل کلید اصلی رمزنگاری) را روی یک فلش USB ذخیره کرده یا از آن بخوانید." %}</p>
+    <p>{% trans "این فایل لایسنس در مسیر " %}<code>{{ current_license_config_path_from_settings }}</code>{% trans " در سیستم اصلی خوانده می‌شود." %}</p>
+
+    <form method="post" id="usb_form">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.usb_device.label_tag }}
+            {% if usb_drives %}
+                {% for radio in form.usb_device %}
+                    <div class="form-check">
+                        {{ radio.tag }}
+                        <label class="form-check-label" for="{{ radio.id_for_label }}">
+                            {{ radio.choice_label }}
+                        </label>
+                    </div>
+                {% endfor %}
+                <div class="form-text text-muted">{{ form.usb_device.help_text }}</div>
+            {% else %}
+                <p class="text-danger">{% trans "هیچ درایو Removable (USB) یافت نشد." %}</p>
+                <p class="text-info">{% trans "لطفاً فلش USB را متصل کرده و از درست Mount شدن آن در لینوکس (یا شناسایی در ویندوز) اطمینان حاصل کنید." %}</p>
+            {% endif %}
+        </div>
+
+        <h4 class="mt-4">{% trans "عملیات:" %}</h4>
+
+        <div class="mb-3">
+            {{ form.new_max_users.label_tag }}
+            {{ form.new_max_users }}
+            {% if form.new_max_users.help_text %}<div class="form-text text-muted">{{ form.new_max_users.help_text }}</div>{% endif %}
+            {% if form.new_max_users.errors %}<div class="text-danger">{{ form.new_max_users.errors }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.new_organization_name.label_tag }}
+            {{ form.new_organization_name }}
+            {% if form.new_organization_name.help_text %}<div class="form-text text-muted">{{ form.new_organization_name.help_text }}</div>{% endif %}
+            {% if form.new_organization_name.errors %}<div class="text-danger">{{ form.new_organization_name.errors }}</div>{% endif %}
+        </div>
+
+
+        <div class="btn-group" role="group" aria-label="USB operations">
+            <button type="submit" name="action" value="generate_and_save" class="btn btn-success me-2" {% if not usb_drives %}disabled{% endif %}>
+                {% trans "تولید و ذخیره لایسنس جدید در USB" %}
+            </button>
+            <button type="submit" name="action" value="read_and_display" class="btn btn-info me-2" {% if not usb_drives %}disabled{% endif %}>
+                {% trans "خواندن و نمایش لایسنس از USB" %}
+            </button>
+            <button type="submit" name="action" value="copy_to_system_config" class="btn btn-warning me-2" {% if not usb_drives %}disabled{% endif %}>
+                {% trans "کپی لایسنس از USB به کانفیگ سیستم" %}
+            </button>
+        </div>
+    </form>
+
+    <hr class="mt-5">
+    <h3>{% trans "تنظیمات لایسنس فعلی سیستم (از فایل کانفیگ)" %}</h3>
+    <p>{% trans "کلید Fernet (اصلی):" %} <strong>{{ current_fernet_key_from_settings|truncatechars:10 }}...</strong></p>
+    <p>{% trans "حداکثر کاربران فعال:" %} <strong>{{ current_max_users_from_settings }}</strong></p>
+    <p>{% trans "نام مجموعه:" %} <strong>{{ current_org_name_from_settings }}</strong></p>
+    <p>{% trans "مسیر فایل کانفیگ:" %} <code>{{ current_license_config_path_from_settings }}</code></p>
+    <p class="text-info">{% trans "این اطلاعات از فایل کانفیگ سیستم خوانده شده‌اند و لزوماً با اطلاعات روی فلش USB مطابقت ندارند تا زمانی که لایسنس را کپی و سرویس را راه‌اندازی مجدد کنید." %}</p>
+
+</div>
+{% endblock %}

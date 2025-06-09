@@ -1,0 +1,87 @@
+2025-04-29 13:20:25,913 - INFO - Watching for file changes with StatReloader
+2025-04-29 13:20:29,551 - INFO - œ—ŒÊ«”  »Â: /tankhah/factor/create/, ò«—»—: admin
+2025-04-29 13:20:29,796 - INFO - User admin is superuser or HQ, full access granted
+2025-04-29 13:20:29,812 - INFO - User admin is superuser or HQ, full access granted
+2025-04-29 13:20:35,852 - INFO - œ—ŒÊ«”  »Â: /accounts/heartbeat/, ò«—»—: jj
+2025-04-29 13:20:56,164 - INFO - œ—ŒÊ«”  »Â: /tankhah/factor/create/, ò«—»—: admin
+2025-04-29 13:20:56,372 - INFO - User admin is superuser or HQ, full access granted
+2025-04-29 13:20:56,607 - ERROR - Internal Server Error: /tankhah/factor/create/
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\core\PermissionBase.py", line 110, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\contrib\auth\mixins.py", line 73, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\views.py", line 194, in post
+    return self.form_invalid(form)
+           ~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\edit.py", line 67, in form_invalid
+    return self.render_to_response(self.get_context_data(form=form))
+                                   ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\views.py", line 156, in get_context_data
+    context = super().get_context_data(**kwargs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\edit.py", line 73, in get_context_data
+    return super().get_context_data(**kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\views\generic\detail.py", line 95, in get_context_data
+    if self.object:
+       ^^^^^^^^^^^
+AttributeError: 'FactorCreateView' object has no attribute 'object'
+2025-04-29 13:20:57,018 - INFO - œ—ŒÊ«”  »Â: /favicon.ico, ò«—»—: admin
+2025-04-29 13:21:09,851 - INFO - D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\views.py changed, reloading.
+2025-04-29 13:21:11,849 - INFO - Watching for file changes with StatReloader
+2025-04-29 13:21:12,986 - INFO - œ—ŒÊ«”  »Â: /tankhah/factor/create/, ò«—»—: admin
+2025-04-29 13:21:13,082 - INFO - User admin is superuser or HQ, full access granted
+2025-04-29 13:21:13,107 - INFO - User admin is superuser or HQ, full access granted
+2025-04-29 13:21:35,855 - INFO - œ—ŒÊ«”  »Â: /accounts/heartbeat/, ò«—»—: jj
+2025-04-29 13:21:43,329 - INFO - œ—ŒÊ«”  »Â: /tankhah/factor/create/, ò«—»—: admin
+2025-04-29 13:21:43,627 - INFO - User admin is superuser or HQ, full access granted
+2025-04-29 13:21:43,686 - INFO - User admin is superuser or HQ, full access granted
+2025-04-29 13:21:50,142 - INFO - œ—ŒÊ«”  »Â: /tankhah/factor/create/, ò«—»—: admin
+2025-04-29 13:21:50,306 - INFO - User admin is superuser or HQ, full access granted
+2025-04-29 13:21:50,344 - INFO - User admin is superuser or HQ, full access granted
+2025-04-29 13:22:35,796 - INFO - œ—ŒÊ«”  »Â: /accounts/heartbeat/, ò«—»—: jj
+2025-04-29 13:23:32,306 - INFO - D:\Design & Source Code\Source Coding\Tanbakhsystem\Tanbakhsystem\settings.py changed, reloading.
+2025-04-29 13:23:33,881 - INFO - Watching for file changes with StatReloader
+2025-04-29 13:23:35,815 - INFO - œ—ŒÊ«”  »Â: /accounts/heartbeat/, ò«—»—: jj
+2025-04-29 13:23:51,621 - INFO - D:\Design & Source Code\Source Coding\Tanbakhsystem\Tanbakhsystem\settings.py changed, reloading.
+2025-04-29 13:23:53,172 - INFO - Watching for file changes with StatReloader
+2025-04-29 13:24:24,712 - INFO - D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\forms.py changed, reloading.
+2025-04-29 13:24:26,096 - INFO - Watching for file changes with StatReloader
+2025-04-29 13:24:35,839 - INFO - œ—ŒÊ«”  »Â: /accounts/heartbeat/, ò«—»—: jj
+2025-04-29 13:24:55,428 - INFO - D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\forms.py changed, reloading.
+2025-04-29 13:24:56,958 - INFO - Watching for file changes with StatReloader
+2025-04-29 13:25:35,911 - INFO - œ—ŒÊ«”  »Â: /accounts/heartbeat/, ò«—»—: jj
+2025-04-29 13:25:52,686 - INFO - D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\forms.py changed, reloading.
+2025-04-29 13:25:53,924 - INFO - Watching for file changes with StatReloader
+2025-04-29 13:26:35,884 - INFO - œ—ŒÊ«”  »Â: /accounts/heartbeat/, ò«—»—: jj
+2025-04-29 13:27:35,836 - INFO - œ—ŒÊ«”  »Â: /accounts/heartbeat/, ò«—»—: jj
+2025-04-29 13:27:36,549 - INFO - D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\views.py changed, reloading.
+2025-04-29 13:27:38,545 - INFO - Watching for file changes with StatReloader
+2025-04-29 13:27:44,313 - INFO - œ—ŒÊ«”  »Â: /tankhah/factor/create/, ò«—»—: jj
+2025-04-29 13:27:45,455 - INFO - Form kwargs: {'initial': {}, 'prefix': None, 'data': <QueryDict: {'csrfmiddlewaretoken': ['wqczhMaifmiB8VBnpObsxhBcKfRkgdkigJPzI1yf8WWwF032sxac8jYQdmjjrixL'], 'tankhah': ['14'], 'date': ['1404/02/09'], 'amount': ['8500000'], 'description': ['8500000'], 'form-TOTAL_FORMS': ['2'], 'form-INITIAL_FORMS': ['0'], 'form-MIN_NUM_FORMS': ['1'], 'form-MAX_NUM_FORMS': ['100'], 'form-0-id': [''], 'form-0-description': ['8500000'], 'form-0-amount': ['8500000'], 'form-0-quantity': ['1'], 'form-1-id': [''], 'form-1-description': [''], 'form-1-amount': [''], 'form-1-quantity': ['1'], 'files': ['']}>, 'files': <MultiValueDict: {}>, 'instance': None, 'user': <SimpleLazyObject: <CustomUser: jj>>}
+2025-04-29 13:28:35,826 - INFO - œ—ŒÊ«”  »Â: /accounts/heartbeat/, ò«—»—: jj
+2025-04-29 13:29:35,820 - INFO - œ—ŒÊ«”  »Â: /accounts/heartbeat/, ò«—»—: jj
+2025-04-29 13:29:56,307 - INFO - D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\forms.py changed, reloading.
+2025-04-29 13:29:58,131 - INFO - Watching for file changes with StatReloader
+2025-04-29 13:30:06,021 - INFO - œ—ŒÊ«”  »Â: /tankhah/factor/create/, ò«—»—: jj
+2025-04-29 13:30:06,678 - INFO - Form kwargs: {'initial': {}, 'prefix': None, 'data': <QueryDict: {'csrfmiddlewaretoken': ['HhJEvgyM4HeJXJRZ8gShTRvrySJ6RHYyrAmEWvWJXhSEuOjEbZR1uTS51Zb52Mb1'], 'tankhah': ['14'], 'date': ['1404/02/09'], 'amount': ['8500000'], 'description': ['8500000'], 'form-TOTAL_FORMS': ['2'], 'form-INITIAL_FORMS': ['0'], 'form-MIN_NUM_FORMS': ['1'], 'form-MAX_NUM_FORMS': ['100'], 'form-0-id': [''], 'form-0-description': ['8500000'], 'form-0-amount': ['8500000'], 'form-0-quantity': ['1'], 'form-1-id': [''], 'form-1-description': [''], 'form-1-amount': [''], 'form-1-quantity': ['1'], 'files': ['']}>, 'files': <MultiValueDict: {}>, 'instance': None, 'user': <SimpleLazyObject: <CustomUser: jj>>}
+2025-04-29 13:30:35,838 - INFO - œ—ŒÊ«”  »Â: /accounts/heartbeat/, ò«—»—: jj
+2025-04-29 13:31:35,813 - INFO - œ—ŒÊ«”  »Â: /accounts/heartbeat/, ò«—»—: jj
+2025-04-29 13:32:22,330 - INFO - Watching for file changes with StatReloader
+2025-04-29 13:32:35,861 - INFO - œ—ŒÊ«”  »Â: /accounts/heartbeat/, ò«—»—: jj
+2025-04-29 13:32:50,765 - INFO - D:\Design & Source Code\Source Coding\Tanbakhsystem\Tanbakhsystem\settings.py changed, reloading.
+2025-04-29 13:32:52,074 - INFO - Watching for file changes with StatReloader
+2025-04-29 13:32:56,982 - INFO - œ—ŒÊ«”  »Â: /tankhah/factor/create/, ò«—»—: jj
+2025-04-29 13:32:57,957 - INFO - Form kwargs: {'initial': {}, 'prefix': None, 'data': <QueryDict: {'csrfmiddlewaretoken': ['SZrCKRnEw1zTjBHLmvUxhmubJCVpn3H4Ci4Cb6LBpBdOQG9qpeThSoRPcJnoy8Ux'], 'tankhah': ['14'], 'date': ['1404/02/09'], 'amount': ['8500000'], 'description': ['8500000'], 'form-TOTAL_FORMS': ['2'], 'form-INITIAL_FORMS': ['0'], 'form-MIN_NUM_FORMS': ['1'], 'form-MAX_NUM_FORMS': ['100'], 'form-0-id': [''], 'form-0-description': ['8500000'], 'form-0-amount': ['8500000'], 'form-0-quantity': ['1'], 'form-1-id': [''], 'form-1-description': [''], 'form-1-amount': [''], 'form-1-quantity': ['1'], 'files': ['']}>, 'files': <MultiValueDict: {}>, 'instance': None, 'user': <SimpleLazyObject: <CustomUser: jj>>}
+2025-04-29 13:33:19,441 - INFO - D:\Design & Source Code\Source Coding\Tanbakhsystem\Tanbakhsystem\settings.py changed, reloading.

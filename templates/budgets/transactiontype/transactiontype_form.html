@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}{% if form.instance.pk %}ویرایش{% else %}ایجاد{% endif %} نوع تراکنش{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-success text-white">
+        <h3 class="mb-0">{% if form.instance.pk %}ویرایش{% else %}ایجاد{% endif %} نوع تراکنش</h3>
+    </div>
+    <div class="card-body">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="row">
+                {% for field in form %}
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <div class="text-danger">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-primary">ذخیره</button>
+            <a href="{% url 'transactiontype_list' %}" class="btn btn-secondary">انصراف</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

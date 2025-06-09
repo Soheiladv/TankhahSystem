@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load i18n %} {# Load the i18n tags for translation #}
+
+{% block content %}
+<div class="container mt-4">
+    {# Page Title, aligned right #}
+    <h1 class="mb-4 text-right">{{ title }}</h1>
+
+    {# Card container for the form #}
+    <div class="card shadow-sm">
+        {# Card header with conditional title (Create/Edit) #}
+        <div class="card-header bg-primary text-white text-right">
+            {% if object %}
+                {% trans "ویرایش قانون دسترسی" %} {# Title for edit mode #}
+            {% else %}
+                {% trans "ایجاد قانون دسترسی جدید" %} {# Title for create mode #}
+            {% endif %}
+        </div>
+
+        {# Card body containing the form and help text #}
+        <div class="card-body">
+            {# Help/Guidance Section #}
+            <div class="alert alert-info text-right" role="alert">
+                <h4 class="alert-heading">{% trans "راهنمای ثبت قانون دسترسی" %}</h4>
+                <p>{% trans "این فرم برای تعریف قوانین دسترسی در سیستم طراحی شده است. می‌توانید با استفاده از فیلدهای زیر، پارامترهای مورد نیاز برای کنترل دسترسی کاربران به بخش‌های مختلف سیستم را مشخص کنید." %}</p> {# Expanded help text slightly #}
+                {# Link to user guide #}
+                <a href="{% url 'user_Giud_AccessRule' %}" class="alert-link">{% trans "مشاهده راهنمای کامل کاربر" %}</a> {# Added text to link #}
+                {# Additional help points could be added here using <ul> or <p> tags #}
+            </div>
+
+            {# The Form itself #}
+            <form method="post">
+                {% csrf_token %} {# Django CSRF protection token #}
+
+                {# Form fields layout using Bootstrap grid #}
+                <div class="row">
+                    {% for field in form %} {# Loop through each field in the form object #}
+                    <div class="col-md-6 mb-3"> {# Each field takes half width on medium-up screens #}
+                        {# Field Label #}
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+
+                        {# Field Widget (Input, Select, etc.) #}
+                        {{ field }}
+
+                        {# Display field errors if any #}
+                        {% if field.errors %}
+                        <div class="text-danger">
+                            {% for error in field.errors %}
+                            <small>{{ error }}</small>{% if not forloop.last %}<br>{% endif %} {# Show each error on a new line #}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {# Form Action Buttons, aligned right #}
+                <div class="text-right">
+                    {# Save Button #}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> {% trans "ذخیره" %}
+                    </button>
+
+                    {# Cancel Button/Link #}
+                    <a href="{% url 'accessrule_list' %}" class="btn btn-secondary mr-2"> {# Added margin-right for spacing #}
+                        <i class="fas fa-arrow-right"></i> {% trans "لغو" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

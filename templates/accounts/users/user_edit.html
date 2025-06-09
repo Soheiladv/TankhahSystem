@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-info-circle"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <h2 class="text-primary mb-3 text-center">
+        {% if form.instance.pk %}
+            <i class="fas fa-edit"></i> ویرایش اطلاعات کاربر
+        {% else %}
+            <i class="fas fa-user-plus"></i> ایجاد کاربر
+        {% endif %}
+    </h2>
+
+    <form method="post" class="row g-3">
+        {% csrf_token %}
+
+        <!-- نام کاربری -->
+        <div class="col-md-6">
+            <label for="id_username" class="form-label"><i class="fas fa-user"></i> نام کاربری</label>
+            <input type="text" name="username" id="id_username" value="{{ form.username.value }}" class="form-control" placeholder="نام کاربری">
+        </div>
+
+        <!-- ایمیل -->
+        <div class="col-md-6">
+            <label for="id_email" class="form-label"><i class="fas fa-envelope"></i> ایمیل</label>
+            <input type="email" name="email" id="id_email" value="{{ form.email.value }}" class="form-control" placeholder="ایمیل">
+        </div>
+
+        <!-- نام -->
+        <div class="col-md-6">
+            <label for="id_first_name" class="form-label"><i class="fas fa-id-card"></i> نام</label>
+            <input type="text" name="first_name" id="id_first_name" value="{{ form.first_name.value }}" class="form-control" placeholder="نام">
+        </div>
+
+        <!-- نام خانوادگی -->
+        <div class="col-md-6">
+            <label for="id_last_name" class="form-label"><i class="fas fa-id-card-alt"></i> نام خانوادگی</label>
+            <input type="text" name="last_name" id="id_last_name" value="{{ form.last_name.value }}" class="form-control" placeholder="نام خانوادگی">
+        </div>
+
+            <div class="form-group">
+                {{ form.password1.label_tag }}
+                {{ form.password1 }}
+            </div>
+            <div class="form-group">
+                {{ form.password2.label_tag }}
+                {{ form.password2 }}
+            </div>
+        <!-- گروه‌ها -->
+        <div class="col-md-6">
+            <label for="id_groups" class="form-label"><i class="fas fa-users"></i> گروه‌ها</label>
+            <select name="groups" id="id_groups" multiple class="form-control">
+                {% for group in groups %}
+                    <option value="{{ group.id }}" {% if group in object.groups.all %}selected{% endif %}>{{ group.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- نقش -->
+        <div class="col-md-6">
+            <label for="id_role" class="form-label"><i class="fas fa-briefcase"></i> نقش</label>
+            <select name="role" id="id_role" class="form-control">
+                <option value="">بدون نقش</option>
+                {% for role in roles %}
+                    <option value="{{ role.id }}" {% if object.role and role.id == object.role.id %}selected{% endif %}>{{ role.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- وضعیت فعال بودن -->
+        <div class="col-md-6 form-check">
+            <input type="checkbox" name="is_active" id="id_is_active" class="form-check-input" {% if form.is_active.value %}checked{% endif %}>
+            <label class="form-check-label" for="id_is_active"><i class="fas fa-check-circle"></i> فعال</label>
+        </div>
+
+        <!-- عضو تیم بودن -->
+        <div class="col-md-6 form-check">
+            <input type="checkbox" name="is_staff" id="id_is_staff" class="form-check-input" {% if form.is_staff.value %}checked{% endif %}>
+            <label class="form-check-label" for="id_is_staff"><i class="fas fa-users-cog"></i> عضو تیم</label>
+        </div>
+
+        <!-- دکمه‌ها در یک ردیف -->
+        <div class="col-12 d-flex justify-content-between mt-3">
+            <!-- دکمه ذخیره تغییرات -->
+            <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> ذخیره تغییرات</button>
+
+            <!-- دکمه بازگشت به لیست -->
+            <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> بازگشت به لیست</a>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

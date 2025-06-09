@@ -1,0 +1,308 @@
+{% extends "base.html" %} {# یا بیس تمپلیت اصلی شما #}
+{% load static i18n rcms_custom_filters %} {# widget_tweaks برای استایل‌دهی بهتر فرم #}
+
+{% block title %}{% translate "تغییر وضعیت و مرحله تنخواه" %} - {{ tankhah.number }}{% endblock %}
+
+{% block page_title %}
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold text-gradient">
+                <i class="fas fa-exchange-alt me-2"></i>{% translate "تغییر وضعیت/مرحله تنخواه" %}
+            </h2>
+            <h5 class="text-muted">{{ tankhah.number }} - {% translate "مبلغ:" %} {{ tankhah.amount|format_negative }} {% translate "ریال" %}</h5>
+        </div>
+        <a href="{% url 'tankhah_detail' tankhah.pk %}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> {% translate "بازگشت به جزئیات تنخواه" %}
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">{% translate "به‌روزرسانی تنخواه شماره:" %} {{ tankhah.number }}</h4>
+                </div>
+                <div class="card-body p-4">
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>{% translate "خطا در فرم:" %}</strong>
+                            <ul>
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ field|capfirst }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label fw-semibold">{% translate "وضعیت جدید تنخواه:" %}</label>
+                            {% render_field form.status class="form-select form-select-lg shadow-sm" %}
+                            {% if form.status.help_text %}
+                                <small class="form-text text-muted">{{ form.status.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.status.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.current_stage.id_for_label }}" class="form-label fw-semibold">{% translate "مرحله جدید گردش کار:" %}</label>
+                            {% render_field form.current_stage class="form-select form-select-lg shadow-sm" %}
+                            {% if form.current_stage.help_text %}
+                                <small class="form-text text-muted">{{ form.current_stage.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.current_stage.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        {# می‌توانید فیلد توضیحات (comment) برای ثبت دلیل تغییر وضعیت اضافه کنید #}
+                        {# <div class="mb-3">
+                            <label for="id_comment" class="form-label">{% translate "توضیحات تغییر (اختیاری):" %}</label>
+                            <textarea name="comment" id="id_comment" class="form-control" rows="3"></textarea>
+                        </div> #}
+
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                                <i class="fas fa-save me-2"></i>{% translate "ذخیره تغییرات" %}
+                            </button>
+                            <a href="{% url 'tankhah_detail' tankhah.pk %}" class="btn btn-outline-secondary">
+                                {% translate "انصراف" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-muted small text-center">
+                    {% blocktranslate with user_fullname=request.user.get_full_name|default:request.user.username %}
+                        تغییرات توسط شما ({{ user_fullname }}) ثبت خواهد شد.
+                    {% endblocktranslate %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- مودال راهنما (اختیاری) -->
+<div class="modal fade" id="helpModalStatusUpdate" tabindex="-1" aria-labelledby="helpModalStatusUpdateLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="helpModalStatusUpdateLabel"><i class="fas fa-info-circle me-2"></i>{% translate "راهنمای تغییر وضعیت تنخواه" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>{% translate "در این بخش می‌توانید وضعیت و مرحله گردش کار تنخواه انتخاب شده را به‌روز کنید." %}</p>
+                <ul>
+                    <li><strong>{% translate "وضعیت جدید تنخواه:" %}</strong> {% translate "وضعیت کلی تنخواه را مشخص می‌کند (مثلاً تأیید شده، رد شده، پرداخت شده)." %}</li>
+                    <li><strong>{% translate "مرحله جدید گردش کار:" %}</strong> {% translate "تنخواه را به مرحله بعدی یا قبلی در فرآیند تعریف شده منتقل می‌کند." %}</li>
+                </ul>
+                <p class="mt-3">
+                    {% translate "توجه: برخی تغییرات وضعیت یا مرحله ممکن است به صورت خودکار اقدامات دیگری مانند ایجاد دستور پرداخت را فعال کنند." %}
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "متوجه شدم" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // اگر از select2 یا کتابخانه دیگری برای استایل‌دهی select ها استفاده می‌کنید، اینجا مقداردهی اولیه کنید
+    // $(document).ready(function() {
+    //     $('.form-select').select2({
+    //         theme: 'bootstrap-5'
+    //     });
+    // });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .text-gradient {
+        background: linear-gradient(45deg, var(--bs-primary), var(--bs-info));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .card-header h4 {
+        font-weight: 500;
+    }
+    .form-label.fw-semibold {
+        color: #495057; /* رنگ تیره‌تر برای لیبل‌ها */
+    }
+</style>
+{% endblock %}
+
+
+
+<!--
+{##}
+{#<!DOCTYPE html>#}
+{#<html lang="fa" dir="rtl">#}
+{#<head>#}
+{#    <meta charset="UTF-8">#}
+{#    <meta name="viewport" content="width=device-width, initial-scale=1.0">#}
+{#    <title>تغییر وضعیت تنخواه - شماره XYZ123</title>#}
+{#    <!-- Bootstrap CSS (مثال) -->#}
+{#    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">#}
+{#    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">#}
+{#    <style>#}
+{#        body {#}
+{#            background-color: #f8f9fa;#}
+{#            font-family: 'Vazirmatn', sans-serif; /* یک فونت فارسی مناسب */#}
+{#        }#}
+{#        .text-gradient {#}
+{#            background: linear-gradient(45deg, #0d6efd, #0dcaf0);#}
+{#            -webkit-background-clip: text;#}
+{#            -webkit-text-fill-color: transparent;#}
+{#        }#}
+{#        .card-header h4 {#}
+{#            font-weight: 500;#}
+{#        }#}
+{#        .form-label.fw-semibold {#}
+{#            color: #495057;#}
+{#        }#}
+{#        /* استایل‌های دیگر از پاسخ قبلی ... */#}
+{#    </style>#}
+{#</head>#}
+{#<body>#}
+{##}
+{#    <header class="py-3 mb-4 border-bottom bg-white shadow-sm">#}
+{#        <div class="container d-flex justify-content-between align-items-center">#}
+{#            <h1 class="h4">سیستم تنخواه و بودجه</h1>#}
+{#            <nav>#}
+{#                <a href="#" class="text-decoration-none me-3">داشبورد</a>#}
+{#                <a href="#" class="text-decoration-none">خروج</a>#}
+{#            </nav>#}
+{#        </div>#}
+{#    </header>#}
+{##}
+{#    <main class="container py-4">#}
+{#        {% block page_title %}#}
+{#        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">#}
+{#            <div>#}
+{#                <h2 class="fw-bold text-gradient">#}
+{#                    <i class="fas fa-exchange-alt me-2"></i>تغییر وضعیت/مرحله تنخواه#}
+{#                </h2>#}
+{#                {% if tankhah %}#}
+{#                <h5 class="text-muted">{{ tankhah.number }} - مبلغ: {{ tankhah.amount|floatformat:"0" }} ریال</h5>#}
+{#                {% else %}#}
+{#                <h5 class="text-muted">اطلاعات تنخواه در دسترس نیست</h5>#}
+{#                {% endif %}#}
+{#            </div>#}
+{#            {% if tankhah %}#}
+{#            <a href="#" class="btn btn-outline-secondary btn-sm"> {# {% url 'tankhah:tankhah_detail' tankhah.pk %} #}
+{#                <i class="fas fa-arrow-left me-1"></i> بازگشت به جزئیات تنخواه#}
+{#            </a>#}
+{#            {% endif %}#}
+{#        </div>#}
+{#        {% endblock %}#}
+{##}
+{#        <div class="container mt-4">#}
+{#            <div class="row justify-content-center">#}
+{#                <div class="col-md-8 col-lg-7">#}
+{#                    <div class="card shadow-lg border-0 rounded-lg">#}
+{#                        <div class="card-header bg-primary text-white text-center">#}
+{#                            <h4 class="mb-0">به‌روزرسانی تنخواه شماره: {% if tankhah %}{{ tankhah.number }}{% else %}N/A{% endif %}</h4>#}
+{#                        </div>#}
+{#                        <div class="card-body p-4">#}
+{#                            {% if form.errors %}#}
+{#                                <div class="alert alert-danger">#}
+{#                                    <strong>خطا در فرم:</strong>#}
+{#                                    <ul>#}
+{#                                        {% for field, errors_list in form.errors.items %}#}
+{#                                            {% for error in errors_list %}#}
+{#                                                <li>{% if field != '__all__' %}{{ form|get_field_label:field }}: {% endif %}{{ error }}</li>#}
+{#                                            {% endfor %}#}
+{#                                        {% endfor %}#}
+{#                                    </ul>#}
+{#                                </div>#}
+{#                            {% endif %}#}
+{##}
+{#                            <form method="post" novalidate>#}
+{#                                {% csrf_token %}#}
+{##}
+{#                                <div class="mb-3">#}
+{#                                    <label for="id_status" class="form-label fw-semibold">وضعیت جدید تنخواه:</label>#}
+{#                                    <select name="status" id="id_status" class="form-select form-select-lg shadow-sm">#}
+{#                                        <!-- گزینه‌ها باید از فرم بیایند -->#}
+{#                                        <option value="PENDING">در انتظار بررسی</option>#}
+{#                                        <option value="APPROVED" selected>تأیید شده</option>#}
+{#                                        <option value="PAID">پرداخت شده</option>#}
+{#                                        <option value="REJECTED">رد شده</option>#}
+{#                                    </select>#}
+{#                                    {% comment %} {% render_field form.status class="form-select form-select-lg shadow-sm" %} {% endcomment %}#}
+{#                                    {% if form.status.help_text %}#}
+{#                                        <small class="form-text text-muted">{{ form.status.help_text }}</small>#}
+{#                                    {% endif %}#}
+{#                                </div>#}
+{##}
+{#                                <div class="mb-4">#}
+{#                                    <label for="id_current_stage" class="form-label fw-semibold">مرحله جدید گردش کار:</label>#}
+{#                                    <select name="current_stage" id="id_current_stage" class="form-select form-select-lg shadow-sm">#}
+{#                                        <!-- گزینه‌ها باید از فرم بیایند -->#}
+{#                                        <option value="1">مرحله بررسی اولیه</option>#}
+{#                                        <option value="2" selected>مرحله تایید مدیر</option>#}
+{#                                        <option value="3">مرحله آماده برای پرداخت</option>#}
+{#                                    </select>#}
+{#                                    {% comment %} {% render_field form.current_stage class="form-select form-select-lg shadow-sm" %} {% endcomment %}#}
+{#                                    {% if form.current_stage.help_text %}#}
+{#                                        <small class="form-text text-muted">{{ form.current_stage.help_text }}</small>#}
+{#                                    {% endif %}#}
+{#                                </div>#}
+{##}
+{#                                <div class="mb-3">#}
+{#                                    <label for="id_comment" class="form-label">توضیحات تغییر (اختیاری):</label>#}
+{#                                    <textarea name="comment" id="id_comment" class="form-control" rows="3" placeholder="دلیل تغییر وضعیت یا ارجاع به مرحله دیگر را وارد کنید..."></textarea>#}
+{#                                </div>#}
+{##}
+{##}
+{#                                <div class="d-grid gap-2 mt-4">#}
+{#                                    <button type="submit" class="btn btn-primary btn-lg shadow-sm">#}
+{#                                        <i class="fas fa-save me-2"></i>ذخیره تغییرات#}
+{#                                    </button>#}
+{#                                    {% if tankhah %}#}
+{#                                    <a href="#" class="btn btn-outline-secondary"> {# {% url 'tankhah:tankhah_detail' tankhah.pk %} #}
+{#                                        انصراف#}
+{#                                    </a>#}
+{#                                    {% endif %}#}
+{#                                </div>#}
+{#                            </form>#}
+{#                        </div>#}
+{#                        <div class="card-footer text-muted small text-center">#}
+{#                            تغییرات توسط شما (نام کاربر لاگین کرده) ثبت خواهد شد.#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </main>#}
+{##}
+{#    <footer class="py-4 mt-auto bg-light">#}
+{#        <div class="container text-center">#}
+{#            <small class="text-muted">تمامی حقوق برای سیستم تنخواه و بودجه محفوظ است © {% now "Y" %}</small>#}
+{#        </div>#}
+{#    </footer>#}
+{##}
+{#    <!-- Bootstrap JS (مثال) -->#}
+{#    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>#}
+{#    <script>#}
+{#        // کد JavaScript برای مودال یا سایر تعاملات#}
+{#        // مثال: نمایش مودال راهنما#}
+{#        // var helpModal = new bootstrap.Modal(document.getElementById('helpModalStatusUpdate'), {});#}
+{#        // // برای نمایش: helpModal.show();#}
+{#    </script>#}
+{#</body>#}
+{#</html> #}
+-->

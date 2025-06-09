@@ -1,0 +1,676 @@
+{% extends 'base.html' %}
+{% load i18n static rcms_custom_filters jalali_tags %}
+
+{% block title %}{% trans "لیست سازمان‌ها" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .budget-details {
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+    .budget-details div {
+        margin-bottom: 4px;
+    }
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .table {
+        width: 100%;
+        min-width: 1400px;
+    }
+    .card-body {
+        padding: 2rem;
+    }
+    .filter-form .form-control, .filter-form .form-select {
+        height: 44px;
+        border-radius: 0.375rem;
+    }
+    .pagination .page-link {
+        font-size: 1rem;
+        border-radius: 0.25rem;
+    }
+    .sortable:hover {
+        cursor: pointer;
+        background-color: #f8f9fa;
+    }
+
+    .text-negative {
+        color: var(--bs-danger);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">
+                    <i class="fas fa-building me-2"></i>{% trans "لیست سازمان‌ها" %}
+                </h3>
+                <div>
+                    <a href="{% url 'organization_chart' %}" class="btn btn-outline-light btn-sm me-2">
+                        <i class="fas fa-sitemap me-1"></i>{% trans "چارت سازمانی" %}
+                    </a>
+                    <a href="{% url 'organization_create' %}" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus me-1"></i>{% trans "سازمان جدید" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- پیام‌ها -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                aria-label="{% trans 'بستن' %}"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- فیلترها -->
+            <div class="card mb-4 border-light shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>{% trans "فیلترها" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3 filter-form">
+                        <div class="col-md-4 col-lg-3">
+                            <label class="form-label">{% trans "جستجو" %}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" name="q" value="{{ query }}" class="form-control"
+                                       placeholder="{% trans 'کد، نام، توضیحات' %}">
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-lg-2">
+                            <label class="form-label">{% trans "از تاریخ" %}</label>
+                            <input type="text" name="date_from" value="{{ date_from }}"
+                                   class="form-control jalali-datepicker" data-jdp
+                                   placeholder="{% trans 'مثال: 1404/01/01' %}">
+                        </div>
+                        <div class="col-md-4 col-lg-2">
+                            <label class="form-label">{% trans "تا تاریخ" %}</label>
+                            <input type="text" name="date_to" value="{{ date_to }}"
+                                   class="form-control jalali-datepicker" data-jdp
+                                   placeholder="{% trans 'مثال: 1404/12/29' %}">
+                        </div>
+                        <div class="col-md-4 col-lg-2">
+                            <label class="form-label">{% trans "وضعیت" %}</label>
+                            <select name="is_active" class="form-select">
+                                <option value="">{% trans "همه" %}</option>
+                                <option value="true" {% if is_active == 'true' %}selected{% endif %}>{% trans "فعال" %}</option>
+                                <option value="false" {% if is_active == 'false' %}selected{% endif %}>{% trans "غیرفعال" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 col-lg-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter me-1"></i>{% trans "اعمال فیلترها" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- خلاصه اطلاعات -->
+            <div class="alert alert-info mb-4 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="fas fa-info-circle me-2"></i>
+                        {% trans "تعداد کل سازمان‌ها" %}: <strong>{{ total_organizations|to_persian_number }}</strong>
+                    </span>
+                    <a href="{% url 'organization_create' %}" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus me-1"></i>{% trans "سازمان جدید" %}
+                    </a>
+                </div>
+            </div>
+
+            <!-- جدول سازمان‌ها -->
+            <div class="table-responsive">
+                <table class="table table-hover table-striped table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="sortable" width="50">#</th>
+                            <th class="sortable">{% trans "کد سازمان" %}</th>
+                            <th class="sortable">{% trans "نام سازمان" %}</th>
+                            <th class="sortable">{% trans "نوع سازمان" %}</th>
+                            <th class="sortable text-end">{% trans "بودجه تخصیص‌یافته (ریال)" %}</th>
+                            <th class="sortable text-end">{% trans "بودجه مصرف‌شده (ریال)" %}</th>
+                            <th class="sortable text-end">{% trans "مانده بودجه (ریال)" %}</th>
+                            <th class="sortable">{% trans "وضعیت" %}</th>
+                            <th>{% trans "جزئیات بودجه" %}</th>
+                            <th width="300">{% trans "عملیات" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for organization in organizations %}
+                        <tr>
+                            <td>{{ forloop.counter|to_persian_number }}</td>
+                            <td>{{ organization.code|to_persian_number }}</td>
+                            <td>
+                                <a href="{% url 'organization_detail' organization.pk %}" class="text-primary">
+                                    {{ organization.name }}
+                                </a>
+                            </td>
+                            <td>{{ organization.org_type.fname|default:_("نامشخص") }}</td>
+                            <td class="text-end">
+                                {{ organization.budget_details.total_allocated|floatformat:"0"|format_negative }}
+                            </td>
+                            <td class="text-end">
+                                {{ organization.budget_details.total_consumed|floatformat:"0"|format_negative }}
+                            </td>
+                            <td class="text-end {% if organization.budget_details.remaining_budget < 0 %}text-negative{% endif %}">
+                                {{ organization.budget_details.remaining_budget|floatformat:"0"|format_negative }}
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if organization.budget_details.status_message == 'فعال' %}success{% else %}secondary{% endif %}">
+                                    {{ organization.budget_details.status_message }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="budget-details">
+                                    <div><small>{% trans "پروژه‌ها" %}: {{ organization.budget_details.project_count|to_persian_number }}</small></div>
+                                    <div><small>{% trans "تخصیص‌ها" %}: {{ organization.budget_details.allocation_count|to_persian_number }}</small></div>
+                                    <div>
+                                        <small>{% trans "آخرین بروزرسانی" %}:
+                                            {% if organization.budget_details.last_update %}
+                                                {{ organization.budget_details.last_update|to_jalali:"%Y/%m/%d"|to_persian_number }}
+                                            {% else %}
+                                                {% trans "نامشخص" %}
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'organization_detail' organization.pk %}"
+                                       class="btn btn-outline-info" title="{% trans 'جزئیات' %}">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'organization_update' organization.pk %}"
+                                       class="btn btn-outline-warning" title="{% trans 'ویرایش' %}">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'organization_delete' organization.pk %}"
+                                       class="btn btn-outline-danger" title="{% trans 'حذف' %}">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-outline-primary dropdown-toggle"
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-dollar-sign"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item"
+                                                   href="{% url 'project_budget_allocation_list' organization_id=organization.id %}">
+                                                    <i class="fas fa-plus-circle me-1"></i>{% trans "تخصیص بودجه پروژه" %}
+                                                </a>
+                                            </li>
+                                            <li>
+                                                {% with first_allocation=organization.budget_allocations.first %}
+                                                    {% if first_allocation %}
+                                                        <a class="dropdown-item"
+                                                           href="{% url 'budget_allocation_report' first_allocation.id %}">
+                                                            <i class="fas fa-chart-pie me-1"></i>{% trans "گزارش بودجه" %}
+                                                        </a>
+                                                    {% else %}
+                                                        <span class="dropdown-item text-muted">{% trans "بدون تخصیص پروژه فعال" %}</span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center py-4">
+                                <div class="alert alert-warning mb-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    {% trans "سازمانی یافت نشد." %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- صفحه‌بندی -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ page_obj.previous_page_number }}&q={{ query }}&date_from={{ date_from }}&date_to={{ date_to }}&is_active={{ is_active }}">
+                            <i class="fas fa-chevron-right"></i> {% trans "قبلی" %}
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% for num in paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num|to_persian_number }}</span></li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?page={{ num }}&q={{ query }}&date_from={{ date_from }}&date_to={{ date_to }}&is_active={{ is_active }}">
+                                {{ num|to_persian_number }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ page_obj.next_page_number }}&q={{ query }}&date_from={{ date_from }}&date_to={{ date_to }}&is_active={{ is_active }}">
+                            {% trans "بعدی" %} <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <div class="text-center text-muted mt-2">
+                    {% trans "صفحه" %} {{ page_obj.number|to_persian_number }} {% trans "از" %} {{ paginator.num_pages|to_persian_number }}
+                </div>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/persian-date.min.js' %}"></script>
+    <script src="{% static 'js/persian-datepicker.min.js' %}"></script>
+    <link href="{% static 'css/persian-datepicker.min.css' %}" rel="stylesheet">
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // فعال‌سازی تقویم جلالی
+        if (typeof pDatepicker !== 'undefined') {
+            document.querySelectorAll('.jalali-datepicker').forEach(function (element) {
+                new pDatepicker({
+                    element: element,
+                    format: 'YYYY/MM/DD',
+                    autoClose: true,
+                    initialValue: false,
+                    calendar: {
+                        persian: {
+                            locale: 'fa',
+                            showHint: true
+                        }
+                    }
+                });
+            });
+        } else {
+            console.error('pDatepicker is not loaded.');
+        }
+
+        // مرتب‌سازی جدول
+        const sortableHeaders = document.querySelectorAll('.sortable');
+        sortableHeaders.forEach(header => {
+            header.addEventListener('click', function () {
+                const table = this.closest('table');
+                const index = Array.from(this.parentElement.children).indexOf(this);
+                const rows = Array.from(table.querySelectorAll('tbody tr')).slice(0);
+                const isAscending = !this.classList.contains('asc');
+                this.classList.toggle('asc');
+
+                rows.sort((rowA, rowB) => {
+                    let valA = rowA.children[index].textContent.replace(/,/g, '');
+                    let valB = rowB.children[index].textContent.replace(/,/g, '');
+                    valA = isNaN(valA) ? valA.toLowerCase() : parseFloat(valA);
+                    valB = isNaN(valB) ? valB.toLowerCase() : parseFloat(valB);
+                    return isAscending
+                        ? (valA > valB ? 1 : -1)
+                        : (valA < valB ? 1 : -1);
+                });
+
+                const tbody = table.querySelector('tbody');
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        });
+    });
+</script>
+{% endblock %}
+<!--
+{#{% extends 'base.html' %}#}
+{#{% load i18n rcms_custom_filters jalali_tags %}#}
+{##}
+{#{% block title %}{% trans "لیست سازمان‌ها" %}{% endblock %}#}
+{##}
+{#{% block extra_css %}#}
+{#<style>#}
+{#    .budget-details {#}
+{#        font-size: 0.9rem;#}
+{#        line-height: 1.6;#}
+{#    }#}
+{#    .budget-details div {#}
+{#        margin-bottom: 4px;#}
+{#    }#}
+{#    .table-responsive {#}
+{#        overflow-x: auto;#}
+{#        -webkit-overflow-scrolling: touch;#}
+{#    }#}
+{#    .table {#}
+{#        width: 100%;#}
+{#        min-width: 1200px; /* حداقل عرض برای جلوگیری از فشردگی */#}
+{#    }#}
+{#    .card-body {#}
+{#        padding: 2rem;#}
+{#    }#}
+{#    .filter-form .form-control, .filter-form .form-select {#}
+{#        height: 44px;#}
+{#    }#}
+{#    .pagination .page-link {#}
+{#        font-size: 1rem;#}
+{#    }#}
+{#    .sortable:hover {#}
+{#        cursor: pointer;#}
+{#        background-color: #f8f9fa;#}
+{#    }#}
+{#</style>#}
+{#{% endblock %}#}
+{##}
+{#{% block content %}#}
+{#<div class="container-fluid py-4">#}
+{#    <div class="card shadow-sm">#}
+{#        <div class="card-header bg-primary text-white">#}
+{#            <div class="d-flex justify-content-between align-items-center">#}
+{#                <h3 class="mb-0">#}
+{#                    <i class="fas fa-building me-2"></i>{% trans "لیست سازمان‌ها" %}#}
+{#                </h3>#}
+{#                <div>#}
+{#                    <a href="{% url 'organization_chart' %}" class="btn btn-light btn-sm me-2">#}
+{#                        <i class="fas fa-sitemap me-1"></i>{% trans "چارت سازمانی" %}#}
+{#                    </a>#}
+{#                    <a href="{% url 'organization_create' %}" class="btn btn-success btn-sm">#}
+{#                        <i class="fas fa-plus me-1"></i>{% trans "سازمان جدید" %}#}
+{#                    </a>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{##}
+{#        <div class="card-body">#}
+{#            <!-- فیلترها -->#}
+{#            <div class="card mb-4 border-light shadow-sm">#}
+{#                <div class="card-header bg-light">#}
+{#                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>{% trans "فیلترها" %}</h5>#}
+{#                </div>#}
+{#                <div class="card-body">#}
+{#                    <form method="get" class="row g-3 filter-form">#}
+{#                        <div class="col-md-4 col-lg-3">#}
+{#                            <label class="form-label">{% trans "جستجو" %}</label>#}
+{#                            <div class="input-group">#}
+{#                                <span class="input-group-text"><i class="fas fa-search"></i></span>#}
+{#                                <input type="text" name="q" value="{{ query }}" class="form-control"#}
+{#                                       placeholder="{% trans 'کد، نام، توضیحات' %}">#}
+{#                            </div>#}
+{#                        </div>#}
+{##}
+{#                        <div class="col-md-4 col-lg-2">#}
+{#                            <label class="form-label">{% trans "از تاریخ" %}</label>#}
+{#                            <input type="text" name="date_from" value="{{ date_from }}"#}
+{#                                   class="form-control jalali-datepicker" data-jdp#}
+{#                                   placeholder="{% trans 'مثال: 1404/01/01' %}">#}
+{#                        </div>#}
+{##}
+{#                        <div class="col-md-4 col-lg-2">#}
+{#                            <label class="form-label">{% trans "تا تاریخ" %}</label>#}
+{#                            <input type="text" name="date_to" value="{{ date_to }}"#}
+{#                                   class="form-control jalali-datepicker" data-jdp#}
+{#                                   placeholder="{% trans 'مثال: 1404/12/29' %}">#}
+{#                        </div>#}
+{##}
+{#                        <div class="col-md-4 col-lg-2">#}
+{#                            <label class="form-label">{% trans "وضعیت" %}</label>#}
+{#                            <select name="is_active" class="form-select">#}
+{#                                <option value="">{% trans "همه" %}</option>#}
+{#                                <option value="true" {% if is_active == 'true' %}selected{% endif %}>{% trans "فعال" %}</option>#}
+{#                                <option value="false" {% if is_active == 'false' %}selected{% endif %}>{% trans "غیرفعال" %}</option>#}
+{#                            </select>#}
+{#                        </div>#}
+{##}
+{#                        <div class="col-md-4 col-lg-3 d-flex align-items-end">#}
+{#                            <button type="submit" class="btn btn-primary w-100">#}
+{#                                <i class="fas fa-filter me-1"></i>{% trans "اعمال فیلترها" %}#}
+{#                            </button>#}
+{#                        </div>#}
+{#                    </form>#}
+{#                </div>#}
+{#            </div>#}
+{##}
+{#            <!-- خلاصه اطلاعات -->#}
+{#            <div class="alert alert-info mb-4 shadow-sm">#}
+{#                <div class="d-flex justify-content-between align-items-center">#}
+{#                    <span>#}
+{#                        <i class="fas fa-info-circle me-2"></i>#}
+{#                        {% trans "تعداد کل سازمان‌ها" %}: <strong>{{ total_organizations|to_persian_number }}</strong>#}
+{#                    </span>#}
+{#                    <a href="{% url 'organization_create' %}" class="btn btn-success btn-sm">#}
+{#                        <i class="fas fa-plus me-1"></i>{% trans "سازمان جدید" %}#}
+{#                    </a>#}
+{#                </div>#}
+{#            </div>#}
+{##}
+{#            <!-- جدول سازمان‌ها -->#}
+{#            <div class="table-responsive">#}
+{#                <table class="table table-hover table-striped table-bordered">#}
+{#                    <thead class="table-light">#}
+{#                        <tr>#}
+{#                            <th class="sortable" width="50">#</th>#}
+{#                            <th class="sortable">{% trans "کد سازمان" %}</th>#}
+{#                            <th class="sortable">{% trans "نام سازمان" %}</th>#}
+{#                            <th class="sortable">{% trans "نوع سازمان" %}</th>#}
+{#                            <th class="sortable text-end">{% trans "بودجه کل (ریال)" %}</th>#}
+{#                            <th class="sortable text-end">{% trans "تخصیص یافته (ریال)" %}</th>#}
+{#                            <th class="sortable text-end">{% trans "مانده بودجه (ریال)" %}</th>#}
+{#                            <th class="sortable">{% trans "وضعیت" %}</th>#}
+{#                            <th>{% trans "جزئیات بودجه" %}</th>#}
+{#                            <th width="300">{% trans "عملیات" %}</th>#}
+{#                        </tr>#}
+{#                    </thead>#}
+{#                    <tbody>#}
+{#                        {% for organization in organizations %}#}
+{#                        <tr>#}
+{#                            <td>{{ forloop.counter|to_persian_number }}</td>#}
+{#                            <td>{{ organization.code|to_persian_number }}</td>#}
+{#                            <td>#}
+{#                                <a href="{% url 'organization_detail' organization.pk %}" class="text-primary">#}
+{#                                    {{ organization.name }}#}
+{#                                </a>#}
+{#                            </td>#}
+{#                            <td>{{ organization.org_type.fname|default:_("نامشخص") }}</td>#}
+{#                            <td class="text-end">#}
+{#                                {% if organization.budget_details.total_budget %}#}
+{#                                    {{ organization.budget_details.total_budget| format_negative }}#}
+{#                                {% else %}#}
+{#                                    -#}
+{#                                {% endif %}#}
+{#                            </td>#}
+{#                            <td class="text-end">#}
+{#                                {% if organization.budget_details.total_allocated %}#}
+{#                                    {{ organization.budget_details.total_allocated|floatformat:"0"|format_negative }}#}
+{#                                {% else %}#}
+{#                                    -#}
+{#                                {% endif %}#}
+{#                            </td>#}
+{#                            <td class="text-end {% if organization.budget_details.remaining_budget < 0 %}text-danger{% endif %}">#}
+{#                                {% if organization.budget_details.remaining_budget %}#}
+{#                                    {{ organization.budget_details.remaining_budget|floatformat:"0"|format_negative }}#}
+{#                                {% else %}#}
+{#                                    -#}
+{#                                {% endif %}#}
+{#                            </td>#}
+{#                            <td>#}
+{#                                <span class="badge bg-{% if organization.budget_details.status_message == 'فعال' %}success{% else %}secondary{% endif %}">#}
+{#                                    {{ organization.budget_details.status_message }}#}
+{#                                </span>#}
+{#                            </td>#}
+{#                            <td>#}
+{#                                <div class="budget-details">#}
+{#                                    <div><small>{% trans "پروژه‌ها" %}: {{ organization.budget_details.project_count|to_persian_number }}</small></div>#}
+{#                                    <div><small>{% trans "تخصیص‌ها" %}: {{ organization.budget_details.allocation_count|to_persian_number }}</small></div>#}
+{#                                    <div>#}
+{#                                        <small>{% trans "آخرین بروزرسانی" %}:#}
+{#                                            {% if organization.budget_details.last_update %}#}
+{#                                                {{ organization.budget_details.last_update|to_jalali:"%Y/%m/%d"|to_persian_number }}#}
+{#                                            {% else %}#}
+{#                                                {% trans "نامشخص" %}#}
+{#                                            {% endif %}#}
+{#                                        </small>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </td>#}
+{#                            <td>#}
+{#                                <div class="btn-group btn-group-sm" role="group">#}
+{#                                    <a href="{% url 'organization_detail' organization.pk %}"#}
+{#                                       class="btn btn-outline-info" title="{% trans 'جزئیات' %}">#}
+{#                                        <i class="fas fa-eye"></i>#}
+{#                                    </a>#}
+{#                                    <a href="{% url 'organization_update' organization.pk %}"#}
+{#                                       class="btn btn-outline-warning" title="{% trans 'ویرایش' %}">#}
+{#                                        <i class="fas fa-edit"></i>#}
+{#                                    </a>#}
+{#                                    <a href="{% url 'organization_delete' organization.pk %}"#}
+{#                                       class="btn btn-outline-danger" title="{% trans 'حذف' %}">#}
+{#                                        <i class="fas fa-trash"></i>#}
+{#                                    </a>#}
+{#                                    <div class="btn-group" role="group">#}
+{#                                        <button type="button" class="btn btn-outline-primary dropdown-toggle"#}
+{#                                                data-bs-toggle="dropdown" aria-expanded="false">#}
+{#                                            <i class="fas fa-dollar-sign"></i>#}
+{#                                        </button>#}
+{#                                        <ul class="dropdown-menu">#}
+{#                                            <li>#}
+{#                                                <a class="dropdown-item"#}
+{#                                                   href="{% url 'project_budget_allocation_list' organization_id=organization.id %}">#}
+{#                                                    <i class="fas fa-plus-circle me-1"></i>{% trans "تخصیص بودجه پروژه" %}#}
+{#                                                </a>#}
+{#                                            </li>#}
+{#                                            <li>#}
+                                                {#                                                <a class="dropdown-item"#}
+                                                {#                                                   href="{% url 'project_budget_allocation_detail' organization.id %}">#}
+                                                {#                                                    <i class="fas fa-chart-pie me-1"></i>{% trans "گزارش بودجه" %}#}
+                                                {#                                                </a>#}
+{#                                                {% with first_allocation=organization.budget_allocations.first.project_allocations.first %}#}
+{#                                                    {% if first_allocation %}#}
+{#                                                        <a class="dropdown-item"#}
+{#                                                           href="{% url 'project_budget_allocation_detail' first_allocation.id %}">#}
+{#                                                            <i class="fas fa-chart-pie me-1"></i>{% trans "گزارش بودجه" %}#}
+{#                                                        </a>#}
+{#                                                    {% else %}#}
+{#                                                        <span class="dropdown-item text-muted">{% trans "بدون تخصیص بودجه" %}</span>#}
+{#                                                    {% endif %}#}
+{#                                                {% endwith %}#}
+{#                                            </li>#}
+{#                                        </ul>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </td>#}
+{#                        </tr>#}
+{#                        {% empty %}#}
+{#                        <tr>#}
+{#                            <td colspan="10" class="text-center py-4">#}
+{#                                <div class="alert alert-warning mb-0">#}
+{#                                    <i class="fas fa-exclamation-triangle me-2"></i>#}
+{#                                    {% trans "سازمانی یافت نشد." %}#}
+{#                                </div>#}
+{#                            </td>#}
+{#                        </tr>#}
+{#                        {% endfor %}#}
+{#                    </tbody>#}
+{#                </table>#}
+{#            </div>#}
+{##}
+{#            <!-- صفحه‌بندی -->#}
+{#            {% if is_paginated %}#}
+{#            <nav aria-label="Page navigation" class="mt-4">#}
+{#                <ul class="pagination justify-content-center">#}
+{#                    {% if page_obj.has_previous %}#}
+{#                    <li class="page-item">#}
+{#                        <a class="page-link"#}
+{#                           href="?page={{ page_obj.previous_page_number }}&q={{ query }}&date_from={{ date_from }}&date_to={{ date_to }}&is_active={{ is_active }}">#}
+{#                            <i class="fas fa-chevron-right"></i> {% trans "قبلی" %}#}
+{#                        </a>#}
+{#                    </li>#}
+{#                    {% endif %}#}
+{##}
+{#                    {% for num in paginator.page_range %}#}
+{#                        {% if page_obj.number == num %}#}
+{#                        <li class="page-item active"><span class="page-link">{{ num|to_persian_number }}</span></li>#}
+{#                        {% else %}#}
+{#                        <li class="page-item">#}
+{#                            <a class="page-link"#}
+{#                               href="?page={{ num }}&q={{ query }}&date_from={{ date_from }}&date_to={{ date_to }}&is_active={{ is_active }}">#}
+{#                                {{ num|to_persian_number }}#}
+{#                            </a>#}
+{#                        </li>#}
+{#                        {% endif %}#}
+{#                    {% endfor %}#}
+{##}
+{#                    {% if page_obj.has_next %}#}
+{#                    <li class="page-item">#}
+{#                        <a class="page-link"#}
+{#                           href="?page={{ page_obj.next_page_number }}&q={{ query }}&date_from={{ date_from }}&date_to={{ date_to }}&is_active={{ is_active }}">#}
+{#                            {% trans "بعدی" %} <i class="fas fa-chevron-left"></i>#}
+{#                        </a>#}
+{#                    </li>#}
+{#                    {% endif %}#}
+{#                </ul>#}
+{#                <div class="text-center text-muted mt-2">#}
+{#                    {% trans "صفحه" %} {{ page_obj.number|to_persian_number }} {% trans "از" %} {{ paginator.num_pages|to_persian_number }}#}
+{#                </div>#}
+{#            </nav>#}
+{#            {% endif %}#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+{##}
+{#{% block extra_js %}#}
+{#<script>#}
+{#    // فعال‌سازی تقویم جلالی#}
+{#    $(document).ready(function() {#}
+{#        $('.jalali-datepicker').pDatepicker({#}
+{#            format: 'YYYY/MM/DD',#}
+{#            autoClose: true,#}
+{#            initialValue: false#}
+{#        });#}
+{#    });#}
+{##}
+{#    // مرتب‌سازی جدول#}
+{#    $(document).ready(function() {#}
+{#        $('.sortable').click(function() {#}
+{#            var table = $(this).parents('table').eq(0);#}
+{#            var rows = table.find('tr:gt(0)').toArray().sort(comparer($(this).index()));#}
+{#            this.asc = !this.asc;#}
+{#            if (!this.asc) {#}
+{#                rows = rows.reverse();#}
+{#            }#}
+{#            for (var i = 0; i < rows.length; i++) {#}
+{#                table.append(rows[i]);#}
+{#            }#}
+{#        });#}
+{##}
+{#        function comparer(index) {#}
+{#            return function(a, b) {#}
+{#                var valA = getCellValue(a, index), valB = getCellValue(b, index);#}
+{#                return $.isNumeric(valA) && $.isNumeric(valB) ? valA - valB : valA.toString().localeCompare(valB);#}
+{#            };#}
+{#        }#}
+{##}
+{#        function getCellValue(row, index) {#}
+{#            return $(row).children('td').eq(index).text().replace(/,/g, '');#}
+{#        }#}
+{#    });#}
+{#</script>#}
+{#{% endblock %}#}
+{#{% endblock %}#}
+-->

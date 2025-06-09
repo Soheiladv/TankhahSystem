@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}جریان کار تنخواه‌گردانی{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <!-- هدر اصلی -->
+            <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+                <i class="fas fa-exchange-alt fa-2x text-primary me-3"></i>
+                <div>
+                    <h2 class="mb-1">جریان کار تنخواه‌گردانی</h2>
+                    <p class="text-muted mb-0">فرآیند کامل و سطوح دسترسی کاربران</p>
+                </div>
+            </div>
+
+            <!-- تب‌های ترکیبی -->
+            <ul class="nav nav-tabs mb-4" id="combinedTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="process-tab" data-bs-toggle="tab"
+                            data-bs-target="#process" type="button" role="tab">
+                        <i class="fas fa-project-diagram me-2"></i>فرآیند کاری
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="access-tab" data-bs-toggle="tab"
+                            data-bs-target="#access" type="button" role="tab">
+                        <i class="fas fa-user-lock me-2"></i>سطوح دسترسی
+                    </button>
+                </li>
+            </ul>
+
+            <!-- محتوای تب‌ها -->
+            <div class="tab-content border-start border-end border-bottom rounded-bottom">
+                <!-- تب فرآیند کاری -->
+                <div class="tab-pane fade show active p-3" id="process" role="tabpanel">
+                    <div class="tree-process">
+                        <ul>
+                            <li class="root-node">
+                                <div class="node-content bg-light">
+                                    <i class="fas fa-exchange-alt me-2"></i>
+                                    <strong>جریان کار تنخواه‌گردانی</strong>
+                                </div>
+                                <ul>
+                                    {% for stage in stages %}
+                                    <li>
+                                        <div class="node-content stage-node">
+                                            <span class="step-badge">{{ stage.order }}</span>
+                                            <span>{{ stage.name }}</span>
+                                            <i class="fas fa-chevron-left ms-auto"></i>
+                                        </div>
+                                        <ul>
+                                            <li>
+                                                <div class="node-content">
+                                                    <i class="fas fa-user-tag me-2"></i>
+                                                    <span class="text-muted">سمـت:</span>
+                                                    {% if stage.order <= 1 %}
+                                                    <span class="badge bg-secondary">معاونت ها</span>
+                                                    {% elif stage.order <= 2 or stage.order <= 3 %}
+                                                    <span class="badge bg-warning">مدیریت و دفتر مرکزی </span>
+                                                    {% elif stage.order == 4 %}
+                                                    <span class="badge bg-danger">مدیریت</span>
+                                                    {% else %}
+                                                    <span class="badge bg-danger">کاربر سازمان</span>
+                                                    {% endif %}
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div class="node-content">
+                                                    <i class="fas fa-tasks me-2"></i>
+                                                    <span class="text-muted">اقدامات:</span>
+                                                </div>
+                                                <ul>
+                                                    {% if stage.order == 1 %}
+                                                    <li class="text-success">ثبت اطلاعات اولیه</li>
+                                                    <li class="text-success">آپلود اسناد</li>
+                                                    <li class="text-muted">تایید/رد درخواست</li>
+                                                    {% elif stage.order == 2 %}
+                                                    <li class="text-muted">ثبت اطلاعات</li>
+                                                    <li class="text-success">تایید/رد درخواست</li>
+                                                    <li class="text-success">ثبت نظرات</li>
+                                                    {% else %}
+                                                    <li class="text-muted">ثبت اطلاعات</li>
+                                                    <li class="text-success">تایید/رد نهایی</li>
+                                                    <li class="text-success">گزارش‌گیری</li>
+                                                    {% endif %}
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- تب سطوح دسترسی -->
+                <div class="tab-pane fade p-3" id="access" role="tabpanel">
+                    <div class="tree-access">
+                        <ul>
+                            <li class="root-node">
+                                <div class="node-content bg-light">
+                                    <i class="fas fa-users-cog me-2"></i>
+                                    <strong>سطوح دسترسی کاربران</strong>
+                                </div>
+                                <ul>
+                                    <!-- سطح کاربری پایین -->
+                                    <li>
+                                        <div class="node-content stage-node bg-light">
+                                            <span class="step-badge bg-secondary">1</span>
+                                            <span>کاربر عادی</span>
+                                            <i class="fas fa-user ms-auto text-secondary"></i>
+                                        </div>
+                                        <ul>
+                                            <li>
+                                                <div class="node-content bg-light bg-opacity-50">
+                                                    <i class="fas fa-check-circle text-secondary me-2"></i>
+                                                    <strong>اقدامات مجاز:</strong>
+                                                </div>
+                                                <ul>
+                                                    <li class="text-success">ثبت درخواست جدید</li>
+                                                    <li class="text-success">آپلود اسناد</li>
+                                                    <li class="text-success">پیگیری درخواست‌های خود</li>
+                                                    <li class="text-muted">تایید/رد درخواست‌ها</li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+
+                                    <!-- سطح کاربری میانی -->
+                                    <li>
+                                        <div class="node-content stage-node bg-light">
+                                            <span class="step-badge bg-warning">2</span>
+                                            <span>سرپرست</span>
+                                            <i class="fas fa-user-shield ms-auto text-warning"></i>
+                                        </div>
+                                        <ul>
+                                            <li>
+                                                <div class="node-content bg-light bg-opacity-50">
+                                                    <i class="fas fa-check-circle text-warning me-2"></i>
+                                                    <strong>اقدامات مجاز:</strong>
+                                                </div>
+                                                <ul>
+                                                    <li class="text-success">تایید/رد درخواست‌های زیرمجموعه</li>
+                                                    <li class="text-success">مشاهده گزارشات واحد</li>
+                                                    <li class="text-success">ثبت نظرات اصلاحی</li>
+                                                    <li class="text-muted">تایید نهایی درخواست‌ها</li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+
+                                    <!-- سطح کاربری بالا -->
+                                    <li>
+                                        <div class="node-content stage-node bg-light">
+                                            <span class="step-badge bg-danger">3</span>
+                                            <span>مدیریت</span>
+                                            <i class="fas fa-user-tie ms-auto text-danger"></i>
+                                        </div>
+                                        <ul>
+                                            <li>
+                                                <div class="node-content bg-light bg-opacity-50">
+                                                    <i class="fas fa-check-circle text-danger me-2"></i>
+                                                    <strong>اقدامات مجاز:</strong>
+                                                </div>
+                                                <ul>
+                                                    <li class="text-success">تایید/رد نهایی درخواست‌ها</li>
+                                                    <li class="text-success">مشاهده تمام درخواست‌ها</li>
+                                                    <li class="text-success">گزارش‌گیری جامع</li>
+                                                    <li class="text-success">تنظیمات سیستم</li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-info mt-4">
+                        <h5><i class="fas fa-info-circle me-2"></i>راهنمای ترکیبی:</h5>
+                        <ul class="mb-0">
+                            <li>در تب <strong>فرآیند کاری</strong> می‌توانید مراحل مختلف گردش کار را مشاهده کنید</li>
+                            <li>در تب <strong>سطوح دسترسی</strong> اقدامات مجاز هر کاربر مشخص شده است</li>
+                            <li>رنگ سبز: اقدامات مجاز - رنگ خاکستری: اقدامات غیرمجاز</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* استایل عمومی درخت */
+    .tree-process, .tree-access {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        position: relative;
+        padding-right: 1rem;
+    }
+    .tree-process ul, .tree-access ul {
+        padding-right: 2rem;
+        position: relative;
+        list-style: none;
+    }
+    .tree-process ul ul, .tree-access ul ul {
+        padding-right: 2.5rem;
+    }
+    .tree-process li, .tree-access li {
+        position: relative;
+        padding: 0.5rem 0 0 1rem;
+    }
+    .tree-process li::before, .tree-access li::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 1.5rem;
+        height: 2rem;
+        border-right: 1px solid #dee2e6;
+        border-bottom: 1px solid #dee2e6;
+        border-radius: 0 0 0 5px;
+    }
+    .tree-process li:last-child::before,
+    .tree-access li:last-child::before {
+        border-right: none;
+        border-radius: 0 0 0 0;
+        height: 1.5rem;
+    }
+    .tree-process li:only-child::before,
+    .tree-access li:only-child::before {
+        display: none;
+    }
+
+    .node-content {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    .root-node > .node-content {
+        background-color: #f8f9fa;
+        font-size: 1.1rem;
+        border-right: 4px solid #0d6efd;
+    }
+    .stage-node {
+        background-color: #f8f9fa !important;
+        font-weight: 500;
+        border-left: 3px solid #dee2e6;
+    }
+    .stage-node:hover {
+        background-color: #f1f1f1 !important;
+    }
+    .step-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        background-color: #0d6efd;
+        color: white;
+        border-radius: 50%;
+        margin-left: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+
+    /* رنگ‌بندی سطوح */
+    .bg-secondary {
+        background-color: #6c757d !important;
+    }
+    .bg-warning {
+        background-color: #fd7e14 !important;
+    }
+    .bg-danger {
+        background-color: #dc3545 !important;
+    }
+
+    /* لیست اقدامات */
+    .tree-process ul ul ul li,
+    .tree-access ul ul ul li {
+        padding: 0.25rem 0;
+        display: flex;
+        align-items: center;
+    }
+    .tree-process ul ul ul li:before,
+    .tree-access ul ul ul li:before {
+        content: "•";
+        margin-left: 0.5rem;
+        color: #6c757d;
+    }
+
+    /* تب‌ها */
+    .nav-tabs .nav-link {
+        border: none;
+        color: #6c757d;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        position: relative;
+    }
+    .nav-tabs .nav-link.active {
+        color: #0d6efd;
+        background-color: transparent;
+        border-bottom: 3px solid #0d6efd;
+    }
+    .nav-tabs .nav-link:hover {
+        border-color: transparent;
+        color: #0d6efd;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function(){
+    // انیمیشن برای گره‌های درخت
+    $('.tree-process li, .tree-access li').each(function(index) {
+        $(this).css({
+            'opacity': 0,
+            'transform': 'translateX(20px)'
+        }).delay(index * 100).animate({
+            'opacity': 1,
+            'transform': 'translateX(0)'
+        }, 300);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load humanize %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0 text-right">{{ title }}</h1>
+        <div class="d-flex flex-wrap justify-content-end gap-2">
+            <a href="{% url 'post_access_rule_assign' %}" class="btn btn-primary btn-sm shadow-sm">
+                <i class="fas fa-edit me-2"></i> {% trans "مدیریت قوانین پست‌ها" %}
+            </a>
+            <a href="{% url 'accessrule_create' %}" class="btn btn-success btn-sm shadow-sm">
+                <i class="fas fa-plus me-2"></i> {% trans "قانون جدید" %}
+            </a>
+            <a href="{% url 'post_rule_report' %}" class="btn btn-info btn-sm shadow-sm">
+                <i class="fas fa-chart-bar me-2"></i> {% trans "گزارش قوانین" %}
+            </a>
+            {# You might want to add a proper link for user_guide if it exists and is relevant here #}
+            <a href="{% url 'user_guide' %}" class="btn btn-secondary btn-sm shadow-sm">
+                <i class="fas fa-book me-2"></i> {% trans "راهنمای کاربر" %}
+            </a>
+        </div>
+    </div>
+
+    {# Filter Card #}
+    <div class="card shadow-sm mb-4 border-0 rounded-3">
+        <div class="card-header bg-light text-dark text-right py-3 d-flex align-items-center justify-content-between">
+            <h5 class="my-0 font-weight-bold"><i class="fas fa-filter me-2 text-primary"></i> {% trans "فیلتر و جستجو" %}</h5>
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true" aria-controls="filterCollapse">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+        <div class="collapse show" id="filterCollapse"> {# Use 'show' to keep it open by default #}
+            <div class="card-body">
+                <form method="get" action="{% url 'accessrule_list' %}" class="row g-3 align-items-end text-right">
+                    <div class="col-md-4 col-lg-3">
+                        <label for="id_q" class="form-label">{% trans "جستجو" %}</label>
+                        <input type="text" name="q" id="id_q" class="form-control" value="{{ query|default:'' }}"
+                               placeholder='{% trans "سازمان، پست، نوع اقدام یا موجودیت..." %}'>
+                    </div>
+                    <div class="col-md-4 col-lg-3">
+                        <label for="id_is_active" class="form-label">{% trans "وضعیت" %}</label>
+                        <select name="is_active" id="id_is_active" class="form-select">
+                            <option value="">{% trans "همه" %}</option>
+                            <option value="true" {% if is_active_filter == 'true' %}selected{% endif %}>{% trans "فعال" %}</option>
+                            <option value="false" {% if is_active_filter == 'false' %}selected{% endif %}>{% trans "غیرفعال" %}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-lg-3">
+                        <label for="id_entity_type" class="form-label">{% trans "نوع موجودیت" %}</label>
+                        <select name="entity_type" id="id_entity_type" class="form-select">
+                            <option value="">{% trans "همه" %}</option>
+                            {% for code, label in entity_type_choices %}
+                                <option value="{{ code }}" {% if entity_type_filter == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-auto d-flex align-items-end gap-2 mt-3 mt-md-0">
+                        <button type="submit" class="btn btn-primary d-flex align-items-center">
+                            <i class="fas fa-search me-2"></i> {% trans "جستجو" %}
+                        </button>
+                        <a href="{% url 'accessrule_list' %}" class="btn btn-secondary d-flex align-items-center">
+                            <i class="fas fa-redo me-2"></i> {% trans "بازنشانی" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3 text-right">
+        <p class="mb-0 fw-bold text-muted">
+            {% blocktrans count total_rules=total_access_rules %}
+                مجموع: ۱ قانون دسترسی
+            {% plural %}
+                مجموع: {{ total_rules|intcomma }} قانون دسترسی
+            {% endblocktrans %}
+        </p>
+        {# Action buttons moved to top for better visibility #}
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body p-0"> {# Removed padding here as table-responsive will add it #}
+            {% if access_rules %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0 text-right">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">{% trans "سازمان" %}</th>
+                                <th scope="col">{% trans "پست" %}</th> {# Added Post column #}
+                                <th scope="col">{% trans "مرحله" %}</th>
+                                <th scope="col">{% trans "اقدام" %}</th>
+                                <th scope="col">{% trans "موجودیت" %}</th>
+                                <th scope="col" class="text-center">{% trans "امضاکننده" %}</th>
+                                <th scope="col" class="text-center">{% trans "وضعیت" %}</th>
+                                <th scope="col" class="text-center">{% trans "عملیات" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for rule in access_rules %}
+                            <tr>
+
+                            <td>{{ forloop.counter|add:page_obj.start_index|add:"-1" }}</td>
+
+                                <td>{{ rule.organization.name }}</td>
+                                <td>
+                                    {% if rule.post %}
+                                        <span class="badge bg-primary-subtle text-primary-emphasis">{{ rule.post.name }}</span>
+                                    {% else %}
+                                        <span class="text-muted small">{% trans "نامشخص" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rule.stage %}
+                                        <span class="badge bg-info-subtle text-info-emphasis">{{ rule.stage.name }}</span>
+                                    {% else %}
+                                        <span class="text-muted small">{% trans "کلی" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ rule.get_action_type_display }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success-subtle text-success-emphasis">{{ rule.get_entity_type_display }}</span>
+                                </td>
+                                <td class="text-center">
+                                    {% if rule.is_payment_order_signer %}
+                                        <i class="fas fa-check-circle text-success" title='{% trans "بله" %}'></i>
+                                    {% else %}
+                                        <i class="fas fa-times-circle text-danger" title='{% trans "خیر" %}'></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if rule.is_active %}
+                                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> {% trans "فعال" %}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i> {% trans "غیرفعال" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center text-nowrap">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a href="{% url 'accessrule_detail' rule.pk %}" class="btn btn-outline-info btn-sm"
+                                           data-bs-toggle="tooltip" data-bs-placement="top" title='{% trans "جزئیات" %}'>
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'accessrule_update' rule.pk %}"
+                                           class="btn btn-outline-warning btn-sm" data-bs-toggle="tooltip"
+                                           data-bs-placement="top" title='{% trans "ویرایش" %}'>
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'accessrule_delete' rule.pk %}"
+                                           class="btn btn-outline-danger btn-sm" data-bs-toggle="tooltip"
+                                           data-bs-placement="top" title='{% trans "حذف" %}'>
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if is_paginated %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center flex-wrap">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ query|yesno:'&q=|' }}{{ query }}{{ is_active_filter|yesno:'&is_active=|' }}{{ is_active_filter }}{{ entity_type_filter|yesno:'&entity_type=|' }}{{ entity_type_filter }}"
+                                       aria-label='{% trans "قبلی" %}'>
+                                        <span aria-hidden="true">&laquo;</span>
+                                        <span class="visually-hidden">{% trans "قبلی" %}</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link" aria-hidden="true">&laquo;</span>
+                                </li>
+                            {% endif %}
+
+                            {% for i in paginator.page_range %}
+                                {% if page_obj.number == i %}
+                                    <li class="page-item active" aria-current="page">
+                                        <span class="page-link">{{ i }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ i }}{{ query|yesno:'&q=|' }}{{ query }}{{ is_active_filter|yesno:'&is_active=|' }}{{ is_active_filter }}{{ entity_type_filter|yesno:'&entity_type=|' }}{{ entity_type_filter }}">{{ i }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ query|yesno:'&q=|' }}{{ query }}{{ is_active_filter|yesno:'&is_active=|' }}{{ is_active_filter }}{{ entity_type_filter|yesno:'&entity_type=|' }}{{ entity_type_filter }}"
+                                       aria-label='{% trans "بعدی" %}'>
+                                        <span aria-hidden="true">&raquo;</span>
+                                        <span class="visually-hidden">{% trans "بعدی" %}</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link" aria-hidden="true">&raquo;</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+
+            {% else %}
+                <div class="alert alert-info text-center mb-0 p-4 rounded-3 shadow-sm">
+                    <i class="fas fa-info-circle fa-lg me-2"></i>
+                    {% trans "هیچ قانون دسترسی با معیارهای فعلی یافت نشد." %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Bootstrap Tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+        });
+    </script>
+{% endblock extra_js %}
+
+<style>
+    /* General body font and background */
+    body {
+        font-family: 'Vazirmatn', sans-serif; /* Or your preferred Persian font */
+        background-color: #f8f9fa; /* Light grey background */
+    }
+
+    /* Card styling */
+    .card {
+        border-radius: 0.75rem; /* More rounded corners */
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); /* Subtle shadow */
+    }
+
+    .card-header {
+        background-color: #f1f3f5; /* Light grey header */
+        border-bottom: 1px solid #e9ecef;
+        border-top-left-radius: 0.75rem;
+        border-top-right-radius: 0.75rem;
+    }
+
+    /* Form controls */
+    .form-control, .form-select {
+        border-radius: 0.375rem; /* Slightly rounded for form elements */
+        border-color: #ced4da;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    /* Buttons */
+    .btn {
+        border-radius: 0.375rem; /* Rounded buttons */
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #004d9e;
+    }
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+    .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+    .btn-info {
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+    }
+    .btn-info:hover {
+        background-color: #138496;
+        border-color: #117a8b;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+    .btn-outline-info:hover {
+        background-color: #17a2b8;
+        color: white;
+    }
+    .btn-outline-warning:hover {
+        background-color: #ffc107;
+        color: white;
+    }
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    /* Table styling */
+    .table thead th {
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+        background-color: #f5f5f5; /* Slightly darker header for contrast */
+    }
+    .table tbody tr:hover {
+        background-color: #e9ecef; /* Lighter hover effect */
+    }
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #fdfdfe; /* Subtle stripe */
+    }
+
+    /* Badges for status and types */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.4em 0.7em;
+        border-radius: 0.375rem;
+        font-weight: 500;
+    }
+    .bg-primary-subtle { background-color: #cfe2ff !important; }
+    .text-primary-emphasis { color: #052c65 !important; }
+    .bg-info-subtle { background-color: #d1ecf1 !important; }
+    .text-info-emphasis { color: #0c5460 !important; }
+    .bg-secondary-subtle { background-color: #e2e3e5 !important; }
+    .text-secondary-emphasis { color: #383d41 !important; }
+    .bg-success-subtle { background-color: #d4edda !important; }
+    .text-success-emphasis { color: #155724 !important; }
+
+    /* Pagination */
+    .pagination .page-link {
+        border-radius: 0.375rem;
+        margin: 0 0.25rem;
+        transition: all 0.2s ease-in-out;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+    }
+    .pagination .page-link:hover {
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+        color: #0056b3;
+    }
+
+    /* Tooltip styles (Bootstrap 5) */
+    .tooltip-inner {
+        background-color: #343a40; /* Dark tooltip background */
+        color: #fff;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+    }
+    .tooltip.bs-tooltip-top .tooltip-arrow::before {
+        border-top-color: #343a40;
+    }
+    .tooltip.bs-tooltip-bottom .tooltip-arrow::before {
+        border-bottom-color: #343a40;
+    }
+</style>

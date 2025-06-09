@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+The `jdatetime` package is a Python library that provides a Jalali (Persian) calendar implementation based on Python's standard `datetime` module. It allows for seamless conversion between Gregorian and Jalali dates and times.
+
+---
+
+### 📦 Package Information
+
+- **Author**:Milad Rastia
+- **License**:Python Software Foundation Licens
+- **Latest Version**:5.2.0 (released on January 26, 2025 citeturn0search1
+- **Python Compatibility**:Supports Python versions 3.9 and abov citeturn0search0
+- **Installation**:Install via pip
+
+ 
+```bash
+  pip install jdatetime
+  ```
+
+---
+
+### 🔧 Key Features
+
+ Provides `jdatetime.date` and `jdatetime.datetime` classes that mirror the functionality of Python's standard `date` and `datetime` classe.
+ Includes methods for converting between Gregorian and Jalali date:
+
+   `fromgregorian(`
+   `togregorian(`
+
+ Supports localization, allowing the setting of the locale to Persian (Farsi) using `jdatetime.set_locale(jdatetime.FA_LOCALE).
+ Offers timezone-aware date and time handlin.
+
+---
+
+### 📘 Documentation & Resources
+
+- **PyPI Page*: [https://pypi.org/project/jdatetime/](https://pypi.org/project/jdatetim/)
+- **GitHub Repository*: [https://github.com/slashmili/jdatetime](https://github.com/slashmili/jdatetie)
+- **Official Documentation*: [https://pythonhosted.org/jdatetime/](https://pythonhosted.org/jdatetim/)
+
+---
+
+### 🛠️ Example Usae
+
+Here's how you can use `jdatetime` to convert a Gregorian date to a Jalali dte:
+
+
+```python
+import jdatetime
+
+# Convert Gregorian date to Jalali
+gregorian_date = jdatetime.date(2025, 4, 14)
+jalali_date = gregorian_date.togregorian()
+
+print(jalali_date)  # Output: 1404/01/25
+``
+
+
+To convert a Jalali date to a Gregorian dte:
+
+
+```python
+import jdatetime
+
+# Convert Jalali date to Gregorian
+jalali_date = jdatetime.date(1404, 1, 25)
+gregorian_date = jalali_date.togregorian()
+
+print(gregorian_date)  # Output: 2025-04-14
+``
+
+
+--
+
+For more detailed information and advanced usage, refer to the official documentation linked abve.
+
+
+برای استفاده از دیتاپیکر فارسی در تمپلیت Django، به‌طور کامل مراحل زیر را دنبال کن تا تاریخ‌ها به‌درستی در قالب فارسی (شمسی) نمایش داده شوند و مقایسه تاریخ‌ها نیز به‌طور دقیق انجام گیرد:
+
+### 1. تنظیمات HTML و جاوا اسکریپت در تمپلیت
+
+ابتدا مطمئن شو که پکیج‌هایی که به دیتاپیکر فارسی نیاز داری در تمپلیت لود شده‌اند. به‌علاوه، برای استفاده از دیتاپیکر فارسی، باید فایل‌های CSS و JavaScript مناسب را در تمپلیت خود بارگذاری کنی.
+
+در فایل تمپلیت (`.html`)، این کدها را اضافه کن:
+
+```html
+<!-- لود کردن CSS و JS دیتاپیکر فارسی -->
+<link href="{% static 'admin/css/jalalidatepicker.min.css' %}" rel="stylesheet">
+<script src="{% static 'admin/js/datepicker-fa.js' %}"></script>
+<script src="{% static 'admin/js/django_jalali.min.js' %}"></script>
+<script src="{% static 'admin/js/jalalidatepicker.min.js' %}"></script>
+
+<!-- فرم تاریخ با دیتاپیکر فارسی -->
+<div class="col-md-2">
+    <label for="date_from" class="form-label">{% trans "از تاریخ" %}</label>
+    <input type="text" name="date_from" id="date_from" value="{{ date_from|default:'' }}" class="form-control jalali-datepicker" placeholder="1404/01/01" autocomplete="off">
+</div>
+<div class="col-md-2">
+    <label for="date_to" class="form-label">{% trans "تا تاریخ" %}</label>
+    <input type="text" name="date_to" id="date_to" value="{{ date_to|default:'' }}" class="form-control jalali-datepicker" placeholder="1404/12/29" autocomplete="off">
+</div>
+
+<!-- اسکریپت برای فعال‌سازی دیتاپیکر -->
+<script>
+    $(document).ready(function () {
+        $('.jalali-datepicker').jalaliDatepicker({
+            format: 'YYYY/MM/DD',  // فرمت تاریخ شمسی
+            altFormat: 'YYYY/MM/DD', // فرمت دیگری برای ذخیره تاریخ
+            altField: '#hidden_date_field' // اگر نیاز به ذخیره تاریخ به صورت میلادی داشتید
+        });
+    });
+</script>
+```
+
+### 2. مقایسه تاریخ‌ها در تمپلیت
+
+اگر قصد داری تاریخ‌های شمسی وارد شده را در داخل تمپلیت مقایسه کنی، باید از ویو یا جاوا اسکریپت استفاده کنی. برای مقایسه تاریخ‌ها باید آنها را به فرمت میلادی تبدیل کرده و سپس مقایسه کنی.
+
+#### 2.1. مقایسه تاریخ‌ها در ویو (Django View)
+
+در ویو، می‌توانی تاریخ‌ها را با استفاده از توابع `parse_jalali_date` که قبلاً تعریف کرده‌ایم تبدیل کنی و مقایسه انجام دهی:
+
+```python
+from django.shortcuts import render
+from .utils import parse_jalali_date
+
+def budget_period_filter_view(request):
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+
+    # تبدیل تاریخ‌های وارد شده به میلادی
+    if date_from:
+        try:
+            date_from = parse_jalali_date(date_from)
+        except ValidationError:
+            date_from = None  # در صورتی که تاریخ نامعتبر باشد
+    if date_to:
+        try:
+            date_to = parse_jalali_date(date_to)
+        except ValidationError:
+            date_to = None
+
+    # اعمال فیلتر در queryset
+    queryset = BudgetPeriod.objects.all()
+
+    if date_from:
+        queryset = queryset.filter(start_date__gte=date_from)
+    if date_to:
+        queryset = queryset.filter(end_date__lte=date_to)
+
+    return render(request, 'your_template.html', {
+        'budget_periods': queryset,
+        'date_from': date_from,
+        'date_to': date_to,
+    })
+```
+
+#### 2.2. مقایسه تاریخ‌ها با استفاده از جاوا اسکریپت (در تمپلیت)
+
+اگر می‌خواهی مقایسه تاریخ‌ها را در داخل خود تمپلیت انجام دهی، می‌توانی از جاوا اسکریپت برای تبدیل تاریخ‌ها به میلادی استفاده کنی، سپس آنها را مقایسه کنی:
+
+```html
+<script>
+    $(document).ready(function () {
+        // تاریخ شمسی وارد شده توسط کاربر
+        var dateFrom = $('#date_from').val();
+        var dateTo = $('#date_to').val();
+
+        // تبدیل تاریخ‌ها به میلادی
+        function convertToGregorian(jalaliDate) {
+            var parts = jalaliDate.split('/');
+            var year = parseInt(parts[0]);
+            var month = parseInt(parts[1]);
+            var day = parseInt(parts[2]);
+
+            // استفاده از jdatetime برای تبدیل تاریخ شمسی به میلادی
+            var jDate = new jdatetime.date(year, month, day);
+            var gregorianDate = jDate.togregorian();
+
+            return new Date(gregorianDate.year, gregorianDate.month - 1, gregorianDate.day);
+        }
+
+        var dateFromGregorian = convertToGregorian(dateFrom);
+        var dateToGregorian = convertToGregorian(dateTo);
+
+        // مقایسه تاریخ‌ها
+        if (dateFromGregorian > dateToGregorian) {
+            alert("تاریخ شروع نمی‌تواند بعد از تاریخ پایان باشد.");
+        }
+    });
+</script>
+```
+
+### 3. خلاصه
+
+- استفاده از دیتاپیکر فارسی با پکیج `jalalidatepicker` در تمپلیت.
+- تبدیل تاریخ شمسی به میلادی در ویو یا با استفاده از جاوا اسکریپت.
+- مقایسه تاریخ‌ها در تمپلیت با جاوا اسکریپت یا در ویو با استفاده از `parse_jalali_date`.
+
+این کدها باید به‌طور کامل تاریخ‌ها را با فرمت شمسی در تمپلیت نمایش دهند و همچنین امکان مقایسه تاریخ‌ها را فراهم کنند.
+</body>
+</html>

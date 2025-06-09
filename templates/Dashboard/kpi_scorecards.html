@@ -1,0 +1,56 @@
+{% load i18n humanize %}
+<div class="col-md-3">
+    <div class="card text-white bg-primary mb-3">
+        <div class="card-header">{% translate "کل بودجه دوره" %}</div>
+        <div class="card-body">
+            <h4 class="card-title" id="kpi-total-period-budget">{{ kpis.total_period_budget|intcomma:False }} {% translate "ریال" %}</h4>
+        </div>
+    </div>
+</div>
+<div class="col-md-3">
+    <div class="card text-dark bg-warning mb-3">
+        <div class="card-header">{% translate "کل مصرف واقعی" %}</div>
+        <div class="card-body">
+            <h4 class="card-title" id="kpi-total-actual-spend">{{ kpis.total_actual_spend|intcomma:False }} {% translate "ریال" %}</h4>
+        </div>
+    </div>
+</div>
+<div class="col-md-3">
+    <div class="card text-white bg-success mb-3">
+        <div class="card-header">{% translate "باقیمانده واقعی بودجه" %}</div>
+        <div class="card-body">
+            <h4 class="card-title" id="kpi-actual-remaining-budget">{{ kpis.actual_remaining_budget|intcomma:False }} {% translate "ریال" %}</h4>
+        </div>
+    </div>
+</div>
+<div class="col-md-3">
+    <div class="card text-dark bg-info mb-3">
+        <div class="card-header">{% translate "درصد مصرف بودجه" %}</div>
+        <div class="card-body">
+            <h4 class="card-title" id="kpi-budget-utilization-percentage-text">{{ kpis.budget_utilization_percentage|floatformat:1 }}%</h4>
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: {{ kpis.budget_utilization_percentage }}%;"
+                     aria-valuenow="{{ kpis.budget_utilization_percentage }}" aria-valuemin="0" aria-valuemax="100"
+                     id="kpi-budget-utilization-percentage-bar">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+ <div class="col-md-3">
+    <div class="card mb-3">
+        <div class="card-header">{% translate "پروژه‌های فعال" %}</div>
+        <div class="card-body">
+            <h4 class="card-title" id="kpi-active-projects-count">{{ kpis.active_projects_count }}</h4>
+        </div>
+    </div>
+</div>
+<div class="col-md-3">
+    <div class="card mb-3">
+        <div class="card-header">{% translate "تنخواه‌های باز" %}</div>
+        <div class="card-body">
+            <h4 class="card-title" id="kpi-open-tankhahs-count">{{ kpis.open_tankhahs_count }}</h4>
+        </div>
+    </div>
+</div>
+<!-- Add more KPI cards as needed -->

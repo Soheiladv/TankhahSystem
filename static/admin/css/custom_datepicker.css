@@ -1,0 +1,51 @@
+         /* استایل‌های سفارشی برای دیتاپیکر */
+        .persian-datepicker {
+            direction: rtl;
+            font-family: 'Parastoo', 'Yekan', 'IRANSans', sans-serif;
+        }
+
+        .persian-datepicker .ui-datepicker-header {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .persian-datepicker .ui-datepicker-calendar th {
+            background-color: #f8f9fa;
+            color: #007bff;
+        }
+
+        .persian-datepicker .ui-datepicker-calendar td a {
+            color: #212529;
+            text-align: center;
+        }
+
+        .persian-datepicker .ui-datepicker-calendar td a:hover {
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+        }
+
+
+        /* تغییر رنگ پس‌زمینه هدر تقویم */
+.ui-datepicker-header {
+    background-color: #f0f0f0;
+}
+
+/* تغییر رنگ متن روزهای هفته */
+.ui-datepicker-calendar th {
+    color: #333;
+}
+
+/* تغییر رنگ پس‌زمینه روزهای تقویم */
+.ui-datepicker-calendar td a {
+    background-color: #fff;
+    color: #000;
+}
+
+/* تغییر رنگ پس‌زمینه روز انتخاب شده */
+.ui-datepicker-calendar td a.ui-state-active {
+    background-color: #007bff;
+    color: #fff;
+}

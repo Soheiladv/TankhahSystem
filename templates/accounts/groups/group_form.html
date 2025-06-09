@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5 animate__animated animate__fadeIn">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg animate__animated animate__zoomIn">
+                <div class="card-header text-center bg-primary text-white animate__animated animate__bounceIn">
+                    {% if messages %}
+                        <ul class="messages">
+                            {% for message in messages %}
+                                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    <h3>
+                        {% if form.instance.pk %}
+                            <i class="fas fa-edit"></i> ویرایش گروه
+                        {% else %}
+                            <i class="fas fa-plus-circle"></i> ایجاد گروه جدید
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="animate__animated animate__slideInUp">
+                        {% csrf_token %}
+
+                        <!-- نام گروه -->
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">نام گروه</label>
+                            {{ form.name }}
+                        </div>
+
+                        <!-- نقش‌ها -->
+                        <div class="mb-3">
+                            <label for="{{ form.roles.id_for_label }}" class="form-label">نقش‌ها</label>
+                            {{ form.roles }}
+                        </div>
+
+                        <!-- کاربران -->
+                        <div class="mb-3">
+                            <label for="{{ user_form.users.id_for_label }}" class="form-label">کاربران</label>
+                            {{ user_form.users }}
+                        </div>
+
+                        <!-- توضیحات -->
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">توضیحات</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="submit" class="btn btn-success animate__animated animate__tada">
+                                <i class="fas fa-save"></i> ذخیره
+                            </button>
+                            <a href="{% url 'accounts:group_list' %}" class="btn btn-secondary animate__animated animate__flipInX">
+                                <i class="fas fa-arrow-left"></i> بازگشت
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

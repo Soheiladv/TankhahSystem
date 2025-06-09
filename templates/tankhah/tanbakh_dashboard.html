@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+    <div class="container mt-5">
+        <!-- عنوان داشبورد -->
+        <h1 class="text-center mb-5 animate__animated animate__fadeInDown">
+            <i class="fas fa-tachometer-alt me-2 text-primary"></i>{{ title }}
+        </h1>
+
+        <!-- پیام خوش‌آمدگویی -->
+        <div class="alert alert-info text-center animate__animated animate__pulse mb-5" role="alert">
+            <i class="fas fa-user-circle me-2"></i>
+            {% trans "خوش آمدید" %}, {{ request.user.username }}!
+        </div>
+
+        <!-- بخش تنخواه‌ها -->
+        {% if links.tanbakh %}
+            <div class="mb-5">
+                <h2 class="mb-3 animate__animated animate__fadeInLeft">
+                    <i class="fas fa-wallet me-2"></i>{% trans "مدیریت تنخواه‌ها" %}
+                </h2>
+                <div class="row">
+                    {% for link in links.tanbakh %}
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url link.url %}" class="card-link">
+                                <div class="card animate__animated animate__zoomIn">
+                                    <div class="card-body text-center">
+                                        <i class="{{ link.icon }} fa-2x mb-3 text-primary"></i>
+                                        <h5 class="card-title">{{ link.label }}</h5>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- بخش فاکتورها -->
+        {% if links.factor %}
+            <div class="mb-5">
+                <h2 class="mb-3 animate__animated animate__fadeInLeft">
+                    <i class="fas fa-file-invoice me-2"></i>{% trans "مدیریت فاکتورها" %}
+                </h2>
+                <div class="row">
+                    {% for link in links.factor %}
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url link.url %}" class="card-link">
+                                <div class="card animate__animated animate__zoomIn">
+                                    <div class="card-body text-center">
+                                        <i class="{{ link.icon }} fa-2x mb-3 text-primary"></i>
+                                        <h5 class="card-title">{{ link.label }}</h5>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- بخش تأییدات -->
+        {% if links.approval %}
+            <div class="mb-5">
+                <h2 class="mb-3 animate__animated animate__fadeInLeft">
+                    <i class="fas fa-check-circle me-2"></i>{% trans "مدیریت تأییدات" %}
+                </h2>
+                <div class="row">
+                    {% for link in links.approval %}
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url link.url %}" class="card-link">
+                                <div class="card animate__animated animate__zoomIn">
+                                    <div class="card-body text-center">
+                                        <i class="{{ link.icon }} fa-2x mb-3 text-primary"></i>
+                                        <h5 class="card-title">{{ link.label }}</h5>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- پیام در صورت عدم دسترسی -->
+        {% if not links.tanbakh and not links.factor and not links.approval %}
+            <div class="alert alert-warning text-center animate__animated animate__shakeX" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                {% trans "شما به هیچ بخشی دسترسی ندارید." %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .card-link {
+            text-decoration: none;
+            color: inherit;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .card-body {
+            padding: 20px;
+        }
+    </style>
+{% endblock %}

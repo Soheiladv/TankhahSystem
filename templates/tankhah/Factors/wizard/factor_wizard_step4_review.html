@@ -1,0 +1,146 @@
+{% extends "tankhah/Factors/wizard/factor_wizard_base.html" %}
+
+{% block wizard_content %}
+    {# No form needed here, just display data #}
+    <form method="post"> {# Still need form for CSRF and button submission #}
+        {% csrf_token %}
+        {{ wizard.management_form }} {# Wizard state #}
+
+        <div class="alert alert-warning alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+            <i class="fas fa-exclamation-triangle flex-shrink-0 me-2"></i>
+            <div>
+                {% trans "لطفاً اطلاعات زیر را به دقت بررسی کنید. پس از کلیک بر روی دکمه 'ثبت نهایی فاکتور'، اطلاعات ذخیره و برای بررسی ارسال خواهد شد." %}
+            </div>
+            <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        {# --- Section 1: Main Factor Info --- #}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">{% trans "۱. اطلاعات اصلی فاکتور" %}</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-3">{% trans "تنخواه مرتبط" %}:</dt>
+                    <dd class="col-sm-9">{{ all_cleaned_data.step1.tankhah|default:"-" }}</dd>
+
+                    <dt class="col-sm-3">{% trans "تاریخ فاکتور" %}:</dt>
+                    {# Format the date correctly (assuming it's an aware datetime) #}
+                    <dd class="col-sm-9">{{ all_cleaned_data.step1.date|date:"Y/m/d"|default:"-" }}</dd>
+
+                    <dt class="col-sm-3">{% trans "توضیحات کلی" %}:</dt>
+                    <dd class="col-sm-9">{{ all_cleaned_data.step1.description|linebreaksbr|default:"-" }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        {# --- Section 2: Factor Items --- #}
+        <div class="card mb-4">
+            <div class="card-header">
+                 <h5 class="mb-0">{% trans "۲. ردیف‌های فاکتور" %}</h5>
+            </div>
+            <div class="card-body p-0"> {# Remove padding for table #}
+                {% with item_formset_data=all_cleaned_data.step2 %}
+                    {% if item_formset_data %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="5%">#</th>
+                                        <th>{% trans "شرح" %}</th>
+                                        <th class="text-center">{% trans "تعداد" %}</th>
+                                        <th class="text-end">{% trans "مبلغ واحد (ریال)" %}</th>
+                                        <th class="text-end">{% trans "مبلغ کل (ریال)" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item_data in item_formset_data %}
+                                        {% if item_data and not item_data.DELETE %} {# Display only valid, non-deleted items #}
+                                            <tr>
+                                                <td>{{ forloop.counter }}</td>
+                                                <td>{{ item_data.description|default:"-" }}</td>
+                                                <td class="text-center">{{ item_data.quantity|default:1|floatformat:0|intcomma:False }}</td>
+                                                <td class="text-end ltr">{{ item_data.amount|default:0|floatformat:0|intcomma }}</td>
+                                                {# Calculate row total #}
+                                                <td class="text-end ltr fw-bold">
+                                                    {% with row_total=item_data.amount|default:0|multiply:item_data.quantity|default:1 %}
+                                                         {{ row_total|floatformat:0|intcomma }}
+                                                    {% endwith %}
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-light fw-bold">
+                                        <td colspan="4" class="text-end">{% trans "جمع کل مبالغ فاکتور:" %}</td>
+                                        {# Calculate overall total #}
+                                        <td class="text-end ltr">
+                                           {% with total_sum=wizard.get_summary_total %} {# Use a helper method in the view #}
+                                               {{ total_sum|floatformat:0|intcomma }} {% trans "ریال" %}
+                                           {% endwith %}
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted p-3">{% trans "هیچ ردیفی برای فاکتور ثبت نشده است." %}</p>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+
+        {# --- Section 3: Factor Documents --- #}
+        <div class="card mb-4">
+             <div class="card-header">
+                  <h5 class="mb-0">{% trans "۳. اسناد بارگذاری شده برای فاکتور" %}</h5>
+             </div>
+             <div class="card-body">
+                 {% with factor_docs=all_cleaned_data.step3_docs.files %}
+                     {% if factor_docs %}
+                          <ul class="list-unstyled mb-0">
+                              {% for file in factor_docs %}
+                                  {% if file %}
+                                       <li class="mb-1"><i class="fas fa-paperclip me-2 text-muted"></i> {{ file.name }} <small class="text-muted">({{ file.size|filesizeformat }})</small></li>
+                                  {% endif %}
+                              {% endfor %}
+                          </ul>
+                     {% else %}
+                          <p class="text-muted mb-0">{% trans "هیچ سندی برای این فاکتور بارگذاری نشده است." %}</p>
+                     {% endif %}
+                 {% endwith %}
+             </div>
+        </div>
+
+        {# --- Section 4: Tankhah Documents --- #}
+         <div class="card mb-4">
+             <div class="card-header">
+                  <h5 class="mb-0">{% trans "۴. اسناد جدید بارگذاری شده برای تنخواه" %}</h5>
+             </div>
+             <div class="card-body">
+                  {% with tankhah_docs=all_cleaned_data.step3_tankhah_docs.documents %}
+                      {% if tankhah_docs %}
+                           <ul class="list-unstyled mb-0">
+                               {% for file in tankhah_docs %}
+                                    {% if file %}
+                                        <li class="mb-1"><i class="fas fa-folder-open me-2 text-muted"></i> {{ file.name }} <small class="text-muted">({{ file.size|filesizeformat }})</small></li>
+                                    {% endif %}
+                               {% endfor %}
+                           </ul>
+                      {% else %}
+                           <p class="text-muted mb-0">{% trans "هیچ سند جدیدی برای تنخواه در این مرحله بارگذاری نشده است." %}</p>
+                      {% endif %}
+                  {% endwith %}
+             </div>
+        </div>
+
+
+        {# Wizard buttons are in base template, the "Done" button will be shown #}
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    {# No specific JS needed for review step usually #}
+{% endblock %}

@@ -1,0 +1,264 @@
+{% extends "base.html" %} {# یا بیس تمپلیت اصلی شما #}
+{% load static i18n rcms_custom_filters %} {# widget_tweaks برای استایل‌دهی بهتر فرم #}
+
+{% block title %}{% translate "راهنمای سیستم مدیریت سازمان و بودجه‌بندی" %}  {% endblock %}
+
+{%  block content %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            background-color: #f5f6fa;
+            font-family: 'Vazirmatn', sans-serif;
+            line-height: 1.8;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .guide-header {
+            background: linear-gradient(90deg, #007bff, #0056b3);
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+        }
+        .guide-content {
+            background: white;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .section-title {
+            color: #007bff;
+            font-size: 1.5rem;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        .list-group-item {
+            border: none;
+            padding: 15px 0;
+            font-size: 1.1rem;
+        }
+        .list-group-item strong {
+            color: #343a40;
+        }
+        .tip-box {
+            background: #e7f3ff;
+            border-right: 4px solid #007bff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .faq-item {
+            margin-bottom: 15px;
+        }
+        .faq-item strong {
+            color: #007bff;
+        }
+        .btn-print {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #212529;
+                color: #e9ecef;
+            }
+            .guide-content {
+                background: #343a40;
+                color: #e9ecef;
+            }
+            .section-title {
+                color: #4dabf7;
+                border-bottom-color: #4dabf7;
+            }
+            .list-group-item strong {
+                color: #e9ecef;
+            }
+            .tip-box {
+                background: #495057;
+                border-right-color: #4dabf7;
+            }
+        }
+        /* Print styles */
+        @media print {
+            .btn-print {
+                display: none;
+            }
+            .guide-content {
+                box-shadow: none;
+            }
+        }
+    </style>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="guide-header">
+            <h1>راهنمای سیستم مدیریت سازمان و بودجه‌بندی</h1>
+            <p class="lead">مدیریت شفاف ساختار سازمانی، بودجه و دسترسی‌ها</p>
+        </div>
+
+        <!-- Content -->
+        <div class="guide-content">
+            <!-- Introduction -->
+            <div class="section-title">مقدمه</div>
+            <p>
+                این راهنما به شما کمک می‌کند تا با سیستم مدیریت سازمان و بودجه‌بندی آشنا شوید. این سیستم برای مدیریت شفاف و کارآمد ساختار سازمانی، تخصیص بودجه، و کنترل دسترسی‌ها طراحی شده است. چه مدیر ارشد هلدینگ باشید، چه کارمند یک شعبه، این راهنما شما را با نحوه‌ی استفاده از سیستم آشنا می‌کند.
+            </p>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>هدف سیستم:</strong></li>
+                <li class="list-group-item">مدیریت ساختار سازمانی با قابلیت پشتیبانی از هلدینگ، معاونت‌ها، شعبه‌ها، و زیرشعبه‌ها.</li>
+                <li class="list-group-item">تخصیص، ردیابی، و مدیریت بودجه در سطوح مختلف سازمان.</li>
+                <li class="list-group-item">کنترل دقیق دسترسی‌ها برای جلوگیری از خطا یا سوءاستفاده.</li>
+                <li class="list-group-item">ارائه گزارش‌های مالی و نظارتی برای مدیران.</li>
+            </ul>
+
+            <!-- Organization Structure -->
+            <div class="section-title">۱. آشنایی با ساختار سازمانی</div>
+            <p>
+                سیستم از یک ساختار درختی برای سازمان‌دهی استفاده می‌کند:
+            </p>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>هلدینگ:</strong> شرکت مادر که کل سازمان را مدیریت می‌کند (مثل هلدینگ پارسیان).</li>
+                <li class="list-group-item"><strong>معاونت‌ها:</strong> بخش‌های اصلی زیرمجموعه هلدینگ (مثل معاونت مالی، عملیات، یا منابع انسانی).</li>
+                <li class="list-group-item"><strong>شعبه‌ها:</strong> واحدهای زیرمجموعه هر معاونت (مثل شعبه تهران یا شیراز).</li>
+                <li class="list-group-item"><strong>زیرشعبه‌ها:</strong> واحدهای کوچک‌تر زیر شعبه‌ها (مثل هتل لاله تهران).</li>
+            </ul>
+            <div class="tip-box">
+                <strong>چگونه کار می‌کند؟</strong><br>
+                - هر بخش می‌تواند پست‌های خاص خود را داشته باشد (مثل مدیر مالی، کارشناس عملیات).<br>
+                - هر پست به یک بخش خاص وابسته است، بنابراین مدیر مالی تهران فقط به اطلاعات شعبه تهران دسترسی دارد.<br>
+                - مدیران هلدینگ می‌توانند همه بخش‌ها را نظارت کنند.
+            </div>
+
+            <!-- Setup -->
+            <div class="section-title">۲. نصب و راه‌اندازی</div>
+            <ol class="list-group list-group-numbered">
+                <li class="list-group-item">
+                    <strong>دسترسی به سیستم:</strong><br>
+                    - از طریق مرورگر وب به آدرس سیستم وارد شوید.<br>
+                    - یا از اپلیکیشن‌های موبایل (iOS/Android) استفاده کنید.
+                </li>
+                <li class="list-group-item">
+                    <strong>ورود به سیستم:</strong><br>
+                    - با نام کاربری و رمز عبور خود وارد شوید.<br>
+                    - اگر دسترسی ندارید، با مدیر سیستم تماس بگیرید.
+                </li>
+                <li class="list-group-item">
+                    <strong>تنظیمات اولیه:</strong><br>
+                    - مدیران سیستم باید ساختار سازمانی (هلدینگ، معاونت‌ها، شعبه‌ها) را تعریف کنند.<br>
+                    - پست‌ها و دسترسی‌ها برای هر کاربر تنظیم می‌شود.
+                </li>
+            </ol>
+
+            <!-- Features -->
+            <div class="section-title">۳. ویژگی‌های اصلی سیستم</div>
+            <!-- Organization Management -->
+            <h5>۳.۱. مدیریت ساختار سازمانی</h5>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>ایجاد سازمان‌ها:</strong> مدیران سیستم می‌توانند هلدینگ، معاونت‌ها، شعبه‌ها، و زیرشعبه‌ها را تعریف کنند. مثال: اضافه کردن شعبه تهران زیر معاونت مالی.</li>
+                <li class="list-group-item"><strong>مدیریت پست‌ها:</strong> برای هر بخش، پست‌های موردنیاز (مثل مدیر مالی، کارشناس) تعریف می‌شود. هر پست سطح خاصی دارد (مثل سطح ۳ برای مدیران شعبه).</li>
+                <li class="list-group-item"><strong>وابستگی پست‌ها:</strong> هر پست به یک بخش خاص وابسته است.</li>
+            </ul>
+            <!-- Budget Management -->
+            <h5>۳.۲. مدیریت بودجه</h5>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>تخصیص بودجه:</strong> بودجه از هلدینگ به معاونت‌ها، سپس به شعبه‌ها و پروژه‌ها تخصیص داده می‌شود.</li>
+                <li class="list-group-item"><strong>ردیابی بودجه:</strong> هر هزینه به یک پروژه یا بخش خاص ربط دارد.</li>
+                <li class="list-group-item"><strong>بازگشت یا جابجایی بودجه:</strong> بودجه مصرف‌نشده می‌تواند به بخش مادر برگردد یا به پروژه دیگری منتقل شود.</li>
+                <li class="list-group-item"><strong>گزارش‌گیری:</strong> گزارش‌های لحظه‌ای از بودجه تخصیص‌یافته و مصرف‌شده.</li>
+            </ul>
+            <!-- Access Management -->
+            <h5>۳.۳. مدیریت دسترسی‌ها</h5>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>قوانین دسترسی:</strong> مشخص می‌کنند چه کسی می‌تواند چه کاری انجام دهد (مثل تأیید فاکتور).</li>
+                <li class="list-group-item"><strong>مراحل گردش کار:</strong> فرآیندها شامل بررسی اولیه، تأیید نهایی، و ایجاد دستور پرداخت است.</li>
+                <li class="list-group-item"><strong>دسترسی هلدینگ:</strong> مدیران هلدینگ می‌توانند همه بخش‌ها را نظارت کنند.</li>
+            </ul>
+            <!-- Access Rules Form -->
+            <h5>۳.۴. ایجاد و مدیریت قوانین دسترسی</h5>
+            <p>از فرم قوانین دسترسی برای تعریف دسترسی‌های کاربران استفاده کنید:</p>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>سازمان:</strong> بخش موردنظر (مثل شعبه تهران).</li>
+                <li class="list-group-item"><strong>شاخه:</strong> نوع فعالیت (مثل مالی).</li>
+                <li class="list-group-item"><strong>حداقل سطح:</strong> سطح پست موردنیاز (مثل ۳).</li>
+                <li class="list-group-item"><strong>مرحله:</strong> مرحله گردش کار (مثل تأیید نهایی).</li>
+                <li class="list-group-item"><strong>نوع اقدام:</strong> کاری که کاربر می‌تواند انجام دهد (مثل تأیید).</li>
+                <li class="list-group-item"><strong>نوع موجودیت:</strong> چیزی که قانون روی آن اعمال می‌شود (مثل فاکتور).</li>
+                <li class="list-group-item"><strong>امضاکننده دستور پرداخت:</strong> برای امضای پرداخت‌ها.</li>
+                <li class="list-group-item"><strong>فعال:</strong> فعال یا غیرفعال بودن قانون.</li>
+            </ul>
+            <!-- Reporting -->
+            <h5>۳.۵. گزارش‌گیری</h5>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>گزارش‌های مالی:</strong> نمایش وضعیت بودجه و فاکتورها.</li>
+                <li class="list-group-item"><strong>دسترسی هلدینگ:</strong> گزارش‌های جامع از همه شعبه‌ها.</li>
+                <li class="list-group-item"><strong>فیلتر گزارش‌ها:</strong> فیلتر بر اساس نوع یا بخش.</li>
+            </ul>
+
+            <!-- Tips -->
+            <div class="section-title">۴. نکات و ترفندها</div>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>برای مدیران هلدینگ:</strong> از گزارش‌های جامع برای نظارت بر همه شعبه‌ها استفاده کنید.</li>
+                <li class="list-group-item"><strong>برای مدیران شعبه:</strong> فقط فاکتورهای مربوط به شعبه خود را تأیید کنید.</li>
+                <li class="list-group-item"><strong>برای کارمندان:</strong> فقط به اطلاعات بخش خودتان دسترسی دارید.</li>
+                <li class="list-group-item"><strong>جستجوی سریع:</strong> از فیلترها برای پیدا کردن قوانین یا گزارش‌ها استفاده کنید.</li>
+            </ul>
+
+            <!-- Troubleshooting -->
+            <div class="section-title">۵. عیب‌یابی</div>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>دسترسی ندارم:</strong> مطمئن شوید پست شما به سازمان درست وابسته است.</li>
+                <li class="list-group-item"><strong>فاکتور تأیید نمی‌شود:</strong> بررسی کنید که در مرحله درست هستید.</li>
+                <li class="list-group-item"><strong>گزارش‌ها نمایش داده نمی‌شوند:</strong> مطمئن شوید پست شما به هلدینگ وابسته است.</li>
+                <li class="list-group-item"><strong>راه‌حل:</strong> با مدیر سیستم تماس بگیرید.</li>
+            </ul>
+
+            <!-- FAQ -->
+            <div class="section-title">۶. سوالات متداول</div>
+            <div class="faq-item">
+                <strong>چطور بودجه را به شعبه دیگری منتقل کنم؟</strong><br>
+                بودجه مصرف‌نشده را از طریق بخش مدیریت بودجه به سازمان مادر برگردانید، سپس به شعبه جدید تخصیص دهید.
+            </div>
+            <div class="faq-item">
+                <strong>چرا نمی‌توانم فاکتور شعبه دیگر را ببینم؟</strong><br>
+                دسترسی شما به سازمان خودتان محدود است.
+            </div>
+            <div class="faq-item">
+                <strong>چطور قانون دسترسی جدید تعریف کنم؟</strong><br>
+                به فرم قوانین دسترسی بروید و فیلدها را پر کنید.
+            </div>
+            <div class="faq-item">
+                <strong>آیا می‌توانم گزارش همه شعبه‌ها را ببینم؟</strong><br>
+                بله، اگر پست شما به هلدینگ وابسته باشد.
+            </div>
+
+            <!-- Resources -->
+            <div class="section-title">۷. منابع و پشتیبانی</div>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>مستندات آنلاین:</strong> به [لینک مستندات] مراجعه کنید.</li>
+                <li class="list-group-item"><strong>پشتیبانی:</strong> با [ایمیل/شماره تماس] تماس بگیرید.</li>
+                <li class="list-group-item"><strong>انجمن کاربران:</strong> به [لینک انجمن] سر بزنید.</li>
+            </ul>
+
+            <!-- Final Note -->
+            <div class="tip-box">
+                <strong>نکته نهایی:</strong> این سیستم برای شفافیت، کنترل، و انعطاف‌پذیری در مدیریت سازمان و بودجه طراحی شده است. با تعریف دقیق پست‌ها و قوانین دسترسی، از عملکرد صحیح سازمان خود مطمئن شوید.
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Button -->
+    <button class="btn btn-primary btn-print" onclick="window.print()">
+        <i class="fas fa-print"></i> چاپ راهنما
+    </button>
+
+{% endblock %}

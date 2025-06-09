@@ -1,0 +1,667 @@
+{% extends 'base.html' %}
+{% load i18n rcms_custom_filters static %}
+
+{% block page_title %}{% trans "تخصیص بودجه جدید" %}{% endblock %}
+
+{% block content %}
+<div class="budget-allocation-page">
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-light border-bottom d-flex align-items-center gap-2">
+            <i class="fas fa-file-invoice-dollar fa-fw text-success"></i>
+            <h5 class="mb-0">{% trans "تخصیص بودجه جدید" %}</h5>
+        </div>
+
+        <div class="card-body p-lg-4">
+            {% if budget_period %}
+                <div class="budget-summary border rounded p-3 mb-4 bg-light">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0 text-muted">{% trans "دوره بودجه:" %} <strong>{{ budget_period.name }}</strong></h6>
+                        <span class="badge bg-success">{% trans "فعال" %}</span> {# Or dynamically set based on period status #}
+                    </div>
+                    <div class="row g-3 align-items-center mb-3">
+                        <div class="col-md-4 col-6">
+                            <div class="metric">
+                                <small class="text-muted d-block">{% trans "کل بودجه:" %}</small>
+                                <strong class="fs-5 text-primary" id="total-amount-display">{{ total_amount|format_negative }}</strong>
+                                <span class="text-muted small"> {% trans "ریال" %}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <div class="metric">
+                                <small class="text-muted d-block">{% trans "باقی‌مانده:" %}</small>
+                                <strong class="fs-5 text-success" id="remaining-amount">{{ remaining_amount|format_negative }}</strong>
+                                <span class="text-muted small"> {% trans "ریال" %}</span>
+                                <small class="d-block" id="remaining-percent">({{ remaining_percent|format_negative }}%)</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-12">
+                             <label class="form-label fw-semibold small mb-1">{% trans "وضعیت مصرف:" %}</label>
+                            <div class="progress-container position-relative pt-2" style="height: 25px;">
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-success" id="progress-bar" role="progressbar"
+                                         style="width: {{ remaining_percent }}%;"
+                                         aria-valuenow="{{ remaining_percent }}"
+                                         aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                 <!-- Threshold Markers with Tooltips -->
+                                <div class="threshold-marker warning-threshold" style="left: {{ warning_threshold }}%;" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'آستانه اخطار' %}: {{ warning_threshold }}%">
+                                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                                </div>
+                                <div class="threshold-marker locked-threshold" style="left: {{ locked_percentage }}%;" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'درصد قفل' %}: {{ locked_percentage }}%">
+                                    <i class="fas fa-lock text-danger"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if messages %}
+                <div class="messages mb-4">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% elif message.tags == 'error' %}fa-times-circle{% else %}fa-info-circle{% endif %} fa-fw fs-5"></i>
+                            <div>{{ message }}</div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" class="budget-allocation-form needs-validation" novalidate>
+                {% csrf_token %}
+                {% if budget_period %}
+                    <input type="hidden" name="budget_period" value="{{ budget_period.id }}">
+                {% endif %}
+
+                <h6 class="mb-3 border-bottom pb-2 fw-bold">{% trans "اطلاعات اصلی تخصیص" %}</h6>
+                <div class="row g-3 mb-4">
+                     <!-- ردیف بودجه -->
+                    <div class="col-md-12">
+                        <label for="{{ form.budget_item.id_for_label }}" class="form-label fw-semibold"><i class="fas fa-list-ol fa-fw me-1 text-muted"></i>{% trans "ردیف بودجه" %}: <span class="text-danger">*</span></label>
+                        {{ form.budget_item }}
+                        {% if form.budget_item.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.budget_item.errors|striptags }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- سازمان -->
+                    <div class="col-md-6">
+                        <label for="{{ form.organization.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-building fa-fw me-1 text-muted"></i> {% trans "سازمان:" %} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.organization }}
+                        {% if form.organization.errors %}
+                            <div class="invalid-feedback d-block">{{ form.organization.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- پروژه -->
+                    <div class="col-md-6">
+                        <label for="{{ form.project.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-project-diagram fa-fw me-1 text-muted"></i> {% trans "پروژه:" %}
+                        </label>
+                        {{ form.project }}
+                         <small class="form-text text-muted">{% trans "در صورت انتخاب سازمان، لیست پروژه‌های مرتبط نمایش داده می‌شود." %}</small>
+                        {% if form.project.errors %}
+                            <div class="invalid-feedback d-block">{{ form.project.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <h6 class="mb-3 border-bottom pb-2 fw-bold">{% trans "مبلغ و نوع تخصیص" %}</h6>
+                <div class="row g-3 mb-4 align-items-end">
+                     <!-- نوع تخصیص -->
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label fw-semibold d-block mb-2">
+                            <i class="fas fa-calculator fa-fw me-1 text-muted"></i> {% trans "نوع تخصیص:" %} <span class="text-danger">*</span>
+                        </label>
+                        <div class="btn-group w-100" role="group" aria-label="Allocation type">
+                           <input type="radio" class="btn-check" name="{{ form.allocation_type.name }}" id="allocation_type_amount" value="amount" autocomplete="off" {% if form.allocation_type.value == 'amount' or not form.allocation_type.value %}checked{% endif %}>
+                           <label class="btn btn-outline-primary" for="allocation_type_amount"><i class="fas fa-money-bill-wave fa-fw"></i> {% trans "مبلغ" %}</label>
+
+                           <input type="radio" class="btn-check" name="{{ form.allocation_type.name }}" id="allocation_type_percent" value="percent" autocomplete="off" {% if form.allocation_type.value == 'percent' %}checked{% endif %}>
+                           <label class="btn btn-outline-primary" for="allocation_type_percent"><i class="fas fa-percentage fa-fw"></i> {% trans "درصد" %}</label>
+                        </div>
+                         {% if form.allocation_type.errors %}
+                                <div class="invalid-feedback d-block">{{ form.allocation_type.errors|striptags }}</div>
+                         {% endif %}
+                    </div>
+
+                     <!-- مقدار تخصیص -->
+                    <div class="col-md-4 col-sm-6">
+                        <label for="{{ form.allocated_amount.id_for_label }}" class="form-label fw-semibold" id="allocated-amount-label">
+                            <i class="fas fa-money-bill-wave fa-fw me-1 text-muted"></i> {% trans "مقدار:" %} <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                             {{ form.allocated_amount }} {# Assuming widget handles class="form-control numeric-input" #}
+                            {# Add class manually if widget doesn't #}
+                            {# <input type="text" class="form-control numeric-input" ... > #}
+                             <span class="input-group-text" id="allocated-amount-unit">{% trans "ریال" %}</span>
+                             <div class="invalid-feedback">
+                                 {% trans "لطفا مقدار معتبر وارد کنید." %}
+                             </div>
+                        </div>
+                        {% if form.allocated_amount.errors %}
+                             <div class="invalid-feedback d-block">{{ form.allocated_amount.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- نمایش مبلغ تخصیص یافته -->
+                    <div class="col-md-5 col-sm-12">
+                         <div class="allocation-display border rounded p-2 bg-light-subtle">
+                             <small class="text-muted d-block">{% trans "مبلغ تخصیص یافته نهایی:" %}</small>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <strong class="fs-5 text-success" id="allocated-amount-display">0</strong>
+                                    <span id="allocated-amount-unit-display" class="text-muted small">{% trans "ریال" %}</span>
+                                </div>
+                                <div class="word-display text-muted small mt-1 text-end" id="allocated-amount-words"></div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                 <h6 class="mb-3 border-bottom pb-2 fw-bold">{% trans "جزئیات و وضعیت" %}</h6>
+                 <div class="row g-3 mb-4">
+                      <!-- تاریخ تخصیص -->
+                    <div class="col-md-4 col-sm-6">
+                        <label for="{{ form.allocation_date.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-calendar-alt fa-fw me-1 text-muted"></i> {% trans "تاریخ تخصیص:" %} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.allocation_date }}
+                         <div class="invalid-feedback">{% trans "لطفا تاریخ را انتخاب کنید." %}</div>
+                        {% if form.allocation_date.errors %}
+                            <div class="invalid-feedback d-block">{{ form.allocation_date.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+                     <!-- شماره تخصیص -->
+                    <div class="col-md-4 col-sm-6">
+                        <label for="{{ form.allocation_number.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-hashtag fa-fw me-1 text-muted"></i> {% trans "شماره تخصیص:" %}
+                        </label>
+                        {{ form.allocation_number }}
+                        {% if form.allocation_number.errors %}
+                            <div class="invalid-feedback d-block">{{ form.allocation_number.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+                    <!-- فعال / متوقف شده -->
+                    <div class="col-md-4 d-flex align-items-center gap-4 mt-4 pt-2">
+                         <div class="form-check form-switch form-check-lg">
+                            {{ form.is_active }}
+                             <label class="form-check-label fw-semibold" for="{{ form.is_active.id_for_label }}">
+                                <i class="fas fa-power-off fa-fw me-1 text-muted"></i> {% trans "فعال" %}
+                             </label>
+                            {% if form.is_active.errors %}
+                                <div class="invalid-feedback d-block">{{ form.is_active.errors }}</div>
+                            {% endif %}
+                        </div>
+                         <div class="form-check form-switch form-check-lg">
+                             {{ form.is_stopped }}
+                             <label class="form-check-label fw-semibold" for="{{ form.is_stopped.id_for_label }}">
+                                <i class="fas fa-pause-circle fa-fw me-1 text-muted"></i> {% trans "متوقف‌شده" %}
+                             </label>
+                            {% if form.is_stopped.errors %}
+                                <div class="invalid-feedback d-block">{{ form.is_stopped.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                      <!-- توضیحات -->
+                    <div class="col-12">
+                        <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-align-left fa-fw me-1 text-muted"></i> {% trans "شرح:" %}
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ form.description.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+                 </div>
+
+                 <h6 class="mb-3 border-bottom pb-2 fw-bold">{% trans "تنظیمات هشدار و قفل" %}</h6>
+                 <div class="row g-3 mb-4">
+                      <!-- درصد قفل‌شده -->
+                    <div class="col-md-4 col-sm-6">
+                        <label for="{{ form.locked_percentage.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-lock fa-fw me-1 text-muted"></i> {% trans "درصد قفل:" %}
+                        </label>
+                         <div class="input-group">
+                            {{ form.locked_percentage }}
+                             <span class="input-group-text">%</span>
+                        </div>
+                         <small class="form-text text-muted">{% trans "بودجه کمتر از این درصد قابل تخصیص نیست." %}</small>
+                        {% if form.locked_percentage.errors %}
+                            <div class="invalid-feedback d-block">{{ form.locked_percentage.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- آستانه اخطار -->
+                    <div class="col-md-4 col-sm-6">
+                        <label for="{{ form.warning_threshold.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-exclamation-triangle fa-fw me-1 text-muted"></i> {% trans "آستانه اخطار:" %}
+                        </label>
+                         <div class="input-group">
+                            {{ form.warning_threshold }}
+                            <span class="input-group-text">%</span>
+                         </div>
+                          <small class="form-text text-muted">{% trans "رسیدن به این درصد باعث نمایش هشدار می‌شود." %}</small>
+                        {% if form.warning_threshold.errors %}
+                            <div class="invalid-feedback d-block">{{ form.warning_threshold.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- اقدام هشدار -->
+                    <div class="col-md-4 col-sm-12">
+                        <label for="{{ form.warning_action.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-bell fa-fw me-1 text-muted"></i> {% trans "اقدام هنگام هشدار:" %}
+                        </label>
+                        {{ form.warning_action }}
+                        {% if form.warning_action.errors %}
+                            <div class="invalid-feedback d-block">{{ form.warning_action.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+                 </div>
+
+                <div class="form-actions border-top mt-4 pt-4 d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-success btn-lg px-4">
+                        <i class="fas fa-check me-1"></i> {% trans "ثبت تخصیص بودجه" %}
+                    </button>
+                    <a href="{% url 'budgetperiod_list' %}" class="btn btn-outline-secondary btn-lg px-4">
+                        <i class="fas fa-times me-1"></i> {% trans "انصراف" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+{# Add Select2 Bootstrap 5 theme if not already included globally #}
+
+    <style>
+    /* Style for threshold markers */
+    .progress-container {
+        padding-top: 15px; /* Space for icons */
+    }
+    .threshold-marker {
+        position: absolute;
+        bottom: 15px; /* Position above the progress bar */
+        transform: translateX(-50%);
+        font-size: 0.9em;
+        cursor: default;
+        z-index: 2;
+         display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px; /* Circle size */
+        height: 20px;
+        /* background-color: rgba(0, 0, 0, 0.1); Optional: subtle background */
+        /* border-radius: 50%; */
+    }
+    .threshold-marker i {
+         font-size: 1.1rem; /* Make icons slightly larger */
+    }
+
+    .warning-threshold {} /* Specific styles if needed */
+    .locked-threshold {} /* Specific styles if needed */
+
+    /* Make Select2 elements fit Bootstrap's input group */
+    .select2-container--bootstrap-5 .select2-selection {
+        min-height: calc(1.5em + .75rem + 2px);
+        padding: .375rem .75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+    }
+     .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+        line-height: 1.5;
+         padding-left: 0;
+         padding-right: 0;
+    }
+     .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+        height: calc(1.5em + .75rem + 2px);
+        right: auto;
+        left: 0.5rem;
+    }
+    /* Style for the Allocation Type radio buttons */
+    .btn-check:checked + .btn-outline-primary {
+        background-color: var(--bs-primary);
+        color: var(--bs-white);
+    }
+    .form-check-lg .form-check-input {
+        width: 2em;
+        height: 1em;
+    }
+    .allocation-display strong {
+        font-family: monospace; /* Better for numbers */
+    }
+     /* Ensure numeric inputs align text to right */
+     input.numeric-input[type="text"],
+    input[inputmode="numeric"] {
+        text-align: right;
+        direction: ltr; /* Keep direction LTR for number input, but align right */
+    }
+    .input-group .form-control.numeric-input {
+         border-top-left-radius: 0;
+         border-bottom-left-radius: 0;
+         border-top-right-radius: var(--bs-border-radius);
+         border-bottom-right-radius: var(--bs-border-radius);
+    }
+     .input-group .input-group-text {
+         border-top-right-radius: 0;
+         border-bottom-right-radius: 0;
+         border-top-left-radius: var(--bs-border-radius);
+         border-bottom-left-radius: var(--bs-border-radius);
+     }
+
+</style>
+
+{% endblock %}
+<script>
+    $(document).ready(function () {
+        $('[data-jdp]').pDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            initialValue: false,
+            persianDigit: true
+        });
+
+        $('.needs-validation').on('submit', function (e) {
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            this.classList.add('was-validated');
+        });
+    });
+</script>
+
+
+{% block extra_js %}
+<script src="{% static 'admin/js/select2.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // مقداردهی اولیه Select2
+    $('#id_organization').select2({
+        placeholder: '{% trans "انتخاب سازمان" %}',
+        allowClear: true
+    });
+    $('#id_project').select2({
+        placeholder: '{% trans "انتخاب پروژه" %}',
+        allowClear: true
+    });
+
+    // به‌روزرسانی پروژه‌ها هنگام تغییر سازمان
+    $('#id_organization').on('change', function() {
+        var organizationId = $(this).val();
+        var projectSelect = $('#id_project');
+
+        // خالی کردن پروژه‌ها
+        projectSelect.empty();
+        projectSelect.append('<option value="">{% trans "--------- (بدون پروژه)" %}</option>');
+
+        if (organizationId) {
+            // درخواست AJAX برای دریافت پروژه‌ها
+            $.ajax({
+                url: '{% url "get_projects_by_organization" %}',
+                data: { 'organization_id': organizationId },
+                dataType: 'json',
+                success: function(data) {
+                    $.each(data.projects, function(index, project) {
+                        projectSelect.append(
+                            $('<option></option>').val(project.id).text(project.name)
+                        );
+                    });
+                    projectSelect.trigger('change'); // به‌روزرسانی Select2
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching projects:', error);
+                    alert('{% trans "خطا در بارگذاری پروژه‌ها." %}');
+                }
+            });
+        }
+    });
+
+    // اطمینان از بارگذاری پروژه‌های مرتبط هنگام ویرایش
+    if ($('#id_organization').val()) {
+        $('#id_organization').trigger('change');
+    }
+});
+</script>
+    <!-- جاوااسکریپت قبلی بدون تغییر -->
+    <script>
+        $(document).ready(function () {
+
+            // به‌روزرسانی پروژه‌ها وقتی سازمان تغییر می‌کنه
+            $('#id_organization').on('change', function () {
+                var orgId = $(this).val();
+                $.ajax({
+                    url: '{% url "get_projects_by_organization" %}', // باید این URL رو توی urls.py تعریف کنید
+                    data: {
+                        'organization_id': orgId
+                    },
+                    success: function (data) {
+                        var $projectSelect = $('#id_project');
+                        $projectSelect.empty();
+                        $projectSelect.append('<option value="">---------</option>');
+                        $.each(data.projects, function (index, project) {
+                            $projectSelect.append('<option value="' + project.id + '">' + project.name + '</option>');
+                        });
+                        $projectSelect.trigger('change');
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching projects:', error);
+                    }
+                });
+            });
+            // اعتبارسنجی سمت کلاینت
+            $('.budget-allocation-form').on('submit', function (e) {
+                let form = this;
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+        });
+    </script>
+    <script>
+        (function () {
+            "use strict";
+
+            const NumberFormatter = {
+                separate: function (number) {
+                    number = this.getRawNumber(number + '').replace(/[^0-9.]/g, '');
+                    if (!number) return '';
+                    let parts = number.split('.');
+                    let y = parts[0];
+                    let z = parts.length > 1 ? '.' + parts[1] : '';
+                    let rgx = /(\d+)(\d{3})/;
+                    while (rgx.test(y)) {
+                        y = y.replace(rgx, '$1,$2');
+                    }
+                    return this.toPersianDigits(y + z).replace(/,/g, '،');
+                },
+                getRawNumber: function (formattedNumber) {
+                    return this.toEnglishDigits(formattedNumber.replace(/،/g, ''));
+                },
+                toPersianDigits: function (number) {
+                    const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+                    const englishDigits = '0123456789';
+                    let result = number + '';
+                    for (let i = 0; i < 10; i++) {
+                        result = result.replace(new RegExp(englishDigits[i], 'g'), persianDigits[i]);
+                    }
+                    return result;
+                },
+                toEnglishDigits: function (number) {
+                    return number.replace(/[۰-۹]/g, function (d) {
+                        return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);
+                    });
+                }
+            };
+
+            const NumberToWords = {
+                units: ['', 'یک', 'دو', 'سه', 'چهار', 'پنج', 'شش', 'هفت', 'هشت', 'نه'],
+                teens: ['ده', 'یازده', 'دوازده', 'سیزده', 'چهارده', 'پانزده', 'شانزده', 'هفده', 'هجده', 'نوزده'],
+                tens: ['', 'ده', 'بیست', 'سی', 'چهل', 'پنجاه', 'شصت', 'هفتاد', 'هشتاد', 'نود'],
+                hundreds: ['', 'صد', 'دویست', 'سیصد', 'چهارصد', 'پانصد', 'ششصد', 'هفتصد', 'هشتصد', 'نهصد'],
+                thousands: ['هزار', 'میلیون', 'میلیارد'],
+
+                convert: function (number) {
+                    number = parseInt(number);
+                    if (isNaN(number) || number === 0) return 'صفر';
+                    let parts = [];
+                    let chunkCount = 0;
+                    while (number > 0) {
+                        let chunk = number % 1000;
+                        if (chunk) {
+                            let chunkText = this.convertChunk(chunk);
+                            if (chunkCount > 0) {
+                                chunkText += ' ' + this.thousands[chunkCount - 1];
+                            }
+                            parts.unshift(chunkText);
+                        }
+                        number = Math.floor(number / 1000);
+                        chunkCount++;
+                    }
+                    return parts.join(' و ');
+                },
+
+                convertChunk: function (number) {
+                    let result = '';
+                    if (number >= 100) {
+                        result += this.hundreds[Math.floor(number / 100)];
+                        number %= 100;
+                        if (number > 0) result += ' و ';
+                    }
+                    if (number >= 20) {
+                        result += this.tens[Math.floor(number / 10)];
+                        number %= 10;
+                        if (number > 0) result += ' و ';
+                    }
+                    if (number >= 10) {
+                        result += this.teens[number - 10];
+                    } else if (number > 0) {
+                        result += this.units[number];
+                    }
+                    return result;
+                }
+            };
+
+            document.addEventListener('DOMContentLoaded', function () {
+                const allocationTypeRadios = document.querySelectorAll('input[name="{{ form.allocation_type.name }}"]');
+                const allocatedAmountInput = document.getElementById('{{ form.allocated_amount.id_for_label }}');
+                const allocatedAmountLabel = document.getElementById('allocated-amount-label');
+                const allocatedAmountUnit = document.getElementById('allocated-amount-unit');
+                const remainingAmountDisplay = document.getElementById('remaining-amount');
+                const remainingPercentDisplay = document.getElementById('remaining-percent');
+                const progressBar = document.getElementById('progress-bar');
+                const allocatedAmountDisplay = document.getElementById('allocated-amount-display');
+                const allocatedAmountUnitDisplay = document.getElementById('allocated-amount-unit-display');
+                const allocatedAmountWords = document.getElementById('allocated-amount-words');
+
+                const totalAmount = {{ total_amount|default:0 }};
+                let remainingAmount = {{ remaining_amount|default:0 }};
+                const lockedPercentage = {{ locked_percentage|default:0 }};
+                const warningThreshold = {{ warning_threshold|default:0 }};
+                const budgetAvailable = {{ budget_period|yesno:"true,false" }};
+
+                allocatedAmountInput.addEventListener('input', function (e) {
+                    let value = e.target.value;
+                    value = value.replace(/[^۰-۹0-9,،.]/g, '');
+                    e.target.value = value;
+                });
+
+                function updateDisplay() {
+                    if (!budgetAvailable || !allocatedAmountInput) return;
+
+                    const isPercent = document.querySelector('input[name="{{ form.allocation_type.name }}"]:checked').value === 'percent';
+                    const rawValue = allocatedAmountInput.value;
+                    const value = NumberFormatter.getRawNumber(rawValue);
+                    let amount = parseFloat(value) || 0;
+
+                    const iconClass = isPercent ? 'fas fa-percentage' : 'fas fa-money-bill-wave';
+                    allocatedAmountLabel.innerHTML = `<i class="${iconClass} fa-fw me-1 text-muted"></i> ${isPercent ? '{% trans "درصد:" %}' : '{% trans "مبلغ:" %}'}`
+                    allocatedAmountUnit.textContent = isPercent ? '%' : '{% trans "ریال" %}';
+                    allocatedAmountInput.setAttribute('step', isPercent ? '0.1' : '1');
+
+                    let displayAmount = amount;
+                    if (isPercent) {
+                        amount = Math.max(0, Math.min(100, amount));
+                        displayAmount = (amount / 100) * totalAmount;
+                    } else {
+                        amount = Math.max(0, Math.min(remainingAmount, amount));
+                        displayAmount = amount;
+                    }
+
+                    if (allocatedAmountDisplay) {
+                        allocatedAmountDisplay.textContent = NumberFormatter.separate(displayAmount);
+                    }
+                    if (allocatedAmountUnitDisplay) {
+                        allocatedAmountUnitDisplay.textContent = '{% trans "ریال" %}';
+                    }
+                    if (allocatedAmountWords) {
+                        if (displayAmount > 0) {
+                            allocatedAmountWords.textContent = NumberToWords.convert(Math.round(displayAmount)) + ' ریال';
+                        } else {
+                            allocatedAmountWords.textContent = '';
+                        }
+                    }
+
+                    const newRemaining = remainingAmount - displayAmount;
+                    const newPercent = totalAmount ? (newRemaining / totalAmount) * 100 : 0;
+
+                    if (remainingAmountDisplay) {
+                        remainingAmountDisplay.textContent = NumberFormatter.separate(newRemaining);
+                    }
+                    if (remainingPercentDisplay) {
+                        remainingPercentDisplay.textContent = `(${NumberFormatter.separate(newPercent.toFixed(1))}%)`;
+                    }
+
+                    if (progressBar) {
+                        progressBar.style.width = `${newPercent}%`;
+                        progressBar.setAttribute('aria-valuenow', newPercent);
+                        progressBar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+                        if (newPercent <= lockedPercentage) {
+                            progressBar.classList.add('bg-danger');
+                        } else if (newPercent <= warningThreshold) {
+                            progressBar.classList.add('bg-warning');
+                        } else {
+                            progressBar.classList.add('bg-success');
+                        }
+                    }
+                }
+
+                allocationTypeRadios.forEach(radio => {
+                    radio.addEventListener('change', updateDisplay);
+                });
+                if (allocatedAmountInput) {
+                    allocatedAmountInput.addEventListener('input', updateDisplay);
+                }
+                updateDisplay();
+
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+                    new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+
+                const forms = document.querySelectorAll('.needs-validation');
+                Array.prototype.slice.call(forms).forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            });
+        })();
+
+    </script>
+{% endblock %}

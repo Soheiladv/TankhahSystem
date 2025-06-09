@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load i18n static jalali_tags rcms_custom_filters %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h1 class="card-title mb-0"><i class="fas fa-list me-2"></i>{{ title }}</h1>
+            <div class="d-flex align-items-center">
+                <div class="dropdown me-3">
+                    <button class="btn btn-light dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-sort me-1"></i> {% trans "مرتب‌سازی" %}
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                        <li>
+                            <a class="dropdown-item {% if current_sort == 'asc' %}active{% endif %}" href="?sort=asc">
+                                <i class="fas fa-arrow-up me-1"></i> {% trans "سطح: پایین به بالا" %}
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item {% if current_sort == 'desc' %}active{% endif %}" href="?sort=desc">
+                                <i class="fas fa-arrow-down me-1"></i> {% trans "سطح: بالا به پایین" %}
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <a href="{% url 'post_create' %}" class="btn btn-light btn-sm"><i class="fas fa-plus me-1"></i>{% trans "ایجاد پست" %}</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>{% trans "ردیف" %}</th>
+                            <th>{% trans "نام" %}</th>
+                            <th>{% trans "سازمان" %}</th>
+                            <th>{% trans "سطح" %}</th>
+                            <th>{% trans "شاخه" %}</th>
+                            <th>{% trans "اقدامات" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for post in posts %}
+                            <tr>
+                                <td>{{ forloop.counter|to_persian_number }}</td>
+                                <td>{{ post.name }}</td>
+                                <td>{{ post.organization }}</td>
+                                <td>{{ post.level }}</td>
+                                <td>{{ post.get_branch_display|default:'-' }}</td>
+                                <td>
+                                    <a href="{% url 'post_detail' post.pk %}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
+                                    <a href="{% url 'post_update' post.pk %}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
+                                    <a href="{% url 'post_delete' post.pk %}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">{% trans "پستی یافت نشد." %}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% include 'core/pagination.html' %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .dropdown-menu {
+        min-width: 200px;
+    }
+    .dropdown-item:hover {
+        background-color: #f1f1f1;
+    }
+    .dropdown-item.active {
+        background-color: #007bff;
+        color: white;
+    }
+    .btn-light {
+        transition: background-color 0.3s;
+    }
+    .btn-light:hover {
+        background-color: #e9ecef;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% load i18n static rcms_custom_filters %}
+
+{# reports/partials/_no_budget_items_found.html #}
+<div class="alert alert-info text-center mt-3">
+    {% translate "هیچ سرفصل بودجه فعالی برای سازمان" %} "{{ organization.name }}" {% translate "در دوره بودجه" %} "{{ period.name }}" {% translate "یافت نشد." %}
+</div>

@@ -1,0 +1,19 @@
+{% load i18n humanize %}
+{% if activities %}
+<ul class="list-group list-group-flush">
+    {% for act in activities %}
+    <li class="list-group-item">
+        <div class="d-flex w-100 justify-content-between">
+            <h6 class="mb-1">{{ act.action }} - {{ act.entity }}</h6>
+            <small class="text-muted">{{ act.timestamp }}</small>
+        </div>
+        <p class="mb-1 small">
+            {% translate "توسط" %}: {{ act.user }} ({{ act.post }}) - {% translate "مرحله" %}: {{ act.stage }}
+        </p>
+        {% if act.comment %}<small class="text-muted">{{ act.comment }}</small>{% endif %}
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="text-center">{% translate "هیچ فعالیت اخیری یافت نشد." %}</p>
+{% endif %}

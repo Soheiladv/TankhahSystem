@@ -1,0 +1,1246 @@
+{% extends 'base.html' %}
+{% load i18n static rcms_custom_filters file_tags %}
+
+{% block extra_head %}
+    {# --- استایل‌های بهینه‌شده --- #}
+    <style>
+        /* بازنشانی استایل‌های پیش‌فرض */
+        * {
+            box-sizing: border-box;
+        }
+
+        /* استایل‌های پیش‌نمایش فایل */
+        .file-preview-item {
+            background-color: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+
+        .file-preview-item:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-preview-item[data-existing] {
+            border-left: 3px solid #6c757d;
+        }
+
+        .file-preview-content {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .file-icon-container {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .file-icon {
+            font-size: 1.25rem;
+        }
+
+        .file-image-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 0.3rem;
+            object-fit: cover;
+            display: none;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .file-image-preview.image-loaded {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .file-preview-item:hover .file-image-preview {
+            transform: scale(1.05);
+        }
+
+        .file-info {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .file-name {
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.875rem;
+            color: #212529;
+        }
+
+        .file-size {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+
+        .remove-preview-btn, .delete-existing-file {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: transparent;
+            border: none;
+            color: #dc3545;
+            transition: all 0.2s ease;
+        }
+
+        .remove-preview-btn:hover, .delete-existing-file:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+            transform: scale(1.1);
+        }
+
+        /* استایل ردیف‌های فرم‌ست */
+        .item-row {
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            animation: fadeIn 0.3s ease-out;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem;
+            border: 1px solid #e9ecef;
+            border-radius: 0.25rem;
+        }
+
+        .item-row:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .item-row.is-deleting {
+            animation: fadeOut 0.4s ease-out forwards, slideOutRight 0.4s ease-out forwards;
+            pointer-events: none;
+        }
+
+        .item-row.error-shake {
+            animation: shake 0.5s ease-in-out;
+            border-color: #dc3545 !important;
+        }
+
+        .item-total {
+            font-weight: 600;
+            background-color: #f8f9fa;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            display: inline-block;
+        }
+
+        .item-row:hover .item-total {
+            background-color: #e9ecef;
+        }
+
+        /* دکمه‌های حذف */
+        .delete-item-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .delete-item-btn:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+            border-color: rgba(220, 53, 69, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* تب‌ها */
+        .factor-tabs .nav-link {
+            color: #495057;
+            transition: all 0.2s ease;
+        }
+
+        .factor-tabs .nav-link.active {
+            color: var(--bs-primary);
+            font-weight: 600;
+            position: relative;
+        }
+
+        .factor-tabs .nav-link.active:after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: var(--bs-primary);
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* انیمیشن‌ها */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.9); }
+        }
+
+        @keyframes slideOutRight {
+            from { transform: translateX(0); }
+            to { transform: translateX(100%); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(25, 135, 84, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
+        }
+
+        /* استایل تاریخچه */
+        .history-item {
+            border-left: 3px solid #007bff;
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .history-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .history-details {
+            background-color: #f1f3f5;
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+
+    <!-- SweetAlert2 برای پیام‌های زیبا -->
+    <link href="{% static 'admin/css/sweetalert2.min.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <div class="container my-4">
+        <div class="card shadow-sm border-0">
+            {# --- هدر کارت --- #}
+            <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center py-3 px-4">
+                <h5 class="card-title mb-0 d-flex align-items-center text-primary">
+                    <i class="fas fa-edit me-2"></i>{{ title|to_persian_number }}
+                </h5>
+                <a href="{% url 'factor_list' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                    <i class="fas fa-arrow-left me-1"></i>{% trans "بازگشت به لیست" %}
+                </a>
+            </div>
+
+            {# --- بدنه کارت --- #}
+            <div class="card-body p-lg-4 p-3">
+                {# --- نمایش خطاهای کلی --- #}
+                {% include "partials/_form_errors.html" with form=form formset=formset %}
+
+                {# --- پنل خلاصه محاسبات و بودجه --- #}
+                <div class="calculation-summary-panel mb-4" id="calculation-summary">
+                    <div class="row gy-3 align-items-center">
+                        <div class="col-lg-4 border-end-lg">
+                            <div id="tankhah-budget-info-display" data-initial-budget="0">
+                                <div class="summary-item mb-2">
+                                    <strong>{% trans "باقیمانده اولیه تنخواه" %}</strong>
+                                    <span class="summary-value" id="display-initial-budget">۰</span> <small class="text-muted">{% trans "ریال" %}</small>
+                                </div>
+                                <div class="summary-item" style="color: red">
+                                    <strong>{% trans "باقیمانده پس از این فاکتور" %}</strong>
+                                    <span class="summary-value" id="display-remaining-budget">۰</span> <small class="text-muted">{% trans "ریال" %}</small>
+                                </div>
+                                <div class="progress mt-2">
+                                    <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <div id="tankhah-budget-warning" class="text-danger small mt-2 d-none">
+                                    <i class="fas fa-exclamation-circle me-1"></i>{% trans "هشدار: اعتبار تنخواه کافی نیست!" %}
+                                </div>
+                            </div>
+                            <div id="tankhah-budget-loading" class="text-center text-muted small py-3 d-none">
+                                <i class="fas fa-spinner fa-spin me-1"></i> {% trans "بارگذاری بودجه..." %}
+                            </div>
+                            <div id="tankhah-budget-error" class="text-center text-danger small py-3 d-none">
+                                <i class="fas fa-times-circle me-1"></i> {% trans "خطا در دریافت بودجه." %}
+                            </div>
+                        </div>
+                        <div class="col-lg-8">
+                            <div class="row gy-3">
+                                <div class="col-sm-4 summary-item">
+                                    <strong>{% trans "جمع ردیف‌ها" %}</strong>
+                                    <span class="summary-value" id="display-items-total">۰</span> <small class="text-muted">{% trans "ریال" %}</small>
+                                </div>
+                                <div class="col-sm-4 summary-item">
+                                    <strong>{% trans "مبلغ فاکتور" %}</strong>
+                                    <span class="summary-value" id="display-factor-total">۰</span> <small class="text-muted">{% trans "ریال" %}</small>
+                                </div>
+                                <div class="col-sm-4 summary-item">
+                                    <strong>{% trans "اختلاف" %}</strong>
+                                    <span class="summary-value" id="display-difference">۰</span> <small class="text-muted">{% trans "ریال" %}</small>
+                                    <div id="amount-comparison-result" class="small mt-1"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# --- فرم اصلی با تب‌ها --- #}
+                <form method="post" enctype="multipart/form-data" id="factor-form" novalidate>
+                    {% csrf_token %}
+
+                    <ul class="nav nav-tabs factor-tabs mb-4" id="factorTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="main-tab" data-bs-toggle="tab" data-bs-target="#main-tab-pane" type="button" role="tab" aria-controls="main-tab-pane" aria-selected="true">
+                                <i class="fas fa-info-circle me-1"></i>{% trans "اطلاعات اصلی" %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="items-tab" data-bs-toggle="tab" data-bs-target="#items-tab-pane" type="button" role="tab" aria-controls="items-tab-pane" aria-selected="false">
+                                <i class="fas fa-list me-1"></i>{% trans "اقلام فاکتور" %} <span class="badge bg-primary rounded-pill ms-2" id="item-count-badge">0</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents-tab-pane" type="button" role="tab" aria-controls="documents-tab-pane" aria-selected="false">
+                                <i class="fas fa-paperclip me-1"></i>{% trans "اسناد پیوست" %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-tab-pane" type="button" role="tab" aria-controls="history-tab-pane" aria-selected="false">
+                                <i class="fas fa-history me-1"></i>{% trans "تاریخچه تغییرات" %}
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="factorTabsContent">
+                        {# --- تب اطلاعات اصلی --- #}
+                        <div class="tab-pane fade show active" id="main-tab-pane" role="tabpanel" aria-labelledby="main-tab" tabindex="0">
+                            <div class="row g-3">
+                                {% for field in form %}
+                                    <div class="{% if field.name == 'description' %}col-12{% else %}col-md-6{% endif %} mb-3">
+                                        <label for="{{ field.id_for_label }}" class="form-label">
+                                            {{ field.label }}{% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                        </label>
+                                        {{ field }}
+                                        {% if field.help_text %}
+                                            <div class="form-text small text-muted">{{ field.help_text|safe }}</div>
+                                        {% endif %}
+                                        <div class="invalid-feedback" id="error-{{ field.id_for_label }}">
+                                            {% if field.errors %}{{ field.errors|first }}{% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% if budget_info %}
+                                <div class="alert alert-secondary mt-4 p-3 small border-0">
+                                    <strong class="d-block mb-2">{% trans "بودجه پروژه:" %} {{ budget_info.project_name }}</strong>
+                                    <span class="me-3">{% trans "کل:" %} {{ budget_info.project_budget|floatformat:0|to_persian_number }}</span>
+                                    <span class="me-3">{% trans "مصرف:" %} {{ budget_info.project_consumed|floatformat:0|to_persian_number }}</span>
+                                    <span>{% trans "باقیمانده:" %} {{ budget_info.project_remaining|floatformat:0|to_persian_number }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {# --- تب اقلام فاکتور --- #}
+                        <div class="tab-pane fade" id="items-tab-pane" role="tabpanel" aria-labelledby="items-tab" tabindex="0">
+                            {{ formset.management_form }}
+                            <div id="items-formset-container">
+                                <div class="d-none d-md-flex row g-2 mb-2 small text-muted fw-bold text-uppercase border-bottom pb-1">
+                                    <div class="col-md-1 text-center">#</div>
+                                    <div class="col-md-5">{% trans "شرح" %}</div>
+                                    <div class="col-md-2 text-center">{% trans "قیمت واحد" %}</div>
+                                    <div class="col-md-1 text-center">{% trans "تعداد" %}</div>
+                                    <div class="col-md-2 text-center">{% trans "جمع" %}</div>
+                                    <div class="col-md-1 text-center">{% trans "حذف" %}</div>
+                                </div>
+                                {% for item_form in formset %}
+                                    <div id="{{ item_form.prefix }}-row" class="item-row {% if item_form.DELETE.value %}is-deleting d-none{% endif %}">
+                                        {{ item_form.id }}
+                                        <div class="row g-2 align-items-center">
+                                            <div class="col-12 col-md-1 text-center mb-2 mb-md-0">
+                                                <span class="row-number badge bg-secondary rounded-pill fs-6"></span>
+                                            </div>
+                                            <div class="col-12 col-md-5 mb-2 mb-md-0">
+                                                <label for="{{ item_form.description.id_for_label }}" class="form-label d-md-none">{% trans "شرح" %}</label>
+                                                {{ item_form.description }}
+                                                <div class="invalid-feedback">{{ item_form.description.errors|first }}</div>
+                                            </div>
+                                            <div class="col-6 col-md-2 mb-2 mb-md-0">
+                                                <label for="{{ item_form.unit_price.id_for_label }}" class="form-label d-md-none">{% trans "قیمت واحد" %}</label>
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text"><i class="fas fa-coins"></i></span>
+                                                    {{ item_form.unit_price }}
+                                                </div>
+                                                <div class="invalid-feedback">{{ item_form.unit_price.errors|first }}</div>
+                                            </div>
+                                            <div class="col-6 col-md-1 mb-2 mb-md-0">
+                                                <label for="{{ item_form.quantity.id_for_label }}" class="form-label d-md-none">{% trans "تعداد" %}</label>
+                                                {{ item_form.quantity }}
+                                                <div class="invalid-feedback">{{ item_form.quantity.errors|first }}</div>
+                                            </div>
+                                            <div class="col-6 col-md-2 text-center mb-2 mb-md-0">
+                                                <label class="form-label d-md-none">{% trans "جمع" %}</label>
+                                                <span class="item-total">۰ {% trans "ریال" %}</span>
+                                            </div>
+                                            <div class="col-6 col-md-1 text-center">
+                                                {% if formset.can_delete %}
+                                                    <button type="button" class="btn btn-sm btn-outline-danger delete-item-btn" title="{% trans 'حذف ردیف' %}">
+                                                        <i class="fas fa-trash-alt fa-sm"></i>
+                                                    </button>
+                                                    {{ item_form.DELETE }}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% if item_form.non_field_errors %}
+                                            <div class="alert alert-warning alert-sm mt-2 py-1 px-2 bont-sm">{{ item_form.non_field_errors|striptags }}</div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-success mt-2" id="add-item-row-button">
+                                <i class="fas fa-plus me-1"></i>{% trans "افزودن ردیف" %}
+                            </button>
+                        </div>
+
+                        {# --- تب اسناد --- #}
+                        <div class="tab-pane fade" id="documents-tab-pane" role="tabpanel" aria-labelledby="documents-tab" tabindex="0">
+                            <div class="row g-3">
+                                {# اسناد فاکتور #}
+<div class="col-md-6">
+    <div class="card h-100 border-light shadow-sm">
+        <div class="card-header bg-light">
+            <h6 class="mb-0"><i class="fas fa-file-invoice text-primary me-2"></i>{% trans "پیوست‌های فاکتور" %}</h6>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="{{ document_form.files.id_for_label }}" class="form-label">{{ document_form.files.label }}</label>
+                {{ document_form.files }}
+                <div class="form-text small">{% trans "فرمت‌های مجاز: PDF, Word, Excel, JPG, PNG" %}</div>
+                <div class="invalid-feedback" id="error-{{ document_form.files.id_for_label }}">
+                    {% if document_form.files.errors %}{{ document_form.files.errors|first }}{% endif %}
+                </div>
+            </div>
+            <div id="factor-doc-previews" class="mt-3 border-top pt-2">
+                <h6 class="mb-2 small text-muted {% if not document_form.files.value and not object %}d-none{% endif %}" id="factor-preview-title">{% trans "فایل‌های انتخاب/موجود:" %}</h6>
+                <div id="new-factor-previews"></div>
+                {% if object and object.pk %}
+                    {% with factor_documents=object.documents.all %}
+                        {% if factor_documents.exists %}
+                            <ul class="list-unstyled existing-documents small mt-2">
+                                {% for doc in factor_documents %}
+                                    <li class="file-preview-item" data-existing="true" data-file-id="{{ doc.pk }}">
+                                        <div class="file-preview-content">
+                                            <div class="file-icon-container">
+                                                {% if doc.file.name|is_image_file %}
+                                                    <img src="{{ doc.file.url }}" alt="{{ doc.file.name }}" class="file-image-preview existing image-loaded">
+                                                    <i class="fas {{ doc.file.name|get_file_icon }} text-secondary fa-lg file-icon d-none"></i>
+                                                {% else %}
+                                                    <img src="" alt="" class="file-image-preview existing">
+                                                    <i class="fas {{ doc.file.name|get_file_icon }} text-secondary fa-lg file-icon"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div class="file-info">
+                                                <a href="{{ doc.file.url }}" target="_blank" class="file-name text-dark text-decoration-none" title="{{ doc.file.name }}">{{ doc.file.name|truncatechars:35 }}</a>
+                                                <span class="badge bg-light text-dark rounded-pill file-size">{{ doc.file_size|default:doc.file.size|filesizeformat }}</span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="delete-existing-file" data-doc-id="{{ doc.pk }}" data-doc-type="factor" title="{% trans 'حذف این فایل' %}">
+                                            <i class="fas fa-trash-alt fa-sm"></i>
+                                        </button>
+                                        <input type="checkbox" name="delete_factor_doc_{{ doc.pk }}" id="delete_factor_doc_{{ doc.pk }}" class="d-none delete-doc-checkbox" value="{{ doc.pk }}">
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    {% endwith %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+                                {# اسناد تنخواه #}
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-light shadow-sm">
+                                        <div class="card-header bg-light">
+                                            <h6 class="mb-0"><i class="fas fa-folder-open text-warning me-2"></i>{% trans "پیوست‌های تنخواه" %}</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label for="{{ tankhah_document_form.documents.id_for_label }}" class="form-label">{{ tankhah_document_form.documents.label }}</label>
+                                                {{ tankhah_document_form.documents }}
+                                                <div class="form-text small">{% trans "فرمت‌های مجاز: PDF, Word, Excel, JPG, PNG" %}</div>
+                                                <div class="invalid-feedback" id="error-{{ tankhah_document_form.documents.id_for_label }}">
+                                                    {% if tankhah_document_form.documents.errors %}{{ tankhah_document_form.documents.errors|first }}{% endif %}
+                                                </div>
+                                            </div>
+                                            <div id="tankhah-doc-previews" class="mt-3 border-top pt-2">
+                                                <h6 class="mb-2 small text-muted {% if not tankhah_document_form.documents.value and not tankhah_documents %}d-none{% endif %}" id="tankhah-preview-title">{% trans "فایل‌های انتخاب/موجود:" %}</h6>
+                                                <div id="new-tankhah-previews"></div>
+                                                {% if tankhah_documents.exists %}
+                                                    <ul class="list-unstyled existing-documents small mt-2">
+                                                        {% for doc in tankhah_documents %}
+                                                            <li class="file-preview-item" data-existing="true" data-file-id="{{ doc.pk }}">
+                                                                <div class="file-preview-content">
+                                                                    <div class="file-icon-container">
+                                                                        {% if doc.document.name|is_image_file %}
+                                                                            <img src="{{ doc.document.url }}" alt="{{ doc.document.name }}" class="file-image-preview existing image-loaded">
+                                                                            <i class="fas {{ doc.document.name|get_file_icon }} text-secondary fa-lg file-icon d-none"></i>
+                                                                        {% else %}
+                                                                            <img src="" alt="" class="file-image-preview existing">
+                                                                            <i class="fas {{ doc.document.name|get_file_icon }} text-secondary fa-lg file-icon"></i>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                    <div class="file-info">
+                                                                        <a href="{{ doc.document.url }}" target="_blank" class="file-name text-dark text-decoration-none" title="{{ doc.document.name }}">{{ doc.document.name|truncatechars:35 }}</a>
+                                                                        <span class="badge bg-light text-dark rounded-pill file-size">{{ doc.file_size|default:doc.document.size|filesizeformat }}</span>
+                                                                    </div>
+                                                                </div>
+                                                                <button type="button" class="delete-existing-file" data-doc-id="{{ doc.pk }}" data-doc-type="tankhah" title="{% trans 'حذف این فایل' %}">
+                                                                    <i class="fas fa-trash-alt fa-sm"></i>
+                                                                </button>
+                                                                <input type="checkbox" name="delete_tankhah_doc_{{ doc.pk }}" id="delete_tankhah_doc_{{ doc.pk }}" class="d-none delete-doc-checkbox" value="{{ doc.pk }}">
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% elif tankhah %}
+                                                    <p class="text-muted small fst-italic mt-3">{% trans "سندی برای این تنخواه ثبت نشده." %}</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+{# --- تب تاریخچه تغییرات --- #}
+<div class="tab-pane fade" id="history-tab-pane" role="tabpanel" aria-labelledby="history-tab" tabindex="0">
+    <h6 class="mb-3">{% trans "تاریخچه تغییرات فاکتور" %}</h6>
+    {% if object and object.pk %}
+        {% if object.history.exists %}
+            {% for history in object.history.all %}
+                <div class="history-item">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ history.get_change_type_display }}</strong>
+                            <span class="text-muted small ms-2">{% trans "توسط" %} {{ history.changed_by.username }} - {{ history.change_timestamp|to_persian_number }}</span>
+                        </div>
+                    </div>
+                    <p class="mb-1">{{ history.description }}</p>
+                    <details class="history-details">
+                        <summary class="small text-primary">{% trans "نمایش جزئیات تغییرات" %}</summary>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="small text-muted">{% trans "داده‌های قبلی" %}</h6>
+                                <pre class="small">{{ history.old_data|json_script:"old_data"|safe }}</pre>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="small text-muted">{% trans "داده‌های جدید" %}</h6>
+                                <pre class="small">{{ history.new_data|json_script:"new_data"|safe }}</pre>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted">{% trans "هیچ تاریخچه‌ای برای این فاکتور ثبت نشده است." %}</p>
+        {% endif %}
+    {% else %}
+        <p class="text-muted">{% trans "هیچ تاریخچه‌ای برای این فاکتور ثبت نشده است، زیرا فاکتور هنوز ایجاد نشده است." %}</p>
+    {% endif %}
+</div>
+                    
+                    </div>
+
+                    {# --- دکمه‌های فرم --- #}
+                    <div class="d-flex justify-content-end mt-4 pt-4 border-top gap-2">
+                        <a href="{% url 'factor_list' %}" class="btn btn-outline-secondary px-4">
+                            <i class="fas fa-times me-2"></i>{% trans "انصراف" %}
+                        </a>
+                        <button type="submit" name="save_draft_incomplete" class="btn btn-outline-secondary px-4">
+                            <i class="fas fa-clock me-2"></i>{% trans "ذخیره موقت" %}
+                        </button>
+                        <button type="submit" name="save_final_draft" class="btn btn-primary px-5" id="submit-button">
+                            <i class="fas fa-save me-2"></i>{% trans "ذخیره نهایی" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {# --- تمپلیت آیتم خالی برای JS --- #}
+    <template id="item-form-template">
+        <div class="item-row" style="opacity:0; transform: translateY(-10px);">
+            <input type="hidden" name="{{ formset.prefix }}-__prefix__-id" id="id_{{ formset.prefix }}-__prefix__-id">
+            <div class="row g-2 align-items-center">
+                <div class="col-12 col-md-1 text-center mb-2 mb-md-0">
+                    <span class="row-number badge bg-secondary rounded-pill fs-6">__row_num__</span>
+                </div>
+                <div class="col-12 col-md-5 mb-2 mb-md-0">
+                    <label for="id_{{ formset.prefix }}-__prefix__-description" class="form-label d-md-none">{% trans "شرح" %}</label>
+                    <input type="text" name="{{ formset.prefix }}-__prefix__-description" class="form-control form-control-sm" maxlength="255" id="id_{{ formset.prefix }}-__prefix__-description" required placeholder="{% trans 'شرح...' %}">
+                    <div class="invalid-feedback"></div>
+                </div>
+                <div class="col-6 col-md-2 mb-2 mb-md-0">
+                    <label for="id_{{ formset.prefix }}-__prefix__-unit_price" class="form-label d-md-none">{% trans "قیمت واحد" %}</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="fas fa-coins"></i></span>
+                        <input type="number" name="{{ formset.prefix }}-__prefix__-unit_price" class="form-control form-control-sm ltr-input unit-price-field" step="any" min="0" id="id_{{ formset.prefix }}-__prefix__-unit_price" required placeholder="{% trans 'قیمت...' %}">
+                    </div>
+                    <div class="invalid-feedback"></div>
+                </div>
+                <div class="col-6 col-md-1 mb-2 mb-md-0">
+                    <label for="id_{{ formset.prefix }}-__prefix__-quantity" class="form-label d-md-none">{% trans "تعداد" %}</label>
+                    <input type="number" name="{{ formset.prefix }}-__prefix__-quantity" value="1" class="form-control form-control-sm ltr-input quantity-field" step="any" min="0.01" id="id_{{ formset.prefix }}-__prefix__-quantity" required placeholder="{% trans 'تعداد...' %}">
+                    <div class="invalid-feedback"></div>
+                </div>
+                <div class="col-6 col-md-2 text-center mb-2 mb-md-0">
+                    <label class="form-label d-md-none">{% trans "جمع" %}</label>
+                    <span class="item-total">۰ {% trans "ریال" %}</span>
+                </div>
+                <div class="col-6 col-md-1 text-center">
+                    <button type="button" class="btn btn-sm btn-outline-danger delete-item-btn" title="{% trans 'حذف ردیف' %}">
+                        <i class="fas fa-trash-alt fa-sm"></i>
+                    </button>
+                    <input type="checkbox" name="{{ formset.prefix }}-__prefix__-DELETE" class="d-none delete-item-checkbox" id="id_{{ formset.prefix }}-__prefix__-DELETE">
+                </div>
+            </div>
+        </div>
+    </template>
+
+    {# --- تمپلیت پیش‌نمایش فایل برای JS --- #}
+    <template id="file-preview-template">
+        <div class="file-preview-item" role="listitem">
+            <div class="file-preview-content">
+                <div class="file-icon-container">
+                    <i class="fas file-icon"></i>
+                    <img src="" alt="" class="file-image-preview">
+                </div>
+                <div class="file-info">
+                    <span class="file-name"></span>
+                    <span class="badge bg-light text-dark file-size"></span>
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm remove-preview-btn" aria-label="{% trans 'حذف فایل' %}">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </template>
+{% endblock %}
+
+{% block extra_js %}
+    <!-- اسکریپت SweetAlert2 -->
+    <script src="{% static 'admin/js/sweetalert2.all.min.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- انتخاب عناصر DOM ---
+            const form = document.getElementById('factor-form');
+            const formsetContainer = document.getElementById('items-formset-container');
+            const addItemButton = document.getElementById('add-item-row-button');
+            const formsetPrefix = '{{ formset.prefix|escapejs }}';
+            const totalFormsInput = document.getElementById(`id_${formsetPrefix}-TOTAL_FORMS`);
+            const emptyFormTemplate = document.getElementById('item-form-template')?.content;
+            const tankhahSelect = document.getElementById('id_tankhah');
+            const factorAmountInput = document.getElementById('id_amount');
+            const displayInitialBudgetEl = document.getElementById('display-initial-budget');
+            const displayRemainingBudgetEl = document.getElementById('display-remaining-budget');
+            const displayItemsTotalEl = document.getElementById('display-items-total');
+            const displayFactorTotalEl = document.getElementById('display-factor-total');
+            const displayDifferenceEl = document.getElementById('display-difference');
+            const amountComparisonResultEl = document.getElementById('amount-comparison-result');
+            const budgetWarningEl = document.getElementById('tankhah-budget-warning');
+            const budgetProgressBarEl = document.querySelector('#calculation-summary .progress-bar');
+            const budgetInfoDisplayEl = document.getElementById('tankhah-budget-info-display');
+            const budgetLoadingEl = document.getElementById('tankhah-budget-loading');
+            const budgetErrorEl = document.getElementById('tankhah-budget-error');
+            const itemCountBadge = document.getElementById('item-count-badge');
+            const factorFileInput = document.getElementById('{{ document_form.files.id_for_label }}');
+            const tankhahFileInput = document.getElementById('{{ tankhah_document_form.documents.id_for_label }}');
+            const factorPreviewContainer = document.getElementById('new-factor-previews');
+            const tankhahPreviewContainer = document.getElementById('new-tankhah-previews');
+            const factorPreviewTitle = document.getElementById('factor-preview-title');
+            const tankhahPreviewTitle = document.getElementById('tankhah-preview-title');
+            const filePreviewTemplate = document.getElementById('file-preview-template')?.content;
+
+            // --- متغیرهای وضعیت ---
+            let ajaxInitialRemainingBudget = 0;
+
+            // --- توابع کمکی ---
+            function toLatinDigits(str) {
+                if (typeof str !== 'string') str = String(str ?? '');
+                return str.replace(/[۰-۹]/g, d => '0123456789'[d.charCodeAt(0) - 1776]);
+            }
+
+            function toPersianDigits(num) {
+                try {
+                    if (num === null || num === undefined) return '۰';
+                    let numStr = String(num);
+                    if (numStr.includes('e')) {
+                        num = Number(numStr);
+                        if (!isFinite(num)) return '۰';
+                        numStr = num.toFixed(0);
+                    }
+                    return numStr.replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+                } catch (e) {
+                    console.error("Error in toPersianDigits:", e, "Input:", num);
+                    return '?';
+                }
+            }
+
+            function formatCurrency(value) {
+                try {
+                    const numStr = toLatinDigits(String(value ?? '0')).replace(/,/g, '');
+                    const numValue = parseFloat(numStr);
+                    if (!isFinite(numValue)) return '۰';
+                    const roundedNum = Math.round(numValue);
+                    const formattedEn = roundedNum.toLocaleString('en-US');
+                    return toPersianDigits(formattedEn);
+                } catch (e) {
+                    console.error("Error in formatCurrency:", e, "Input:", value);
+                    return 'خطا';
+                }
+            }
+
+            function getNumericValue(element) {
+                try {
+                    if (!element) return 0;
+                    const strValue = element.value !== undefined ? element.value : element.textContent;
+                    const cleanedStr = toLatinDigits(strValue?.trim() || '').replace(/[^0-9.-]+/g, '');
+                    return parseFloat(cleanedStr) || 0;
+                } catch (e) {
+                    console.error("Error in getNumericValue:", e, "Element:", element);
+                    return 0;
+                }
+            }
+
+            function calculateRowTotal(rowElement) {
+                if (!rowElement || rowElement.classList.contains('is-deleting')) return 0;
+                const unitPriceInput = rowElement.querySelector('.unit-price-field');
+                const quantityInput = rowElement.querySelector('.quantity-field');
+                const totalSpan = rowElement.querySelector('.item-total');
+                const unitPrice = getNumericValue(unitPriceInput);
+                const quantity = getNumericValue(quantityInput);
+                const rowTotal = unitPrice * quantity;
+                if (totalSpan) {
+                    totalSpan.textContent = `${formatCurrency(rowTotal)} {% trans "ریال" %}`;
+                }
+                return rowTotal;
+            }
+
+            function updateAllCalculations() {
+                let itemsGrandTotal = 0;
+                let activeItemCount = 0;
+                if (formsetContainer) {
+                    formsetContainer.querySelectorAll('.item-row').forEach(row => {
+                        const deleteCheckbox = row.querySelector('.delete-item-checkbox');
+                        if (!deleteCheckbox || !deleteCheckbox.checked) {
+                            itemsGrandTotal += calculateRowTotal(row);
+                            activeItemCount++;
+                        }
+                    });
+                }
+
+                const factorAmount = getNumericValue(factorAmountInput);
+                const difference = factorAmount - itemsGrandTotal;
+                const previousTransactionAmount = {{ previous_transaction_amount|default:0 }};
+                const adjustedRemainingBudget = ajaxInitialRemainingBudget + previousTransactionAmount - factorAmount;
+                const tolerance = 0.01;
+
+                if (displayItemsTotalEl) displayItemsTotalEl.textContent = formatCurrency(itemsGrandTotal);
+                if (itemCountBadge) itemCountBadge.textContent = toPersianDigits(activeItemCount);
+                if (displayFactorTotalEl) displayItemsTotalEl.textContent = formatCurrency(factorAmount);
+                if (displayInitialBudgetEl) displayInitialBudgetEl.textContent = formatCurrency(ajaxInitialRemainingBudget);
+                if (displayRemainingBudgetEl) {
+                    displayRemainingBudgetEl.textContent = formatCurrency(adjustedRemainingBudget);
+                    displayRemainingBudgetEl.className = 'summary-value ' + (adjustedRemainingBudget < 0 ? 'negative' : 'positive');
+                }
+                if (displayDifferenceEl) {
+                    displayDifferenceEl.textContent = formatCurrency(Math.abs(difference));
+                    displayDifferenceEl.className = 'summary-value';
+                    amountComparisonResultEl.className = 'small mt-1';
+                    amountComparisonResultEl.textContent = '';
+                    if (Math.abs(difference) < tolerance) {
+                        displayDifferenceEl.classList.add('positive');
+                        amountComparisonResultEl.textContent = '{% trans "مبالغ مطابقت دارند." %}';
+                        amountComparisonResultEl.classList.add('text-success');
+                    } else if (difference < 0) {
+                        displayDifferenceEl.classList.add('negative');
+                        amountComparisonResultEl.textContent = '{% trans "جمع ردیف‌ها > مبلغ فاکتور!" %}';
+                        amountComparisonResultEl.classList.add('text-danger');
+                    } else {
+                        displayDifferenceEl.classList.add('warning');
+                        amountComparisonResultEl.textContent = '{% trans "جمع ردیف‌ها < مبلغ فاکتور." %}';
+                        amountComparisonResultEl.classList.add('text-warning');
+                    }
+                }
+                if (budgetWarningEl) {
+                    budgetWarningEl.classList.toggle('d-none', adjustedRemainingBudget >= 0);
+                }
+                if (budgetProgressBarEl && ajaxInitialRemainingBudget > 0) {
+                    const percentageUsed = Math.max(0, (factorAmount / ajaxInitialRemainingBudget) * 100);
+                    const displayPercentage = Math.min(100, percentageUsed);
+                    budgetProgressBarEl.style.width = `${displayPercentage}%`;
+                    budgetProgressBarEl.setAttribute('aria-valuenow', percentageUsed.toFixed(2));
+                    budgetProgressBarEl.className = 'progress-bar';
+                    if (factorAmount > ajaxInitialRemainingBudget) {
+                        budgetProgressBarEl.classList.add('bg-danger');
+                    } else if (percentageUsed > 85) {
+                        budgetProgressBarEl.classList.add('bg-warning');
+                    } else {
+                        budgetProgressBarEl.classList.add('bg-success');
+                    }
+                } else if (budgetProgressBarEl) {
+                    budgetProgressBarEl.style.width = '0%';
+                    budgetProgressBarEl.setAttribute('aria-valuenow', 0);
+                    budgetProgressBarEl.className = 'progress-bar bg-success';
+                }
+            }
+
+            function fetchTankhahBudgetInfo(tankhahId) {
+                if (!tankhahId) {
+                    resetBudgetDisplay();
+                    return;
+                }
+                budgetLoadingEl.classList.remove('d-none');
+                budgetInfoDisplayEl.classList.remove('active', 'error');
+                budgetErrorEl.classList.add('d-none');
+                ajaxInitialRemainingBudget = 0;
+
+                $.ajax({
+                    url: '{% url "get_tankhah_budget_info" %}',
+                    method: 'GET',
+                    data: { tankhah_id: tankhahId },
+                    dataType: 'json',
+                    success: function (data) {
+                        budgetLoadingEl.classList.add('d-none');
+                        if (data.error) {
+                            budgetErrorEl.classList.remove('d-none');
+                            resetBudgetDisplay();
+                        } else {
+                            ajaxInitialRemainingBudget = parseFloat(toLatinDigits(String(data.tankhah_remaining ?? '0').replace(/,/g, '')));
+                            if (!isFinite(ajaxInitialRemainingBudget)) {
+                                ajaxInitialRemainingBudget = 0;
+                                budgetErrorEl.classList.remove('d-none');
+                            } else {
+                                budgetInfoDisplayEl.classList.add('active');
+                                budgetErrorEl.classList.add('d-none');
+                            }
+                            updateAllCalculations();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        budgetLoadingEl.classList.add('d-none');
+                        budgetErrorEl.classList.remove('d-none');
+                        resetBudgetDisplay();
+                    }
+                });
+            }
+
+            function resetBudgetDisplay() {
+                ajaxInitialRemainingBudget = 0;
+                budgetInfoDisplayEl?.classList.add('active');
+                budgetErrorEl?.classList.add('d-none');
+                budgetLoadingEl?.classList.add('d-none');
+                updateAllCalculations();
+            }
+
+            function addFormsetRow(withAnimation = true) {
+                if (!emptyFormTemplate || !formsetContainer || !totalFormsInput) {
+                    console.error('Missing required elements for adding formset row');
+                    return;
+                }
+
+                const formIndex = parseInt(totalFormsInput.value) || 0;
+                const newRowFragment = document.importNode(emptyFormTemplate, true);
+                const newRowElement = newRowFragment.querySelector('.item-row');
+
+                newRowElement.innerHTML = newRowElement.innerHTML.replace(/__prefix__/g, formIndex);
+                formsetContainer.appendChild(newRowElement);
+                totalFormsInput.value = formIndex + 1;
+
+                attachRowEventListeners(newRowElement);
+                updateRowNumbers();
+
+                if (withAnimation) {
+                    newRowElement.style.opacity = '0';
+                    newRowElement.style.transform = 'translateY(-10px)';
+                    setTimeout(() => {
+                        newRowElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                        newRowElement.style.opacity = '1';
+                        newRowElement.style.transform = 'translateY(0)';
+                    }, 10);
+                }
+
+                updateAllCalculations();
+            }
+
+            function updateRowNumbers() {
+                let visibleRowIndex = 1;
+                if (formsetContainer) {
+                    formsetContainer.querySelectorAll('.item-row').forEach(row => {
+                        const deleteCheckbox = row.querySelector('.delete-item-checkbox');
+                        const rowNumSpan = row.querySelector('.row-number');
+                        if (rowNumSpan && (!deleteCheckbox || !deleteCheckbox.checked)) {
+                            row.style.display = '';
+                            row.classList.remove('is-deleting');
+                            rowNumSpan.textContent = toPersianDigits(visibleRowIndex++);
+                        }
+                    });
+                }
+            }
+
+            function attachRowEventListeners(rowElement) {
+                rowElement.querySelectorAll('.unit-price-field, .quantity-field').forEach(input => {
+                    input.addEventListener('input', function () {
+                        rowElement.classList.add('highlight');
+                        setTimeout(() => rowElement.classList.remove('highlight'), 1000);
+                        updateAllCalculations();
+                    });
+
+                    if (input.classList.contains('quantity-field')) {
+                        input.addEventListener('keydown', e => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                addItemButton?.click();
+                            }
+                        });
+                    }
+                });
+
+                const deleteButton = rowElement.querySelector('.delete-item-btn');
+                const deleteCheckbox = rowElement.querySelector('.delete-item-checkbox');
+
+                if (deleteButton && deleteCheckbox) {
+                    deleteButton.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        rowElement.classList.add('error-shake');
+                        setTimeout(() => rowElement.classList.remove('error-shake'), 500);
+
+                        Swal.fire({
+                            title: '{% trans "آیا مطمئن هستید؟" %}',
+                            text: '{% trans "این ردیف حذف خواهد شد." %}',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#dc3545',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: '{% trans "حذف" %}',
+                            cancelButtonText: '{% trans "انصراف" %}',
+                            customClass: {
+                                popup: 'animate__animated animate__zoomIn',
+                                confirmButton: 'btn btn-danger',
+                                cancelButton: 'btn btn-secondary'
+                            },
+                            buttonsStyling: false
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                rowElement.classList.add('is-deleting');
+                                deleteCheckbox.checked = true;
+                                setTimeout(() => {
+                                    rowElement.style.display = 'none';
+                                    updateAllCalculations();
+                                    updateRowNumbers();
+                                    Swal.fire({
+                                        toast: true,
+                                        position: 'top-end',
+                                        icon: 'success',
+                                        title: '{% trans "ردیف با موفقیت حذف شد" %}',
+                                        showConfirmButton: false,
+                                        timer: 2000,
+                                        customClass: {
+                                            popup: 'animate__animated animate__fadeInRight'
+                                        }
+                                    });
+                                }, 400);
+                            }
+                        });
+                    });
+                }
+            }
+
+            // --- مدیریت پیش‌نمایش فایل‌ها ---
+            function createFileIconClass(fileName) {
+                if (!fileName) return 'fa-file';
+                const iconMap = {
+                    'pdf': 'fa-file-pdf text-danger',
+                    'jpg': 'fa-file-image text-info',
+                    'jpeg': 'fa-file-image text-info',
+                    'png': 'fa-file-image text-info',
+                    'gif': 'fa-file-image text-info',
+                    'bmp': 'fa-file-image text-info',
+                    'svg': 'fa-file-image text-info',
+                    'doc': 'fa-file-word text-primary',
+                    'docx': 'fa-file-word text-primary',
+                    'xls': 'fa-file-excel text-success',
+                    'xlsx': 'fa-file-excel text-success',
+                    'ppt': 'fa-file-powerpoint text-warning',
+                    'pptx': 'fa-file-powerpoint text-warning',
+                    'zip': 'fa-file-archive text-secondary',
+                    'rar': 'fa-file-archive text-secondary',
+                    'txt': 'fa-file-alt text-secondary',
+                    'csv': 'fa-file-csv text-success',
+                };
+                const extension = fileName.split('.').pop()?.toLowerCase() || '';
+                return iconMap[extension] || 'fa-file text-secondary';
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes === 0 || !isFinite(bytes)) return '0 B';
+                const k = 1024;
+                const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                const decimals = i === 0 ? 0 : 1;
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + sizes[i];
+            }
+
+            function displayFilePreviews(inputElement, previewContainer, titleElement) {
+                if (!inputElement || !previewContainer || !titleElement || !filePreviewTemplate) return;
+
+                previewContainer.innerHTML = '';
+                titleElement.classList.remove('d-none');
+
+                const files = inputElement.files;
+                if (!files || files.length === 0) {
+                    titleElement.classList.add('d-none');
+                    return;
+                }
+
+                Array.from(files).forEach((file, index) => {
+                    const previewNode = document.importNode(filePreviewTemplate, true);
+                    const previewItem = previewNode.querySelector('.file-preview-item');
+                    const fileNameEl = previewNode.querySelector('.file-name');
+                    const fileSizeEl = previewNode.querySelector('.file-size');
+                    const fileIconEl = previewNode.querySelector('.file-icon');
+                    const fileImageEl = previewNode.querySelector('.file-image-preview');
+                    const removeBtn = previewNode.querySelector('.remove-preview-btn');
+
+                    fileNameEl.textContent = file.name;
+                    fileSizeEl.textContent = formatFileSize(file.size);
+                    fileIconEl.className = `fas ${createFileIconClass(file.name)} file-icon`;
+
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            fileImageEl.src = e.target.result;
+                            fileImageEl.classList.add('image-loaded');
+                            fileIconEl.classList.add('d-none');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+
+                    removeBtn.addEventListener('click', () => {
+                        previewItem.classList.add('removing');
+                        setTimeout(() => {
+                            previewItem.remove();
+                            const dt = new DataTransfer();
+                            Array.from(files).forEach((f, i) => {
+                                if (i !== index) dt.items.add(f);
+                            });
+                            inputElement.files = dt.files;
+                            if (!inputElement.files.length) {
+                                titleElement.classList.add('d-none');
+                            }
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: '{% trans "فایل از پیش‌نمایش حذف شد" %}',
+                                showConfirmButton: false,
+                                timer: 2000
+                            });
+                        }, 300);
+                    });
+
+                    previewContainer.appendChild(previewNode);
+                });
+            }
+
+            function setupExistingFileDeletions() {
+                document.querySelectorAll('.delete-existing-file').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const fileId = this.dataset.docId;
+                        const docType = this.dataset.docType;
+                        const listItem = this.closest('.file-preview-item');
+                        const checkbox = document.getElementById(`delete_${docType}_doc_${fileId}`);
+
+                        Swal.fire({
+                            title: '{% trans "آیا مطمئن هستید؟" %}',
+                            text: '{% trans "این فایل حذف خواهد شد." %}',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#dc3545',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: '{% trans "حذف" %}',
+                            cancelButtonText: '{% trans "انصراف" %}',
+                            customClass: {
+                                popup: 'animate__animated animate__zoomIn',
+                                confirmButton: 'btn btn-danger',
+                                cancelButton: 'btn btn-secondary'
+                            },
+                            buttonsStyling: false
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                listItem.classList.add('removing');
+                                setTimeout(() => {
+                                    listItem.remove();
+                                    if (checkbox) checkbox.checked = true;
+                                    Swal.fire({
+                                        toast: true,
+                                        position: 'top-end',
+                                        icon: 'success',
+                                        title: '{% trans "فایل برای حذف علامت‌گذاری شد" %}',
+                                        showConfirmButton: false,
+                                        timer: 2000
+                                    });
+                                }, 300);
+                            }
+                        });
+                    });
+                });
+            }
+
+            // --- راه‌اندازی اولیه ---
+            if (formsetContainer) {
+                formsetContainer.querySelectorAll('.item-row').forEach(row => {
+                    const deleteCheckbox = row.querySelector('.delete-item-checkbox');
+                    if (deleteCheckbox && deleteCheckbox.checked) {
+                        row.classList.add('is-deleting');
+                    }
+                    attachRowEventListeners(row);
+                });
+            }
+            if (addItemButton) addItemButton.addEventListener('click', () => addFormsetRow());
+            if (factorAmountInput) factorAmountInput.addEventListener('input', updateAllCalculations);
+            if (tankhahSelect) {
+                tankhahSelect.addEventListener('change', () => fetchTankhahBudgetInfo(tankhahSelect.value));
+                if (tankhahSelect.value) fetchTankhahBudgetInfo(tankhahSelect.value);
+                else resetBudgetDisplay();
+            } else {
+                resetBudgetDisplay();
+            }
+
+            if (factorFileInput && factorPreviewContainer && factorPreviewTitle) {
+                factorFileInput.addEventListener('change', function (e) {
+                    displayFilePreviews(e.target, factorPreviewContainer, factorPreviewTitle);
+                    if (e.target.files.length > 0) {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: '{% trans "فایل(های) با موفقیت انتخاب شدند" %}',
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
+                    }
+                });
+                if (factorFileInput.files.length > 0) {
+                    displayFilePreviews(factorFileInput, factorPreviewContainer, factorPreviewTitle);
+                }
+            }
+
+            if (tankhahFileInput && tankhahPreviewContainer && tankhahPreviewTitle) {
+                tankhahFileInput.addEventListener('change', function (e) {
+                    displayFilePreviews(e.target, tankhahPreviewContainer, tankhahPreviewTitle);
+                    if (e.target.files.length > 0) {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: '{% trans "فایل(های) با موفقیت انتخاب شدند" %}',
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
+                    }
+                });
+                if (tankhahFileInput.files.length > 0) {
+                    displayFilePreviews(tankhahFileInput, tankhahPreviewContainer, tankhahPreviewTitle);
+                }
+            }
+
+            setupExistingFileDeletions();
+            setTimeout(() => {
+                updateRowNumbers();
+                updateAllCalculations();
+            }, 300);
+
+            // --- اعتبارسنجی قبل از ارسال ---
+            if (form) {
+                form.addEventListener('submit', function (event) {
+                    updateAllCalculations();
+                    const currentFactorAmount = getNumericValue(factorAmountInput);
+                    const currentItemsTotal = getNumericValue(displayItemsTotalEl);
+                    const previousTransactionAmount = {{ previous_transaction_amount|default:0 }};
+                    const projectedRemaining = ajaxInitialRemainingBudget + previousTransactionAmount - currentFactorAmount;
+                    const difference = currentFactorAmount - currentItemsTotal;
+                    const tolerance = 0.01;
+                    let errors = [];
+                    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+                    if (ajaxInitialRemainingBudget !== 0 && projectedRemaining < 0) {
+                        errors.push('{% trans "مبلغ کل فاکتور از بودجه باقی‌مانده تنخواه بیشتر است." %}');
+                        factorAmountInput?.classList.add('is-invalid');
+                    }
+                    if (Math.abs(difference) >= tolerance) {
+                        errors.push('{% trans "مبلغ کل فاکتور با مجموع مبلغ ردیف‌ها همخوانی ندارد." %}');
+                        factorAmountInput?.classList.add('is-invalid');
+                    }
+                    let formsetHasErrors = false;
+                    if (formsetContainer) {
+                        formsetContainer.querySelectorAll('.item-row:not(.is-deleting) input[required]').forEach(input => {
+                            if (!input.value.trim()) {
+                                formsetHasErrors = true;
+                                input.classList.add('is-invalid');
+                            }
+                        });
+                    }
+                    if (formsetHasErrors) errors.push('{% trans "لطفاً تمام فیلدهای اجباری ردیف‌ها را تکمیل کنید." %}');
+
+                    if (errors.length > 0) {
+                        event.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: '{% trans "خطا در فرم" %}',
+                            html: errors.join('<br>'),
+                            confirmButtonText: '{% trans "باشه" %}',
+                            customClass: {
+                                popup: 'animate__animated animate__zoomIn',
+                                confirmButton: 'btn btn-primary'
+                            },
+                            buttonsStyling: false
+                        });
+                        form.querySelector('.is-invalid')?.focus();
+                        form.querySelector('.is-invalid')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                        const submitButton = document.getElementById('submit-button');
+                        if (submitButton) {
+                            submitButton.disabled = true;
+                            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> {% trans "در حال ذخیره..." %}';
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

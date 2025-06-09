@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>{% trans "تخصیص بودجه" %}</h1>
+    <form method="post" class="card p-4">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="organization" class="form-label">{% trans "سازمان" %}</label>
+            <select name="organization" id="organization" class="form-select" onchange="fetchOrgBudget()">
+                {% for org in organizations %}
+                    <option value="{{ org.id }}" data-budget="{{ org_budget }}">{{ org.name }}</option>
+                {% endfor %}
+            </select>
+            <small id="org_budget" class="form-text text-muted"></small>
+        </div>
+
+        <div class="mb-3">
+            <label for="entity_type" class="form-label">{% trans "نوع تخصیص" %}</label>
+            <select name="entity_type" id="entity_type" class="form-select" onchange="updateOptions()">
+                <option value="project">{% trans "پروژه" %}</option>
+                <option value="subproject">{% trans "ساب‌پروژه" %}</option>
+            </select>
+        </div>
+
+        <div class="mb-3" id="project_select">
+            <label for="project" class="form-label">{% trans "پروژه" %}</label>
+            <select name="project" id="project" class="form-select" onchange="fetchBudget()">
+                {% for proj in projects %}
+                    <option value="{{ proj.id }}"
+                            data-budget="{{ proj.get_remaining_budget }}"
+                            data-used="{{ proj }}"
+                            data-total="{{ proj.get_total_budget }}">
+                        {{ proj.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3" id="subproject_select" style="display: none;">
+            <label for="subproject" class="form-label">{% trans "ساب‌پروژه" %}</label>
+            <select name="subproject" id="subproject" class="form-select" onchange="fetchBudget()">
+                {% for subproj in subprojects %}
+                    <option value="{{ subproj.id }}"
+                            data-budget="{{ subproj.get_remaining_budget }}"
+                            data-used="{{ subproj  }}"
+                            data-total="{{ subproj.allocated_budget }}">
+                        {{ subproj.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="budget_amount" class="form-label">{% trans "مقدار بودجه" %}</label>
+            <input type="number" name="budget_amount" id="budget_amount" class="form-control"
+                   placeholder="{% trans 'مقدار را وارد کنید' %}" step="0.01" required>
+            <small id="remaining_budget" class="form-text text-muted"></small>
+            <small id="budget_percentage" class="form-text text-muted"></small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">{% trans "تخصیص" %}</button>
+        <a href="{% url 'project_list' %}" class="btn btn-secondary">{% trans "لغو" %}</a>
+    </form>
+</div>
+
+<script>
+function updateOptions() {
+    const entityType = document.getElementById('entity_type').value;
+    document.getElementById('project_select').style.display = entityType === 'project' ? 'block' : 'none';
+    document.getElementById('subproject_select').style.display = entityType === 'subproject' ? 'block' : 'none';
+    fetchBudget();
+}
+
+function fetchOrgBudget() {
+    const orgSelect = document.getElementById('organization');
+    const selectedOption = orgSelect.options[orgSelect.selectedIndex];
+    const orgBudget = selectedOption.getAttribute('data-budget');
+    document.getElementById('org_budget').textContent = `{% trans "بودجه سازمان:" %} ${orgBudget} {% trans "ریال" %}`;
+}
+
+function fetchBudget() {
+    const entityType = document.getElementById('entity_type').value;
+    const select = entityType === 'project' ? document.getElementById('project') : document.getElementById('subproject');
+    const selectedOption = select.options[select.selectedIndex];
+    const remainingBudget = parseFloat(selectedOption.getAttribute('data-budget'));
+    const usedBudget = parseFloat(selectedOption.getAttribute('data-used'));
+    const totalBudget = parseFloat(selectedOption.getAttribute('data-total'));
+
+    document.getElementById('remaining_budget').textContent = `{% trans "بودجه باقیمانده:" %} ${remainingBudget.toLocaleString()} {% trans "ریال" %}`;
+    const percentageUsed = totalBudget ? (usedBudget / totalBudget * 100).toFixed(2) : 0;
+    document.getElementById('budget_percentage').textContent = `{% trans "درصد استفاده‌شده:" %} ${percentageUsed}%`;
+}
+
+window.onload = function() {
+    fetchOrgBudget();
+    updateOptions();
+};
+</script>
+{% endblock %}

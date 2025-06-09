@@ -1,0 +1,495 @@
+
+{% extends 'base.html' %}
+
+
+{% load i18n jformat rcms_custom_filters static humanize %}
+
+{% block title %}{% trans "ایجاد تخصیص بودجه" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+    .budget-allocation-page {
+        max-width: 900px;
+        margin: 2rem auto;
+    }
+    .card-header {
+        background: linear-gradient(135deg, #28a745, #218838);
+        color: white;
+        padding: 0.75rem 1rem;
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    .budget-summary {
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 1rem;
+    }
+    .progress-container {
+        padding-top: 0.5rem;
+    }
+    .progress {
+        height: 0.8rem;
+        border-radius: 5px;
+    }
+    .progress-labels {
+        font-size: 0.75rem;
+        color: #6c757d;
+        display: flex;
+        justify-content: space-between;
+    }
+    .threshold-marker {
+        position: absolute;
+        width: 2px;
+        height: 0.8rem;
+        background-color: #dc3545;
+        top: 0;
+    }
+    .metric small {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+    .metric strong {
+        font-size: 1rem;
+        color: #343a40;
+    }
+    .allocation-display {
+        padding: 0.5rem;
+        text-align: center;
+        background: #f8f9fa;
+        border-radius: 5px;
+        margin-top: 0.5rem;
+    }
+    .allocation-display small {
+        font-size: 0.7rem;
+        color: #6c757d;
+    }
+    .allocation-display strong {
+        font-size: 1rem;
+        color: #28a745;
+    }
+    .word-display {
+        font-size: 0.75rem;
+        color: #495057;
+    }
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 0.3rem;
+    }
+    .input-group-text {
+        font-size: 0.8rem;
+        background-color: #e9ecef;
+    }
+    .form-check {
+        margin-bottom: 0.5rem;
+    }
+    .form-actions {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        justify-content: end;
+        gap: 0.5rem;
+    }
+    .btn {
+        padding: 0.4rem 1rem;
+        font-size: 0.85rem;
+        border-radius: 5px;
+    }
+    .alert {
+        font-size: 0.85rem;
+    }
+    .invalid-feedback {
+        font-size: 0.75rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="budget-allocation-page">
+    <div class="card shadow-sm border-0">
+        <div class="card-header d-flex align-items-center gap-2">
+            <i class="fas fa-wallet fa-fw"></i>
+            <h5 class="mb-0">{% trans "ایجاد تخصیص بودجه" %}</h5>
+        </div>
+
+        <div class="card-body">
+            <!-- خلاصه بودجه -->
+            {% if budget_period %}
+                <div class="budget-summary">
+                    <h6 class="mb-2 text-muted">{% trans "وضعیت دوره بودجه" %}: {{ budget_period.name }}</h6>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-4 col-6">
+                            <div class="metric">
+                                <small class="text-muted d-block">{% trans "کل بودجه" %}</small>
+                                <strong id="total-amount-display">{{ total_amount|floatformat:0|intcomma|to_persian_number }}</strong>
+                                <strong id="remaining-amount">{{ budget_period.get_remaining_amount|format_negative|to_persian_number }}</strong>
+
+
+                                <span class="text-muted"> {% trans "ریال" %}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <div class="metric">
+                                <small class="text-muted d-block">{% trans "باقی‌مانده" %}</small>
+                                <strong id="remaining-amount">{{ remaining_amount|floatformat:0|intcomma|to_persian_number }}</strong>
+                                <strong id="remaining-amount">{{ budget_period.get_remaining_amount|format_negative|to_persian_number }}</strong>
+                                <span class="text-muted"> {% trans "ریال" %}</span>
+                                <small id="remaining-percent">({{ remaining_percent|floatformat:1|to_persian_number }}%)</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-12">
+                            <div class="progress-container">
+                                <div class="progress-labels">
+                                    <span>{{ warning_threshold }}% <i class="fas fa-exclamation-triangle fa-xs text-warning"></i></span>
+                                    <span>{{ locked_percentage }}% <i class="fas fa-lock fa-xs text-danger"></i></span>
+                                </div>
+                                <div class="progress position-relative">
+                                    <div class="progress-bar bg-success" id="progress-bar" role="progressbar"
+                                         style="width: {{ remaining_percent }}%;"
+                                         aria-valuenow="{{ remaining_percent }}"
+                                         aria-valuemin="0" aria-valuemax="100"></div>
+                                    <div class="threshold-marker warning-threshold" style="left: {{ warning_threshold }}%;"></div>
+                                    <div class="threshold-marker locked-threshold" style="left: {{ locked_percentage }}%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-warning d-flex align-items-center gap-1">
+                    <i class="fas fa-exclamation-triangle fa-fw"></i>
+                    {% trans "لطفاً یک دوره بودجه انتخاب کنید." %}
+                </div>
+            {% endif %}
+
+            <!-- پیام‌ها -->
+            {% if messages %}
+                <div class="messages mb-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show d-flex align-items-center gap-1" role="alert">
+                            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% elif message.tags == 'error' %}fa-times-circle{% else %}fa-info-circle{% endif %} fa-fw"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- فرم -->
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                {% if budget_period %}
+                    <input type="hidden" name="budget_period" value="{{ budget_period.id }}">
+                {% endif %}
+
+                <div class="row g-3">
+                    <!-- سازمان -->
+                    <div class="col-md-6">
+                        <label for="{{ form.organization.id_for_label }}" class="form-label">
+                            <i class="fas fa-building fa-fw me-1 text-muted"></i> {% trans "سازمان" %}
+                        </label>
+                        {{ form.organization }}
+                        <div class="invalid-feedback">
+                            {% trans "لطفاً یک سازمان انتخاب کنید." %}
+                        </div>
+                        {% if form.organization.errors %}
+                            <div class="invalid-feedback d-block">{{ form.organization.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- پروژه -->
+                    <div class="col-md-6">
+                        <label for="{{ form.project.id_for_label }}" class="form-label">
+                            <i class="fas fa-project-diagram fa-fw me-1 text-muted"></i> {% trans "پروژه" %}
+                        </label>
+                        {{ form.project }}
+                        <div class="invalid-feedback">
+                            {% trans "لطفاً یک پروژه انتخاب کنید." %}
+                        </div>
+                        {% if form.project.errors %}
+                            <div class="invalid-feedback d-block">{{ form.project.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- مبلغ تخصیص -->
+                    <div class="col-md-6">
+                        <label for="{{ form.allocated_amount.id_for_label }}" class="form-label">
+                            <i class="fas fa-money-bill-wave fa-fw me-1 text-muted"></i> {% trans "مبلغ تخصیص (ریال)" %}
+                        </label>
+                        <div class="input-group">
+                            {{ form.allocated_amount }}
+                            <span class="input-group-text">{% trans "ریال" %}</span>
+                        </div>
+                        <div class="allocation-display">
+                            <small class="text-muted d-block">{% trans "مقدار" %}</small>
+                            <strong id="allocated-amount-display">0</strong>
+                            <span>{% trans "ریال" %}</span>
+                            <div class="word-display" id="allocated-amount-words"></div>
+                        </div>
+                        <div class="invalid-feedback">
+                            {% trans "لطفاً یک مبلغ معتبر وارد کنید." %}
+                        </div>
+                        {% if form.allocated_amount.errors %}
+                            <div class="invalid-feedback d-block">{{ form.allocated_amount.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- تاریخ تخصیص -->
+                    <div class="col-md-6">
+                        <label for="{{ form.allocation_date.id_for_label }}" class="form-label">
+                            <i class="fas fa-calendar-alt fa-fw me-1 text-muted"></i> {% trans "تاریخ تخصیص" %}
+                        </label>
+                        {{ form.allocation_date }}
+                        <div class="invalid-feedback">
+                            {% trans "لطفاً یک تاریخ معتبر وارد کنید." %}
+                        </div>
+                        {% if form.allocation_date.errors %}
+                            <div class="invalid-feedback d-block">{{ form.allocation_date.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- توضیحات -->
+                    <div class="col-12">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            <i class="fas fa-comment fa-fw me-1 text-muted"></i> {% trans "توضیحات" %}
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ form.description.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- وضعیت -->
+                    <div class="col-md-6">
+                        <div class="form-check mt-4">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                {% trans "فعال" %}
+                            </label>
+                            {% if form.is_active.errors %}
+                                <div class="invalid-feedback d-block">{{ form.is_active.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- دکمه‌ها -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check me-1"></i> {% trans "ثبت" %}
+                    </button>
+                    <a href="{% url 'budgetallocation_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i> {% trans "انصراف" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/persian-date.min.js' %}"></script>
+<script src="{% static 'js/persian-datepicker.min.js' %}"></script>
+<script>
+(function () {
+    "use strict";
+
+    // فرمت‌کننده اعداد
+    const NumberFormatter = {
+        separate: function (number) {
+            number = this.getRawNumber(number + '').replace(/[^0-9.]/g, '');
+            if (!number) return '';
+            let parts = number.split('.');
+            let y = parts[0];
+            let z = parts.length > 1 ? '.' + parts[1] : '';
+            let rgx = /(\d+)(\d{3})/;
+            while (rgx.test(y)) {
+                y = y.replace(rgx, '$1,$2');
+            }
+            return this.toPersianDigits(y + z).replace(/,/g, '،');
+        },
+        getRawNumber: function (formattedNumber) {
+            return this.toEnglishDigits(formattedNumber.replace(/،/g, ''));
+        },
+        toPersianDigits: function (number) {
+            const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+            const englishDigits = '0123456789';
+            let result = number + '';
+            for (let i = 0; i < 10; i++) {
+                result = result.replace(new RegExp(englishDigits[i], 'g'), persianDigits[i]);
+            }
+            return result;
+        },
+        toEnglishDigits: function (number) {
+            return number.replace(/[۰-۹]/g, function (d) {
+                return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);
+            });
+        }
+    };
+
+    // تبدیل عدد به حروف
+    const NumberToWords = {
+        units: ['', 'یک', 'دو', 'سه', 'چهار', 'پنج', 'شش', 'هفت', 'هشت', 'نه'],
+        teens: ['ده', 'یازده', 'دوازده', 'سیزده', 'چهارده', 'پانزده', 'شانزده', 'هفده', 'هجده', 'نوزده'],
+        tens: ['', 'ده', 'بیست', 'سی', 'چهل', 'پنجاه', 'شصت', 'هفتاد', 'هشتاد', 'نود'],
+        hundreds: ['', 'صد', 'دویست', 'سیصد', 'چهارصد', 'پانصد', 'ششصد', 'هفتصد', 'هشتصد', 'نهصد'],
+        thousands: ['هزار', 'میلیون', 'میلیارد'],
+
+        convert: function (number) {
+            number = parseInt(number);
+            if (isNaN(number) || number === 0) return 'صفر';
+            let parts = [];
+            let chunkCount = 0;
+            while (number > 0) {
+                let chunk = number % 1000;
+                if (chunk) {
+                    let chunkText = this.convertChunk(chunk);
+                    if (chunkCount > 0) {
+                        chunkText += ' ' + this.thousands[chunkCount - 1];
+                    }
+                    parts.unshift(chunkText);
+                }
+                number = Math.floor(number / 1000);
+                chunkCount++;
+            }
+            return parts.join(' و ');
+        },
+
+        convertChunk: function (number) {
+            let result = '';
+            if (number >= 100) {
+                result += this.hundreds[Math.floor(number / 100)];
+                number %= 100;
+                if (number > 0) result += ' و ';
+            }
+            if (number >= 20) {
+                result += this.tens[Math.floor(number / 10)];
+                number %= 10;
+                if (number > 0) result += ' و ';
+            }
+            if (number >= 10) {
+                result += this.teens[number - 10];
+            } else if (number > 0) {
+                result += this.units[number];
+            }
+            return result;
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // انتخاب‌گر تاریخ شمسی
+        $('[data-jdp]').pDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            initialValue: false
+        });
+
+        const organizationSelect = document.getElementById('{{ form.organization.id_for_label }}');
+        const projectSelect = document.getElementById('{{ form.project.id_for_label }}');
+        const allocatedAmountInput = document.getElementById('{{ form.allocated_amount.id_for_label }}');
+        const totalAmountDisplay = document.getElementById('total-amount-display');
+        const remainingAmountDisplay = document.getElementById('remaining-amount');
+        const remainingPercentDisplay = document.getElementById('remaining-percent');
+        const progressBar = document.getElementById('progress-bar');
+        const allocatedAmountDisplay = document.getElementById('allocated-amount-display');
+        const allocatedAmountWords = document.getElementById('allocated-amount-words');
+
+        let totalAmount = {{ total_amount|default:0 }};
+        let remainingAmount = {{ remaining_amount|default:0 }};
+        const warningThreshold = {{ warning_threshold|default:10 }};
+        const lockedPercentage = {{ locked_percentage|default:0 }};
+
+        // فیلتر ورودی عددی
+        if (allocatedAmountInput) {
+            allocatedAmountInput.addEventListener('input', function (e) {
+                let value = e.target.value;
+                value = value.replace(/[^۰-۹0-9]/g, '');
+                e.target.value = NumberFormatter.separate(value);
+            });
+        }
+
+        // آپدیت نمایش‌ها
+        function updateDisplay() {
+            let amount = allocatedAmountInput ? NumberFormatter.getRawNumber(allocatedAmountInput.value) : 0;
+            amount = parseFloat(amount) || 0;
+            amount = Math.max(0, Math.min(amount, remainingAmount));
+
+            if (allocatedAmountInput) {
+                allocatedAmountInput.value = NumberFormatter.separate(amount);
+            }
+
+            if (allocatedAmountDisplay) {
+                allocatedAmountDisplay.textContent = NumberFormatter.separate(amount);
+            }
+
+            if (allocatedAmountWords) {
+                allocatedAmountWords.textContent = amount > 0 ? NumberToWords.convert(Math.round(amount)) + ' ریال' : '';
+            }
+
+            const newRemaining = remainingAmount - amount;
+            const newPercent = totalAmount ? (newRemaining / totalAmount * 100).toFixed(1) : 0;
+
+            if (remainingAmountDisplay) {
+                remainingAmountDisplay.textContent = NumberFormatter.separate(newRemaining);
+            }
+
+            if (remainingPercentDisplay) {
+                remainingPercentDisplay.textContent = `(${NumberFormatter.separate(newPercent)}%)`;
+            }
+
+            if (progressBar) {
+                progressBar.style.width = `${newPercent}%`;
+                progressBar.setAttribute('aria-valuenow', newPercent);
+                progressBar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+                if (newPercent <= lockedPercentage) {
+                    progressBar.classList.add('bg-danger');
+                } else if (newPercent <= warningThreshold) {
+                    progressBar.classList.add('bg-warning');
+                } else {
+                    progressBar.classList.add('bg-success');
+                }
+            }
+        }
+
+        // فیلتر پروژه‌ها بر اساس سازمان
+        if (organizationSelect && projectSelect) {
+            organizationSelect.addEventListener('change', function () {
+                const orgId = this.value;
+                projectSelect.innerHTML = '<option value="">{% trans "انتخاب پروژه" %}</option>';
+                const projects = {{ projects|safe }};
+                projects.forEach(project => {
+                    if (!orgId || project.organizations.includes(parseInt(orgId))) {
+                        const option = document.createElement('option');
+                        option.value = project.id;
+                        option.textContent = project.name;
+                        projectSelect.appendChild(option);
+                    }
+                });
+                updateDisplay();
+            });
+        }
+
+        // رویدادها
+        if (allocatedAmountInput) {
+            allocatedAmountInput.addEventListener('input', updateDisplay);
+        }
+
+        // اعتبارسنجی فرم
+        const form = document.querySelector('.needs-validation');
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+
+        updateDisplay();
+    });
+})();
+</script>
+{% endblock %}

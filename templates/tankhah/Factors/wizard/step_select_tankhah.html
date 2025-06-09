@@ -1,0 +1,161 @@
+{% extends "tankhah/Factors/wizard/factor_wizard_base.html" %} {# ارث‌بری از قالب پایه ویزارد #}
+{% load i18n static %} {# تگ‌های لازم #}
+
+{% block wizard_content %}
+    <form method="post" enctype="multipart/form-data" novalidate> {# <--- enctype مهم است #}
+        {% csrf_token %} {# توکن امنیتی #}
+        {{ wizard.management_form }} {# فیلدهای مدیریت وضعیت ویزارد #}
+
+        {# نمایش خطاهای کلی فرم (غیرمرتبط با فیلد خاص) #}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger alert-sm" role="alert">
+                {% for error in form.non_field_errors %}
+                    {{ error }}<br>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {# --- فیلد انتخاب تنخواه --- #}
+        <div class="mb-3">
+            {# نمایش برچسب فیلد با کلاس‌های بوت‌استرپ و علامت ضروری بودن #}
+            <label for="{{ form.tankhah.id_for_label }}" class="form-label form-label-sm {% if form.tankhah.field.required %}required{% endif %}">
+                {{ form.tankhah.label }}
+            </label>
+
+            {# رندر کردن خود ویجت Select (که کلاس‌های بوت‌استرپ را در forms.py گرفته) #}
+            {{ form.tankhah }}
+
+            {# نمایش متن راهنما اگر وجود داشته باشد #}
+            {% if form.tankhah.help_text %}
+                <div class="form-text text-muted small">{{ form.tankhah.help_text|safe }}</div>
+            {% endif %}
+
+            {# نمایش خطاهای مربوط به این فیلد #}
+            {% if form.tankhah.errors %}
+                <div class="invalid-feedback d-block" style="font-size: 0.8em;">
+                    {% for error in form.tankhah.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {# --- بخش نمایش اطلاعات بودجه (با AJAX پر می‌شود) --- #}
+        <div id="tankhah-budget-info" class="mt-3 p-3 border rounded bg-light shadow-sm" style="display: none;">
+             <h6 class="mb-2 border-bottom pb-2">{% trans "اطلاعات بودجه" %}</h6>
+             {# نمایشگر لودینگ #}
+             <div id="budget-loading-spinner" class="text-center my-3" style="display: none;">
+                 <div class="spinner-border spinner-border-sm text-primary" role="status">
+                     <span class="visually-hidden">Loading...</span>
+                 </div> {% trans "در حال بارگذاری..." %}
+               </div>
+               {# نمایشگر خطا #}
+               <div id="budget-error-message" class="alert alert-danger alert-sm py-1 px-2" style="display: none;"></div>
+               {# بخش جزئیات بودجه #}
+               <div id="budget-details" style="font-size: 0.9em;">
+                   <p class="mb-1">{% trans "پروژه:" %} <strong id="info-project-name">-</strong></p>
+                   <p class="mb-1">{% trans "باقی‌مانده پروژه/زیرپروژه:" %} <strong id="info-project-remaining" class="text-success">-</strong> {% trans "ریال" %}</p>
+                   <hr class="my-1">
+                   <p class="mb-1">{% trans "مبلغ کل تنخواه:" %} <strong id="info-tankhah-amount">-</strong> {% trans "ریال" %}</p>
+                   <p class="mb-1">{% trans "هزینه‌کرد (فاکتورهای تاییدشده):" %} <strong id="info-tankhah-consumed">-</strong> {% trans "ریال" %}</p>
+                   <p class="mb-1">{% trans "باقی‌مانده قابل هزینه از این تنخواه:" %} <strong id="info-tankhah-remaining" class="text-primary fw-bold">-</strong> {% trans "ریال" %}</p>
+               </div>
+        </div>
+
+        {# رندر کردن فیلدهای مخفی فرم (اگر وجود داشته باشند) #}
+        {% for hidden_field in form.hidden_fields %}
+             {{ hidden_field }}
+        {% endfor %}
+
+        {# دکمه‌های ناوبری (مرحله بعد/قبل) در قالب پایه رندر می‌شوند #}
+        {# اضافه کردن یک فیلد مخفی برای اطمینان از ارسال در برخی مرورگرها #}
+        <input type="hidden" name="step1_submitted" value="1">
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }} {# شامل شدن JS از قالب پایه #}
+    {# --- JavaScript برای دریافت اطلاعات بودجه با AJAX --- #}
+    <script>
+        $(document).ready(function() { // یا معادل آن در Vanilla JS
+            const budgetInfoDiv = $('#tankhah-budget-info');
+            const loadingSpinner = $('#budget-loading-spinner');
+            const errorMsgDiv = $('#budget-error-message');
+            const detailsDiv = $('#budget-details');
+            const infoProjectName = $('#info-project-name');
+            const infoProjectRemaining = $('#info-project-remaining');
+            const infoTankhahAmount = $('#info-tankhah-amount');
+            const infoTankhahConsumed = $('#info-tankhah-consumed');
+            const infoTankhahRemaining = $('#info-tankhah-remaining');
+            // گرفتن URL از context یا تعریف الگو به صورت دستی
+            const budgetUrlTemplate = "{% url 'tankhah_budget_info_ajax' 0 %}".replace('0', ''); // Requires url 'tankhah_budget_info_ajax' to exist
+
+            function fetchBudgetInfo(tankhahId) {
+                 if (!tankhahId || !budgetUrlTemplate) {
+                     budgetInfoDiv.slideUp();
+                     return;
+                 }
+                 const budgetUrl = budgetUrlTemplate + tankhahId + '/';
+
+                 // نمایش لودینگ و مخفی کردن خطا/جزئیات
+                 detailsDiv.hide();
+                 errorMsgDiv.hide().text('');
+                 loadingSpinner.show();
+                 budgetInfoDiv.slideDown();
+
+                 $.ajax({
+                     url: budgetUrl,
+                     type: 'GET',
+                     dataType: 'json',
+                     success: function(data) {
+                         if (data.success) {
+                             infoProjectName.text(data.project_name || '-');
+                             infoProjectRemaining.text(formatCurrency(data.project_remaining_budget)).removeClass('text-danger').addClass('text-success');
+                             infoTankhahAmount.text(formatCurrency(data.tankhah_amount));
+                             infoTankhahConsumed.text(formatCurrency(data.tankhah_consumed_approved));
+                             infoTankhahRemaining.text(formatCurrency(data.tankhah_remaining)).removeClass('text-danger').addClass('text-primary');
+
+                             // تغییر رنگ بر اساس منفی بودن (اختیاری)
+                             if (data.project_remaining_budget < 0) infoProjectRemaining.removeClass('text-success').addClass('text-danger');
+                             if (data.tankhah_remaining < 0) infoTankhahRemaining.removeClass('text-primary').addClass('text-danger');
+
+                             detailsDiv.show(); // نمایش جزئیات
+                             errorMsgDiv.hide();
+                         } else {
+                             errorMsgDiv.text(data.error || '{% trans "خطا در دریافت اطلاعات بودجه." %}').show();
+                             detailsDiv.hide();
+                         }
+                     },
+                     error: function(xhr) {
+                         console.error("Budget Info AJAX Error:", xhr.status, xhr.responseText);
+                         errorMsgDiv.text('{% trans "خطای سرور در دریافت اطلاعات بودجه." %}').show();
+                         detailsDiv.hide();
+                     },
+                     complete: function() {
+                         loadingSpinner.hide(); // مخفی کردن لودینگ در هر صورت
+                     }
+                 });
+            }
+
+            // تابع کمکی برای فرمت اعداد (مثال ساده)
+            function formatCurrency(numStr) {
+                if (numStr === null || numStr === undefined) return '-';
+                try {
+                    const num = parseFloat(numStr);
+                    if (isNaN(num)) return '-';
+                    return num.toLocaleString('fa-IR', { maximumFractionDigits: 0 });
+                } catch (e) { return String(numStr); }
+            }
+
+            // اتصال رویداد به تغییر انتخاب تنخواه
+            $('#id_tankhah').on('change', function() { // مطمئن شوید ID فیلد select درست است (معمولا id_نام_فیلد)
+                const selectedTankhahId = $(this).val();
+                fetchBudgetInfo(selectedTankhahId);
+            });
+
+            // فراخوانی اولیه در صورت انتخاب بودن تنخواه هنگام بارگذاری صفحه
+            const initialTankhahId = $('#id_tankhah').val();
+            if (initialTankhahId) {
+                fetchBudgetInfo(initialTankhahId);
+            }
+        });
+    </script>
+{% endblock %}

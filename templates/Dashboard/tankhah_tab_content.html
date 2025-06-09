@@ -1,0 +1,40 @@
+{% load i18n humanize %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header"><h6 class="m-0 fw-bold text-primary">{% translate "خلاصه KPIهای تنخواه" %}</h6></div>
+            <div class="card-body">
+                 {% if data.tankhah_kpis %}
+                    <dl class="row">
+                        <dt class="col-sm-7">{% translate "کل تنخواه درخواستی" %}:</dt>
+                        <dd class="col-sm-5 text-end">{{ data.tankhah_kpis.total_tankhah_requested|default:0|intcomma:False }}</dd>
+                        <dt class="col-sm-7">{% translate "مبلغ تنخواه پرداخت شده" %}:</dt>
+                        <dd class="col-sm-5 text-end">{{ data.tankhah_kpis.paid_tankhah_amount|default:0|intcomma:False }}</dd>
+                        <dt class="col-sm-7">{% translate "تعداد تنخواه باز" %}:</dt>
+                        <dd class="col-sm-5 text-end">{{ data.tankhah_kpis.open_tankhah_count|default:0|intcomma:False }}</dd>
+                    </dl>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header"><h6 class="m-0 fw-bold text-primary">{% translate "روند فصلی مصرف تنخواه و فاکتورها" %}</h6></div>
+            <div class="card-body" style="min-height: 280px;">
+                <canvas id="tankhahFactorQuarterlyChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header"><h6 class="m-0 fw-bold text-primary">{% translate "توزیع وضعیت تنخواه‌ها" %}</h6></div>
+            <div class="card-body" style="min-height: 300px; max-height: 350px; display: flex; justify-content: center; align-items: center;">
+                 <div style="width: 70%; max-width: 400px;"> {# محدود کردن عرض نمودار دایره‌ای #}
+                    <canvas id="tankhahStatusDistChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

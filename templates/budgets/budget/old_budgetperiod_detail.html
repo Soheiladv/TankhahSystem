@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load i18n static jformat rcms_custom_filters %} {# Ensure all filters are loaded #}
+
+{% block title %}{% blocktrans with budget_name=budget_period.name %}جزئیات بودجه: {{ budget_name }}{% endblocktrans %}{% endblock %}
+
+{% block extra_css %}
+{# --- Font Awesome --- #}
+{# Ensure Font Awesome is loaded, preferably in base.html, or uncomment below #}
+{# <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"> #}
+
+<style>
+    /* Optional: Ensure Vazir font is loaded globally */
+    /* body { font-family: 'Vazirmatn', sans-serif !important; } */
+
+    .budget-detail-page {
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+    }
+
+    .card {
+        border: none;
+        border-radius: var(--bs-border-radius-lg, 0.8rem);
+        animation: fadeInScaleUp 0.6s ease-out forwards;
+    }
+
+    .card-header {
+        /* Using Bootstrap classes primarily */
+        border-bottom: none;
+        padding: 1rem 1.5rem;
+    }
+     .card-header h4 {
+        margin-bottom: 0;
+        font-weight: 600;
+        font-size: 1.3rem;
+     }
+
+    /* Definition List Styling */
+    .details-dl dt { /* Definition Term (Label) */
+        font-weight: 500;
+        color: var(--bs-secondary-color);
+        font-size: 0.9rem;
+        padding-top: 0.5rem; /* Align with dd padding */
+    }
+    .details-dl dd { /* Definition Description (Value) */
+        font-weight: 500;
+        color: var(--bs-body-color);
+        margin-bottom: 0.75rem; /* Space below each item */
+        border-bottom: 1px dashed var(--bs-border-color-translucent); /* Subtle separator */
+        padding-bottom: 0.75rem;
+    }
+     /* Remove bottom border for the last item */
+     .details-dl div:last-of-type dd {
+         margin-bottom: 0;
+         border-bottom: none;
+         padding-bottom: 0;
+     }
+
+
+    /* Status badge styling (reusing from list view) */
+    .status-badge {
+        font-weight: 500;
+        padding: 0.3em 0.6em;
+        font-size: 0.85em;
+        border-radius: var(--bs-border-radius-sm);
+        display: inline-block; /* Ensure badge displays correctly */
+        margin-left: 5px; /* Space between badges */
+    }
+    .status-badge.active { background-color: var(--bs-success-bg-subtle); color: var(--bs-success-text-emphasis); border: 1px solid var(--bs-success-border-subtle); }
+    .status-badge.inactive { background-color: var(--bs-secondary-bg-subtle); color: var(--bs-secondary-text-emphasis); border: 1px solid var(--bs-secondary-border-subtle); }
+    .status-badge.archived { background-color: var(--bs-warning-bg-subtle); color: var(--bs-warning-text-emphasis); border: 1px solid var(--bs-warning-border-subtle);}
+
+    /* Table styling (reusing from list view) */
+    .table {
+         --bs-table-striped-bg: rgba(var(--bs-info-rgb), 0.03); /* Subtle info stripe for transactions */
+    }
+    .table th {
+        font-weight: 600;
+        font-size: 0.9rem;
+        background-color: var(--bs-light-bg-subtle);
+        vertical-align: middle;
+    }
+    .table td {
+         vertical-align: middle;
+         font-size: 0.95rem;
+         padding: 0.75rem;
+    }
+     .text-numeric { /* For right-aligning numbers */
+         text-align: end;
+         font-family: monospace;
+     }
+
+    /* Section Heading */
+    .section-heading {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: var(--bs-primary); /* Or another theme color */
+        border-bottom: 2px solid var(--bs-primary-border-subtle);
+        padding-bottom: 0.5rem;
+        display: inline-flex; /* Align icon */
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Action buttons area */
+    .card-footer {
+        background-color: var(--bs-light-bg-subtle);
+        border-top: 1px solid var(--bs-border-color-translucent);
+        padding: 1rem 1.5rem;
+    }
+
+    /* Animation */
+    @keyframes fadeInScaleUp {
+        from { opacity: 0; transform: translateY(20px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-lg budget-detail-page">
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white d-flex align-items-center gap-2"> {# Changed to bg-info for variety #}
+            <i class="fas fa-file-invoice-dollar fa-fw"></i> {# Added icon #}
+            <h4 class="mb-0">
+                {% blocktrans %}جزئیات دوره بودجه:{% endblocktrans %} {{ budget_period.name|to_persian_number_with_comma }}
+            </h4>
+        </div>
+        <div class="card-body p-4">
+
+            {# --- Budget Period Details --- #}
+            <h5 class="section-heading">
+                 <i class="fas fa-info-circle"></i> {% trans "اطلاعات اصلی" %}
+            </h5>
+             {# Using dl list with Bootstrap row styling #}
+            <dl class="row details-dl">
+                 {# Wrap each pair in a div for better structure if needed, or rely on dl>dt+dd #}
+                <dt class="col-sm-3 col-md-2"><i class="fas fa-sitemap fa-fw text-muted me-1"></i>{% trans "دفتر مرکزی:" %}</dt>
+                <dd class="col-sm-9 col-md-10">{{ budget_period.organization.name|default:"-" }}</dd>
+
+                <dt class="col-sm-3 col-md-2"><i class="fas fa-coins fa-fw text-muted me-1"></i>{% trans "مبلغ کل:" %}</dt>
+                <dd class="col-sm-9 col-md-10 text-numeric">{{ budget_period.total_amount|format_negative }} {% trans "ریال" %}</dd>
+
+                <dt class="col-sm-3 col-md-2"><i class="fas fa-wallet fa-fw text-muted me-1"></i>{% trans "باقی‌مانده:" %}</dt>
+                <dd class="col-sm-9 col-md-10 text-numeric {% if budget_period.remaining_amount < 0 %}text-danger fw-bold{% endif %}">
+                    {{ budget_period.remaining_amount|format_negative }} {% trans "ریال" %}
+                </dd>
+
+                <dt class="col-sm-3 col-md-2"><i class="fas fa-calendar-alt fa-fw text-muted me-1"></i>{% trans "تاریخ شروع:" %}</dt>
+                <dd class="col-sm-9 col-md-10 font-monospace">{{ budget_period.start_date|jformat:'%Y/%m/%d'|to_persian_number }}</dd>
+
+                <dt class="col-sm-3 col-md-2"><i class="fas fa-calendar-check fa-fw text-muted me-1"></i>{% trans "تاریخ پایان:" %}</dt>
+                <dd class="col-sm-9 col-md-10 font-monospace">{{ budget_period.end_date|jformat:'%Y/%m/%d'|to_persian_number }}</dd>
+
+                <dt class="col-sm-3 col-md-2"><i class="fas fa-toggle-on fa-fw text-muted me-1"></i>{% trans "وضعیت:" %}</dt>
+                <dd class="col-sm-9 col-md-10">
+                    {% if budget_period.is_active %}
+                        <span class="status-badge active">{% trans "فعال" %}</span>
+                    {% else %}
+                        <span class="status-badge inactive">{% trans "غیرفعال" %}</span>
+                    {% endif %}
+                    {% if budget_period.is_archived %}
+                         <span class="status-badge archived">{% trans "بایگانی شده" %}</span>
+                    {% endif %}
+                </dd>
+
+                <dt class="col-sm-3 col-md-2"><i class="fas fa-lock fa-fw text-muted me-1"></i>{% trans "شرط قفل:" %}</dt>
+                <dd class="col-sm-9 col-md-10">{{ budget_period.get_lock_condition_display|default:"-" }}</dd>
+
+                <dt class="col-sm-3 col-md-2"><i class="fas fa-user-edit fa-fw text-muted me-1"></i>{% trans "ایجادکننده:" %}</dt>
+                <dd class="col-sm-9 col-md-10">{{ budget_period.created_by.get_full_name|default:"-" }}</dd>
+            </dl>
+
+            {# --- Transactions History --- #}
+            <h5 class="section-heading">
+                 <i class="fas fa-history"></i> {% trans "تاریخچه تراکنش‌ها / تخصیص‌ها" %}
+            </h5>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-bordered table-sm align-middle">
+                    <thead class="text-center table-light">
+                        <tr>
+                            <th>{% trans "ردیف" %}</th>
+                            <th>{% trans "نوع تراکنش" %}</th>
+                            <th class="text-end">{% trans "مبلغ" %} <small>({% trans "ریال" %})</small></th>
+                            <th>{% trans "سازمان مرتبط" %}</th>
+                            <th>{% trans "زمان ثبت" %}</th>
+                            <th>{% trans "کاربر ثبت کننده" %}</th>
+                            <th>{% trans "توضیحات" %}</th>
+                            <th>{% trans "تخصیص بودجه" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center">
+                        {# Assuming 'transactions' is passed in context #}
+                        {% for transaction in transactions %}
+                        <tr>
+                        <td>{{ forloop.counter }}</td>
+                            <td>{{ transaction.get_transaction_type_display|default:"-" }}</td>
+                             {# Format amount based on type? (e.g., negative for withdrawal) #}
+                            <td class="text-numeric">{{ transaction.amount|format_negative }}</td>
+                             {# Display org name if allocation exists #}
+                            <td>{{ transaction.allocation.organization.name|default:"-" }}</td>
+                             {# Format timestamp #}
+                            <td class="font-monospace">{{ transaction.timestamp|jformat:'%Y/%m/%d %H:%M'|to_persian_number }}</td>
+                            <td>{{ transaction.created_by.get_full_name|default:"-" }}</td>
+                            <td class="text-start">{{ transaction.description|default:"-"|truncatechars:50 }}</td> {# Align left, truncate #}
+                            <td class="text-start">
+                                <a href="{% url 'project_budget_allocation_list'  transaction.allocation.organization.pk %}"
+                                   class="btn btn-outline-success btn-sm"><i class="fas fa-dollar-sign"></i> {% trans "ثبت بودجه" %}</a>
+                            </td> {# Align left, truncate #}
+
+
+
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4"> {# Adjusted colspan #}
+                                 <i class="fas fa-info-circle text-muted me-1"></i> {% trans "هیچ تراکنشی برای این دوره بودجه ثبت نشده است." %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div> {# End card-body #}
+
+        <div class="card-footer bg-light d-flex justify-content-end gap-2"> {# Buttons in footer #}
+             {# Use outline buttons for less emphasis if preferred #}
+            <a href="{% url 'budgetperiod_update' budget_period.pk %}" class="btn btn-secondary">
+                 <i class="fas fa-edit me-1"></i> {% trans "ویرایش دوره" %}
+            </a>
+            <a href="{% url 'budgetperiod_list' %}" class="btn btn-outline-secondary">
+                 <i class="fas fa-arrow-left me-1"></i> {% trans "بازگشت به لیست" %}
+            </a>
+        </div>
+
+    </div> {# End card #}
+</div> {# End container #}
+{% endblock %}

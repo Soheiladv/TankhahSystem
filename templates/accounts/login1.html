@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+ورود کاربران
+{% endblock %}
+            <!-- Custom styles for this template -->
+            <link href="{% static  'admin/css/sign-in.css'%}" rel="stylesheet">
+           {% block content %}
+ 
+        <div class="container">
+            <form action="" class="form" method="post">
+                {% csrf_token %}
+                <h1 class="title">Log in</h1>
+                {{form.as_table}}
+                {% if messages %}
+                    {% for message in messages %}
+                        {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+                            <div class="message">
+                                <span class="message-error">{{ message }}</span>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                <label class="label-checkbox" for="rememberMe">
+                    <input type="checkbox" name="rememberMe" class="form-check">
+                    Remember me
+                </label>
+                <div class="wrapper">
+                    <button type="submit" class="form-butn">Log in</button>
+                    <a class="form-signUp" href="/signUp">Sign Up</a>
+                </div>
+                {% if form.non_field_errors %}
+                <div class="non-field-errors">
+                    {% for err in form.non_field_errors %}
+                    <span class="form-error">{{ err }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="div-social">
+                    <span>Войти с помощью</span>
+                </div>
+                <ul class="list">
+                    <li class="social">
+                        <a href="" class="social-btn">
+                            <img class="login" src="{% static "images/google.svg" %}" alt="google">
+                        </a>
+                    </li>
+                    <li class="social">
+                        <a href="" class="social-btn">
+                            <img class="login" src="{% static "images/tg.svg" %}" alt="telegram">
+                        </a>
+                    </li>
+                    <li class="social">
+                        <a href="" class="social-btn">
+                            <img class="login" src="{% static "images/vk.svg" %}" alt="vk">
+                        </a>
+                    </li>
+                    <li class="social">
+                        <a href="" class="social-btn">
+                            <img class="login" src="{% static "images/yandex.png" %}" alt="yandex">
+                        </a>
+                    </li>
+                </ul>
+            </form>
+        </div>
+{% endblock %}

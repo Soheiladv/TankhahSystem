@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static i18n rcms_custom_filters %}
+
+{% block title %}{% trans "داشبورد گردش کار" %}{% endblock %}
+
+{% block extra_css %}
+    <style>
+        /* Color Palette */
+        :root {
+            --primary-color: #3498db;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #1abc9c;
+            --dark-color: #34495e;
+            --light-color: #ecf0f1;
+        }
+
+        .stage-card {
+            border-radius: 12px; /* Slightly larger for a softer look */
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12); /* Enhanced shadow for depth */
+            margin-bottom: 25px; /* Increased bottom margin for spacing */
+            transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smoother transitions */
+            border: none;
+            overflow: hidden; /* Ensures rounded corners are respected */
+            display: flex; /* Use flexbox for vertical alignment */
+            flex-direction: column; /* Stack content vertically */
+            height: 100%; /* Make all cards in a row the same height */
+        }
+
+        .stage-card:hover {
+            transform: translateY(-8px); /* More pronounced lift on hover */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); /* Stronger shadow on hover */
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem; /* Increased padding */
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3); /* Lighter border */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white; /* White text for contrast */
+            font-weight: 600; /* Bolder header text */
+            font-size: 1.1rem; /* Slightly larger font */
+        }
+
+        .card-body {
+            padding: 1.5rem; /* Increased padding */
+            background-color: #fff;
+            flex-grow: 1; /* Allow the body to fill remaining space */
+        }
+
+        .count-badge {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            padding: 10px 14px; /* Adjusted padding */
+            border-radius: 8px; /* Slightly larger radius */
+            background-color: #f2f2f2; /* Lighter background */
+        }
+
+        .count-number {
+            font-weight: bold;
+            color: var(--dark-color);
+            margin: 0 8px; /* Adjusted margin */
+        }
+
+        .approvers-list {
+            font-size: 0.95rem; /* Slightly larger font */
+            color: #7f8c8d;
+            margin: 15px 0;
+            padding: 12px; /* Adjusted padding */
+            background-color: #f8f9fa;
+            border-radius: 8px; /* Slightly larger radius */
+            border-right: 4px solid var(--primary-color); /* More prominent border */
+        }
+
+        .action-btn {
+            margin: 6px; /* Adjusted margin */
+            border-radius: 8px; /* Slightly larger radius */
+            font-weight: 500;
+            min-width: 120px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease; /* Added transitions */
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px); /* Slight lift on hover */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow on hover */
+        }
+
+        .no-items {
+            color: #95a5a6;
+            font-style: italic;
+            text-align: center;
+            padding: 12px; /* Adjusted padding */
+            background-color: #f8f9fa;
+            border-radius: 8px; /* Slightly larger radius */
+        }
+
+        /* Stage-specific colors - More vibrant and distinct */
+        .stage-pending { background: linear-gradient(135deg, #ffc107, #e0a800); } /* Warning */
+        .stage-review { background: linear-gradient(135deg, #007bff, #0056b3); } /* Primary */
+        .stage-approved { background: linear-gradient(135deg, #28a745, #1e7e34); } /* Success */
+        .stage-rejected { background: linear-gradient(135deg, #dc3545, #c82333); } /* Danger */
+        .stage-default { background: linear-gradient(135deg, #6c757d, #5a6268); } /* Secondary */
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <h1 class="mb-4 text-center">{% trans "داشبورد گردش کار" %}</h1>
+
+        {% if not entities_by_stage %}
+            <div class="alert alert-info text-center" role="alert">
+                <i class="fas fa-info-circle"></i> {% trans "هیچ مرحله گردش کاری تعریف نشده است." %}
+            </div>
+        {% else %}
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+                {% for stage, entities in entities_by_stage.items %}
+                    <div class="col">
+                        <div class="stage-card">
+                            <div class="card-header {% if stage.color_class %}{{ stage.color_class }}{% else %}stage-default{% endif %} text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-{{ stage.icon|default:'layer-group' }}"></i>
+                                    {{ stage.name }}
+                                </h5>
+                                {% if entities.status_label %}
+                                    <span class="badge bg-light text-dark">{{ entities.status_label }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <div class="count-badge text-info">
+                                    <i class="fas fa-file-invoice-dollar"></i>
+                                    <span class="mx-2">{% trans "تنخواه:" %}</span>
+                                    <span class="count-number">{{ entities.tankhah_count|to_persian_number }}</span>
+                                </div>
+
+                                <div class="count-badge text-success">
+                                    <i class="fas fa-coins"></i>
+                                    <span class="mx-2">{% trans "تخصیص بودجه:" %}</span>
+                                    <span class="count-number">{{ entities.budget_allocation_count|to_persian_number }}</span>
+                                </div>
+
+                                {% if entities.approvers %}
+                                    <div class="approvers-list">
+                                        <strong><i class="fas fa-user-check"></i> {% trans "تأییدکنندگان:" %}</strong>
+                                        <div class="mt-2">{{ entities.approvers|join:"، " }}</div>
+                                    </div>
+                                {% endif %}
+
+                                <div class="d-flex flex-wrap justify-content-center mt-3">
+                                    {% if entities.tankhahs %}
+                                        <a href="{% url 'tankhah_list' %}?current_stage={{ stage.id }}"
+                                           class="btn btn-info action-btn">
+                                            <i class="fas fa-eye"></i> {% trans "تنخواه‌ها" %}
+                                        </a>
+                                    {% else %}
+                                        <div class="no-items w-100">{% trans "تنخواهی در این مرحله وجود ندارد." %}</div>
+                                    {% endif %}
+
+                                    {% if entities.budget_allocations %}
+                                        <a href="{% url 'budgetallocation_list' %}?current_stage={{ stage.id }}"
+                                           class="btn btn-success action-btn">
+                                            <i class="fas fa-eye"></i> {% trans "تخصیص‌ها" %}
+                                        </a>
+                                    {% else %}
+                                        <div class="no-items w-100">{% trans "تخصیص بودجه‌ای در این مرحله وجود ندارد." %}</div>
+                                    {% endif %}
+
+                                    <div class="w-100 mt-2 text-center">
+                                        {% if entities.can_approve_tankhah %}
+                                            <button class="btn btn-success action-btn">
+                                                <i class="fas fa-check"></i> {% trans "تأیید تنخواه" %}
+                                            </button>
+                                        {% endif %}
+                                        {% if entities.can_reject_tankhah %}
+                                            <button class="btn btn-danger action-btn">
+                                                <i class="fas fa-times"></i> {% trans "رد تنخواه" %}
+                                            </button>
+                                        {% endif %}
+                                        {% if entities.can_approve_budget %}
+                                            <button class="btn btn-success action-btn">
+                                                <i class="fas fa-check-double"></i> {% trans "تأیید بودجه" %}
+                                            </button>
+                                        {% endif %}
+                                        {% if entities.can_reject_budget %}
+                                            <button class="btn btn-danger action-btn">
+                                                <i class="fas fa-ban"></i> {% trans "رد بودجه" %}
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

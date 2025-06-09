@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'admin/css/datepicker.css' %}">
+
+    <div class="container mt-5">
+        <h1>دیتاپیکر فارسی</h1>
+        <input type="text" id="jalali-datepicker" class="form-control" placeholder="تاریخ خود را انتخاب کنید">
+    </div>
+    <script src="{% static 'admin/js/datepicker.js' %}"></script>
+    <script>
+        $(document).ready(function () {
+            $('#jalali-datepicker').datepicker({
+                language: 'fa',
+                holidays: {{ holidays|safe }},
+                weekendColor: 'red',
+                onDateSelect: function (date) {
+                    alert('تاریخ انتخاب شده: ' + date);
+                },
+            });
+        });
+    </script>
+ {% endblock %}

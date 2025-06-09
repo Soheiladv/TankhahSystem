@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load i18n static rcms_custom_filters %}
+
+{% block content %}
+    <div class="container">
+        <h1>{{ title }}</h1>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>{% trans "توضیحات کلی" %}</label>
+                {{ form.comment }}
+            </div>
+
+            <h3>{% trans "ردیف‌های فاکتور" %}</h3>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>{% trans "شرح" %}</th>
+                    <th>{% trans "مبلغ" %}</th>
+                    <th>{% trans "تعداد" %}</th>
+                    <th>{% trans "وضعیت" %}</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td>{{ item.description |to_persian_number }}</td>
+                        <td>{{ item.amount|format_negative }}</td>
+                        <td>{{ item.quantity |to_persian_number }}</td>
+                        <td>{% if item.get_status_display  in 'APPROVE' %}
+                            <strong style="color: green">تایید شده</strong></td>
+                        {% else %}
+                            <strong style="color: red">عدم تایید</strong></td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <button type="submit" class="btn btn-primary">{% trans "ثبت تأیید" %}</button>
+            <a href="{% url 'factor_list' %}" class="btn btn-secondary">{% trans "بازگشت" %}</a>
+        </form>
+    </div>
+{% endblock %}

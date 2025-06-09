@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>راهنمای سیستم بودجه و پرداخت</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; line-height: 1.6; margin: 20px; background-color: #f9f9f9; }
+        h1 { color: #2c3e50; text-align: center; }
+        h2 { color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 5px; }
+        h3 { color: #16a085; }
+        p, li { color: #7f8c8d; }
+        .section { background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        code { background: #ecf0f1; padding: 2px 5px; border-radius: 3px; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+        th { background-color: #3498db; color: white; }
+        .note { background: #fef5e7; padding: 10px; border-right: 4px solid #f39c12; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>راهنمای سیستم بودجه و پرداخت</h1>
+    <p>این مستند راهنمایی برای توسعه‌دهندگان تیم تولید است تا با ساختار مدل‌ها، مجوزها و نحوه استفاده از سیستم بودجه و پرداخت در پروژه آشنا شوند.</p>
+
+    <div class="section">
+        <h2>معرفی</h2>
+        <p>سیستم بودجه و پرداخت برای مدیریت بودجه کلان، تخصیص به شعب و ادارات داخلی، تراکنش‌ها، و صدور دستور پرداخت طراحی شده است. این سیستم با اپلیکیشن‌های <code>core</code> و <code>tankhah</code> یکپارچه است.</p>
+    </div>
+
+    <div class="section">
+        <h2>مدل‌های اصلی (اپلیکیشن budgets)</h2>
+
+        <h3>1. BudgetPeriod (دوره بودجه کلان)</h3>
+        <p>این مدل بودجه کلان را تعریف می‌کند و توسط دفتر مرکزی (HQ) ایجاد می‌شود.</p>
+        <table>
+            <tr><th>فیلد</th><th>توضیح</th><th>نوع داده</th></tr>
+            <tr><td>organization</td><td>دفتر مرکزی (HQ)</td><td>ForeignKey به Organization</td></tr>
+            <tr><td>name</td><td>نام دوره (مثل "بودجه ۱۴۰۴")</td><td>CharField</td></tr>
+            <tr><td>start_date</td><td>تاریخ شروع</td><td>DateField</td></tr>
+            <tr><td>end_date</td><td>تاریخ پایان</td><td>DateField</td></tr>
+            <tr><td>total_amount</td><td>مبلغ کل بودجه</td><td>DecimalField</td></tr>
+            <tr><td>remaining_amount</td><td>باقی‌مانده کل (محاسبه خودکار)</td><td>DecimalField</td></tr>
+            <tr><td>is_active</td><td>وضعیت فعال</td><td>BooleanField</td></tr>
+            <tr><td>is_archived</td><td>وضعیت بایگانی</td><td>BooleanField</td></tr>
+            <tr><td>lock_condition</td><td>شرط قفل (بعد از تاریخ/دستی)</td><td>CharField</td></tr>
+            <tr><td>created_by</td><td>ایجادکننده</td><td>ForeignKey به CustomUser</td></tr>
+        </table>
+        <p class="note">توجه: <code>remaining_amount</code> هنگام تخصیص‌ها آپدیت می‌شود و قابل ویرایش دستی نیست.</p>
+
+        <h3>2. BudgetAllocation (تخصیص بودجه)</h3>
+        <p>تخصیص بودجه از دوره کلان به سازمان‌ها (شعب یا ادارات داخلی).</p>
+        <table>
+            <tr><th>فیلد</th><th>توضیح</th><th>نوع داده</th></tr>
+            <tr><td>budget_period</td><td>دوره بودجه مرتبط</td><td>ForeignKey به BudgetPeriod</td></tr>
+            <tr><td>organization</td><td>سازمان دریافت‌کننده</td><td>ForeignKey به Organization</td></tr>
+            <tr><td>allocated_amount</td><td>مبلغ تخصیص</td><td>DecimalField</td></tr>
+            <tr><td>remaining_amount</td><td>باقی‌مانده تخصیص</td><td>DecimalField</td></tr>
+            <tr><td>allocation_date</td><td>تاریخ تخصیص</td><td>DateField</td></tr>
+            <tr><td>created_by</td><td>ایجادکننده</td><td>ForeignKey به CustomUser</td></tr>
+        </table>
+
+        <h3>3. BudgetTransaction (تراکنش بودجه)</h3>
+        <p>ثبت تغییرات بودجه (تخصیص، مصرف، افزایش/کاهش).</p>
+        <table>
+            <tr><th>فیلد</th><th>توضیح</th><th>نوع داده</th></tr>
+            <tr><td>allocation</td><td>تخصیص مرتبط</td><td>ForeignKey به BudgetAllocation</td></tr>
+            <tr><td>transaction_type</td><td>نوع تراکنش</td><td>CharField (Choices)</td></tr>
+            <tr><td>amount</td><td>مبلغ</td><td>DecimalField</td></tr>
+            <tr><td>related_tankhah</td><td>تنخواه مرتبط (اختیاری)</td><td>ForeignKey به Tankhah</td></tr>
+            <tr><td>timestamp</td><td>زمان تراکنش</td><td>DateTimeField</td></tr>
+            <tr><td>user</td><td>کاربر ثبت‌کننده</td><td>ForeignKey به CustomUser</td></tr>
+            <tr><td>description</td><td>توضیحات</td><td>TextField</td></tr>
+        </table>
+
+        <h3>4. PaymentOrder (دستور پرداخت)</h3>
+        <p>سند رسمی پرداخت مرتبط با تنخواه.</p>
+        <table>
+            <tr><th>فیلد</th><th>توضیح</th><th>نوع داده</th></tr>
+            <tr><td>tankhah</td><td>تنخواه مرتبط</td><td>ForeignKey به Tankhah</td></tr>
+            <tr><td>order_number</td><td>شماره دستور (اتوماتیک)</td><td>CharField</td></tr>
+            <tr><td>issue_date</td><td>تاریخ صدور</td><td>DateField</td></tr>
+            <tr><td>amount</td><td>مبلغ</td><td>DecimalField</td></tr>
+            <tr><td>payee</td><td>دریافت‌کننده</td><td>ForeignKey به Payee</td></tr>
+            <tr><td>description</td><td>شرح</td><td>TextField</td></tr>
+            <tr><td>related_factors</td><td>فاکتورهای مرتبط</td><td>ManyToMany به Factor</td></tr>
+            <tr><td>status</td><td>وضعیت</td><td>CharField (Choices)</td></tr>
+            <tr><td>min_signatures</td><td>حداقل امضا</td><td>IntegerField</td></tr>
+            <tr><td>created_by</td><td>ایجادکننده</td><td>ForeignKey به CustomUser</td></tr>
+        </table>
+
+        <h3>5. Payee (دریافت‌کننده)</h3>
+        <p>اطلاعات دریافت‌کنندگان پرداخت.</p>
+        <table>
+            <tr><th>فیلد</th><th>توضیح</th><th>نوع داده</th></tr>
+            <tr><td>name</td><td>نام</td><td>CharField</td></tr>
+            <tr><td>payee_type</td><td>نوع (فروشنده/کارمند/دیگر)</td><td>CharField (Choices)</td></tr>
+            <tr><td>national_id</td><td>کد ملی/اقتصادی</td><td>CharField</td></tr>
+            <tr><td>account_number</td><td>شماره حساب</td><td>CharField</td></tr>
+            <tr><td>iban</td><td>شبا</td><td>CharField</td></tr>
+            <tr><td>created_by</td><td>ایجادکننده</td><td>ForeignKey به CustomUser</td></tr>
+        </table>
+
+        <h3>6. TransactionType (نوع تراکنش)</h3>
+        <p>تعریف نوع تراکنش‌ها برای هزینه‌های خاص.</p>
+        <table>
+            <tr><th>فیلد</th><th>توضیح</th><th>نوع داده</th></tr>
+            <tr><td>name</td><td>نام</td><td>CharField</td></tr>
+            <tr><td>description</td><td>توضیحات</td><td>TextField</td></tr>
+            <tr><td>requires_extra_approval</td><td>نیاز به تأیید اضافی</td><td>BooleanField</td></tr>
+            <tr><td>created_by</td><td>ایجادکننده</td><td>ForeignKey به CustomUser</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>مجوزها</h2>
+        <p>هر مدل دارای مجوزهای سفارشی است که در <code>Meta.permissions</code> تعریف شده‌اند. این مجوزها برای کنترل دسترسی کاربران استفاده می‌شوند.</p>
+        <ul>
+            <li><strong>BudgetPeriod</strong>: افزودن، نمایش، بروزرسانی، حذف، بایگانی</li>
+            <li><strong>BudgetAllocation</strong>: افزودن، نمایش، بروزرسانی، حذف، تنظیم</li>
+            <li><strong>BudgetTransaction</strong>: فقط نمایش (تغییرات سیستمی است)</li>
+            <li><strong>PaymentOrder</strong>: افزودن، نمایش، بروزرسانی، حذف، امضا، صدور</li>
+            <li><strong>Payee</strong>: افزودن، نمایش، بروزرسانی، حذف</li>
+            <li><strong>TransactionType</strong>: افزودن، نمایش، بروزرسانی، حذف</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>نکات پیاده‌سازی</h2>
+        <ul>
+            <li>فیلدهای <code>remaining_amount</code> به صورت خودکار آپدیت می‌شوند و نباید دستی ویرایش شوند.</li>
+            <li>شماره دستور پرداخت در <code>PaymentOrder</code> به صورت پویا با تاریخ شمسی تولید می‌شود.</li>
+            <li>مدل‌ها با <code>core.Organization</code> و <code>tankhah.Tankhah</code> یکپارچه هستند.</li>
+            <li>برای دسترسی‌ها، از تابع <code>check_permission_and_organization</code> و کلاس <code>PermissionBaseView</code> استفاده کنید.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>توصیه‌ها</h2>
+        <p>برای توسعه بیشتر:</p>
+        <ul>
+            <li>اضافه کردن گزارش‌گیری در ادمین.</li>
+            <li>ایجاد داشبورد برای نمایش وضعیت بودجه و پرداخت‌ها.</li>
+            <li>تست کامل CRUD برای هر مدل.</li>
+        </ul>
+    </div>
+</body>
+</html>

@@ -1,0 +1,719 @@
+{% extends "base.html" %}
+{% load static i18n humanize %}
+{% load jformat rcms_custom_filters %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="fw-bold text-gradient">
+            <i class="fas fa-file-invoice-dollar me-2"></i>{{ title }}
+        </h2>
+        <a href="#" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#helpModal">
+            <i class="fas fa-question-circle me-1"></i>راهنما
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid mt-2">
+    <!-- فیلترهای پیشرفته -->
+    <div class="card shadow-sm mb-4 border-0 bg-glass">
+        <div class="card-body p-3">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-3 col-lg-2">
+                    <label class="form-label small text-muted">جستجو</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                        <input type="text" name="search" class="form-control" value="{{ current_search }}"
+                               placeholder="شماره فاکتور/تنخواه">
+                    </div>
+                </div>
+
+                <div class="col-md-2 col-lg-2">
+                    <label class="form-label small text-muted">وضعیت</label>
+                    <select name="status" class="form-select form-select-sm shadow-sm">
+                        <option value="">همه وضعیت‌ها</option>
+                        {% for value, display in factor_status_choices %}
+                            <option value="{{ value }}"
+                                    {% if value == current_status %}selected{% endif %}>{{ display }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3 col-lg-2">
+                    <label class="form-label small text-muted">سازمان</label>
+                    <select name="organization_id" class="form-select form-select-sm shadow-sm">
+                        <option value="">همه سازمان‌ها</option>
+                        {% for org in organizations_for_filter %}
+                            <option value="{{ org.id }}"
+                                    {% if org.id|stringformat:"s" == current_organization_id %}selected{% endif %}>{{ org.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3 col-lg-2">
+                    <label class="form-label small text-muted">مرکز هزینه</label>
+                    <select name="project_id" class="form-select form-select-sm shadow-sm">
+                        <option value="">همه مراکز</option>
+                        {% for proj in projects_for_filter %}
+                            <option value="{{ proj.id }}"
+                                    {% if proj.id|stringformat:"s" == current_project_id %}selected{% endif %}>{{ proj.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-4 col-lg-2">
+                    <div class="d-flex gap-2">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="show_locked" id="showLocked"
+                                   {% if current_show_locked %}checked{% endif %}>
+                            <label class="form-check-label small text-muted" for="showLocked">قفل شده‌ها</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="show_archived" id="showArchived"
+                                   {% if current_show_archived %}checked{% endif %}>
+                            <label class="form-check-label small text-muted" for="showArchived">آرشیوها</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-2 col-lg-1">
+                    <button type="submit" class="btn btn-sm btn-primary w-100 shadow-sm">
+                        <i class="fas fa-filter me-1"></i>اعمال
+                    </button>
+                </div>
+
+                <div class="col-md-2 col-lg-1">
+                    <a href="{% url 'advance_factor_status_review' %}" class="btn btn-sm btn-outline-danger w-100">
+                        <i class="fas fa-times me-1"></i>پاک کردن
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- خلاصه آمار -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-glass">
+            <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>خلاصه آمار</h5>
+        </div>
+        <div class="card-body p-3">
+            <div class="row g-2">
+                <div class="col-6 col-md-3 col-lg-2">
+                    <div class="stat-card bg-primary-soft">
+                        <div class="stat-value">{{ summary_stats.total_count|to_persian_number }}</div>
+                        <div class="stat-label">تعداد کل</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 col-lg-2">
+                    <div class="stat-card bg-info-soft">
+                        <div class="stat-value">{{ summary_stats.total_amount_sum|intcomma:False|to_persian_number }}</div>
+                        <div class="stat-label">مبلغ کل</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 col-lg-2">
+                    <div class="stat-card bg-success-soft">
+                        <div class="stat-value">{{ summary_stats.approved_count|to_persian_number }}</div>
+                        <div class="stat-label">تأیید شده</div>
+                        <div class="stat-amount">{{ summary_stats.approved_amount_sum|intcomma:False|to_persian_number }}</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 col-lg-2">
+                    <div class="stat-card bg-danger-soft">
+                        <div class="stat-value">{{ summary_stats.rejected_count|to_persian_number }}</div>
+                        <div class="stat-label">رد شده</div>
+                        <div class="stat-amount">{{ summary_stats.rejected_amount_sum|intcomma:False|to_persian_number }}</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 col-lg-2">
+                    <div class="stat-card bg-warning-soft">
+                        <div class="stat-value">{{ summary_stats.pending_count|to_persian_number }}</div>
+                        <div class="stat-label">در انتظار</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 col-lg-2">
+                    <div class="stat-card bg-purple-soft">
+                        <div class="stat-value">{{ summary_stats.paid_count|to_persian_number }}</div>
+                        <div class="stat-label">پرداخت شده</div>
+                        <div class="stat-amount">{{ summary_stats.paid_amount_sum|intcomma:False|to_persian_number }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- لیست فاکتورها -->
+    {% if factors_data_list %}
+        <div class="accordion factor-accordion" id="factorAccordion">
+        {% for data_item in factors_data_list %}
+            {% with factor=data_item.factor %}
+                <div class="accordion-item shadow-sm mb-3 factor-item
+                    {% if factor.status == 'APPROVED' %}border-success
+                    {% elif factor.status == 'REJECTED' %}border-danger
+                    {% elif factor.status == 'PENDING' %}border-warning
+                    {% elif factor.status == 'PAID' %}border-primary
+                    {% else %}border-secondary{% endif %}
+                    {% if data_item.is_locked_factor %}factor-locked{% endif %}
+                    {% if data_item.is_archived %}factor-archived{% endif %}">
+
+                <div class="accordion-header" id="heading{{ factor.pk }}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapse{{ factor.pk }}" aria-expanded="false"
+                            aria-controls="collapse{{ factor.pk }}">
+                        <div class="d-flex w-100 align-items-center">
+                            <div class="factor-icon me-3">
+                                {% if factor.status == 'APPROVED' %}
+                                    <i class="fas fa-check-circle text-success"></i>
+                                {% elif factor.status == 'REJECTED' %}
+                                    <i class="fas fa-times-circle text-danger"></i>
+                                {% elif factor.status == 'PENDING' %}
+                                    <i class="fas fa-hourglass-half text-warning"></i>
+                                {% elif factor.status == 'PAID' %}
+                                    <i class="fas fa-receipt text-primary"></i>
+                                {% else %}
+                                    <i class="fas fa-file-invoice text-secondary"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="mb-0">
+                                        فاکتور #{{ factor.number|to_persian_number }}
+                                        <small class="text-muted ms-2">تنخواه: {{ factor.tankhah.number|to_persian_number }}</small>
+                                    </h6>
+                                    <span class="badge status-badge bg-{% if factor.status == 'APPROVED' %}success
+                                    {% elif factor.status == 'REJECTED' %}danger
+                                    {% elif factor.status == 'PENDING' %}warning
+                                    {% elif factor.status == 'PAID' %}primary
+                                    {% else %}secondary{% endif %}">
+                                    {{ factor.get_status_display }}
+                                </span>
+                                </div>
+                                <div class="factor-meta">
+                                <span class="text-muted me-3">
+                                    <i class="fas fa-building me-1"></i>{{ data_item.organization_name }}
+                                </span>
+                                    <span class="text-muted me-3">
+                                    <i class="fas fa-project-diagram me-1"></i>{{ data_item.project_name }}
+                                </span>
+                                    <span class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}
+                                </span>
+                                </div>
+                            </div>
+                            <div class="factor-amount ms-3">
+                                <span class="fw-bold">{{ factor.amount|intcomma:False|to_persian_number }}</span>
+                                <small class="text-muted d-block">ریال</small>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+
+                <div id="collapse{{ factor.pk }}" class="accordion-collapse collapse"
+                     aria-labelledby="heading{{ factor.pk }}" data-bs-parent="#factorAccordion">
+                    <div class="accordion-body bg-light">
+                        <div class="row">
+                            <!-- اطلاعات پایه -->
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-header bg-white">
+                                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>اطلاعات پایه
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <dl class="row mb-0">
+                                            <dt class="col-sm-5">دسته هزینه:</dt>
+                                            <dd class="col-sm-7">{{ factor.category.name|default:"-" }}</dd>
+
+                                            <dt class="col-sm-5">سرفصل بودجه:</dt>
+                                            <dd class="col-sm-7">
+                                                {% if data_item.budget_item_name %}
+                                                    <span class="badge bg-info">{{ data_item.budget_item_name }}</span>
+                                                {% else %}-{% endif %}
+                                            </dd>
+
+                                            <dt class="col-sm-5">ایجاد کننده:</dt>
+                                            <dd class="col-sm-7">{{ factor.created_by.get_full_name }}</dd>
+
+                                            <dt class="col-sm-5">تاریخ ایجاد:</dt>
+                                            <dd class="col-sm-7">{{ factor.created_at|jformat:"%Y/%m/%d"|to_persian_number }}</dd>
+
+                                            <dt class="col-sm-5">توضیحات:</dt>
+                                            <dd class="col-sm-7">{{ factor.description|default:"-"|linebreaksbr }}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- وضعیت اقلام -->
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-header bg-white">
+                                        <h6 class="mb-0"><i class="fas fa-tasks me-2"></i>وضعیت اقلام</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row text-center">
+                                            <div class="col-6 mb-3">
+                                                <div class="status-circle bg-success">
+                                                    {{ data_item.item_statuses.approved|to_persian_number }}
+                                                </div>
+                                                <small class="text-muted">تأیید شده</small>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <div class="status-circle bg-danger">
+                                                    {{ data_item.item_statuses.rejected|to_persian_number }}
+                                                </div>
+                                                <small class="text-muted">رد شده</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="status-circle bg-warning">
+                                                    {{ data_item.item_statuses.pending|to_persian_number }}
+                                                </div>
+                                                <small class="text-muted">در انتظار</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="status-circle bg-primary">
+                                                    {{ data_item.item_statuses.paid|to_persian_number }}
+                                                </div>
+                                                <small class="text-muted">پرداخت شده</small>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <a href="{% url 'advance_factor_detail' factor.pk %}"
+                                           class="btn btn-sm btn-outline-primary w-100">
+                                            <i class="fas fa-eye me-1"></i>مشاهده جزئیات اقلام
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- تاریخچه گردش کار -->
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-header bg-white">
+                                        <h6 class="mb-0"><i class="fas fa-history me-2"></i>تاریخچه گردش کار
+                                        </h6>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        {% if data_item.post_impacts %}
+                                            <div class="timeline">
+                                                {% for log in data_item.post_impacts %}
+                                                    <div class="timeline-item {% if log.action == 'APPROVE' %}timeline-success
+                                            {% elif log.action == 'REJECT' %}timeline-danger
+                                            {% else %}timeline-info{% endif %}">
+                                                        <div class="timeline-point"></div>
+                                                        <div class="timeline-content">
+                                                            <div class="d-flex justify-content-between">
+                                                                <h6>{{ log.get_action_display }}</h6>
+                                                                <small class="text-muted">{{ log.timestamp|jformat:"%H:%M - %Y/%m/%d"|to_persian_number }}</small>
+                                                            </div>
+                                                            <p class="mb-1 small">{{ log.comment|default:"-" }}</p>
+                                                            <small class="text-muted">
+                                                                <i class="fas fa-user me-1"></i>{{ log.user.get_full_name }}
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <div class="text-center py-4 text-muted">
+                                                <i class="fas fa-info-circle fa-2x mb-3"></i>
+                                                <p>تاریخچه‌ای ثبت نشده است</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- دکمه‌های عملیات -->
+                        <div class="d-flex justify-content-end mt-3 gap-2">
+                            {% if factor.status == 'PENDING' and data_item.eligible_posts %}
+                                <button class="btn btn-success">
+                                    <i class="fas fa-check me-1"></i>تأیید نهایی
+                                </button>
+                                <button class="btn btn-danger">
+                                    <i class="fas fa-times me-1"></i>رد فاکتور
+                                </button>
+                            {% endif %}
+                            <a href="{% url 'factor_detail' factor.pk %}"
+                               class="fw-bold text-decoration-none stretched-link fs-6" target="_blank"
+                               title="{% translate 'مشاهده جزئیات فاکتور' %}">
+                                <i class="fas fa-file-invoice me-1"></i> {{ factor.number|to_persian_number }}
+                            </a>
+                            <div class="mt-3 text-center border-top pt-3">
+                                {#    <a href="{% url 'factor_detail' factor.pk %}" class="btn btn-outline-primary btn-sm" target="_blank">#}
+                                {#        <i class="fas fa-external-link-alt me-1"></i>{% translate "مشاهده جزئیات کامل و اقدام" %}#}
+                                {#    </a>#}
+                                <a href="{% url 'advance_factor_detail' factor_pk=factor.pk %}">
+                                    {% translate "مشاهده جزئیات جامع فاکتور" %}
+                                </a>
+
+                                <button class="btn btn-outline-secondary">
+                                    <i class="fas fa-print me-1"></i>چاپ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endwith %}
+        {% endfor %}
+    </div>
+
+        <!-- صفحه‌بندی -->
+        {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=
+
+                                    {{ page_obj.previous_page_number }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                            <a class="page-link" href="?page=
+
+                                    {{ num }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">
+                                {{ num|to_persian_number }}
+                            </a>
+                        </li>
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=
+
+                                    {{ page_obj.next_page_number }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+
+    {% else %}
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-file-invoice fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">فاکتوری با معیارهای جستجو یافت نشد</h5>
+                <a href="{% url 'factor_status_review_advanced' %}" class="btn btn-outline-primary mt-3">
+                    <i class="fas fa-times me-1"></i>حذف فیلترها
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+    <!-- مودال راهنما -->
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-question-circle me-2"></i>راهنمای صفحه بررسی وضعیت فاکتورها
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6><i class="fas fa-filter text-primary me-2"></i>فیلترها</h6>
+                    <p>با استفاده از فیلترهای موجود می‌توانید فاکتورها را بر اساس وضعیت، سازمان، مرکز هزینه و سایر
+                        معیارها جستجو کنید.</p>
+
+                    <h6 class="mt-4"><i class="fas fa-chart-pie text-primary me-2"></i>خلاصه آمار</h6>
+                    <p>آمار کلی فاکتورها بر اساس فیلترهای اعمال شده در این بخش نمایش داده می‌شود.</p>
+
+                    <h6 class="mt-4"><i class="fas fa-file-invoice text-primary me-2"></i>لیست فاکتورها</h6>
+                    <p>هر فاکتور به صورت یک کارت نمایش داده شده است که با کلیک بر روی آن جزئیات کامل فاکتور نمایش داده
+                        می‌شود.</p>
+
+                    <h6 class="mt-4"><i class="fas fa-palette text-primary me-2"></i>رنگ‌بندی وضعیت‌ها</h6>
+                    <div class="row g-2">
+                        <div class="col-6 col-md-4">
+                            <span class="badge bg-success w-100">تأیید شده</span>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <span class="badge bg-danger w-100">رد شده</span>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <span class="badge bg-warning w-100">در انتظار</span>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <span class="badge bg-primary w-100">پرداخت شده</span>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <span class="badge bg-secondary w-100">پیش‌نویس</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        /* تم رنگی */
+        :root {
+            --primary: #4e73df;
+            --primary-soft: rgba(78, 115, 223, 0.1);
+            --success: #1cc88a;
+            --success-soft: rgba(28, 200, 138, 0.1);
+            --danger: #e74a3b;
+            --danger-soft: rgba(231, 74, 59, 0.1);
+            --warning: #f6c23e;
+            --warning-soft: rgba(246, 194, 62, 0.1);
+            --info: #36b9cc;
+            --info-soft: rgba(54, 185, 204, 0.1);
+            --purple: #6f42c1;
+            --purple-soft: rgba(111, 66, 193, 0.1);
+        }
+
+        /* پس‌زمینه شیشه‌ای */
+        .bg-glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        /* کارت آمار */
+        .stat-card {
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--bs-gray-600);
+        }
+
+        .stat-amount {
+            font-size: 0.75rem;
+            color: var(--bs-gray-600);
+            margin-top: 0.25rem;
+        }
+
+        /* رنگ‌های نرم */
+        .bg-primary-soft {
+            background-color: var(--primary-soft);
+            border-left: 3px solid var(--primary);
+        }
+
+        .bg-success-soft {
+            background-color: var(--success-soft);
+            border-left: 3px solid var(--success);
+        }
+
+        .bg-danger-soft {
+            background-color: var(--danger-soft);
+            border-left: 3px solid var(--danger);
+        }
+
+        .bg-warning-soft {
+            background-color: var(--warning-soft);
+            border-left: 3px solid var(--warning);
+        }
+
+        .bg-info-soft {
+            background-color: var(--info-soft);
+            border-left: 3px solid var(--info);
+        }
+
+        .bg-purple-soft {
+            background-color: var(--purple-soft);
+            border-left: 3px solid var(--purple);
+        }
+
+        /* آیتم فاکتور */
+        .factor-item {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .factor-item:hover {
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+        }
+
+        .factor-item.border-success {
+            border-left: 4px solid var(--success);
+        }
+
+        .factor-item.border-danger {
+            border-left: 4px solid var(--danger);
+        }
+
+        .factor-item.border-warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .factor-item.border-primary {
+            border-left: 4px solid var(--primary);
+        }
+
+        .factor-item.border-secondary {
+            border-left: 4px solid var(--bs-gray-500);
+        }
+
+        /* وضعیت قفل و آرشیو */
+        .factor-locked {
+            background: repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 5px,
+                    rgba(0, 0, 0, 0.03) 5px,
+                    rgba(0, 0, 0, 0.03) 10px
+            );
+        }
+
+        .factor-archived {
+            opacity: 0.8;
+        }
+
+        /* آیکون فاکتور */
+        .factor-icon i {
+            font-size: 1.5rem;
+        }
+
+        /* دایره وضعیت اقلام */
+        .status-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            color: white;
+            font-weight: 700;
+        }
+
+        /* تایم لاین */
+        .timeline {
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--bs-gray-200);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 1rem;
+        }
+
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-point {
+            position: absolute;
+            left: -1.5rem;
+            top: 0.25rem;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .timeline-success .timeline-point {
+            background-color: var(--success);
+        }
+
+        .timeline-danger .timeline-point {
+            background-color: var(--danger);
+        }
+
+        .timeline-info .timeline-point {
+            background-color: var(--info);
+        }
+
+        /* انیمیشن */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .factor-item {
+            animation: fadeIn 0.5s ease forwards;
+            animation-delay: calc(var(--index) * 0.1s);
+            opacity: 0;
+        }
+
+        /* دکمه‌ها */
+        .btn {
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+
+        /* صفحه‌بندی */
+        .page-item.active .page-link {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .page-link {
+            color: var(--primary);
+        }
+    </style>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        // تنظیم انیمیشن برای هر آیتم با تأخیر
+        document.addEventListener('DOMContentLoaded', function () {
+            const factors = document.querySelectorAll('.factor-item');
+            factors.forEach((factor, index) => {
+                factor.style.setProperty('--index', index);
+            });
+
+            // فیلتر پروژه‌ها بر اساس سازمان
+            const orgFilter = document.querySelector('select[name="organization_id"]');
+            const projectFilter = document.querySelector('select[name="project_id"]');
+
+            orgFilter.addEventListener('change', function () {
+                const orgId = this.value;
+                // در اینجا می‌توانید از AJAX برای دریافت پروژه‌های مربوطه استفاده کنید
+                // یا از داده‌های از پیش بارگذاری شده استفاده کنید
+            });
+        });
+    </script>
+{% endblock %}

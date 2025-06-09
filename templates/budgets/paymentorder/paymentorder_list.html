@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% load rcms_custom_filters jformat  %}
+{% block title %}لیست دستورات پرداخت{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h3 class="mb-0">دستورات پرداخت</h3>
+        <a href="{% url 'paymentorder_add' %}" class="btn btn-light">ایجاد دستور جدید</a>
+    </div>
+    <div class="card-body">
+        <form method="get" class="mb-3">
+            <div class="row">
+                <div class="col-md-4">
+                    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="جستجو در شماره یا دریافت‌کننده">
+                </div>
+                <div class="col-md-4">
+                    <select name="status" class="form-control">
+                        <option value="">همه وضعیت‌ها</option>
+                        {% for status, label in status_choices %}
+                        <option value="{{ status }}" {% if status == status %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">فیلتر</button>
+                </div>
+            </div>
+        </form>
+        <table class="table table-striped table-hover">
+            <thead class="bg-light">
+                <tr>
+                    <th>ردیف </th>
+                    <th>شماره</th>
+                    <th>تنخواه</th>
+                    <th>مبلغ</th>
+                    <th>دریافت‌کننده</th>
+                    <th>وضعیت</th>
+                    <th>تاریخ صدور</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment_order in payment_orders %}
+                <tr>
+                    <td>{{ forloop.counter |to_persian_number }}</td>
+                    <td>{{ payment_order.order_number  | to_persian_number }}</td>
+                    <td>{{ payment_order.tankhah |to_persian_number }}</td>
+                    <td>{{ payment_order.amount| format_negative }}</td>
+                    <td>{{ payment_order.payee }}</td>
+                    <td>{{ payment_order.get_status_display }}</td>
+                    <td>{{ payment_order.issue_date|jformat:'%Y/%m/%d' |to_persian_number }}</td>
+                    <td>
+{#                        <a href="{% url 'paymentorder_detail' payment_order.pk %}" class="btn btn-info btn-sm">جزئیات</a>#}
+                        <a href="{% url 'paymentorder_edit' payment_order.pk %}" class="btn btn-warning btn-sm">ویرایش</a>
+                        <a href="{% url 'paymentorder_delete' payment_order.pk %}" class="btn btn-danger btn-sm">حذف</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center">دستوری یافت نشد.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if is_paginated %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&status={{ status }}">قبلی</a></li>
+                {% endif %}
+                <li class="page-item disabled"><span class="page-link">صفحه {{ page_obj.number }} از {{ paginator.num_pages }}</span></li>
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&status={{ status }}">بعدی</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

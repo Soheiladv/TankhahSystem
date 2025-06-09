@@ -1,0 +1,72 @@
+{#{% extends 'base.html' %}#}
+{% load i18n jformat rcms_custom_filters static humanize %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+    </head>
+    <body>
+<input type="text" class="form-control" id="datepicker" data-jdp placeholder="تاریخ را انتخاب کنید">
+
+<!-- ✅ پیاده‌سازی مقایسه دو تاریخ (مثلاً شروع و پایان):-->
+<link rel="stylesheet" href="{% static 'admin/css/jalalidatepicker.min.css' %}">
+<script src="{% static 'admin/js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'admin/js/jalalidatepicker.min.js' %}"></script>
+
+<script>
+    $(document).ready(function () {
+        jalaliDatepicker.startWatch();
+    });
+</script>
+
+<!--     ✅ پیاده‌سازی مقایسه دو تاریخ (مثلاً شروع و پایان):   -->
+<input id="start_date" class="form-control" data-jdp placeholder="تاریخ شروع">
+<input id="end_date" class="form-control" data-jdp placeholder="تاریخ پایان">
+<small class="text-danger d-none" id="date-error">تاریخ پایان نباید قبل از تاریخ شروع باشد.</small>
+
+<script>
+    jalaliDatepicker.startWatch();
+
+    function convertToNumber(dateStr) {
+        return parseInt(dateStr.replace(/\//g, ''), 10);  // مثلاً: "1403/01/15" => 14030115
+    }
+
+    $('#start_date').on('change', function () {
+    const startVal = $(this).val();
+    $('#end_date').val('');
+    jalaliDatepicker.updateOptions('#end_date', { minDate: startVal });
+});
+
+</script>
+
+<!--                       -->
+{##}
+{#    <input type="text" class="form-control" id="datepicker" placeholder="تاریخ را انتخاب کنید">#}
+{##}
+{#<link rel="stylesheet" href="{% static 'admin/css/persian-datepicker.min.css' %}">#}
+{#<script src="{% static 'admin/js/jquery-3.6.0.min.js' %}"></script>#}
+{#<script src="{% static 'admin/js/persian-date.min.js' %}"></script>#}
+{#<script src="{% static 'admin/js/persian-datepicker.min.js' %}"></script>#}
+{##}
+{#<script>#}
+{#    $(document).ready(function () {#}
+{#        $('#datepicker').persianDatepicker({#}
+{#            format: 'YYYY/MM/DD',#}
+{#            autoClose: true,#}
+{#            initialValue: false,#}
+{#            persianDigit: true#}
+{#        });#}
+{#    });#}
+{#</script>#}
+
+
+
+
+    </body>
+    </html>
+{% endblock %}

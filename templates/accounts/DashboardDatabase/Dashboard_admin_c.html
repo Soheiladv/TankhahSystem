@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% load i18n static humanize %}
+
+{% block title %}{% trans "مدیریت دیتابیس (بک‌آپ و ریست)" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header pb-0">
+                    <h6>{% trans "مدیریت دیتابیس (بک‌آپ و ریست)" %}</h6>
+                    <p class="text-sm mb-0">
+                        {% trans "در این بخش می‌توانید از داده‌های دیتابیس بک‌آپ بگیرید یا داده‌ها را ریست کنید." %}
+                    </p>
+                </div>
+                <div class="card-body px-0 pt-0 pb-2">
+                    {% if messages %}
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show mx-4" role="alert">
+                            <span class="alert-text">{{ message }}</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="row mx-2">
+                        <!-- بخش بک‌آپ داده‌ها -->
+                        <div class="col-md-6 mt-4">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="mb-0">{% trans "بک‌آپ داده‌ها" %}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form method="post" action="{% url 'accounts:new_databasebackup' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="backup_data">
+
+                                        <div class="mb-3">
+                                            <label class="form-label">{% trans "انتخاب مدل‌ها برای بک‌آپ" %}</label>
+                                            <div class="form-control" style="height: 300px; overflow-y: auto;">
+                                                {% for model in models %}
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                           name="models" id="model-{{ forloop.counter }}"
+                                                           value="{{ model.key }}">
+                                                    <label class="form-check-label" for="model-{{ forloop.counter }}">
+                                                        {{ model.app_label }}.{{ model.model_name }}
+                                                        ({{ model.verbose_name }})
+                                                        <span class="badge bg-gradient-primary ms-2">
+                                                            {{ model.record_count|intcomma }}
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                            <small class="text-muted">{% trans "اگر مدلی انتخاب نشود، از تمامی داده‌ها بک‌آپ گرفته می‌شود." %}</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="password" class="form-label">{% trans "رمز عبور برای رمزگذاری بک‌آپ" %}</label>
+                                            <input type="password" class="form-control" id="password" name="password"
+                                                   placeholder="{% trans 'حداقل 8 کاراکتر' %}" required>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-primary">
+                                            {% trans "ایجاد بک‌آپ رمزگذاری شده" %}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- بخش بک‌آپ‌های موجود -->
+                        <div class="col-md-6 mt-4">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="mb-0">{% trans "بک‌آپ‌های موجود" %}</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if existing_backups %}
+                                    <div class="table-responsive">
+                                        <table class="table align-items-center mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">{% trans "نام فایل" %}</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">{% trans "نوع" %}</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">{% trans "تاریخ" %}</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">{% trans "حجم" %}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for backup in existing_backups %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex px-2 py-1">
+                                                            <div class="d-flex flex-column justify-content-center">
+                                                                <h6 class="mb-0 text-sm">{{ backup.filename }}</h6>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge badge-sm {% if backup.type == 'Database' %}bg-gradient-success{% else %}bg-gradient-info{% endif %}">
+                                                            {{ backup.type }}
+                                                        </span>
+                                                        {% if backup.is_encrypted %}
+                                                        <span class="badge badge-sm bg-gradient-warning">{% trans "رمزدار" %}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-sm">
+                                                        {{ backup.last_modified|date:"Y/m/d H:i" }}
+                                                    </td>
+                                                    <td class="text-sm">
+                                                        {{ backup.size|filesizeformat }}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-warning text-white">
+                                        {% trans "هیچ فایل بک‌آپی یافت نشد." %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- بخش اطلاعات مدل‌ها -->
+                    <div class="row mx-2 mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">{% trans "اطلاعات مدل‌های دیتابیس" %}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table align-items-center mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">{% trans "اپلیکیشن" %}</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">{% trans "مدل" %}</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">{% trans "تعداد رکوردها" %}</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">{% trans "روابط" %}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for model in models %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex px-2 py-1">
+                                                            <div class="d-flex flex-column justify-content-center">
+                                                                <h6 class="mb-0 text-sm">{{ model.app_label }}</h6>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <p class="text-sm font-weight-bold mb-0">{{ model.verbose_name }}</p>
+                                                        <p class="text-xs text-secondary mb-0">{{ model.model_name }}</p>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-gradient-primary">{{ model.record_count|intcomma }}</span>
+                                                    </td>
+                                                    <td>
+                                                        {% for relation in model.relations %}
+                                                        <span class="badge badge-sm bg-gradient-dark me-1" data-bs-toggle="tooltip"
+                                                              title="{% trans 'نوع رابطه:' %} {{ relation.type }}">
+                                                            {{ relation.related_model_verbose_name }}
+                                                        </span>
+                                                        {% empty %}
+                                                        <span class="text-xs text-secondary">{% trans "بدون رابطه" %}</span>
+                                                        {% endfor %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // فعال کردن tooltip‌ها
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

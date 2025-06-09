@@ -1,0 +1,81 @@
+{% extends "tankhah/Factors/wizard/factor_wizard_base.html" %}
+
+{% block wizard_content %}
+        {% csrf_token %}
+        {{ wizard.management_form }}
+
+        <div class="alert alert-secondary alert-sm mb-3">
+        </div>
+
+        {# Display existing Tankhah documents #}
+        {% if tankhah_documents %}
+            <div class="mb-4">
+                 <h6>{% trans "مدارک قبلی تنخواه:" %}</h6>
+                     {% for doc in tankhah_documents %}
+                     <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-1 px-2">
+                          <small class="text-muted">{{ doc.uploaded_at|date:"Y/m/d" }}</small>
+                      </li>
+                     {% endfor %}
+                 </ul>
+            </div>
+            <hr>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {% for error in form.non_field_errors %} {{ error }}<br> {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="mb-3">
+            <div class="file-upload-area" id="tankhah-dropzone">
+                 <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-2"></i>
+                 <p class="mb-0">{% trans "فایل‌ها را اینجا بکشید یا برای انتخاب کلیک کنید" %}</p>
+                 <small class="text-muted">{% blocktrans %}فقط فایل‌های {{ ALLOWED_EXTENSIONS_STR }} مجاز هستند.{% endblocktrans %}</small>
+                 </div>
+        </div>
+
+        {# File List Display Area #}
+        <div class="mb-3">
+             <h6>{% trans "فایل‌های جدید انتخاب شده:" %}</h6>
+             <ul id="tankhah-file-list" class="list-unstyled">
+                 <li id="no-tankhah-files-message" class="text-muted">{% trans "هنوز فایل جدیدی انتخاب نشده است." %}</li>
+             </ul>
+        </div>
+
+
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropzone = document.getElementById('tankhah-dropzone');
+    const fileList = document.getElementById('tankhah-file-list');
+    const noFilesMsg = document.getElementById('no-tankhah-files-message');
+
+     if (!dropzone || !fileInput || !fileList || !noFilesMsg) {
+          console.warn("Elements for Tankhah file upload not found.");
+          return;
+     }
+    dropzone.addEventListener('click', () => fileInput.click());
+     function preventDefaults(e){ e.preventDefault(); e.stopPropagation(); }
+     function handleDrop(e){ fileInput.files = e.dataTransfer.files; handleFilesUpdate(); }
+     function handleFilesUpdate(){ updateFileList(fileInput.files); }
+
+                noFilesMsg.style.display = 'list-item';
+             return;
+         }
+             const listItem = document.createElement('li');
+             listItem.classList.add('d-flex', 'justify-content-between', 'align-items-center', 'py-1');
+             fileList.appendChild(listItem);
+         });
+     }
+         const k = 1024;
+         const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+     }
+
+});
+</script>
+{% endblock %}

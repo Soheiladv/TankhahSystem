@@ -1,0 +1,100 @@
+{% extends "base.html" %} {# یا نام قالب پایه شما #}
+{% load i18n static rcms_custom_filters %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block breadcrumbs %}
+    {# مسیر راهنما (Breadcrumbs) برای ناوبری بهتر - اختیاری #}
+    <nav aria-label="breadcrumb" class="mt-3 mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">{% translate "خانه" %}</a></li> {# فرض بر وجود یک URL با نام 'home' #}
+            <li class="breadcrumb-item"><a href="{% url 'budgetitem_list' %}">{% translate "لیست ردیف‌های بودجه" %}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+        </ol>
+    </nav>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white py-3">
+                    <h3 class="mb-0 text-center">{{ title }}</h3>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% translate 'بستن' %}"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        {# استفاده از crispy_forms برای رندر زیبا و خودکار فرم #}
+                        {{ form }}
+
+
+                        <hr class="my-4">
+
+                        <div class="d-grid gap-3 d-md-flex justify-content-md-end">
+                            <a href="{{ success_url }}" class="btn btn-outline-secondary btn-lg px-4">
+                                <i class="fas fa-times me-2"></i>{% translate "انصراف" %}
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg px-4">
+                                <i class="fas fa-save me-2"></i>{% translate "ذخیره ردیف بودجه" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center py-3 bg-light border-top-0">
+                    <small class="text-muted">{% translate "لطفاً تمامی فیلدهای ستاره‌دار را تکمیل نمایید." %}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+{# CSS اضافی برای این صفحه در صورت نیاز #}
+<style>
+    .card {
+        transition: all 0.3s ease-in-out;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .form-label.required::after {
+        content: " *";
+        color: var(--bs-danger); /* رنگ ستاره */
+    }
+    /* استایل برای زیباتر شدن پیام های crispy-forms اگر نیاز بود */
+    .asteriskField {
+        display: none; /* مخفی کردن ستاره پیش فرض crispy nếu از روش بالا استفاده میکنید */
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{# JavaScript اضافی برای این صفحه در صورت نیاز #}
+<script>
+    // اطمینان از اینکه پیام‌ها با انیمیشن محو می‌شوند (اگر از Bootstrap JS استفاده می‌کنید)
+    document.addEventListener('DOMContentLoaded', function () {
+        var alertList = document.querySelectorAll('.alert');
+        alertList.forEach(function (alert) {
+            new bootstrap.Alert(alert);
+        });
+
+        // فوکوس خودکار روی اولین فیلد فرم (بهبود تجربه کاربری)
+        const firstVisibleInput = document.querySelector('form input:not([type="hidden"]):not([disabled]), form select:not([disabled]), form textarea:not([disabled])');
+        if (firstVisibleInput) {
+            firstVisibleInput.focus();
+        }
+    });
+</script>
+{% endblock %}

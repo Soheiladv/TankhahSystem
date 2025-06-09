@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+{% load i18n static jformat rcms_custom_filters jalali_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
+        <div class="card-header bg-gradient-primary text-white p-4 position-relative">
+            <h1 class="card-title mb-0 d-flex align-items-center animate__animated animate__fadeIn">
+                <i class="fas fa-tree me-3"></i>{{ title }}
+            </h1>
+            <div class="header-overlay"></div>
+        </div>
+        <div class="card-body p-4 animate__animated animate__fadeInUp">
+            <section class="mb-5">
+                <h3 class="text-primary mb-3"><i class="fas fa-wallet me-2"></i>{% trans "جزئیات تنخواه" %}</h3>
+                <div class="row g-3">
+                    <div class="col-md-3"><strong>{% trans "شماره:" %}</strong> {{ tankhah.number|to_persian_number }}</div>
+                    <div class="col-md-3"><strong>{% trans "مبلغ:" %}</strong> {{ tankhah.amount|format_negative|to_persian_number }} {% trans "ریال" %}</div>
+                    <div class="col-md-3"><strong>{% trans "وضعیت:" %}</strong> <span class="badge {{ tankhah.status|lower }}-badge">{{ tankhah.get_status_display }}</span></div>
+                    <div class="col-md-3">
+                        {% if can_archive %}
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" name="archive" class="btn btn-warning btn-sm animate__animated animate__pulse animate__infinite">{% trans "آرشیو" %}</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if can_change_stage %}
+                <form method="post" class="mt-3">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="new_stage_order">{% trans "تغییر مرحله به:" %}</label>
+                        <select name="new_stage_order" id="new_stage_order" class="form-control w-25 d-inline">
+                            {% for stage in workflow_stages %}
+                            <option value="{{ stage.order }}" {% if stage == tankhah.current_stage %}selected{% endif %}>
+                                {{ stage.name }} ({{ stage.order|to_persian_number }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" name="change_stage" class="btn btn-primary ms-2">{% trans "تغییر مرحله" %}</button>
+                    </div>
+                </form>
+                {% endif %}
+            </section>
+
+            <section class="mb-5">
+                <h3 class="text-primary mb-3"><i class="fas fa-steps me-2"></i>{% trans "مراحل گردش کار" %}</h3>
+                <div class="timeline-container">
+                    {% for stage in stages %}
+                        <div class="timeline-item {% if stage.is_current %}active{% elif stage.is_completed %}completed{% endif %}">
+                            <div class="timeline-dot {% if stage.is_current %}bg-warning{% elif stage.is_completed %}bg-success{% else %}bg-secondary{% endif %}"></div>
+                            <div class="timeline-content shadow-sm">
+                                <h4 class="timeline-title">{{ stage.name }} <small>({% trans "مرحله" %} {{ stage.order|to_persian_number }})</small></h4>
+                                <p class="text-muted small mb-2">{% trans "تأییدکنندگان:" %} {% for approver in stage.approvers %}{{ approver }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+                                {% if stage.approvals.exists %}
+                                    <ul class="list-unstyled">
+                                        {% for approval in stage.approvals %}
+                                            <li class="mb-1">
+                                                <span class="fw-bold">{{ approval.user.get_full_name }}</span> - {{ approval.get_action_display }}
+                                                <span class="text-muted small">({{ approval.timestamp|to_jalali:'%Y/%m/%d %H:%M'|to_persian_number }})</span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p class="text-muted">{% trans "هنوز تأییدی ثبت نشده" %}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="mb-5">
+                <h3 class="text-primary mb-3"><i class="fas fa-file-invoice me-2"></i>{% trans "فاکتورها" %}</h3>
+                {% if factors %}
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>{% trans "شماره فاکتور" %}</th>
+                                <th>{% trans "شماره تنخواه" %}</th>
+                                <th>{% trans "مبلغ (ریال)" %}</th>
+                                <th>{% trans "وضعیت" %}</th>
+                                <th>{% trans "عملیات" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for factor in factors %}
+                            <tr>
+                                <td>{{ factor.number|to_persian_number }}</td>
+                                <td>{{ factor.tankhah.number|to_persian_number }}</td>
+                                <td>{{ factor.amount|format_negative|to_persian_number }}</td>
+                                <td><span class="badge {{ factor.status|lower }}-badge">{{ factor.get_status_display }}</span></td>
+                                <td>
+                                    {% if can_approve_factor %}
+                                        {% if factor.status == 'APPROVED' %}
+                                            <form method="post" action="{% url 'factor_status_update' factor.pk %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="REJECT">
+                                                <button type="submit" class="btn btn-sm btn-danger">{% trans "رد کردن" %}</button>
+                                            </form>
+                                        {% elif factor.status == 'REJECTED' %}
+                                            <form method="post" action="{% url 'factor_status_update' factor.pk %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="APPROVE">
+                                                <button type="submit" class="btn btn-sm btn-success">{% trans "تأیید دوباره" %}</button>
+                                            </form>
+                                        {% endif %}
+                                        <a href="{% url 'factor_item_approve' factor.pk %}" class="btn btn-sm btn-info">{% trans "ویرایش" %}</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="alert alert-info">{% trans "فاکتوری ثبت نشده است." %}</div>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-primary { background: linear-gradient(135deg, #1e3c72, #2a5298); position: relative; overflow: hidden; }
+    .header-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.1); transform: skewX(-20deg); opacity: 0.3; }
+    .timeline-container { position: relative; padding-left: 30px; }
+    .timeline-item { position: relative; margin-bottom: 20px; }
+    .timeline-dot { position: absolute; left: -25px; top: 5px; width: 12px; height: 12px; border-radius: 50%; transition: all 0.3s ease; }
+    .timeline-content { padding: 15px; border-radius: 10px; background: #fff; border: 1px solid #e0e0e0; transition: all 0.3s ease; }
+    .timeline-item.active .timeline-content { border-color: #ffc107; background: #fff8e1; transform: translateX(10px); }
+    .timeline-item.completed .timeline-content { border-color: #28a745; background: #e8f5e9; }
+    .timeline-container:before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: #e0e0e0; }
+    .pending-badge { background-color: #ffc107; color: black; }
+    .approved-badge { background-color: #28a745; color: white; }
+    .rejected-badge { background-color: #dc3545; color: white; }
+    .card:hover { transform: translateY(-5px); transition: transform 0.3s ease; }
+    .table-hover tbody tr:hover { background-color: #f8f9fa; }
+</style>
+{% endblock %}
+
+
+{#{% extends 'base.html' %}#}
+{#{% load i18n static jformat rcms_custom_filters jalali_tags %}#}
+{##}
+{#{% block content %}#}
+{#<div class="container mt-5">#}
+{#    <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">#}
+{#        <div class="card-header bg-gradient-primary text-white p-4 position-relative">#}
+{#            <h1 class="card-title mb-0 d-flex align-items-center animate__animated animate__fadeIn">#}
+{#                <i class="fas fa-tree me-3"></i>{{ title }}#}
+{#            </h1>#}
+{#            <div class="header-overlay"></div>#}
+{#        </div>#}
+{#        <div class="card-body p-4 animate__animated animate__fadeInUp">#}
+{#            <!-- اطلاعات تنخواه -->#}
+{#            <section class="mb-5">#}
+{#                <h3 class="text-primary mb-3"><i class="fas fa-wallet me-2"></i>{% trans "جزئیات تنخواه" %}</h3>#}
+{#                <div class="row g-3">#}
+{#                    <div class="col-md-3"><strong>{% trans "شماره:" %}</strong> {{ tankhah.number|to_persian_number }}</div>#}
+{#                    <div class="col-md-3"><strong>{% trans "مبلغ:" %}</strong> {{ tankhah.amount|format_negative|to_persian_number }} {% trans "ریال" %}</div>#}
+{#                    <div class="col-md-3"><strong>{% trans "وضعیت:" %}</strong> <span class="badge {{ tankhah.status|lower }}-badge">{{ tankhah.get_status_display }}</span></div>#}
+{#                    <div class="col-md-3">#}
+{#                        {% if can_archive %}#}
+{#                            <form method="post" class="d-inline">#}
+{#                                {% csrf_token %}#}
+{#                                <button type="submit" name="archive" class="btn btn-warning btn-sm animate__animated animate__pulse animate__infinite">{% trans "آرشیو" %}</button>#}
+{#                            </form>#}
+{#                        {% endif %}#}
+{#                    </div>#}
+{#                </div>#}
+{#            </section>#}
+{##}
+{#            <!-- مراحل گردش کار -->#}
+{#            <section class="mb-5">#}
+{#                <h3 class="text-primary mb-3"><i class="fas fa-steps me-2"></i>{% trans "مراحل گردش کار" %}</h3>#}
+{#                <div class="timeline-container">#}
+{#                    {% for stage in stages %}#}
+{#                        <div class="timeline-item {% if stage.is_current %}active{% elif stage.is_completed %}completed{% endif %}">#}
+{#                            <div class="timeline-dot {% if stage.is_current %}bg-warning{% elif stage.is_completed %}bg-success{% else %}bg-secondary{% endif %}"></div>#}
+{#                            <div class="timeline-content shadow-sm">#}
+{#                                <h4 class="timeline-title">{{ stage.name }} <small>({% trans "مرحله" %} {{ stage.order|to_persian_number }})</small></h4>#}
+{#                                <p class="text-muted small mb-2">{% trans "تأییدکنندگان:" %} {% for approver in stage.approvers %}{{ approver }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>#}
+{#                                {% if stage.approvals.exists %}#}
+{#                                    <ul class="list-unstyled">#}
+{#                                        {% for approval in stage.approvals %}#}
+{#                                            <li class="mb-1">#}
+{#                                                <span class="fw-bold">{{ approval.user.get_full_name }}</span> - {{ approval.get_action_display }}#}
+{#                                                <span class="text-muted small">({{ approval.timestamp|to_jalali:'%Y/%m/%d %H:%M'|to_persian_number }})</span>#}
+{#                                            </li>#}
+{#                                        {% endfor %}#}
+{#                                    </ul>#}
+{#                                {% else %}#}
+{#                                    <p class="text-muted">{% trans "هنوز تأییدی ثبت نشده" %}</p>#}
+{#                                {% endif %}#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    {% endfor %}#}
+{#                </div>#}
+{#            </section>#}
+{##}
+{#            <!-- فاکتورها -->#}
+{#            <section class="mb-5">#}
+{#                <h3 class="text-primary mb-3"><i class="fas fa-file-invoice me-2"></i>{% trans "فاکتورها" %}</h3>#}
+{#                {% if factors %}#}
+{#                    <table class="table table-striped table-hover">#}
+{#                        <thead class="table-dark">#}
+{#                            <tr>#}
+{#                                <th>{% trans "شماره فاکتور" %}</th>#}
+{#                                <th>{% trans "شماره تنخواه" %}</th>#}
+{#                                <th>{% trans "مبلغ (ریال)" %}</th>#}
+{#                                <th>{% trans "وضعیت" %}</th>#}
+{#                                <th>{% trans "عملیات" %}</th>#}
+{#                            </tr>#}
+{#                        </thead>#}
+{#                        <tbody>#}
+{#                            {% for factor in factors %}#}
+{#                            <tr>#}
+{#                                <td>{{ factor.number|to_persian_number }}</td>#}
+{#                                <td>{{ factor.tankhah.number|to_persian_number }}</td>#}
+{#                                <td>{{ factor.amount|format_negative|to_persian_number }}</td>#}
+{#                                <td><span class="badge {{ factor.status|lower }}-badge">{{ factor.get_status_display }}</span></td>#}
+{#                                <td>#}
+{##}
+{#                                    {% if factor.status == 'APPROVED' and can_approve_factor %}#}
+{#                                        <form method="post" action="{% url 'factor_status_update' factor.pk %}" class="d-inline">#}
+{#                                            {% csrf_token %}#}
+{#                                            <input type="hidden" name="action" value="REJECT">#}
+{#                                            <button type="submit" class="btn btn-sm btn-danger">{% trans "رد کردن" %}</button>#}
+{#                                        </form>#}
+{#                                    {% elif factor.status == 'REJECTED' and can_approve_factor %}#}
+{#                                        <form method="post" action="{% url 'factor_status_update' factor.pk %}" class="d-inline">#}
+{#                                            {% csrf_token %}#}
+{#                                            <input type="hidden" name="action" value="APPROVE">#}
+{#                                            <button type="submit" class="btn btn-sm btn-success">{% trans "تأیید دوباره" %}</button>#}
+{#                                        </form>#}
+{#                                    {% endif %}#}
+{#                                </td>#}
+{#                            </tr>#}
+{#                            {% endfor %}#}
+{#                        </tbody>#}
+{#                    </table>#}
+{#                {% else %}#}
+{#                    <div class="alert alert-info">{% trans "فاکتوری ثبت نشده است." %}</div>#}
+{#                {% endif %}#}
+{#            </section>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+{##}
+{#<style>#}
+{#    .bg-gradient-primary { background: linear-gradient(135deg, #1e3c72, #2a5298); position: relative; overflow: hidden; }#}
+{#    .header-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.1); transform: skewX(-20deg); opacity: 0.3; }#}
+{#    .timeline-container { position: relative; padding-left: 30px; }#}
+{#    .timeline-item { position: relative; margin-bottom: 20px; }#}
+{#    .timeline-dot { position: absolute; left: -25px; top: 5px; width: 12px; height: 12px; border-radius: 50%; transition: all 0.3s ease; }#}
+{#    .timeline-content { padding: 15px; border-radius: 10px; background: #fff; border: 1px solid #e0e0e0; transition: all 0.3s ease; }#}
+{#    .timeline-item.active .timeline-content { border-color: #ffc107; background: #fff8e1; transform: translateX(10px); }#}
+{#    .timeline-item.completed .timeline-content { border-color: #28a745; background: #e8f5e9; }#}
+{#    .timeline-container:before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: #e0e0e0; }#}
+{#    .pending-badge { background-color: #ffc107; color: black; }#}
+{#    .approved-badge { background-color: #28a745; color: white; }#}
+{#    .rejected-badge { background-color: #dc3545; color: white; }#}
+{#    .card:hover { transform: translateY(-5px); transition: transform 0.3s ease; }#}
+{#    .table-hover tbody tr:hover { background-color: #f8f9fa; }#}
+{#</style>#}
+{#{% endblock %}#}

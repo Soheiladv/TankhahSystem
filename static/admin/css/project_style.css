@@ -1,0 +1,188 @@
+/* استایل پایه */
+body {
+     background-color: #f8f9fa;
+}
+
+/* کارت پروژه */
+.project-card {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.project-card:hover {
+    transform: translateY(-8px);
+}
+
+.project-card .card-header {
+    padding: 15px 20px;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.project-card .card-body {
+    padding: 30px;
+}
+
+/* فرم */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #343a40;
+    margin-bottom: 8px;
+}
+
+.form-control, .form-select {
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+}
+
+.form-check-list .form-check {
+    margin-bottom: 12px;
+}
+
+.form-check-input {
+    margin-left: 10px;
+}
+
+.form-switch .form-check-input {
+    width: 2.5em;
+    height: 1.25em;
+}
+
+textarea.form-control {
+    border-radius: 10px;
+    padding: 15px;
+    min-height: 100px;
+}
+
+/* دکمه‌ها */
+.btn-animate {
+    border-radius: 10px;
+    padding: 12px 25px;
+    font-size: 1rem;
+    transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+.btn-animate:hover {
+    transform: scale(1.08);
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border: none;
+}
+
+/* پیام‌ها */
+.alert-container {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.alert {
+    border-radius: 12px;
+    padding: 15px 20px;
+    font-size: 1.1rem;
+}
+
+/* انیمیشن‌ها */
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shakeX {
+    from, to { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* چاپ */
+@media print {
+    body { background-color: white; margin: 0; padding: 0; }
+    .project-card { box-shadow: none; border: 1px solid #000; }
+    .card-header { background-color: #fff; color: #000; border-bottom: 1px solid #000; }
+    .btn, .no-print { display: none; }
+    .form-control { border: 1px solid #000; background: none; }
+    @page { size: A4; margin: 10mm; }
+}
+
+/* واکنش‌گرایی */
+@media (max-width: 768px) {
+    .project-card { margin-bottom: 25px; }
+    .card-body { padding: 20px; }
+    .btn-animate { width: 100%; margin-bottom: 10px; }
+    .row > * { margin-bottom: 15px; }
+    .form-check-list { padding-right: 15px; }
+}
+/* استایل‌های سفارشی */
+
+
+.card {
+    border: none;
+    border-radius: 10px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.btn-animate {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-animate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.animate__animated {
+    animation-duration: 0.5s;
+}
+
+.animate__fadeIn {
+    animation-name: fadeIn;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

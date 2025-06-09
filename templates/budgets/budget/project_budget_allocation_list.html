@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+{% load i18n static rcms_custom_filters humanize jalali_tags %}
+
+{% block title %}{% trans "مدیریت تخصیص بودجه پروژه‌ها" %} | {{ organization.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    }
+
+    .budget-card {
+        border-radius: 12px;
+        box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);
+        border: none;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .budget-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    .card-header-gradient {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 1.5rem;
+    }
+
+    .stat-card {
+        border-radius: 10px;
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card.total {
+        border-left-color: #4e54c8;
+        background: rgba(78, 84, 200, 0.05);
+    }
+
+    .stat-card.allocated {
+        border-left-color: #2ecc71;
+        background: rgba(46, 204, 113, 0.05);
+    }
+
+    .stat-card.remaining {
+        border-left-color: #e74c3c;
+        background: rgba(231, 76, 60, 0.05);
+    }
+
+    .progress-thin {
+        height: 8px;
+        border-radius: 4px;
+    }
+
+    .badge-status {
+        padding: 0.35em 0.65em;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    .table-responsive {
+        border-radius: 0 0 12px 12px;
+    }
+
+    .table thead {
+        background: #f8f9fa;
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+    }
+
+    .action-btns .btn {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
+    .filter-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: var(--primary-gradient);
+        border-color: transparent;
+    }
+
+    .pagination .page-link {
+        color: #4e54c8;
+    }
+
+    .hover-shadow {
+        transition: box-shadow 0.3s ease;
+    }
+
+    .hover-shadow:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- هدر صفحه -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card budget-card">
+                <div class="card-header card-header-gradient">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="fas fa-project-diagram me-2"></i>
+                                {% trans "مدیریت تخصیص بودجه پروژه‌ها" %}
+                            </h2>
+                            <p class="mb-0 opacity-75">
+                                <i class="fas fa-building me-1"></i>
+                                {{ organization.name }}
+                            </p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'project_budget_allocation' organization.id %}"
+                               class="btn btn-light btn-lg hover-shadow">
+                                <i class="fas fa-plus me-2"></i>
+                                {% trans "تخصیص جدید" %}
+                            </a>
+                            <a href="{% url 'organization_list' %}"
+                               class="btn btn-outline-light btn-lg hover-shadow">
+                                <i class="fas fa-arrow-right me-2"></i>
+                                {% trans "لیست سازمان‌ها" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- کارت آمار کلی -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card total h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">{% trans "بودجه کل سازمان" %}</h6>
+                            <h3 class="mb-0 text-primary">
+                                {{ total_org_budget|intcomma|to_persian_number}}
+                                <small class="text-muted fs-6">{% trans "ریال" %}</small>
+                            </h3>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 p-3 rounded">
+                            <i class="fas fa-wallet fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card stat-card allocated h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">{% trans "مصرف شده" %}</h6>
+                            <h3 class="mb-0 text-success">
+                                {{ total_org_budget|subtract:remaining_org_budget|intcomma|to_persian_number}}
+                                <small class="text-muted fs-6">{% trans "ریال" %}</small>
+                            </h3>
+                        </div>
+                        <div class="bg-success bg-opacity-10 p-3 rounded">
+                            <i class="fas fa-chart-line fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card stat-card remaining h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">{% trans "مانده بودجه" %}</h6>
+                            <h3 class="mb-0 {% if remaining_org_budget < 0 %}text-danger{% else %}text-success{% endif %}">
+                                {{ remaining_org_budget|intcomma|to_persian_number}}
+                                <small class="text-muted fs-6">{% trans "ریال" %}</small>
+                            </h3>
+                        </div>
+                        <div class="{% if remaining_org_budget < 0 %}bg-danger{% else %}bg-success{% endif %} bg-opacity-10 p-3 rounded">
+                            <i class="fas fa-piggy-bank fa-2x {% if remaining_org_budget < 0 %}text-danger{% else %}text-success{% endif %}"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- کارت فیلترها -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card filter-card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="project" class="form-label">{% trans "پروژه" %}</label>
+                            <select name="project_id" id="project" class="form-select">
+                                <option value="">{% trans "همه پروژه‌ها" %}</option>
+                                {% for project in organization.project_set.all %}
+                                <option value="{{ project.id }}" {% if request.GET.project_id == project.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ project.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-filter me-2"></i>
+                                {% trans "اعمال فیلتر" %}
+                            </button>
+                            <a href="{% url 'project_budget_allocation_list' organization.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                {% trans "حذف فیلتر" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- کارت لیست تخصیص‌ها -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card budget-card">
+                <div class="card-header bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list-ol me-2"></i>
+                            {% trans "لیست تخصیص‌های بودجه" %}
+                        </h5>
+                        <span class="badge bg-primary rounded-pill">
+                            {{ allocations.paginator.count|to_persian_number}}
+                            {% trans "مورد" %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th width="5%">#</th>
+                                    <th>{% trans "پروژه" %}</th>
+                                    <th>{% trans "زیرپروژه" %}</th>
+                                    <th class="text-end">{% trans "مبلغ تخصیص" %}</th>
+                                    <th width="20%">{% trans "پیشرفت مصرف" %}</th>
+                                    <th>{% trans "دوره بودجه" %}</th>
+                                    <th>{% trans "وضعیت" %}</th>
+                                    <th width="12%" class="text-center">{% trans "عملیات" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for allocation in allocations %}
+                                <tr class="align-middle">
+                                    <td>{{ forloop.counter|to_persian_number}}</td>
+                                    <td>
+                                        <a href="{{ allocation.project.get_absolute_url|default:'#' }}"
+                                           class="text-dark fw-bold">
+                                            {{ allocation.project.name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {% if allocation.subproject %}
+                                        <span class="badge bg-info bg-opacity-10 text-info">
+                                            {{ allocation.subproject.name }}
+                                        </span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end fw-bold">
+                                        {{ allocation.allocated_amount|to_persian_number}}
+                                        <small class="text-muted">{% trans "ریال" %}</small>
+                                    </td>
+                                    <td>
+                                        {% with remaining_pct=allocation.remaining_percent|default:100 %}
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress progress-thin flex-grow-1 me-2">
+                                                <div class="progress-bar {% if remaining_pct <= 0 %}bg-secondary{% elif remaining_pct < 20 %}bg-danger{% elif remaining_pct < 50 %}bg-warning{% else %}bg-success{% endif %}"
+                                                     role="progressbar"
+                                                     style="width: {{ 100|subtract:remaining_pct }}%"
+                                                     aria-valuenow="{{ 100|subtract:remaining_pct }}"
+                                                     aria-valuemin="0"
+                                                     aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                            <small class="text-muted text-nowrap">
+                                                {{ 100|subtract:remaining_pct|floatformat:0|to_persian_number}}%
+                                            </small>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">
+                                            {{ allocation.remaining_amount|intcomma|to_persian_number}} {% trans "ریال باقی‌مانده" %}
+                                        </small>
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        {% if allocation.budget_allocation.budget_period %}
+                                        <span class="badge bg-light text-dark">
+                                            {{ allocation.budget_allocation.budget_period.name |to_persian_number}}
+                                        </span>
+                                        <small class="text-muted d-block mt-1">
+                                            {{ allocation.budget_allocation.allocation_date|to_jalali:'%Y/%m/%d'|to_persian_number}}
+                                        </small>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge rounded-pill {% if allocation.is_active %}bg-success bg-opacity-10 text-success{% else %}bg-secondary bg-opacity-10 text-secondary{% endif %}">
+                                            <i class="fas {% if allocation.is_active %}fa-check-circle{% else %}fa-times-circle{% endif %} me-1"></i>
+                                            {% if allocation.is_active %}{% trans "فعال" %}{% else %}{% trans "غیرفعال" %}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="text-center action-btns">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'project_budget_allocation_detail' allocation.id %}"
+                                               class="btn btn-outline-info"
+                                               data-bs-toggle="tooltip"
+                                               title="{% trans 'جزئیات' %}">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if perms.budgets.change_projectbudgetallocation %}
+                                            <a href="{% url 'project__budget__allocation__edit__view' allocation.id %}"
+                                               class="btn btn-outline-primary"
+                                               data-bs-toggle="tooltip"
+                                               title="{% trans 'ویرایش' %}">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% endif %}
+                                            {% if perms.budgets.delete_projectbudgetallocation %}
+{#                                            <a href="{% url 'project_budget_allocation_delete' allocation.id %}"#}
+{#                                               class="btn btn-outline-danger"#}
+{#                                               data-bs-toggle="tooltip"#}
+{#                                               title="{% trans 'حذف' %}"#}
+{#                                               onclick="return confirm('آیا از حذف این تخصیص اطمینان دارید؟');">#}
+{#                                                <i class="fas fa-trash"></i>#}
+{#                                            </a>#}
+                                            {% endif %}
+
+                                {% if not allocation.is_locked %}
+                                <a href="{% url 'budget_return' allocation_id=allocation.id %}"
+                                   class="btn btn-sm btn-danger"
+                                   title="{% trans 'برگشت بودجه' %}"
+                                   data-bs-toggle="tooltip">
+                                    <i class="fas fa-undo me-1"></i> {% trans "برگشت بودجه" %}
+                                </a>
+                                {% endif %}
+
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">
+                                        <div class="alert alert-info mb-0">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            {% trans "هیچ تخصیص بودجه‌ای یافت نشد." %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- صفحه‌بندی -->
+                    {% if allocations.paginator.num_pages > 1 %}
+                    <div class="card-footer bg-white">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if allocations.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?page={{ allocations.previous_page_number }}{% if request.GET.project_id %}&project_id={{ request.GET.project_id }}{% endif %}">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </span>
+                                </li>
+                                {% endif %}
+
+                                {% for i in allocations.paginator.page_range %}
+                                {% if allocations.number == i %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ i|to_persian_number}}</span>
+                                </li>
+                                {% else %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?page={{ i }}{% if request.GET.project_id %}&project_id={{ request.GET.project_id }}{% endif %}">
+                                        {{ i|to_persian_number}}
+                                    </a>
+                                </li>
+                                {% endif %}
+                                {% endfor %}
+
+                                {% if allocations.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="?page={{ allocations.next_page_number }}{% if request.GET.project_id %}&project_id={{ request.GET.project_id }}{% endif %}">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </span>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // فعال‌سازی tooltip
+    $('[data-bs-toggle="tooltip"]').tooltip();
+
+    // اعتبارسنجی فرم فیلتر
+    $('form').on('submit', function(e) {
+        // می‌توانید اعتبارسنجی‌های لازم را اینجا اضافه کنید
+    });
+
+    // انیمیشن‌های کارت‌ها
+    $('.budget-card').hover(
+        function() {
+            $(this).css('transform', 'translateY(-5px)');
+        },
+        function() {
+            $(this).css('transform', 'translateY(0)');
+        }
+    );
+});
+</script>
+{% endblock %}

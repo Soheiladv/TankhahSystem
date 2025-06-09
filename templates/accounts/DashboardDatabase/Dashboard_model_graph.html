@@ -1,0 +1,499 @@
+{% load i18n static %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:"fa" }}" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title|default:_("گراف روابط مدل‌ها") }}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.0.0/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <link href="https://visjs.github.io/vis-network/standalone/umd/vis-network.min.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <style>
+        :root {
+            --bs-primary-rgb: 67, 97, 238;
+            --primary-color: #4361ee;
+            --primary-dark: #3a0ca3;
+            --secondary-color: #6c757d;
+            --light-bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #212529;
+            --border-color: #dee2e6;
+            --border-radius: 0.375rem; /* 6px */
+            --card-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .main-header .header-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .controls-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.6rem 1.25rem;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+            flex-shrink: 0;
+            gap: 0.75rem;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .filter-group label {
+            font-size: 0.8rem;
+            color: var(--secondary-color);
+            white-space: nowrap;
+        }
+        .form-select-sm {
+            font-size: 0.8rem;
+            border-radius: var(--border-radius);
+            min-width: 180px;
+        }
+
+        .graph-area {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+            background-color: #e9ecef; /* کمی تیره‌تر از body برای تمایز */
+        }
+        #model-relations-graph {
+            width: 100%;
+            height: 100%;
+            border: none;
+             /* background-image: radial-gradient(circle, #e0e0e0 1px, transparent 1px);
+            background-size: 25px 25px; */
+        }
+        #graph-loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: var(--primary-color);
+            z-index: 10; /* بالای گراف باشد */
+        }
+        #graph-loader .spinner-border { width: 2.5rem; height: 2.5rem; }
+        #graph-loader p { font-size: 0.9rem; }
+
+        .custom-btn {
+            font-size: 0.8rem;
+            border-radius: var(--border-radius);
+            padding: 0.35rem 0.8rem;
+        }
+        .custom-btn i { margin-left: 0.25rem; }
+
+        .zoom-buttons-container {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            z-index: 500;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .zoom-button {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.85);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            color: var(--text-color);
+        }
+        .zoom-button:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        div.vis-tooltip {
+            font-family: 'Vazirmatn', sans-serif !important;
+            background-color: rgba(30,30,30,0.9) !important;
+            color: #f0f0f0 !important;
+            border: 1px solid #555 !important;
+            padding: 8px 12px !important;
+            border-radius: var(--border-radius) !important;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3) !important;
+            font-size: 0.8rem !important;
+            white-space: pre-line !important;
+            max-width: 350px !important;
+            line-height: 1.5;
+        }
+        div.vis-tooltip hr { border-top: 1px solid #666; margin: 4px 0; }
+        div.vis-tooltip b { color: var(--warning-color); }
+        div.vis-tooltip a.admin-link-tooltip {
+            display: inline-block; margin-top: 6px; padding: 3px 7px;
+            background-color: var(--primary-color); color: white; text-decoration: none;
+            border-radius: 4px; font-size: 0.75rem;
+        }
+        div.vis-tooltip a.admin-link-tooltip:hover { background-color: var(--primary-dark); }
+
+        .animate-on-load { animation-duration: 0.5s; animation-fill-mode: both; }
+    </style>
+</head>
+<body>
+    <div class="main-header animate__animated animate__fadeInDown animate-on-load">
+        <div>
+            <h1 class="header-title">{{ title }}</h1>
+        </div>
+        <a href="{% url 'accounts:new_databasebackup' %}" class="btn btn-sm btn-outline-light custom-btn">
+            <i class="fas fa-arrow-left"></i> {% translate "بازگشت به مدیریت" %}
+        </a>
+    </div>
+
+    <div class="controls-bar animate__animated animate__fadeIn animate-on-load" style="animation-delay: 0.1s;">
+        <div class="filter-group">
+            <label for="app-filter-select">{% translate "اپلیکیشن:" %}</label>
+            <select id="app-filter-select" class="form-select form-select-sm">
+                <option value="">{% translate "همه اپ‌ها" %}</option>
+                {% for app_label_key in app_labels_for_filter %}
+                     <option value="{{ app_label_key }}">{{ app_label_key|capfirst }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="model-filter-select">{% translate "مدل:" %}</label>
+            <select id="model-filter-select" class="form-select form-select-sm">
+                <option value="">{% translate "انتخاب مدل برای تمرکز" %}</option>
+                {% for model_item in all_models_for_filter %}
+                    <option value="{{ model_item.key }}">{{ model_item.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="graph-area animate__animated animate__fadeIn animate-on-load" style="animation-delay: 0.2s;">
+        <div id="model-relations-graph">
+            <div id="graph-loader" class="d-flex flex-column justify-content-center align-items-center h-100">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">{% translate "در حال بارگذاری..." %}</span>
+                </div>
+                <p class="mt-2 mb-0">{% translate "در حال آماده‌سازی گراف مدل‌ها..." %}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="zoom-buttons-container animate__animated animate__fadeInUp animate-on-load" style="animation-delay: 0.3s;">
+        <button class="btn zoom-button" id="zoom-in-btn" title="{% translate 'بزرگنمایی' %}" data-bs-toggle="tooltip" data-bs-placement="right"><i class="fas fa-plus"></i></button>
+        <button class="btn zoom-button" id="zoom-out-btn" title="{% translate 'کوچک‌نمایی' %}" data-bs-toggle="tooltip" data-bs-placement="right"><i class="fas fa-minus"></i></button>
+        <button class="btn zoom-button" id="fit-btn" title="{% translate 'نمایش کامل' %}" data-bs-toggle="tooltip" data-bs-placement="right"><i class="fas fa-expand-arrows-alt"></i></button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://visjs.github.io/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const graphContainerEl = document.getElementById('model-relations-graph');
+        const graphLoaderEl = document.getElementById('graph-loader');
+
+        if (!graphContainerEl) {
+            console.error("!PANIC: Graph container 'model-relations-graph' is MISSING!");
+            if(graphLoaderEl) graphLoaderEl.innerHTML = '<p class="text-danger fw-bold">{% translate "خطای بحرانی: محفظه گراف در صفحه یافت نشد!" %}</p>';
+            return;
+        }
+        if(graphLoaderEl) graphLoaderEl.style.display = 'flex';
+        console.log("DOM loaded. Loader visible.");
+
+        let visNodesRaw, visEdgesRaw, visGroupsRaw;
+        try {
+            visNodesRaw = '{{ vis_nodes_json|escapejs|safe }}';
+            visEdgesRaw = '{{ vis_edges_json|escapejs|safe }}';
+            visGroupsRaw = '{{ vis_groups_json|escapejs|safe }}';
+
+            // console.log("Raw Nodes String (first 500char):", visNodesRaw.substring(0, 500));
+            // console.log("Raw Edges String (first 500char):", visEdgesRaw.substring(0, 500));
+            // console.log("Raw Groups String:", visGroupsRaw);
+
+            visNodesData = JSON.parse(visNodesRaw || '[]');
+            visEdgesData = JSON.parse(visEdgesRaw || '[]');
+            visGroupsData = JSON.parse(visGroupsRaw || '{}');
+
+            console.log(`Parsed data: ${visNodesData.length} nodes, ${visEdgesData.length} edges, ${Object.keys(visGroupsData).length} groups.`);
+            if (visNodesData.length === 0) throw new Error("No nodes data received from server.");
+
+        } catch (e) {
+            console.error("!PANIC: JSON.parse failed for graph data:", e);
+            console.error("Nodes JSON string:", visNodesRaw);
+            console.error("Edges JSON string:", visEdgesRaw);
+            console.error("Groups JSON string:", visGroupsRaw);
+            if(graphLoaderEl) graphLoaderEl.innerHTML = `<p class="text-danger fw-bold">{% translate "خطا در پردازش داده‌های گراف." %} <br><small>(${e.message}). {% translate "کنسول مرورگر را بررسی کنید." %}</small></p>`;
+            return;
+        }
+
+        const nodesDataSet = new vis.DataSet(visNodesData);
+        const edgesDataSet = new vis.DataSet(visEdgesData);
+        const graphData = { nodes: nodesDataSet, edges: edgesDataSet };
+
+        const graphOptions = {
+            nodes: {
+                shape: 'box',
+                margin: { top: 8, right: 12, bottom: 8, left: 12 },
+                font: { size: 12, face: 'Vazirmatn, Arial', color: '#fff', strokeWidth: 0, align: 'center'},
+                borderWidth: 1.2,
+                borderWidthSelected: 2,
+                shadow: { enabled: true, color: 'rgba(0,0,0,0.1)', size: 5, x: 1, y: 1 },
+                widthConstraint: { minimum: 90, maximum: 250 },
+                heightConstraint: { minimum: 35 },
+                scaling: { label: { enabled: true, min: 11, max: 20, drawThreshold: 6 }}
+            },
+            edges: {
+                smooth: { type: "cubicBezier", forceDirection: "horizontal", roundness: 0.25 },
+                arrows: { to: { enabled: true, scaleFactor: 0.6, type: 'arrow' } },
+                font: { align: 'top', size: 9, color: '#333', strokeWidth: 2, strokeColor: '#ffffffD0'},
+                hoverWidth: 0.5, // factor is not a function here, use a value
+                selectionWidth: 1, // factor is not a function here
+            },
+            groups: visGroupsData,
+            physics: {
+                enabled: true,
+                solver: 'forceAtlas2Based',
+                forceAtlas2Based: {
+                    gravitationalConstant: -60, centralGravity: 0.008,
+                    springLength: 160, springConstant: 0.04,
+                    damping: 0.6, avoidOverlap: 0.7
+                },
+                stabilization: { iterations: 800, fit: true, updateInterval: 25 }
+            },
+            interaction: {
+                hover: true, tooltipDelay: 200, navigationButtons: false,
+                keyboard: { enabled: true, speed: {x:10,y:10,zoom:0.03}},
+                dragNodes: true, dragView: true, zoomView: true,
+                multiselect: true, selectable: true, selectConnectedEdges: false,
+                hoverConnectedEdges: true
+            },
+            layout: { improvedLayout: true }
+        };
+
+        let networkInstance;
+        try {
+            networkInstance = new vis.Network(graphContainerEl, graphData, graphOptions);
+            console.log("Vis.js Network initialized successfully.");
+        } catch (e) {
+            console.error("!PANIC: Failed to initialize Vis.js Network:", e);
+            if(graphLoaderEl) graphLoaderEl.innerHTML = `<p class="text-danger fw-bold">{% translate "خطا در راه‌اندازی کتابخانه گراف." %} <br><small>(${e.message})</small></p>`;
+            return;
+        }
+
+        networkInstance.once("stabilizationIterationsDone", () => {
+            console.log("Graph stabilization complete.");
+            if(graphLoaderEl) graphLoaderEl.style.display = 'none';
+            networkInstance.fit({ animation: { duration: 700, easingFunction: "easeOutCubic" } });
+            graphContainerEl.style.visibility = 'visible'; // اطمینان از نمایش کانتینر
+            graphContainerEl.classList.add('animate__animated', 'animate__zoomIn');
+        });
+
+        // تایم‌اوت برای مواقعی که گراف خیلی بزرگ است و پایدارسازی طول می‌کشد
+        const stabilizationTimeout = setTimeout(() => {
+            if (graphLoaderEl && graphLoaderEl.style.display !== 'none') {
+                console.warn("Stabilization timed out or took too long. Forcing display.");
+                graphLoaderEl.style.display = 'none';
+                networkInstance.stopSimulation(); // توقف شبیه‌سازی فیزیک
+                networkInstance.fit({ animation: false }); // نمایش بدون انیمیشن
+                graphContainerEl.style.visibility = 'visible';
+            }
+        }, 25000); // ۲۵ ثانیه
+
+        networkInstance.on('initRedraw', () => { clearTimeout(stabilizationTimeout); }); // اگر شروع به رندر کرد، تایم‌اوت را لغو کن
+
+
+        // فیلترها
+        const appFilterEl = document.getElementById('app-filter-select');
+        const modelFilterEl = document.getElementById('model-filter-select');
+        let currentAppFilter = "";
+        let currentModelFocus = "";
+
+        function applyGraphFilters() {
+            console.log(`Applying filters: App='${currentAppFilter}', ModelFocus='${currentModelFocus}'`);
+            const nodeUpdates = [];
+            const edgeUpdates = [];
+            const allGraphNodes = nodesDataSet.get({ returnType: "Object" });
+
+            let focusNodeNeighbors = new Set();
+            if (currentModelFocus) {
+                networkInstance.getConnectedNodes(currentModelFocus).forEach(n => focusNodeNeighbors.add(n));
+                focusNodeNeighbors.add(currentModelFocus); // خود نود فوکوس شده
+            }
+
+            for (const nodeId in allGraphNodes) {
+                const node = allGraphNodes[nodeId];
+                let hideNode = false;
+                if (currentAppFilter && node.group !== currentAppFilter) {
+                    hideNode = true;
+                }
+                if (currentModelFocus && !focusNodeNeighbors.has(nodeId)) {
+                    hideNode = true;
+                }
+                 // اگر هم فیلتر اپ و هم فیلتر مدل داریم، و نود در اپ نیست ولی همسایه فوکوس است، نمایش بده
+                if(currentAppFilter && node.group !== currentAppFilter && currentModelFocus && focusNodeNeighbors.has(nodeId)){
+                    hideNode = false;
+                }
+                nodeUpdates.push({ id: nodeId, hidden: hideNode });
+            }
+            nodesDataSet.update(nodeUpdates);
+
+            edgesDataSet.get().forEach(edge => {
+                const fromNodeDetails = nodesDataSet.get(edge.from);
+                const toNodeDetails = nodesDataSet.get(edge.to);
+                edgeUpdates.push({ id: edge.id, hidden: (fromNodeDetails.hidden || toNodeDetails.hidden) });
+            });
+            edgesDataSet.update(edgeUpdates);
+
+            if (currentModelFocus) {
+                networkInstance.focus(currentModelFocus, { scale: 1.1, animation: { duration: 600, easingFunction: "easeOutCubic" } });
+            } else if (currentAppFilter) {
+                const nodesInFilteredApp = nodesDataSet.getIds({ filter: n => n.group === currentAppFilter && !n.hidden });
+                if (nodesInFilteredApp.length > 0) {
+                    networkInstance.fit({ nodes: nodesInFilteredApp, animation: { duration: 600, easingFunction: "easeOutCubic" } });
+                } else { networkInstance.fit({ animation: true }); }
+            } else {
+                networkInstance.fit({ animation: true });
+            }
+        }
+
+        if (appFilterEl) appFilterEl.addEventListener('change', function() {
+            currentAppFilter = this.value;
+            // اگر اپ تغییر کرد، بهتر است فوکوس مدل ریست شود مگر اینکه مدل انتخاب شده در اپ جدید هم باشد
+            const selectedModelData = currentModelFocus ? nodesDataSet.get(currentModelFocus) : null;
+            if (currentModelFocus && selectedModelData && selectedModelData.group !== currentAppFilter && currentAppFilter !== "") {
+                 if (modelFilterEl) modelFilterEl.value = "";
+                 currentModelFocus = "";
+            }
+            applyGraphFilters();
+        });
+
+        if (modelFilterEl) modelFilterEl.addEventListener('change', function() {
+            currentModelFocus = this.value;
+            if (currentModelFocus) { // اگر مدلی انتخاب شد، فیلتر اپ را روی اپ آن مدل تنظیم کن
+                const nodeToFocus = nodesDataSet.get(currentModelFocus);
+                if (nodeToFocus && appFilterEl) {
+                    appFilterEl.value = nodeToFocus.group;
+                    currentAppFilter = nodeToFocus.group;
+                }
+            }
+            applyGraphFilters();
+        });
+
+        // هایلایت نودها (ساده شده برای پایداری)
+        let originalNodeStylesCache = {};
+        networkInstance.on("beforeDrawing", () => {
+            if (Object.keys(originalNodeStylesCache).length === 0 && nodesDataSet.length > 0) {
+                nodesDataSet.forEach(node => {
+                    originalNodeStylesCache[node.id] = {
+                        color: JSON.parse(JSON.stringify(node.color || visGroupsData[node.group]?.color || {})),
+                        font: JSON.parse(JSON.stringify(node.font || visGroupsData[node.group]?.font || {}))
+                    };
+                });
+            }
+        });
+
+        networkInstance.on("selectNode", function (params) {
+            const selectedNodeIds = params.nodes;
+            const nodeUpdates = [];
+            const edgeUpdates = []; // برای لبه‌ها هم می‌توان هایلایت مشابهی پیاده کرد
+
+            if (selectedNodeIds.length > 0) {
+                const dimColor = 'rgba(200,200,200,0.3)';
+                const dimBorder = 'rgba(180,180,180,0.3)';
+                const dimFont = 'rgba(150,150,150,0.5)';
+
+                nodesDataSet.forEach(node => {
+                    if (!selectedNodeIds.includes(node.id) && !params.edges.some(edgeId => { // اگر نود همسایه هم نیست
+                        const edge = edgesDataSet.get(edgeId);
+                        return edge.from === node.id || edge.to === node.id;
+                    })) {
+                         nodeUpdates.push({ id: node.id, color: { background: dimColor, border: dimBorder }, font: { color: dimFont } });
+                    } else { // نود انتخاب شده یا همسایه آن
+                        const originalStyle = originalNodeStylesCache[node.id];
+                        if (originalStyle) {
+                            let highlightColor = originalStyle.color;
+                            if (selectedNodeIds.includes(node.id)) { // نود دقیقا انتخاب شده
+                                highlightColor = {background: lightenVisColor(originalStyle.color?.background, -20), border: 'var(--warning-color)'}
+                            }
+                            nodeUpdates.push({ id: node.id, color: highlightColor, font: originalStyle.font });
+                        }
+                    }
+                });
+            } else { // Deselect
+                nodesDataSet.forEach(node => {
+                     const originalStyle = originalNodeStylesCache[node.id];
+                     if (originalStyle) nodeUpdates.push({ id: node.id, color: originalStyle.color, font: originalStyle.font });
+                });
+            }
+            if (nodeUpdates.length > 0) nodesDataSet.update(nodeUpdates);
+            // اینجا می‌توان کد مشابهی برای لبه‌ها اضافه کرد
+        });
+
+        networkInstance.on("doubleClick", function (params) {
+            if (params.nodes.length === 1) {
+                const nodeData = nodesDataSet.get(params.nodes[0]);
+                if (nodeData && nodeData.admin_url) {
+                    window.open(nodeData.admin_url, '_blank');
+                }
+            }
+        });
+
+        // کنترل‌های زوم
+        document.getElementById('zoom-in-btn')?.addEventListener('click', () => networkInstance.moveTo({ scale: networkInstance.getScale() * 1.2, animation: {duration: 200, easingFunction: 'linear'} }));
+        document.getElementById('zoom-out-btn')?.addEventListener('click', () => networkInstance.moveTo({ scale: networkInstance.getScale() * 0.8, animation: {duration: 200, easingFunction: 'linear'} }));
+        document.getElementById('fit-btn')?.addEventListener('click', () => networkInstance.fit({ animation: {duration: 500, easingFunction: 'easeOutCubic'} }));
+
+        // تابع کمکی برای تغییر رنگ (باید برای همه فرمت‌ها مقاوم باشد)
+        function lightenVisColor(colorStr, percent) {
+            if (!colorStr) return '#D3D3D3'; // رنگ خاکستری روشن پیش‌فرض
+            // این تابع نیاز به بهبود دارد تا همه فرمت‌های vis.js را پوشش دهد
+            // برای سادگی، اگر hex بود، تغییر می‌دهد
+            if (typeof colorStr === 'string' && colorStr.startsWith('#')) {
+                let num = parseInt(colorStr.slice(1), 16),
+                    amt = Math.round(2.55 * percent),
+                    R = (num >> 16) + amt,
+                    G = (num >> 8 & 0x00FF) + amt,
+                    B = (num & 0x0000FF) + amt;
+                return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255)).toString(16).slice(1);
+            }
+            return colorStr; // در غیر این صورت خود رنگ را برگردان
+        }
+
+        // فعال‌سازی تولتیپ‌های Bootstrap
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl, { trigger : 'hover' }); // نمایش با هاور
+        });
+
+        console.log("Dashboard graph script fully executed.");
+    });
+    </script>
+</body>
+</html>

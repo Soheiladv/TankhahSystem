@@ -1,0 +1,73 @@
+{% load i18n humanize %}
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header"><h6 class="m-0 fw-bold text-primary">{% translate "مصرف بر اساس سرفصل بودجه" %}</h6></div>
+            <div class="card-body" style="min-height: 300px;">
+                <canvas id="budgetItemConsumptionChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header"><h6 class="m-0 fw-bold text-primary">{% translate "خلاصه KPIهای بودجه" %}</h6></div>
+            <div class="card-body">
+                {% if data.budget_kpis %}
+                    <dl class="row">
+                        <dt class="col-sm-5">{% translate "کل بودجه دوره" %}:</dt>
+                        <dd class="col-sm-7 text-end">{{ data.budget_kpis.total_period_budget|default:0|intcomma:False }}</dd>
+                        {# ... سایر KPI های بودجه ... #}
+                    </dl>
+                {% else %}
+                    <p>{% translate "اطلاعاتی برای نمایش KPI های بودجه یافت نشد." %}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if data.allocations_to_organizations_table %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header"><h6 class="m-0 fw-bold text-primary">{% translate "خلاصه تخصیص به سازمان‌ها" %}</h6></div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover small">
+                        <thead>
+                            <tr>
+                                <th>{% translate "نام سازمان" %}</th>
+                                <th class="text-end">{% translate "تخصیص‌یافته" %}</th>
+                                <th class="text-end">{% translate "مصرف‌شده" %}</th>
+                                <th class="text-end">{% translate "باقیمانده" %}</th>
+                                <th class="text-center">{% translate "درصد مصرف" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for org_alloc in data.allocations_to_organizations_table %}
+                            <tr>
+                                <td>{{ org_alloc.name }}</td>
+                                <td class="text-end">{{ org_alloc.allocated|intcomma:False }}</td>
+                                <td class="text-end">{{ org_alloc.consumed|intcomma:False }}</td>
+                                <td class="text-end">{{ org_alloc.remaining|intcomma:False }}</td>
+                                <td class="text-center">
+                                    <div class="progress" style="height: 16px; font-size: 0.7rem;">
+                                        <div class="progress-bar {% if org_alloc.utilization > 85 %}bg-danger{% elif org_alloc.utilization > 60 %}bg-warning{% else %}bg-success{% endif %}"
+                                             role="progressbar" style="width: {{ org_alloc.utilization }}%;"
+                                             aria-valuenow="{{ org_alloc.utilization }}" aria-valuemin="0" aria-valuemax="100">
+                                            {{ org_alloc.utilization|floatformat:0 }}%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center">{% translate "تخصیصی برای سازمان‌ها یافت نشد." %}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

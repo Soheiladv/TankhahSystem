@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load i18n static humanize jalali_tags rcms_custom_filters %}
+
+{% block title %}{{ report_title }} - {{ organization_instance.name }} ({{ budget_period_instance.name }}){% endblock %}
+
+{% block page_title %}
+    <h2>{{ report_title }}</h2>
+    <h5 class="text-muted">
+        {% translate "سازمان:" %} {{ organization_instance.name }} | {% translate "دوره بودجه:" %} {{ budget_period_instance.name }}
+    </h5>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="card shadow-sm">
+        <div class="card-header">
+            {% translate "لیست سرفصل‌ها" %}
+        </div>
+        <div class="card-body">
+            {% if budget_allocations %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>{% translate "سرفصل بودجه (آیتم)" %}</th>
+                                <th>{% translate "کد سرفصل" %}</th>
+                                <th class="text-end">{% translate "مبلغ تخصیص" %}</th>
+                                <th class="text-end">{% translate "مصرف شده" %}</th>
+                                <th class="text-end">{% translate "مانده" %}</th>
+                                <th>{% translate "تاریخ تخصیص" %}</th>
+                                <th>{% translate "عملیات" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ba in budget_allocations %}
+                            <tr>
+                                <td>{{ ba.budget_item.name|default:"-" }}</td>
+                                <td>{{ ba.budget_item.code|default:"-" }}</td>
+                                <td class="text-end">{{ ba.allocated_amount|intcomma:False|to_persian_number }}</td>
+                                <td class="text-end">
+                                    {# محاسبه مصرف برای این ba خاص #}
+                                    {% comment %}
+                                    {% with consumed=calculate_total_consumed_on_budget_allocation ba %}
+                                        {{ consumed|intcomma:False|to_persian_number }}
+                                    {% endwith %}
+                                    {% endcomment %}
+                                    {{ ba.consumed_amount_calculated|intcomma:False|to_persian_number|default:"محاسبه در ویو" }}
+                                </td>
+                                <td class="text-end">
+                                    {# محاسبه مانده برای این ba خاص #}
+                                    {% comment %}
+                                    {% with remaining=get_budget_allocation_remaining_amount ba %}
+                                        <span class="{% if remaining < 0 %}text-danger{% endif %}">{{ remaining|intcomma:False|to_persian_number }}</span>
+                                    {% endwith %}
+                                    {% endcomment %}
+                                     <span class="{% if ba.remaining_amount_calculated < 0 %}text-danger{% endif %}">{{ ba.remaining_amount_calculated|intcomma:False|to_persian_number|default:"محاسبه در ویو" }}</span>
+                                </td>
+                                <td>{{ ba.allocation_date|to_jalali:"%Y/%m/%d"|to_persian_number }}</td>
+                                <td>
+                                    <a href="{% url 'budgets:budget_allocation_report' ba.pk %}" class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-eye"></i> {% translate "گزارش جزئیات" %}
+                                    </a>
+                                    {# لینک به تخصیص به پروژه برای این BudgetAllocation #}
+                                    <a href="{% url 'budgets:project_budget_allocation_create' %}?budget_allocation_id={{ ba.pk }}" class="btn btn-sm btn-outline-success ms-1">
+                                        <i class="fas fa-plus-circle"></i> {% translate "تخصیص به پروژه" %}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% include "core/pagination.html" %} {# اگر صفحه‌بندی دارید #}
+            {% else %}
+                <div class="alert alert-info">{% trans "هیچ سرفصل بودجه‌ای برای این سازمان در این دوره یافت نشد." %}</div>
+            {% endif %}
+             <div class="mt-3">
+                <a href="{% url 'reports:comprehensive_budget_report' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> {% translate "بازگشت به گزارش جامع" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

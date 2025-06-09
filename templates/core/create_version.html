@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <!-- versions/create_version.html -->
+    <form method="post" action="{% url 'create_version' %}">
+        {% csrf_token %}
+        <label for="app_name">نام اپلیکیشن:</label>
+        <input type="text" id="app_name" name="app_name" required>
+        <label for="version_type">نوع نسخه:</label>
+        <select id="version_type" name="version_type">
+            <option value="major">Major</option>
+            <option value="minor">Minor</option>
+            <option value="patch">Patch</option>
+        </select>
+        <label for="additional_info">اطلاعات اضافی:</label>
+        <textarea id="additional_info" name="additional_info"></textarea>
+        <button type="submit">ایجاد نسخه</button>
+    </form>
+{% endblock %}

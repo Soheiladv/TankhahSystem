@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block extra_css %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.0/Vazirmatn-font-face.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .container {
+            max-width: 600px;
+            margin-top: 50px;
+        }
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .form-check {
+            margin-bottom: 10px;
+        }
+        .btn-primary {
+            border-radius: 8px;
+            padding: 10px 20px;
+        }
+        .alert, .result-box {
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title text-center mb-4">{% trans "بررسی کلید USB" %}</h1>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-info{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if result %}
+                    <div class="result-box">
+                        <div class="alert {% if result.write_result %}alert-success{% else %}alert-danger{% endif %}">
+                            {{ result.write_message }}
+                        </div>
+                        <div class="alert {% if result.is_valid %}alert-success{% else %}alert-danger{% endif %}">
+                            {% if result.is_valid %}
+                                {% trans "کلید USB با کلید دیتابیس تطبیق دارد." %}
+                            {% else %}
+                                {% trans "کلید USB با کلید دیتابیس تطبیق ندارد." %}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "انتخاب USB" %}</label>
+                        {% for value, label in form.usb_device.field.choices %}
+                            <div class="form-check">
+                                <input type="radio" name="usb_device" value="{{ value }}" class="form-check-input" id="usb_{{ forloop.counter }}" {% if forloop.first and value %}checked{% endif %}>
+                                <label class="form-check-label" for="usb_{{ forloop.counter }}">{{ label }}</label>
+                            </div>
+                        {% endfor %}
+                        {% if form.usb_device.errors %}
+                            <div class="text-danger">{{ form.usb_device.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">{% trans "یک درایو USB را انتخاب کنید." %}</div>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">{% trans "نوشتن و بررسی کلید" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+ {% endblock %}

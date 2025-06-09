@@ -1,0 +1,54 @@
+{% extends "tankhah/Factors/wizard/factor_wizard_base.html" %} {# ارث‌بری از قالب پایه ویزارد #}
+{% load i18n static %}
+
+{% block wizard_content %}
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ wizard.management_form }}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">...</div>
+        {% endif %}
+
+        {# Display selected Tankhah (read-only) #}
+        {% if selected_tankhah %}
+            <div class="alert alert-secondary alert-sm mb-3">
+                {% trans "تنخواه انتخاب شده:" %} <strong>{{ selected_tankhah }}</strong>
+            </div>
+        {% endif %}
+
+        {# --- Date --- #}
+        <div class="mb-3">
+            <label for="{{ form.date.id_for_label }}" class="form-label form-label-sm required">{{ form.date.label }}</label>
+            {{ form.date }}
+            {% if form.date.errors %}<div class="invalid-feedback d-block">{{ form.date.errors|join:", "}}</div>{% endif %}
+        </div>
+       {# --- Amount --- #}
+        <div class="mb-3">
+            <label for="{{ form.amount.id_for_label }}" class="form-label form-label-sm">{{ form.amount.label }}</label>
+            {{ form.amount }}
+             {% if form.amount.errors %}<div class="invalid-feedback d-block">{{ form.amount.errors|join:", "}}</div>{% endif %}
+        </div>
+        {# --- Description --- #}
+        <div class="mb-3">
+            <label for="{{ form.description.id_for_label }}" class="form-label form-label-sm">{{ form.description.label }}</label>
+            {{ form.description }}
+             {% if form.description.errors %}<div class="invalid-feedback d-block">{{ form.description.errors|join:", "}}</div>{% endif %}
+        </div>
+
+        {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+        {# Buttons are in base template #}
+         <input type="hidden" name="step2_submitted" value="1">
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+{# Initialize Datepicker #}
+<script>
+    if (typeof $.fn.persianDatepicker === 'function') {
+         $('input[data-jdp]').persianDatepicker({ format: 'YYYY/MM/DD', autoClose: true });
+    } else { console.warn("Persian Datepicker not loaded."); }
+</script>
+
+{% endblock %}

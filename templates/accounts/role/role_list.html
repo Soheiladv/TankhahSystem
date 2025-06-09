@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h1 class="card-title mb-0"><i class="fas fa-users me-2"></i>{{ title }}</h1>
+            {% if perms.accounts.Role_create %}
+            <a href="{% url 'accounts:role_create' %}" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-plus me-1"></i>{% trans "ایجاد نقش جدید" %}
+            </a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <!-- فرم جستجو -->
+            <form method="get" class="mb-3">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'جستجو در نام یا توضیحات...' %}" class="form-control">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-search me-1"></i>{% trans "جستجو" %}</button>
+                </div>
+            </form>
+
+            <!-- جدول نقش‌ها -->
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="bg-primary text-white">
+                        <tr>
+                            <th>{% trans "عنوان نقش" %}</th>
+                            <th>{% trans "توضیحات" %}</th>
+                            <th>{% trans "والدین" %}</th>
+                            <th>{% trans "وضعیت" %}</th>
+                            <th>{% trans "اقدامات" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for role in roles %}
+                        <tr>
+                            <td>{{ role.name }}</td>
+                            <td>{{ role.description|default:'-'|truncatewords:10 }}</td>
+                            <td>{{ role.parent.name|default:'-' }}</td>
+                            <td>
+                                {% if role.is_active %}
+                                <span class="badge bg-success">{% trans "فعال" %}</span>
+                                {% else %}
+                                <span class="badge bg-danger">{% trans "غیرفعال" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    {% if perms.accounts.Role_view %}
+                                    <a href="{% url 'accounts:role_detail' role.pk %}" class="btn btn-outline-info btn-sm" title="{% trans 'مشاهده' %}">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if perms.accounts.Role_modify %}
+                                    <a href="{% url 'accounts:role_update' role.pk %}" class="btn btn-outline-secondary btn-sm" title="{% trans 'ویرایش' %}">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if perms.accounts.Role_delete %}
+                                    <a href="{% url 'accounts:role_delete' role.pk %}" class="btn btn-outline-danger btn-sm" title="{% trans 'حذف' %}">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">{% trans "نقشی یافت نشد." %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- صفحه‌بندی -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mt-3">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}">{% trans "قبلی" %}</a>
+                    </li>
+                    {% endif %}
+                    {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}&q={{ query }}">{{ num }}</a>
+                    </li>
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}">{% trans "بعدی" %}</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% load i18n static active_users_tags %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="text-center mb-5 animate__animated animate__fadeInDown dashboard-title">
+        <i class="fas fa-tachometer-alt me-2"></i>{% trans "داشبورد مدیریت" %}
+    </h2>
+
+    <div class="row gy-4">
+        {% if user.is_authenticated and cards %}
+            {% for card in cards %}
+                <div class="col-md-6 col-lg-4 animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter0|multiply:0.2 }}s;">
+                    <div class="card dashboard-card h-100 shadow-sm border-0">
+                        <div class="card-header dashboard-card-header header-{{ card.items.0.color|default:'primary' }}">
+                            <i class="{{ card.icon|default:'fas fa-th-large' }} me-2 animate__animated animate__pulse animate__infinite animate__slow"></i>{{ card.title }}
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                {% for item in card.items %}
+                                    <li class="list-group-item dashboard-list-item">
+                                        <a href="{% url item.url %}" class="d-flex align-items-center text-decoration-none stretched-link">
+                                            <i class="{{ item.icon|default:'fas fa-angle-left' }} list-item-icon icon-{{ item.color|default:'secondary' }} fa-fw me-3"></i>
+                                            <span class="list-item-label flex-grow-1">{{ item.label }}</span>
+                                            <span class="badge bg-gradient-{{ item.color|default:'secondary' }} text-white rounded-pill ms-2">
+                                                {% trans "مشاهده" %} <i class="fas fa-arrow-left small"></i>
+                                            </span>
+                                        </a>
+                                    </li>
+                                {% empty %}
+                                    <li class="list-group-item text-muted small">{% trans "موردی برای نمایش وجود ندارد." %}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-warning text-center animate__animated animate__shakeX dashboard-no-access" role="alert">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3 d-block"></i>
+                    {% if user.is_authenticated %}
+                        <p class="lead">{% trans "شما به هیچ بخشی دسترسی ندارید." %}</p>
+                        <p>{% trans "لطفاً با مدیر سیستم تماس بگیرید." %}</p>
+                    {% else %}
+                        <p class="lead">{% trans "برای مشاهده داشبورد، لطفاً وارد شوید." %}</p>
+                        <a href="{% url 'accounts:login' %}" class="btn btn-primary mt-2">
+                            <i class="fas fa-sign-in-alt me-2"></i>{% trans "ورود به سیستم" %}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* متغیرهای رنگی ملایم هماهنگ با base.html */
+    :root {
+        --primary: #6ab0ff; /* آبی ملایم */
+        --secondary: #a3bffa; /* بنفش روشن */
+        --success: #68d391; /* سبز پاستلی */
+        --danger: #ff7675; /* قرمز ملایم */
+        --warning: #ffd966; /* زرد روشن */
+        --info: #81e6d9; /* فیروزه‌ای ملایم */
+        --light-bg: #f0f4f8; /* پس‌زمینه روشن */
+        --text-dark: #2d3748; /* متن تیره ملایم */
+        --text-light: #fff; /* متن سفید */
+        --shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    /* استایل کارت‌ها */
+    .dashboard-card {
+        border-radius: 15px;
+        background: var(--light-bg);
+        border-left: 5px solid var(--primary);
+        transition: all 0.3s ease-in-out;
+        overflow: hidden;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: var(--shadow);
+        border-left-color: color-mix(in srgb, var(--primary), white 20%);
+    }
+
+    /* استایل هدر کارت */
+    .dashboard-card-header {
+        padding: 1.25rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text-light);
+        border-bottom: none;
+        background: var(--primary);
+        border-radius: 15px 15px 0 0;
+    }
+    .header-primary { background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary), black 10%)); }
+    .header-success { background: linear-gradient(135deg, var(--success), color-mix(in srgb, var(--success), black 10%)); }
+    .header-info { background: linear-gradient(135deg, var(--info), color-mix(in srgb, var(--info), black 10%)); }
+    .header-warning { background: linear-gradient(135deg, var(--warning), color-mix(in srgb, var(--warning), black 10%)); color: var(--text-dark); }
+    .header-danger { background: linear-gradient(135deg, var(--danger), color-mix(in srgb, var(--danger), black 10%)); }
+    .header-secondary { background: linear-gradient(135deg, var(--secondary), color-mix(in srgb, var(--secondary), black 10%)); }
+
+    /* استایل لیست آیتم‌ها */
+    .dashboard-list-item {
+        background: transparent;
+        border: none;
+        padding: 0;
+        transition: background 0.3s ease;
+    }
+    .dashboard-list-item a {
+        color: var(--text-dark);
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+    .dashboard-list-item:hover {
+        background: rgba(106, 176, 255, 0.1); /* آبی ملایم شفاف */
+    }
+    .dashboard-list-item a:hover {
+        color: var(--primary);
+    }
+    .list-item-label {
+        transition: font-weight 0.3s ease;
+    }
+    .dashboard-list-item a:hover .list-item-label {
+        font-weight: 600;
+    }
+
+    /* استایل آیکن‌ها */
+    .list-item-icon {
+        font-size: 1.2rem;
+        opacity: 0.8;
+        transition: all 0.3s ease;
+    }
+    .dashboard-list-item a:hover .list-item-icon {
+        opacity: 1;
+        transform: rotate(360deg);
+    }
+    .icon-primary { color: var(--primary); }
+    .icon-success { color: var(--success); }
+    .icon-info { color: var(--info); }
+    .icon-warning { color: var(--warning); }
+    .icon-danger { color: var(--danger); }
+    .icon-secondary { color: var(--secondary); }
+
+    /* استایل بج‌ها */
+    .badge.bg-gradient-primary { background: linear-gradient(45deg, var(--primary), color-mix(in srgb, var(--primary), white 30%)); }
+    .badge.bg-gradient-success { background: linear-gradient(45deg, var(--success), color-mix(in srgb, var(--success), white 30%)); }
+    .badge.bg-gradient-info { background: linear-gradient(45deg, var(--info), color-mix(in srgb, var(--info), white 30%)); }
+    .badge.bg-gradient-warning { background: linear-gradient(45deg, var(--warning), color-mix(in srgb, var(--warning), white 30%)); color: var(--text-dark); }
+    .badge.bg-gradient-danger { background: linear-gradient(45deg, var(--danger), color-mix(in srgb, var(--danger), white 30%)); }
+    .badge.bg-gradient-secondary { background: linear-gradient(45deg, var(--secondary), color-mix(in srgb, var(--secondary), white 30%)); }
+    .badge { padding: 0.5rem 1rem; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
+
+    /* استایل عنوان */
+    .dashboard-title { color: var(--text-dark); font-weight: 700; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+
+    /* استایل هشدار */
+    .dashboard-no-access i { color: var(--warning); }
+    .dashboard-no-access { background: linear-gradient(135deg, #fff3d6, #ffe8a3); border: none; border-radius: 10px; box-shadow: var(--shadow); }
+
+    /* ریسپانسیو */
+    @media (max-width: 768px) {
+        .dashboard-card { margin-bottom: 1rem; }
+        .dashboard-list-item a { flex-direction: column; text-align: center; padding: 1rem; }
+        .list-item-icon { margin: 0 0 0.5rem 0; }
+        .badge { margin-top: 0.5rem; }
+    }
+</style>
+{% endblock %}

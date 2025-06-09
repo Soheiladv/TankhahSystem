@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+    <div class="container mt-5">
+        <div class="card shadow-lg">
+            <div class="card-header bg-gradient-warning text-white">
+                <h4 class="card-title mb-0">{% trans "تأیید رد ردیف فاکتور" %}</h4>
+            </div>
+            <div class="card-body">
+                <p>
+                    {% trans "شما در حال رد کردن ردیف فاکتور" %} {{ item.id }} {% trans "از فاکتور" %} {{ factor.number }} {% trans "هستید." %}<br>
+                    {% trans "آیا می‌خواهید این فاکتور در تنخواه" %} {{ tankhah.number }} {% trans "برای تأیید دوباره بماند یا خیر؟" %}
+                </p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <button type="submit" name="keep_in_tankhah" value="yes" class="btn btn-success">
+                            {% trans "بله، در تنخواه بماند" %}
+                        </button>
+                        <button type="submit" name="keep_in_tankhah" value="no" class="btn btn-danger">
+                            {% trans "خیر، فاکتور رد شود" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

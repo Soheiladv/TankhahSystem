@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load i18n jformat %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">{{ title }}</h2>
+
+    <!-- لیست اعلان‌های خوانده‌نشده -->
+    <div class="card">
+        <div class="card-body">
+            {% if page_obj %}
+                {% for notification in page_obj %}
+                    <div class="alert alert-info alert-dismissible fade show d-flex justify-content-between align-items-center" role="alert">
+                        <div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-bell me-2 text-primary"></i>
+                                <div>
+                                    <p class="mb-0">
+                                        {{ notification.actor.username }} {{ notification.verb }}
+                                        {% if notification.target %}
+                                            ({{ notification.target }})
+                                        {% endif %}
+                                    </p>
+                                    {% if notification.description %}
+                                        <small class="text-muted">{{ notification.description }}</small><br>
+                                    {% endif %}
+                                    <small class="text-muted">{{ notification.timestamp|jformat:"%Y/%m/%d %H:%i" }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="{% url 'notifications:mark_as_read' notification.id %}?next={{ request.path }}" class="btn btn-sm btn-outline-primary me-2">{% trans "خواندن" %}</a>
+                            <button class="btn btn-sm btn-outline-danger delete-notification" data-id="{{ notification.id }}">{% trans "حذف" %}</button>
+                        </div>
+                    </div>
+                {% endfor %}
+                <!-- صفحه‌بندی -->
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "قبلی" %}</a>
+                            </li>
+                        {% endif %}
+                        {% for num in page_obj.paginator.page_range %}
+                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "بعدی" %}</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% else %}
+                <div class="alert alert-info">{% trans "اعلان خوانده‌نشده‌ای وجود ندارد" %}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- لینک بازگشت به صندوق ورودی -->
+    <a href="{% url 'notifications:inbox' %}" class="btn btn-secondary mt-3">{% trans "بازگشت به صندوق ورودی" %}</a>
+</div>
+
+<script>
+$(document).ready(function () {
+    $('.delete-notification').on('click', function () {
+        const notificationId = $(this).data('id');
+        const listItem = $(this).closest('.alert');
+        $.ajax({
+            url: "{% url 'notifications:delete_notification' 0 %}".replace('0', notificationId),
+            type: "POST",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function (response) {
+                if (response.status === 'success') {
+                    listItem.remove();
+                }
+            },
+            error: function (xhr) {
+                console.error("Error deleting notification:", xhr.responseJSON.message);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

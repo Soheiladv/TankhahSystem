@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load i18n  rcms_custom_filters%}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-danger text-white">
+            <h3 class="mb-0"><i class="fas fa-trash fa-fw me-2"></i>{% trans "حذف ردیف بودجه" %}</h3>
+        </div>
+        <div class="card-body">
+            <p>{% trans "آیا مطمئن هستید که می‌خواهید ردیف بودجه" %} <strong>{{ object  }}</strong> {% trans "را حذف کنید؟" %}</p>
+            <form method="post">
+                {% csrf_token %}
+                <strong>
+                     <li>
+                         <strong>{{ object.total_amount |format_negative }}</strong></li>
+                            <p><strong>{{ object.budget_period }}</strong></p>
+                            <p><strong>{% if object.is_active %}فعال است {% endif %}</strong></p>
+                            <p><strong>{{ object.organization }}</strong></p>
+                </strong>
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i> {% trans "حذف" %}
+                    </button>
+                    <a href="{% url 'budgetitem_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i> {% trans "انصراف" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

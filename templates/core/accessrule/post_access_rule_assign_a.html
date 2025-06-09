@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static rcms_custom_filters %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4 text-right">{{ title }}</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white text-right">
+            <h5 class="my-1">{% trans "تنظیمات دسترسی بر اساس پست" %}</h5>
+        </div>
+        <div class="card-body">
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger text-right">
+                    <strong>{% trans "خطاها:" %}</strong>
+                    <ul>
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% if form.post_fields %}
+                    <div id="postsAccordion">
+                        {% for post_data in form.post_fields %}
+                            <div class="card mb-2">
+                                <div class="card-header" id="heading{{ post_data.post.id }}">
+                                    <h2 class="mb-0 text-right">
+                                        <button class="btn btn-link btn-block text-right text-decoration-none {% if not forloop.first %}collapsed{% endif %}"
+                                                type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#collapse{{ post_data.post.id }}"
+                                                aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                                                aria-controls="collapse{{ post_data.post.id }}">
+                                            <strong>{{ post_data.post.name }}</strong>
+                                            <small class="text-muted ms-2">({{ post_data.post.organization.name|default:_("بدون سازمان") }} - {{ post_data.post.get_branch_display|default:_("بدون شاخه") }})</small>
+                                        </button>
+                                    </h2>
+                                </div>
+
+                                <div id="collapse{{ post_data.post.id }}"
+                                     class="collapse {% if forloop.first %}show{% endif %}"
+                                     aria-labelledby="heading{{ post_data.post.id }}"
+                                     data-bs-parent="#postsAccordion">
+                                    <div class="card-body text-right">
+                                        <!-- سطح -->
+                                        <div class="form-group row align-items-center mb-4">
+                                            <label for="id_{{ post_data.level_field.name }}"
+                                                   class="col-sm-3 col-form-label text-right">{% trans "سطح پست" %}:</label>
+                                            <div class="col-sm-9">
+                                                <input type="number"
+                                                       name="{{ post_data.level_field.name }}"
+                                                       id="id_{{ post_data.level_field.name }}"
+                                                       value="{{ post_data.level_field.value|default:'1' }}"
+                                                       min="1"
+                                                       class="form-control w-25"
+                                                       title="{% trans 'سطح پست (مثل 1 برای کارشناس)' %}">
+                                                {% for field_name, errors in form.errors.items %}
+                                                    {% if field_name == post_data.level_field.name %}
+                                                        <div class="text-danger small mt-1">{{ errors|join:", " }}</div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+
+                                        <hr>
+
+                                        <h5 class="mb-3">{% trans "قوانین دسترسی" %}</h5>
+
+                                        <!-- جدول قوانین -->
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="text-right">{% trans "موجودیت" %}</th>
+                                                        <th class="text-right">{% trans "اقدام" %}</th>
+                                                        <th class="text-right">{% trans "فعال" %}</th>
+                                                        <th class="text-right">{% trans "مرحله" %}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for rule_data in post_data.rule_fields %}
+                                                        <tr>
+                                                            <td>{{ rule_data.rule_label|split:" - "|first }}</td>
+                                                            <td>{{ rule_data.rule_label|split:" - "|last }}</td>
+                                                            <td>
+                                                                <div class="form-check">
+                                                                    <input type="checkbox"
+                                                                           name="{{ rule_data.rule_field_name }}"
+                                                                           id="id_{{ rule_data.rule_field_name }}"
+                                                                           {% if rule_data.rule_value %}checked{% endif %}
+                                                                           class="form-check-input rule-checkbox"
+                                                                           title="{% trans 'فعال کردن این قانون' %}">
+                                                                    <label class="form-check-label"
+                                                                           for="id_{{ rule_data.rule_field_name }}"></label>
+                                                                    {% for field_name, errors in form.errors.items %}
+                                                                        {% if field_name == rule_data.rule_field_name %}
+                                                                            <div class="text-danger small">{{ errors|join:", " }}</div>
+                                                                        {% endif %}
+                                                                    {% endfor %}
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <select name="{{ rule_data.stage_field_name }}"
+                                                                        id="id_{{ rule_data.stage_field_name }}"
+                                                                        class="form-control stage-select"
+                                                                        style="width: 200px;"
+                                                                        {% if not rule_data.rule_value %}disabled{% endif %}>
+                                                                    <option value="">{% trans "انتخاب مرحله" %}</option>
+                                                                    {% for stage in form.stages %}
+                                                                        <option value="{{ stage.id }}"
+                                                                                {% if rule_data.stage_value == stage.id %}selected{% endif %}>
+                                                                            {{ stage.name }}
+                                                                        </option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                                {% for field_name, errors in form.errors.items %}
+                                                                    {% if field_name == rule_data.stage_field_name %}
+                                                                        <div class="text-danger small">{{ errors|join:", " }}</div>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="alert alert-info text-center mb-0">
+                                {% trans "هیچ پست فعالی که شما اجازه مدیریت قوانین دسترسی آن را داشته باشید، یافت نشد." %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- دکمه‌ها -->
+                    <div class="text-right mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-save"></i> {% trans "ذخیره تغییرات" %}
+                        </button>
+                        <a href="{% url 'accessrule_list' %}" class="btn btn-secondary btn-lg ms-2">
+                            <i class="fas fa-arrow-right"></i> {% trans "لغو و بازگشت" %}
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info text-center mb-0">
+                        {% trans "هیچ پست فعالی که شما اجازه مدیریت قوانین دسترسی آن را داشته باشید، یافت نشد." %}
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+            // مدیریت checkbox و stage
+            function toggleStageSelect(checkbox) {
+                const stageSelect = $(checkbox).closest('tr').find('.stage-select');
+                stageSelect.prop('disabled', !checkbox.checked);
+                if (!checkbox.checked) {
+                    stageSelect.val('');
+                }
+            }
+
+            // مقداردهی اولیه
+            $('.rule-checkbox').each(function () {
+                toggleStageSelect(this);
+            });
+
+            // رویداد تغییر checkbox
+            $('.rule-checkbox').on('change', function () {
+                toggleStageSelect(this);
+            });
+
+            // باز کردن آکاردئون‌های دارای خطا
+            {% for field_name, errors in form.errors.items %}
+                {% if field_name|slice:"5:6" == "_" %}
+                    {% with post_id=field_name|slice:"6:"  %}
+                        $(`#collapse{{ post_id }}`).collapse('show');
+                    {% endwith %}
+                {% endif %}
+            {% endfor %}
+
+            // فعال‌سازی tooltipها
+            $('[title]').tooltip({
+                placement: 'top',
+                trigger: 'hover'
+            });
+        });
+    </script>
+{% endblock %}

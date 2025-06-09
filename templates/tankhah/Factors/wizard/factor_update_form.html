@@ -1,0 +1,302 @@
+{# templates/tankhah/Factors/factor_update_form.html #}
+{% extends "base.html" %}
+{% load i18n static rcms_custom_filters humanize %}
+
+{% block title %}{% trans "ویرایش فاکتور" %} #{{ factor.number }}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <style>
+        /* --- Styles for formset items (similar to wizard step) --- */
+        .formset-item { border: 1px solid #eee; padding: 1rem; margin-bottom: 1rem; border-radius: 0.375rem; background-color: #fdfdfd; position: relative; }
+        .formset-item legend { font-size: 0.9em; font-weight: bold; margin-bottom: 0.5rem; color: #666; } /* If using fieldset */
+        .formset-item.is-deleting { opacity: 0.6; background-color: #ffebee; }
+        .btn-remove-formset-row { position: absolute; top: 0.5rem; left: 0.5rem; padding: 0.2rem 0.4rem; font-size: 0.8em; }
+        /* --- Styles for document lists --- */
+        .document-list { list-style: none; padding-left: 0; }
+        .document-list li { border-bottom: 1px solid #eee; padding: 0.5rem 0; display: flex; justify-content: space-between; align-items: center; }
+        .document-list li:last-child { border-bottom: none; }
+        .delete-doc-label { font-size: 0.8em; color: #dc3545; cursor: pointer; }
+        .delete-doc-label input { margin-left: 0.3rem; } /* RTL: margin-right */
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h4 class="mb-0">{% trans "ویرایش فاکتور" %} #{{ factor.number|to_persian_number }}</h4>
+            <small class="text-muted">{% trans "تنخواه مرتبط:" %} {{ factor.tankhah.number }} - {{ factor.tankhah.description|default:factor.tankhah.project.name }}</small>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            <div class="card-body">
+
+                {# --- Display Messages --- #}
+                {% if messages %}
+                    <div class="mb-3">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show alert-sm py-2" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {# --- Main Factor Form --- #}
+                <h5>{% trans "۱. اطلاعات کلی فاکتور" %}</h5>
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger alert-sm">{{ form.non_field_errors }}</div>
+                {% endif %}
+                <div class="row g-3">
+                    {# Render FactorForm fields manually or using {{ form.as_p }} / {{ form.as_div }} #}
+                    {# Example Manual Rendering: #}
+                    <div class="col-md-4">
+                        <label for="{{ form.tankhah.id_for_label }}" class="form-label form-label-sm">{{ form.tankhah.label }}</label>
+                        {{ form.tankhah }} {# Usually disabled or read-only in edit #}
+                        {% if form.tankhah.errors %}<div class="invalid-feedback d-block">{{ form.tankhah.errors|join:", "}}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                         <label for="{{ form.date.id_for_label }}" class="form-label form-label-sm required">{{ form.date.label }}</label>
+                         {{ form.date }}
+                         {% if form.date.errors %}<div class="invalid-feedback d-block">{{ form.date.errors|join:", "}}</div>{% endif %}
+                     </div>
+                     <div class="col-md-4">
+                          <label for="{{ form.amount.id_for_label }}" class="form-label form-label-sm">{{ form.amount.label }} ({% trans "محاسبه‌شده" %})</label>
+                          {# Make amount read-only, it's calculated from items #}
+                          <input type="text" class="form-control form-control-sm ltr-input text-end" value="{{ factor.amount|floatformat:0|to_persian_number_with_comma }}" readonly>
+                          {# Optionally display form field if needed, but hidden or readonly #}
+                           {# {{ form.amount }} #}
+                           {% if form.amount.errors %}<div class="invalid-feedback d-block">{{ form.amount.errors|join:", "}}</div>{% endif %}
+                      </div>
+                      <div class="col-12">
+                           <label for="{{ form.description.id_for_label }}" class="form-label form-label-sm">{{ form.description.label }}</label>
+                           {{ form.description }}
+                           {% if form.description.errors %}<div class="invalid-feedback d-block">{{ form.description.errors|join:", "}}</div>{% endif %}
+                       </div>
+                </div>
+
+                <hr class="my-4">
+
+                {# --- Factor Items Formset --- #}
+                <h5>{% trans "۲. ردیف‌های فاکتور" %}</h5>
+                {% if item_formset.non_form_errors %}
+                    <div class="alert alert-danger alert-sm">{{ item_formset.non_form_errors }}</div>
+                {% endif %}
+
+                {{ item_formset.management_form }}
+
+                <div id="item-formset-container">
+                    {% for form in item_formset %}
+                        <div class="formset-item {% if form.errors %}border-danger{% endif %}" id="{{ form.prefix }}-row">
+                             {# Render hidden ID field #}
+                             {{ form.id }}
+                            <div class="row gx-2 gy-2 align-items-center">
+                                {# Render form fields #}
+                                <div class="col-md-5">
+                                     <label for="{{ form.description.id_for_label }}" class="form-label form-label-sm required">{{ form.description.label }}</label>
+                                     {{ form.description }}
+                                     {% if form.description.errors %}<div class="invalid-feedback d-block">{{ form.description.errors|join:", "}}</div>{% endif %}
+                                </div>
+                                <div class="col-md-2 col-6">
+                                     <label for="{{ form.quantity.id_for_label }}" class="form-label form-label-sm required">{{ form.quantity.label }}</label>
+                                     {{ form.quantity }}
+                                     {% if form.quantity.errors %}<div class="invalid-feedback d-block">{{ form.quantity.errors|join:", "}}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3 col-6">
+                                      <label for="{{ form.amount.id_for_label }}" class="form-label form-label-sm required">{{ form.amount.label }}</label>
+                                      {{ form.amount }}
+                                      {% if form.amount.errors %}<div class="invalid-feedback d-block">{{ form.amount.errors|join:", "}}</div>{% endif %}
+                                  </div>
+                                <div class="col-md-2 text-end align-self-end"> {# Align button to bottom-end #}
+                                     {% if item_formset.can_delete %}
+                                     <div class="form-check form-check-inline pt-3">
+                                           {{ form.DELETE }}
+                                           <label for="{{ form.DELETE.id_for_label }}" class="form-check-label delete-label small text-danger">{% trans "حذف" %}</label>
+                                     </div>
+                                     {% endif %}
+                                 </div>
+
+                                 {# Display non-field errors for this specific form #}
+                                 {% if form.non_field_errors %}
+                                     <div class="col-12 mt-2">
+                                         <div class="alert alert-danger alert-sm p-1">{{ form.non_field_errors }}</div>
+                                     </div>
+                                 {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                {# Empty form template for adding new rows via JS #}
+                 <template id="item-empty-form">
+                     <div class="formset-item" id="{{ item_formset.empty_form.prefix }}-row">
+                          {{ item_formset.empty_form.id }}
+                          <div class="row gx-2 gy-2 align-items-center">
+                              <div class="col-md-5"><label for="{{ item_formset.empty_form.description.id_for_label }}" class="form-label form-label-sm required">{{ item_formset.empty_form.description.label }}</label>{{ item_formset.empty_form.description }}</div>
+                              <div class="col-md-2 col-6"><label for="{{ item_formset.empty_form.quantity.id_for_label }}" class="form-label form-label-sm required">{{ item_formset.empty_form.quantity.label }}</label>{{ item_formset.empty_form.quantity }}</div>
+                              <div class="col-md-3 col-6"><label for="{{ item_formset.empty_form.amount.id_for_label }}" class="form-label form-label-sm required">{{ item_formset.empty_form.amount.label }}</label>{{ item_formset.empty_form.amount }}</div>
+                              <div class="col-md-2 text-end align-self-end">
+                                   {% if item_formset.can_delete %}
+                                   <button type="button" class="btn btn-outline-danger btn-sm btn-remove-formset-row">{% trans "حذف" %}</button>
+                                   {% endif %}
+                               </div>
+                          </div>
+                     </div>
+                 </template>
+                 <button type="button" id="add-item-button" class="btn btn-success btn-sm mt-2">
+                     <i class="fas fa-plus me-1"></i>{% trans "افزودن ردیف جدید" %}
+                 </button>
+
+                 <hr class="my-4">
+
+                 {# --- Factor Documents --- #}
+                 <h5>{% trans "۳. اسناد فاکتور" %}</h5>
+                 {% if document_form.non_field_errors %}
+                     <div class="alert alert-danger alert-sm">{{ document_form.non_field_errors }}</div>
+                 {% endif %}
+                 <div class="mb-3">
+                     <label for="{{ document_form.files.id_for_label }}" class="form-label form-label-sm">{{ document_form.files.label }}</label>
+                     {{ document_form.files }}
+                     {% if document_form.files.help_text %}<div class="form-text">{{ document_form.files.help_text }}</div>{% endif %}
+                     {% if document_form.files.errors %}<div class="invalid-feedback d-block">{{ document_form.files.errors|join:", "}}</div>{% endif %}
+                 </div>
+                 {% if existing_factor_documents %}
+                     <p class="small text-muted">{% trans "اسناد فعلی:" %}</p>
+                     <ul class="list-unstyled document-list small">
+                         {% for doc in existing_factor_documents %}
+                             <li>
+                                 <a href="{{ doc.document.url }}" target="_blank">
+                                     <i class="fas fa-paperclip me-1"></i>{{ doc.get_filename }}
+                                     <span class="text-muted ms-2">({{ doc.document.size|filesizeformat }})</span>
+                                 </a>
+                                 <label class="delete-doc-label">
+                                     <input type="checkbox" name="delete_factor_doc_{{ doc.pk }}" value="1"> {% trans "حذف" %}
+                                 </label>
+                             </li>
+                         {% endfor %}
+                     </ul>
+                 {% endif %}
+
+                 <hr class="my-4">
+
+                 {# --- Tankhah Documents --- #}
+                 <h5>{% trans "۴. اسناد جدید تنخواه" %}</h5>
+                 {% if tankhah_document_form.non_field_errors %}
+                     <div class="alert alert-danger alert-sm">{{ tankhah_document_form.non_field_errors }}</div>
+                 {% endif %}
+                 <div class="mb-3">
+                      <label for="{{ tankhah_document_form.documents.id_for_label }}" class="form-label form-label-sm">{{ tankhah_document_form.documents.label }}</label>
+                      {{ tankhah_document_form.documents }}
+                      {% if tankhah_document_form.documents.help_text %}<div class="form-text">{{ tankhah_document_form.documents.help_text }}</div>{% endif %}
+                      {% if tankhah_document_form.documents.errors %}<div class="invalid-feedback d-block">{{ tankhah_document_form.documents.errors|join:", "}}</div>{% endif %}
+                  </div>
+                  {% if existing_tankhah_documents %}
+                      <p class="small text-muted">{% trans "اسناد فعلی تنخواه (فقط نمایش):" %}</p>
+                       <ul class="list-unstyled document-list small">
+                           {% for doc in existing_tankhah_documents %}
+                           <li>
+                               <a href="{{ doc.document.url }}" target="_blank">
+                                   <i class="fas fa-folder-open me-1"></i>{{ doc.get_filename }}
+                                   <span class="text-muted ms-2">({{ doc.document.size|filesizeformat }})</span>
+                               </a>
+                               {# Optional: Add delete checkbox for tankhah docs if needed #}
+                               {# <label><input type="checkbox" name="delete_tankhah_doc_{{ doc.pk }}"> حذف</label> #}
+                           </li>
+                           {% endfor %}
+                       </ul>
+                  {% endif %}
+
+            </div> {# End card-body #}
+
+            <div class="card-footer text-end">
+                <a href="{{ factor.get_absolute_url|default:success_url }}" class="btn btn-secondary">{% trans "انصراف" %}</a>
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="fas fa-save me-1"></i> {% trans "ذخیره تغییرات" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+{{ block.super }}
+{# --- JavaScript for adding/removing formset rows --- #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('item-formset-container');
+    const addButton = document.getElementById('add-item-button');
+    const template = document.getElementById('item-empty-form');
+    const totalFormsInput = document.querySelector('input[name="items-TOTAL_FORMS"]'); // Adjust prefix if needed
+    const prefix = 'items'; // Adjust if needed
+
+    if (!container || !addButton || !template || !totalFormsInput) {
+        console.error("Formset elements not found!");
+        return;
+    }
+
+    addButton.addEventListener('click', function() {
+        let formNum = parseInt(totalFormsInput.value);
+        // Clone the template content
+        const newFormRow = template.content.cloneNode(true).firstElementChild; // Get the div inside template
+
+        // Update IDs and names
+        newFormRow.id = `${prefix}-${formNum}-row`; // Set ID for the outer div
+        newFormRow.querySelectorAll('*').forEach(function(node) {
+            // Update element IDs
+            if (node.id) node.id = node.id.replace(/__prefix__/g, formNum);
+            // Update element names
+            if (node.name) node.name = node.name.replace(/__prefix__/g, formNum);
+            // Update 'for' attributes on labels
+            if (node.tagName === 'LABEL' && node.htmlFor) {
+                node.htmlFor = node.htmlFor.replace(/__prefix__/g, formNum);
+            }
+        });
+
+        // Append the new form row
+        container.appendChild(newFormRow);
+
+        // Increment total forms count
+        totalFormsInput.value = formNum + 1;
+
+        // Add event listener to the new delete button
+        const removeButton = newFormRow.querySelector('.btn-remove-formset-row');
+        if(removeButton) {
+            addRemoveListener(removeButton);
+        }
+    });
+
+    function addRemoveListener(button) {
+        button.addEventListener('click', function() {
+            const rowToDelete = button.closest('.formset-item');
+            const deleteInput = rowToDelete.querySelector('input[type="checkbox"][name$="-DELETE"]');
+            if (deleteInput) {
+                // If it's an existing form, check the DELETE box and hide
+                deleteInput.checked = true;
+                rowToDelete.style.display = 'none'; // Or add a 'deleting' class
+                 rowToDelete.classList.add('is-deleting'); // Add visual cue
+            } else {
+                // If it's a new form (no DELETE box), remove it entirely
+                rowToDelete.remove();
+                // Decrement total forms if we remove a newly added row THAT WASN'T SAVED
+                // Note: This part can be tricky. Django handles total forms on POST based
+                // on submitted forms. For client-side count, it's complex.
+                // Let's skip decrementing here and rely on Django's POST handling.
+                // totalFormsInput.value = parseInt(totalFormsInput.value) - 1;
+            }
+        });
+    }
+
+    // Add remove listeners to existing delete buttons
+    container.querySelectorAll('.btn-remove-formset-row').forEach(addRemoveListener);
+
+});
+</script>
+
+{# --- Optional: JS for file input preview --- #}
+<script>
+// Add JS here to show selected file names for the MultipleFileInput widgets if desired
+</script>
+{% endblock extra_js %}

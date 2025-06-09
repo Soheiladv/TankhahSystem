@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1><i class="fas fa-exclamation-triangle"></i> حذف گروه</h1>
+    <p>آیا مطمئن هستید که می‌خواهید گروه "{{ object.name }}" را حذف کنید؟</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> حذف</button>
+        <a href="{% url 'mygroup_list' %}" class="btn btn-secondary"><i class="fas fa-times"></i> لغو</a>
+    </form>
+</div>
+{% endblock %}

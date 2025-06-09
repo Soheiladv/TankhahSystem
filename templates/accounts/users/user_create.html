@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header text-center bg-primary text-white">
+                   <h2 class="text-primary mb-3 text-center">
+                                {% if form.instance.pk %}
+                                    <i class="fas fa-edit"></i> ویرایش اطلاعات کاربر
+                                {% else %}
+                                    <i class="fas fa-user-plus"></i> ایجاد کاربر
+                                {% endif %}
+                   </h2>
+                </div>
+                      <!-- نمایش پیام‌های خطا و موفقیت -->
+                      {% if messages %}
+                        <div class="alert alert-dismissible fade show mt-3 animate__animated animate__fadeInDown">
+                          {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} my-2 animate__animated animate__pulse animate__delay-1s">
+                              <i class="fas fa-info-circle"></i> {{ message }}
+                            </div>
+                          {% endfor %}
+                        </div>
+                      {% endif %}
+            <!-- نمایش پیام‌های موفقیت و خطا -->
+                   {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <ul>
+                                {% for field, errors in form.errors.items %}
+                                    <li><strong>{{ field }}</strong>: {{ errors|join:", " }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <!-- نام کاربری -->
+                        <div class="form-group mb-3">
+                            <label for="id_username" class="form-label">نام کاربری</label>
+                            <input type="text" name="username" id="id_username" class="form-control" placeholder="نام کاربری" value="{{ form.username.value }}">
+                        </div>
+
+                        <!-- ایمیل -->
+                        <div class="form-group mb-3">
+                            <label for="id_email" class="form-label">ایمیل</label>
+                            <input type="email" name="email" id="id_email" class="form-control" placeholder="ایمیل" value="{{ form.email.value }}">
+                        </div>
+
+                        <!-- نام -->
+                        <div class="form-group mb-3">
+                            <label for="id_first_name" class="form-label">نام</label>
+                            <input type="text" name="first_name" id="id_first_name" class="form-control" placeholder="نام" value="{{ form.first_name.value }}">
+                        </div>
+
+                        <!-- نام خانوادگی -->
+                        <div class="form-group mb-3">
+                            <label for="id_last_name" class="form-label">نام خانوادگی</label>
+                            <input type="text" name="last_name" id="id_last_name" class="form-control" placeholder="نام خانوادگی" value="{{ form.last_name.value }}">
+                        </div>
+
+                        <!-- کلمه عبور -->
+                        <div class="form-group mb-3">
+                            <label for="id_password1" class="form-label">کلمه عبور</label>
+                            <input type="password" name="password1" id="id_password1" class="form-control" placeholder="کلمه عبور">
+                        </div>
+
+                        <!-- تایید کلمه عبور -->
+                        <div class="form-group mb-3">
+                            <label for="id_password2" class="form-label">تایید کلمه عبور</label>
+                            <input type="password" name="password2" id="id_password2" class="form-control" placeholder="تایید کلمه عبور">
+                        </div>
+
+                        <!-- وضعیت کاربر (فعال یا غیر فعال) -->
+                        <div class="form-group mb-3">
+                            <label for="id_is_active" class="form-label">وضعیت</label>
+                            <input type="checkbox" name="is_active" id="id_is_active" class="form-check-input" {% if form.is_active.value %}checked{% endif %}>
+                            <label for="id_is_active" class="form-check-label">فعال</label>
+                        </div>
+                          <!-- وضعیت عضو تیم -->
+                        <div class="form-group mb-3">
+                            <label for="id_is_staff" class="form-label">عضو تیم مدیریت</label>
+                            <input type="checkbox" name="is_staff" id="id_is_staff" class="form-check-input" {% if form.is_staff.value %}checked{% endif %}>
+                            <label for="id_is_staff" class="form-check-label">عضو تیم</label>
+                        </div>
+
+                        <!-- گروه‌ها -->
+                        <div class="form-group mb-3">
+                            <label for="id_groups" class="form-label">گروه‌ها</label>
+                            <select name="groups" id="id_groups" multiple class="form-control">
+                                {% for group in form.groups.field.queryset %}
+                                    <option value="{{ group.id }}" {% if group in form.groups.value %}selected{% endif %}>{{ group.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- نقش‌ها -->
+                        <div class="form-group mb-3">
+                            <label for="id_role" class="form-label">نقش</label>
+                            <select name="role" id="id_role" class="form-control">
+                                <option value="">بدون نقش</option>
+                                {% for role in form.role.field.queryset %}
+                                    <option value="{{ role.id }}" {% if role.id == form.role.value %}selected{% endif %}>{{ role.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> ثبت‌نام</button>
+                            <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> بازگشت به لیست کاربران</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

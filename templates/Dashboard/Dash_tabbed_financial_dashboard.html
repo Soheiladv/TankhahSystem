@@ -1,0 +1,210 @@
+{% extends "bass.html" %}
+{% load static i18n humanize %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>{{ title }} <small class="text-muted fs-6">({{ selected_organization_name }})</small></h2>
+        <div>
+            {% if selected_budget_period_id %}
+                {% for bp_filter_item in budget_periods_for_filter %}
+                    {% if bp_filter_item.pk == selected_budget_period_id %}
+                         <span class="badge bg-secondary me-2">{% translate "دوره بودجه" %}: {{ bp_filter_item.name }}</span>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                 <span class="badge bg-warning me-2">{% translate "دوره بودجه انتخاب نشده (نمایش همه فعال‌ها)" %}</span>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid mt-2">
+
+    <!-- Filter Row -->
+    <form method="get" class="row g-3 align-items-center mb-4 p-3 bg-light border rounded">
+        <div class="col-md-5">
+            <label for="budgetPeriodFilterInput" class="form-label visually-hidden">{% translate "دوره بودجه" %}</label>
+            <select id="budgetPeriodFilterInput" name="budget_period" class="form-select form-select-sm">
+                <option value="">{% translate "آخرین دوره فعال بودجه" %}</option>
+                {% for bp in budget_periods_for_filter %}
+                    <option value="{{ bp.pk }}" {% if bp.pk == selected_budget_period_id %}selected{% endif %}>{{ bp.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-5">
+            <label for="organizationFilterInput" class="form-label visually-hidden">{% translate "سازمان" %}</label>
+            <select id="organizationFilterInput" name="organization" class="form-select form-select-sm">
+                <option value="">{% translate "کل سازمان (همه شعب)" %}</option>
+                 {% for org_filter_item in organizations_for_filter %}
+                    <option value="{{ org_filter_item.pk }}" {% if org_filter_item.pk == selected_organization_id %}selected{% endif %}>{{ org_filter_item.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-auto">
+            <button type="submit" class="btn btn-primary btn-sm px-4">{% translate "اعمال" %}</button>
+        </div>
+    </form>
+
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs nav-fill mb-4" id="financialDashboardTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="budget-tab" data-bs-toggle="tab" data-bs-target="#budget-tab-pane" type="button" role="tab" aria-controls="budget-tab-pane" aria-selected="true">
+                <i class="fas fa-landmark me-1"></i>{% translate "بودجه" %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tankhah-tab" data-bs-toggle="tab" data-bs-target="#tankhah-tab-pane" type="button" role="tab" aria-controls="tankhah-tab-pane" aria-selected="false">
+                <i class="fas fa-hand-holding-usd me-1"></i>{% translate "تنخواه" %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects-tab-pane" type="button" role="tab" aria-controls="projects-tab-pane" aria-selected="false">
+                <i class="fas fa-tasks me-1"></i>{% translate "مراکز هزینه (پروژه‌ها)" %}
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="financialDashboardTabsContent">
+        <!-- Budget Tab Pane -->
+        <div class="tab-pane fade show active" id="budget-tab-pane" role="tabpanel" aria-labelledby="budget-tab" tabindex="0">
+            {% include "Dashboard/budget_tab_content.html" with data=budget_tab_data %}
+        </div>
+
+        <!-- Tankhah Tab Pane -->
+        <div class="tab-pane fade" id="tankhah-tab-pane" role="tabpanel" aria-labelledby="tankhah-tab" tabindex="0">
+            {% include "Dashboard/tankhah_tab_content.html" with data=tankhah_tab_data %}
+        </div>
+
+        <!-- Projects Tab Pane -->
+        <div class="tab-pane fade" id="projects-tab-pane" role="tabpanel" aria-labelledby="projects-tab" tabindex="0">
+            {% include "Dashboard/projects_tab_content.html" with data=projects_tab_data %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    // Helper to Farsi Numbers
+    function toFarsiNum(nStr) { /* ... (بدون تغییر) ... */ }
+    const defaultChartOptions = { /* ... (بدون تغییر از مثال قبلی، مطمئن شوید فونت فارسی را دارد) ... */};
+
+    // --- Budget Tab Charts ---
+    const budgetItemData = {{ budget_tab_data.budget_item_consumption_chart|safe }};
+    if (document.getElementById('budgetItemConsumptionChart') && budgetItemData.labels.length > 0) {
+        new Chart(document.getElementById('budgetItemConsumptionChart').getContext('2d'), {
+            type: 'bar', // یا 'doughnut'
+            data: {
+                labels: budgetItemData.labels,
+                datasets: [{
+                    label: '{% translate "میزان مصرف" %}',
+                    data: budgetItemData.values,
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'],
+                    borderWidth: 1
+                }]
+            },
+            options: { ...defaultChartOptions, indexAxis: 'y' } // indexAxis: 'y' برای میله‌ای افقی
+        });
+    }
+
+    // --- Tankhah Tab Charts ---
+    const tankhahFactorQuarterlyData = {{ tankhah_tab_data.tankhah_factor_quarterly_chart|safe }};
+    if (document.getElementById('tankhahFactorQuarterlyChart') && tankhahFactorQuarterlyData.labels.length > 0) {
+        new Chart(document.getElementById('tankhahFactorQuarterlyChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: tankhahFactorQuarterlyData.labels,
+                datasets: [
+                    {
+                        label: '{% translate "مصرف تنخواه (پرداخت شده)" %}',
+                        data: tankhahFactorQuarterlyData.tankhah_values,
+                        borderColor: 'rgb(255, 159, 64)',
+                        tension: 0.1,
+                        fill: false
+                    },
+                    {
+                        label: '{% translate "فاکتورهای ارائه شده (پرداخت شده)" %}',
+                        data: tankhahFactorQuarterlyData.factor_values,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1,
+                        fill: false
+                    }
+                ]
+            },
+            options: defaultChartOptions
+        });
+    }
+
+    const tankhahStatusData = {{ tankhah_tab_data.tankhah_status_distribution_chart|safe }};
+    if (document.getElementById('tankhahStatusDistChart') && tankhahStatusData.labels.length > 0) {
+        new Chart(document.getElementById('tankhahStatusDistChart').getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: tankhahStatusData.labels,
+                datasets: [{
+                    label: '{% translate "تعداد تنخواه" %}',
+                    data: tankhahStatusData.values,
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
+                }]
+            },
+            options: { ...defaultChartOptions, scales: {} }
+        });
+    }
+
+    // --- Projects Tab Charts ---
+    const projectUtilizationData = {{ projects_tab_data.project_utilization_chart|safe }};
+    if (document.getElementById('projectUtilizationChart') && projectUtilizationData.labels.length > 0) {
+        new Chart(document.getElementById('projectUtilizationChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: projectUtilizationData.labels,
+                datasets: [{
+                    label: '{% translate "درصد مصرف بودجه" %}',
+                    data: projectUtilizationData.values,
+                    backgroundColor: projectUtilizationData.values.map(val => val > 85 ? 'rgba(255, 99, 132, 0.7)' : (val > 60 ? 'rgba(255, 206, 86, 0.7)' : 'rgba(75, 192, 192, 0.7)')),
+                }]
+            },
+            options: {
+                ...defaultChartOptions,
+                scales: {
+                    y: { ...defaultChartOptions.scales.y, max: 100, ticks: {...defaultChartOptions.scales.y.ticks, callback: function(value) { return toFarsiNum(value) + '%'; }} },
+                    x: defaultChartOptions.scales.x
+                }
+            }
+        });
+    }
+
+    // Activate Bootstrap tabs
+    const triggerTabList = [].slice.call(document.querySelectorAll('#financialDashboardTabs button'));
+    triggerTabList.forEach(function (triggerEl) {
+        const tabTrigger = new bootstrap.Tab(triggerEl);
+        triggerEl.addEventListener('click', function (event) {
+            event.preventDefault();
+            tabTrigger.show();
+        });
+    });
+
+    // Optional: Persist active tab using localStorage or URL hash
+    const currentHash = window.location.hash;
+    if (currentHash) {
+        const tabToActivate = document.querySelector(`button[data-bs-target="${currentHash}"]`);
+        if (tabToActivate) {
+            (new bootstrap.Tab(tabToActivate)).show();
+        }
+    }
+    // Update hash on tab change
+    document.querySelectorAll('#financialDashboardTabs button').forEach(button => {
+        button.addEventListener('shown.bs.tab', event => {
+            window.location.hash = event.target.dataset.bsTarget;
+        });
+    });
+
+</script>
+{% endblock %}
