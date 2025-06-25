@@ -67,9 +67,9 @@
     {% endif %}
 
     {# محتوای اصلی گزارش #}
-    {% if budget_periods_report_data_from_context %}
+    {% if budget_periods_data  %}
         <div class="accordion" id="budgetReportAccordion">
-            {% for period_data in budget_periods_report_data_from_context %}
+            {% for period_data in budget_periods_data  %}
                 <div class="accordion-item shadow-sm mb-3 rounded">
                     <h2 class="accordion-header" id="heading{{ period_data.period.pk }}">
                         <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} fw-bold"

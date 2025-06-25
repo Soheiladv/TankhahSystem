@@ -8,7 +8,6 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from Tanbakhsystem.utils import parse_jalali_date
-
 logger = logging.getLogger(__name__)
 """
 توضیحات فایل budget_calculations.py:
@@ -121,7 +120,6 @@ def old__calculate_remaining_amount(allocation, amount_field='allocated_amount',
     except Exception as e:
         logger.error(f"خطا در محاسبه بودجه باقی‌مانده برای {model_name} {getattr(allocation, 'pk', 'Unknown')}: {str(e)}", exc_info=True)
         return Decimal('0.00')
-
 def calculate_threshold_amount(base_amount, percentage):
     """
     محاسبه مقدار بر اساس درصد (برای قفل یا هشدار).
@@ -139,7 +137,6 @@ def calculate_threshold_amount(base_amount, percentage):
     except (TypeError, ValueError) as e:
         logger.error(f"خطا در محاسبه آستانه: base_amount={base_amount}, percentage={percentage}, خطا={str(e)}")
         return Decimal('0')
-
 # === تابع ارسال نوت ===
 def send_notification(target, status, message, recipients_queryset):
     """
@@ -169,7 +166,6 @@ def send_notification(target, status, message, recipients_queryset):
         logger.info(f"Notification sent to {recipients_queryset.count()} users: {message}")
     except Exception as e:
         logger.error(f"Error sending notification: {str(e)}", exc_info=True)
-
 # === توابع عمومی ===
 def apply_filters(queryset, filters=None):
     """
@@ -216,9 +212,7 @@ def apply_filters(queryset, filters=None):
     except Exception as e:
         logger.error(f"خطا در اعمال فیلترها: {filters}, خطا={str(e)}")
         return queryset
-
-
-# === توابع بودجه سازمان ===
+    # === توابع بودجه سازمان ===
 def get_organization_total_budget(organization, filters=None):
     """
        محاسبه بودجه کل تخصیص‌یافته به سازمان بر اساس دوره‌های بودجه فعال.
@@ -255,9 +249,6 @@ def get_organization_budget(organization, filters=None):
            Decimal: بودجه کل
        """
     return get_organization_total_budget(organization, filters)
-
-
-
 def get_organization_remaining_budget(organization, filters=None):
     """
        محاسبه بودجه باقی‌مانده سازمان.
@@ -280,7 +271,6 @@ def get_organization_remaining_budget(organization, filters=None):
     except Exception as e:
         logger.error(f"خطا در محاسبه بودجه باقی‌مانده سازمان {organization}: {str(e)}")
         return Decimal('0')
-
 # === توابع بودجه تنخواه ===
 def get_tankhah_total_budget(tankhah, filters=None):
     """
@@ -298,9 +288,7 @@ def get_tankhah_total_budget(tankhah, filters=None):
     except Exception as e:
         logger.error(f"خطا در محاسبه بودجه کل تنخواه {tankhah.number}: {str(e)}")
         return Decimal('0')
-
 """    محاسبه بودجه مصرف‌شده تنخواه (بر اساس فاکتورهای پرداخت‌شده)"""
-
 """ محاسبه بودجه باقی‌مانده تنخواه  """
 def ok_old_get_tankhah_remaining_budget(tankhah, filters=None):
     """ محاسبه بودجه باقی‌مانده تنخواه  """
@@ -316,7 +304,6 @@ def ok_old_get_tankhah_remaining_budget(tankhah, filters=None):
     cache.set(cache_key, remaining, timeout=300)
     logger.debug(f"get_tankhah_remaining_budget: tankhah={tankhah.number}, remaining={remaining}")
     return remaining
-
 def get_tankhah_remaining_budget(tankhah, filters=None):
     """
     محاسبه بودجه باقی‌مانده تنخواه با استفاده از فاکتورهای پرداخت‌شده.
@@ -333,11 +320,10 @@ def get_tankhah_remaining_budget(tankhah, filters=None):
         return cached_result
 
     try:
-        if not tankhah.project_budget_allocation:
+        if not tankhah.project_budget_allocation:  # اصلاح شده
             logger.error(f"No project_budget_allocation for tankhah {tankhah.number}")
             return Decimal('0')
 
-        # محاسبه با استفاده از دو تابع دیگر
         total_budget = get_tankhah_total_budget(tankhah, filters)
         logger.debug(f"get_tankhah_remaining_budget({tankhah.number}): Initial Amount = {total_budget}")
 
@@ -353,6 +339,8 @@ def get_tankhah_remaining_budget(tankhah, filters=None):
     except Exception as e:
         logger.error(f"Error calculating tankhah_remaining_budget for {tankhah.number}: {str(e)}", exc_info=True)
         return Decimal('0')
+
+
 # === توابع بودجه پروژه ===
 def old__get_project_total_budget(project, force_refresh=False, filters=None):
     """
@@ -461,7 +449,6 @@ def get_project_total_budget(project, force_refresh=False, filters=None):
     except Exception as e:
         logger.error(f"خطا در محاسبه بودجه کل پروژه {project.id}: {str(e)}", exc_info=True)
         return Decimal('0')
-
 def get_budget_info(request):
     project_id = request.GET.get('project_id')
     subproject_id = request.GET.get('subproject_id')
@@ -475,7 +462,7 @@ def get_budget_info(request):
         from core.models import Project, SubProject
         project_id = int(project_id)
         project = Project.objects.get(id=project_id)
-        from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, get_subproject_total_budget, get_subproject_remaining_budget
+        # from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, get_subproject_total_budget, get_subproject_remaining_budget
         data = {
             'total_budget': float(get_project_total_budget(project, force_refresh=True)),
             'remaining_budget': float(get_project_remaining_budget(project, force_refresh=True))
@@ -502,7 +489,6 @@ def get_tankhah_budget_info(request):
     if not tankhah_id:
         logger.error("No tankhah_id provided in get_tankhah_budget_info")
         return JsonResponse({'error': 'Tankhah ID is required'}, status=400)
-
     try:
         # دریافت تنخواه با روابط مرتبط
         tankhah = Tankhah.objects.select_related(
@@ -512,7 +498,7 @@ def get_tankhah_budget_info(request):
         allocation = tankhah.project_budget_allocation
 
         if not allocation:
-            logger.error(f"No project_budget_allocation for tankhah {tankhah.number}")
+            logger.error(f"No project_budget_allocation     for tankhah {tankhah.number}")
             return JsonResponse({'error': 'No budget allocation for this tankhah'}, status=400)
 
         # محاسبه اطلاعات بودجه
@@ -523,7 +509,7 @@ def get_tankhah_budget_info(request):
             'project_consumed': str(get_project_used_budget(project) or Decimal('0')),
             'project_returned': str(
                 BudgetTransaction.objects.filter(
-                    allocation=allocation,
+                    allocation__project=project,  # اصلاح شده
                     transaction_type='RETURN'
                 ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
             ),
@@ -575,7 +561,7 @@ def get_actual_project_remaining_budget(project, filters=None):
     #    در BudgetAllocation های این پروژه استفاده شده‌اند.
     from budgets.models import BudgetTransaction
     consumptions_qs = BudgetTransaction.objects.filter(
-        allocation__project_allocations__project=project, # پیوند از طریق BudgetAllocation به BudgetAllocation
+        allocation__project = project, # پیوند از طریق BudgetAllocation به BudgetAllocation
         transaction_type='CONSUMPTION'
     )
     # اعمال فیلترهای زمانی بر روی تراکنش‌ها (اگر لازم است)
@@ -592,7 +578,7 @@ def get_actual_project_remaining_budget(project, filters=None):
 
     # 3. مجموع کل برگشتی‌ها (RETURN) مرتبط با این پروژه
     returns_qs = BudgetTransaction.objects.filter(
-        allocation__project_allocations__project=project,
+        allocation__project=project,
         transaction_type='RETURN'
     )
     # اعمال فیلترهای زمانی بر روی تراکنش‌ها (اگر لازم است)
@@ -617,7 +603,6 @@ def get_actual_project_remaining_budget(project, filters=None):
     return actual_remaining
 # --- اطمینان حاصل کنید که تابع get_project_total_budget در همین فایل یا قابل import است ---
 # تابع get_project_total_budget شما به نظر صحیح می آید و می تواند استفاده شود.
-
 def get_project_used_budget(project, filters=None):
     """
     محاسبه بودجه مصرف‌شده پروژه (شامل تنخواه‌ها).
@@ -665,7 +650,6 @@ def get_project_used_budget(project, filters=None):
     # logger.debug(f"get_project_used_budget: project={project}, tankhah={tankhah_budget}, subproject={subproject_budget}, total={total}")
     # logger.debug(f"Project {project.id} used budget: {total}")
     return total
-
 def get_project_remaining_budget(project, force_refresh=False, filters=None):
     cache_key = f"project_remaining_budget_{project.pk}_{hash(str(filters)) if filters else 'no_filters'}"
     if force_refresh:
@@ -719,9 +703,7 @@ def get_project_remaining_budget(project, force_refresh=False, filters=None):
     except Exception as e:
         logger.error(f"خطا در محاسبه بودجه باقی‌مانده پروژه {project.id}: {str(e)}", exc_info=True)
         return Decimal('0')
-
 # === توابع بودجه زیرپروژه ===
-
 def get_subproject_total_budget(subproject, force_refresh=False, filters=None):
     """
        محاسبه بودجه کل تخصیص‌یافته به زیرپروژه.
@@ -787,7 +769,6 @@ def get_subproject_used_budget(subproject, filters=None):
     cache.set(cache_key, total, timeout=300)
     logger.debug(f"get_subproject_used_budget: subproject={subproject}, total={total}")
     return total
-
 def get_subproject_remaining_budget(subproject, force_refresh=False, filters=None):
     """
        محاسبه بودجه باقی‌مانده زیرپروژه.
@@ -858,10 +839,6 @@ def get_subproject_remaining_budget(subproject, force_refresh=False, filters=Non
     except Exception as e:
         logger.error(f"خطا در محاسبه بودجه باقی‌مانده زیرپروژه {subproject.id}: {str(e)}")
         return Decimal('0')
-
-
-
-
 # === توابع بودجه تنخواه ===
 def get_tankhah_used_budget(tankhah, filters=None):
     """
@@ -918,7 +895,6 @@ def check_tankhah_lock_status(tankhah):
     except Exception as e:
         logger.error(f"خطا در بررسی وضعیت قفل تنخواه {tankhah.code}: {str(e)}")
         return True, _("خطا در بررسی وضعیت قفل تنخواه.")
-
 def old__check_tankhah_lock_status(self):
     """
     اگر BudgetPeriod, BudgetAllocation, یا BudgetAllocation قفل شوند (مثلاً به دلیل lock_condition یا warning_action):
@@ -931,7 +907,6 @@ def old__check_tankhah_lock_status(self):
         self.save(update_fields=['is_active'])
         return True, _("تنخواه به دلیل قفل شدن تخصیص یا دوره غیرفعال شد.")
     return False, _("تنخواه فعال است.")
-
 # === توابع بودجه فاکتور ===
 def get_factor_total_budget(factor, filters=None):
     """
@@ -950,8 +925,6 @@ def get_factor_total_budget(factor, filters=None):
     except Exception as e:
         logger.error(f"خطا در محاسبه بودجه کل فاکتور {factor.number}: {str(e)}")
         return Decimal('0')
-
-
 def get_factor_used_budget(factor, filters=None):
     """
     محاسبه بودجه مصرف‌شده فاکتور (آیتم‌های تأییدشده یا پرداخت‌شده).
@@ -978,8 +951,6 @@ def get_factor_used_budget(factor, filters=None):
     except Exception as e:
         logger.error(f"خطا در محاسبه بودجه مصرف‌شده فاکتور {factor.number}: {str(e)}")
         return Decimal('0')
-
-
 def get_factor_remaining_budget(factor, filters=None):
     """
     محاسبه بودجه باقی‌مانده فاکتور.
@@ -1005,7 +976,6 @@ def get_factor_remaining_budget(factor, filters=None):
     except Exception as e:
         logger.error(f"خطا در محاسبه بودجه باقی‌مانده فاکتور {factor.number}: {str(e)}")
         return Decimal('0')
-
 # === توابع وضعیت بودجه ===
 def check_budget_status(obj, filters=None):
     """
@@ -1055,7 +1025,6 @@ def check_budget_status(obj, filters=None):
     except Exception as e:
         logger.error(f"خطا در بررسی وضعیت بودجه {obj}: {str(e)}")
         return 'unknown', _('وضعیت نامشخص')
-
 def get_budget_status(entity, filters=None):
     """
     بررسی وضعیت بودجه برای موجودیت‌های مختلف (سازمان، پروژه، زیرپروژه).
@@ -1116,9 +1085,6 @@ def get_budget_status(entity, filters=None):
     except Exception as e:
         logger.error(f"خطا در بررسی وضعیت بودجه برای {entity}: {str(e)}")
         return {'status': 'unknown', 'message': _('وضعیت نامشخص')}
-
-
-
 def check_and_update_lock(allocation):
     """
     چک و به‌روزرسانی وضعیت قفل برای تخصیص.
@@ -1147,8 +1113,6 @@ def check_and_update_lock(allocation):
         logger.debug(f"Updated lock status for BudgetAllocation {allocation.pk}: is_locked={allocation.is_locked}")
     except Exception as e:
         logger.error(f"خطا در به‌روزرسانی قفل برای BudgetAllocation {allocation.pk}: {str(e)}")
-
-
 # === توابع کمکی ===
 def get_locked_amount(obj):
     """
@@ -1158,7 +1122,6 @@ def get_locked_amount(obj):
     if isinstance(obj, BudgetPeriod):
         return (obj.total_amount * obj.locked_percentage) / Decimal('100')
     return Decimal('0')
-
 def get_warning_amount(obj):
     """
     محاسبه آستانه هشدار بودجه
@@ -1167,7 +1130,6 @@ def get_warning_amount(obj):
     if isinstance(obj, BudgetPeriod):
         return (obj.total_amount * obj.warning_threshold) / Decimal('100')
     return Decimal('0')
-
 # def calculate_allocation_percentages(allocations):
 #     """
 #     محاسبه درصد تخصیص بودجه
@@ -1202,7 +1164,6 @@ def calculate_allocation_percentages(allocations):
     except Exception as e:
         logger.error(f"خطا در محاسبه درصدهای تخصیص: {str(e)}")
         return Decimal('0')
-
 def can_delete_budget(entity):
     """
     بررسی امکان حذف بودجه.
@@ -1227,7 +1188,6 @@ def can_delete_budget(entity):
     except Exception as e:
         logger.error(f"خطا در بررسی امکان حذف بودجه برای {entity}: {str(e)}")
         return False
-
 # def can_delete_budget(entity):
 #     """
 #     بررسی امکان حذف بودجه
@@ -1243,7 +1203,6 @@ def can_delete_budget(entity):
 #     return can_delete
 
 # == تابع بازگشت بودجه
-
 def get_returned_budgets(budget_period, entity_type='all'):
     """
     گزارش بودجه‌های برگشتی برای یک دوره بودجه.

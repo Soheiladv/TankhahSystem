@@ -1,232 +1,231 @@
-<!-- budgets/templates/budgets/dashboard.html -->
 {% extends "base.html" %}
-{% load i18n static %}
+{% load static i18n %}
 
 {% block title %}{% trans "داشبورد مدیریت بودجه" %}{% endblock %}
 
-{% block content %}
-<div class="container mt-4 mb-5">
-    <h1 class="mb-4 text-center">{% trans "داشبورد مدیریت بودجه" %}</h1>
+{% block extra_css %}
+<style>
+    :root {
+        --dash-primary: #0d6efd;
+        --dash-success: #198754;
+        --dash-warning: #ffc107;
+        --dash-info: #0dcaf0;
+    }
+    .dashboard-card {
+        border-width: 0;
+        border-left: 5px solid #e9ecef;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+    }
+    .card-header-icon {
+        font-size: 1.5rem;
+        min-width: 40px;
+    }
+    .card-title {
+        font-weight: 600;
+    }
+    .card-body {
+        flex-grow: 1;
+    }
+    .card-footer a {
+        text-decoration: none;
+        color: #6c757d;
+        font-size: 0.9rem;
+        transition: color 0.2s;
+    }
+    .card-footer a:hover {
+        color: #000;
+    }
+    .card-footer .fa-plus-circle {
+        color: var(--bs-success);
+    }
+    /* Color coding for cards */
+    .card-group-config:hover { border-color: var(--dash-primary); }
+    .card-group-main:hover { border-color: var(--dash-success); }
+    .card-group-payment:hover { border-color: var(--dash-warning); }
+    .card-group-report:hover { border-color: var(--dash-info); }
+</style>
+{% endblock %}
 
-    <!-- نوار جستجو -->
-    <div class="row justify-content-center mb-4">
-        <div class="col-md-8 col-lg-6">
-            <form method="get" action="{% url 'budgets_dashboard' %}">
-                <div class="input-group shadow-sm">
-                    <input type="text" class="form-control" name="q" placeholder="{% trans 'جستجو در بخش‌های داشبورد...' %}" value="{{ request.GET.q|default:'' }}">
-                    <button class="btn btn-primary" type="submit">
-                        <i class="fas fa-search me-1"></i> {% trans "جستجو" %}
-                    </button>
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold">{% trans "داشبورد مدیریت بودجه" %}</h1>
+        <p class="lead text-muted">{% trans "دسترسی سریع و یکپارچه به تمام ماژول‌های سیستم" %}</p>
+    </div>
+
+    <h3 class="mb-3 fw-bold border-bottom pb-2"><i class="fas fa-cogs text-primary me-2"></i>{% trans "پیکربندی سیستم" %}</h3>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4 mb-5">
+        
+        <div class="col">
+            <div class="card shadow-sm dashboard-card card-group-config">
+                <div class="card-header bg-transparent d-flex align-items-center">
+                    <i class="fas fa-calendar-alt text-primary card-header-icon"></i>
+                    <h5 class="card-title mb-0">{% trans "دوره‌های بودجه" %}</h5>
                 </div>
-            </form>
+                <div class="card-body">
+                    <p class="card-text text-muted small">مدیریت و تعریف سال‌ها و دوره‌های مالی جهت تخصیص بودجه.</p>
+                </div>
+                <div class="card-footer bg-light d-flex justify-content-between">
+                    <a href="{% url 'budgetperiod_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "لیست دوره‌ها" %}</a>
+                    <a href="{% url 'budgetperiod_create' %}"><i class="fas fa-plus-circle me-1"></i>{% trans "ایجاد دوره" %}</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card shadow-sm dashboard-card card-group-config">
+                <div class="card-header bg-transparent d-flex align-items-center">
+                    <i class="fas fa-list-ol text-primary card-header-icon"></i>
+                    <h5 class="card-title mb-0">{% trans "ردیف‌های بودجه" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">تعریف سرفصل‌ها و کدهای هزینه برای دسته‌بندی مالی.</p>
+                </div>
+                <div class="card-footer bg-light d-flex justify-content-between">
+                    <a href="{% url 'budgetallocation_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "لیست ردیف‌ها" %}</a>
+                    <a href="{% url 'budgetallocation_create' %}"><i class="fas fa-plus-circle me-1"></i>{% trans "ایجاد ردیف" %}</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col">
+            <div class="card shadow-sm dashboard-card card-group-config">
+                <div class="card-header bg-transparent d-flex align-items-center">
+                    <i class="fas fa-user-tie text-primary card-header-icon"></i>
+                    <h5 class="card-title mb-0">{% trans "دریافت‌کنندگان" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">مدیریت اطلاعات اشخاص حقیقی و حقوقی طرف حساب.</p>
+                </div>
+                <div class="card-footer bg-light d-flex justify-content-between">
+                    <a href="{% url 'payee_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "لیست اشخاص" %}</a>
+                    <a href="{% url 'payee_create' %}"><i class="fas fa-plus-circle me-1"></i>{% trans "ایجاد شخص" %}</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card shadow-sm dashboard-card card-group-config">
+                <div class="card-header bg-transparent d-flex align-items-center">
+                    <i class="fas fa-tags text-primary card-header-icon"></i>
+                    <h5 class="card-title mb-0">{% trans "انواع تراکنش" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">تعریف انواع رویدادهای مالی مانند هزینه، درآمد و انتقال.</p>
+                </div>
+                <div class="card-footer bg-light d-flex justify-content-between">
+                    <a href="{% url 'transactiontype_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "لیست انواع" %}</a>
+                    <a href="{% url 'transactiontype_add' %}"><i class="fas fa-plus-circle me-1"></i>{% trans "ایجاد نوع" %}</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <h3 class="mb-3 fw-bold border-bottom pb-2"><i class="fas fa-wallet text-success me-2"></i>{% trans "عملیات اصلی بودجه" %}</h3>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+        <div class="col">
+            <div class="card shadow-sm dashboard-card card-group-main">
+                <div class="card-header bg-transparent d-flex align-items-center">
+                    <i class="fas fa-building text-success card-header-icon"></i>
+                    <h5 class="card-title mb-0">{% trans "تخصیص به سازمان" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">تخصیص اعتبار کلان به سازمان‌ها و واحدهای مختلف.</p>
+                </div>
+                <div class="card-footer bg-light d-flex justify-content-between">
+                    <a href="{% url 'budgetallocation_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "لیست تخصیص‌ها" %}</a>
+                    <a href="{% url 'budgetallocation_create' %}"><i class="fas fa-plus-circle me-1"></i>{% trans "تخصیص جدید" %}</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card shadow-sm dashboard-card card-group-main">
+                <div class="card-header bg-transparent d-flex align-items-center">
+                    <i class="fas fa-project-diagram text-success card-header-icon"></i>
+                    <h5 class="card-title mb-0">{% trans "تخصیص به پروژه" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">تخصیص اعتبار به پروژه‌ها از محل بودجه سازمان.</p>
+                </div>
+                <div class="card-footer bg-light text-center">
+                    <a href="{% url 'organization_list' %}"><strong>{% trans "انتخاب سازمان برای تخصیص به پروژه" %}</strong></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card shadow-sm dashboard-card card-group-main">
+                <div class="card-header bg-transparent d-flex align-items-center">
+                    <i class="fas fa-exchange-alt text-success card-header-icon"></i>
+                    <h5 class="card-title mb-0">{% trans "انتقال / بازگشت" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">انتقال اعتبار بین سرفصل‌ها و یا بازگرداندن بودجه.</p>
+                </div>
+                <div class="card-footer bg-light text-center">
+                    <a href="{% url 'budget_transfer' %}"><strong>{% trans "شروع عملیات انتقال بودجه" %}</strong></a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- بخش‌های بودجه -->
-    <div class="accordion" id="budgetAccordion">
-
-        <!-- Budget Periods -->
-        <div class="accordion-item shadow-sm mb-2">
-            <h2 class="accordion-header" id="headingBudgetPeriod">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBudgetPeriod" aria-expanded="false" aria-controls="collapseBudgetPeriod">
-                    <i class="fas fa-calendar-alt me-2 text-primary"></i> {% trans " 1- دوره‌های بودجه" %}
-                </button>
-            </h2>
-            <div id="collapseBudgetPeriod" class="accordion-collapse collapse" aria-labelledby="headingBudgetPeriod" data-bs-parent="#budgetAccordion">
-                <div class="accordion-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {% trans "مشاهده و ویرایش دوره‌های مالی تعریف شده" %}
-                            <a href="{% url 'budgetperiod_list' %}" class="btn btn-link btn-sm text-decoration-none">{% trans "لیست دوره‌های بودجه" %} <i class="fas fa-arrow-left ms-1"></i></a>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {% trans "تعریف یک دوره بودجه جدید (مثلا سال مالی)" %}
-                            <a href="{% url 'budgetperiod_create' %}" class="btn btn-link btn-sm text-decoration-none text-success">{% trans "ایجاد دوره بودجه جدید" %} <i class="fas fa-plus-circle ms-1"></i></a>
-                        </li>
-                    </ul>
+    <h3 class="mb-3 fw-bold border-bottom pb-2"><i class="fas fa-tasks text-warning me-2"></i>{% trans "گردش کار پرداخت" %}</h3>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <div class="col">
+            <div class="card shadow-sm dashboard-card card-group-payment">
+                <div class="card-header bg-transparent d-flex align-items-center">
+                    <i class="fas fa-file-invoice-dollar text-warning card-header-icon"></i>
+                    <h5 class="card-title mb-0">{% trans "دستورات پرداخت" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">ایجاد، مشاهده و پیگیری تمام دستورات پرداخت مالی.</p>
+                </div>
+                <div class="card-footer bg-light d-flex justify-content-between">
+                    <a href="{% url 'paymentorder_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "لیست دستورات" %}</a>
+                    <a href="{% url 'paymentorder_add' %}"><i class="fas fa-plus-circle me-1"></i>{% trans "ایجاد دستور" %}</a>
                 </div>
             </div>
         </div>
 
-        <!-- Budget Items -->
-        <div class="accordion-item shadow-sm mb-2">
-            <h2 class="accordion-header" id="headingBudgetItems">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBudgetItems" aria-expanded="false" aria-controls="collapseBudgetItems">
-                    <i class="fas fa-list-alt me-2 text-primary"></i> {% trans "2- ردیف بودجه" %}
-                </button>
-            </h2>
-            <div id="collapseBudgetItems" class="accordion-collapse collapse" aria-labelledby="headingBudgetItems" data-bs-parent="#budgetAccordion">
-                <div class="accordion-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {% trans "مشاهده و ویرایش ردیف‌های بودجه موجود" %}
-                            <a href="{% url 'budgetitem_list' %}" class="btn btn-link btn-sm text-decoration-none">{% trans "لیست ردیف بودجه" %} <i class="fas fa-arrow-left ms-1"></i></a>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {% trans "ایجاد یک ردیف بودجه جدید در سیستم" %}
-                            <a href="{% url 'budgetitem_create' %}" class="btn btn-link btn-sm text-decoration-none text-success">{% trans "ایجاد ردیف بودجه جدید" %} <i class="fas fa-plus-circle ms-1"></i></a>
-                        </li>
-                    </ul>
+        <div class="col">
+            <div class="card shadow-sm dashboard-card card-group-payment">
+                <div class="card-header bg-transparent d-flex align-items-center">
+                    <i class="fas fa-check-double text-danger card-header-icon"></i>
+                    <h5 class="card-title mb-0">{% trans "کارتابل تاییدات" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">بررسی و اقدام بر روی موارد نیازمند تایید شما.</p>
+                </div>
+                <div class="card-footer bg-light text-center">
+                    <a href="{% url 'payment_order_review' %}"><strong>{% trans "ورود به کارتابل" %}</strong></a>
                 </div>
             </div>
         </div>
 
-
-        <!-- Budget Allocation -->
-        <div class="accordion-item shadow-sm mb-2">
-            <h2 class="accordion-header" id="headingBudgetAllocation">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBudgetAllocation" aria-expanded="false" aria-controls="collapseBudgetAllocation">
-                    <i class="fas fa-coins me-2 text-primary"></i> {% trans "4-تخصیص‌های بودجه شعبه" %}
-                </button>
-            </h2>
-            <div id="collapseBudgetAllocation" class="accordion-collapse collapse" aria-labelledby="headingBudgetAllocation" data-bs-parent="#budgetAccordion">
-                <div class="accordion-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                             {% trans "مشاهده و ویرایش بودجه تخصیص یافته به شعب" %}
-                            <a href="{% url 'budgetallocation_list' %}" class="btn btn-link btn-sm text-decoration-none">{% trans "لیست تخصیص‌های بودجه" %} <i class="fas fa-arrow-left ms-1"></i></a>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {% trans "ثبت تخصیص بودجه جدید برای یک شعبه" %}
-                            <a href="{% url 'budgetallocation_create' %}" class="btn btn-link btn-sm text-decoration-none text-success">{% trans "ایجاد تخصیص بودجه جدید" %} <i class="fas fa-plus-circle ms-1"></i></a>
-                        </li>
-                    </ul>
+        <div class="col">
+            <div class="card shadow-sm dashboard-card card-group-report">
+                <div class="card-header bg-transparent d-flex align-items-center">
+                    <i class="fas fa-chart-line text-info card-header-icon"></i>
+                    <h5 class="card-title mb-0">{% trans "گزارشات سیستم" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">دسترسی به گزارشات جامع و تحلیلی سیستم.</p>
+                </div>
+                <div class="card-footer bg-light text-center">
+                    <a href="{% url 'comprehensive_budget_report' %}"><strong>{% trans "مشاهده گزارش جامع" %}</strong></a>
                 </div>
             </div>
         </div>
 
-        <!-- Project Budget Allocation -->
-        <div class="accordion-item shadow-sm mb-2">
-            <h2 class="accordion-header" id="headingProjectBudgetAllocation">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProjectBudgetAllocation" aria-expanded="false" aria-controls="collapseProjectBudgetAllocation">
-                    <i class="fas fa-project-diagram me-2 text-primary"></i> {% trans "تخصیص‌های بودجه پروژه" %}
-                </button>
-            </h2>
-            <div id="collapseProjectBudgetAllocation" class="accordion-collapse collapse" aria-labelledby="headingProjectBudgetAllocation" data-bs-parent="#budgetAccordion">
-                <div class="accordion-body">
-                     <p class="text-muted">{% trans "برای مدیریت تخصیص بودجه پروژه‌ها، ابتدا باید سازمان مورد نظر را انتخاب کنید." %}</p>
-                     <a href="{% url 'organization_list' %}" class="btn btn-outline-primary btn-sm">
-                         <i class="fas fa-building me-1"></i> {% trans "انتخاب سازمان و مدیریت تخصیص‌های پروژه" %}
-                     </a>
-                     <!-- Original form removed for better UX -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Budget Transaction -->
-        <div class="accordion-item shadow-sm mb-2">
-            <h2 class="accordion-header" id="headingBudgetTransaction">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBudgetTransaction" aria-expanded="false" aria-controls="collapseBudgetTransaction">
-                    <i class="fas fa-exchange-alt me-2 text-primary"></i> {% trans "تراکنش‌های بودجه" %}
-                </button>
-            </h2>
-            <div id="collapseBudgetTransaction" class="accordion-collapse collapse" aria-labelledby="headingBudgetTransaction" data-bs-parent="#budgetAccordion">
-                <div class="accordion-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {% trans "مشاهده تاریخچه تمام تراکنش‌های بودجه ثبت شده" %}
-                            <a href="{% url 'budgettransaction_list' %}" class="btn btn-link btn-sm text-decoration-none">{% trans "لیست تراکنش‌های بودجه" %} <i class="fas fa-arrow-left ms-1"></i></a>
-                        </li>
-                        <!-- Add link to create transaction if applicable -->
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- Payment Order -->
-        <div class="accordion-item shadow-sm mb-2">
-            <h2 class="accordion-header" id="headingPaymentOrder">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePaymentOrder" aria-expanded="false" aria-controls="collapsePaymentOrder">
-                    <i class="fas fa-file-invoice-dollar me-2 text-primary"></i> {% trans "دستورات پرداخت" %}
-                </button>
-            </h2>
-            <div id="collapsePaymentOrder" class="accordion-collapse collapse" aria-labelledby="headingPaymentOrder" data-bs-parent="#budgetAccordion">
-                <div class="accordion-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {% trans "مشاهده و مدیریت دستورات پرداخت صادر شده" %}
-                            <a href="{% url 'paymentorder_list' %}" class="btn btn-link btn-sm text-decoration-none">{% trans "لیست دستورات پرداخت" %} <i class="fas fa-arrow-left ms-1"></i></a>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {% trans "ایجاد یک دستور پرداخت جدید" %}
-                            <a href="{% url 'paymentorder_add' %}" class="btn btn-link btn-sm text-decoration-none text-success">{% trans "ایجاد دستور پرداخت جدید" %} <i class="fas fa-plus-circle ms-1"></i></a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-
-        <!-- Budget Transfare list -->
-        <div class="accordion-item shadow-sm mb-2">
-            <h2 class="accordion-header" id="headingBudgetItems">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBudgetItems" aria-expanded="false" aria-controls="collapseBudgetItems">
-                    <i class="fas fa-list-alt me-2 text-primary"></i> {% trans "انتقال بودجه " %}
-                </button>
-            </h2>
-            <div id="collapseBudgetItems" class="accordion-collapse collapse" aria-labelledby="headingBudgetItems" data-bs-parent="#budgetAccordion">
-                <div class="accordion-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {% trans " انتقال بودجه" %}
-                            <a href="{% url 'budget_transfer' %}" class="btn btn-link btn-sm text-decoration-none">{% trans "انتقال بودجه" %} <i class="fas fa-arrow-left ms-1"></i></a>
-                        </li>
-
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <!-- Payee -->
-        <div class="accordion-item shadow-sm mb-2">
-            <h2 class="accordion-header" id="headingPayee">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePayee" aria-expanded="false" aria-controls="collapsePayee">
-                    <i class="fas fa-user-tie me-2 text-primary"></i> {% trans "دریافت‌کنندگان" %}
-                </button>
-            </h2>
-            <div id="collapsePayee" class="accordion-collapse collapse" aria-labelledby="headingPayee" data-bs-parent="#budgetAccordion">
-                <div class="accordion-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                             {% trans "مدیریت لیست افراد یا شرکت‌هایی که پرداخت به آن‌ها انجام می‌شود" %}
-                            <a href="{% url 'payee_list' %}" class="btn btn-link btn-sm text-decoration-none">{% trans "لیست دریافت‌کنندگان" %} <i class="fas fa-arrow-left ms-1"></i></a>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {% trans "افزودن یک دریافت‌کننده جدید (فرد یا شرکت)" %}
-                            <a href="{% url 'payee_create' %}" class="btn btn-link btn-sm text-decoration-none text-success">{% trans "ایجاد دریافت‌کننده جدید" %} <i class="fas fa-plus-circle ms-1"></i></a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- Transaction Type -->
-        <div class="accordion-item shadow-sm mb-2">
-            <h2 class="accordion-header" id="headingTransactionType">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTransactionType" aria-expanded="false" aria-controls="collapseTransactionType">
-                    <i class="fas fa-tags me-2 text-primary"></i> {% trans "انواع تراکنش" %}
-                </button>
-            </h2>
-            <div id="collapseTransactionType" class="accordion-collapse collapse" aria-labelledby="headingTransactionType" data-bs-parent="#budgetAccordion">
-                <div class="accordion-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {% trans "مدیریت انواع تراکنش‌های مالی (مثلا هزینه، درآمد، انتقال)" %}
-                            <a href="{% url 'transactiontype_list' %}" class="btn btn-link btn-sm text-decoration-none">{% trans "لیست انواع تراکنش" %} <i class="fas fa-arrow-left ms-1"></i></a>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {% trans "تعریف نوع جدیدی از تراکنش" %}
-                            <a href="{% url 'transactiontype_add' %}" class="btn btn-link btn-sm text-decoration-none text-success">{% trans "ایجاد نوع تراکنش جدید" %} <i class="fas fa-plus-circle ms-1"></i></a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-    </div> <!-- End Accordion -->
+    </div>
 </div>
-
-<!-- اطمینان حاصل کنید که Font Awesome در base.html شما بارگذاری شده است -->
-<!-- مثال: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" /> -->
-
-<!-- Bootstrap JS (معمولا در base.html قرار دارد) -->
 {% endblock %}

@@ -4,8 +4,27 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="41b083f1-65ea-4161-ab0a-208bcca5732f" name="Changes" comment="1404-03-20-001&#10;PUdate BudgetRetuen View Form HTML">
+    <list default="true" id="41b083f1-65ea-4161-ab0a-208bcca5732f" name="Changes" comment="1404-04-04">
+      <change afterPath="$PROJECT_DIR$/budgets/OLD__urls.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reports/ComprehensiveBudgetReportView_____.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/budgets/budget_calculations.py" beforeDir="false" afterPath="$PROJECT_DIR$/budgets/budget_calculations.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/budgets/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/budgets/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/budgets/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/budgets/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/all_info.log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/all_info.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/application_errors.log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/application_errors.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/budgets_debug.log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/budgets_debug.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/django_errors.log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/django_errors.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/ComprehensiveBudgetReportView.py" beforeDir="false" afterPath="$PROJECT_DIR$/reports/ComprehensiveBudgetReportView.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/reports/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tankhah/Factor/NF/form_Nfactor.py" beforeDir="false" afterPath="$PROJECT_DIR$/tankhah/Factor/NF/form_Nfactor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tankhah/Factor/NF/view_Nfactor.py" beforeDir="false" afterPath="$PROJECT_DIR$/tankhah/Factor/NF/view_Nfactor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tankhah/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/tankhah/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/budgets/budgets_dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/budgets/budgets_dashboard.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/reports/v2/comprehensive_report_main.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/reports/v2/comprehensive_report_main.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/tankhah/Factors/NF/new_factor_form.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/tankhah/Factors/NF/new_factor_form.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/tankhah/Reports/tankhah_approval_timeline.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/tankhah/Reports/tankhah_approval_timeline.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,7 +73,7 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "django.template.preview.state": "SHOW_EDITOR",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "D:/Design & Source Code/Source Coding/Tanbakhsystem/templates/budgets/budget/project_budget_allocation_list.html",
+    "last_opened_file_path": "D:/Design & Source Code/Source Coding/Tanbakhsystem/reports",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -66,6 +85,8 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Design &amp; Source Code\Source Coding\Tanbakhsystem\reports" />
+      <recent name="D:\Design &amp; Source Code\Source Coding\Tanbakhsystem\budgets" />
       <recent name="D:\Design &amp; Source Code\Source Coding\Tanbakhsystem\templates\core" />
     </key>
   </component>
@@ -141,7 +162,7 @@
       <option name="presentableId" value="Default" />
       <updated>1748945749330</updated>
       <workItem from="1748945751512" duration="49844000" />
-      <workItem from="1749398866927" duration="33275000" />
+      <workItem from="1749398866927" duration="53908000" />
     </task>
     <task id="LOCAL-00001" summary="1404-03-13--0001">
       <option name="closed" value="true" />
@@ -215,7 +236,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749507631089</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="1404-03-20-001&#10;PUdate BudgetRetuen View Form HTML">
+      <option name="closed" value="true" />
+      <created>1749508077755</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1749508077755</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -238,7 +267,8 @@
     <MESSAGE value="1404-03-15--0001" />
     <MESSAGE value="1404-03-17-001" />
     <MESSAGE value="1404-03-20-001&#10;PUdate BudgetRetuen View Form HTML" />
-    <option name="LAST_COMMIT_MESSAGE" value="1404-03-20-001&#10;PUdate BudgetRetuen View Form HTML" />
+    <MESSAGE value="1404-04-04" />
+    <option name="LAST_COMMIT_MESSAGE" value="1404-04-04" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

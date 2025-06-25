@@ -377,7 +377,6 @@ def get_current_date():
 #             raise
 
 class BudgetPeriod(models.Model):
-
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("دفتر مرکزی"),related_name='budget_periods')
     name = models.CharField(max_length=100, unique=True, verbose_name=_("نام دوره بودجه"))
     start_date = models.DateField(verbose_name=_("تاریخ شروع"))
@@ -399,7 +398,30 @@ class BudgetPeriod(models.Model):
     lock_condition = models.CharField(max_length=50,choices=[('AFTER_DATE', _("بعد از تاریخ پایان")), ('MANUAL', _("دستی")),
                                                ('ZERO_REMAINING', _("باقی‌مانده صفر")), ], default='AFTER_DATE',verbose_name=_("شرط قفل"))
 
-    is_locked = models.BooleanField(default=False, verbose_name=_("قفل‌شده"))  # فیلد جدید
+    # is_locked = models.BooleanField(default=False, verbose_name=_("قفل‌شده"))  # فیلد جدید
+
+    @property
+    def is_locked(self):
+        """
+        بررسی وضعیت قفل دوره بودجه.
+        Returns:
+            tuple: (bool, str) - وضعیت قفل و پیام مربوطه
+        """
+        try:
+            if not self.is_active:
+                return True, _("دوره بودجه غیرفعال است.")
+            if self.is_completed:
+                return True, _("دوره بودجه تمام‌شده است.")
+            if self.lock_condition == 'AFTER_DATE' and self.end_date < timezone.now().date():
+                return True, _("دوره بودجه به دلیل پایان تاریخ قفل شده است.")
+            remaining = self.get_remaining_amount()
+            locked_amount = (self.total_amount * self.locked_percentage) / Decimal('100')
+            if self.lock_condition == 'MANUAL' and remaining <= locked_amount:
+                return True, _("دوره بودجه به دلیل رسیدن به حد قفل، قفل شده است.")
+            return False, _("دوره بودجه فعال است.")
+        except Exception as e:
+            logger.error(f"Error checking lock status for BudgetPeriod {self.pk}: {str(e)}", exc_info=True)
+            return True, _("خطا در بررسی وضعیت قفل دوره بودجه.")
 
     class Meta:
         verbose_name = _("دوره بودجه")
@@ -648,11 +670,11 @@ class BudgetAllocation(models.Model):
         """محاسبه بودجه باقی‌مانده تخصیص پروژه"""
         allocated = self.allocated_amount
         spent_amount = Tankhah.objects.filter(
-            project_budget_allocation=self,
+            project_budget_allocation=self,  # تأیید شده
             status__in=['APPROVED', 'PAID']
         ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
         pending_amount = Tankhah.objects.filter(
-            project_budget_allocation=self,
+            project_budget_allocation=self,  # تأیید شده
             status__in=['DRAFT', 'PENDING']
         ).exclude(pk=self.pk).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
         return allocated - (spent_amount + pending_amount)
@@ -1388,10 +1410,9 @@ class BudgetTransaction(models.Model):
             logger.error(f"Error saving BudgetTransaction: {str(e)}", exc_info=True)
             raise
 
-
-
     def __str__(self):
         return f"{self.get_transaction_type_display()} - {self.amount:,.0f} - {self.timestamp.strftime('%Y/%m/%d')}"
+
 """Payee (دریافت‌کننده):"""
 class Payee(models.Model):
     """توضیح: اطلاعات دریافت‌کننده پرداخت با نوع مشخص (فروشنده، کارمند، دیگر)."""

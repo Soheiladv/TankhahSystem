@@ -30,8 +30,8 @@
                     <ul class="list-group">
                         {% for approval in entry.tankhah_approvals %}
                             <li class="list-group-item">
-                                <strong>{{ approval.action }}:</strong> توسط {{ approval.user }} ({{ approval.post }})
-                                در {{ approval.date|to_jalali:"%Y/%m/%d %H:%M" }}
+                                <strong>{%  if  approval.action   %}<strong style="color: red">تایید شده ✅</strong> {% else %}<strong style="color: red">رد شده ❌</strong> {% endif %}:</strong> توسط {{ approval.user }} ({{ approval.post }})
+                                در {{ approval.date|to_jalali:"%Y/%m/%d %H:%M" |to_persian_number}}
                                 <p>{{ approval.comment }}</p>
                             </li>
                         {% endfor %}
