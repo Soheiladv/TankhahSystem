@@ -78,7 +78,7 @@ class BudgetDashboardView(LoginRequiredMixin, View):
             ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'] or Decimal('1500000000')
 
             # کل بودجه تخصیص یافته به پروژه‌ها در این دوره
-            total_allocated_to_projects = ProjectBudgetAllocation.objects.filter(
+            total_allocated_to_projects = BudgetAllocation.objects.filter(
                 budget_allocation__budget_period=active_period
             ).aggregate(total=Coalesce(Sum('allocated_amount'), Decimal('0')))['total'] or Decimal('3000000000')
 

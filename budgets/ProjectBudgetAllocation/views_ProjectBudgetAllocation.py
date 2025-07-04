@@ -976,7 +976,7 @@ class ProjectBudgetAllocationDeleteView(PermissionBaseView, DeleteView):
         return reverse_lazy('project_budget_allocation_list',
                             kwargs={'organization_id': self.object.budget_allocation.organization_id})
 # Reports
-class ProjectBudgetRealtimeReportView(PermissionBaseView, TemplateView):
+class ProjectBudgetRealtimeReportView__(PermissionBaseView, TemplateView):
     template_name = 'reports/realtime_report.html'
     permission_codenames= 'budgets.budgetallocation_view'
     pass
@@ -1006,7 +1006,7 @@ class ProjectBudgetRealtimeReportView(PermissionBaseView, TemplateView):
                 total_budget = project.get_total_budget() or Decimal('0')
                 remaining_budget = project.get_remaining_budget() or Decimal('0')
                 transactions = BudgetTransaction.objects.filter(
-                    allocation__project_allocations__project=project
+                    allocation__project=project
                 ).order_by('-timestamp')[:10]  # محدود به 10 تراکنش اخیر
                 project_data.append({
                     'project': project,
@@ -1036,3 +1036,143 @@ class ProjectBudgetRealtimeReportView(PermissionBaseView, TemplateView):
         })
         logger.debug(f"BudgetRealtimeReportView context: {context}")
         return context
+
+
+class ProjectBudgetRealtimeReportView(PermissionBaseView, TemplateView):
+    template_name = 'reports/realtime_report.html'
+    permission_codenames = 'budgets.budgetallocation_view'
+    paginate_by = 10  # تعداد تراکنش‌های نمایشی در هر پروژه
+
+    def get_queryset(self):
+        """پرس‌وجوی پایه برای سازمان‌ها و پروژه‌ها"""
+        organizations = Organization.objects.filter(is_active=True)
+        projects = Project.objects.filter(is_active=True)
+        return organizations, projects
+
+    def get_filtered_data(self, organizations, projects, filters):
+        """فیلتر کردن داده‌ها بر اساس پارامترهای ورودی"""
+        organization_id = filters.get('organization_id')
+        project_id = filters.get('project_id')
+
+        if organization_id:
+            organizations = organizations.filter(id=organization_id)
+            projects = projects.filter(organizations__id=organization_id)
+
+        if project_id:
+            projects = projects.filter(id=project_id)
+
+        return organizations, projects
+
+    def calculate_organization_budget(self, organization):
+        """محاسبه بودجه و مانده سازمان"""
+        org_budget = get_organization_budget(organization) or Decimal('0')
+
+        # محاسبه مانده بودجه سازمان
+        allocations = BudgetAllocation.objects.filter(
+            organization=organization,
+            is_active=True
+        )
+
+        # محاسبه مانده با استفاده از فیلدهای موجود
+        org_remaining = sum(
+            (alloc.allocated_amount - (alloc.returned_amount or Decimal('0')))
+            for alloc in allocations
+        ) or Decimal('0')
+
+        return org_budget, org_remaining
+
+    def calculate_project_budget(self, project, org_budget):
+        """محاسبه بودجه و تراکنش‌های پروژه"""
+        total_budget = project.get_total_budget() or Decimal('0')
+        remaining_budget = project.get_remaining_budget() or Decimal('0')
+
+        allocated_percentage = (total_budget / org_budget * 100) if org_budget > 0 else Decimal('0')
+        remaining_percentage = (remaining_budget / total_budget * 100) if total_budget > 0 else Decimal('0')
+
+        transactions = BudgetTransaction.objects.filter(
+            allocation__project=project
+        ).select_related('allocation').order_by('-timestamp')[:self.paginate_by]
+
+        return {
+            'project': project,
+            'total_budget': total_budget,
+            'remaining_budget': remaining_budget,
+            'allocated_percentage': allocated_percentage,
+            'remaining_percentage': remaining_percentage,
+            'transactions': transactions,
+        }
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        filters = {
+            'organization_id': self.request.GET.get('organization_id'),
+            'project_id': self.request.GET.get('project_id'),
+        }
+
+        # دریافت داده‌های پایه
+        organizations, projects = self.get_queryset()
+
+        # اعمال فیلترها
+        filtered_orgs, filtered_projects = self.get_filtered_data(
+            organizations, projects, filters
+        )
+
+        # ساختار داده‌های گزارش
+        report_data = []
+        for org in filtered_orgs:
+            org_budget, org_remaining = self.calculate_organization_budget(org)
+
+            # جمع‌آوری داده‌های پروژه‌های سازمان
+            org_projects = filtered_projects.filter(organizations=org)
+            project_data = [
+                self.calculate_project_budget(project, org_budget)
+                for project in org_projects
+            ]
+
+            report_data.append({
+                'organization': org,
+                'total_budget': org_budget,
+                'remaining_budget': org_remaining,
+                'projects': project_data,
+            })
+
+        context.update({
+            'report_data': report_data,
+            'organizations': organizations,
+            'selected_organization': filters['organization_id'],
+            'selected_project': filters['project_id'],
+        })
+
+        logger.debug(
+            f"Budget report generated for org:{filters['organization_id']} "
+            f"and project:{filters['project_id']}"
+        )
+
+        return context
+
+    def get_project_data(self, project, org_budget):
+        """جمع‌آوری و محاسبه اطلاعات مربوط به یک پروژه."""
+        total_budget = project.get_total_budget() or Decimal('0')
+        remaining_budget = project.get_remaining_budget() or Decimal('0')
+
+        # محاسبه درصدها
+        remaining_percentage = (remaining_budget / total_budget * 100) if total_budget > 0 else Decimal('0')
+
+        # === خطای تمپلیت در اینجا رفع می‌شود ===
+        # درصد مصرف‌شده را در ویو محاسبه می‌کنیم
+        used_percentage = 100 - remaining_percentage
+        # =======================================
+
+        transactions = BudgetTransaction.objects.filter(
+            allocation__project=project
+        ).order_by('-timestamp')[:self.TRANSACTIONS_PER_PROJECT]
+
+        return {
+            'project': project,
+            'total_budget': total_budget,
+            'remaining_budget': remaining_budget,
+            'allocated_percentage': (total_budget / org_budget * 100) if org_budget > 0 else Decimal('0'),
+            'remaining_percentage': remaining_percentage,
+            'used_percentage': used_percentage,  # ارسال مقدار محاسبه‌شده به تمپلیت
+            'transactions': transactions,
+        }

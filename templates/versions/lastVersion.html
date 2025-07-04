@@ -3,94 +3,166 @@
 
 {% block content %}
 <div class="container my-5">
-    <h1 class="my-4 text-center animate__animated animate__fadeInDown" style="color: #343a40; font-weight: bold;">
-        <i class="fas fa-code-branch me-2 text-primary"></i> {% trans "خوش آمدید به سیستم نسخه‌بندی" %}
-        <span class="badge bg-dark text-light fs-5 animate__animated animate__pulse animate__infinite ms-3">
-            {% trans "نسخه:" %} {% get_final_version %}
-        </span>
-    </h1>
+    <!-- هدر اصلی با انیمیشن -->
+    <div class="text-center mb-5 animate__animated animate__fadeInDown">
+        <div class="version-badge mb-3">
+            <span class="badge bg-primary text-white fs-6 py-2 px-3 rounded-pill">
+                {% trans "نسخه:" %} {% get_final_version %}
+            </span>
+        </div>
+        <h1 class="display-4 fw-bold text-dark mb-3">
+            <i class="fas fa-code-branch me-2 text-primary"></i> 
+            {% trans "سیستم مدیریت نسخه‌های نرم‌افزاری" %}
+        </h1>
+        <p class="lead text-muted">
+            {% trans "مدیریت، ردیابی و انتشار نسخه‌های مختلف سیستم" %}
+        </p>
+    </div>
 
-    <!-- پیام‌ها -->
+    <!-- پیام‌های سیستم -->
     {% if messages %}
         <div class="row justify-content-center mb-4">
-            {% for message in messages %}
-                <div class="col-md-8 animate__animated animate__fadeIn">
-                    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-info{% endif %} shadow-sm" role="alert" style="border-radius: 10px;">
-                        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %} me-2"></i>
-                        {{ message }}
+            <div class="col-lg-8">
+                {% for message in messages %}
+                    <div class="alert alert-dismissible fade show 
+                        {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-info{% endif %} 
+                        shadow-sm animate__animated animate__fadeIn" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="fas 
+                                {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %} 
+                                me-2 fs-5"></i>
+                            <div>{{ message }}</div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
                     </div>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            </div>
         </div>
     {% endif %}
 
-    <!-- اطلاعات نسخه نهایی -->
-    <div class="version-info card shadow-lg animate__animated animate__zoomIn" style="border-radius: 15px; background: linear-gradient(145deg, #ffffff, #f1f3f5);">
-        <div class="card-body p-4">
-            <h2 class="mb-4 text-center animate__animated animate__fadeInUp">
-                <i class="fas fa-star me-2 text-warning"></i> {% trans "نسخه نهایی" %}
-            </h2>
+    <!-- کارت اطلاعات نسخه نهایی -->
+    <div class="card border-0 shadow-lg mb-5 animate__animated animate__zoomIn">
+        <div class="card-header bg-primary text-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">
+                    <i class="fas fa-star me-2"></i> {% trans "نسخه نهایی سیستم" %}
+                </h3>
+                <span class="badge bg-white text-primary fs-6">{{ release_date|jformat:"%Y-%m-%d"|to_persian_number }}</span>
+            </div>
+        </div>
+        <div class="card-body">
             <div class="row text-center">
-                <div class="col-md-6 mb-3">
-                    <p class="lead">
-                        <strong>{% trans "شماره نسخه:" %}</strong>
-                        <span class="badge bg-primary text-white px-3 py-2 fs-5 animate__animated animate__pulse">
-                            {% get_final_version %}
-                        </span>
-                    </p>
+                <div class="col-md-4 mb-4">
+                    <div class="p-3 bg-light rounded-3 h-100">
+                        <div class="text-primary mb-2">
+                            <i class="fas fa-tag fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold">{% trans "شماره نسخه" %}</h4>
+                        <p class="fs-3 fw-bold text-dark">{% get_final_version %}</p>
+                    </div>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <p>
-                        <strong>{% trans "تاریخ انتشار:" %}</strong>
-                        <span class="badge bg-secondary text-white px-3 py-2 fs-5">
+                
+                <div class="col-md-4 mb-4">
+                    <div class="p-3 bg-light rounded-3 h-100">
+                        <div class="text-primary mb-2">
+                            <i class="fas fa-calendar-alt fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold">{% trans "تاریخ انتشار" %}</h4>
+                        <p class="fs-3 fw-bold text-dark">
                             {% if release_date %}{{ release_date|jformat:"%Y-%m-%d %H:%M"|to_persian_number }}{% else %}{% trans "نامشخص" %}{% endif %}
-                        </span>
-                    </p>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-4">
+                    <div class="p-3 bg-light rounded-3 h-100">
+                        <div class="text-primary mb-2">
+                            <i class="fas fa-cubes fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold">{% trans "تعداد ماژول‌ها" %}</h4>
+                        <p class="fs-3 fw-bold text-dark">{{ app_versions|length|to_persian_number }}</p>
+                    </div>
                 </div>
             </div>
-            <form method="post" action="{% url 'update_versions' %}" class="text-center mt-4">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-primary btn-lg shadow-sm animate__animated animate__bounceIn" style="border-radius: 25px; padding: 10px 30px;">
-                    <i class="fas fa-sync-alt me-2"></i> {% trans "به‌روزرسانی نسخه‌ها" %}
-                </button>
-            </form>
+            
+            <div class="d-flex justify-content-center gap-3 mt-3">
+                <form method="post" action="{% url 'update_versions' %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-lg px-4 py-2">
+                        <i class="fas fa-sync-alt me-2"></i> {% trans "به‌روزرسانی نسخه‌ها" %}
+                    </button>
+                </form>
+                
+                <a href="{% url 'version_index_view' %}" class="btn btn-outline-secondary btn-lg px-4 py-2">
+                    <i class="fas fa-arrow-right me-2"></i> {% trans "بازگشت" %}
+                </a>
+            </div>
         </div>
     </div>
 
     <!-- جدول نسخه‌ها -->
     {% if app_versions %}
-        <div class="table-container mt-5 card shadow-lg animate__animated animate__fadeInUp" style="border-radius: 15px; overflow: hidden;">
-            <div class="card-header bg-gradient-primary text-white text-center py-3">
-                <h2 class="mb-0">
-                    <i class="fas fa-list me-2"></i> {% trans "آخرین نسخه‌ها" %}
-                </h2>
+        <div class="card border-0 shadow-lg animate__animated animate__fadeInUp">
+            <div class="card-header bg-white py-3 border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-list-ul me-2 text-primary"></i> 
+                        {% trans "لیست نسخه‌های ماژول‌ها" %}
+                    </h3>
+                    <span class="badge bg-primary rounded-pill">{{ app_versions|length|to_persian_number }} {% trans "ماژول" %}</span>
+                </div>
             </div>
-            <div class="card-body p-0">
-                <table class="table table-hover mb-0">
-                    <thead>
+            
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
                         <tr>
-                            <th>{% trans "نام اپلیکیشن" %}</th>
-                            <th>{% trans "شماره نسخه" %}</th>
-                            <th>{% trans "نویسنده" %}</th>
+                            <th class="ps-4">{% trans "نام ماژول" %}</th>
+                            <th>{% trans "نسخه" %}</th>
+                            <th>{% trans "توسعه‌دهنده" %}</th>
                             <th>{% trans "تاریخ انتشار" %}</th>
-                            <th>{% trans "وضعیت" %}</th>
+                            <th class="text-center">{% trans "وضعیت" %}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for version in app_versions %}
-                            <tr class="animate__animated animate__fadeIn" style="animation-delay: {{ forloop.counter0|to_persian_number }}s;">
-                                <td>{{ version.get_app_name_fa }}</td>
-                                <td>{{ version.version_number|to_persian_number }}</td>
-                                <td>{{ version.author.username }} {{ version.author.first_name }} {{ version.author.last_name }}</td>
-                                <td>{{ version.release_date|jformat:"%Y-%m-%d %H:%M"|to_persian_number }}</td>
+                            <tr class="animate__animated animate__fadeIn" style="animation-delay: {{ forloop.counter0|mul:0.1 }}s;">
+                                <td class="ps-4 fw-bold">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-circle bg-primary-light text-primary me-3">
+                                            <i class="fas fa-cube"></i>
+                                        </div>
+                                        <div>
+                                            {{ version.get_app_name_fa }}
+                                            <div class="text-muted small">{{ version.app_name }}</div>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td>
+                                    <span class="badge bg-dark rounded-pill px-3 py-1">{{ version.version_number|to_persian_number }}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-2">
+                                            <span class="avatar-title bg-info rounded-circle">
+                                                {{ version.author.first_name|first|default:"U" }}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            {{ version.author.get_full_name|default:version.author.username }}
+                                            <div class="text-muted small">{{ version.author.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ version.release_date|jformat:"%Y-%m-%d %H:%M"|to_persian_number }}</td>
+                                <td class="text-center">
                                     {% if final_version and version.version_number == final_version %}
-                                        <span class="final-tag badge bg-success px-3 py-2">
+                                        <span class="badge bg-success rounded-pill px-3 py-1">
                                             <i class="fas fa-check-circle me-1"></i> {% trans "نهایی" %}
                                         </span>
                                     {% else %}
-                                        <span class="not-final-tag badge bg-danger px-3 py-2">
-                                            <i class="fas fa-times-circle me-1"></i> {% trans "غیرنهایی" %}
+                                        <span class="badge bg-secondary rounded-pill px-3 py-1">
+                                            <i class="fas fa-clock me-1"></i> {% trans "در حال توسعه" %}
                                         </span>
                                     {% endif %}
                                 </td>
@@ -99,22 +171,145 @@
                     </tbody>
                 </table>
             </div>
+            
+            <div class="card-footer bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                        <i class="fas fa-info-circle me-1"></i>
+                        {% trans "آخرین به‌روزرسانی:" %} {% now "Y-m-d H:i"|jformat %} {% trans "به وقت تهران" %}
+                    </div>
+                    <div>
+                        <span class="badge bg-primary bg-opacity-10 text-primary me-2">
+                            <i class="fas fa-check-circle me-1"></i> {% trans "نهایی" %} {{ final_versions_count|to_persian_number }}
+                        </span>
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                            <i class="fas fa-code me-1"></i> {% trans "در حال توسعه" %} {{ dev_versions_count|to_persian_number }}
+                        </span>
+                    </div>
+                </div>
+            </div>
         </div>
     {% endif %}
 </div>
 
 <style>
-    body { direction: rtl; text-align: right; background-color: #f0f2f5; }
-    .bg-gradient-primary { background: linear-gradient(135deg, #007bff, #004085); }
-    .card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-    .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); }
-    .table { border-collapse: separate; border-spacing: 0; }
-    th { background-color: #007bff; color: white; font-weight: bold; padding: 15px; }
-    td { padding: 15px; vertical-align: middle; }
-    .table-hover tbody tr:hover { background-color: #f8f9fa; transition: background-color 0.2s ease; }
-    .final-tag { color: white; font-weight: bold; }
-    .not-final-tag { color: white; }
-    .btn-primary { background-color: #007bff; border: none; transition: background-color 0.3s ease, transform 0.3s ease; }
-    .btn-primary:hover { background-color: #0056b3; transform: scale(1.05); }
+    :root {
+        --primary-light: rgba(0, 123, 255, 0.1);
+    }
+    
+    body {
+        direction: rtl;
+        text-align: right;
+        background-color: #f8fafc;
+    }
+    
+    .version-badge {
+        display: inline-block;
+        position: relative;
+    }
+    
+    .version-badge .badge {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .version-badge::after {
+        content: '';
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        right: -5px;
+        bottom: -5px;
+        background: rgba(0, 123, 255, 0.2);
+        border-radius: 50px;
+        z-index: 0;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .card {
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        padding-top: 15px;
+        padding-bottom: 15px;
+    }
+    
+    .table td {
+        border-top: 1px solid #f1f3f5;
+        vertical-align: middle;
+        padding-top: 15px;
+        padding-bottom: 15px;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.03);
+    }
+    
+    .icon-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .avatar-sm {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .avatar-title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+    }
+    
+    .bg-primary-light {
+        background-color: var(--primary-light);
+    }
+    
+    .btn-primary {
+        padding: 0.5rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+    
+    .btn-outline-secondary {
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+    }
 </style>
- {% endblock %}
+{% endblock %}

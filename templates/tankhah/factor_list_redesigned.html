@@ -1,10 +1,123 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% load i18n humanize  rcms_custom_filters %}
 
-</body>
-</html>
+{% block title %}{% trans "لیست فاکتورها" %}{% endblock %}
+
+{% block content %}
+{% block title %}{% trans "لیست فاکتورها" %}{% endblock %}
+
+<body class="bg-gray-100 p-4">
+
+<h1 class="text-3xl font-bold mb-6 text-indigo-700">لیست فاکتورها</h1>
+
+<!-- فیلتر سریع -->
+<form method="get" class="mb-6 flex flex-wrap gap-2">
+    <input name="q"
+           value="{{ query }}"
+           placeholder="جستجو..."
+           class="flex-1 rounded-lg border p-2 focus:outline-none">
+    <select name="status"
+            class="rounded-lg border p-2">
+        <option value="">{% trans "همه وضعیت‌ها" %}</option>
+        {% for val,label in status_choices %}
+            <option value="{{ val }}" {% if val == status_query %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button class="rounded-lg bg-indigo-600 text-white px-4 py-2 hover:bg-indigo-700">
+        جستجو
+    </button>
+</form>
+
+<!-- آکاردئون اصلی -->
+<div class="space-y-2" x-data="{openOrg:null}">
+    {% for org_id, org_data in grouped_data.items %}
+        <div class="bg-white shadow rounded-xl">
+            <!-- هدر سازمان -->
+            <button @click="openOrg === {{ org_id }} ? openOrg = null : openOrg = {{ org_id }}"
+                    class="w-full flex justify-between items-center px-4 py-3 text-lg font-semibold text-indigo-700">
+                <span>{{ org_data.org.name }}</span>
+                <svg x-show="openOrg !== {{ org_id }}" xmlns="http://www.w3.org/2000/svg"
+                     class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round"
+                                                   stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <svg x-show="openOrg === {{ org_id }}" xmlns="http://www.w3.org/2000/svg"
+                     class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round"
+                                                   stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+            </button>
+
+            <!-- بدنه سازمان -->
+            <div x-show="openOrg === {{ org_id }}" x-collapse>
+                {% for prj_id, prj_data in org_data.projects.items %}
+                    <div class="border-t px-4 py-3" x-data="{openPrj:false}">
+                        <!-- هدر پروژه -->
+                        <button @click="openPrj = !openPrj"
+                                class="w-full flex justify-between items-center text-indigo-600">
+                            <span class="font-medium">{{ prj_data.project.name }}</span>
+                            <svg x-show="!openPrj" xmlns="http://www.w3.org/2000/svg"
+                                 class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor"><path stroke-linecap="round"
+                                                             stroke-linejoin="round"
+                                                             stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            <svg x-show="openPrj" xmlns="http://www.w3.org/2000/svg"
+                                 class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor"><path stroke-linecap="round"
+                                                             stroke-linejoin="round"
+                                                             stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                        </button>
+
+                        <!-- فهرست تنخواه‌ها -->
+                        <div x-show="openPrj" x-collapse class="mt-2 space-y-1">
+                            {% for tk_id, tk_data in prj_data.tankhahs.items %}
+                                <div class="border rounded-lg">
+                                    <div class="bg-gray-50 px-3 py-2 font-medium">
+                                        {{ tk_data.tankhah.number }}
+                                    </div>
+
+                                    <!-- جدول فاکتورهای این تنخواه -->
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full text-sm text-right">
+                                            <thead class="bg-indigo-50">
+                                            <tr class="text-indigo-800">
+                                                <th class="p-2">#</th>
+                                                <th class="p-2">شرح</th>
+                                                <th class="p-2">مبلغ</th>
+                                                <th class="p-2">وضعیت</th>
+                                                <th class="p-2">آخرین تأییدکننده</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for f in tk_data.factors %}
+                                                <tr class="odd:bg-white even:bg-gray-50">
+                                                    <td class="p-2 whitespace-nowrap">{{ f.number }}</td>
+                                                    <td class="p-2">{{ f.description|default:"ـ" }}</td>
+                                                    <td class="p-2 whitespace-nowrap">
+                                                        {{ f.amount|intcomma }} ریال
+                                                    </td>
+                                                    <td class="p-2">{{ f.get_status_display }}</td>
+                                                    <td class="p-2 whitespace-nowrap">
+                                                        {{ f.approvers_display }}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% empty %}
+        <p class="text-center text-gray-500">{% trans "هیچ فاکتوری یافت نشد." %}</p>
+    {% endfor %}
+</div>
+
+<!-- صفحه‌بندی -->
+<div class="mt-6">
+    {% include "core/pagination.html" with page_obj=page_obj %}
+</div>
+
+{% endblock %}

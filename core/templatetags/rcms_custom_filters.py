@@ -514,3 +514,37 @@ def percentage_of(value, total):
         return (value / total) * 100 if total != 0 else Decimal(0)
     except (ValueError, TypeError, InvalidOperation):
         return Decimal(0)
+
+from django.utils.translation import gettext_lazy as _
+
+@register.filter(name='get_status_label')
+def get_status_label(status_choices, status_key):
+    """
+    فیلتر برای تبدیل کلید وضعیت به برچسب فارسی
+    مثال استفاده در تمپلیت: {{ Factor.STATUS_CHOICES|get_status_label:status }}
+    """
+    status_dict = dict(status_choices)
+    labels = {
+        'approved': _('تأیید شده'),
+        'rejected': _('رد شده'),
+        'pending': _('در انتظار تأیید'),
+        'draft': _('پیش‌نویس'),
+        'paid': _('پرداخت شده'),
+    }
+    return labels.get(status_key, status_dict.get(status_key, status_key))
+
+
+@register.filter(name='get_status_color')
+def get_status_color(status_key):
+    """
+    فیلتر برای دریافت رنگ مناسب هر وضعیت
+    مثال استفاده: {{ status|get_status_color }}
+    """
+    colors = {
+        'approved': 'success',
+        'rejected': 'danger',
+        'pending': 'warning',
+        'draft': 'secondary',
+        'paid': 'info',
+    }
+    return colors.get(status_key, 'primary')

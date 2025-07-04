@@ -1,10 +1,163 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% load static i18n humanize jformat %}
 
-</body>
-</html>
+{% block title %}{% trans "لیست فاکتورها" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .accordion-button:not(.collapsed) {
+        color: #0c63e4;
+        background-color: #e7f1ff;
+    }
+    .accordion-button:focus { box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .25); }
+    .approver-avatar-stack { display: flex; padding-right: 15px; }
+    .approver-avatar {
+        width: 32px; height: 32px; border-radius: 50%;
+        background-color: #0d6efd; color: white;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 0.8rem; font-weight: 700;
+        margin-right: -15px; border: 2px solid white;
+        transition: transform 0.2s;
+    }
+    .approver-avatar:hover { transform: translateY(-3px); z-index: 10; }
+    .status-badge {
+        padding: 0.25rem 0.75rem; border-radius: 50rem; font-size: 0.8em; font-weight: 600; color: white;
+    }
+    .status-pending { background-color: #0dcaf0; }
+    .status-approved { background-color: #198754; }
+    .status-rejected { background-color: #dc3545; }
+    .status-paid { background-color: #6f42c1; }
+    .status-draft { background-color: #6c757d; }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="m-0"><i class="fas fa-file-invoice-dollar text-primary me-2"></i> {% trans "لیست فاکتورها" %}</h2>
+        <a href="{% url 'tankhah:Nfactor_create' %}" class="btn btn-primary"><i class="fas fa-plus me-2"></i> {% trans "ایجاد فاکتور جدید" %}</a>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-center">
+                <div class="col-md-5"><input type="text" name="q" value="{{ query|default_if_none:'' }}" class="form-control" placeholder="{% trans 'جستجو...' %}"></div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">{% trans "همه وضعیت‌ها" %}</option>
+                        {% for val, disp in status_choices %}<option value="{{ val }}" {% if val == status_query %}selected{% endif %}>{{ disp }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2"><button type="submit" class="btn btn-success w-100"><i class="fas fa-filter me-1"></i> {% trans "فیلتر" %}</button></div>
+                <div class="col-md-2"><a href="{% url 'tankhah:factor_list' %}" class="btn btn-outline-secondary w-100">{% trans "پاک کردن" %}</a></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="accordion" id="mainAccordion">
+        {% for org_id, org_data in grouped_data.items %}
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="org-header-{{ org_id }}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#org-collapse-{{ org_id }}">
+                        <i class="fas fa-building me-2"></i> {{ org_data.org_obj.name }}
+                    </button>
+                </h2>
+                <div id="org-collapse-{{ org_id }}" class="accordion-collapse collapse" data-bs-parent="#mainAccordion">
+                    <div class="accordion-body">
+                        <div class="accordion" id="projectAccordion-{{ org_id }}">
+                            {% for project_id, project_data in org_data.projects.items %}
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="project-header-{{ project_id }}">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#project-collapse-{{ project_id }}">
+                                            <i class="fas fa-project-diagram me-2"></i> {{ project_data.project_obj.name }}
+                                        </button>
+                                    </h2>
+                                    <div id="project-collapse-{{ project_id }}" class="accordion-collapse collapse" data-bs-parent="#projectAccordion-{{ org_id }}">
+                                        <div class="accordion-body p-0">
+                                            {% for tankhah_id, tankhah_data in project_data.tankhahs.items %}
+                                                <div class="p-3 border-bottom bg-light fw-bold">
+                                                    <i class="fas fa-wallet me-2"></i> {% trans "تنخواه" %}: {{ tankhah_data.tankhah_obj.number }}
+                                                </div>
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm table-striped table-hover mb-0">
+                                                        <tbody>
+                                                        {% with all_factors=tankhah_data.factors %}
+                                                            {% for factor in all_factors.pending|add:all_factors.draft|add:all_factors.approved|add:all_factors.paid|add:all_factors.rejected %}
+                                                                {% include "tankhah/partials/_factor_row.html" %}
+                                                            {% endfor %}
+                                                        {% endwith %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <p class="text-muted p-3">{% trans "هیچ پروژه‌ای برای این سازمان یافت نشد." %}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="text-center py-5">
+                <i class="fas fa-file-invoice fa-4x text-muted mb-4"></i>
+                <h5 class="text-muted">{% trans "هیچ فاکتوری یافت نشد" %}</h5>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+        <div class="mt-4">{% include "core/pagination.html" %}</div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+  // فعال کردن tooltipها
+  $('[data-bs-toggle="tooltip"]').tooltip();
+
+  // مدیریت کلیک روی دکمه تأیید
+  $('.approve-btn').click(function() {
+    const factorId = $(this).data('factor-id');
+    if (confirm('آیا از تأیید این فاکتور اطمینان دارید؟')) {
+      $.ajax({
+        url: `/factor/${factorId}/approve/`,
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        success: function(response) {
+          if (response.success) {
+            location.reload();
+          } else {
+            alert(response.message || 'خطا در تأیید فاکتور');
+          }
+        },
+        error: function() {
+          alert('خطا در ارتباط با سرور');
+        }
+      });
+    }
+  });
+
+  // مدیریت آکاردئون - باز نگه داشتن آیتم فعال بعد از رفرش
+  const activeOrg = localStorage.getItem('activeOrg');
+  if (activeOrg) {
+    $(`#orgCollapse${activeOrg}`).addClass('show');
+    $(`#orgHeading${activeOrg} button`).removeClass('collapsed');
+  }
+
+  $('.accordion-button').click(function() {
+    const orgId = $(this).attr('aria-controls').replace('orgCollapse', '');
+    localStorage.setItem('activeOrg', orgId);
+  });
+});
+</script>
+{% endblock %}

@@ -6,9 +6,10 @@ from budgets.budget_calculations import get_budget_info, get_tankhah_budget_info
 from tankhah.Factor.FactorStatusReviewView import FactorStatusReviewView, AdvancedFactorStatusReviewView, \
     ComprehensiveFactorDetailView, UltimateFactorDetailView
 from tankhah.Factor.NF.view_Nfactor import New_FactorCreateView
-from tankhah.Factor.View_Factor_list import FactorListView
+from tankhah.Factor.View_Factor_list import FactorListView, FactorListView2, OptimizedFactorListView
 from tankhah.Factor.view_FactorItemApprove import FactorItemApproveView
 from tankhah.Factor.view_FactorUpdate import FactorUpdateView
+from tankhah.Factor.views_approval_path import FactorApprovalPathView
 from tankhah.TankhahTrackingView import TankhahTrackingViewOLDer, TankhahStatusView, TankhahApprovalTimelineView
 # from tankhah.view.view_Notification import NotificationListView, NotificationCreateView, NotificationUpdateView, \
 #     NotificationDeleteView
@@ -76,6 +77,11 @@ urlpatterns += [
     # path('factor/create/wizard/',  FactorWizardView.as_view(views.FACTOR_FORMS), name='factor_wizard'), # Wizard URL
     path('ajax/tankhah-budget-info/<int:tankhah_id>/',  TankhahBudgetInfoAjaxView.as_view(), name='tankhah_budget_info_ajax'), # AJAX URL
     path('factor/list/',  FactorListView.as_view(), name='factor_list'), # Example success URL
+    path('factor/list2/',  FactorListView2.as_view(), name='factor_list2'), # Example success URL
+    path('factor/list3/',  OptimizedFactorListView.as_view(), name='factor_list3'), # Example success URL
+
+    path('factor/<int:pk>/approval-path/', FactorApprovalPathView.as_view(), name='factor_approval_path'),#مسیر تایید فاکتورها
+
     # ... other factor related urls ...
 ]
 

@@ -1,10 +1,582 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% load i18n rcms_custom_filters jformat %}
 
-</body>
-</html>
+{% block extra_head %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --success-color: #4cc9f0;
+        --danger-color: #f72585;
+        --warning-color: #f8961e;
+        --info-color: #4895ef;
+        --light-bg: #f8f9fa;
+        --dark-text: #212529;
+        --muted-text: #6c757d;
+        --border-color: #e9ecef;
+    }
+
+    body {
+        direction: rtl;
+        background-color: #f5f7fb;
+        font-family: 'Vazir', sans-serif;
+    }
+
+    .approval-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .accordion-button {
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        background-color: white;
+        border: 1px solid var(--border-color);
+        box-shadow: none !important;
+    }
+
+    .accordion-button:not(.collapsed) {
+        background-color: var(--light-bg);
+        color: var(--primary-color);
+    }
+
+    .accordion-button::after {
+        margin-right: auto;
+        margin-left: 0;
+    }
+
+    .stage-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .stage-badges {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+    }
+
+    .badge-primary {
+        background-color: var(--primary-color);
+    }
+
+    .badge-success {
+        background-color: var(--success-color);
+    }
+
+    .badge-warning {
+        background-color: var(--warning-color);
+    }
+
+    .badge-info {
+        background-color: var(--info-color);
+    }
+
+    .badge-light {
+        background-color: var(--light-bg);
+        color: var(--dark-text);
+    }
+
+    .approver-card {
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    .approver-header {
+        background-color: var(--light-bg);
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 500;
+    }
+
+    .approver-body {
+        padding: 1rem;
+    }
+
+    .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .meta-item {
+        margin-bottom: 0.5rem;
+    }
+
+    .meta-label {
+        font-size: 0.8rem;
+        color: var(--muted-text);
+        margin-bottom: 0.25rem;
+    }
+
+    .meta-value {
+        font-size: 0.85rem;
+        color: var(--dark-text);
+        word-break: break-word;
+    }
+
+    .user-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: bold;
+        margin-left: 0.5rem;
+    }
+
+    .action-log {
+        background-color: rgba(248, 249, 250, 0.5);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px dashed var(--border-color);
+    }
+
+    .log-user {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+
+    .print-section {
+        display: none;
+    }
+
+    .print-actions {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 1000;
+        display: flex;
+        gap: 10px;
+    }
+
+    .print-btn {
+        padding: 10px 15px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    @media print {
+        body {
+            padding: 0;
+            margin: 0;
+            background: white;
+            font-size: 12pt;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        .print-section {
+            display: block;
+            page-break-after: always;
+        }
+
+        .accordion-item {
+            page-break-inside: avoid;
+        }
+
+        .container {
+            max-width: 100% !important;
+            padding: 0 !important;
+        }
+
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .approver-card {
+            page-break-inside: avoid;
+        }
+    }
+
+    /* مدیریت سطرهای طولانی */
+    .compact-row {
+        margin-bottom: 0.5rem;
+        padding: 0.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .compact-row:last-child {
+        border-bottom: none;
+    }
+
+    .compact-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .compact-meta-item {
+        font-size: 0.8rem;
+        background: #f8f9fa;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+    }
+
+    .compact-meta-label {
+        color: var(--muted-text);
+        margin-left: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container approval-container py-4 no-print">
+    <div class="card border-0 shadow-sm overflow-hidden mb-4">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="h4 mb-2">
+                        <i class="fas fa-route me-2"></i> {{ page_title |to_persian_number }}
+                    </h2>
+                    <div class="d-flex gap-3 text-white-80">
+                        <span><i class="fas fa-building me-1"></i> {{ factor_organization }}</span>
+                        <span><i class="fas fa-project-diagram me-1"></i> {{ factor_project|to_persian_number }}</span>
+                    </div>
+                </div>
+                <div class="badge bg-white text-primary rounded-pill px-3 py-2">
+                    <i class="fas fa-history me-1"></i> {% now "Y/m/d"|jformat %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            {% if error_message %}
+                <div class="alert alert-warning d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <div>{{ error_message }}</div>
+                </div>
+            {% else %}
+                <div class="accordion" id="approvalAccordion">
+                    {% for stage_info in approval_path %}
+                    <div class="accordion-item mb-3">
+                        <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                            <button class="accordion-button {% if not stage_info.is_current %}collapsed{% endif %}"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#collapse{{ forloop.counter }}"
+                                    aria-expanded="{% if stage_info.is_current %}true{% else %}false{% endif %}"
+                                    aria-controls="collapse{{ forloop.counter }}">
+                                <div class="stage-header">
+                                    <span>
+                                        <i class="fas fa-layer-group me-2"></i>
+                                        مرحله {{ stage_info.stage.order|to_persian_number }} - {{ stage_info.stage.name }}
+                                    </span>
+                                    <div class="stage-badges">
+                                        {% if stage_info.is_current %}
+                                            <span class="badge badge-primary">
+                                                <i class="fas fa-circle-notch fa-spin me-1"></i> جاری
+                                            </span>
+                                        {% endif %}
+                                        {% if stage_info.is_final %}
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-flag-checkered me-1"></i> نهایی
+                                            </span>
+                                        {% endif %}
+                                        {% if stage_info.triggers_payment %}
+                                            <span class="badge badge-info">
+                                                <i class="fas fa-money-bill-wave me-1"></i> پرداخت
+                                            </span>
+                                        {% endif %}
+                                        <span class="badge badge-light">
+                                            وضعیت: {{ stage_info.status|title }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="collapse{{ forloop.counter }}"
+                             class="accordion-collapse collapse {% if stage_info.is_current %}show{% endif %}"
+                             aria-labelledby="heading{{ forloop.counter }}"
+                             data-bs-parent="#approvalAccordion">
+                            <div class="accordion-body">
+                                <p class="text-muted mb-3">{{ stage_info.stage.description|default:"توضیحاتی برای این مرحله ثبت نشده است." }}</p>
+
+                                <!-- اقدامات انجام شده -->
+                                <h6 class="fw-bold mb-3">
+                                    <i class="fas fa-clipboard-check me-2"></i> اقدامات انجام شده
+                                </h6>
+
+                                {% if stage_info.logs %}
+                                    {% for log in stage_info.logs %}
+                                    <div class="action-log compact-row">
+                                        <div class="log-user mb-2">
+                                            <div class="user-avatar">
+                                                {{ log.user.first_name|first|default:log.user.username|first }}
+                                            </div>
+                                            <div>
+                                                <strong>{{ log.user.full_name }}</strong>
+                                                <small class="text-muted ms-2">({{ log.user.username }})</small>
+                                                <span class="badge bg-{% if log.action == 'approve' %}success{% elif log.action == 'reject' %}danger{% else %}warning{% endif %}-light text-{% if log.action == 'approve' %}success{% elif log.action == 'reject' %}danger{% else %}warning{% endif %} ms-2">
+                                                    {{ log.action }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="compact-meta">
+                                            <div class="compact-meta-item">
+                                                <span class="compact-meta-label">پست:</span>
+                                                {{ log.post.name }}
+                                            </div>
+                                            <div class="compact-meta-item">
+                                                <span class="compact-meta-label">سازمان:</span>
+                                                {{ log.post.organization }}
+                                            </div>
+                                            <div class="compact-meta-item">
+                                                <span class="compact-meta-label">زمان:</span>
+                                                {{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}
+                                            </div>
+                                            {% if log.comment %}
+                                            <div class="compact-meta-item">
+                                                <span class="compact-meta-label">توضیح:</span>
+                                                {{ log.comment|truncatechars:30 }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="alert alert-light text-center py-3">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        هیچ اقدام تأیید یا ردّی برای این مرحله ثبت نشده است.
+                                    </div>
+                                {% endif %}
+
+                                <!-- تأییدکنندگان بالقوه -->
+                                <h6 class="fw-bold mt-4 mb-3">
+                                    <i class="fas fa-users me-2"></i> تأییدکنندگان مجاز
+                                </h6>
+
+                                {% if stage_info.potential_approvers %}
+                                    {% for approver in stage_info.potential_approvers %}
+                                    <div class="approver-card compact-row">
+                                        <div class="approver-header">
+                                            <i class="fas fa-user-tie me-2"></i> {{ approver.post.name }}
+                                        </div>
+                                        <div class="approver-body">
+                                            <div class="meta-grid">
+                                                <div class="meta-item">
+                                                    <div class="meta-label">سطح دسترسی</div>
+                                                    <div class="meta-value">{{ approver.post.level|to_persian_number }}</div>
+                                                </div>
+                                                <div class="meta-item">
+                                                    <div class="meta-label">ترتیب تأیید</div>
+                                                    <div class="meta-value">{{ approver.post.order|to_persian_number }}</div>
+                                                </div>
+                                                <div class="meta-item">
+                                                    <div class="meta-label">امضاکننده پرداخت</div>
+                                                    <div class="meta-value">
+                                                        {% if approver.post.is_payment_signer %}
+                                                            <span class="badge bg-success-light text-success">بله</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary-light text-secondary">خیر</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="meta-item">
+                                                    <div class="meta-label">کاربران</div>
+                                                    <div class="meta-value">
+                                                        {% if approver.users %}
+                                                            {% for user in approver.users %}
+                                                                <div class="d-inline-flex align-items-center mb-1">
+                                                                    <span class="user-avatar">{{ user.first_name|first|default:user.username|first }}</span>
+                                                                    {{ user.full_name }} ({{ user.username }})
+                                                                </div>
+                                                                {% if not forloop.last %}<br>{% endif %}
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            <span class="text-danger">بدون کاربر فعال</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="meta-item">
+                                                    <div class="meta-label">اقدامات مجاز</div>
+                                                    <div class="meta-value">
+                                                        {% if approver.allowed_actions %}
+                                                            {% for action in approver.allowed_actions %}
+                                                                <span class="badge bg-primary-light text-primary mb-1">{{ action }}</span>
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            <span class="text-danger">هیچ اقدام مجازی تعریف نشده</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="alert alert-light text-center py-3">
+                                        <i class="fas fa-user-slash me-2"></i>
+                                        هیچ تأییدکننده‌ای برای این مرحله تعریف نشده است.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="alert alert-warning text-center py-4">
+                        <i class="fas fa-road me-2"></i>
+                        مسیر تأیید تعریف نشده است.
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="text-center no-print mb-5">
+        <a href="{% url 'factor_detail' factor.pk %}" class="btn btn-primary px-4 py-2">
+            <i class="fas fa-arrow-left me-2"></i> بازگشت به جزئیات فاکتور
+        </a>
+    </div>
+</div>
+
+<!-- بخش چاپ -->
+<div class="print-section">
+    <div class="print-header text-center mb-4">
+        <h2>{{ page_title }}</h2>
+        <div class="d-flex justify-content-center gap-4 mb-3">
+            <div><strong>سازمان:</strong> {{ factor_organization }}</div>
+            <div><strong>پروژه:</strong> {{ factor_project }}</div>
+            <div><strong>تاریخ:</strong> {% now "Y/m/d"|jformat %}</div>
+        </div>
+        <hr>
+    </div>
+
+    <div class="print-content">
+        {% for stage_info in approval_path %}
+        <div class="print-stage mb-4">
+            <div class="print-stage-header bg-light p-2">
+                <h4>
+                    مرحله {{ stage_info.stage.order|to_persian_number }} - {{ stage_info.stage.name }}
+                    {% if stage_info.is_current %}(مرحله جاری){% endif %}
+                    {% if stage_info.is_final %}(مرحله نهایی){% endif %}
+                    {% if stage_info.triggers_payment %}(مرحله پرداخت){% endif %}
+                </h4>
+                <div class="text-muted">{{ stage_info.stage.description|default:"توضیحاتی برای این مرحله ثبت نشده است." }}</div>
+            </div>
+
+            <div class="print-stage-body p-2">
+                <h5 class="border-bottom pb-1 mb-2">اقدامات انجام شده</h5>
+                {% if stage_info.logs %}
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>کاربر</th>
+                                <th>پست</th>
+                                <th>اقدام</th>
+                                <th>زمان</th>
+                                <th>توضیحات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in stage_info.logs %}
+                            <tr>
+                                <td>{{ log.user.full_name }} ({{ log.user.username }})</td>
+                                <td>{{ log.post.name }}</td>
+                                <td>{{ log.action }}</td>
+                                <td>{{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}</td>
+                                <td>{{ log.comment|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="alert alert-light text-center py-2">
+                        هیچ اقدام تأیید یا ردّی برای این مرحله ثبت نشده است.
+                    </div>
+                {% endif %}
+
+                <h5 class="border-bottom pb-1 mb-2 mt-4">تأییدکنندگان مجاز</h5>
+                {% if stage_info.potential_approvers %}
+                    {% for approver in stage_info.potential_approvers %}
+                    <div class="mb-3 p-2 border rounded">
+                        <h6 class="mb-2">{{ approver.post.name }}</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>سطح دسترسی:</strong> {{ approver.post.level|to_persian_number }}</p>
+                                <p><strong>ترتیب تأیید:</strong> {{ approver.post.order|to_persian_number }}</p>
+                                <p><strong>امضاکننده پرداخت:</strong> {% if approver.post.is_payment_signer %}بله{% else %}خیر{% endif %}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>کاربران:</strong></p>
+                                <ul>
+                                    {% for user in approver.users %}
+                                    <li>{{ user.full_name }} ({{ user.username }})</li>
+                                    {% empty %}
+                                    <li>بدون کاربر فعال</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        <p><strong>اقدامات مجاز:</strong>
+                            {% for action in approver.allowed_actions %}
+                                {{ action }}{% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                                هیچ اقدام مجازی تعریف نشده
+                            {% endfor %}
+                        </p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-light text-center py-2">
+                        هیچ تأییدکننده‌ای برای این مرحله تعریف نشده است.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="print-actions no-print">
+    <button onclick="window.print()" class="print-btn">
+        <i class="fas fa-print me-2"></i> چاپ گزارش
+    </button>
+    <button onclick="expandAll()" class="print-btn">
+        <i class="fas fa-expand me-2"></i> باز کردن همه
+    </button>
+    <button onclick="collapseAll()" class="print-btn">
+        <i class="fas fa-compress me-2"></i> بستن همه
+    </button>
+</div>
+
+<script>
+    function expandAll() {
+        const collapses = document.querySelectorAll('.accordion-collapse');
+        collapses.forEach(collapse => {
+            new bootstrap.Collapse(collapse, { show: true });
+        });
+    }
+
+    function collapseAll() {
+        const collapses = document.querySelectorAll('.accordion-collapse');
+        collapses.forEach(collapse => {
+            new bootstrap.Collapse(collapse, { hide: true });
+        });
+    }
+</script>
+{% endblock %}

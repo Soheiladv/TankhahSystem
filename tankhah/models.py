@@ -1366,7 +1366,7 @@ class ApprovalLog(models.Model):
         ('STAGE_CHANGE', 'تغییر مرحله'),
         ('NONE', 'هیچکدام'),
     ]
-    tankhah  = models.ForeignKey(Tankhah, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_logs', verbose_name=_("تنخواه"))
+    tankhah = models.ForeignKey(Tankhah, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_logs', verbose_name=_("تنخواه"))
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_logs', verbose_name=_("فاکتور"))
     factor_item = models.ForeignKey(FactorItem, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_logs', verbose_name=_("ردیف فاکتور"))
     action = models.CharField(max_length=25, choices=ACTION_CHOICES, verbose_name=_("اقدام"))
@@ -1380,32 +1380,20 @@ class ApprovalLog(models.Model):
     seen_by_higher = models.BooleanField(default=False, verbose_name=_("دیده‌شده توسط رده بالاتر"))
     seen_at = models.DateTimeField(null=True, blank=True, verbose_name=_("زمان دیده شدن"))
     action_type = models.CharField(max_length=50, blank=True, verbose_name=_("نوع اقدام"))
-    # پشتیبانی از چندین نوع موجودیت با استفاده از GenericForeignKey
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, verbose_name=_("نوع موجودیت"))
-    object_id = models.PositiveIntegerField(verbose_name=_("شناسه موجودیت"))
-    content_object = GenericForeignKey('content_type', 'object_id')#GenericForeignKey در ApprovalLog استفاده کرده‌اید که بسیار خوب است و به شما اجازه می‌دهد ApprovalLog را به هر مدلی (از جمله PaymentOrder) مرتبط کنید.
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True, verbose_name=_("نوع موجودیت"))
+    object_id = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("شناسه موجودیت"))
+    content_object = GenericForeignKey('content_type', 'object_id')
 
-    # -- برای بودجه
     def save(self, *args, **kwargs):
-        """
-        اعتبارسنجی قبل از ذخیره ApprovalLog
-        """
-        if self.pk is None:  # فقط برای رکوردهای جدید
-            # بررسی دسترسی کاربر
-            user_post = UserPost.objects.filter(
-                user=self.user,
-                end_date__isnull=True
-            ).first()
-
+        if self.pk is None:
+            user_post = UserPost.objects.filter(user=self.user, end_date__isnull=True).first()
             if not user_post:
                 raise ValueError(f"کاربر {self.user.username} هیچ پست فعالی ندارد")
 
-            # معافیت کاربران HQ یا سازمان core
             if getattr(self.user, 'is_hq', False) or user_post.post.organization.is_core:
                 super().save(*args, **kwargs)
                 return
 
-            # تعیین entity_type بر اساس محتوا
             if self.factor_item:
                 entity_type = 'FACTORITEM'
             elif self.factor:
@@ -1415,7 +1403,6 @@ class ApprovalLog(models.Model):
             else:
                 entity_type = 'GENERAL'
 
-            # بررسی وجود قانون دسترسی
             access_rule = AccessRule.objects.filter(
                 organization=user_post.post.organization,
                 stage=self.stage,
@@ -1427,12 +1414,11 @@ class ApprovalLog(models.Model):
             ).first()
 
             if not access_rule:
-                # اگر قانون مستقیم نداریم، بررسی کنیم آیا قانون کلی‌تری وجود دارد
                 general_rule = AccessRule.objects.filter(
                     organization=user_post.post.organization,
                     stage=self.stage,
                     action_type=self.action,
-                    entity_type__in=['FACTOR', 'FACTORITEM'],  # قوانین عمومی
+                    entity_type__in=['FACTOR', 'FACTORITEM'],
                     min_level__lte=user_post.post.level,
                     is_active=True
                 ).first()
@@ -1448,17 +1434,16 @@ class ApprovalLog(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.action} ({self.date})"
 
-
     class Meta:
         verbose_name = _("تأیید")
         verbose_name_plural = _("تأییدات👍")
-        default_permissions=()
+        default_permissions = ()
         permissions = [
-                    ('Approval_add','افزودن تأیید برای ثبت اقدامات تأیید یا رد '),
-                    ('Approval_update','ویرایش تأیید برای ثبت اقدامات تأیید یا رد'),
-                    ('Approval_delete','حــذف تأیید برای ثبت اقدامات تأیید یا رد'),
-                    ('Approval_view','نمایش تأیید برای ثبت اقدامات تأیید یا رد'),
-                ]
+            ('Approval_add', 'افزودن تأیید برای ثبت اقدامات تأیید یا رد'),
+            ('Approval_update', 'ویرایش تأیید برای ثبت اقدامات تأیید یا رد'),
+            ('Approval_delete', 'حــذف تأیید برای ثبت اقدامات تأیید یا رد'),
+            ('Approval_view', 'نمایش تأیید برای ثبت اقدامات تأیید یا رد'),
+        ]
 """مشخص کردن کاربران یا نقش‌های مجاز برای هر مرحله"""
 """
 توضیح:

@@ -115,16 +115,16 @@ dashboard_links = {
         {'name': _('گزارش لحظه‌ای از بودجه‌بندی'), 'url': 'budgetrealtimeReportView', 'icon': 'fas fa-tachometer-alt'}, # سرعت‌سنج برای لحظه‌ای
     ],
     'بودجه سازمان': [
-        {'name': _('فهرست بودجه کلان'), 'url': 'budgetperiod_list', 'permission': 'budgets.view_budgetperiod', 'icon': 'fas fa-money-check-alt'}, # چک پول
+        # {'name': _('فهرست بودجه کلان'), 'url': 'budgetperiod_list', 'permission': 'budgets.view_budgetperiod', 'icon': 'fas fa-money-check-alt'}, # چک پول
         {'name': _('داشبورد مدیریتی بودجه'), 'url': 'budgets_dashboard', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-chart-bar'}, # نمودار میله‌ای برای داشبورد
-        {'name': _('فهرست بودجه شعبات'), 'url': 'budgetallocation_list', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-building'}, # ساختمان برای شعبات
-        {'name': _('گزارش هشدارهای بودجه'), 'url': 'budget_warning_report', 'permission': 'budgets.view_budgethistory', 'icon': 'fas fa-exclamation-triangle'}, # مثلث اخطار
-        {'name': _('فهرست بودجه در مراکز هزینه (برگشت بودجه)'), 'url': 'budgetallocation_list', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-reply'}, # فلش برگشت
-        {'name': _('انتقال بودجه'), 'url': 'budget_transfer', 'permission': 'budgets.add_budgetreallocation', 'icon': 'fas fa-exchange-alt'}, # فلش تبادل
-        {'name': _('فهرست تغییر در بودجه'), 'url': 'budgettransaction_list', 'permission': 'budgets.view_budgettransaction', 'icon': 'fas fa-history'}, # ساعت برای تاریخچه
-        # {'name': _('دستور پرداخت'), 'url': 'paymentorder_list', 'permission': 'budgets.view_paymentorder', 'icon': 'fas fa-receipt'}, # رسید
-        {'name': _('فهرست دریافت‌کننده'), 'url': 'payee_list', 'permission': 'budgets.view_payee', 'icon': 'fas fa-user-friends'}, # چند نفر برای دریافت‌کننده
-        {'name': _('فهرست تعریف پویا نوع تراکنش‌ها'), 'url': 'transactiontype_list', 'permission': 'budgets.view_transactiontype', 'icon': 'fas fa-cogs'}, # چرخ‌دنده برای تنظیمات پویا
+        # {'name': _('فهرست بودجه شعبات'), 'url': 'budgetallocation_list', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-building'}, # ساختمان برای شعبات
+        # {'name': _('گزارش هشدارهای بودجه'), 'url': 'budget_warning_report', 'permission': 'budgets.view_budgethistory', 'icon': 'fas fa-exclamation-triangle'}, # مثلث اخطار
+        # {'name': _('فهرست بودجه در مراکز هزینه (برگشت بودجه)'), 'url': 'budgetallocation_list', 'permission': 'budgets.view_budgetallocation', 'icon': 'fas fa-reply'}, # فلش برگشت
+        # {'name': _('انتقال بودجه'), 'url': 'budget_transfer', 'permission': 'budgets.add_budgetreallocation', 'icon': 'fas fa-exchange-alt'}, # فلش تبادل
+        # {'name': _('فهرست تغییر در بودجه'), 'url': 'budgettransaction_list', 'permission': 'budgets.view_budgettransaction', 'icon': 'fas fa-history'}, # ساعت برای تاریخچه
+        # # {'name': _('دستور پرداخت'), 'url': 'paymentorder_list', 'permission': 'budgets.view_paymentorder', 'icon': 'fas fa-receipt'}, # رسید
+        # {'name': _('فهرست دریافت‌کننده'), 'url': 'payee_list', 'permission': 'budgets.view_payee', 'icon': 'fas fa-user-friends'}, # چند نفر برای دریافت‌کننده
+        # {'name': _('فهرست تعریف پویا نوع تراکنش‌ها'), 'url': 'transactiontype_list', 'permission': 'budgets.view_transactiontype', 'icon': 'fas fa-cogs'}, # چرخ‌دنده برای تنظیمات پویا
     ],
     'تنخواه': [
         {'name': _('فهرست تنخواه'), 'url': 'tankhah_list', 'permission': 'tankhah.view_tankhah', 'icon': 'fas fa-list-alt'}, # لیست
@@ -135,10 +135,12 @@ dashboard_links = {
     ],
     'فاکتورها': [
         {'name': _('فهرست فاکتورها'), 'url': 'factor_list', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-clipboard-list'}, # لیست کلیپ‌بورد برای فاکتورها
+        {'name': _('فهرست فاکتورها2'), 'url': 'factor_list2', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-clipboard-list'}, # لیست کلیپ‌بورد برای فاکتورها
+        {'name': _('فهرست فاکتورها 3'), 'url': 'factor_list3', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-clipboard-list'}, # لیست کلیپ‌بورد برای فاکتورها
         {'name': _('ایجاد فاکتور'), 'url': 'Nfactor_create', 'permission': 'tankhah.add_factor', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
         {'name': _(' رد/تایید فاکتور '), 'url': 'factor_status_review', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
         {'name': _('پیشرفته رد/تایید فاکتور'), 'url': 'advance_factor_status_review', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
-        # {'name': _('وضعیت فاکتورها'), 'url': 'ultimatefactordetailview', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
+        # {'name': _('وضعیت فاکتورها'), 'url': 'factor_approval_path', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
     ],
     'عنوان مرکز هزینه (پروژه)': [
         {'name': _('فهرست مرکز هزینه (پروژه)'), 'url': 'project_list', 'permission': 'core.view_project', 'icon': 'fas fa-folder-open'}, # پوشه باز برای پروژه

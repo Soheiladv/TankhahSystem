@@ -112,9 +112,14 @@ class PermissionBaseView(LoginRequiredMixin, View):
             logger.warning(f"کاربر {request.user} مجوزهای لازم را ندارد: {self.permission_codenames}")
             return self.handle_no_permission()
 
-        if self.check_organization and not self._has_organization_access(request, **kwargs):
-            logger.warning(f"کاربر {request.user} به سازمان مرتبط دسترسی ندارد")
-            return self.handle_no_permission()
+        # چک کردن سازمان برای ویوهای Detail, Update, Create...
+        if self.check_organization and not isinstance(self, ListView):
+            if not self._has_organization_access(request, **kwargs):
+                return self.handle_no_permission()
+        #
+        # if self.check_organization and not self._has_organization_access(request, **kwargs):
+        #     logger.warning(f"کاربر {request.user} به سازمان مرتبط دسترسی ندارد")
+        #     return self.handle_no_permission()
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -130,7 +135,7 @@ class PermissionBaseView(LoginRequiredMixin, View):
         logger = logging.getLogger('organization_access')
         try:
             user_orgs = set()
-            for user_post in request.user.userpost_set.filter(is_active=True, end_date__isnull=True):
+            for user_post in request.user.userpost_set.filter(is_active=True):#, end_date__isnull=True):
                 org = user_post.post.organization
                 user_orgs.add(org)
                 current_org = org
@@ -156,7 +161,7 @@ class PermissionBaseView(LoginRequiredMixin, View):
                 if hasattr(obj, 'stage') and obj.stage:
                     from core.models import PostAction
                     from django.contrib.contenttypes.models import ContentType
-                    user_posts = request.user.userpost_set.filter(is_active=True, end_date__isnull=True)
+                    user_posts = request.user.userpost_set.filter(is_active=True)#, end_date__isnull=True)
                     for user_post in user_posts:
                         if PostAction.objects.filter(
                                 post=user_post.post,
@@ -287,7 +292,34 @@ class PermissionBaseView(LoginRequiredMixin, View):
                 logger.info(f"دسترسی تأیید برای {obj} تأیید شد (min_level)")
                 return True
 
- # def _get_organization_from_object(self, obj):
+    def get_queryset(self):
+        """
+        FIX: این متد در کلاس پایه بازنویسی (override) می‌شود تا به صورت خودکار
+        تمام ListView هایی که از آن ارث‌بری می‌کنند را بر اساس دسترسی کاربر فیلتر کند.
+        """
+        # ابتدا کوئری‌ست اصلی مدل را از کلاس فرزند (مثلا FactorListView) می‌گیرد
+        qs = super().get_queryset()
+        user = self.request.user
+
+        # اگر کاربر HQ است، تمام نتایج را برمی‌گرداند
+        if user.is_hq:
+            return qs
+
+        # اگر کاربر عادی است و فیلد فیلتر سازمان تعریف شده است
+        if self.organization_filter_field:
+            user_org_ids = user.userpost_set.filter(is_active=True).values_list('post__organization_id', flat=True)
+
+            # فیلتر داینامیک بر اساس نام فیلدی که در ویو فرزند تعریف شده
+            filters = {
+                self.organization_filter_field: user_org_ids
+            }
+            return qs.filter(**filters)
+
+        # اگر فیلد فیلتر تعریف نشده، برای امنیت، هیچ نتیجه‌ای برنگردان
+        return qs.none()
+
+
+# def _get_organization_from_object(self, obj):
     #     """استخراج سازمان از شیء"""
     #     try:
     #         if hasattr(obj, 'tankhah') and obj.tankhah:

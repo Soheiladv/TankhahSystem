@@ -189,6 +189,24 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             for p in self.user_permissions.all()
         )
         return perms
+
+    @property
+    def is_hq(self):
+        """
+        این پراپرتی به صورت متمرکز و قابل اعتماد بررسی می‌کند که آیا کاربر، کاربر دفتر مرکزی است یا خیر.
+        """
+        if self.is_superuser or self.has_perm('tankhah.Factor_full_edit'):
+            return True
+
+        # این کوئری بررسی می‌کند که آیا کاربر در یکی از سازمان‌های HQ پست فعال دارد یا خیر.
+        # مطمئن شوید که فیلد شناسایی نوع سازمان در مدل شما 'org_type__fname' است.
+        return self.userpost_set.filter(
+            is_active=True,
+            post__organization__org_type__fname='HQ'
+        ).exists()
+
+
+
 User = get_user_model()
 class CustomProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile",

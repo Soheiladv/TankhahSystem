@@ -1,10 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+{% load static i18n humanize jformat %}
 
-</body>
-</html>
+<tr class="factor-row">
+    <td>
+        <strong>{{ factor.number }}</strong>
+        <br>
+        <small class="text-muted">{{ factor.category.name|default:"-" }}</small>
+    </td>
+    <td>{{ factor.date|jformat:"%Y/%m/%d" }}</td>
+    <td>{{ factor.amount|intcomma }}</td>
+    <td>
+        <span class="status-badge {{ status_class|default:'status-draft' }}">{{ factor.get_status_display }}</span>
+    </td>
+    <td>
+        {% if factor.approvers_list %}
+            <div class="d-flex align-items-center">
+            {% for log in factor.approvers_list %}
+                <span class="approver-avatar" data-bs-toggle="tooltip" 
+                      title="{{ log.user.get_full_name|default:log.user.username }} در {{ log.date|jformat:'%y/%m/%d - %H:%M' }}">
+                    {{ log.user.get_full_name|slice:":1"|default:log.user.username|slice:":1" }}
+                </span>
+            {% endfor %}
+            </div>
+        {% else %}
+            <span class="text-muted small">--</span>
+        {% endif %}
+    </td>
+    <td class="text-center">
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="actions-{{ factor.pk }}" data-bs-toggle="dropdown" aria-expanded="false">
+                {% trans "عملیات" %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actions-{{ factor.pk }}">
+                <li><a class="dropdown-item" href="{% url 'factor_detail' factor.pk %}"><i class="fas fa-eye me-2 text-info"></i>{% trans "مشاهده جزئیات" %}</a></li>
+                {% if factor.can_approve %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-success" href="#"><i class="fas fa-check-circle me-2"></i>{% trans "تایید فاکتور" %}</a></li>
+                    <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-times-circle me-2"></i>{% trans "رد فاکتور" %}</a></li>
+                {% endif %}
+                {% if not factor.is_locked %}
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-edit me-2 text-primary"></i>{% trans "ویرایش" %}</a></li>
+                    <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash-alt me-2"></i>{% trans "حذف" %}</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </td>
+</tr>
