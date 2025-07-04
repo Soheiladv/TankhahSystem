@@ -1,0 +1,572 @@
+{% extends "base.html" %}
+{% load i18n humanize static rcms_custom_filters jformat %}
+
+{% block title %}{% trans "مسیر تأیید فاکتور" %}{% endblock %}
+
+{% block extra_css %}
+
+    <style>
+    :root {
+        --approved-color: #2ecc71;
+        --rejected-color: #e74c3c;
+        --pending-color: #f39c12;
+        --current-color: #3498db;
+        --final-color: #9b59b6;
+        --payment-color: #1abc9c;
+    }
+    
+    .approval-path-container {
+        position: relative;
+        padding: 20px 0;
+    }
+    
+    .path-line {
+        position: absolute;
+        left: 50px;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(to bottom, #ecf0f1, #bdc3c7);
+        z-index: 1;
+    }
+    
+    .stage-card {
+        position: relative;
+        margin-bottom: 30px;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        overflow: hidden;
+        z-index: 2;
+        transition: all 0.3s ease;
+        background-color: #fff;
+    }
+    
+    .stage-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    }
+    
+    .stage-header {
+        padding: 20px;
+        border-left: 5px solid;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .stage-header.approved {
+        border-left-color: var(--approved-color);
+        background-color: rgba(46, 204, 113, 0.05);
+    }
+    
+    .stage-header.rejected {
+        border-left-color: var(--rejected-color);
+        background-color: rgba(231, 76, 60, 0.05);
+    }
+    
+    .stage-header.pending {
+        border-left-color: var(--pending-color);
+        background-color: rgba(243, 156, 18, 0.05);
+    }
+    
+    .stage-header.current {
+        border-left-color: var(--current-color);
+        background-color: rgba(52, 152, 219, 0.05);
+    }
+    
+    .stage-header.final {
+        border-left-color: var(--final-color);
+    }
+    
+    .stage-header.payment {
+        border-left-color: var(--payment-color);
+    }
+    
+    .stage-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .stage-status {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .status-approved {
+        background-color: rgba(46, 204, 113, 0.1);
+        color: var(--approved-color);
+    }
+    
+    .status-rejected {
+        background-color: rgba(231, 76, 60, 0.1);
+        color: var(--rejected-color);
+    }
+    
+    .status-pending {
+        background-color: rgba(243, 156, 18, 0.1);
+        color: var(--pending-color);
+    }
+    
+    .stage-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+    
+    .stage-icon.approved {
+        background-color: rgba(46, 204, 113, 0.1);
+        color: var(--approved-color);
+    }
+    
+    .stage-icon.rejected {
+        background-color: rgba(231, 76, 60, 0.1);
+        color: var(--rejected-color);
+    }
+    
+    .stage-icon.pending {
+        background-color: rgba(243, 156, 18, 0.1);
+        color: var(--pending-color);
+    }
+    
+    .stage-icon.current {
+        background-color: rgba(52, 152, 219, 0.1);
+        color: var(--current-color);
+    }
+    
+    .stage-icon.final {
+        background-color: rgba(155, 89, 182, 0.1);
+        color: var(--final-color);
+    }
+    
+    .stage-icon.payment {
+        background-color: rgba(26, 188, 156, 0.1);
+        color: var(--payment-color);
+    }
+    
+    .stage-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+    
+    .badge-current {
+        background-color: rgba(52, 152, 219, 0.1);
+        color: var(--current-color);
+    }
+    
+    .badge-final {
+        background-color: rgba(155, 89, 182, 0.1);
+        color: var(--final-color);
+    }
+    
+    .badge-payment {
+        background-color: rgba(26, 188, 156, 0.1);
+        color: var(--payment-color);
+    }
+    
+    .log-item {
+        border-left: 3px solid;
+        padding: 15px;
+        margin-bottom: 15px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .log-item.approved {
+        border-left-color: var(--approved-color);
+    }
+    
+    .log-item.rejected {
+        border-left-color: var(--rejected-color);
+    }
+    
+    .log-user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #fff;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    }
+    
+    .log-action {
+        font-weight: 600;
+        margin-left: 10px;
+    }
+    
+    .log-action.approved {
+        color: var(--approved-color);
+    }
+    
+    .log-action.rejected {
+        color: var(--rejected-color);
+    }
+    
+    .log-timestamp {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+    }
+    
+    .log-comment {
+        background-color: #fff;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        border: 1px solid #eee;
+    }
+    
+    .approver-card {
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background-color: #f8f9fa;
+        border-left: 3px solid var(--pending-color);
+    }
+    
+    .approver-post {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .approver-org {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+    }
+    
+    .user-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .factor-info-card {
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+        background-color: #fff;
+    }
+    
+    .factor-info-header {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        padding: 20px;
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .factor-info-body {
+        padding: 20px;
+    }
+    
+    .info-row {
+        margin-bottom: 10px;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #7f8c8d;
+    }
+    
+    .info-value {
+        font-weight: 500;
+    }
+    
+    .action-buttons .btn {
+        margin-right: 10px;
+        margin-bottom: 10px;
+    }
+    
+    @media (max-width: 768px) {
+        .path-line {
+            left: 25px;
+        }
+        
+        .stage-icon {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-4">
+            <!-- کارت اطلاعات فاکتور -->
+            <div class="factor-info-card">
+                <div class="factor-info-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-file-invoice me-2"></i>
+                        {% trans "اطلاعات فاکتور" %}
+                    </h4>
+                </div>
+                <div class="factor-info-body">
+                    <div class="info-row">
+                        <span class="info-label">{% trans "شماره فاکتور:" %}</span>
+                        <span class="info-value">{{ factor.number }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">{% trans "تاریخ:" %}</span>
+                        <span class="info-value">{{ factor.date|date:"Y/m/d" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">{% trans "مبلغ:" %}</span>
+                        <span class="info-value">{{ factor.amount|intcomma }} ریال</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">{% trans "سازمان:" %}</span>
+                        <span class="info-value">{{ factor_organization }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">{% trans "پروژه:" %}</span>
+                        <span class="info-value">{{ factor_project }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">{% trans "وضعیت:" %}</span>
+                        <span class="info-value badge bg-{{ factor.status|get_status_color }}">
+                            {{ factor.get_status_display }}
+                        </span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5 class="mb-3">{% trans "عملیات" %}</h5>
+                    <div class="action-buttons">
+                        <a href="{% url 'factor_detail' factor.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i> {% trans "مشاهده جزئیات" %}
+                        </a>
+                        {% if not factor.is_locked and perms.tankhah.change_factor %}
+                        <a href="{% url 'factor_edit' factor.pk %}" class="btn btn-outline-success">
+                            <i class="fas fa-edit me-1"></i> {% trans "ویرایش" %}
+                        </a>
+                        {% endif %}
+                        {% if factor.can_approve and perms.tankhah.approve_factor %}
+                        <a href="{% url 'factor_approve' factor.pk %}" class="btn btn-outline-warning">
+                            <i class="fas fa-check-circle me-1"></i> {% trans "تأیید" %}
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0">
+                    <h3 class="mb-0">
+                        <i class="fas fa-project-diagram me-2 text-primary"></i>
+                        {% trans "مسیر تأیید فاکتور" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if error_message %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        {{ error_message }}
+                    </div>
+                    {% else %}
+                    <div class="approval-path-container">
+                        <div class="path-line"></div>
+                        
+                        {% for stage in approval_path %}
+                        <div class="stage-card">
+                            <div class="stage-header {{ stage.status }} {% if stage.is_current %}current{% endif %} {% if stage.is_final %}final{% endif %} {% if stage.triggers_payment %}payment{% endif %}">
+                                <div class="d-flex align-items-center">
+                                    <div class="stage-icon {{ stage.status }} {% if stage.is_current %}current{% endif %} {% if stage.is_final %}final{% endif %} {% if stage.triggers_payment %}payment{% endif %}">
+                                        {% if stage.status == 'approved' %}
+                                        <i class="fas fa-check-circle fa-lg"></i>
+                                        {% elif stage.status == 'rejected' %}
+                                        <i class="fas fa-times-circle fa-lg"></i>
+                                        {% else %}
+                                        <i class="fas fa-clock fa-lg"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <div class="stage-title">
+                                            {{ stage.stage.name }}
+                                            {% if stage.is_current %}
+                                            <span class="stage-badge badge-current">{% trans "فعلی" %}</span>
+                                            {% endif %}
+                                            {% if stage.is_final %}
+                                            <span class="stage-badge badge-final">{% trans "نهایی" %}</span>
+                                            {% endif %}
+                                            {% if stage.triggers_payment %}
+                                            <span class="stage-badge badge-payment">{% trans "پرداخت" %}</span>
+                                            {% endif %}
+                                        </div>
+                                        <span class="stage-status status-{{ stage.status }}">
+                                            {% if stage.status == 'approved' %}
+                                            {% trans "تأیید شده" %}
+                                            {% elif stage.status == 'rejected' %}
+                                            {% trans "رد شده" %}
+                                            {% else %}
+                                            {% trans "در انتظار تأیید" %}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="text-muted small">
+                                    {% trans "ترتیب:" %} {{ stage.stage.order }}
+                                </div>
+                            </div>
+                            
+                            <div class="stage-body p-4">
+                                {% if stage.logs %}
+                                <h5 class="mb-3">
+                                    <i class="fas fa-history me-2"></i>
+                                    {% trans "تاریخچه اقدامات" %}
+                                </h5>
+                                
+                                {% for log in stage.logs %}
+                                <div class="log-item {{ log.action|lower }}">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ log.user.avatar_url|default:'/static/images/default-avatar.png' }}" 
+                                                 class="log-user-avatar me-2"
+                                                 alt="{{ log.user.full_name }}"
+                                                 title="{{ log.user.full_name }} ({{ log.user.username }})">
+                                            <div>
+                                                <div class="d-flex align-items-center">
+                                                    <strong>{{ log.user.full_name }}</strong>
+                                                    <span class="log-action {{ log.action|lower }}">
+                                                        {{ log.action }}
+                                                    </span>
+                                                </div>
+                                                <div class="log-timestamp">
+                                                    {{ log.timestamp|date:"Y/m/d H:i" }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted">
+                                                {{ log.post.name }}
+                                            </small>
+                                            <div class="small">
+                                                {{ log.post.organization }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if log.comment %}
+                                    <div class="log-comment">
+                                        <strong>{% trans "توضیحات:" %}</strong>
+                                        <p class="mb-0">{{ log.comment }}</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+                                
+                                {% if stage.status == 'pending' and stage.potential_approvers %}
+                                <h5 class="mb-3 mt-4">
+                                    <i class="fas fa-user-check me-2"></i>
+                                    {% trans "تأییدکنندگان بالقوه" %}
+                                </h5>
+                                
+                                {% for approver in stage.potential_approvers %}
+                                <div class="approver-card">
+                                    <div class="approver-post">
+                                        <i class="fas fa-user-tag me-2"></i>
+                                        {{ approver.post.name }}
+                                        <small class="approver-org">
+                                            ({{ approver.post.organization }})
+                                        </small>
+                                    </div>
+                                    
+                                    <div class="d-flex flex-wrap mt-2">
+                                        {% for user in approver.users %}
+                                        <div class="d-flex align-items-center me-3 mb-2">
+                                            <img src="{{ user.avatar_url|default:'/static/images/default-avatar.png' }}" 
+                                                 class="user-avatar me-2"
+                                                 alt="{{ user.full_name }}"
+                                                 title="{{ user.full_name }} ({{ user.username }})">
+                                            <div>
+                                                <div>{{ user.full_name }}</div>
+                                                <small class="text-muted">{{ user.username }}</small>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-bolt me-1"></i>
+                                            {% trans "مجوزهای اقدام:" %}
+                                            {% for action in approver.allowed_actions %}
+                                            <span class="badge bg-light text-dark me-1">
+                                                {{ action }}
+                                            </span>
+                                            {% endfor %}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // فعال کردن tooltipها
+    $('[title]').tooltip();
+    
+    // مدیریت کلیک روی دکمه تأیید
+    $('.approve-btn').click(function(e) {
+        e.preventDefault();
+        const approveUrl = $(this).attr('href');
+        
+        Swal.fire({
+            title: '{% trans "تأیید فاکتور" %}',
+            text: '{% trans "آیا از تأیید این فاکتور اطمینان دارید؟" %}',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '{% trans "بله، تأیید کن" %}',
+            cancelButtonText: '{% trans "انصراف" %}',
+            customClass: {
+                confirmButton: 'btn btn-success',
+                cancelButton: 'btn btn-danger'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = approveUrl;
+            }
+        });
+    });
+    
+    // اسکرول به مرحله فعلی
+    const currentStage = $('.stage-header.current');
+    if (currentStage.length) {
+        $('html, body').animate({
+            scrollTop: currentStage.offset().top - 100
+        }, 1000);
+    }
+});
+</script>
+{% endblock %}
