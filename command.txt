@@ -1,5 +1,9 @@
 D@d123
 
+######### Compile Output Project Create  ########################
+python -m compileall -b .
+#################################
+
 from tankhah.models import Tankhah, Factor, ApprovalLog
 
 # پاک کردن تمام فاکتورها

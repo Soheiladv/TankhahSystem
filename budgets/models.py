@@ -25,7 +25,6 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 from accounts.models import CustomUser
 
-
 def get_current_date():
     return timezone.now().date()
 
@@ -562,10 +561,7 @@ class BudgetAllocation(models.Model):
     subproject = models.ForeignKey('core.SubProject', on_delete=models.CASCADE, null=True, blank=True, related_name='budget_allocations', verbose_name=_("زیرپروژه"))
     allocated_amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ تخصیص"))
     allocation_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ تخصیص"))
-    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, related_name='budget_allocations_created', verbose_name=_("ایجادکننده"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
-    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
-    is_stopped = models.BooleanField(default=False, verbose_name=_("متوقف‌شده"))
     ALLOCATION_TYPES = (('amount', _("مبلغ ثابت")), ('percent', _("درصد")), ('returned', _("برگشتی")),)
     allocation_type = models.CharField(max_length=20, choices=ALLOCATION_TYPES, default='amount', verbose_name=_("نوع تخصیص"))
     locked_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده"), help_text=_("درصد تخصیص که قفل می‌شود (0-100)"))
@@ -573,8 +569,13 @@ class BudgetAllocation(models.Model):
     warning_action = models.CharField(max_length=50, choices=[('NOTIFY', _("فقط اعلان")), ('LOCK', _("قفل کردن")), ('RESTRICT', _("محدود کردن ثبت"))], default='NOTIFY', verbose_name=_("اقدام هشدار"), help_text=_("رفتار سیستم هنگام رسیدن به آستانه هشدار"))
     allocation_number = models.IntegerField(default=1, verbose_name=_("شماره تخصیص"))
     returned_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("مجموع بودجه برگشتی"))
+
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
     is_locked = models.BooleanField(default=False, verbose_name=_("قفل‌شده"))
-    created_at = models.DateTimeField(_('تاریخ ایجاد'), auto_now_add=True)
+    is_stopped = models.BooleanField(default=False, verbose_name=_("متوقف‌شده"))
+
+    created_at = models.DateTimeField(_( 'تاریخ ایجاد ' ), auto_now_add=True,help_text=_('تاریخ ایجاد بودجه . خودکار سیستم '))
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, related_name='budget_allocations_created', verbose_name=_("ایجادکننده"))
 
     class Meta:
         verbose_name = _("تخصیص بودجه")

@@ -23,12 +23,12 @@ from tankhah.models import Tankhah, Factor
 from budgets.budget_calculations import get_tankhah_used_budget
 
 # کتابخانه‌های PDF و Excel
-try:
-    from weasyprint import HTML, CSS
-
-    WEASYPRINT_AVAILABLE = True
-except ImportError:
-    WEASYPRINT_AVAILABLE = False
+# try:
+#     from weasyprint import HTML, CSS
+#
+#     WEASYPRINT_AVAILABLE = True
+# except ImportError:
+#     WEASYPRINT_AVAILABLE = False
 try:
     from openpyxl import Workbook
     from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
