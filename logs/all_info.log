@@ -3941,3 +3941,21 @@ INFO 2025-07-03 23:01:28 models create_code_changes 7 code changes recorded for 
 INFO 2025-07-03 23:01:28 models update_version_file Updated version.py for accounts
 INFO 2025-07-03 23:01:28 update_versions handle Versions updated: {'core': '2.6.0.341', 'version_tracker': '2.0.0.714', 'accounts': '1.3.0.91'}
 INFO 2025-07-03 23:01:28 update_versions handle Final version updated successfully!
+INFO 2025-07-05 19:26:37 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-07-05 19:26:37 middleware __call__ درخواست به: /, کاربر: admin
+INFO 2025-07-05 19:26:38 middleware __call__ پاسخ برای / - کد وضعیت: 200
+INFO 2025-07-05 19:26:55 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-07-05 19:26:55 middleware __call__ درخواست به: /accounts/admin_dashboard/, کاربر: admin
+INFO 2025-07-05 19:26:55 middleware __call__ پاسخ برای /accounts/admin_dashboard/ - کد وضعیت: 200
+INFO 2025-07-05 19:26:58 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-07-05 19:26:58 middleware __call__ درخواست به: /accounts/new_databasebackup/, کاربر: admin
+WARNING 2025-07-05 19:27:00 DashboardReset get Could not count records for TankhahAction: (1146, "Table 'tankhasystem.tankhah_tankhahaction' doesn't exist")
+INFO 2025-07-05 19:27:00 middleware __call__ پاسخ برای /accounts/new_databasebackup/ - کد وضعیت: 200
+INFO 2025-07-05 19:37:18 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-07-05 19:37:18 middleware __call__ درخواست به: /accounts/new_databasebackup/, کاربر: admin
+WARNING 2025-07-05 19:37:20 DashboardReset get Could not count records for TankhahAction: (1146, "Table 'tankhasystem.tankhah_tankhahaction' doesn't exist")
+WARNING 2025-07-05 19:37:21 DashboardReset get_existing_backups Backup directory not found: D:\Design & Source Code\Source Coding\Tanbakhsystem\backups
+INFO 2025-07-05 19:37:21 middleware __call__ پاسخ برای /accounts/new_databasebackup/ - کد وضعیت: 200
+INFO 2025-07-05 19:37:25 models remove_inactive_users هیچ کاربر غیرفعالی برای حذف یافت نشد.
+INFO 2025-07-05 19:37:25 middleware __call__ درخواست به: /, کاربر: admin
+INFO 2025-07-05 19:37:25 middleware __call__ پاسخ برای / - کد وضعیت: 200
