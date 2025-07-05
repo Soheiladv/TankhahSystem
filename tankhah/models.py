@@ -823,7 +823,7 @@ class TankhActionType(models.Model):
         ]
     def __str__(self):
         return self.action_type
-class TankhahAction(models.Model):
+class TankhahAction(models.Model): #صدور دستور پرداخت
     # ACTION_TYPES = (
     #     ('ISSUE_PAYMENT_ORDER', _('صدور دستور پرداخت')),
     #     ('FINALIZE', _('اتمام')),
@@ -832,7 +832,7 @@ class TankhahAction(models.Model):
     # )
 
     tankhah = models.ForeignKey(Tankhah, on_delete=models.CASCADE, related_name='actions', verbose_name=_("تنخواه"))
-    action_type = models.CharField(max_length=50, choices=TankhActionType, verbose_name=_("نوع اقدام"))
+    # action_type = models.CharField(max_length=50, choices=TankhActionType, verbose_name=_("نوع اقدام"))
     amount = models.DecimalField(max_digits=25, decimal_places=2, null=True, blank=True, verbose_name=_("مبلغ (برای پرداخت)"))
     stage = models.ForeignKey( WorkflowStage , on_delete=models.PROTECT, verbose_name=_("مرحله"))
     post = models.ForeignKey(  Post , on_delete=models.SET_NULL, null=True, verbose_name=_("پست انجام‌دهنده"))
@@ -840,7 +840,6 @@ class TankhahAction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
     reference_number = models.CharField(max_length=50, blank=True, verbose_name=_("شماره مرجع"))
-
     action_type = models.ForeignKey('budgets.TransactionType' , on_delete=models.SET_NULL, null=True,verbose_name=_("نوع اقدام"))
     # جایگزینی ACTION_TYPES با TransactionType
 
@@ -1067,6 +1066,96 @@ class Factor(models.Model):
             ('factor_unlock', _('باز کردن فاکتور قفل‌شده')),
 
         ]
+
+    def save(self, *args, **kwargs):
+        """
+               ذخیره فاکتور با مدیریت تراکنش‌ها، اعلان‌ها و تاریخچه تغییرات.
+               تمام اعتبارسنجی‌های مربوط به بودجه و وضعیت‌ها در FactorForm انجام شده است.
+       """
+        from budgets.models import BudgetTransaction
+        # from budgets.budget_calculations import create_budget_transaction
+        from core.models import WorkflowStage, PostAction
+        import logging
+        logger = logging.getLogger(__name__)
+
+        current_user = kwargs.pop('current_user', None)
+        is_new = self._state.adding
+
+        with transaction.atomic():
+            if is_new and not self.number:
+                self.number = self.generate_number()
+                logger.debug(f"شماره فاکتور جدید تولید شد: {self.number}")
+
+            self.full_clean()
+            original = None
+            if self.pk:
+                original = Factor.objects.get(pk=self.pk)
+
+            # بررسی بودجه و قفل‌ها
+            if self.tankhah and self.tankhah.project_budget_allocation:
+                budget_allocation = self.tankhah.project_budget_allocation
+                budget_period = budget_allocation.budget_period
+                if self.status != 'PAID' and (budget_allocation.is_locked or budget_period.is_locked):
+                    raise ValidationError(_("نمی‌توان فاکتور جدید ثبت کرد، تخصیص یا دوره قفل شده است."))
+
+            super().save(*args, **kwargs)
+
+            # صدور دستور پرداخت برای فاکتورهای PAID
+            if self.status == 'PAID' and (is_new or (original and original.status != 'PAID')):
+                logger.info(f"Factor {self.number} marked as PAID. Creating CONSUMPTION transaction and payment order.")
+                create_budget_transaction(
+                    allocation=self.tankhah.project_budget_allocation,
+                    transaction_type='CONSUMPTION',
+                    amount=self.amount,
+                    related_obj=self,
+                    created_by=current_user or self.created_by,
+                    description=f"مصرف بودجه توسط فاکتور پرداخت شده {self.number}",
+                    transaction_id=f"TX-FAC-{self.number}"
+                )
+                self.is_locked = True
+
+                # بررسی مرحله فعلی و صدور دستور پرداخت
+                current_stage = self.tankhah.current_stage
+                if current_stage and current_stage.triggers_payment_order:
+                    user_post = current_user.userpost_set.filter(is_active=True).first() if current_user else None
+                    if user_post and PostAction.objects.filter(
+                            post=user_post.post,
+                            stage=current_stage,
+                            action_type='ISSUE_PAYMENT_ORDER',
+                            entity_type='FACTOR',
+                            is_active=True
+                    ).exists():
+                        TankhahAction.objects.create(
+                            tankhah=self.tankhah,
+                            action_type='ISSUE_PAYMENT_ORDER',
+                            amount=self.amount,
+                            stage=current_stage,
+                            post=user_post.post,
+                            user=current_user,
+                            description=f"دستور پرداخت برای فاکتور {self.number}",
+                            reference_number=f"PAY-FAC-{self.number}"
+                        )
+                        logger.info(f"Payment order issued for Factor {self.number} in Tankhah {self.tankhah.number}")
+
+            # ثبت ApprovalLog برای تغییر وضعیت
+            if original and self.status != original.status and current_user:
+                user_post = current_user.userpost_set.filter(is_active=True).first()
+                if user_post:
+                    action = 'APPROVE' if self.status in ['APPROVED', 'PAID'] else 'REJECT'
+                    ApprovalLog.objects.create(
+                        factor=self,
+                        action=action,
+                        stage=self.tankhah.current_stage,
+                        user=current_user,
+                        post=user_post.post,
+                        content_type=ContentType.objects.get_for_model(self),
+                        object_id=self.id,
+                        comment=f"تغییر وضعیت فاکتور به {self.get_status_display()} توسط {current_user.get_full_name()}",
+                        changed_field='status'
+                    )
+
+            super().save(update_fields=['is_locked'])
+
     def save(self, *args, **kwargs):
         """
         ذخیره فاکتور با مدیریت تراکنش‌ها، اعلان‌ها و تاریخچه تغییرات.
