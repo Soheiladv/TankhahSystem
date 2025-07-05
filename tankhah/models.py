@@ -809,7 +809,6 @@ class Tankhah(models.Model):
             logger.info(f"Processed {processed_count} approved factors for tankhah {self.number}")
             return processed_count
 
-
 class TankhActionType(models.Model):
     action_type = models.CharField(max_length=25, verbose_name=_('انواع  اقدام'))
     class Meta:

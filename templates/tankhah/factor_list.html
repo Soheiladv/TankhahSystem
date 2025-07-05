@@ -463,7 +463,7 @@
                                                                                             <td>
                                                                                                 <span class="approver-badge" data-bs-toggle="tooltip"
                                                                                                       title="{{ factor.approvers_display }}">
-                                                                                                    {{ factor.last_approver.get_full_name|default:factor.last_approver.username|default:factor.approvers_display }}
+                                                                                                    {{ factor.last_approver.get_full_name|default:factor.last_approver |default:factor.approvers_display }}
                                                                                                 </span>
                                                                                             </td>
                                                                                             <td>

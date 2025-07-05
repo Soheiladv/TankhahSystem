@@ -231,13 +231,42 @@ class FactorApprovalPathView(PermissionBaseView, DetailView):
                     logger.debug(f"پست {post.name}: {users_in_post.count()} کاربر فعال یافت شد.")
 
                     if users_in_post.exists():
+                        stage_logs = [
+                            {
+                                'user': {
+                                    'full_name': log.user.get_full_name() or log.user.username if log.user else _(
+                                        'کاربر نامشخص'),
+                                    'username': log.user.username if log.user else _('نام کاربری نامشخص')
+                                },
+                                'post': {
+                                    'name': log.post.name if log.post else _('پست نامشخص'),
+                                    'organization': log.post.organization.name if log.post and log.post.organization else _(
+                                        'سازمان نامشخص'),
+                                    'branch': log.post.get_branch_display() if log.post and log.post.branch else _(
+                                        'بدون شاخه'),
+                                    'level': log.post.level if log.post else 0,
+                                    'order': log.post.level if log.post else 0,  # اصلاح شده
+                                    'max_change_level': log.post.max_change_level if log.post else 0,
+                                    'is_payment_signer': log.post.is_payment_order_signer if log.post else False,
+                                    'description': log.post.description or _('بدون توضیحات') if log.post else _(
+                                        'بدون توضیحات')
+                                },
+                                'action': log.get_action_display() or _('اقدام نامشخص'),
+                                'timestamp': log.timestamp,
+                                'comment': log.comment or _('بدون توضیحات'),
+                                'seen_by_higher': log.seen_by_higher,
+                                'seen_at': log.seen_at
+                            } for log in approval_logs if log.stage_id == stage.id
+                        ]
+
+                        # در حلقه potential_approvers:
                         stage_info['potential_approvers'].append({
                             'post': {
                                 'name': post.name,
                                 'organization': post.organization.name if post.organization else _('سازمان نامشخص'),
                                 'branch': post.get_branch_display() if post.branch else _('بدون شاخه'),
                                 'level': post.level,
-                                'order': post.order,
+                                'order': post.level,  # اصلاح شده
                                 'max_change_level': post.max_change_level,
                                 'is_payment_signer': post.is_payment_order_signer,
                                 'description': post.description or _('بدون توضیحات')
@@ -248,6 +277,24 @@ class FactorApprovalPathView(PermissionBaseView, DetailView):
                             } for up in users_in_post],
                             'allowed_actions': access_rules.values_list('action_type', flat=True)
                         })
+
+                        # stage_info['potential_approvers'].append({
+                        #     'post': {
+                        #         'name': post.name,
+                        #         'organization': post.organization.name if post.organization else _('سازمان نامشخص'),
+                        #         'branch': post.get_branch_display() if post.branch else _('بدون شاخه'),
+                        #         'level': post.level,
+                        #         # 'order': post.order,
+                        #         'max_change_level': post.max_change_level,
+                        #         'is_payment_signer': post.is_payment_order_signer,
+                        #         'description': post.description or _('بدون توضیحات')
+                        #     },
+                        #     'users': [{
+                        #         'full_name': up.user.get_full_name() or up.user.username,
+                        #         'username': up.user.username
+                        #     } for up in users_in_post],
+                        #     'allowed_actions': access_rules.values_list('action_type', flat=True)
+                        # })
 
             approval_path.append(stage_info)
             if stage_info['status'] == 'rejected':
