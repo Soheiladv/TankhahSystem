@@ -13,11 +13,11 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <h4 class="mb-0">{% trans "مدیریت تخصیص بودجه" %}</h4>
                             {% if perms.budgets.add_budgetallocation %}
-                                <a href="{% url 'budgetallocation_create' %}" class="btn add-row">
+                                <a href="{% url 'budgetallocation_create'  %}" class="btn add-row">
                                     <i class="fas fa-plus me-2"></i>{% trans "تخصیص جدید" %}
                                 </a>
-                                 <a href="{% url 'budgets_dashboard' %}" class="btn btn-close-white">
-                                <i class="fas fa-backward me-2"></i>{% trans "بازگشت" %}
+{#                                 <a href="{% url 'budgets_dashboard' %}" class="btn btn-close-white">#}
+{#                                <i class="fas fa-backward me-2"></i>{% trans "بازگشت" %}#}
                             </a>
                             {% endif %}
                          <div class="no-print">

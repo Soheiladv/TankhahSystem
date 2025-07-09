@@ -379,29 +379,46 @@ class PostHistoryForm(forms.ModelForm):
             'changed_by': forms.Select(attrs={'class': 'form-control'}),
         }
 
+# forms.py
+
+from django import forms
+from django.utils.translation import gettext_lazy as _
+from .models import WorkflowStage
+
 class WorkflowStageForm(forms.ModelForm):
-    # is_active = forms.BooleanField(
-    #     label=_("فعال"),
-    #     widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-    #     required=False,
-    #     initial=True
-    # )
-    # is_final_stage = forms.BooleanField(
-    #     label=_("مرحله نهایی تایید تنخواه"),
-    #     widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-    #     required=False,
-    #     initial=True
-    # )
     class Meta:
         model = WorkflowStage
-        fields = ['name', 'order', 'description','is_active','is_final_stage']
+        # تمام فیلدهایی که کاربر باید بتواند ویرایش کند را اضافه می‌کنیم
+        fields = [
+            'name',
+            'order',
+            'description',
+            'is_active',
+            'is_final_stage',
+            'auto_advance',
+            'triggers_payment_order'
+        ]
+        # ویجت‌ها برای استایل‌دهی با Bootstrap
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام مرحله'}),
-            'order': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'ترتیب'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'توضیحات'}),
-            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input',  'placeholder': 'فعال'}),
-            'is_final_stage': forms.CheckboxInput(attrs={'class': 'form-check-input', 'rows': 3, 'placeholder': 'مرحله نهایی تایید تنخواه'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'order': forms.NumberInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_final_stage': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'auto_advance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'triggers_payment_order': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+        # می‌توانید لیبل‌ها را هم اینجا بازنویسی کنید، هرچند از verbose_name مدل خوانده می‌شوند
+        labels = {
+            'name': _('نام مرحله'),
+            'order': _('ترتیب نمایش'),
+            'description': _('توضیحات'),
+            'is_active': _('فعال باشد'),
+            'is_final_stage': _('مرحله نهایی تایید تنخواه است'),
+            'auto_advance': _('پیش‌رفت خودکار به مرحله بعد'),
+            'triggers_payment_order': _('باعث ایجاد دستور پرداخت خودکار شود'),
+        }
+
 
 class OrganizationTypeForm(forms.ModelForm):
     class Meta:

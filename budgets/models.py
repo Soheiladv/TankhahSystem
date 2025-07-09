@@ -383,10 +383,6 @@ class BudgetPeriod(models.Model):
     total_amount = models.DecimalField(max_digits=25, decimal_places=0, verbose_name=_("مبلغ کل"))
     total_allocated = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("مجموع تخصیص‌ها"))
     returned_amount = models.DecimalField(max_digits=25, decimal_places=2, default=0,verbose_name=_("مجموع بودجه برگشتی"))
-    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
-    is_archived = models.BooleanField(default=False, verbose_name=_("بایگانی شده"))
-    is_completed = models.BooleanField(default=False, verbose_name=_("تمام‌شده"))
-    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,related_name='budget_periods_created', verbose_name=_("ایجادکننده"))
     locked_percentage = models.IntegerField(default=0, verbose_name=_("درصد قفل‌شده"),help_text=_("درصد بودجه که قفل می‌شود (0-100)"))
     warning_threshold = models.DecimalField(max_digits=5, decimal_places=2, default=10, verbose_name=_("آستانه اخطار"),help_text=_("درصدی که هشدار نمایش داده می‌شود (0-100)"))
     warning_action = models.CharField(max_length=50,choices=[('NOTIFY', _("فقط اعلان")), ('LOCK', _("قفل کردن")),('RESTRICT', _("محدود کردن ثبت"))],default='NOTIFY',verbose_name=_("اقدام هشدار") ,
@@ -394,10 +390,15 @@ class BudgetPeriod(models.Model):
     allocation_phase = models.CharField(max_length=50, blank=True, verbose_name=_("فاز تخصیص"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
 
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,related_name='budget_periods_created', verbose_name=_("ایجادکننده"))
+
+    is_active =    models.BooleanField(default=True, verbose_name=_("فعال"))
+    is_archived =  models.BooleanField(default=False, verbose_name=_("بایگانی شده"))
+    is_completed = models.BooleanField(default=False, verbose_name=_("تمام‌شده"))
+    # is_locked =    models.BooleanField(default=False, verbose_name=_("قفل شده"))  # فیلد جدید
     lock_condition = models.CharField(max_length=50,choices=[('AFTER_DATE', _("بعد از تاریخ پایان")), ('MANUAL', _("دستی")),
                                                ('ZERO_REMAINING', _("باقی‌مانده صفر")), ], default='AFTER_DATE',verbose_name=_("شرط قفل"))
 
-    # is_locked = models.BooleanField(default=False, verbose_name=_("قفل‌شده"))  # فیلد جدید
 
     @property
     def is_locked(self):
@@ -493,14 +494,29 @@ class BudgetPeriod(models.Model):
         try:
             remaining = self.get_remaining_amount()
             locked = self.get_locked_amount()
-            if remaining <= locked:
-                self.is_locked = True
+            is_locked, lock_message = self.is_locked
+            # به‌روزرسانی is_active و is_completed بر اساس شرایط قفل
+            if is_locked:
                 self.is_active = False
+                if self.lock_condition == 'ZERO_REMAINING' and remaining <= 0:
+                    self.is_completed = True
             else:
-                self.is_locked = False
                 self.is_active = True
-            BudgetPeriod.objects.filter(pk=self.pk).update(is_locked=self.is_locked, is_active=self.is_active)
-            logger.debug(f"Updated lock status for BudgetPeriod {self.pk}: is_locked={self.is_locked}, is_active={self.is_active}")
+                self.is_completed = False
+
+            # if remaining <= locked:
+            #     self.is_locked = True
+            #     self.is_active = False
+            # else:
+            #     self.is_locked = False
+            #     self.is_active = True
+            # BudgetPeriod.objects.filter(pk=self.pk).update(is_locked=self.is_locked, is_active=self.is_active)
+            BudgetPeriod.objects.filter(pk=self.pk).update(is_active=self.is_active, is_completed=self.is_completed)
+            logger.debug(
+                f"Updated lock status for BudgetPeriod {self.pk}: is_active={self.is_active}, "
+                f"is_completed={self.is_completed}")
+            # logger.debug(f"Updated lock status for BudgetPeriod {self.pk}: is_locked={self.is_locked}, "
+            #              f"is_active={self.is_active}")
         except Exception as e:
             logger.error(f"Error updating lock status for BudgetPeriod {self.pk}: {str(e)}")
 
@@ -578,6 +594,7 @@ class BudgetAllocation(models.Model):
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, related_name='budget_allocations_created', verbose_name=_("ایجادکننده"))
 
     class Meta:
+        db_table = 'budgets_budgetallocation'
         verbose_name = _("تخصیص بودجه")
         verbose_name_plural = _("تخصیص‌های بودجه")
         default_permissions = ()
@@ -1474,7 +1491,7 @@ class PaymentOrder(models.Model):
         ('CANCELLED', _('لغو شده')),
     )
 
-    tankhah =        models.ForeignKey(Tankhah, on_delete=models.CASCADE, related_name='payment_orders',verbose_name=_("تنخواه")    )
+    tankhah = models.ForeignKey(Tankhah, on_delete=models.CASCADE, related_name='payment_orders',verbose_name=_("تنخواه"))
     related_tankhah = models.ForeignKey(Tankhah, on_delete=models.SET_NULL, null=True, blank=True,related_name='payment_orders_tankhah', verbose_name=_('تنخواه مرتبط')    )
     order_number = models.CharField(_('شماره دستور پرداخت'), max_length=50, unique=True, default=None)
     issue_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ صدور"))

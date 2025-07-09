@@ -24,15 +24,3 @@ def update_versions(sender, **kwargs):
         call_command('update_versions')
     else:
         logger.warning("جدول AppVersion هنوز ایجاد نشده است.")
-#
-# @receiver(post_migrate)
-# def update_versions(sender, **kwargs):
-#     message = "ارسال مهاجرت برای: post migrate triggered for version_tracker"
-#     # logger.info(f"🚀 {message} 🚀")
-#     print(f"{message}🚀  {sender.name} 🚀"  ) # "👍📩  ارسال مهاجرت برای :👍📩 post migrate triggered for{sender.name}
-#     if sender.name == 'version_tracker':
-#         return
-#     from django.db import connection
-#     if 'version_tracker_appversion' in connection.introspection.table_names():
-#         print("فراخوانی آپدیت Calling update_versions command...")
-#         call_command('update_versions')

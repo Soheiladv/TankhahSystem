@@ -1,2 +1,2 @@
-VERSION = '2.0.0.746'
+VERSION = '2.0.0.903'
 VERBOSE_NAME = 'مدیریت نسخه'

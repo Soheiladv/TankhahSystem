@@ -970,8 +970,6 @@ class OLD__ProjectListView(PermissionBaseView, ListView):
         context['project_budgets'] = project_budgets
 
         return context
-
-
 class ProjectListView(PermissionBaseView, ListView):
     model = Project
     template_name = 'core/project_list.html'
@@ -1052,8 +1050,6 @@ class ProjectListView(PermissionBaseView, ListView):
         context['project_budgets'] = project_budgets
 
         return context
-
-
 class ProjectDetailView(PermissionBaseView, DetailView):
     model = Project
     template_name = 'core/project_detail.html'

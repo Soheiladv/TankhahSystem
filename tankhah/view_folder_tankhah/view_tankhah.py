@@ -246,9 +246,27 @@ from budgets.models import BudgetAllocation
 # توابع محاسباتی بودجه (اگر در context برای نمایش اطلاعات بودجه استفاده می‌شوند)
 from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, \
     get_subproject_remaining_budget
+from django.contrib.contenttypes.models import ContentType
+from django.contrib import messages
+from django.shortcuts import redirect, get_object_or_404
+from django.utils.translation import gettext_lazy as _
+from django.views.generic import DetailView
+from decimal import Decimal
+import logging
+
+from tankhah.models import Tankhah, Factor, ApprovalLog
+from tankhah.forms import TankhahStatusForm
+from core.views import PermissionBaseView
+from budgets.budget_calculations import (
+    get_tankhah_total_budget,
+    get_tankhah_used_budget,
+    get_tankhah_remaining_budget,
+    get_project_total_budget,
+    get_project_remaining_budget,
+    check_tankhah_lock_status,
+)
 
 logger = logging.getLogger("tankhah_views")
-
 
 class TankhahCreateView(PermissionBaseView, CreateView):
     model = Tankhah
@@ -837,28 +855,6 @@ class LD__TankhahDetailView( PermissionBaseView,DetailView): #PermissionBaseView
             )
         )
         return context
-
-from django.contrib.contenttypes.models import ContentType
-from django.contrib import messages
-from django.shortcuts import redirect, get_object_or_404
-from django.utils.translation import gettext_lazy as _
-from django.views.generic import DetailView
-from decimal import Decimal
-import logging
-
-from tankhah.models import Tankhah, Factor, ApprovalLog
-from tankhah.forms import TankhahStatusForm
-from core.views import PermissionBaseView
-from budgets.budget_calculations import (
-    get_tankhah_total_budget,
-    get_tankhah_used_budget,
-    get_tankhah_remaining_budget,
-    get_project_total_budget,
-    get_project_remaining_budget,
-    check_tankhah_lock_status,
-)
-
-logger = logging.getLogger("TankhahDetailView")
 
 class TankhahDetailView(PermissionBaseView, DetailView):
     model = Tankhah

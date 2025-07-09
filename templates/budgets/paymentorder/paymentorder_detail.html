@@ -1,26 +1,115 @@
 {% extends 'base.html' %}
-{% block title %}جزئیات {{ payment_order.order_number }}{% endblock %}
 {% block content %}
-<div class="card">
-    <div class="card-header bg-info text-white">
-        <h3 class="mb-0">جزئیات دستور پرداخت: {{ payment_order.order_number }}</h3>
+<div class="container mt-4">
+    <h2>جزئیات دستور پرداخت</h2>
+    <div class="card">
+        <div class="card-body">
+            <p><strong>شماره دستور:</strong> {{ action.order_number }}</p>
+            <p><strong>تنخواه:</strong> {{ action.tankhah.number|default:action.related_tankhah.number }}</p>
+            <p><strong>مبلغ:</strong> {{ action.amount|floatformat:0|default:"0" }} ریال</p>
+            <p><strong>وضعیت:</strong> {{ action.get_status_display }}</p>
+            <p><strong>مرحله:</strong> {{ action.current_stage.name|default:"-" }}</p>
+            <p><strong>صادرکننده:</strong> {{ action.created_by.get_full_name|default:"-" }}</p>
+            <p><strong>دریافت‌کننده:</strong> {{ action.payee.name|default:"-" }}</p>
+            <p><strong>فاکتورهای مرتبط:</strong> {{ action.related_factors.all|join:", "|default:"-" }}</p>
+            <p><strong>توضیحات:</strong> {{ action.description|default:"-" }}</p>
+        </div>
     </div>
-    <div class="card-body">
-        <dl class="row">
-            <dt class="col-sm-3">تنخواه:</dt><dd class="col-sm-9">{{ payment_order.tankhah }}</dd>
-            <dt class="col-sm-3">مبلغ:</dt><dd class="col-sm-9">{{ payment_order.amount }}</dd>
-            <dt class="col-sm-3">دریافت‌کننده:</dt><dd class="col-sm-9">{{ payment_order.payee }}</dd>
-            <dt class="col-sm-3">وضعیت:</dt><dd class="col-sm-9">{{ payment_order.get_status_display }}</dd>
-            <dt class="col-sm-3">تاریخ صدور:</dt><dd class="col-sm-9">{{ payment_order.issue_date|date:'Y/m/d' }}</dd>
-            <dt class="col-sm-3">حداقل امضا:</dt><dd class="col-sm-9">{{ payment_order.min_signatures }}</dd>
-            <dt class="col-sm-3">شرح:</dt><dd class="col-sm-9">{{ payment_order.description }}</dd>
-            <dt class="col-sm-3">فاکتورها:</dt><dd class="col-sm-9">
-                {% for factor in payment_order.related_factors.all %}{{ factor }}، {% empty %}-{% endfor %}
-            </dd>
-            <dt class="col-sm-3">ایجادکننده:</dt><dd class="col-sm-9">{{ payment_order.created_by }}</dd>
-        </dl>
-        <a href="{% url 'paymentorder_update' payment_order.pk %}" class="btn btn-warning">ویرایش</a>
-        <a href="{% url 'paymentorder_list' %}" class="btn btn-secondary">بازگشت</a>
-    </div>
+
+    <h4 class="mt-4">وضعیت امضاها</h4>
+    <ul class="list-group">
+        {% for approval in approval_logs %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ approval.approver_post.name|default:"-" }}</strong>
+                    {% if approval.is_approved %}
+                        <br><small class="text-muted">امضا شده توسط: {{ approval.approver_user.get_full_name|default:"-" }} در تاریخ {{ approval.timestamp|date:"Y/m/d H:i" }}</small>
+                    {% endif %}
+                </div>
+                {% if approval.is_approved %}
+                    <span class="badge bg-success rounded-pill">تأیید شده</span>
+                {% else %}
+                    <span class="badge bg-warning rounded-pill">در انتظار امضا</span>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% if user_can_sign %}
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">امضا و تأیید</button>
+        </form>
+    {% endif %}
 </div>
 {% endblock %}
+
+{% comment %}{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>جزئیات دستور پرداخت</h2>
+    <div class="card">
+        <div class="card-body">
+            <p><strong>شماره مرجع:</strong> {{ action.reference_number }}</p>
+            <p><strong>تنخواه:</strong> {{ action.tankhah.number }}</p>
+            <p><strong>مبلغ:</strong> {{ action.amount|floatformat:0 }} ریال</p>
+            <p><strong>مرحله:</strong> {{ action.stage.name }}</p>
+            <p><strong>صادرکننده:</strong> {{ action.user.get_full_name }}</p>
+            <p><strong>توضیحات:</strong> {{ action.description }}</p>
+        </div>
+    </div>
+
+    <h4 class="mt-4">وضعیت امضاها</h4>
+    <ul class="list-group">
+        {% for approval in action.approvals.all %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ approval.approver_post.name }}</strong>
+                    {% if approval.is_approved %}
+                        <br><small class="text-muted">امضا شده توسط: {{ approval.approver_user.get_full_name }} در تاریخ {{ approval.timestamp }}</small>
+                    {% endif %}
+                </div>
+                {% if approval.is_approved %}
+                    <span class="badge bg-success rounded-pill">تایید شده</span>
+                {% else %}
+                    <span class="badge bg-warning rounded-pill">در انتظار امضا</span>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% if user_can_sign %}
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">امضا و تأیید</button>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}{% endcomment %}
+
+{#{% extends 'base.html' %}#}
+{#{% block title %}جزئیات {{ payment_order.order_number }}{% endblock %}#}
+{#{% block content %}#}
+{#<div class="card">#}
+{#    <div class="card-header bg-info text-white">#}
+{#        <h3 class="mb-0">جزئیات دستور پرداخت: {{ payment_order.order_number }}</h3>#}
+{#    </div>#}
+{#    <div class="card-body">#}
+{#        <dl class="row">#}
+{#            <dt class="col-sm-3">تنخواه:</dt><dd class="col-sm-9">{{ payment_order.tankhah }}</dd>#}
+{#            <dt class="col-sm-3">مبلغ:</dt><dd class="col-sm-9">{{ payment_order.amount }}</dd>#}
+{#            <dt class="col-sm-3">دریافت‌کننده:</dt><dd class="col-sm-9">{{ payment_order.payee }}</dd>#}
+{#            <dt class="col-sm-3">وضعیت:</dt><dd class="col-sm-9">{{ payment_order.get_status_display }}</dd>#}
+{#            <dt class="col-sm-3">تاریخ صدور:</dt><dd class="col-sm-9">{{ payment_order.issue_date|date:'Y/m/d' }}</dd>#}
+{#            <dt class="col-sm-3">حداقل امضا:</dt><dd class="col-sm-9">{{ payment_order.min_signatures }}</dd>#}
+{#            <dt class="col-sm-3">شرح:</dt><dd class="col-sm-9">{{ payment_order.description }}</dd>#}
+{#            <dt class="col-sm-3">فاکتورها:</dt><dd class="col-sm-9">#}
+{#                {% for factor in payment_order.related_factors.all %}{{ factor }}، {% empty %}-{% endfor %}#}
+{#            </dd>#}
+{#            <dt class="col-sm-3">ایجادکننده:</dt><dd class="col-sm-9">{{ payment_order.created_by }}</dd>#}
+{#        </dl>#}
+{#        <a href="{% url 'paymentorder_update' payment_order.pk %}" class="btn btn-warning">ویرایش</a>#}
+{#        <a href="{% url 'paymentorder_list' %}" class="btn btn-secondary">بازگشت</a>#}
+{#    </div>#}
+{#</div>#}
+{#{% endblock %}#}

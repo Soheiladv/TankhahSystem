@@ -113,6 +113,7 @@ urlpatterns = [
     path('paymentorder/<int:pk>/delete/', PaymentOrderDeleteView.as_view(), name='paymentorder_delete'),
     path('payment-order/<int:pk>/sign/', PaymentOrderSignView.as_view(), name='payment_order_sign'),
     path('payment-orders/review/', PaymentOrderReviewView.as_view(), name='payment_order_review'),
+    path('paymentorders/<int:pk>/', PaymentOrderDetailView.as_view(), name='paymentorder_detail'),
 
     # ===================================================================
     # ==== کارتابل و گزارشات ====
@@ -124,3 +125,11 @@ urlpatterns = [
     # متفرقه - این URL از core ایمپورت شده بود
     path('budget_allocation_view/', BudgetAllocationView.as_view(), name='budget_allocation_view'),
 ]
+
+urlpatterns += [
+    path('budgetitems/',  BudgetItemListView.as_view(), name='budgetitem_list'),
+    path('budgetitems/create/',  BudgetItemCreateView.as_view(), name='budgetitem_create'),
+    path('budgetitems/<int:pk>/update/',  BudgetItemUpdateView.as_view(), name='budgetitem_update'),
+    path('budgetitems/<int:pk>/delete/',  BudgetItemDeleteView.as_view(), name='budgetitem_delete'),
+    path('budgetitems/<int:pk>/',  BudgetItemDetailView.as_view(), name='budgetitem_detail'),
+] # تعاریف ردیف بودجه

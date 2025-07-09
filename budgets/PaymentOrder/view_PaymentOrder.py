@@ -5,10 +5,11 @@ from time import timezone
 from django.contrib import messages
 from django.db import transaction
 
+from accounts.models import CustomUser
 from budgets.PaymentOrder.form_PaymentOrder import PaymentOrderForm
 from budgets.models import PaymentOrder, generate_payment_order_number, Payee
 from core.models import Organization, Project, UserPost, WorkflowStage
-from tankhah.models import Tankhah, StageApprover, ApprovalLog, Factor
+from tankhah.models import Tankhah, StageApprover, ApprovalLog, Factor, TankhahAction, TankhActionType
 
 logger = logging.getLogger(__name__)
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView, CreateView, TemplateView
@@ -21,8 +22,9 @@ from django.utils.translation import gettext_lazy as _
 # --- PaymentOrder CRUD ---
 from django.db.models import Q, Prefetch, Count
 
+
 """ایجاد خوکار دستور پرداخت """
-class TankhahUpdateStatusView(UpdateView): # باید از PermissionBaseView هم ارث‌بری کند اگر نیاز به چک مجوز دارد
+class TankhahUpdateStatusView__(UpdateView): # باید از PermissionBaseView هم ارث‌بری کند اگر نیاز به چک مجوز دارد
     model = Tankhah
     fields = ['status', 'current_stage'] # فیلدهایی که در فرم تغییر وضعیت تنخواه نمایش داده می‌شوند
     template_name = 'budgets/paymentorder/tankhah_update_status.html' # یک تمپلیت برای فرم تغییر وضعیت تنخواه
@@ -218,6 +220,116 @@ class TankhahUpdateStatusView(UpdateView): # باید از PermissionBaseView ه
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
+class TankhahUpdateStatusView(PermissionBaseView, UpdateView):
+    model = Tankhah
+    fields = ['status', 'current_stage']
+    template_name = 'tankhah/tankhah_update_status.html'
+    permission_required = 'tankhah.change_tankhah'
+
+    def get_success_url(self):
+        return reverse_lazy('tankhah_detail', kwargs={'pk': self.object.pk})
+
+    def form_valid(self, form):
+        user = self.request.user
+        try:
+            with transaction.atomic():
+                tankhah = form.save(commit=False)
+                tankhah.save()
+                logger.info(f"Tankhah {tankhah.number} status updated to {tankhah.status} by user {user.username}")
+
+                if tankhah.current_stage and tankhah.current_stage.triggers_payment_order and \
+                        tankhah.status == 'APPROVED':
+                    logger.info(f"Conditions met to auto-create PaymentOrder for Tankhah {tankhah.number}")
+
+                    # تعیین Payee
+                    target_payee = None
+                    if hasattr(tankhah, 'payee') and tankhah.payee:
+                        target_payee = tankhah.payee
+                    elif tankhah.factors.filter(payee__isnull=False).exists():
+                        distinct_payees = tankhah.factors.filter(payee__isnull=False).values_list('payee', flat=True).distinct()
+                        if len(distinct_payees) == 1:
+                            target_payee = Payee.objects.get(pk=distinct_payees[0])
+                        else:
+                            messages.warning(self.request, _("امکان تعیین خودکار دریافت‌کننده وجود ندارد."))
+                            return super().form_valid(form)
+
+                    if not target_payee:
+                        logger.warning(f"No payee found for Tankhah {tankhah.number}")
+                        messages.warning(self.request, _("دریافت‌کننده برای دستور پرداخت مشخص نشده است."))
+                        return super().form_valid(form)
+
+                    initial_po_stage = WorkflowStage.objects.filter(
+                        entity_type='PAYMENTORDER',
+                        order=1,
+                        is_active=True
+                    ).first()
+                    if not initial_po_stage:
+                        logger.error("No initial workflow stage for PAYMENTORDER")
+                        messages.error(self.request, _("مرحله اولیه گردش کار برای دستور پرداخت تعریف نشده است."))
+                        return super().form_valid(form)
+
+                    user_post = user.userpost_set.filter(is_active=True).first()
+                    payment_order = PaymentOrder(
+                        tankhah=tankhah,
+                        related_tankhah=tankhah,
+                        amount=tankhah.amount,
+                        description=f"پرداخت برای تنخواه شماره {tankhah.number}",
+                        organization=tankhah.organization,
+                        project=tankhah.project if hasattr(tankhah, 'project') else None,
+                        status='DRAFT',
+                        created_by=user,
+                        created_by_post=user_post.post if user_post else None,
+                        current_stage=initial_po_stage,
+                        issue_date=timezone.now().date(),
+                        payee=target_payee,
+                        min_signatures=initial_po_stage.min_signatures or 1
+                    )
+                    payment_order.save()
+
+                    # لینک کردن فاکتورها
+                    payment_order.related_factors.set(tankhah.factors.all())
+
+                    # ایجاد ActionApproval برای امضاکنندگان
+                    approving_posts = StageApprover.objects.filter(
+                        stage=initial_po_stage,
+                        is_active=True
+                    ).select_related('post')
+                    for stage_approver in approving_posts:
+                        ApprovalLog.objects.create(
+                            action=payment_order,
+                            approver_post=stage_approver.post
+                        )
+
+                    # ارسال نوتیفیکیشن
+                    eligible_users = set()
+                    for stage_approver in approving_posts:
+                        users = CustomUser.objects.filter(
+                            userpost__post=stage_approver.post,
+                            userpost__is_active=True
+                        )
+                        eligible_users.update(users)
+                    for user_to_notify in eligible_users:
+                        if user_to_notify != user:
+                            from notifications.signals import notify
+                            notify.send(
+                                sender=user,
+                                recipient=user_to_notify,
+                                verb='needs_approval',
+                                action_object=payment_order,
+                                target=tankhah,
+                                description=f"دستور پرداخت {payment_order.order_number} نیاز به امضای شما دارد."
+                            )
+
+                    logger.info(f"PaymentOrder {payment_order.order_number} created for Tankhah {tankhah.number}")
+                    messages.success(self.request, f"دستور پرداخت {payment_order.order_number} ایجاد شد.")
+
+        except Exception as e:
+            logger.error(f"Error in TankhahUpdateStatusView: {e}", exc_info=True)
+            messages.error(self.request, "خطایی در به‌روزرسانی تنخواه رخ داد.")
+            return self.form_invalid(form)
+
+        return super().form_valid(form)
+
 from django.contrib.contenttypes.models import ContentType
 class PaymentOrderReviewView(PermissionBaseView, ListView):
     model = PaymentOrder
@@ -367,33 +479,45 @@ class PaymentOrderReviewView(PermissionBaseView, ListView):
 
 #-------
 # --- PaymentOrder CRUD ---
-class PaymentOrderListView(PermissionBaseView, ListView):
+class PaymentOrderListView___(PermissionBaseView, ListView):
     model = PaymentOrder
     template_name = 'budgets/paymentorder/paymentorder_list.html'
     context_object_name = 'payment_orders'
     paginate_by = 10
+class PaymentOrderListView(PermissionBaseView, ListView):
+        model = PaymentOrder
+        template_name = 'budgets/paymentorder/paymentorder_list.html'
+        context_object_name = 'payment_orders'
+        permission_required = 'PaymentOrder_view'  # اصلاح به نام مجوز مدل
+        paginate_by = 10
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        query = self.request.GET.get('q', '')
-        if query:
-            queryset = queryset.filter(
-                Q(order_number__icontains=query) |
-                Q(payee__name__icontains=query) |
-                Q(tankhah__project__name__icontains=query)
-            )
-        status = self.request.GET.get('status')
-        if status:
-            queryset = queryset.filter(status=status)
-        return queryset.order_by('-issue_date')
+        def get_queryset(self):
+            queryset = PaymentOrder.objects.filter(
+                is_active=True
+            ).select_related('tankhah', 'related_tankhah', 'current_stage', 'created_by', 'created_by_post',
+                             'organization', 'project', 'payee')
+            query = self.request.GET.get('query', '')
+            status = self.request.GET.get('status', '')
+            if query:
+                queryset = queryset.filter(
+                    Q(order_number__icontains=query) |
+                    Q(description__icontains=query) |
+                    Q(payee__name__icontains=query) |
+                    Q(tankhah__number__icontains=query) |
+                    Q(related_tankhah__number__icontains=query)
+                )
+            if status:
+                queryset = queryset.filter(status=status)
+            logger.debug(f"PaymentOrderListView queryset: {queryset.count()} records")
+            return queryset.order_by('-created_at')
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['query'] = self.request.GET.get('q', '')
-        context['status'] = self.request.GET.get('status', '')
-        context['status_choices'] = PaymentOrder.STATUS_CHOICES
-        logger.debug(f"PaymentOrderListView context: {context}")
-        return context
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['query'] = self.request.GET.get('query', '')
+            context['status'] = self.request.GET.get('status', '')
+            context['status_choices'] = PaymentOrder.STATUS_CHOICES
+            logger.debug(f"PaymentOrderListView context: {context}")
+            return context
 class PaymentOrderCreateView(PermissionBaseView, CreateView):
     model = PaymentOrder
     form_class = PaymentOrderForm
@@ -428,8 +552,113 @@ class PaymentOrderDeleteView(PermissionBaseView, DeleteView):
             payment_order.delete()
             messages.success(request, f'دستور پرداخت {payment_order.order_number} با موفقیت حذف شد.')
         return redirect(self.success_url)
+class PaymentOrderDetailView__(PermissionBaseView, DetailView):
+    model = TankhahAction
+    template_name = 'budgets/paymentorder/paymentorder_detail.html'
+    context_object_name = 'action'
+    permission_required = 'tankhah.view_paymentorder'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # user_post = self.request.user.userpost_set.filter(is_active=True).first()
+        # context['user_can_sign'] = ActionApproval.objects.filter(
+        #     action=self.object,
+        #     approver_post=user_post.post if user_post else None,
+        #     is_approved=False
+        # ).exists()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = self.get_object()
+        user_post = request.user.userpost_set.filter(is_active=True).first()
+        if not user_post:
+            messages.error(request, "شما پست فعالی ندارید.")
+            return redirect('paymentorder_detail', pk=action.pk)
+
+        # approval = ActionApproval.objects.filter(
+        #     action=action,
+        #     approver_post=user_post.post,
+        #     is_approved=False
+        # ).first()
+        # if approval:
+        #     approval.is_approved = True
+        #     approval.approver_user = request.user
+        #     approval.timestamp = timezone.now()
+        #     approval.save()
+        #     messages.success(request, "دستور پرداخت با موفقیت امضا شد.")
+        #     logger.info(f"User {request.user.username} signed TankhahAction {action.id}")
+        #
+        #     # بررسی آیا همه امضاها انجام شده
+        #     if not ActionApproval.objects.filter(action=action, is_approved=False).exists():
+        #         action.tankhah.status = 'APPROVED'
+        #         action.tankhah.save()
+        #         logger.info(f"Tankhah {action.tankhah.number} fully approved and ready for payment.")
+        #         # اینجا می‌تونی نوتیفیکیشن به خزانه‌دار بفرستی
+        # else:
+        #     messages.error(request, "شما مجاز به امضای این دستور پرداخت نیستید.")
+
+        return redirect('paymentorder_detail', pk=action.pk)
 class PaymentOrderDetailView(PermissionBaseView, DetailView):
     model = PaymentOrder
     template_name = 'budgets/paymentorder/paymentorder_detail.html'
-    permission_codenames = ['budgets.PaymentOrder_view']
-    context_object_name = 'payment_order'
+    context_object_name = 'action'
+    permission_required = 'PaymentOrder_view'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_post = self.request.user.userpost_set.filter(is_active=True).first()
+        context['user_can_sign'] = ApprovalLog.objects.filter(
+            action=self.object,
+            approver_post=user_post.post if user_post else None,
+            is_approved=False
+        ).exists()
+        context['approval_logs'] = ApprovalLog.objects.filter(
+            action=self.object
+        ).select_related('approver_user', 'approver_post')
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = self.get_object()
+        user_post = request.user.userpost_set.filter(is_active=True).first()
+        if not user_post:
+            messages.error(request, "شما پست فعالی ندارید.")
+            return redirect('paymentorder_detail', pk=action.pk)
+
+        approval =  ApprovalLog.objects.filter(
+            action=action,
+            approver_post=user_post.post,
+            is_approved=False
+        ).first()
+        if approval:
+            approval.is_approved = True
+            approval.approver_user = request.user
+            approval.timestamp = timezone.now()
+            approval.save()
+            messages.success(request, "دستور پرداخت با موفقیت امضا شد.")
+            logger.info(f"User {request.user.username} signed PaymentOrder {action.order_number}")
+
+            # بررسی تعداد امضاها
+            approved_signatures = ApprovalLog.objects.filter(action=action, is_approved=True).count()
+            # approved_signatures = ActionApproval.objects.filter(action=action, is_approved=True).count()
+            if approved_signatures >= action.min_signatures:
+                action.status = 'APPROVED'
+                action.save()
+                logger.info(f"PaymentOrder {action.order_number} fully approved.")
+                treasury_users = CustomUser.objects.filter(
+                    userpost__post__name='خزانه‌دار',
+                    userpost__is_active=True
+                )
+                for user in treasury_users:
+                    from notifications.signals import notify
+                    notify.send(
+                        sender=request.user,
+                        recipient=user,
+                        verb='ready_for_payment',
+                        action_object=action,
+                        description=f"دستور پرداخت {action.order_number} تأیید شده و آماده پرداخت است."
+                    )
+        else:
+            messages.error(request, "شما مجاز به امضای این دستور پرداخت نیستید.")
+
+        return redirect('paymentorder_detail', pk=action.pk)
+

@@ -107,3 +107,36 @@ def log_tanbakh_changes(sender, instance, **kwargs):
                 user=instance._changed_by,
                 comment=f"تغییر وضعیت از {old_instance.status} به {instance.status}"
             )
+
+
+
+# فعال‌سازی سیگنال برای تأیید چندامضایی
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from .models import Tankhah, TankhahAction
+from core.models import AccessRule, Post
+
+@receiver(post_save, sender=TankhahAction)
+def start_approval_process(sender, instance, created, **kwargs):
+    if created and instance.action_type == 'ISSUE_PAYMENT_ORDER':
+        logger.info(f"Starting approval process for TankhahAction {instance.id}")
+        required_posts = AccessRule.objects.filter(
+            organization=instance.tankhah.organization,
+            stage=instance.stage,
+            action_type='SIGN_PAYMENT',
+            entity_type='PAYMENTORDER',
+            is_active=True
+        ).select_related('post')
+
+        if not required_posts.exists():
+            logger.warning(f"No approval rules found for TankhahAction {instance.id}")
+            return
+
+        for rule in required_posts:
+            ActionApproval.objects.create(
+                action=instance,
+                approver_post=rule.post
+            )
+            logger.info(f"Created ActionApproval for post {rule.post.name} on TankhahAction {instance.id}")
+            # اینجا می‌تونی نوتیفیکیشن به کاربران دارای پست مربوطه بفرستی
+            # send_notification_to_post_users(rule.post, instance)

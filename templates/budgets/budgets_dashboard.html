@@ -82,6 +82,22 @@
         <div class="col">
             <div class="card shadow-sm dashboard-card card-group-config">
                 <div class="card-header bg-transparent d-flex align-items-center">
+                    <i class="fas fa-calendar-alt text-primary card-header-icon"></i>
+                    <h5 class="card-title mb-0">{% trans "تعریف نوع ردیف بودجه" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">مدیریت تعاریف نوع ردیف بودجه.</p>
+                </div>
+                <div class="card-footer bg-light d-flex justify-content-between">
+                    <a href="{% url 'budgetitem_list' %}"><i class="fas fa-list-ul me-1"></i>{% trans "لیست دوره‌ها" %}</a>
+                    <a href="{% url 'budgetitem_create' %}"><i class="fas fa-plus-circle me-1"></i>{% trans "ایجاد دوره" %}</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card shadow-sm dashboard-card card-group-config">
+                <div class="card-header bg-transparent d-flex align-items-center">
                     <i class="fas fa-list-ol text-primary card-header-icon"></i>
                     <h5 class="card-title mb-0">{% trans "ردیف‌های بودجه" %}</h5>
                 </div>

@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 from accounts.models import CustomUser
 import logging
-from core.models import WorkflowStage, Post, SystemSettings, AccessRule, UserPost
+from core.models import WorkflowStage, Post, SystemSettings, AccessRule, UserPost, PostAction
 
 logger = logging.getLogger(__name__)
 
@@ -464,11 +464,9 @@ class Tankhah(models.Model):
     due_date = models.DateTimeField(null=True, blank=True, verbose_name=_('مهلت زمانی'))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_('مجموعه/شعبه'))
-    project = models.ForeignKey('core.Project', on_delete=models.SET_NULL, null=True, blank=True,
-                                related_name='tankhah_set', verbose_name=_('پروژه'))
+    project = models.ForeignKey('core.Project', on_delete=models.SET_NULL, null=True, blank=True,related_name='tankhah_set', verbose_name=_('پروژه'))
     project_budget_allocation = models.ForeignKey(
-        'budgets.BudgetAllocation', on_delete=models.CASCADE, related_name='tankhahs',
-        verbose_name=_("تخصیص بودجه پروژه"), null=True, blank=True
+        'budgets.BudgetAllocation', on_delete=models.CASCADE, related_name='tankhahs',        verbose_name=_("تخصیص بودجه پروژه"), null=True, blank=True
     )
     subproject = models.ForeignKey('core.SubProject', on_delete=models.CASCADE, null=True, blank=True,
                                    verbose_name=_("زیر مجموعه پروژه"))
@@ -675,6 +673,8 @@ class Tankhah(models.Model):
     #         if allocation and (allocation.is_locked or allocation.budget_allocation.budget_period.is_locked):
     #             self.is_active = False
     #             super().save(update_fields=['is_active'])
+
+
     def save(self, *args, **kwargs):
         from budgets.models import BudgetAllocation
         with transaction.atomic():
@@ -733,7 +733,7 @@ class Tankhah(models.Model):
                             created_by=self.created_by,
                             description=f"انتقال بودجه به دلیل رد تنخواه {self.number}",
                             transaction_id=f"TX-TNK-XFER-{self.number}",
-                            target_allocation=target_allocation
+                            target_allocation = target_allocation
                         )
                     else:
                         create_budget_transaction(
@@ -759,6 +759,7 @@ class Tankhah(models.Model):
 
             super().save(*args, **kwargs)
             logger.info(f"Tankhah saved 👍with ID: {self.pk}")
+
     def generate_number(self):
         sep = NUMBER_SEPARATOR
         import jdatetime
@@ -777,40 +778,206 @@ class Tankhah(models.Model):
                 serial += 1
                 new_number = f"TNKH{sep}{jalali_date}{sep}{org_code}{sep}{project_code}{sep}{serial:03d}"
             return new_number
+
     def process_approved_factors(self, user):
+        processed_count = 0
         with transaction.atomic():
-            approved_factors = self.factors.filter(status='APPROVED', is_locked=False)
-            processed_count = 0
+            approved_factors = self.factors.filter(status='APPROVED')
+            current_stage = self.current_stage
+
             for factor in approved_factors:
-                if self.get_remaining_budget() < factor.amount:
-                    logger.warning(f"Insufficient budget for factor {factor.number} in tankhah {self.number}")
+                if not current_stage or not current_stage.triggers_payment_order:
+                    logger.warning(f"No payment order can be issued for Tankhah {self.number}: Invalid stage")
                     continue
+
                 factor.status = 'PAID'
-                factor.is_locked = True
-                factor.save()
+                factor.save(current_user=user)
+
                 create_budget_transaction(
-                    allocation=self.project_budget_allocation.budget_allocation,
+                    allocation=self.project_budget_allocation,
                     transaction_type='CONSUMPTION',
                     amount=factor.amount,
                     related_obj=factor,
                     created_by=user,
-                    description=f"پرداخت فاکتور {factor.number} از تنخواه {self.number}",
-                    transaction_id=f"TX-FAC-PAY-{factor.number}"
+                    description=f"مصرف بودجه توسط فاکتور پرداخت شده {factor.number}",
+                    transaction_id=f"TX-FAC-{factor.number}"
                 )
-                FactorHistory.objects.create(
+
+                user_post = user.userpost_set.filter(is_active=True).first()
+                if user_post and PostAction.objects.filter(
+                    post=user_post.post,
+                    stage=current_stage,
+                    action_type__code='ISSUE_PAYMENT_ORDER',
+                    entity_type='FACTOR',
+                    is_active=True
+                ).exists():
+                    target_payee = factor.payee
+                    if not target_payee:
+                        logger.warning(f"No payee for Factor {factor.number}")
+                        continue
+
+                    initial_po_stage = WorkflowStage.objects.filter(
+                        entity_type='PAYMENTORDER',
+                        order=1,
+                        is_active=True
+                    ).first()
+                    if not initial_po_stage:
+                        logger.error("No initial workflow stage for PAYMENTORDER")
+                        continue
+
+                    from budgets.models import PaymentOrder
+                    payment_order = PaymentOrder(
+                        tankhah=self,
+                        related_tankhah=self,
+                        amount=factor.amount,
+                        description=f"پرداخت برای فاکتور {factor.number}",
+                        organization=self.organization,
+                        project=self.project if hasattr(self, 'project') else None,
+                        status='DRAFT',
+                        created_by=user,
+                        created_by_post=user_post.post,
+                        current_stage=initial_po_stage,
+                        issue_date=timezone.now().date(),
+                        payee=target_payee,
+                        min_signatures=initial_po_stage.min_signatures or 1
+                    )
+                    payment_order.save()
+                    payment_order.related_factors.add(factor)
+
+                    approving_posts = StageApprover.objects.filter(
+                        stage=initial_po_stage,
+                        is_active=True
+                    ).select_related('post')
+                    for stage_approver in approving_posts:
+                        ApprovalLog.objects.create(
+                            action=payment_order,
+                            approver_post=stage_approver.post
+                        )
+
+                    logger.info(f"PaymentOrder {payment_order.order_number} issued for Factor {factor.number} in Tankhah {self.number}")
+                    processed_count += 1
+
+                ApprovalLog.objects.create(
                     factor=factor,
-                    change_type=FactorHistory.ChangeType.STATUS_CHANGE,
-                    changed_by=user,
-                    old_data={'status': 'APPROVED'},
-                    new_data={'status': 'PAID'},
-                    description=f"پرداخت فاکتور از تنخواه {self.number}"
+                    action='SIGN_PAYMENT',
+                    stage=current_stage,
+                    user=user,
+                    post=user_post.post if user_post else None,
+                    content_type=ContentType.objects.get_for_model(factor),
+                    object_id=factor.id,
+                    comment=f"دستور پرداخت برای فاکتور {factor.number} صادر شد.",
+                    changed_field='status'
                 )
-                processed_count += 1
-            logger.info(f"Processed {processed_count} approved factors for tankhah {self.number}")
-            return processed_count
+
+                if current_stage.auto_advance:
+                    next_stage = WorkflowStage.objects.filter(order__gt=current_stage.order, is_active=True).order_by('order').first()
+                    if next_stage:
+                        self.current_stage = next_stage
+                        self.save()
+                        logger.info(f"Tankhah {self.number} advanced to stage {next_stage.name}")
+
+        return processed_count
+
+
+    # def process_approved_factors(self, user):
+    #
+    #     from core.models import PostAction
+    #     with transaction.atomic():
+    #         approved_factors = self.factors.filter(status='APPROVED', is_locked=False)
+    #         processed_count = 0
+    #         for factor in approved_factors:
+    #             if self.get_remaining_budget() < factor.amount:
+    #                 logger.warning(f"Insufficient budget for factor {factor.number} in tankhah {self.number}")
+    #                 continue
+    #             factor.status = 'PAID'
+    #             factor.is_locked = True
+    #             factor.save(current_user=user)
+    #
+    #             create_budget_transaction(
+    #                 allocation=self.project_budget_allocation,
+    #                 transaction_type='CONSUMPTION',
+    #                 amount=factor.amount,
+    #                 related_obj=factor,
+    #                 created_by=user,
+    #                 description=f"پرداخت فاکتور {factor.number} از تنخواه {self.number}",
+    #                 transaction_id=f"TX-FAC-PAY-{factor.number}"
+    #             )
+    #             FactorHistory.objects.create(
+    #                 factor=factor,
+    #                 change_type=FactorHistory.ChangeType.STATUS_CHANGE,
+    #                 changed_by=user,
+    #                 old_data={'status': 'APPROVED'},
+    #                 new_data={'status': 'PAID'},
+    #                 description=f"پرداخت فاکتور از تنخواه {self.number}"
+    #             )
+    #
+    #             current_stage = self.current_stage
+    #             if current_stage and current_stage.triggers_payment_order:
+    #                 try:
+    #                     user_post = user.userpost_set.filter(is_active=True).first() if user else None
+    #                     if user_post and PostAction.objects.filter(
+    #                             post=user_post.post,
+    #                             stage=current_stage,
+    #                             action_type='ISSUE_PAYMENT_ORDER',
+    #                             entity_type='FACTOR',
+    #                             is_active=True
+    #                     ).exists():
+    #                         TankhahAction.objects.create(
+    #                             tankhah=self,
+    #                             action_type='ISSUE_PAYMENT_ORDER',
+    #                             amount=factor.amount,
+    #                             stage=current_stage,
+    #                             post=user_post.post,
+    #                             user=user,
+    #                             description=f"دستور پرداخت برای فاکتور {factor.number}",
+    #                             reference_number=f"PAY-FAC-{factor.number}"
+    #                         )
+    #                         logger.info(f"Payment order issued for Factor {factor.number} in Tankhah {self.number}")
+    #                 except AttributeError:
+    #                     logger.error(f"Error accessing userpost_set for user {user.username if user else 'None'}")
+    #
+    #             processed_count += 1
+    #         logger.info(f"Processed {processed_count} approved factors for tankhah {self.number}")
+    #         return processed_count
+
+    # def process_approved_factors(self, user):
+    #     with transaction.atomic():
+    #         approved_factors = self.factors.filter(status='APPROVED', is_locked=False)
+    #         processed_count = 0
+    #         for factor in approved_factors:
+    #             if self.get_remaining_budget() < factor.amount:
+    #                 logger.warning(f"Insufficient budget for factor {factor.number} in tankhah {self.number}")
+    #                 continue
+    #             factor.status = 'PAID'
+    #             factor.is_locked = True
+    #             factor.save()
+    #             create_budget_transaction(
+    #                 allocation=self.project_budget_allocation.budget_allocation,
+    #                 transaction_type='CONSUMPTION',
+    #                 amount=factor.amount,
+    #                 related_obj=factor,
+    #                 created_by=user,
+    #                 description=f"پرداخت فاکتور {factor.number} از تنخواه {self.number}",
+    #                 transaction_id=f"TX-FAC-PAY-{factor.number}"
+    #             )
+    #             FactorHistory.objects.create(
+    #                 factor=factor,
+    #                 change_type=FactorHistory.ChangeType.STATUS_CHANGE,
+    #                 changed_by=user,
+    #                 old_data={'status': 'APPROVED'},
+    #                 new_data={'status': 'PAID'},
+    #                 description=f"پرداخت فاکتور از تنخواه {self.number}"
+    #             )
+    #             processed_count += 1
+    #         logger.info(f"Processed {processed_count} approved factors for tankhah {self.number}")
+    #         return processed_count
 
 class TankhActionType(models.Model):
     action_type = models.CharField(max_length=25, verbose_name=_('انواع  اقدام'))
+    code = models.CharField(max_length=50, unique=True,verbose_name=_('تایپ'))
+    name = models.CharField(max_length=100,verbose_name=_('عنوان'))
+    description = models.TextField(blank=True,verbose_name=_('توضیحات'))
+
     class Meta:
         verbose_name=_('انواع اقدام')
         verbose_name_plural =  _('انواع اقدام ')
@@ -823,6 +990,7 @@ class TankhActionType(models.Model):
         ]
     def __str__(self):
         return self.action_type
+
 class TankhahAction(models.Model): #صدور دستور پرداخت
     # ACTION_TYPES = (
     #     ('ISSUE_PAYMENT_ORDER', _('صدور دستور پرداخت')),
@@ -837,11 +1005,12 @@ class TankhahAction(models.Model): #صدور دستور پرداخت
     stage = models.ForeignKey( WorkflowStage , on_delete=models.PROTECT, verbose_name=_("مرحله"))
     post = models.ForeignKey(  Post , on_delete=models.SET_NULL, null=True, verbose_name=_("پست انجام‌دهنده"))
     user = models.ForeignKey( CustomUser , on_delete=models.SET_NULL, null=True, verbose_name=_("کاربر"))
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    # created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
     reference_number = models.CharField(max_length=50, blank=True, verbose_name=_("شماره مرجع"))
     action_type = models.ForeignKey('budgets.TransactionType' , on_delete=models.SET_NULL, null=True,verbose_name=_("نوع اقدام"))
-    # جایگزینی ACTION_TYPES با TransactionType
+    is_active = models.BooleanField(default=True,verbose_name=_('فعال'))
+    created_at = models.DateTimeField(auto_now_add=True,verbose_name=_('ایجاد شده توسط'))
 
 
     def save(self, *args, **kwargs):
@@ -1068,13 +1237,9 @@ class Factor(models.Model):
         ]
 
     def save(self, *args, **kwargs):
-        """
-               ذخیره فاکتور با مدیریت تراکنش‌ها، اعلان‌ها و تاریخچه تغییرات.
-               تمام اعتبارسنجی‌های مربوط به بودجه و وضعیت‌ها در FactorForm انجام شده است.
-       """
         from budgets.models import BudgetTransaction
-        # from budgets.budget_calculations import create_budget_transaction
         from core.models import WorkflowStage, PostAction
+        from django.contrib.contenttypes.models import ContentType
         import logging
         logger = logging.getLogger(__name__)
 
@@ -1091,18 +1256,18 @@ class Factor(models.Model):
             if self.pk:
                 original = Factor.objects.get(pk=self.pk)
 
-            # بررسی بودجه و قفل‌ها
             if self.tankhah and self.tankhah.project_budget_allocation:
                 budget_allocation = self.tankhah.project_budget_allocation
                 budget_period = budget_allocation.budget_period
-                if self.status != 'PAID' and (budget_allocation.is_locked or budget_period.is_locked):
+                is_locked, lock_message = budget_period.is_locked  # استفاده از is_locked
+                if self.status != 'PAID' and (budget_allocation.is_locked or is_locked):
                     raise ValidationError(_("نمی‌توان فاکتور جدید ثبت کرد، تخصیص یا دوره قفل شده است."))
 
             super().save(*args, **kwargs)
 
-            # صدور دستور پرداخت برای فاکتورهای PAID
             if self.status == 'PAID' and (is_new or (original and original.status != 'PAID')):
-                logger.info(f"Factor {self.number} marked as PAID. Creating CONSUMPTION transaction and payment order.")
+                logger.info(
+                    f"Factor {self.number} marked as PAID. Creating CONSUMPTION transaction and checking payment order.")
                 create_budget_transaction(
                     allocation=self.tankhah.project_budget_allocation,
                     transaction_type='CONSUMPTION',
@@ -1114,32 +1279,64 @@ class Factor(models.Model):
                 )
                 self.is_locked = True
 
-                # بررسی مرحله فعلی و صدور دستور پرداخت
+                # چک کردن مرحله پرداخت
                 current_stage = self.tankhah.current_stage
                 if current_stage and current_stage.triggers_payment_order:
-                    user_post = current_user.userpost_set.filter(is_active=True).first() if current_user else None
-                    if user_post and PostAction.objects.filter(
-                            post=user_post.post,
-                            stage=current_stage,
-                            action_type='ISSUE_PAYMENT_ORDER',
-                            entity_type='FACTOR',
-                            is_active=True
-                    ).exists():
-                        TankhahAction.objects.create(
-                            tankhah=self.tankhah,
-                            action_type='ISSUE_PAYMENT_ORDER',
-                            amount=self.amount,
-                            stage=current_stage,
-                            post=user_post.post,
-                            user=current_user,
-                            description=f"دستور پرداخت برای فاکتور {self.number}",
-                            reference_number=f"PAY-FAC-{self.number}"
-                        )
-                        logger.info(f"Payment order issued for Factor {self.number} in Tankhah {self.tankhah.number}")
+                    try:
+                        user_post = current_user.userpost_set.filter(is_active=True).first() if current_user else None
+                        if user_post and PostAction.objects.filter(
+                                post=user_post.post,
+                                stage=current_stage,
+                                action_type='ISSUE_PAYMENT_ORDER',
+                                entity_type='FACTOR',
+                                is_active=True
+                        ).exists():
+                            # چک کردن بودجه
+                            if self.amount > self.tankhah.get_remaining_budget():
+                                logger.warning(f"Insufficient budget for payment order: Factor {self.number}")
+                                raise ValidationError(_(f"بودجه کافی برای فاکتور {self.number} وجود ندارد."))
 
-            # ثبت ApprovalLog برای تغییر وضعیت
+                            # صدور دستور پرداخت
+                            TankhahAction.objects.create(
+                                tankhah=self.tankhah,
+                                action_type='ISSUE_PAYMENT_ORDER',
+                                amount=self.amount,
+                                stage=current_stage,
+                                post=user_post.post,
+                                user=current_user,
+                                description=f"دستور پرداخت برای فاکتور {self.number}",
+                                reference_number=f"PAY-FAC-{self.number}"
+                            )
+                            logger.info(
+                                f"Payment order issued for Factor {self.number} in Tankhah {self.tankhah.number}")
+
+                            # ثبت در ApprovalLog
+                            ApprovalLog.objects.create(
+                                factor=self,
+                                action='SIGN_PAYMENT',
+                                stage=current_stage,
+                                user=current_user,
+                                post=user_post.post,
+                                content_type=ContentType.objects.get_for_model(self),
+                                object_id=self.id,
+                                comment=f"دستور پرداخت برای فاکتور {self.number} صادر شد.",
+                                changed_field='status'
+                            )
+                            # انتقال به مرحله بعدی اگر auto_advance فعال باشد
+                            if current_stage.auto_advance:
+                                next_stage = WorkflowStage.objects.filter(order__gt=current_stage.order,
+                                                                          is_active=True).order_by('order').first()
+                                if next_stage:
+                                    self.tankhah.current_stage = next_stage
+                                    self.tankhah.save()
+                                    logger.info(f"Tankhah {self.tankhah.number} advanced to stage {next_stage.name}")
+
+                    except AttributeError as e:
+                        logger.error(
+                            f"Error accessing userpost_set for user {current_user.username if current_user else 'None'}: {str(e)}")
+
             if original and self.status != original.status and current_user:
-                user_post = current_user.userpost_set.filter(is_active=True).first()
+                user_post = current_user.userpost_set.filter(is_active=True).first() if current_user else None
                 if user_post:
                     action = 'APPROVE' if self.status in ['APPROVED', 'PAID'] else 'REJECT'
                     ApprovalLog.objects.create(
@@ -1156,48 +1353,48 @@ class Factor(models.Model):
 
             super().save(update_fields=['is_locked'])
 
-    def save(self, *args, **kwargs):
-        """
-        ذخیره فاکتور با مدیریت تراکنش‌ها، اعلان‌ها و تاریخچه تغییرات.
-        تمام اعتبارسنجی‌های مربوط به بودجه و وضعیت‌ها در FactorForm انجام شده است.
-        """
-        current_user = kwargs.pop('current_user', None)
-        is_new = self._state.adding  # بررسی اینکه آیا شی جدید است یا در حال ویرایش
-
-        # استفاده از transaction.atomic برای اطمینان از صحت تمام عملیات
-        with transaction.atomic():
-            # ۱. تولید شماره فاکتور فقط برای موارد جدید
-            if is_new and not self.number:
-                self.number = self.generate_number()
-                logger.debug(f"شماره فاکتور جدید تولید شد: {self.number}")
-
-            # ۲. اعتبارسنجی کامل مدل (شامل clean) قبل از ذخیره
-            # این کار مطمئن می‌شود که داده‌ها حتی خارج از فرم هم معتبر هستند.
-            # توجه: ما بررسی قفل بودن را از clean مدل هم حذف کردیم تا فقط در فرم باشد.
-            self.full_clean()
-
-            # ۳. ذخیره اصلی شی در دیتابیس
-            super().save(*args, **kwargs)
-
-            # ۴. به‌روزرسانی یا ایجاد تراکنش بودجه (در صورت نیاز)
-            # این منطق باید با دقت بازبینی شود. مثال زیر یک حالت ممکن است:
-            # اگر فاکتور برای اولین بار در وضعیت پرداخت شده قرار می‌گیرد، تراکنش مصرف را ثبت کن.
-            original = kwargs.get('original_instance', None)  # فرض می‌کنیم ویو این را پاس می‌دهد
-            if self.status == 'PAID' and (is_new or original.status != 'PAID'):
-                from budgets.models import BudgetTransaction
-                from budgets.budget_calculations import create_budget_transaction
-
-                logger.info(f"Factor {self.number} is being marked as PAID. Creating CONSUMPTION transaction.")
-                create_budget_transaction(
-                    allocation=self.tankhah.project_budget_allocation,
-                    transaction_type='CONSUMPTION',
-                    amount=self.amount,
-                    related_obj=self,
-                    created_by=current_user or self.created_by,
-                    description=f"مصرف بودجه توسط فاکتور پرداخت شده {self.number}",
-                )
-                self.is_locked = True  # فاکتور را پس از پرداخت قفل می‌کنیم
-                super().save(update_fields=['is_locked'])  # فقط فیلد قفل را آپدیت می‌کنیم
+    # def save(self, *args, **kwargs): # تست شده
+    #     """
+    #     ذخیره فاکتور با مدیریت تراکنش‌ها، اعلان‌ها و تاریخچه تغییرات.
+    #     تمام اعتبارسنجی‌های مربوط به بودجه و وضعیت‌ها در FactorForm انجام شده است.
+    #     """
+    #     current_user = kwargs.pop('current_user', None)
+    #     is_new = self._state.adding  # بررسی اینکه آیا شی جدید است یا در حال ویرایش
+    #
+    #     # استفاده از transaction.atomic برای اطمینان از صحت تمام عملیات
+    #     with transaction.atomic():
+    #         # ۱. تولید شماره فاکتور فقط برای موارد جدید
+    #         if is_new and not self.number:
+    #             self.number = self.generate_number()
+    #             logger.debug(f"شماره فاکتور جدید تولید شد: {self.number}")
+    #
+    #         # ۲. اعتبارسنجی کامل مدل (شامل clean) قبل از ذخیره
+    #         # این کار مطمئن می‌شود که داده‌ها حتی خارج از فرم هم معتبر هستند.
+    #         # توجه: ما بررسی قفل بودن را از clean مدل هم حذف کردیم تا فقط در فرم باشد.
+    #         self.full_clean()
+    #
+    #         # ۳. ذخیره اصلی شی در دیتابیس
+    #         super().save(*args, **kwargs)
+    #
+    #         # ۴. به‌روزرسانی یا ایجاد تراکنش بودجه (در صورت نیاز)
+    #         # این منطق باید با دقت بازبینی شود. مثال زیر یک حالت ممکن است:
+    #         # اگر فاکتور برای اولین بار در وضعیت پرداخت شده قرار می‌گیرد، تراکنش مصرف را ثبت کن.
+    #         original = kwargs.get('original_instance', None)  # فرض می‌کنیم ویو این را پاس می‌دهد
+    #         if self.status == 'PAID' and (is_new or original.status != 'PAID'):
+    #             from budgets.models import BudgetTransaction
+    #             from budgets.budget_calculations import create_budget_transaction
+    #
+    #             logger.info(f"Factor {self.number} is being marked as PAID. Creating CONSUMPTION transaction.")
+    #             create_budget_transaction(
+    #                 allocation=self.tankhah.project_budget_allocation,
+    #                 transaction_type='CONSUMPTION',
+    #                 amount=self.amount,
+    #                 related_obj=self,
+    #                 created_by=current_user or self.created_by,
+    #                 description=f"مصرف بودجه توسط فاکتور پرداخت شده {self.number}",
+    #             )
+    #             self.is_locked = True  # فاکتور را پس از پرداخت قفل می‌کنیم
+    #             super().save(update_fields=['is_locked'])  # فقط فیلد قفل را آپدیت می‌کنیم
 
     # def save(self, *args, **kwargs):
     #     """ذخیره فاکتور با مدیریت تراکنش‌ها، اعلان‌ها و تاریخچه تغییرات"""

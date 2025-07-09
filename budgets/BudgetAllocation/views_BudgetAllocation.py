@@ -141,10 +141,12 @@ class old__BudgetAllocationCreateView(PermissionBaseView, CreateView):
         logger.info(f"Form valid for BudgetAllocation, saving...")
         try:
             budget_period = form.cleaned_data['budget_period']
-            is_locked, lock_message = budget_period.is_period_locked
+            # is_locked, lock_message = budget_period.is_period_locked
+            is_locked, lock_message = budget_period.is_locked
             if is_locked:
                 from django.http import request
-                messages.error(request, lock_message)
+                # messages.error(request, lock_message)
+                messages.error(self.request, lock_message)
                 # Prevent saving the allocation
                 return self.form_invalid(form)
 
@@ -167,63 +169,6 @@ class old__BudgetAllocationCreateView(PermissionBaseView, CreateView):
         messages.error(self.request, _('لطفاً خطاهای فرم را بررسی کنید.'))
         return self.render_to_response(self.get_context_data(form=form))
 
-class BudgetAllocationUpdateView(PermissionBaseView, UpdateView):
-    model = BudgetAllocation
-    form_class = BudgetAllocationForm
-    template_name = 'budgets/budget/budgetallocation_form.html'
-    success_url = reverse_lazy('budgetallocation_list')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = _('ویرایش تخصیص بودجه')
-        context['budget_period'] = self.object.budget_period
-        context['total_amount'] = self.object.budget_period.total_amount or Decimal('0')
-        context['remaining_amount'] = self.object.budget_period.get_remaining_amount() + self.object.allocated_amount
-        context['remaining_percent'] = (
-            (context['remaining_amount'] / context['total_amount'] * 100)
-            if context['total_amount'] else 0
-        )
-        context['locked_percentage'] = self.object.budget_period.locked_percentage or 0
-        context['warning_threshold'] = self.object.budget_period.warning_threshold or 10
-        context['budget_items'] = BudgetItem.objects.filter(
-            budget_period=self.object.budget_period,
-            is_active=True
-        ).select_related('organization')
-        context['organizations'] = Organization.objects.filter(is_active=True).select_related('org_type')
-        context['projects'] = Project.objects.filter(is_active=True).select_related('category')
-        return context
-
-    @transaction.atomic
-    def form_valid(self, form):
-        old_amount = self.get_object().allocated_amount
-        new_amount = form.instance.allocated_amount
-        difference = new_amount - old_amount
-        remaining = self.get_object().budget_period.get_remaining_amount() + old_amount
-
-        budget_period = form.cleaned_data['budget_period']
-        is_locked, lock_message = budget_period.is_period_locked
-        if is_locked:
-            from django.http import request
-            messages.error(request, lock_message)
-            # Prevent saving the allocation
-            return self.form_invalid(form)
-
-        if new_amount > remaining:
-            messages.error(self.request, f'مبلغ تخصیص بیشتر از باقی‌مانده بودجه ({remaining:,.0f} ریال) است.')
-            return self.form_invalid(form)
-
-        response = super().form_valid(form)
-        if difference != 0:
-            transaction_type = 'ADJUSTMENT_INCREASE' if difference > 0 else 'ADJUSTMENT_DECREASE'
-            BudgetTransaction.objects.create(
-                allocation=form.instance,
-                transaction_type=transaction_type,
-                amount=abs(difference),
-                created_by=self.request.user,
-                description=f'تغییر تخصیص بودجه به {form.instance.organization.name}'
-            )
-        messages.success(self.request, f'تخصیص بودجه به {form.instance.organization.name} با موفقیت به‌روزرسانی شد.')
-        return response
 class BudgetAllocationListView(PermissionBaseView, ListView):
     model = BudgetAllocation
     template_name = 'budgets/budget/budgetallocation_list.html'
@@ -441,6 +386,65 @@ class BudgetAllocationDeleteView(PermissionBaseView, DeleteView):
         messages.success(request, f'تخصیص بودجه به {allocation.organization.name} با موفقیت حذف شد.')
         from django.shortcuts import redirect
         return redirect(self.success_url)
+
+class BudgetAllocationUpdateView(PermissionBaseView, UpdateView):
+    model = BudgetAllocation
+    form_class = BudgetAllocationForm
+    template_name = 'budgets/budget/budgetallocation_form.html'
+    success_url = reverse_lazy('budgetallocation_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('ویرایش تخصیص بودجه')
+        context['budget_period'] = self.object.budget_period
+        context['total_amount'] = self.object.budget_period.total_amount or Decimal('0')
+        context['remaining_amount'] = self.object.budget_period.get_remaining_amount() + self.object.allocated_amount
+        context['remaining_percent'] = (
+            (context['remaining_amount'] / context['total_amount'] * 100)
+            if context['total_amount'] else 0
+        )
+        context['locked_percentage'] = self.object.budget_period.locked_percentage or 0
+        context['warning_threshold'] = self.object.budget_period.warning_threshold or 10
+        context['budget_items'] = BudgetItem.objects.filter(
+            budget_period=self.object.budget_period,
+            is_active=True
+        ).select_related('organization')
+        context['organizations'] = Organization.objects.filter(is_active=True).select_related('org_type')
+        context['projects'] = Project.objects.filter(is_active=True).select_related('category')
+        return context
+
+    @transaction.atomic
+    def form_valid(self, form):
+        old_amount = self.get_object().allocated_amount
+        new_amount = form.instance.allocated_amount
+        difference = new_amount - old_amount
+        remaining = self.get_object().budget_period.get_remaining_amount() + old_amount
+
+        budget_period = form.cleaned_data['budget_period']
+        is_locked, lock_message = budget_period.is_locked
+        if is_locked:
+            from django.http import request
+            messages.error(request, lock_message)
+            # Prevent saving the allocation
+            return self.form_invalid(form)
+
+        if new_amount > remaining:
+            messages.error(self.request, f'مبلغ تخصیص بیشتر از باقی‌مانده بودجه ({remaining:,.0f} ریال) است.')
+            return self.form_invalid(form)
+
+        response = super().form_valid(form)
+        if difference != 0:
+            transaction_type = 'ADJUSTMENT_INCREASE' if difference > 0 else 'ADJUSTMENT_DECREASE'
+            BudgetTransaction.objects.create(
+                allocation=form.instance,
+                transaction_type=transaction_type,
+                amount=abs(difference),
+                created_by=self.request.user,
+                description=f'تغییر تخصیص بودجه به {form.instance.organization.name}'
+            )
+        messages.success(self.request, f'تخصیص بودجه به {form.instance.organization.name} با موفقیت به‌روزرسانی شد.')
+        return response
+
 class BudgetAllocationCreateView(PermissionBaseView, CreateView):
     model = BudgetAllocation
     form_class = BudgetAllocationForm
@@ -540,7 +544,8 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
         logger.info(f"Form valid for BudgetAllocation, saving...")
         try:
             budget_period = form.cleaned_data['budget_period']
-            is_locked, lock_message = budget_period.is_period_locked
+            # is_locked, lock_message = budget_period.is_period_locked
+            is_locked, lock_message = budget_period.is_locked  # تغییر از is_period_locked به is_locked
             if is_locked:
                 messages.error(self.request, lock_message)
                 return self.form_invalid(form)
