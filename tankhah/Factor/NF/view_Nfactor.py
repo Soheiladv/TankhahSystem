@@ -61,6 +61,11 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
                 kwargs['tankhah'] = Tankhah.objects.select_related(
                     'project', 'organization', 'current_stage', 'project_budget_allocation__budget_period'
                 ).get(id=tankhah_id)
+                # انقضای تاریخ تنخواه
+                if kwargs['tankhah'].due_date and kwargs['tankhah'].due_date.date() < timezone.now().date():
+                    messages.error(self.request, _('تنخواه منقضی شده است. لطفاً تنخواه جدیدی انتخاب کنید.'))
+                    kwargs['tankhah'] = None
+
             except (Tankhah.DoesNotExist, ValueError):
                 messages.error(self.request, _("تنخواه انتخاب شده معتبر نیست."))
         return kwargs

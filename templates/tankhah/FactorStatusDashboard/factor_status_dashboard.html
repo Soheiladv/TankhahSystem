@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{%  load static rcms_custom_filters jformat i18n  %}
+{% block content %}
+    <h1>داشبورد وضعیت فاکتورها</h1>
+    <form method="GET">
+        <label for="status">وضعیت:</label>
+        <select name="status" onchange="this.form.submit()">
+            {% for choice in status_choices %}
+                <option value="{{ choice.value }}" {% if request.GET.status == choice.value %}selected{% endif %}>
+                    {{ choice.label }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">فیلتر</button>
+    </form>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>{% trans "ردیف" %}</th>
+                <th>شماره فاکتور</th>
+                <th>تنخواه</th>
+                <th>پروژه</th>
+                <th>سازمان</th>
+                <th>گیرنده</th>
+                <th>تاریخ تأیید</th>
+                <th>مبلغ (ریال)</th>
+                <th>وضعیت</th>
+                <th>دسته‌بندی</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for factor in factors %}
+                <tr>
+                    <td>{{ forloop.counter|to_persian_number }}</td>
+                    <td>{{ factor.number |to_persian_number}}</td>
+                    <td>{{ factor.tankhah.number |to_persian_number}}</td>
+                    <td>{{ factor.tankhah.project.name|default:"-" |to_persian_number}}</td>
+                    <td>{{ factor.tankhah.organization.name|default:"-"|to_persian_number }}</td>
+                    <td>{{ factor.tankhah.payee.name|default:"-" |to_persian_number}}</td>
+                    <td>{{ factor.approved_at|jformat:"%Y-%m-%d" }}</td>
+                    <td>{{ factor.amount|floatformat:2|format_negative }}</td>
+                    <td>{{ factor.get_status_display }}</td>
+                    <td>{{ factor.category.name|default:"-" }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="9">هیچ فاکتوری یافت نشد.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% include 'core/pagination.html' %}
+{% endblock %}

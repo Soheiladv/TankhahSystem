@@ -2,16 +2,14 @@
 {% load static i18n humanize %}
 {% load rcms_custom_filters %}
 
-{% block title %}{{ title }}{% endblock %}
-
-{% block page_title %}
-    {# ... (مانند قبل) ... #}
-{% endblock %}
+{% block title %}{{ title|default:"جزئیات فاکتور" }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid mt-3 comprehensive-factor-detail-page">
     {% with data=factor_data_package factor=data.factor_instance %}
-
+    {% if data.error %}
+        <div class="alert alert-danger">{{ data.error }}</div>
+    {% else %}
     <!-- Enhanced Factor Header -->
     <div class="card shadow-lg mb-4 factor-header-detailed
                 {% if factor.status == 'APPROVED' %}status-bg-approved
@@ -25,31 +23,31 @@
             <div class="row align-items-center">
                 <div class="col-md-5">
                     <h3 class="mb-1 fw-bold">
-                        <i class="fas fa-file-signature me-2"></i>{% translate "فاکتور" %} {{ factor.number|to_persian_number }}
+                        <i class="fas fa-file-signature me-2"></i>{% translate "فاکتور" %} {{ factor.number|to_persian_number|default:"---" }}
                     </h3>
                     <p class="mb-1 opacity-75">
-                        {% translate "تنخواه" %}: {{ data.base_info.tankhah_number|to_persian_number }}
+                        {% translate "تنخواه" %}: {{ data.base_info.tankhah_number|to_persian_number|default:"---" }}
                         <span class="mx-2">|</span>
-                        {% translate "تاریخ" %}: {{ data.base_info.date|date:"Y/m/d"|to_persian_number }}
+                        {% translate "تاریخ" %}: {{ data.base_info.date|date:"Y/m/d"|to_persian_number|default:"---" }}
                     </p>
                 </div>
                 <div class="col-md-4 text-md-center mt-2 mt-md-0">
-                    <p class="mb-1"><strong class="opacity-75">{% translate "سازمان" %}:</strong> {{ data.base_info.organization_name }}</p>
-                    <p class="mb-0"><strong class="opacity-75">{% translate "مرکز هزینه" %}:</strong> {{ data.base_info.project_name }}</p>
+                    <p class="mb-1"><strong class="opacity-75">{% translate "سازمان" %}:</strong> {{ data.base_info.organization_name|default:"---" }}</p>
+                    <p class="mb-0"><strong class="opacity-75">{% translate "مرکز هزینه" %}:</strong> {{ data.base_info.project_name|default:"---" }}</p>
                 </div>
                 <div class="col-md-3 text-md-end mt-3 mt-md-0">
                     <div class="mb-2">
                         <span class="badge fs-09rem px-3 py-2 shadow-sm status-badge-main">
                             <i class="fas {% if factor.status == 'APPROVED' %}fa-check-circle{% elif factor.status == 'REJECTED' %}fa-times-circle{% elif factor.status == 'PENDING' %}fa-hourglass-half{% elif factor.status == 'PAID' %}fa-receipt{% else %}fa-question-circle{% endif %} me-1"></i>
-                            {{ factor.get_status_display }}
+                            {{ factor.get_status_display|default:"---" }}
                         </span>
                     </div>
                     <div class="h4 fw-bolder">
-                        {{ factor.amount|intcomma:False|to_persian_number }} <small class="fs-6 opacity-75">{% translate "ریال" %}</small>
+                        {{ factor.amount|intcomma:False|to_persian_number|default:"0" }} <small class="fs-6 opacity-75">{% translate "ریال" %}</small>
                     </div>
                 </div>
             </div>
-             {% if factor.is_locked or data.base_info.tankhah_is_archived %}
+            {% if factor.is_locked or data.base_info.tankhah_is_archived %}
             <div class="mt-2 d-flex align-items-center small opacity-75">
                 {% if factor.is_locked %}
                     <span class="me-3"><i class="fas fa-lock me-1"></i>{% translate "این فاکتور قفل شده است." %}</span>
@@ -71,14 +69,56 @@
                 <div class="card-body">
                     <h6 class="text-muted small text-uppercase">{% translate "مشخصات اصلی" %}</h6>
                     <dl class="dl-compact">
-                        {# ... (اطلاعات پایه مانند دسته، سرفصل بودجه، دوره بودجه، مرحله تنخواه از مثال قبلی) ... #}
+                        <dt>{% translate "دسته" %}</dt>
+                        <dd>{{ data.base_info.category_name|default:"---" }}</dd>
+                        <dt>{% translate "سرفصل بودجه" %}</dt>
+                        <dd>{{ data.base_info.budget_item_name|default:"---" }}</dd>
+                        <dt>{% translate "دوره بودجه" %}</dt>
+                        <dd>{{ data.base_info.budget_period_name|default:"---" }}</dd>
+                        <dt>{% translate "مرحله تنخواه" %}</dt>
+                        <dd>{{ data.base_info.current_tankhah_stage_name|default:"---" }}</dd>
+                        <dt>{% translate "ایجاد شده توسط" %}</dt>
+                        <dd>{{ data.base_info.created_by_name|default:"---" }}</dd>
+                        <dt>{% translate "تاریخ ایجاد" %}</dt>
+                        <dd>{{ data.base_info.created_at_display|date:"Y/m/d H:i"|to_persian_number|default:"---" }}</dd>
                     </dl>
-                    {% if factor.description %}<p class="small text-muted mb-3"><strong>توضیحات:</strong> {{ factor.description|linebreaksbr }}</p>{% endif %}
+                    {% if factor.description %}
+                        <p class="small text-muted mb-3"><strong>{% translate "توضیحات" %}:</strong> {{ factor.description|linebreaksbr }}</p>
+                    {% endif %}
 
-                    <h6 class="text-muted small text-uppercase mt-3">{% translate "ردیف‌های فاکتور" %} ({{ data.items|length|to_persian_number }})</h6>
+                    <h6 class="text-muted small text-uppercase mt-3">{% translate "ردیف‌های فاکتور" %} ({{ data.items|length|to_persian_number|default:"0" }})</h6>
                     {% if data.items %}
                         <div class="table-responsive factor-items-table-container">
-                            {# ... (جدول ردیف‌های فاکتور مانند مثال قبل، با استایل رنگی برای وضعیت ردیف) ... #}
+                            <table class="table table-sm table-hover factor-items-table">
+                                <thead>
+                                    <tr>
+                                        <th>{% translate "شرح" %}</th>
+                                        <th>{% translate "تعداد" %}</th>
+                                        <th>{% translate "قیمت واحد" %}</th>
+                                        <th>{% translate "مبلغ" %}</th>
+                                        <th>{% translate "وضعیت" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in data.items %}
+                                    <tr>
+                                        <td>{{ item.description|default:"---" }}</td>
+                                        <td>{{ item.quantity|floatformat:2|to_persian_number|default:"0" }}</td>
+                                        <td>{{ item.unit_price|intcomma:False|to_persian_number|default:"0" }}</td>
+                                        <td>{{ item.amount|intcomma:False|to_persian_number|default:"0" }}</td>
+                                        <td>
+                                            <span class="badge
+                                                {% if item.status_code == 'APPROVED' %}bg-success
+                                                {% elif item.status_code == 'REJECTED' %}bg-danger
+                                                {% elif item.status_code == 'PENDING' %}bg-warning
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ item.status|default:"---" }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     {% else %}
                         <p class="text-center small text-muted py-3">{% translate "ردیفی ثبت نشده." %}</p>
@@ -88,8 +128,18 @@
 
             {% if data.attached_documents %}
             <div class="card shadow-sm">
-                <div class="card-header"><h5 class="mb-0 card-title-icon"><i class="fas fa-paperclip text-info me-2"></i>{% translate "اسناد ضمیمه" %}</h5></div>
-                {# ... (لیست اسناد مانند مثال قبلی) ... #}
+                <div class="card-header"><h5 class="mb-0 card-title-icon"><i class="fas fa-paperclip text-info me-2"></i>{% translate "اسناد ضمیمه" %} ({{ data.attached_documents|length|to_persian_number|default:"0" }})</h5></div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for doc in data.attached_documents %}
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fas fa-file me-2 text-info"></i>
+                            <a href="{{ doc.file.url|default:"#" }}" target="_blank" class="text-decoration-none">{{ doc.file.name |default:"---" }}</a>
+                            <span class="ms-auto text-muted xsmall">{{ doc.uploaded_at|date:"Y/m/d H:i"|to_persian_number|default:"---" }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
             {% endif %}
         </div>
@@ -102,9 +152,8 @@
                     {% if data.previous_actions_chronological %}
                         <ul class="list-unstyled workflow-history-v2">
                             {% for action in data.previous_actions_chronological %}
-                            <li class="workflow-step-v2 {{ action.action_status_class }} post-level-{{action.post_level}} post-branch-{{action.post_branch_code|lower|default:'unknown'}}">
+                            <li class="workflow-step-v2 {{ action.action_status_class }} post-level-{{ action.post_level|default:0 }} post-branch-{{ action.post_branch_code|lower|default:'unknown' }}">
                                 <div class="workflow-icon-v2">
-                                    {# آیکون بر اساس سطح یا نوع پست #}
                                     {% if action.post_level == 1 %}<i class="fas fa-user"></i>
                                     {% elif action.post_level == 2 %}<i class="fas fa-user-tie"></i>
                                     {% elif action.post_level >= 3 %}<i class="fas fa-user-shield"></i>
@@ -113,16 +162,18 @@
                                 <div class="workflow-content-v2">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
-                                            <strong class="workflow-actor-v2" title="{{action.post_org_name}}">{{ action.post_name }}</strong>
-                                            <span class="text-muted small"> (سطح {{action.post_level|to_persian_number}})</span>
-                                            <div class="text-muted xsmall">{{ action.user_name }}</div>
+                                            <strong class="workflow-actor-v2" title="{{ action.post_org_name|default:'---' }}">{{ action.post_name|default:"---" }}</strong>
+                                            <span class="text-muted small"> (سطح {{ action.post_level|to_persian_number|default:"0" }})</span>
+                                            <div class="text-muted xsmall">{{ action.user_name|default:"---" }}</div>
                                         </div>
                                         <div class="text-end">
-                                            <span class="action-badge-v2">{{ action.action }}</span>
-                                            <div class="action-time-v2 text-muted xsmall">{{ action.timestamp|date:"y/m/d H:i"|to_persian_number }}</div>
+                                            <span class="action-badge-v2">{{ action.action|default:"---" }}</span>
+                                            <div class="action-time-v2 text-muted xsmall">{{ action.timestamp|date:"Y/m/d H:i"|to_persian_number|default:"---" }}</div>
                                         </div>
                                     </div>
-                                    {% if action.comment %}<div class="workflow-comment-v2 small text-muted mt-1 p-2 bg-light rounded fst-italic">"{% translate action.comment %}"</div>{% endif %}
+                                    {% if action.comment %}
+                                        <div class="workflow-comment-v2 small text-muted mt-1 p-2 bg-light rounded fst-italic">"{{ action.comment|default:"---" }}"</div>
+                                    {% endif %}
                                 </div>
                             </li>
                             {% endfor %}
@@ -135,61 +186,81 @@
         </div>
 
         <!-- Column 3: Current Status, Next Actions, Budget -->
-        <div class="col-lg-4 col-md-12"> {# در صفحات کوچکتر این ستون تمام عرض می‌شود #}
+        <div class="col-lg-4 col-md-12">
             <div class="card shadow-sm mb-4">
                 <div class="card-header"><h5 class="mb-0 card-title-icon"><i class="fas fa-user-clock text-warning me-2"></i>{% translate "وضعیت فعلی و اقدام بعدی" %}</h5></div>
                 <div class="card-body">
                     {% if data.factor_current_stage_for_action %}
-                        <p class="mb-2">{% translate "فاکتور در مرحله" %} <strong class="text-primary">{{ data.factor_current_stage_for_action.name }}</strong> {% translate "قرار دارد و در انتظار اقدام توسط" %}:</p>
+                        <p class="mb-2">{% translate "فاکتور در مرحله" %} <strong class="text-primary">{{ data.factor_current_stage_for_action.name|default:"---" }}</strong> {% translate "قرار دارد و در انتظار اقدام توسط" %}:</p>
                         {% if data.current_actionable_approvers %}
                             <ul class="list-group list-group-flush approvers-list">
-                            {% for approver in data.current_actionable_approvers %}
-                                <li class="list-group-item px-0 py-2 {% if approver.is_current_user_eligible %}current-user-next-action shadow-sm{% endif %} post-level-{{approver.post_level}} post-branch-{{approver.post_branch_code|lower|default:'unknown'}}"
-                                    title="{% translate 'سازمان' %}: {{ approver.organization_name }} - {% translate 'سطح' %} {{ approver.post_level|to_persian_number }}">
+                                {% for approver in data.current_actionable_approvers %}
+                                <li class="list-group-item px-0 py-2 {% if approver.is_current_user_eligible %}current-user-next-action shadow-sm{% endif %} post-level-{{ approver.post_level|default:0 }} post-branch-{{ approver.post_branch_code|lower|default:'unknown' }}"
+                                    title="{% translate 'سازمان' %}: {{ approver.organization_name|default:'---' }} - {% translate 'سطح' %} {{ approver.post_level|to_persian_number|default:'0' }}">
                                     <div class="d-flex align-items-center">
                                         <div class="approver-icon me-2">
-                                            {# آیکون بر اساس سطح پست #}
                                             {% if approver.post_level == 1 %}<i class="fas fa-user fa-fw"></i>
                                             {% elif approver.post_level == 2 %}<i class="fas fa-user-tie fa-fw"></i>
                                             {% elif approver.post_level >= 3 %}<i class="fas fa-user-shield fa-fw"></i>
                                             {% else %}<i class="fas fa-question fa-fw"></i>{% endif %}
                                         </div>
                                         <div>
-                                            <strong>{{ approver.post_name }}</strong>
-                                            {% if approver.post_branch %}<span class="badge bg-light border text-muted ms-1 xsmall">{{ approver.post_branch }}</span>{% endif %}
-                                            {% if approver.users %}<br><small class="text-muted">({% for usr in approver.users %}{{usr.name}}{% if not forloop.last %}, {% endif %}{% endfor %})</small>{% endif %}
+                                            <strong>{{ approver.post_name|default:"---" }}</strong>
+                                            {% if approver.post_branch %}<span class="badge bg-light border text-muted ms-1 xsmall">{{ approver.post_branch|default:"---" }}</span>{% endif %}
+                                            {% if approver.users %}<br><small class="text-muted">({% for usr in approver.users %}{{ usr.name|default:"---" }}{% if not forloop.last %}, {% endif %}{% endfor %})</small>{% endif %}
                                         </div>
-                                        {% if approver.is_current_user_eligible %}<span class="badge bg-success text-white ms-auto">{% translate "شما" %}</span>{% endif %}
+                                        {% if approver.is_current_user_eligible %}
+                                            <span class="badge bg-success text-white ms-auto">{% translate "شما" %}</span>
+                                        {% endif %}
                                     </div>
                                 </li>
-                            {% endfor %}
+                                {% endfor %}
                             </ul>
                         {% else %}
-                             <div class="alert alert-info small p-2 text-center">{% translate "اقدام‌کننده‌ای برای این مرحله تعریف نشده." %}</div>
+                            <div class="alert alert-info small p-2 text-center">{% translate "اقدام‌کننده‌ای برای این مرحله تعریف نشده." %}</div>
                         {% endif %}
                     {% else %}
-                         <div class="alert alert-secondary small p-2 text-center">
-                             {% if factor.status == 'PAID' %}...{% elif factor.status == 'REJECTED' %}...{% else %}...{% endif %}
-                         </div>
+                        <div class="alert alert-secondary small p-2 text-center">
+                            {% if factor.status == 'PAID' %}
+                                {% translate "فاکتور پرداخت شده است و نیاز به اقدام بعدی ندارد." %}
+                            {% elif factor.status == 'REJECTED' %}
+                                {% translate "فاکتور رد شده است و نیاز به اقدام بعدی ندارد." %}
+                            {% else %}
+                                {% translate "مرحله فعلی برای این فاکتور تعریف نشده است." %}
+                            {% endif %}
+                        </div>
                     {% endif %}
 
-                    {% if data.can_current_user_act_on_factor and not factor.is_locked and factor.status == 'PENDING' %}
+                    {% if data.can_current_user_act_flag and not factor.is_locked and factor.status == 'PENDING' %}
                     <div class="mt-3 text-center border-top pt-3">
-                        {# ... دکمه‌های اقدام ... #}
+                        <button class="btn btn-success btn-sm me-2" onclick="approveFactor({{ factor.pk }})">{% translate "تایید" %}</button>
+                        <button class="btn btn-danger btn-sm" onclick="rejectFactor({{ factor.pk }})">{% translate "رد" %}</button>
                     </div>
                     {% endif %}
                 </div>
             </div>
 
             <div class="card shadow-sm">
-                 <div class="card-header"><h5 class="mb-0 card-title-icon"><i class="fas fa-coins text-success me-2"></i>{% translate "تحلیل بودجه" %}</h5></div>
-                 <div class="card-body">
-                    {# ... نمایش اطلاعات بودجه مانند قبل ... #}
-                 </div>
+                <div class="card-header"><h5 class="mb-0 card-title-icon"><i class="fas fa-coins text-success me-2"></i>{% translate "تحلیل بودجه" %}</h5></div>
+                <div class="card-body">
+                    {% if data.budget_info.impact_message %}
+                        <div class="alert alert-warning small p-2">{{ data.budget_info.impact_message }}</div>
+                    {% endif %}
+                    <dl class="dl-compact">
+                        <dt>{% translate "مانده جاری تنخواه" %}</dt>
+                        <dd>{{ data.budget_info.tankhah_current_remaining|intcomma:False|to_persian_number|default:"0" }} {% translate "ریال" %}</dd>
+                        <dt>{% translate "مانده تنخواه پس از این فاکتور" %}</dt>
+                        <dd>{{ data.budget_info.tankhah_remaining_after_this|intcomma:False|to_persian_number|default:"0" }} {% translate "ریال" %}</dd>
+                        <dt>{% translate "مانده جاری پروژه" %}</dt>
+                        <dd>{{ data.budget_info.project_current_remaining|intcomma:False|to_persian_number|default:"0" }} {% translate "ریال" %}</dd>
+                        <dt>{% translate "مانده پروژه پس از این فاکتور" %}</dt>
+                        <dd>{{ data.budget_info.project_remaining_after_this|intcomma:False|to_persian_number|default:"0" }} {% translate "ریال" %}</dd>
+                    </dl>
+                </div>
             </div>
         </div>
     </div>
-
+    {% endif %}
     {% endwith %}
 </div>
 {% endblock %}
@@ -200,9 +271,9 @@
     .comprehensive-factor-detail-page .card-title-icon i { font-size: 0.9em; }
     .fs-09rem { font-size: 0.9rem !important; }
     .xsmall { font-size: 0.75rem !important; }
-    .dl-compact dt { font-weight: 500; font-size: 0.8rem; color: #6c757d; padding-bottom: 0.4rem; width: 35%;}
-    .dl-compact dd { font-size: 0.82rem; margin-bottom: 0.4rem; width: 65%;}
-    .factor-items-table-container { max-height: 300px; }
+    .dl-compact dt { font-weight: 500; font-size: 0.8rem; color: #6c757d; padding-bottom: 0.4rem; width: 35%; }
+    .dl-compact dd { font-size: 0.82rem; margin-bottom: 0.4rem; width: 65%; }
+    .factor-items-table-container { max-height: 300px; overflow-y: auto; }
     .factor-items-table th { font-size: 0.75rem; }
     .factor-items-table td { font-size: 0.8rem; }
 
@@ -216,46 +287,39 @@
     .factor-header-detailed .status-badge-main { border: 1px solid rgba(255,255,255,0.5); }
     .factor-header-detailed.is-locked-header {
         background-image: repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0,0,0,0.1) 10px, rgba(0,0,0,0.1) 20px),
-                          var(--original-bg, linear-gradient(135deg, #6c757d, #5a6268)); /* Fallback if original bg is complex */
+                          linear-gradient(135deg, #6c757d, #5a6268);
     }
     .factor-header-detailed.is-archived-header { opacity: 0.75; }
-
 
     /* Enhanced Workflow History (Timeline v2) */
     .workflow-history-container { max-height: 400px; overflow-y: auto; }
     .workflow-history-v2 { padding-right: 0; }
     .workflow-step-v2 {
         position: relative;
-        padding: 10px 0 10px 40px; /* LTR */
+        padding: 10px 0 10px 40px;
         margin-bottom: 15px;
-        border-left: 3px solid #e9ecef; /* LTR */
+        border-left: 3px solid #e9ecef;
     }
     [dir="rtl"] .workflow-history-v2 { padding-left: 0; padding-right: 0; }
     [dir="rtl"] .workflow-step-v2 { padding: 10px 40px 10px 0; border-left: none; border-right: 3px solid #e9ecef; }
-
     .workflow-step-v2:last-child { border-left: 0; border-right: 0; margin-bottom: 0; }
     .workflow-icon-v2 {
         position: absolute;
-        top: 10px; left: -15px; /* LTR */
+        top: 10px; left: -15px;
         width: 30px; height: 30px;
         border-radius: 50%;
         background-color: var(--bs-body-bg);
-        border: 3px solid #adb5bd; /* Default dot color */
+        border: 3px solid #adb5bd;
         display: flex; align-items: center; justify-content: center;
         font-size: 0.9rem;
         color: #adb5bd;
     }
     [dir="rtl"] .workflow-icon-v2 { left: auto; right: -15px; }
-
     .workflow-step-v2.action-approved .workflow-icon-v2 { border-color: var(--bs-success); color: var(--bs-success); }
     .workflow-step-v2.action-rejected .workflow-icon-v2 { border-color: var(--bs-danger); color: var(--bs-danger); }
     .workflow-step-v2.action-other .workflow-icon-v2 { border-color: var(--bs-secondary); color: var(--bs-secondary); }
-
-    /* Color coding for post branches in history v2 */
-    .workflow-step-v2.post-branch-fin .workflow-icon-v2 { border-color: #198754; color: #198754; } /* Finance */
-    .workflow-step-v2.post-branch-ceo .workflow-icon-v2 { border-color: #dc3545; color: #dc3545; } /* CEO */
-    /* ... etc ... */
-
+    .workflow-step-v2.post-branch-fin .workflow-icon-v2 { border-color: #198754; color: #198754; }
+    .workflow-step-v2.post-branch-ceo .workflow-icon-v2 { border-color: #dc3545; color: #dc3545; }
     .workflow-actor-v2 strong { font-weight: 600; }
     .action-badge-v2 { font-size: 0.8em; font-weight: bold; padding: .2em .5em; border-radius: .25rem; }
     .workflow-step-v2.action-approved .action-badge-v2 { background-color: var(--bs-success-bg-subtle); color: var(--bs-success-text-emphasis); }
@@ -264,18 +328,14 @@
 
     /* Approvers List */
     .approvers-list .list-group-item { border: none; }
-    .approvers-list .approver-icon {
-        font-size: 1.1rem;
-        width: 25px; /* for alignment */
-    }
+    .approver-icon { font-size: 1.1rem; width: 25px; }
     .current-user-next-action {
-        background-color: var(--bs-teal-bg-subtle) !important; /* A distinct color for current user */
+        background-color: var(--bs-teal-bg-subtle) !important;
         border: 1px solid var(--bs-teal-border-subtle);
     }
     .current-user-next-action strong { color: var(--bs-teal-text-emphasis); }
 </style>
 {% endblock %}
-
 
 {% block extra_js %}
 {{ block.super }}
@@ -283,7 +343,57 @@
     // Tooltips
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-      return new bootstrap.Tooltip(tooltipTriggerEl)
+        return new bootstrap.Tooltip(tooltipTriggerEl)
     })
+
+    // Placeholder for action buttons (to be implemented based on your backend)
+   // function approveFactor(factorId) {
+    //    console.log("Approve factor: " + factorId);
+        // Implement AJAX call to approve endpoint
+    //}
+    //function rejectFactor(factorId) {
+    //    console.log("Reject factor: " + factorId);
+        // Implement AJAX call to reject endpoint
+    //}
+        function approveFactor(factorId) {
+        fetch(`/tankhah/factor/${factorId}/approve/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('خطا: ' + data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    function rejectFactor(factorId) {
+        fetch(`/tankhah/factor/${factorId}/reject/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('خطا: ' + data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
 </script>
 {% endblock %}

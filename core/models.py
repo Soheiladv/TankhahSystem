@@ -372,6 +372,7 @@ class WorkflowStage(models.Model):
     description = models.TextField(blank=True, verbose_name=_('توضیحات'))
     is_active = models.BooleanField(default=True, verbose_name=_("وضعیت فعال"))
     is_final_stage = models.BooleanField(default=False, help_text="آیا این مرحله نهایی برای تکمیل تنخواه است؟", verbose_name=_("تعیین مرحله آخر"))
+    "اگر auto_advance=True باشد، پس از تأیید یک مرحله، فاکتور به مرحله بعدی می‌رود."
     auto_advance = models.BooleanField(default=True, verbose_name=_("پیش‌رفت خودکار"))
     triggers_payment_order = models.BooleanField(default=False, verbose_name=_("فعال‌سازی دستور پرداخت") , help_text=_(
         "آیا این مرحله باعث ایجاد خودکار دستور پرداخت می‌شود؟ (برای تنخواه/فاکتور)"))

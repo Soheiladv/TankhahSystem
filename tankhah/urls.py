@@ -3,6 +3,7 @@ from django.urls import path
 
 from budgets.PaymentOrder.view_PaymentOrder import TankhahUpdateStatusView
 from budgets.budget_calculations import get_budget_info, get_tankhah_budget_info
+from tankhah.Factor import FactorItemsDetailView
 from tankhah.Factor.FactorStatusReviewView import FactorStatusReviewView, AdvancedFactorStatusReviewView, \
     ComprehensiveFactorDetailView, UltimateFactorDetailView
 from tankhah.Factor.NF.view_Nfactor import New_FactorCreateView
@@ -10,6 +11,7 @@ from tankhah.Factor.View_Factor_list import FactorListView, FactorListView2, Opt
 from tankhah.Factor.view_FactorItemApprove import FactorItemApproveView
 from tankhah.Factor.view_FactorUpdate import FactorUpdateView
 from tankhah.Factor.views_approval_path import FactorApprovalPathView
+from tankhah.FactorStatusDashboard.FactorStatusDashboardView import FactorStatusDashboardView
 from tankhah.TankhahTrackingView import TankhahTrackingViewOLDer, TankhahStatusView, TankhahApprovalTimelineView
 # from tankhah.view.view_Notification import NotificationListView, NotificationCreateView, NotificationUpdateView, \
 #     NotificationDeleteView
@@ -60,6 +62,8 @@ urlpatterns = [
     path('factor-item/<int:pk>/reject/', FactorItemRejectView.as_view(), name='factor_item_reject'),
     path('factor/<int:pk>/status-update/', FactorStatusUpdateView.as_view(), name='factor_status_update'),
 
+    # path('factor-items/<int:pk>/factoritemsdetail', FactorItemsDetailView, name='factor_items_detail'),
+
     path('approvals/', ApprovalListView.as_view(), name='approval_list'),
     path('tankhah/<str:tankhah_number>/approvals/', ApprovalLogListView.as_view(), name='approval_log_list'),
     path('approval/<int:pk>/', ApprovalDetailView.as_view(), name='approval_detail'),
@@ -81,6 +85,8 @@ urlpatterns += [
     path('factor/list3/',  OptimizedFactorListView.as_view(), name='factor_list3'), # Example success URL
 
     path('factor/<int:pk>/approval-path/', FactorApprovalPathView.as_view(), name='factor_approval_path'),#مسیر تایید فاکتورها
+
+    path('factor/factor_status_dashboard/', FactorStatusDashboardView.as_view(), name='factor_status_dashboard'),
 
     # ... other factor related urls ...
 ]

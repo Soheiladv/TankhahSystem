@@ -223,7 +223,7 @@ class TankhahUpdateStatusView__(UpdateView): # باید از PermissionBaseView 
 class TankhahUpdateStatusView(PermissionBaseView, UpdateView):
     model = Tankhah
     fields = ['status', 'current_stage']
-    template_name = 'tankhah/tankhah_update_status.html'
+    template_name = 'budgets/paymentorder/tankhah_update_status.html'
     permission_required = 'tankhah.change_tankhah'
 
     def get_success_url(self):
@@ -476,14 +476,6 @@ class PaymentOrderReviewView(PermissionBaseView, ListView):
 
         logger.info(f"Context prepared for user {self.request.user.username}, {len(payment_orders_with_details)} payment orders")
         return context
-
-#-------
-# --- PaymentOrder CRUD ---
-class PaymentOrderListView___(PermissionBaseView, ListView):
-    model = PaymentOrder
-    template_name = 'budgets/paymentorder/paymentorder_list.html'
-    context_object_name = 'payment_orders'
-    paginate_by = 10
 class PaymentOrderListView(PermissionBaseView, ListView):
         model = PaymentOrder
         template_name = 'budgets/paymentorder/paymentorder_list.html'
@@ -552,52 +544,6 @@ class PaymentOrderDeleteView(PermissionBaseView, DeleteView):
             payment_order.delete()
             messages.success(request, f'دستور پرداخت {payment_order.order_number} با موفقیت حذف شد.')
         return redirect(self.success_url)
-class PaymentOrderDetailView__(PermissionBaseView, DetailView):
-    model = TankhahAction
-    template_name = 'budgets/paymentorder/paymentorder_detail.html'
-    context_object_name = 'action'
-    permission_required = 'tankhah.view_paymentorder'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # user_post = self.request.user.userpost_set.filter(is_active=True).first()
-        # context['user_can_sign'] = ActionApproval.objects.filter(
-        #     action=self.object,
-        #     approver_post=user_post.post if user_post else None,
-        #     is_approved=False
-        # ).exists()
-        return context
-
-    def post(self, request, *args, **kwargs):
-        action = self.get_object()
-        user_post = request.user.userpost_set.filter(is_active=True).first()
-        if not user_post:
-            messages.error(request, "شما پست فعالی ندارید.")
-            return redirect('paymentorder_detail', pk=action.pk)
-
-        # approval = ActionApproval.objects.filter(
-        #     action=action,
-        #     approver_post=user_post.post,
-        #     is_approved=False
-        # ).first()
-        # if approval:
-        #     approval.is_approved = True
-        #     approval.approver_user = request.user
-        #     approval.timestamp = timezone.now()
-        #     approval.save()
-        #     messages.success(request, "دستور پرداخت با موفقیت امضا شد.")
-        #     logger.info(f"User {request.user.username} signed TankhahAction {action.id}")
-        #
-        #     # بررسی آیا همه امضاها انجام شده
-        #     if not ActionApproval.objects.filter(action=action, is_approved=False).exists():
-        #         action.tankhah.status = 'APPROVED'
-        #         action.tankhah.save()
-        #         logger.info(f"Tankhah {action.tankhah.number} fully approved and ready for payment.")
-        #         # اینجا می‌تونی نوتیفیکیشن به خزانه‌دار بفرستی
-        # else:
-        #     messages.error(request, "شما مجاز به امضای این دستور پرداخت نیستید.")
-
-        return redirect('paymentorder_detail', pk=action.pk)
 class PaymentOrderDetailView(PermissionBaseView, DetailView):
     model = PaymentOrder
     template_name = 'budgets/paymentorder/paymentorder_detail.html'
@@ -662,3 +608,58 @@ class PaymentOrderDetailView(PermissionBaseView, DetailView):
 
         return redirect('paymentorder_detail', pk=action.pk)
 
+
+class PaymentOrderDetailView__(PermissionBaseView, DetailView):
+    model = TankhahAction
+    template_name = 'budgets/paymentorder/paymentorder_detail.html'
+    context_object_name = 'action'
+    permission_required = 'tankhah.view_paymentorder'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # user_post = self.request.user.userpost_set.filter(is_active=True).first()
+        # context['user_can_sign'] = ActionApproval.objects.filter(
+        #     action=self.object,
+        #     approver_post=user_post.post if user_post else None,
+        #     is_approved=False
+        # ).exists()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = self.get_object()
+        user_post = request.user.userpost_set.filter(is_active=True).first()
+        if not user_post:
+            messages.error(request, "شما پست فعالی ندارید.")
+            return redirect('paymentorder_detail', pk=action.pk)
+
+        # approval = ActionApproval.objects.filter(
+        #     action=action,
+        #     approver_post=user_post.post,
+        #     is_approved=False
+        # ).first()
+        # if approval:
+        #     approval.is_approved = True
+        #     approval.approver_user = request.user
+        #     approval.timestamp = timezone.now()
+        #     approval.save()
+        #     messages.success(request, "دستور پرداخت با موفقیت امضا شد.")
+        #     logger.info(f"User {request.user.username} signed TankhahAction {action.id}")
+        #
+        #     # بررسی آیا همه امضاها انجام شده
+        #     if not ActionApproval.objects.filter(action=action, is_approved=False).exists():
+        #         action.tankhah.status = 'APPROVED'
+        #         action.tankhah.save()
+        #         logger.info(f"Tankhah {action.tankhah.number} fully approved and ready for payment.")
+        #         # اینجا می‌تونی نوتیفیکیشن به خزانه‌دار بفرستی
+        # else:
+        #     messages.error(request, "شما مجاز به امضای این دستور پرداخت نیستید.")
+
+        return redirect('paymentorder_detail', pk=action.pk)
+class PaymentOrderListView___(PermissionBaseView, ListView):
+    model = PaymentOrder
+    template_name = 'budgets/paymentorder/paymentorder_list.html'
+    context_object_name = 'payment_orders'
+    paginate_by = 10
+
+#-------
+# --- PaymentOrder CRUD ---

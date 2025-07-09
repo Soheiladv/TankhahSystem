@@ -863,12 +863,10 @@ class TankhahDetailView(PermissionBaseView, DetailView):
     permission_codenames = ['tankhah.Tankhah_detail']
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
     check_organization = True
-
     def get_queryset(self):
         return Tankhah.objects.select_related(
             'organization', 'project', 'project_budget_allocation', 'subproject', 'created_by'
         ).prefetch_related('factors', 'approval_logs')
-
     def post(self, request, *args, **kwargs):
         tankhah = self.get_object()
         form = TankhahStatusForm(request.POST, instance=tankhah)
@@ -884,7 +882,6 @@ class TankhahDetailView(PermissionBaseView, DetailView):
         else:
             messages.error(request, _('فرم نامعتبر است. لطفاً ورودی‌ها را بررسی کنید.'))
         return self.get(request, *args, **kwargs)
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         tankhah = self.object
@@ -978,6 +975,7 @@ class TankhahDetailView(PermissionBaseView, DetailView):
         # دیباگ context
         logger.debug(f"Context for Tankhah {tankhah.pk}: {context}")
         return context
+
 class TankhahDeleteView(PermissionBaseView, DeleteView):
     model = 'tankhah.Tankhah'
     template_name = 'tankhah/Tankhah_confirm_delete.html'

@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from Tanbakhsystem.utils import parse_jalali_date
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('BudgetsCalculations')
 """
 توضیحات فایل budget_calculations.py:
 ساختار: توابع به دسته‌های سازمان، پروژه، زیرپروژه، تنخواه، و فاکتور تقسیم شده‌اند.
@@ -288,6 +288,7 @@ def get_tankhah_total_budget(tankhah, filters=None):
     except Exception as e:
         logger.error(f"خطا در محاسبه بودجه کل تنخواه {tankhah.number}: {str(e)}")
         return Decimal('0')
+
 """    محاسبه بودجه مصرف‌شده تنخواه (بر اساس فاکتورهای پرداخت‌شده)"""
 """ محاسبه بودجه باقی‌مانده تنخواه  """
 def ok_old_get_tankhah_remaining_budget(tankhah, filters=None):
@@ -339,8 +340,6 @@ def get_tankhah_remaining_budget(tankhah, filters=None):
     except Exception as e:
         logger.error(f"Error calculating tankhah_remaining_budget for {tankhah.number}: {str(e)}", exc_info=True)
         return Decimal('0')
-
-
 # === توابع بودجه پروژه ===
 def old__get_project_total_budget(project, force_refresh=False, filters=None):
     """
@@ -886,7 +885,6 @@ def check_tankhah_lock_status(tankhah):
         if not tankhah.budget_allocation:
             logger.error(f"هیچ تخصیص بودجه‌ای برای تنخواه {tankhah.code} وجود ندارد")
             return True, _("تنخواه به دلیل عدم وجود تخصیص بودجه غیرفعال است.")
-
         if tankhah.budget_allocation.budget_period.is_locked or tankhah.budget_allocation.is_locked:
             tankhah.is_active = False
             tankhah.save(update_fields=['is_active'])
@@ -895,6 +893,7 @@ def check_tankhah_lock_status(tankhah):
     except Exception as e:
         logger.error(f"خطا در بررسی وضعیت قفل تنخواه {tankhah.code}: {str(e)}")
         return True, _("خطا در بررسی وضعیت قفل تنخواه.")
+
 def old__check_tankhah_lock_status(self):
     """
     اگر BudgetPeriod, BudgetAllocation, یا BudgetAllocation قفل شوند (مثلاً به دلیل lock_condition یا warning_action):

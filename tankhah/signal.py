@@ -1,3 +1,5 @@
+from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 import logging
 from decimal import Decimal
 
@@ -6,9 +8,16 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 
+from budgets.models import PaymentOrder
 from tankhah.models import Tankhah, FactorItem, create_budget_transaction, Factor, ApprovalLog
+# فعال‌سازی سیگنال برای تأیید چندامضایی
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from .models import Tankhah, TankhahAction
+from core.models import AccessRule, Post, WorkflowStage
 
-logger = logging.getLogger(__name__)
+
+logger = logging.getLogger('Signal_PaymentOrder')
 
 
 @receiver(post_save, sender=FactorItem)
@@ -108,18 +117,35 @@ def log_tanbakh_changes(sender, instance, **kwargs):
                 comment=f"تغییر وضعیت از {old_instance.status} به {instance.status}"
             )
 
+def send_notification_to_post_users__(post, action):
+    from accounts.models import CustomUser
+    users = CustomUser.objects.filter(
+        userpost__post=post, is_active=True
+    ).distinct()
+    message = f"دستور پرداخت جدید (ID: {action.id}) برای امضا در انتظار شماست."
+    from budgets.budget_calculations import send_notification
+    send_notification(action, 'PENDING_SIGNATURE', message, users)
+# or
+def send_notification_to_post_users(post, payment_order):
 
+    from accounts.models import CustomUser
+    users = CustomUser.objects.filter(
+        userpost__post=post, userpost__is_active=True
+    ).distinct()
+    message = f"دستور پرداخت جدید ({payment_order.order_number}) برای امضا در انتظار شماست."
+    from notifications.signals import notify
+    notify.send(
+        sender=None,
+        recipient=users,
+        verb='pending_signature',
+        action_object=payment_order,
+        description=message
+    )
 
-# فعال‌سازی سیگنال برای تأیید چندامضایی
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from .models import Tankhah, TankhahAction
-from core.models import AccessRule, Post
-
-@receiver(post_save, sender=TankhahAction)
+@receiver(post_save, sender=PaymentOrder)
 def start_approval_process(sender, instance, created, **kwargs):
     if created and instance.action_type == 'ISSUE_PAYMENT_ORDER':
-        logger.info(f"Starting approval process for TankhahAction {instance.id}")
+        logger.info(f"Starting approval process for PaymentOrder {instance.id}")
         required_posts = AccessRule.objects.filter(
             organization=instance.tankhah.organization,
             stage=instance.stage,
@@ -133,10 +159,98 @@ def start_approval_process(sender, instance, created, **kwargs):
             return
 
         for rule in required_posts:
-            ActionApproval.objects.create(
+            ApprovalLog.objects.create(
                 action=instance,
-                approver_post=rule.post
+                approver_post=rule.post,
+                status = 'PENDING'
             )
-            logger.info(f"Created ActionApproval for post {rule.post.name} on TankhahAction {instance.id}")
             # اینجا می‌تونی نوتیفیکیشن به کاربران دارای پست مربوطه بفرستی
-            # send_notification_to_post_users(rule.post, instance)
+            send_notification_to_post_users(rule.post, instance)
+            logger.info(f"Created ActionApproval for post {rule.post.name} on TankhahAction {instance.id}")
+
+@receiver(post_save, sender=Factor)
+def start_payment_order_process(sender, instance, **kwargs):
+    if instance.status != 'APPROVED':
+        return
+
+    current_stage = instance.tankhah.current_stage
+    if not current_stage or not current_stage.triggers_payment_order:
+        return
+
+    access_rule = AccessRule.objects.filter(
+        organization=instance.tankhah.organization,
+        stage=current_stage,
+        action_type='APPROVE',
+        entity_type='FACTOR',
+        is_active=True
+    ).order_by('-min_level').first()
+
+    if not access_rule:
+        logger.warning(f"No AccessRule found for Factor {instance.number}")
+        return
+
+    approval_log = ApprovalLog.objects.filter(
+        factor=instance,
+        action='APPROVE',
+        stage=current_stage,
+        post__level__gte=access_rule.min_level
+    ).exists()
+
+    if not approval_log:
+        return
+
+    try:
+        with transaction.atomic():
+            payee = instance.tankhah.payee or instance.tankhah.organization.payees.first()
+            if not payee:
+                raise ValueError("گیرنده پرداخت یافت نشد.")
+
+            payment_order = PaymentOrder.objects.create(
+                tankhah=instance.tankhah,
+                amount=instance.amount,
+                payee=payee,
+                description=f"پرداخت فاکتور {instance.number}",
+                created_by=instance.approved_by.last(),
+                created_by_post=instance.approved_by.last().userpost_set.filter(is_active=True).first().post,
+                organization=instance.tankhah.organization,
+                project=instance.tankhah.project,
+                status='PENDING_APPROVAL',
+                min_signatures=2,
+                current_stage=WorkflowStage.objects.filter(order=1).first(),
+                issue_date=timezone.now().date()
+            )
+            payment_order.related_factors.add(instance)
+
+            create_budget_transaction(
+                allocation=instance.tankhah.project_budget_allocation,
+                transaction_type='CONSUMPTION',
+                amount=instance.amount,
+                related_obj=payment_order,
+                created_by=instance.approved_by.last(),
+                description=f"پرداخت دستور {payment_order.order_number}",
+                transaction_id=f"TX-PO-{payment_order.order_number}"
+            )
+
+            required_posts = AccessRule.objects.filter(
+                organization=instance.tankhah.organization,
+                stage=payment_order.current_stage,
+                action_type='SIGN_PAYMENT',
+                entity_type='PAYMENTORDER',
+                is_active=True
+            ).select_related('post')
+
+            for rule in required_posts:
+                ApprovalLog.objects.create(
+                    tankhah=instance.tankhah,
+                    content_type=ContentType.objects.get_for_model(PaymentOrder),
+                    object_id=payment_order.id,
+                    action='PENDING_SIGNATURE',
+                    stage=payment_order.current_stage,
+                    post=rule.post
+                )
+                send_notification_to_post_users(rule.post, payment_order)
+
+            logger.info(f"PaymentOrder {payment_order.order_number} created for Factor {instance.number}")
+
+    except Exception as e:
+        logger.error(f"Error creating PaymentOrder for Factor {instance.number}: {e}", exc_info=True)

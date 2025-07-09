@@ -1,0 +1,526 @@
+متوجه شدم. شما در حال حاضر تا سطح نمایش "تخصیص‌های پروژه" (ProjectBudgetAllocations) در گزارش جامع خود پیش رفته‌اید و مشکل در بارگذاری سطح بعدی، یعنی "تنخواه‌ها" برای یک تخصیص پروژه خاص، و سپس "فاکتورها" برای آن تنخواه است.
+
+بیایید با دقت ویوها و تمپلیت‌های مربوط به این سطوح را بررسی و تکمیل کنیم.
+
+۱. اصلاح و تکمیل ویوی APIProjectAllocationsForBAView (برای نمایش تخصیص‌های پروژه)
+
+این ویو باید برای هر ProjectBudgetAllocation (PBA) که برمی‌گرداند، URL صحیح برای بارگذاری AJAX تنخواه‌های مربوط به آن PBA را نیز ارسال کند.
+
+# reports/views.py
+# ... (سایر import ها مانند قبل) ...
+# از budgets.models و core.models و accounts.models و tankhah.models ایمپورت کنید
+# از budgets.budget_calculations هم توابع لازم را ایمپورت کنید
+
+class APIProjectAllocationsForBAView(LoginRequiredMixin, View): # یا PermissionBaseView
+    """
+    API برای دریافت ProjectBudgetAllocations برای یک BudgetAllocation (سرفصل) خاص.
+    """
+    def get(self, request, ba_pk, *args, **kwargs):
+        logger.info(f"API request: Get ProjectBudgetAllocations for BA PK={ba_pk}")
+        try:
+            budget_allocation = get_object_or_404(
+                BudgetAllocation.objects.select_related('budget_item', 'organization', 'budget_period'),
+                pk=ba_pk,
+                is_active=True # فقط سرفصل‌های فعال
+            )
+            logger.debug(f"Found BudgetAllocation: {budget_allocation.budget_item.name} for Org: {budget_allocation.organization.name}")
+
+            project_allocs_qs = ProjectBudgetAllocation.objects.filter(
+                budget_allocation=budget_allocation,
+                is_active=True # فقط تخصیص‌های پروژه فعال
+            ).select_related('project', 'subproject').order_by('project__name', 'subproject__name')
+
+            if not project_allocs_qs.exists():
+                logger.info(f"No active ProjectBudgetAllocations found for BA PK={ba_pk}.")
+                html_content = render_to_string('reports/partials/_no_project_allocations_found.html',
+                                                {'budget_allocation': budget_allocation})
+                return JsonResponse({'html_content': html_content, 'status': 'empty'})
+
+            project_allocations_data = []
+            for pba in project_allocs_qs:
+                target_name_display = pba.project.name if pba.project else _("پروژه نامشخص")
+                if pba.subproject:
+                    target_name_display += f" / {pba.subproject.name}"
+                
+                # محاسبه مانده کلی پروژه/زیرپروژه (این بخش می‌تواند بهینه شود)
+                # یا می‌توانید این اطلاعات را در لود بعدی (لود تنخواه‌ها) نمایش دهید
+                overall_remaining_str = "-"
+                # if pba.subproject:
+                #     overall_remaining_val = get_subproject_remaining_budget(pba.subproject)
+                #     if overall_remaining_val is not None: overall_remaining_str = f"{overall_remaining_val:,.0f}"
+                # elif pba.project:
+                #     overall_remaining_val = get_project_remaining_budget(pba.project)
+                #     if overall_remaining_val is not None: overall_remaining_str = f"{overall_remaining_val:,.0f}"
+                # فعلا برای سادگی، مانده خود PBA را نمایش می‌دهیم
+                pba_remaining_val_str = f"{pba.get_remaining_amount():,.0f}" if hasattr(pba, 'get_remaining_amount') else f"{pba.allocated_amount:,.0f}"
+
+
+                project_allocations_data.append({
+                    'pba_pk': pba.pk, # شناسه ProjectBudgetAllocation
+                    'target_name_display': target_name_display,
+                    'allocated_to_pba_formatted': f"{pba.allocated_amount:,.0f}",
+                    'pba_remaining_formatted': pba_remaining_val_str, # مانده خود این تخصیص
+                    'pba_detail_url': reverse('budgets:project_budget_allocation_detail', kwargs={'pk': pba.pk}),
+                    # **URL صحیح برای بارگذاری تنخواه‌های این PBA**
+                    'tankhahs_ajax_url': reverse('reports:api_tankhahs_for_pba', kwargs={'pba_pk': pba.pk}),
+                    'add_tankhah_url': reverse('tankhah:tankhah_create') + f"?project_budget_allocation_id={pba.pk}" # یا بر اساس project_id / subproject_id
+                })
+            
+            logger.info(f"Prepared {len(project_allocations_data)} ProjectAllocation details for BA PK={ba_pk}.")
+            html_content = render_to_string(
+                'reports/partials/_ajax_level_project_allocations.html', # تمپلیت partial شما
+                {
+                    'project_allocations_list_data': project_allocations_data, # تغییر نام برای وضوح در تمپلیت partial
+                    'parent_ba_pk': ba_pk,
+                    'parent_budget_item_name': budget_allocation.budget_item.name if budget_allocation.budget_item else "",
+                    'parent_org_name': budget_allocation.organization.name,
+                    'parent_period_name': budget_allocation.budget_period.name
+                }
+            )
+            return JsonResponse({'html_content': html_content, 'status': 'success'})
+        # ... (بخش except مانند قبل) ...
+        except Http404:
+            return JsonResponse({'html_content': render_to_string('reports/partials/_no_data_found_ajax.html',
+                                                                  {'message': _("تخصیص بودجه سرفصل یافت نشد.")}),
+                                 'status': 'notfound'}, status=404)
+        except Exception as e:
+            logger.error(f"API Error (ProjectAllocations) for BA PK={ba_pk}: {e}", exc_info=True)
+            return JsonResponse({'html_content': render_to_string('reports/partials/_error_ajax.html', {
+                'error_message': _("خطا در پردازش تخصیص‌های پروژه.")}), 'status': 'error'}, status=500)
+
+
+۲. اصلاح و تکمیل ویوی APITankhahsForPBAView (برای نمایش تنخواه‌های یک PBA)
+
+این ویو pba_pk را می‌گیرد و لیست تنخواه‌های مرتبط با آن ProjectBudgetAllocation را برمی‌گرداند.
+
+# reports/views.py
+# ... (سایر import ها) ...
+from tankhah.models import Tankhah # مطمئن شوید Tankhah ایمپورت شده
+
+class APITankhahsForPBAView(LoginRequiredMixin, View): # یا PermissionBaseView
+    """
+    API برای دریافت Tankhah های مرتبط با یک ProjectBudgetAllocation خاص.
+    """
+    def get(self, request, pba_pk, *args, **kwargs):
+        logger.info(f"API request: Get Tankhahs for PBA PK={pba_pk}")
+        try:
+            pba_instance = get_object_or_404(
+                ProjectBudgetAllocation.objects.select_related('project', 'subproject', 'budget_allocation__budget_item'),
+                pk=pba_pk,
+                is_active=True
+            )
+            logger.debug(f"Found ProjectBudgetAllocation: Project '{pba_instance.project.name if pba_instance.project else 'N/A'}'")
+
+            # واکشی تنخواه‌هایی که به این PBA لینک شده‌اند
+            # **مهم:** مطمئن شوید مدل Tankhah شما یک ForeignKey به نام `project_budget_allocation` دارد.
+            # اگر لینک مستقیم به پروژه/زیرپروژه است، کوئری متفاوت خواهد بود.
+            if hasattr(Tankhah, 'project_budget_allocation'):
+                tankhahs_qs = Tankhah.objects.filter(
+                    project_budget_allocation=pba_instance,
+                    is_archived=False # یا هر فیلتر دیگری برای وضعیت تنخواه
+                ).select_related('created_by', 'current_stage', 'organization', 'project', 'subproject').order_by('-date', '-pk')
+            else:
+                # اگر Tankhah مستقیماً به ProjectBudgetAllocation لینک نیست،
+                # باید بر اساس project و subproject فیلتر کنید (که ممکن است دقیق نباشد اگر چند تخصیص به یک پروژه دارید)
+                logger.warning("Tankhah model does not have a direct link 'project_budget_allocation'. Filtering by project/subproject.")
+                q_filter = Q()
+                if pba_instance.project:
+                    q_filter &= Q(project=pba_instance.project)
+                if pba_instance.subproject:
+                    q_filter &= Q(subproject=pba_instance.subproject)
+                else: # اگر PBA برای پروژه اصلی است و نه زیرپروژه
+                    q_filter &= Q(subproject__isnull=True)
+                
+                tankhahs_qs = Tankhah.objects.filter(q_filter, is_archived=False).select_related(
+                    'created_by', 'current_stage', 'organization', 'project', 'subproject'
+                ).order_by('-date', '-pk')
+
+
+            if not tankhahs_qs.exists():
+                logger.info(f"No active Tankhahs found for PBA PK={pba_pk}.")
+                html_content = render_to_string('reports/partials/_no_tankhahs_found.html', # تمپلیت جدید
+                                                {'parent_pba': pba_instance})
+                return JsonResponse({'html_content': html_content, 'status': 'empty'})
+
+            tankhahs_data_for_template = []
+            for tankhah in tankhahs_qs:
+                # محاسبه مانده تنخواه (می‌تواند یک متد روی مدل Tankhah باشد)
+                # remaining_tankhah_amount = tankhah.get_remaining_amount() if hasattr(tankhah, 'get_remaining_amount') else tankhah.amount
+                
+                tankhahs_data_for_template.append({
+                    'id': tankhah.pk,
+                    'number': tankhah.number,
+                    'amount': tankhah.amount,
+                    'amount_formatted': f"{tankhah.amount:,.0f}",
+                    'status_display': tankhah.get_status_display(),
+                    'date_jalali': jdatetime.date.fromgregorian(date=tankhah.date).strftime('%Y/%m/%d') if tankhah.date else "-",
+                    'detail_url': reverse('tankhah:tankhah_detail', kwargs={'pk': tankhah.pk}), # نام URL صحیح
+                    # **URL صحیح برای بارگذاری فاکتورهای این تنخواه**
+                    'factors_ajax_url': reverse('reports:api_factors_for_tankhah', kwargs={'tankhah_pk': tankhah.pk}),
+                    # 'remaining_formatted': f"{remaining_tankhah_amount:,.0f}",
+                })
+            
+            logger.info(f"Prepared {len(tankhahs_data_for_template)} Tankhah details for PBA PK={pba_pk}.")
+            html_content = render_to_string(
+                'reports/partials/_ajax_level_tankhahs.html', # تمپلیت partial شما
+                {
+                    'tankhahs_list_data': tankhahs_data_for_template, # نام جدید
+                    'parent_pba_pk': pba_pk,
+                    'parent_pba_name_display': f"{pba_instance.project.name if pba_instance.project else ''}{f' / {pba_instance.subproject.name}' if pba_instance.subproject else ''}",
+                    'add_tankhah_url': reverse('tankhah:tankhah_create') + f"?project_budget_allocation_id={pba_pk}" # URL برای ایجاد تنخواه
+                }
+            )
+            return JsonResponse({'html_content': html_content, 'status': 'success'})
+        # ... (بخش except مانند قبل) ...
+        except Http404:
+            return JsonResponse({'html_content': render_to_string('reports/partials/_no_data_found_ajax.html',
+                                                                  {'message': _("تخصیص بودجه پروژه یافت نشد.")}),
+                                 'status': 'notfound'}, status=404)
+        except Exception as e:
+            logger.error(f"API Error (Tankhahs) for PBA PK={pba_pk}: {e}", exc_info=True)
+            return JsonResponse({'html_content': render_to_string('reports/partials/_error_ajax.html',
+                                                                  {'error_message': _("خطا در پردازش تنخواه‌ها.")}),
+                                 'status': 'error'}, status=500)
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+Python
+IGNORE_WHEN_COPYING_END
+
+۳. تکمیل ویوی APIFactorsForTankhahView (برای نمایش فاکتورهای یک تنخواه)
+
+این ویو tankhah_pk را می‌گیرد و لیست فاکتورهای مرتبط را برمی‌گرداند.
+
+# reports/views.py
+# ... (سایر import ها) ...
+from tankhah.models import Factor # مطمئن شوید Factor ایمپورت شده
+
+class APIFactorsForTankhahView(LoginRequiredMixin, View): # یا PermissionBaseView
+    """
+    API برای دریافت Factor های مرتبط با یک Tankhah خاص.
+    """
+    def get(self, request, tankhah_pk, *args, **kwargs):
+        logger.info(f"API request: Get Factors for Tankhah PK={tankhah_pk}")
+        try:
+            tankhah_instance = get_object_or_404(Tankhah.objects.select_related('organization', 'project'), pk=tankhah_pk)
+            logger.debug(f"Found Tankhah: {tankhah_instance.number}")
+
+            factors_qs = Factor.objects.filter(
+                tankhah=tankhah_instance
+                # می‌توانید فیلترهای بیشتری اضافه کنید (مثلاً is_active)
+            ).select_related('category', 'created_by').order_by('-date', '-pk') # جدیدترین‌ها اول
+
+            if not factors_qs.exists():
+                logger.info(f"No Factors found for Tankhah PK={tankhah_pk}.")
+                html_content = render_to_string('reports/partials/_no_factors_found.html', # تمپلیت جدید
+                                                {'parent_tankhah': tankhah_instance})
+                return JsonResponse({'html_content': html_content, 'status': 'empty'})
+
+            factors_data_for_template = []
+            for factor in factors_qs:
+                factors_data_for_template.append({
+                    'id': factor.pk,
+                    'number': factor.number,
+                    'amount': factor.amount,
+                    'amount_formatted': f"{factor.amount:,.0f}",
+                    'status_display': factor.get_status_display(),
+                    'category_name': factor.category.name if factor.category else "-",
+                    'date_jalali': jdatetime.date.fromgregorian(date=factor.date).strftime('%Y/%m/%d') if factor.date else "-",
+                    'detail_url': reverse('tankhah:factor_detail', kwargs={'factor_pk': factor.pk}), # نام URL صحیح
+                    # اینجا دیگر نیازی به AJAX url برای سطح بعدی نیست (مگر اینکه ردیف فاکتورها را هم AJAXی لود کنید)
+                })
+            
+            logger.info(f"Prepared {len(factors_data_for_template)} Factor details for Tankhah PK={tankhah_pk}.")
+            html_content = render_to_string(
+                'reports/partials/_ajax_level_factors.html', # تمپلیت partial شما
+                {
+                    'factors_list_data': factors_data_for_template, # نام جدید
+                    'parent_tankhah_pk': tankhah_pk,
+                    'parent_tankhah_number': tankhah_instance.number,
+                    'add_factor_url': reverse('tankhah:factor_create_for_tankhah', kwargs={'tankhah_pk': tankhah_instance.pk}) # URL برای ایجاد فاکتور
+                }
+            )
+            return JsonResponse({'html_content': html_content, 'status': 'success'})
+        # ... (بخش except مانند قبل) ...
+        except Http404:
+            return JsonResponse({'html_content': render_to_string('reports/partials/_no_data_found_ajax.html',
+                                                                  {'message': _("تنخواه یافت نشد.")}),
+                                 'status': 'notfound'}, status=404)
+        except Exception as e:
+            logger.error(f"API Error (Factors) for Tankhah PK={tankhah_pk}: {e}", exc_info=True)
+            return JsonResponse({'html_content': render_to_string('reports/partials/_error_ajax.html',
+                                                                  {'error_message': _("خطا در پردازش فاکتورها.")}),
+                                 'status': 'error'}, status=500)
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+Python
+IGNORE_WHEN_COPYING_END
+
+۴. اصلاح تمپلیت‌های Partial
+
+_ajax_level_project_allocations.html:
+
+مطمئن شوید که data-ajax-load-url در ردیف‌های ProjectBudgetAllocation به درستی به reports:api_tankhahs_for_pba با pba_pk صحیح اشاره می‌کند.
+
+data-target-id باید منحصر به فرد باشد.
+
+{# reports/partials/_ajax_level_project_allocations.html #}
+{% load i18n static rcms_custom_filters humanize %}
+
+<h6 class="mb-3 mt-4 text-info">
+    <i class="fas fa-project-diagram me-2"></i>{% translate "تخصیص‌های پروژه برای سرفصل:" %} <span class="fw-bold">{{ parent_budget_item_name|default:parent_ba_pk|to_persian_number }}</span>
+    <small class="text-muted">({% translate "سازمان:" %} {{ parent_org_name }} | {% translate "دوره:" %} {{ parent_period_name }})</small>
+</h6>
+{% if project_allocations_list_data %} {# نام متغیر از ویو API #}
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped table-hover small">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">{% translate "پروژه / زیرپروژه" %} (ID)</th>
+                    <th scope="col" class="text-center">{% translate "مبلغ تخصیص (از این سرفصل)" %}</th>
+                    <th scope="col" class="text-center">{% translate "مانده PBA" %}</th>
+                    <th scope="col" class="text-center no-print">{% translate "عملیات" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pba_data in project_allocations_list_data %}
+                    {# دکمه یا ردیف کلیک‌پذیر برای باز کردن آکاردئون تنخواه‌ها #}
+                    <tr class="ajax-load-trigger"
+                        data-bs-toggle="collapse" data-bs-target="#tankhahCollapseForPBA{{ pba_data.pba_pk }}"
+                        aria-expanded="false" aria-controls="tankhahCollapseForPBA{{ pba_data.pba_pk }}"
+                        style="cursor: pointer;"
+                        data-level="tankhahs"
+                        data-target-div-id="tankhahsForPBA{{ pba_data.pba_pk }}"
+                        data-ajax-url="{{ pba_data.tankhahs_ajax_url }}">
+                        <td class="fw-bold">
+                            {{ pba_data.project_name_display|to_persian_number }}
+                            <small class="text-muted">({{ pba_data.pba_pk|to_persian_number }})</small>
+                        </td>
+                        <td class="text-center">{{ pba_data.allocated_to_pba_formatted|to_persian_number }}</td>
+                        <td class="text-center">{{ pba_data.pba_remaining_formatted|to_persian_number }}</td>
+                        <td class="text-center no-print">
+                            <a href="{{ pba_data.pba_detail_url }}" class="btn btn-sm btn-outline-info py-0 px-1 me-1" title="{% translate 'جزئیات تخصیص پروژه' %}">
+                                <i class="fas fa-info-circle fa-xs"></i>
+                            </a>
+                            <a href="{{ pba_data.add_tankhah_url }}" class="btn btn-sm btn-outline-success py-0 px-1" title="{% translate 'افزودن تنخواه به این تخصیص' %}">
+                                <i class="fas fa-plus fa-xs"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {# ردیف برای محتوای آکاردئون تنخواه‌ها #}
+                    <tr>
+                        <td colspan="4" class="p-0 border-0">
+                            <div class="collapse" id="tankhahCollapseForPBA{{ pba_data.pba_pk }}">
+                                <div class="card card-body border-0 rounded-0 bg-light-subtle child-accordion-content" id="tankhahsForPBA{{ pba_data.pba_pk }}">
+                                    <div class="ajax-loader"><i class="fas fa-spinner fa-spin fa-lg"></i> <p>{% translate "بارگذاری تنخواه‌ها..." %}</p></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-light text-center mt-3 small py-2">
+        <i class="fas fa-info-circle me-1"></i> {% translate "هنوز هیچ پروژه‌ای به این سرفصل بودجه تخصیص نیافته است." %}
+    </div>
+{% endif %}
+<div class="mt-2">
+    <a href="{% url 'budgets:project_budget_allocation_create' %}?budget_allocation_id={{ parent_ba_pk }}" class="btn btn-sm btn-outline-success no-print">
+         <i class="fas fa-plus-circle me-1"></i> {% translate "تخصیص این سرفصل به پروژه/زیرپروژه دیگر" %}
+    </a>
+</div>
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+Html
+IGNORE_WHEN_COPYING_END
+
+_ajax_level_tankhahs.html:
+
+مشابه بالا، مطمئن شوید data-ajax-load-url در ردیف‌های تنخواه به درستی به reports:api_factors_for_tankhah با tankhah_pk صحیح اشاره می‌کند.
+
+{% load i18n static humanize rcms_custom_filters %}
+
+<h6 class="mb-3 mt-3 text-success-emphasis">
+    <i class="fas fa-receipt me-2"></i>{% translate "تنخواه‌های مرتبط با تخصیص به:" %}
+    <span class="fw-bold">{{ parent_pba_name_display|default:parent_pba_pk|to_persian_number }}</span>
+</h6>
+{% if tankhahs_list_data %} {# نام متغیر از ویو API #}
+    <div class="table-responsive">
+        <table class="table table-sm table-bordered table-striped table-hover small">
+            <thead class="table-light">
+                <tr>
+                    <th>{% translate "شماره تنخواه" %}</th>
+                    <th class="text-end">{% translate "مبلغ" %}</th>
+                    <th class="text-center">{% translate "وضعیت" %}</th>
+                    <th>{% translate "تاریخ" %}</th>
+                    <th class="text-center no-print">{% translate "عملیات" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tankhah_data in tankhahs_list_data %}
+                    <tr class="ajax-load-trigger"
+                        data-bs-toggle="collapse" data-bs-target="#factorsForTankhah{{ tankhah_data.id }}"
+                        aria-expanded="false" aria-controls="factorsForTankhah{{ tankhah_data.id }}"
+                        style="cursor: pointer;"
+                        data-level="factors"
+                        data-target-div-id="factorsForTankhah{{ tankhah_data.id }}"
+                        data-ajax-url="{{ tankhah_data.factors_ajax_url }}">
+                        <td class="fw-bold">{{ tankhah_data.number|to_persian_number }}</td>
+                        <td class="text-end">{{ tankhah_data.amount_formatted|to_persian_number }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-info-soft text-info border border-info">{{ tankhah_data.status_display }}</span>
+                        </td>
+                        <td>{{ tankhah_data.date_jalali|to_persian_number }}</td>
+                        <td class="text-center no-print">
+                            <a href="{{ tankhah_data.detail_url }}" class="btn btn-sm btn-outline-info py-0 px-1 me-1" title="{% translate 'جزئیات تنخواه' %}">
+                                <i class="fas fa-info-circle fa-xs"></i>
+                            </a>
+                            {# لینک برای ایجاد فاکتور برای این تنخواه #}
+                            <a href="{% url 'tankhah:factor_create_for_tankhah' tankhah_pk=tankhah_data.id %}" class="btn btn-sm btn-outline-success py-0 px-1" title="{% translate 'افزودن فاکتور' %}">
+                                <i class="fas fa-plus fa-xs"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="5" class="p-0 border-0">
+                            <div class="collapse" id="factorsForTankhah{{ tankhah_data.id }}">
+                                <div class="card card-body border-0 rounded-0 bg-light-subtle child-accordion-content" id="factorsForTankhah{{ tankhah_data.id }}">
+                                    <div class="ajax-loader"><i class="fas fa-spinner fa-spin fa-lg"></i> <p>{% translate "بارگذاری فاکتورها..." %}</p></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-light text-center mt-3 small py-2">
+        <i class="fas fa-info-circle me-1"></i> {% translate "هیچ تنخواهی برای این تخصیص پروژه/زیرپروژه ثبت نشده است." %}
+    </div>
+{% endif %}
+<div class="mt-2">
+    <a href="{% url 'tankhah:tankhah_create' %}?project_budget_allocation_id={{ parent_pba_pk }}" class="btn btn-sm btn-outline-success no-print">
+         <i class="fas fa-plus-circle me-1"></i> {% translate "ایجاد تنخواه جدید برای این تخصیص پروژه" %}
+    </a>
+</div>
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+Html
+IGNORE_WHEN_COPYING_END
+
+_ajax_level_factors.html:
+
+این تمپلیت لیست فاکتورها را نمایش می‌دهد. در این سطح معمولاً دیگر نیازی به AJAX برای drill-down بیشتر نیست، مگر اینکه بخواهید ردیف‌های فاکتور را هم با AJAX لود کنید.
+
+{% load i18n static humanize jalali_tags rcms_custom_filters %}
+
+<h6 class="mb-3 mt-3 text-dark-emphasis">
+    <i class="fas fa-file-invoice-dollar me-2"></i>{% translate "فاکتورهای مرتبط با تنخواه:" %}
+    <span class="fw-bold">{{ parent_tankhah_number|default:parent_tankhah_pk|to_persian_number }}</span>
+</h6>
+{% if factors_list_data %} {# نام متغیر از ویو API #}
+    <div class="table-responsive">
+        <table class="table table-sm table-bordered table-striped table-hover small">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>{% translate "شماره فاکتور" %}</th>
+                    <th class="text-end">{% translate "مبلغ" %}</th>
+                    <th class="text-center">{% translate "وضعیت" %}</th>
+                    <th>{% translate "دسته" %}</th>
+                    <th>{% translate "تاریخ" %}</th>
+                    <th class="text-center no-print">{% translate "عملیات" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for factor_data in factors_list_data %}
+                    <tr>
+                        <td>{{ forloop.counter|to_persian_number }}</td>
+                        <td class="fw-bold">{{ factor_data.number|to_persian_number }}</td>
+                        <td class="text-end">{{ factor_data.amount_formatted|to_persian_number }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary-soft text-secondary border">{{ factor_data.status_display }}</span>
+                        </td>
+                        <td>{{ factor_data.category_name }}</td>
+                        <td>{{ factor_data.date_jalali|to_persian_number }}</td>
+                        <td class="text-center no-print">
+                            <a href="{{ factor_data.detail_url }}" class="btn btn-sm btn-outline-primary py-0 px-1" title="{% translate 'مشاهده جزئیات فاکتور' %}">
+                                <i class="fas fa-eye fa-xs"></i>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-light text-center mt-3 small py-2">
+        <i class="fas fa-info-circle me-1"></i> {% translate "هیچ فاکتوری برای این تنخواه ثبت نشده است." %}
+    </div>
+{% endif %}
+<div class="mt-2">
+    <a href="{% url 'tankhah:factor_create_for_tankhah' tankhah_pk=parent_tankhah_pk %}" class="btn btn-sm btn-outline-primary no-print">
+        <i class="fas fa-plus-circle me-1"></i> {% translate "افزودن فاکتور جدید به این تنخواه" %}
+    </a>
+</div>
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+Html
+IGNORE_WHEN_COPYING_END
+
+۵. ایجاد تمپلیت‌های _no_*.html (اختیاری اما مفید):
+
+برای نمایش پیام‌های "یافت نشد" به صورت استاندارد:
+
+reports/partials/_no_organizations_found.html
+
+reports/partials/_no_budget_items_found.html
+
+reports/partials/_no_project_allocations_found.html
+
+reports/partials/_no_tankhahs_found.html
+
+reports/partials/_no_factors_found.html
+
+reports/partials/_no_data_found_ajax.html (برای خطاهای عمومی AJAX)
+
+reports/partials/_error_ajax.html (برای خطاهای عمومی AJAX)
+
+مثال برای _no_organizations_found.html:
+
+{% load i18n %}
+<p class="text-muted text-center small py-3">
+    <em>{% blocktranslate with period_name=period.name %}هیچ سازمانی با تخصیص فعال برای دوره بودجه <strong>{{ period_name }}</strong> یافت نشد.{% endblocktranslate %}</em>
+</p>
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+Html
+IGNORE_WHEN_COPYING_END
+
+نکات مهم برای JavaScript در comprehensive_report_main.html:
+
+تابع fetchAndRender: این تابع باید انعطاف‌پذیرتر شود تا بتواند داده‌های مختلفی را از API های مختلف دریافت و با توابع رندر مختلفی نمایش دهد. می‌توانید نام تابع رندر را به عنوان پارامتر به آن پاس دهید یا بر اساس levelName تصمیم بگیرید کدام تابع رندر را فراخوانی کند.
+
+attachAjaxListeners(parentElement): این تابع بسیار مهم است. پس از اینکه هر بخش جدیدی با AJAX بارگذاری و به DOM اضافه شد، این تابع باید روی آن بخش جدید فراخوانی شود تا event listener ها به دکمه‌های ajax-load-trigger داخل آن اضافه شوند. این کار باعث می‌شود drill-down به صورت بازگشتی کار کند.
+
+مدیریت وضعیت data-loaded: برای جلوگیری از بارگذاری مجدد داده‌ها با هر بار باز و بسته کردن آکاردئون، از dataset.loaded استفاده کنید.
+
+نمایش خطا: پیام‌های خطای مناسب در صورت بروز مشکل در ارتباط با API یا پردازش داده‌ها به کاربر نمایش داده شود.
+
+این یک راهنمای کامل برای ساختن یک گزارش سلسله مراتبی پیچیده است. پیاده‌سازی آن نیاز به دقت زیادی در هماهنگی بین ویوها، URLها، تمپلیت‌ها و JavaScript دارد. به صورت مرحله‌ای پیش بروید و هر سطح از AJAX را جداگانه تست کنید.
+
+اگر در بخش خاصی از این پیاده‌سازی به مشکل برخوردید، لطفاً کد مربوطه و خطای دقیق را ارائه دهید.

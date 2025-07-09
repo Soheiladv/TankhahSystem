@@ -113,6 +113,11 @@ dashboard_links = {
         {'name': _('BI گزارشات'), 'url': 'financialDashboardView', 'icon': 'fas fa-chart-pie'}, # نمودار دایره‌ای برای گزارشات BI
         {'name': _('گزارش جزئیات تنخواه'), 'url': 'tankhah_detail', 'icon': 'fas fa-file-alt'}, # فایل متنی برای جزئیات
         {'name': _('گزارش لحظه‌ای از بودجه‌بندی'), 'url': 'budgetrealtimeReportView', 'icon': 'fas fa-tachometer-alt'}, # سرعت‌سنج برای لحظه‌ای
+        {'name': _('گزارشات دستور پرداخت'), 'url': 'payment_order_report', 'icon': 'fas fa-tachometer-alt'}, # سرعت‌سنج برای لحظه‌ای
+        {'name': _('گزارش رد/تایید فاکتور'), 'url': 'advance_factor_status_review',
+         'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'},  # فاکتور خالی
+        {'name': _(' گزارش وضعیت فاکتورها '), 'url': 'factor_status_dashboard', 'permission': 'tankhah.factor_view',
+         'icon': 'fas fa-file-invoice'},  # فاکتور خالی
     ],
     'بودجه سازمان': [
         # {'name': _('فهرست بودجه کلان'), 'url': 'budgetperiod_list', 'permission': 'budgets.view_budgetperiod', 'icon': 'fas fa-money-check-alt'}, # چک پول
@@ -140,6 +145,7 @@ dashboard_links = {
         {'name': _('ایجاد فاکتور'), 'url': 'Nfactor_create', 'permission': 'tankhah.add_factor', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
         {'name': _(' رد/تایید فاکتور '), 'url': 'factor_status_review', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
         # {'name': _('پیشرفته رد/تایید فاکتور'), 'url': 'advance_factor_status_review', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
+        # {'name': _('وضعیت فاکتورها'), 'url': 'factor_approval_path', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
         # {'name': _('وضعیت فاکتورها'), 'url': 'factor_approval_path', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
     ],
     'عنوان مرکز هزینه (پروژه)': [

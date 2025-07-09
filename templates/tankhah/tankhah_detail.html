@@ -172,18 +172,18 @@
                                 <tr>
                                     <td>{{ forloop.counter|to_persian_number }}</td>
                                     <td>
-                                        <a href="{% url 'factor_detail' factor_pk=factor.pk %}">{{ factor.number|default_if_none:"-" }}</a>
+                                        <a href="{% url 'factor_detail' pk=factor.pk %}">{{ factor.number|default_if_none:"-" }}</a>
                                     </td>
                                     <td>{{ factor.jalali_date|to_persian_number|default:"-" }}</td>
                                     <td class="text-end fw-bold">{{ factor.amount|intcomma:False|to_persian_number }}</td>
                                     <td class="text-center"><span class="badge bg-{{ factor.status|lower }}_badge">{{ factor.get_status_display }}</span></td>
                                     <td>{{ factor.category.name|default:"-" }}</td>
                                     <td class="no-print">
-                                        <a href="{% url 'factor_detail' factor_pk=factor.pk %}" class="btn btn-sm btn-outline-primary py-0 px-1" title="{% translate 'مشاهده جزئیات' %}">
+                                        <a href="{% url 'factor_detail' pk=factor.pk %}" class="btn btn-sm btn-outline-primary py-0 px-1" title="{% translate 'مشاهده جزئیات' %}">
                                             <i class="fas fa-eye fa-xs"></i>
                                         </a>
                                         {% if not factor.is_locked and perms.tankhah.change_factor %} {# یا هر شرطی برای ویرایش #}
-                                        <a href="{% url 'factor_update' pk=factor.pk %}" class="btn btn-sm btn-outline-warning py-0 px-1 ms-1" title="{% translate 'ویرایش فاکتور' %}">
+                                        <a href="{% url 'factor_edit' pk=factor.pk %}" class="btn btn-sm btn-outline-warning py-0 px-1 ms-1" title="{% translate 'ویرایش فاکتور' %}">
                                             <i class="fas fa-edit fa-xs"></i>
                                         </a>
                                         {% endif %}

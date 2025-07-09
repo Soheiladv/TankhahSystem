@@ -2,6 +2,7 @@ from django.urls import path
 
 from reports.ComprehensiveBudgetReportView import ComprehensiveBudgetReportView,APITankhahsForPBAView, APIFactorsForTankhahView, \
     APIOrganizationsForPeriodView
+from reports.PaymentOrderReport.PaymentOrderReportView import PaymentOrderReportView
 
 # BudgetItemsForOrgPeriodAPIView,, APITankhahsForProjectView \
 #     YourOrgPeriodAllocationsListView, OrganizationAllocationsAPIView, APIOrganizationAllocationsView, \
@@ -90,6 +91,8 @@ urlpatterns += [
     # API برای فاکتورها
     path('api/factors-for-tankhah/<int:tankhah_pk>/', APIFactorsForTankhahView.as_view(), name='api_factors_for_tankhah'),
 
+    #این ویو گزارشات جامع از PaymentOrder با جزئیات بودجه، تنخواه، فاکتور، و ردیف‌های فاکتور را نمایش می‌دهد.
 
+    path('report/paymentorderreport/', PaymentOrderReportView.as_view(), name='payment_order_report'),
 
 ]

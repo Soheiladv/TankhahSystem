@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>جزئیات ردیف‌های فاکتور برای دستور پرداخت {{ payment_order.order_number|default:"-" }}</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>فاکتور</th>
+                <th>نام کالا</th>
+                <th>مقدار</th>
+                <th>قیمت واحد (ریال)</th>
+                <th>مبلغ کل (ریال)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in factor_items %}
+                <tr>
+                    <td>{{ item.factor.number }}</td>
+                    <td>{{ item.name|default:"-" }}</td>
+                    <td>{{ item.quantity|floatformat:2 }}</td>
+                    <td>{{ item.unit_price|floatformat:2 }}</td>
+                    <td>{{ item.amount|floatformat:2 }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5">هیچ ردیف فاکتوری یافت نشد.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'payment_order_report' %}">بازگشت به گزارشات</a>
+{% endblock %}

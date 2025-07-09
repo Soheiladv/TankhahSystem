@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>گزارشات دستور پرداخت</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>شماره دستور پرداخت</th>
+                <th>تنخواه</th>
+                <th>پروژه</th>
+                <th>سازمان</th>
+                <th>گیرنده</th>
+                <th>تاریخ صدور</th>
+                <th>مبلغ (ریال)</th>
+                <th>وضعیت</th>
+                <th>بودجه تخصیص‌یافته</th>
+                <th>بودجه باقی‌مانده</th>
+                <th>فاکتورها</th>
+                <th>ردیف‌های فاکتور</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for report in report_data %}
+                <tr>
+                    <td>{{ report.payment_order.order_number|default:"-" }}</td>
+                    <td>{{ report.tankhah.number }}</td>
+                    <td>{{ report.tankhah.project }}</td>
+                    <td>{{ report.tankhah.organization }}</td>
+                    <td>{{ report.payment_order.payee.name|default:"-" }}</td>
+                    <td>{{ report.payment_order.issue_date|date:"Y-m-d" }}</td>
+                    <td>{{ report.payment_order.amount|floatformat:2 }}</td>
+                    <td>{{ report.payment_order.get_status_display }}</td>
+                    <td>{{ report.budget_allocation.allocated_amount|floatformat:2 }}</td>
+                    <td>{{ report.budget_allocation.remaining_amount|floatformat:2 }}</td>
+                    <td>
+                        <ul>
+                            {% for factor in report.factors %}
+                                <li>
+                                    {{ factor.number }} - {{ factor.date|date:"Y-m-d" }} - 
+                                    {{ factor.amount|floatformat:2 }} - {{ factor.category.name|default:"-" }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>
+                        <a href="{% url 'factor_items_detail' report.payment_order.id %}">نمایش ردیف‌ها</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="12">هیچ دستور پرداختی یافت نشد.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% include 'core/pagination.html' %}
+{% endblock %}
