@@ -1,38 +1,128 @@
+{% load i18n humanize jformat rcms_custom_filters %}
 {% load i18n humanize %}
-{% if documents %}
-<ul class="list-group list-group-flush">
-    {% for doc in documents %}
-    <li class="list-group-item d-flex justify-content-between align-items-center">
-        <div>
-            <i class="fas fa-file-alt me-2 text-secondary"></i>
-            <a href="{{ doc.file.url }}" target="_blank">{{ doc.file.name  }}</a>
-            <small class="text-muted d-block ps-4">
-                {% translate "آپلود شده توسط:" %} {{ doc.uploaded_by.get_full_name|default:doc.uploaded_by.username|default:"-" }}
-                - {{ doc.uploaded_at|date:"Y/m/d H:i" }}
-                {% if doc.file_size %} ({{ doc.file_size|filesizeformat }}) {% endif %}
-            </small>
+<div class="document-container">
+    {% if documents %}
+    <div class="document-list">
+        {% for doc in documents %}
+        <div class="document-item card mb-3">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-file-alt me-2 text-primary"></i>
+                    <h6 class="mb-0">{{ doc.file.name|truncatechars:40 }}</h6>
+                </div>
+                <span class="badge bg-secondary">{{ doc.file_size|filesizeformat }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>{% translate "آپلود شده توسط:" %}</strong> 
+                        <span class="text-primary">{{ doc.uploaded_by.get_full_name|default:doc.uploaded_by.username|default:"-" }}</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>{% translate "تاریخ آپلود:" %}</strong> 
+                        <span class="text-muted">{{ doc.uploaded_at|date:"Y/m/d H:i" }}</span></p>
+                    </div>
+                </div>
+                <div class="mt-3 d-flex justify-content-between">
+                    <a href="{{ doc.file.url }}" target="_blank" class="btn btn-primary btn-sm">
+                        <i class="fas fa-download me-1"></i> {% translate "دانلود سند" %}
+                    </a>
+                    {% if not factor_package.factor_base.instance.is_locked %}
+                    <button class="btn btn-outline-danger btn-sm delete-document" data-id="{{ doc.pk }}" title="{% translate 'حذف سند' %}">
+                        <i class="fas fa-trash-alt me-1"></i> {% translate "حذف" %}
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        <div>
-            {# لینک حذف سند اگر کاربر مجاز است #}
-            {% comment %}
-            {% if perms.tankhah.delete_factordocument %}
-            <a href="{% url 'tankhah:factor_document_delete' doc.pk %}" class="btn btn-outline-danger btn-sm py-0 px-1" title="{% translate 'حذف سند' %}">
-                <i class="fas fa-trash-alt fa-xs"></i>
-            </a>
-            {% endif %}
-            {% endcomment %}
-        </div>
-    </li>
-    {% endfor %}
-</ul>
-{% else %}
-<p class="text-center text-muted p-3">{% translate "هیچ سندی برای این فاکتور ضمیمه نشده است." %}</p>
-{% endif %}
-{# دکمه افزودن سند اگر کاربر مجاز است و فاکتور قفل نیست #}
-{% if not factor_package.factor_base.instance.is_locked %}
-<div class="p-3 border-top">
-     <!--  <a href="{% url 'factor_document_upload' factor_id %}" class="btn btn-sm btn-outline-success">
-        <i class="fas fa-plus-circle"></i> {% translate "افزودن سند جدید" %}
-    </a> -->
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state text-center py-5">
+        <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">{% translate "هیچ سندی برای این فاکتور ضمیمه نشده است." %}</h5>
+    </div>
+    {% endif %}
+
+    {% if not factor_package.factor_base.instance.is_locked %}
+    <div class="upload-section text-center mt-4 p-3 border-top">
+        <button id="uploadDocumentBtn" class="btn btn-success">
+            <i class="fas fa-plus-circle me-2"></i> {% translate "افزودن سند جدید" %}
+        </button>
+        <input type="file" id="documentUploadInput" style="display: none;">
+    </div>
+    {% endif %}
 </div>
-{% endif %}
+
+<style>
+    .document-container {
+        font-family: 'Vazir', Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .document-item {
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+    }
+    
+    .document-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .document-item .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+    
+    .empty-state {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    @media (max-width: 768px) {
+        .document-item .card-body .row > div {
+            margin-bottom: 10px;
+        }
+        
+        .document-item .d-flex {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .document-item .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        // Handle upload button click
+        $('#uploadDocumentBtn').click(function() {
+            $('#documentUploadInput').click();
+        });
+        
+        // Handle file selection
+        $('#documentUploadInput').change(function() {
+            if (this.files.length > 0) {
+                // Here you would typically upload the file via AJAX
+                alert('آپلود فایل: ' + this.files[0].name);
+                // Reset the input
+                $(this).val('');
+            }
+        });
+        
+        // Handle delete button click
+        $('.delete-document').click(function() {
+            const docId = $(this).data('id');
+            if (confirm('آیا از حذف این سند مطمئن هستید؟')) {
+                // Here you would typically send a delete request via AJAX
+                alert('حذف سند با شناسه: ' + docId);
+                // Refresh the list or remove the item from DOM
+            }
+        });
+    });
+</script>

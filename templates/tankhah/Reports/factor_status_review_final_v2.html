@@ -85,9 +85,9 @@
                 </div>
 
                 <div class="col-md-2 col-lg-1">
-                    <a href="{% url 'advance_factor_status_review' %}" class="btn btn-sm btn-outline-danger w-100">
-                        <i class="fas fa-times me-1"></i>پاک کردن
-                    </a>
+{#                    <a href="{% url 'advance_factor_status_review' %}" class="btn btn-sm btn-outline-danger w-100">#}
+{#                        <i class="fas fa-times me-1"></i>پاک کردن#}
+{#                    </a>#}
                 </div>
             </form>
         </div>
@@ -279,7 +279,7 @@
                                             </div>
                                         </div>
                                         <hr>
-                                        <a href="{% url 'advance_factor_detail' factor.pk %}"
+                                        <a href="{% url 'advance_factor_detailA' factor.pk %}"
                                            class="btn btn-sm btn-outline-primary w-100">
                                             <i class="fas fa-eye me-1"></i>مشاهده جزئیات اقلام
                                         </a>
@@ -345,7 +345,7 @@
                                 {#    <a href="{% url 'factor_detail' factor.pk %}" class="btn btn-outline-primary btn-sm" target="_blank">#}
                                 {#        <i class="fas fa-external-link-alt me-1"></i>{% translate "مشاهده جزئیات کامل و اقدام" %}#}
                                 {#    </a>#}
-                                <a href="{% url 'advance_factor_detail' factor_pk=factor.pk %}">
+                                <a href="{% url 'advance_factor_detailA' factor_pk=factor.pk %}" class="btn btn-outline-primary btn-sm" target="_blank">
                                     {% translate "مشاهده جزئیات جامع فاکتور" %}
                                 </a>
 

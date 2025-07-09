@@ -115,7 +115,7 @@ urlpatterns +=[
     path('factors/status-review/', FactorStatusReviewView.as_view(), name='factor_status_review'),
     path('factors/AdvanceFactorStatusReview/', AdvancedFactorStatusReviewView.as_view(), name='advance_factor_status_review'),
     path('factor/<int:factor_pk>/detail/', ComprehensiveFactorDetailView.as_view(), name='advance_factor_detail'),
-path('factor/<int:factor_pk>/detail/', UltimateFactorDetailView.as_view(), name='advance_factor_detail'),
+    path('factor/<int:factor_pk>/detail/', UltimateFactorDetailView.as_view(),      name='advance_factor_detailA'),
 
 ] # پیگیری فاکتور
 urlpatterns +=[
