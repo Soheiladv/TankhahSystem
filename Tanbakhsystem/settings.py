@@ -2,6 +2,7 @@
 import logging.config
 import os
 from pathlib import Path
+logger = logging.getLogger('SettingError')
 
 # --- Start of your existing settings.py ---
 
@@ -49,6 +50,8 @@ MIDDLEWARE = [
     'accounts.middleware.AuditLogMiddleware',
     'accounts.middleware.ActiveUserMiddleware',
     'accounts.middleware.RequestMiddleware',
+
+
 ]
 
 ROOT_URLCONF = 'Tanbakhsystem.urls'
@@ -212,7 +215,6 @@ from datetime import date
 from cryptography.fernet import Fernet
 import logging
 
-logger = logging.getLogger(__name__)
 
 # بارگذاری لایسنس
 try:

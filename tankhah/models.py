@@ -790,7 +790,6 @@ class Tankhah(models.Model):
                         logger.info(f"Tankhah {self.number} advanced to stage {next_stage.name}")
 
         return processed_count
-
 class TankhActionType(models.Model):
     action_type = models.CharField(max_length=25, verbose_name=_('انواع  اقدام'))
     code = models.CharField(max_length=50, unique=True,verbose_name=_('تایپ'))

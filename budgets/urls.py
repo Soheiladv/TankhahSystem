@@ -1,6 +1,7 @@
 # budgets/urls.py
 from django.urls import path
 
+from reports.ComprehensiveBudgetReportView import ComprehensiveBudgetReportView
 # وارد کردن تمام ویوهای مورد نیاز از بخش‌های مختلف
 from .views import BudgetDashboardView, NumberToWordsView, budget_Help, TransactionTypeListView, \
     TransactionTypeCreateView, TransactionTypeUpdateView, TransactionTypeDeleteView, \
@@ -133,3 +134,4 @@ urlpatterns += [
     path('budgetitems/<int:pk>/delete/',  BudgetItemDeleteView.as_view(), name='budgetitem_delete'),
     path('budgetitems/<int:pk>/',  BudgetItemDetailView.as_view(), name='budgetitem_detail'),
 ] # تعاریف ردیف بودجه
+

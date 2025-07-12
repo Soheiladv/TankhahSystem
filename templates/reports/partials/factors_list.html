@@ -1,0 +1,33 @@
+{% load i18n static humanize jformat rcms_custom_filters %}
+
+<div class="factors-list">
+    {% for factor in factors %}
+    <div class="factor-item p-3 mb-2 bg-white rounded shadow-sm">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h6 class="mb-1">
+                    <i class="fas fa-file-invoice me-2 text-primary"></i>
+                    فاکتور #{{ factor.number|to_persian_number }}
+                </h6>
+                <small class="text-muted">
+                    <i class="far fa-calendar-alt me-1"></i>
+                    {{ factor.date_jalali }}
+                </small>
+            </div>
+            <div class="text-end">
+                <div class="fw-bold text-success">
+                    {{ factor.amount|intcomma|to_persian_number }} ریال
+                </div>
+                <span class="badge bg-{{ factor.get_status_color }} factor-badge rounded-pill">
+                    {{ factor.get_status_display }}
+                </span>
+            </div>
+        </div>
+        {% if factor.description %}
+        <div class="mt-2 pt-2 border-top">
+            <small class="text-muted">{{ factor.description }}</small>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>

@@ -25,14 +25,14 @@ from budgets.models import BudgetPeriod, BudgetAllocation,   BudgetTransaction
 from core.models import Organization, Project
 from django.contrib import messages
 # کتابخانه‌های PDF و Excel (مطمئن شوید نصب شده‌اند)
-try:
-    from weasyprint import HTML, CSS
-
-    WEASYPRINT_AVAILABLE = True
-except ImportError:
-    WEASYPRINT_AVAILABLE = False
-    logger = logging.getLogger('comprehensive_report')
-    logger.warning("WeasyPrint is not installed. PDF export will not be available.")
+# try:
+#     from weasyprint import HTML, CSS
+#
+#     WEASYPRINT_AVAILABLE = True
+# except ImportError:
+#     WEASYPRINT_AVAILABLE = False
+#     logger = logging.getLogger('comprehensive_report')
+#     logger.warning("WeasyPrint is not installed. PDF export will not be available.")
 try:
     from openpyxl import Workbook
     from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
@@ -51,137 +51,7 @@ except ImportError:
 سطرهای تخصیص پروژه (pba): هر سطر <tr> برای تخصیص پروژه (درون بخش پروژه‌ها) (مثل data-ajax-load-url="{% url 'api_tankhahs_for_pba' pba_pk=pba.pba_pk %}")، API APITankhahsForPBAView رو برای بارگذاری تنخواه‌های مربوط به اون تخصیص پروژه فراخوانی می‌کنه.
 
 """
-class BudgetItemsForOrgPeriodAPIView(PermissionBaseView, View):
-    """
-    API View برای دریافت جزئیات BudgetAllocations (سرفصل‌ها) و
-    ProjectBudgetAllocations مرتبط برای یک سازمان و دوره بودجه خاص.
-    این ویو برای پاسخ به درخواست‌های AJAX از گزارش جامع استفاده می‌شود.
-    """
-    print(f'BudgetItemsForOrgPeriodAPIView is load ')
 
-    def get(self, request, period_pk, org_pk, *args, **kwargs):
-        logger.info(f"API request received: Get budget items for Period PK={period_pk}, Org PK={org_pk}")
-        try:
-            # واکشی دوره بودجه و سازمان با بررسی فعال بودن
-            budget_period = get_object_or_404(BudgetPeriod, pk=period_pk, is_active=True, is_completed=False)
-            organization = get_object_or_404(Organization, pk=org_pk, is_active=True)
-            logger.debug(f"Found active BudgetPeriod: {budget_period.name} and Organization: {organization.name}")
-
-            # ۱. واکشی BudgetAllocation ها (سرفصل‌ها) برای این سازمان و دوره
-            # budget_allocations_qs = BudgetAllocation.objects.filter(
-            #     budget_period=budget_period,
-            #     organization=organization,
-            #     is_active=True  # فقط تخصیص‌های فعال
-            # ).select_related('budget_item',  # برای نام و کد سرفصل
-            #                  # 'project' # اگر BudgetAllocation مستقیماً به یک پروژه کلی هم می‌تواند لینک شود
-            #                  ).prefetch_related(Prefetch(
-            #     'project_allocations',  # related_name از BudgetAllocation به ProjectBudgetAllocation
-            #     queryset= BudgetAllocation.objects.filter(is_active=True)
-            #     .select_related('project', 'subproject')  # برای نام پروژه و زیرپروژه
-            #     .order_by('project__name', 'subproject__name'),
-            #     to_attr='active_project_allocations_list'  # نامی برای دسترسی در حلقه
-            #  )
-            # ).order_by('budget_item__name')  # مرتب‌سازی بر اساس نام سرفصل
-            budget_allocations_qs = BudgetAllocation.objects.filter(
-                budget_period=budget_period,
-                organization=organization,
-                is_active=True
-            ).select_related(
-                'budget_item',
-                'project',
-                'subproject'
-            ).order_by('budget_item__name', 'project__name', 'subproject__name')  # مرتب‌سازی کامل
-
-            if not budget_allocations_qs.exists():
-                logger.info(
-                    f"No active BudgetAllocations found for Org '{organization.name}' in Period '{budget_period.name}'.")
-                # می‌توانید یک رشته HTML یا JSON خالی با پیام مناسب برگردانید
-                html_content = render_to_string('reports/partials/_no_budget_items_found.html',
-                                                {'organization': organization, 'period': budget_period})
-                return JsonResponse({'html_content': html_content, 'status': 'empty'})
-
-            # ۲. آماده‌سازی داده‌ها برای ارسال
-            response_data_allocations = []
-            for ba_instance in budget_allocations_qs:
-                # محاسبه مصرف و مانده برای این BudgetAllocation خاص
-                from reports.views import calculate_total_consumed_on_budget_allocation
-                from reports.views import get_budget_allocation_remaining_amount
-                consumed_on_this_ba = calculate_total_consumed_on_budget_allocation(ba_instance,
-                                                                                    use_cache=False)  # False برای داده بروز در AJAX
-                remaining_on_this_ba = get_budget_allocation_remaining_amount(ba_instance, use_cache=False)
-
-                # آماده‌سازی لیست پروژه‌های تخصیص یافته از این BudgetAllocation (سرفصل)
-                projects_under_this_ba = []
-                # getattr برای دسترسی امن به to_attr از prefetch
-                for pba in getattr(ba_instance, 'active_project_allocations_list', []):
-                    project_name_display = pba.project.name if pba.project else _("پروژه نامشخص")
-                    if pba.subproject:
-                        project_name_display += f" / {pba.subproject.name}"
-
-                    # مانده کلی پروژه (از تمام منابع) - این می‌تواند اختیاری باشد
-                    project_overall_remaining_str = "-"
-                    if pba.project:
-                        try:
-                            # این تابع ممکن است کوئری اضافی بزند، برای تعداد زیاد باید بهینه شود
-                            from budgets.budget_calculations import get_project_remaining_budget
-                            project_overall_remaining = get_project_remaining_budget(pba.project)
-                            project_overall_remaining_str = f"{project_overall_remaining:,.0f}"
-                        except Exception as e_proj_rem:
-                            logger.warning(
-                                f"Could not calculate overall remaining for project {pba.project.pk}: {e_proj_rem}")
-
-                    projects_under_this_ba.append({
-                        'pba_pk': pba.pk,
-                        'project_name_display': project_name_display,
-                        'allocated_to_pba': pba.allocated_amount,  # مبلغ تخصیص یافته به این پروژه/زیرپروژه از این سرفصل
-                        'allocated_to_pba_formatted': f"{pba.allocated_amount:,.0f}",
-                        'pba_detail_url': reverse('project_budget_allocation_detail', kwargs={'pk': pba.pk}),
-                        'project_overall_remaining_formatted': project_overall_remaining_str,  # مانده کلی پروژه
-                    })
-
-                response_data_allocations.append({
-                    'ba_pk': ba_instance.pk,
-                    'budget_item_name': ba_instance.budget_item.name if ba_instance.budget_item else _("سرفصل نامشخص"),
-                    'budget_item_code': ba_instance.budget_item.code if ba_instance.budget_item else "-",
-                    'ba_allocated_amount': ba_instance.allocated_amount,
-                    'ba_allocated_amount_formatted': f"{ba_instance.allocated_amount:,.0f}",
-                    'ba_consumed_amount_formatted': f"{consumed_on_this_ba:,.0f}",
-                    'ba_remaining_amount_formatted': f"{remaining_on_this_ba:,.0f}",
-                    'ba_utilization_percentage': (
-                            consumed_on_this_ba / ba_instance.allocated_amount * 100) if ba_instance.allocated_amount > 0 else 0,
-                    'assigned_projects_details': projects_under_this_ba,  # لیست پروژه‌های زیرمجموعه این سرفصل
-                    'ba_report_url': reverse('budget_allocation_report', kwargs={'pk': ba_instance.pk}),
-                    # لینک به گزارش کامل این BudgetAllocation
-                    # 'add_pba_url': reverse('project_budget_allocation') + f"?organization_id={ba_instance.pk}"
-                    # لینک برای ایجاد PBA جدید: نیاز به organization_id دارد
-                    'add_pba_url': reverse('project_budget_allocation', kwargs={
-                        'organization_id': organization.pk}) + f"?budget_allocation_id={ba_instance.pk}"
-                    # لینک برای ایجاد PBA جدید
-                })
-
-            logger.info(
-                f"Successfully prepared {len(response_data_allocations)} BudgetAllocation details for Org '{organization.name}' in Period '{budget_period.name}'.")
-
-            # رندر کردن تمپلیت جزئی برای محتوای HTML
-            html_content = render_to_string(
-                # 'reports/partials/_budget_items_for_org_ajax.html',  # تمپلیت partial جدید
-                'reports/partials/_ajax_level_budget_allocations.html',  # تمپلیت partial جدید
-                {
-                    'budget_allocations_data': response_data_allocations,  # نام متغیر برای تمپلیت partial
-                    'parent_period_pk': period_pk,  # برای id های منحصر به فرد آکاردئون
-                    'parent_org_pk': org_pk
-                }
-            )
-            return JsonResponse({'html_content': html_content, 'status': 'success'})
-
-        except Http404 as e:  # اگر دوره یا سازمان یافت نشد
-            logger.warning(f"API request failed: {e} (Period PK={period_pk}, Org PK={org_pk})")
-            return JsonResponse({'html_content': f'<p class="text-danger text-center small py-3"><em>{e}</em></p>',
-                                 'status': 'notfound'}, status=404)
-        except Exception as e:
-            logger.error(f"API Error for budget items (Period PK={period_pk}, Org PK={org_pk}): {e}", exc_info=True)
-            return JsonResponse(
-                {'error': _("خطا در پردازش درخواست. لطفاً با پشتیبانی تماس بگیرید."), 'status': 'error'}, status=500)
 class YourOrgPeriodAllocationsListView(PermissionBaseView, ListView):
     model = BudgetAllocation
     template_name = 'reports/org_period_allocations_list.html'  # یک تمپلیت جدید برای این لیست
@@ -224,55 +94,6 @@ class YourOrgPeriodAllocationsListView(PermissionBaseView, ListView):
             f"Context for OrgPeriodAllocationsList: Period={context['budget_period_instance']}, Org={context['organization_instance']}")
         return context
 # --
-class OrganizationAllocationsAPIView(PermissionBaseView, View):
-    def get(self, request, period_pk, *args, **kwargs):
-        try:
-            period = get_object_or_404(BudgetPeriod, pk=period_pk, is_active=True, is_completed=False)
-            organization_summaries = []
-            org_alloc_queryset = BudgetAllocation.objects.filter(
-                budget_period=period, is_active=True
-            ).values(
-                'organization__id', 'organization__name', 'organization__code'
-            ).annotate(
-                total_allocated_to_org=Sum('allocated_amount'),
-                num_budget_items=Count('budget_item', distinct=True)
-            ).order_by('organization__name')
-
-            for org_summary in org_alloc_queryset:
-                # محاسبه مصرف (این بخش همچنان نیاز به بهینه‌سازی دارد اگر تعداد زیاد است)
-                consumed = BudgetTransaction.objects.filter(
-                    allocation__budget_period=period,
-                    allocation__organization_id=org_summary['organization__id'],
-                    transaction_type='CONSUMPTION'
-                ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-                returned = BudgetTransaction.objects.filter(
-                    allocation__budget_period=period,
-                    allocation__organization_id=org_summary['organization__id'],
-                    transaction_type='RETURN'
-                ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
-                net_consumed = consumed - returned
-
-                organization_summaries.append({
-                    'id': org_summary['organization__id'],
-                    'name': org_summary['organization__name'],
-                    'code': org_summary['organization__code'],
-                    'total_allocated_formatted': f"{org_summary['total_allocated_to_org']:,.0f}",
-                    'net_consumed_formatted': f"{net_consumed:,.0f}",
-                    'remaining_formatted': f"{org_summary['total_allocated_to_org'] - net_consumed:,.0f}",
-                    'num_budget_items': org_summary['num_budget_items'],
-                    'utilization_percentage': (net_consumed / org_summary['total_allocated_to_org'] * 100) if
-                    org_summary['total_allocated_to_org'] > 0 else 0,
-                    # URL برای بارگذاری سرفصل‌های این سازمان
-                    'budget_items_ajax_url': reverse('api_budget_items_for_org_period',
-                                                     kwargs={'period_pk': period.pk,
-                                                             'org_pk': org_summary['organization__id']})
-                })
-            return JsonResponse({'organizations': organization_summaries, 'status': 'success'})
-        except Http404:
-            return JsonResponse({'error': _("دوره بودجه یافت نشد."), 'status': 'notfound'}, status=404)
-        except Exception as e:
-            logger.error(f"API Error (OrgAllocations) for Period PK={period_pk}: {e}", exc_info=True)
-            return JsonResponse({'error': _("خطا در پردازش."), 'status': 'error'}, status=500)
 #############################
 class ComprehensiveBudgetReportView(PermissionBaseView, ListView):
     model = BudgetPeriod
@@ -540,42 +361,42 @@ class ComprehensiveBudgetReportView(PermissionBaseView, ListView):
             return None
 
     def generate_pdf_report(self, report_data_for_export, report_title):
-        if not WEASYPRINT_AVAILABLE:
-            logger.error("WeasyPrint library is not installed. Cannot generate PDF report.")
-            return None
-
-        html_string = render_to_string(
-            'reports/pdf/comprehensive_budget_report_pdf.html',
-            {
-                'budget_periods_report_data_for_pdf': report_data_for_export,  # نام جدید
-                'report_main_title': report_title
-            }
-        )
-        # استایل ساده برای PDF
-        pdf_css_string_internal = """
-            @page { size: A3 landscape; margin: 1.2cm; @bottom-center { content: "صفحه " counter(page) " از " counter(pages); font-size: 7pt; color: #555;} }
-            body { font-family: "Tahoma", "B Nazanin", "DejaVu Sans", sans-serif; direction: rtl; font-size: 8pt; line-height: 1.4;}
-            table { width: 100%; border-collapse: collapse; margin-bottom: 10px; page-break-inside: avoid; }
-            th, td { border: 1px solid #999; padding: 4px; text-align: right; word-wrap: break-word; font-size: 7.5pt; }
-            th { background-color: #f0f0f0; font-weight: bold; }
-            h1 { font-size: 16pt; text-align:center; margin-bottom: 5px;} 
-            h2 { font-size: 12pt; text-align:right; margin-top:15px; margin-bottom: 5px; padding-bottom:3px; border-bottom: 1px solid #ccc;} 
-            h3 { font-size: 10pt; text-align:right; margin-top:10px; margin-bottom: 4px;}
-            .period-summary-pdf { background-color: #f9f9f9; padding: 6px; margin-bottom:8px; border: 1px solid #dedede; font-size: 7.5pt;}
-            .text-danger-pdf { color: #c00; } .text-success-pdf { color: #060; }
-            .small-text { font-size: 7pt; color: #444; }
-        """
-        try:
-            html_doc = HTML(string=html_string, base_url=self.request.build_absolute_uri())
-            pdf_file = html_doc.write_pdf(stylesheets=[CSS(string=pdf_css_string_internal)])
-
-            response = HttpResponse(pdf_file, content_type='application/pdf')
-            response['Content-Disposition'] = 'inline; filename="Comprehensive_Budget_Report.pdf"'
-            return response
-        except Exception as e_pdf:
-            logger.error(f"Error generating PDF with WeasyPrint: {e_pdf}", exc_info=True)
-            return None
-
+        # if not WEASYPRINT_AVAILABLE:
+        #     logger.error("WeasyPrint library is not installed. Cannot generate PDF report.")
+        #     return None
+        #
+        # html_string = render_to_string(
+        #     'reports/pdf/comprehensive_budget_report_pdf.html',
+        #     {
+        #         'budget_periods_report_data_for_pdf': report_data_for_export,  # نام جدید
+        #         'report_main_title': report_title
+        #     }
+        # )
+        # # استایل ساده برای PDF
+        # pdf_css_string_internal = """
+        #     @page { size: A3 landscape; margin: 1.2cm; @bottom-center { content: "صفحه " counter(page) " از " counter(pages); font-size: 7pt; color: #555;} }
+        #     body { font-family: "Tahoma", "B Nazanin", "DejaVu Sans", sans-serif; direction: rtl; font-size: 8pt; line-height: 1.4;}
+        #     table { width: 100%; border-collapse: collapse; margin-bottom: 10px; page-break-inside: avoid; }
+        #     th, td { border: 1px solid #999; padding: 4px; text-align: right; word-wrap: break-word; font-size: 7.5pt; }
+        #     th { background-color: #f0f0f0; font-weight: bold; }
+        #     h1 { font-size: 16pt; text-align:center; margin-bottom: 5px;}
+        #     h2 { font-size: 12pt; text-align:right; margin-top:15px; margin-bottom: 5px; padding-bottom:3px; border-bottom: 1px solid #ccc;}
+        #     h3 { font-size: 10pt; text-align:right; margin-top:10px; margin-bottom: 4px;}
+        #     .period-summary-pdf { background-color: #f9f9f9; padding: 6px; margin-bottom:8px; border: 1px solid #dedede; font-size: 7.5pt;}
+        #     .text-danger-pdf { color: #c00; } .text-success-pdf { color: #060; }
+        #     .small-text { font-size: 7pt; color: #444; }
+        # """
+        # try:
+        #     html_doc = HTML(string=html_string, base_url=self.request.build_absolute_uri())
+        #     pdf_file = html_doc.write_pdf(stylesheets=[CSS(string=pdf_css_string_internal)])
+        #
+        #     response = HttpResponse(pdf_file, content_type='application/pdf')
+        #     response['Content-Disposition'] = 'inline; filename="Comprehensive_Budget_Report.pdf"'
+        #     return response
+        # except Exception as e_pdf:
+        #     logger.error(f"Error generating PDF with WeasyPrint: {e_pdf}", exc_info=True)
+        #     return None
+        pass
     def render_to_response(self, context, **response_kwargs):
         output_format = self.request.GET.get('output_format', 'html').lower()
         # داده‌های گزارش از context که توسط get_context_data پر شده، استخراج می‌شود
@@ -652,18 +473,7 @@ class APIBudgetAllocationsForOrgView(PermissionBaseView, View):
         except Exception as e:
             logger.error(f"API Error (BudgetAllocations) for Period {period_pk}, Org {org_pk}: {e}", exc_info=True)
             return JsonResponse({'error': _("خطا در پردازش سرفصل‌های بودجه."), 'status': 'error'}, status=500)
-# ----------------
-# --- ComprehensiveBudgetReportView (ویو اصلی) ---
-# (کد این ویو مانند پاسخ قبلی است، فقط مطمئن شوید که از نام‌های URL صحیح در
-# بخش `ajax_load_organizations_url` در `_get_processed_report_data` استفاده می‌کند
-# یعنی: reverse('api_organization_allocations_for_period', ...))
-# و همچنین در بخش generate_excel_report و generate_pdf_report،
-# اگر می‌خواهید گزارش کامل سلسله مراتبی باشد، باید یک متد جداگانه برای واکشی *تمام* داده‌ها بنویسید.
 
-# --- APIOrganizationAllocationsView (برای بارگذاری سازمان‌های یک دوره) ---
-# (کد این ویو مانند پاسخ قبلی است، فقط مطمئن شوید از نام URL صحیح برای
-# `budget_items_ajax_url` استفاده می‌کند:
-# reverse('api_budget_allocations_for_org', ...))
 class APIOrganizationAllocationsView(PermissionBaseView, View):
     def get(self, request, period_pk, *args, **kwargs):
         logger.info(f"API request: Get organizations for Period PK={period_pk}")
@@ -1041,3 +851,17 @@ class APIOrganizationsForPeriodView(PermissionBaseView, View):
             logger.error(f"API Error (Organizations for Period) for Period PK={period_pk}: {e}", exc_info=True)
             return JsonResponse(
                 {'error': _("خطا در پردازش درخواست. لطفاً با پشتیبانی تماس بگیرید."), 'status': 'error'}, status=500)
+
+
+# ----------------
+# --- ComprehensiveBudgetReportView (ویو اصلی) ---
+# (کد این ویو مانند پاسخ قبلی است، فقط مطمئن شوید که از نام‌های URL صحیح در
+# بخش `ajax_load_organizations_url` در `_get_processed_report_data` استفاده می‌کند
+# یعنی: reverse('api_organization_allocations_for_period', ...))
+# و همچنین در بخش generate_excel_report و generate_pdf_report،
+# اگر می‌خواهید گزارش کامل سلسله مراتبی باشد، باید یک متد جداگانه برای واکشی *تمام* داده‌ها بنویسید.
+
+# --- APIOrganizationAllocationsView (برای بارگذاری سازمان‌های یک دوره) ---
+# (کد این ویو مانند پاسخ قبلی است، فقط مطمئن شوید از نام URL صحیح برای
+# `budget_items_ajax_url` استفاده می‌کند:
+# reverse('api_budget_allocations_for_org', ...))

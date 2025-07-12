@@ -56,14 +56,14 @@ from django.contrib import messages
 
 
 # کتابخانه‌های PDF و Excel (مطمئن شوید نصب شده‌اند)
-try:
-    from weasyprint import HTML, CSS
-
-    WEASYPRINT_AVAILABLE = True
-except ImportError:
-    WEASYPRINT_AVAILABLE = False
-    logger = logging.getLogger('comprehensive_report')
-    logger.warning("WeasyPrint is not installed. PDF export will not be available.")
+# try:
+#     from weasyprint import HTML, CSS
+#
+#     WEASYPRINT_AVAILABLE = True
+# except ImportError:
+#     WEASYPRINT_AVAILABLE = False
+#     logger = logging.getLogger('comprehensive_report')
+#     logger.warning("WeasyPrint is not installed. PDF export will not be available.")
 
 try:
     from openpyxl import Workbook

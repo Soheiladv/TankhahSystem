@@ -28,13 +28,16 @@ from tankhah.views import (
 )
 from tankhah.Factor.view_Factor import (FactorCreateView,
                                         TankhahBudgetInfoAjaxView,  BudgetCheckView)
-
+from tankhah.views import (itemcategory_list,itemcategory_create,itemcategory_update,itemcategory_delete
+)
 # app_name = 'tankhah'
 
 urlpatterns = [
     # path('', DashboardView.as_view(), name='dashboard'),
     path('tankhah/', TankhahListView.as_view(), name='tankhah_list'),
-    path('tankhah/<int:pk>/', TankhahDetailView.as_view(), name='tankhah_detail'),
+    path('tankhah/<int:pk>/'       , TankhahDetailView.as_view(),        name='tankhah_detail'),
+
+
     path('tankhah/create/', TankhahCreateView.as_view(), name='tankhah_create'),
     path('tankhah/update/<int:pk>/', TankhahUpdateView.as_view(), name='tankhah_update'),
     path('tankhah/<int:pk>/delete/', TankhahDeleteView.as_view(), name='tankhah_delete'),
@@ -91,8 +94,7 @@ urlpatterns += [
     # ... other factor related urls ...
 ]
 
-from tankhah.views import (itemcategory_list,itemcategory_create,itemcategory_update,itemcategory_delete
-)
+
 urlpatterns += [
     path('categories/',  itemcategory_list, name='itemcategory_list_old'),
     path('categories/add/',  itemcategory_create, name='itemcategory_create_old'),
