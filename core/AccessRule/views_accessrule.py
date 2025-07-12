@@ -223,6 +223,7 @@ class OK__PostAccessRuleAssignView(FormView):
             messages.warning(self.request, f"{_('خطای عمومی')}: {error}")
 
         return super().form_invalid(form)
+
 class PostAccessRuleAssignView(FormView):
     template_name = 'core/accessrule/post_access_rule_assign_b.html'  # نام تمپلیت جدید و بهینه
     form_class = PostAccessRuleForm

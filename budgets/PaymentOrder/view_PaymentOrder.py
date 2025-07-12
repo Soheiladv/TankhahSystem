@@ -2,13 +2,18 @@ import logging
 from decimal import Decimal
 from time import timezone
 
+from channels.layers import get_channel_layer
 from django.contrib import messages
+from django.core.mail import send_mail
 from django.db import transaction
+from falcon import async_to_sync
+from notifications.signals import notify
 
 from accounts.models import CustomUser
 from budgets.PaymentOrder.form_PaymentOrder import PaymentOrderForm
 from budgets.models import PaymentOrder, generate_payment_order_number, Payee
 from core.models import Organization, Project, UserPost, WorkflowStage
+from notificationApp.models import NotificationRule
 from tankhah.models import Tankhah, StageApprover, ApprovalLog, Factor, TankhahAction, TankhActionType
 
 logger = logging.getLogger(__name__)
@@ -544,7 +549,116 @@ class PaymentOrderDeleteView(PermissionBaseView, DeleteView):
             payment_order.delete()
             messages.success(request, f'دستور پرداخت {payment_order.order_number} با موفقیت حذف شد.')
         return redirect(self.success_url)
+
 class PaymentOrderDetailView(PermissionBaseView, DetailView):
+    model = PaymentOrder
+    template_name = 'budgets/paymentorder/paymentorder_detail.html'
+    context_object_name = 'action'
+    permission_required = 'PaymentOrder_view'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_post = self.request.user.userpost_set.filter(is_active=True).first()
+        context['user_can_sign'] = ApprovalLog.objects.filter(
+            action=self.object,
+            approver_post=user_post.post if user_post else None,
+            is_approved=False
+        ).exists()
+        context['approval_logs'] = ApprovalLog.objects.filter(
+            action=self.object
+        ).select_related('approver_user', 'approver_post')
+        return context
+
+    def send_notifications(self, entity, action, priority, description):
+        from django.contrib.contenttypes.models import ContentType
+        entity_type = entity.__class__.__name__.upper()
+        rules = NotificationRule.objects.filter(entity_type=entity_type, action=action, is_active=True)
+        for rule in rules:
+            for post in rule.recipients.all():
+                users = CustomUser.objects.filter(userpost__post=post, userpost__is_active=True)
+                for user in users:
+                    notify.send(
+                        sender=self.request.user,
+                        recipient=user,
+                        verb=action.lower(),
+                        action_object=entity,
+                        description=description,
+                        level=rule.priority
+                    )
+                    if rule.channel == 'EMAIL':
+                        send_mail(
+                            subject=description,
+                            message=description,
+                            from_email='system@example.com',
+                            recipient_list=[user.email],
+                            fail_silently=True
+                        )
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'{entity_type.lower()}_updates',
+                {
+                    'type': f'{entity_type.lower()}_update',
+                    'message': {
+                        'entity_type': entity_type,
+                        'id': entity.id,
+                        'status': entity.status,
+                        'description': description
+                    }
+                }
+            )
+
+    def post(self, request, *args, **kwargs):
+        action = self.get_object()
+        user_post = request.user.userpost_set.filter(is_active=True).first()
+        if not user_post:
+            messages.error(request, _("شما پست فعالی ندارید."))
+            return redirect('paymentorder_detail', pk=action.pk)
+
+        approval = ApprovalLog.objects.filter(
+            action=action,
+            approver_post=user_post.post,
+            is_approved=False
+        ).first()
+        if approval:
+            approval.is_approved = True
+            approval.approver_user = request.user
+            approval.timestamp = timezone.now()
+            approval.save()
+            messages.success(request, _("دستور پرداخت با موفقیت امضا شد."))
+            logger.info(f"User {request.user.username} signed PaymentOrder {action.order_number}")
+
+            approved_signatures = ApprovalLog.objects.filter(action=action, is_approved=True).count()
+            if approved_signatures >= action.min_signatures:
+                action.status = 'APPROVED'
+                action.save()
+                treasury_users = CustomUser.objects.filter(
+                    userpost__post__name='خزانه‌دار',
+                    userpost__is_active=True
+                )
+                self.send_notifications(
+                    entity=action,
+                    action='APPROVED',
+                    priority='HIGH',
+                    description=f"دستور پرداخت {action.order_number} تأیید شده و آماده پرداخت است."
+                )
+            else:
+                # اعلان به امضاکنندگان بعدی
+                next_approvers = StageApprover.objects.filter(
+                    stage=action.current_stage,
+                    is_active=True
+                ).exclude(post=user_post.post).values_list('post', flat=True)
+                self.send_notifications(
+                    entity=action,
+                    action='NEEDS_APPROVAL',
+                    priority='MEDIUM',
+                    description=f"دستور پرداخت {action.order_number} نیاز به امضای شما دارد."
+                )
+        else:
+            messages.error(request, _("شما مجاز به امضای این دستور پرداخت نیستید."))
+
+        return redirect('paymentorder_detail', pk=action.pk)
+
+class PaymentOrderDetailView__(PermissionBaseView, DetailView):
     model = PaymentOrder
     template_name = 'budgets/paymentorder/paymentorder_detail.html'
     context_object_name = 'action'
@@ -607,8 +721,6 @@ class PaymentOrderDetailView(PermissionBaseView, DetailView):
             messages.error(request, "شما مجاز به امضای این دستور پرداخت نیستید.")
 
         return redirect('paymentorder_detail', pk=action.pk)
-
-
 class PaymentOrderDetailView__(PermissionBaseView, DetailView):
     model = TankhahAction
     template_name = 'budgets/paymentorder/paymentorder_detail.html'

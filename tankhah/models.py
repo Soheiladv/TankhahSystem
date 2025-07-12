@@ -910,6 +910,11 @@ class Factor(models.Model):
     category = models.ForeignKey('ItemCategory', on_delete=models.SET_NULL, null=True, blank=False, verbose_name=_("دسته‌بندی"))
     is_locked = models.BooleanField(default=False,verbose_name=_('قفل شود'))
 
+    rejected_reason = models.TextField(blank=True, null=True, verbose_name=_("دلیل رد"))
+    re_registered_in = models.ForeignKey(
+        'Tankhah', null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='re_registered_factors', verbose_name=_("تنخواه جدید")
+    )
 
     def unlock(self, user):
         """باز کردن قفل فاکتور توسط کاربر مجاز (مثل BOARD)"""
@@ -1016,7 +1021,11 @@ class Factor(models.Model):
             remaining_budget = get_tankhah_remaining_budget(self.tankhah)
             if self.amount > remaining_budget:
                 raise ValidationError(_('مبلغ فاکتور از بودجه باقی‌مانده تنخواه بیشتر است.'))
-
+        #درصورت رد فاکتور
+        if self.status == 'REJECTED' and not self.rejected_reason:
+            raise ValidationError(_("دلیل رد فاکتور باید مشخص شود."))
+        if self.re_registered_in and self.status != 'PENDING':
+            raise ValidationError(_("فاکتور فقط در حالت PENDING می‌تواند به تنخواه جدید منتقل شود."))
 
         #
         # total = self.total_amount()

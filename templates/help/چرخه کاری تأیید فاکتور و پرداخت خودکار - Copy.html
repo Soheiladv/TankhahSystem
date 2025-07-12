@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>چرخه کاری تأیید فاکتور و پرداخت خودکار</title>
+    <style>
+        body { font-family: 'Vazir', Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
+        h1, h2, h3 { color: #2c3e50; }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .step { margin: 20px 0; padding: 15px; border-right: 4px solid #3498db; background: #ecf0f1; border-radius: 4px; }
+        .step h3 { margin: 0 0 10px; }
+        .role { font-weight: bold; color: #e74c3c; }
+        .note { font-style: italic; color: #7f8c8d; }
+        .highlight { background: #dff9fb; padding: 10px; border-radius: 4px; }
+        .flowchart { margin: 20px 0; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; }
+        .flowchart-step { display: inline-block; padding: 10px; margin: 5px; background: #3498db; color: white; border-radius: 4px; }
+        .flowchart-arrow { display: inline-block; margin: 0 10px; font-size: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>چرخه کاری تأیید فاکتور و پرداخت خودکار</h1>
+        <p>این سند فرآیند تأیید فاکتورها، ایجاد خودکار دستور پرداخت، و تکمیل پرداخت در سیستم بودجه را برای کاربران و تیم تولید توضیح می‌دهد.</p>
+
+        <h2>نمودار فرآیند</h2>
+        <div class="flowchart">
+            <span class="flowchart-step">ثبت فاکتور</span>
+            <span class="flowchart-arrow">→</span>
+            <span class="flowchart-step">تأیید فاکتور</span>
+            <span class="flowchart-arrow">→</span>
+            <span class="flowchart-step">تأیید تنخواه</span>
+            <span class="flowchart-arrow">→</span>
+            <span class="flowchart-step">ایجاد دستور پرداخت</span>
+            <span class="flowchart-arrow">→</span>
+            <span class="flowchart-step">تأیید دستور پرداخت</span>
+            <span class="flowchart-arrow">→</span>
+            <span class="flowchart-step">پرداخت نهایی</span>
+        </div>
+
+        <h2>مراحل فرآیند</h2>
+
+        <div class="step">
+            <h3>1. ثبت فاکتور</h3>
+            <p>کاربر با نقش <span class="role">ایجادکننده فاکتور</span> (مجوز <code>factor_add</code>) فاکتور را ثبت می‌کند.</p>
+            <ul>
+                <li>مرتبط با تنخواه، سازمان، و پروژه.</li>
+                <li>وضعیت اولیه: <code>PENDING</code>.</li>
+                <li>اعتبارسنجی: مبلغ فاکتور باید در حد بودجه تنخواه باشد.</li>
+            </ul>
+            <p class="note">مسئول: کاربران شعبه یا پروژه.</p>
+        </div>
+
+        <div class="step">
+            <h3>2. تأیید فاکتور</h3>
+            <p>کاربران با نقش <span class="role">تأییدکننده</span> (پست‌های تعریف‌شده در <code>StageApprover</code>) فاکتور را تأیید یا رد می‌کنند.</p>
+            <ul>
+                <li>اقدامات در <code>ApprovalLog</code> ثبت می‌شود.</li>
+                <li>مجوزهای موردنیاز: <code>factor_approve</code> یا <code>factor_reject</code>.</li>
+                <li>امکان بازگشت به <code>PENDING</code> با مجوز <code>factor_unlock</code>.</li>
+            </ul>
+            <p class="note">مسئول: مدیران پروژه یا سرپرستان.</p>
+        </div>
+
+        <div class="step">
+            <h3>3. تأیید تنخواه</h3>
+            <p>تنخواه مرتبط با فاکتور تأییدشده بررسی می‌شود.</p>
+            <ul>
+                <li>اگر تنخواه در مرحله‌ای با <code>triggers_payment_order=True</code> و وضعیت <code>APPROVED</code> باشد، دستور پرداخت ایجاد می‌شود.</li>
+                <li>گیرنده از تنخواه یا فاکتورها استخراج می‌شود.</li>
+            </ul>
+            <p class="note">مسئول: سیستم یا تأییدکنندگان تنخواه (مجوز <code>Tankhah_approve</code>).</p>
+        </div>
+
+        <div class="step">
+            <h3>4. ایجاد دستور پرداخت خودکار</h3>
+            <p>سیستم دستور پرداخت (<code>PaymentOrder</code>) را با جزئیات زیر ایجاد می‌کند:</p>
+            <ul>
+                <li>مبلغ: از تنخواه یا فاکتورها.</li>
+                <li>وضعیت: <code>DRAFT</code>.</li>
+                <li>مرحله: اولین مرحله گردش کار (<code>WorkflowStage</code>).</li>
+                <li>فاکتورهای مرتبط: از طریق <code>related_factors</code>.</li>
+            </ul>
+            <p class="note">مسئول: سیستم (خودکار).</p>
+            <div class="highlight">اعلان به تأییدکنندگان مرحله اولیه ارسال می‌شود.</div>
+        </div>
+
+        <div class="step">
+            <h3>5. تأیید دستور پرداخت</h3>
+            <p>کاربران با نقش <span class="role">امضاکننده</span> (پست با <code>is_payment_order_signer=True</code>) دستور را امضا می‌کنند.</p>
+            <ul>
+                <li>امضاها در <code>ApprovalLog</code> ثبت می‌شود.</li>
+                <li>اگر تعداد امضاها به <code>min_signatures</code> برسد، وضعیت به <code>APPROVED</code> تغییر می‌کند.</li>
+                <li>اعلان به خزانه‌دار یا مدیر مالی ارسال می‌شود.</li>
+            </ul>
+            <p class="note">مسئول: مدیران مالی یا امضاکنندگان مجاز.</p>
+        </div>
+
+        <div class="step">
+            <h3>6. پرداخت نهایی</h3>
+            <p>دستور پرداخت به وضعیت <code>PAID</code> می‌رسد و تراکنش ثبت می‌شود.</p>
+            <ul>
+                <li>تراکنش <code>CONSUMPTION</code> در <code>BudgetTransaction</code>.</li>
+                <li>به‌روزرسانی بودجه تنخواه و پروژه.</li>
+                <li>اعلان به مدیر یا معاون مالی.</li>
+            </ul>
+            <p class="note">مسئول: خزانه‌دار یا مدیر مالی.</p>
+        </div>
+
+        <h2>نقش‌های کلیدی</h2>
+        <ul>
+            <li><span class="role">ایجادکننده فاکتور</span>: ثبت فاکتور (<code>factor_add</code>).</li>
+            <li><span class="role">تأییدکننده فاکتور</span>: تأیید/رد فاکتور (<code>factor_approve</code>/<code>factor_reject</code>).</li>
+            <li><span class="role">تأییدکننده تنخواه</span>: تأیید تنخواه (<code>Tankhah_approve</code>).</li>
+            <li><span class="role">امضاکننده دستور پرداخت</span>: امضا (<code>is_payment_order_signer=True</code>).</li>
+            <li><span class="role">خزانه‌دار/مدیر مالی</span>: پرداخت نهایی (<code>branch='FIN'</code>).</li>
+        </ul>
+
+        <h2>یادداشت برای تیم تولید</h2>
+        <p>مدل‌های کلیدی:</p>
+        <ul>
+            <li><code>Tankhah</code>, <code>Factor</code>, <code>PaymentOrder</code>, <code>BudgetTransaction</code></li>
+            <li><code>WorkflowStage</code>, <code>StageApprover</code>, <code>AccessRule</code>, <code>Post</code>, <code>ApprovalLog</code></li>
+        </ul>
+        <p>پیشنهادات: افزودن داشبورد بلادرنگ، پیش‌نمایش پرداخت، و اتصال به API بانکی.</p>
+    </div>
+</body>
+</html>

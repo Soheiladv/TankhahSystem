@@ -13,6 +13,7 @@ from tankhah.Factor.view_FactorUpdate import FactorUpdateView
 from tankhah.Factor.views_approval_path import FactorApprovalPathView
 from tankhah.FactorStatusDashboard.FactorStatusDashboardView import FactorStatusDashboardView
 from tankhah.TankhahTrackingView import TankhahTrackingViewOLDer, TankhahStatusView, TankhahApprovalTimelineView
+from tankhah.view_folder_tankhah.EnhancedTankhahUpdateStatus import EnhancedTankhahUpdateStatusView
 # from tankhah.view.view_Notification import NotificationListView, NotificationCreateView, NotificationUpdateView, \
 #     NotificationDeleteView
 from tankhah.view_folder_tankhah.view_tankhah import (
@@ -124,6 +125,10 @@ urlpatterns +=[
     path('tankhah/<int:pk>/update-status/', TankhahUpdateStatusView.as_view(), name='tankhah_update_status'),
 
 ]
+
+urlpatterns += [
+    path( 'tankhah/<int:pk>/update-status/', EnhancedTankhahUpdateStatusView.as_view(), name='enhancedtankhah_update_status'),
+] # ایجاد دستور پرداخت خودکار تنخواه
 # urlpatterns += [
 #     # لیست تمام اعلان‌ها
 #     path('notification_list/',  NotificationListView.as_view(), name='notification_list'),

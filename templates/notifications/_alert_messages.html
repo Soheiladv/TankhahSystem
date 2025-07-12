@@ -1,0 +1,26 @@
+{# templates/core/_alert_messages.html #}
+{% load i18n  %}
+
+{% if messages %}
+    <div class="messages-container mb-4">
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% else %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show text-right" role="alert">
+                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-times-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{# نمایش خطاهای غیرفیلدی فرم (کلی) #}
+{% if form.non_field_errors %}
+    <div class="alert alert-danger text-right mb-4" role="alert">
+        <strong>{% trans "لطفاً خطاهای زیر را برطرف کنید:" %}</strong>
+        <ul class="list-unstyled mb-0 mt-2">
+            {% for error in form.non_field_errors %}
+                <li><i class="fas fa-exclamation-circle me-2"></i>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
