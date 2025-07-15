@@ -4,6 +4,7 @@ from time import timezone
 
 from channels.layers import get_channel_layer
 from django.contrib import messages
+from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
 from django.db import transaction
 from falcon import async_to_sync
@@ -334,9 +335,8 @@ class TankhahUpdateStatusView(PermissionBaseView, UpdateView):
             return self.form_invalid(form)
 
         return super().form_valid(form)
-
-from django.contrib.contenttypes.models import ContentType
-class PaymentOrderReviewView(PermissionBaseView, ListView):
+# --------------------------------------------------------------------------
+class PaymentOrderReviewView__ok(PermissionBaseView, ListView):
     model = PaymentOrder
     template_name = 'budgets/PaymentOrder/payment_order_review.html'
     context_object_name = 'payment_orders_data'
@@ -481,6 +481,182 @@ class PaymentOrderReviewView(PermissionBaseView, ListView):
 
         logger.info(f"Context prepared for user {self.request.user.username}, {len(payment_orders_with_details)} payment orders")
         return context
+# --------------------------------------------------------------------------
+class PaymentOrderReviewView(PermissionBaseView, ListView):
+    model = PaymentOrder
+    template_name = 'budgets/PaymentOrder/payment_order_review.html'
+    context_object_name = 'payment_orders_data'
+    paginate_by = 10
+    permission_codenames = ['budgets.PaymentOrder_view']
+    check_organization = True
+    permission_denied_message = _('متاسفانه دسترسی لازم برای مشاهده دستورات پرداخت را ندارید.')
+
+    def get_queryset(self):
+        user = self.request.user
+        payment_order_ct = ContentType.objects.get_for_model(PaymentOrder)
+        queryset = PaymentOrder.objects.select_related(
+            'payee', 'tankhah', 'tankhah__organization', 'related_tankhah',
+            'organization', 'project', 'current_stage', 'created_by', 'paid_by', 'created_by_post'
+        ).prefetch_related(
+            Prefetch(
+                'related_factors',
+                queryset=Factor.objects.select_related('tankhah').prefetch_related('items')
+            )
+        )
+
+        user_orgs = UserPost.objects.filter(
+            user=user, is_active=True, end_date__isnull=True
+        ).values_list('post__organization__pk', flat=True)
+        if not user_orgs and not user.is_superuser:
+            logger.warning(f"No organizations for user {user.username}")
+            return queryset.none()
+        if user_orgs:
+            queryset = queryset.filter(organization__pk__in=user_orgs)
+
+        # فیلترهای جستجو
+        search = self.request.GET.get('search', '')
+        if search:
+            queryset = queryset.filter(
+                Q(order_number__icontains=search) |
+                Q(description__icontains=search) |
+                Q(payee__name__icontains=search) |
+                Q(tankhah__number__icontains=search) |
+                Q(related_tankhah__number__icontains=search) |
+                Q(related_factors__number__icontains=search)
+            ).distinct()
+
+        status = self.request.GET.get('status', '')
+        if status in [choice[0] for choice in PaymentOrder.STATUS_CHOICES]:
+            queryset = queryset.filter(status=status)
+
+        org_id = self.request.GET.get('organization_id', '')
+        if org_id:
+            queryset = queryset.filter(organization__id=org_id)
+        proj_id = self.request.GET.get('project_id', '')
+        if proj_id:
+            queryset = queryset.filter(project__id=proj_id)
+
+        # اضافه کردن فاکتورهای تأییدشده بدون دستور پرداخت
+        approved_factors = Factor.objects.filter(
+            status='APPROVED',
+            tankhah__organization__in=user_orgs
+        ).exclude(
+            id__in=PaymentOrder.objects.filter(
+                related_factors__isnull=False
+            ).values_list('related_factors__id', flat=True)
+        ).select_related('tankhah', 'tankhah__organization', 'tankhah__project')
+
+        # ترکیب فاکتورها و دستورات پرداخت
+        queryset = queryset.order_by('-created_at')
+        return queryset, approved_factors
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        payment_orders, approved_factors = self.get_queryset()
+        payment_order_ct = ContentType.objects.get_for_model(PaymentOrder)
+
+        payment_orders_with_details = []
+        for po in payment_orders:
+            approval_logs = ApprovalLog.objects.filter(
+                content_type=payment_order_ct,
+                object_id=po.id
+            ).select_related('user', 'post', 'post__organization', 'stage').order_by('timestamp')
+
+            previous_actions = [
+                {
+                    'post_name': log.post.name if log.post else _('نامشخص'),
+                    'post_org_name': log.post.organization.name if log.post and log.post.organization else _('نامشخص'),
+                    'user_name': log.user.get_full_name() or log.user.username if log.user else _('سیستم'),
+                    'action': log.action,
+                    'timestamp': log.timestamp,
+                    'comment': log.comment or '-',
+                    'stage_name': log.stage.name if log.stage else _('نامشخص'),
+                }
+                for log in approval_logs
+            ]
+
+            next_approvers = []
+            if po.current_stage and not po.is_locked and po.status not in ['PAID', 'REJECTED', 'CANCELLED']:
+                next_approvers = list(StageApprover.objects.filter(
+                    stage=po.current_stage,
+                    is_active=True
+                ).select_related('post', 'post__organization').values(
+                    'post__name', 'post__organization__name'
+                ).distinct())
+
+            tankhah_remaining = Decimal('0')
+            project_remaining = Decimal('0')
+            budget_message = ''
+            if po.tankhah:
+                tankhah_remaining = po.tankhah.budget - po.tankhah.spent
+            elif po.related_tankhah:
+                tankhah_remaining = po.related_tankhah.budget - po.related_tankhah.spent
+            if po.project:
+                project_remaining = po.project.budget - po.project.spent
+            if po.status not in ['PAID', 'REJECTED', 'CANCELLED']:
+                if po.amount > tankhah_remaining:
+                    budget_message = _('هشدار: مبلغ از مانده تنخواه بیشتر است!')
+                elif po.project and po.amount > project_remaining:
+                    budget_message = _('هشدار: مبلغ از مانده پروژه بیشتر است!')
+
+            payment_orders_with_details.append({
+                'payment_order': po,
+                'previous_actions': previous_actions,
+                'next_possible_approvers': next_approvers,
+                'tankhah_remaining_after': tankhah_remaining - po.amount if po.status not in ['PAID', 'REJECTED', 'CANCELLED'] else tankhah_remaining,
+                'project_remaining_after': project_remaining - po.amount if po.status not in ['PAID', 'REJECTED', 'CANCELLED'] else project_remaining,
+                'budget_message': budget_message,
+                'tankhah_number': po.tankhah.number if po.tankhah else (po.related_tankhah.number if po.related_tankhah else '-'),
+                'factor_numbers': ', '.join(f.number for f in po.related_factors.all()) or '-',
+                'org_name': po.organization.name,
+                'project_name': po.project.name if po.project else _('بدون پروژه'),
+                'project_budget': po.project.budget if po.project else Decimal('0'),
+                'project_spent': po.project.spent if po.project else Decimal('0'),
+                'stage_name': po.current_stage.name if po.current_stage else _('نامشخص'),
+                'created_by_post': po.created_by_post.name if po.created_by_post else '-',
+            })
+
+        # اضافه کردن فاکتورهای تأییدشده بدون دستور پرداخت
+        approved_factors_with_details = []
+        for factor in approved_factors:
+            tankhah = factor.tankhah
+            project = tankhah.project
+            approved_factors_with_details.append({
+                'factor': factor,
+                'factor_number': factor.number,
+                'factor_amount': factor.amount,
+                'tankhah_number': tankhah.number,
+                'tankhah_budget': tankhah.budget,
+                'tankhah_spent': tankhah.spent,
+                'project_name': project.name if project else _('بدون پروژه'),
+                'project_budget': project.budget if project else Decimal('0'),
+                'project_spent': project.spent if project else Decimal('0'),
+                'org_name': tankhah.organization.name,
+                'status': factor.get_status_display(),
+            })
+
+        grouped_by_status = {}
+        for item in payment_orders_with_details:
+            status = item['payment_order'].get_status_display()
+            grouped_by_status.setdefault(status, []).append(item)
+
+        context['payment_orders_data'] = payment_orders_with_details
+        context['approved_factors'] = approved_factors_with_details
+        context['grouped_by_status'] = grouped_by_status
+        context['title'] = _('بررسی فاکتورها و دستورات پرداخت')
+        context['status_choices'] = PaymentOrder.STATUS_CHOICES
+        context['organizations'] = Organization.objects.filter(is_active=True).order_by('name')
+        context['projects'] = Project.objects.filter(is_active=True).order_by('name')
+        context['current_filters'] = {
+            'search': self.request.GET.get('search', ''),
+            'status': self.request.GET.get('status', ''),
+            'organization_id': self.request.GET.get('organization_id', ''),
+            'project_id': self.request.GET.get('project_id', ''),
+        }
+
+        logger.info(f"Context prepared for user {self.request.user.username}, {len(payment_orders_with_details)} payment orders, {len(approved_factors_with_details)} approved factors")
+        return context
+# --------------------------------------------------------------------------
 class PaymentOrderListView(PermissionBaseView, ListView):
         model = PaymentOrder
         template_name = 'budgets/paymentorder/paymentorder_list.html'
@@ -549,7 +725,7 @@ class PaymentOrderDeleteView(PermissionBaseView, DeleteView):
             payment_order.delete()
             messages.success(request, f'دستور پرداخت {payment_order.order_number} با موفقیت حذف شد.')
         return redirect(self.success_url)
-
+# --------------------------------------------------------------------------
 class PaymentOrderDetailView(PermissionBaseView, DetailView):
     model = PaymentOrder
     template_name = 'budgets/paymentorder/paymentorder_detail.html'
@@ -657,6 +833,7 @@ class PaymentOrderDetailView(PermissionBaseView, DetailView):
             messages.error(request, _("شما مجاز به امضای این دستور پرداخت نیستید."))
 
         return redirect('paymentorder_detail', pk=action.pk)
+# --------------------------------------------------------------------------
 
 class PaymentOrderDetailView__(PermissionBaseView, DetailView):
     model = PaymentOrder

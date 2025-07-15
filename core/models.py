@@ -455,12 +455,14 @@ class AccessRule(models.Model):
         ('BUDGET', _('بودجه')),
         ('PAYMENTORDER', _('دستور پرداخت')),
         ('REPORTS', _('گزارشات')),
+        ('GENERAL', _('عمومی')),
     )
     ACTION_TYPES = (
         ('APPROVE', _('تأیید')),
         ('REJECT', _('رد')),
         ('VIEW', _('مشاهده')),
         ('SIGN_PAYMENT', _('امضای دستور پرداخت')),
+        ('STATUS_CHANGE', _('تغییروضعیت')),
     )
 
 

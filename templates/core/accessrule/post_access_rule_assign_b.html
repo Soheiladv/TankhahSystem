@@ -360,11 +360,9 @@
                 });
             }, 100);
         });
-
-
-
-</script>
-<script>
+        
+         
+    
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('accessRuleForm');
     if (!form) return;
@@ -384,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateEnableAllState = (enableAllCheckbox) => {
         const { postId, entityCode } = enableAllCheckbox.dataset;
         const groupRules = form.querySelectorAll(`.rule-checkbox[data-post-id="${postId}"][data-entity-code="${entityCode}"], .stage-radio-group[data-post-id="${postId}"][data-entity-code="${entityCode}"]`);
-
+        
         let totalRules = groupRules.length;
         let checkedRules = 0;
 
@@ -424,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const radioToSelect = group.querySelector(`input[value="${valueToSet}"]`);
             if (radioToSelect) radioToSelect.checked = true;
         });
-
+        
         enableAllCheckbox.indeterminate = false;
     };
 
@@ -470,15 +468,15 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.querySelector('.icon').classList.add('d-none');
         }
     });
-
+    
     // مدیریت دکمه‌های کنترل کلی آکاردئون
     const postsAccordion = document.getElementById('postsAccordion');
     const openAllBtn = document.getElementById('open-all-btn');
     const closeAllBtn = document.getElementById('close-all-btn');
-
+    
     if (postsAccordion && openAllBtn && closeAllBtn) {
         const collapseElements = postsAccordion.querySelectorAll('.accordion-collapse');
-
+        
         openAllBtn.addEventListener('click', () => {
             collapseElements.forEach(el => new bootstrap.Collapse(el).show());
         });
@@ -489,19 +487,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ----- راه‌اندازی اولیه ----- //
-
+    
     // مقداردهی اولیه برای تمام چک‌باکس‌ها
     document.querySelectorAll('.rule-checkbox').forEach(toggleSignerCheckbox);
     document.querySelectorAll('.enable-all-checkbox').forEach(updateEnableAllState);
-
+    
     // باز کردن آکاردئون‌های دارای خطا پس از رندر کامل صفحه
     setTimeout(openAccordionsWithErrors, 150);
-
+    
     // فعال‌سازی تولتیپ‌های بوت‌استرپ
     const tooltipTriggerList = document.querySelectorAll('[title]');
     tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el));
 });
-
+    
 </script>
 
 <style>
@@ -510,8 +508,8 @@ document.addEventListener('DOMContentLoaded', () => {
     .access-rules-table { border-collapse: collapse; width: 100%; }
     @media screen and (max-width: 767px) {
         .access-rules-table thead { display: none; }
-        .access-rules-table tr {
-            display: block;
+        .access-rules-table tr { 
+            display: block; 
             margin-bottom: 1rem;
             border: 1px solid #dee2e6;
             border-radius: 0.5rem;

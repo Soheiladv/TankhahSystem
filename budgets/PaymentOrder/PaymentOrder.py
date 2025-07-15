@@ -1,15 +1,20 @@
 from django.contrib import messages
+from django.db import transaction
 from django.shortcuts import redirect
 from django.views.generic import DetailView
+from notifications.signals import notify
 
+from accounts.models import CustomUser
 from budgets.models import PaymentOrder
 from core.PermissionBase import PermissionBaseView
 from tankhah.models import  ApprovalLog
-from core.models import PostAction, UserPost
+from core.models import PostAction, UserPost, AccessRule
 from django.contrib.contenttypes.models import ContentType
 import logging
 from django.utils.translation import gettext_lazy as _
- 
+
+from tankhah.signal import send_notification_to_post_users
+
 
 class PaymentOrderSignView(PermissionBaseView, DetailView):
     model = PaymentOrder
@@ -27,7 +32,7 @@ class PaymentOrderSignView(PermissionBaseView, DetailView):
             return redirect('payment_order_sign', pk=payment_order.pk)
 
         # بررسی وضعیت دستور پرداخت
-        if payment_order.status not in ['DRAFT', 'PENDING_SIGNATURES']:
+        if payment_order.status not in ['DRAFT', 'PENDING_APPROVAL', 'PENDING_SIGNATURES']:
             messages.error(request, _("این دستور پرداخت قابل امضا یا رد نیست."))
             return redirect('payment_order_sign', pk=payment_order.pk)
 
@@ -41,43 +46,80 @@ class PaymentOrderSignView(PermissionBaseView, DetailView):
         content_type = ContentType.objects.get_for_model(PaymentOrder)
         action_type = 'SIGN_PAYMENT' if action == 'approve' else 'REJECT'
         if not PostAction.objects.filter(
-            post=user_post.post,
-            stage=payment_order.tankhah.current_stage,
-            action_type=action_type,
-            entity_type=content_type.model.upper(),
-            is_active=True
+                post=user_post.post,
+                stage=payment_order.current_stage,  # استفاده از current_stage دستور پرداخت
+                action_type=action_type,
+                entity_type=content_type.model.upper(),
+                is_active=True
         ).exists():
             messages.error(request, _(f"شما مجاز به {action_type.lower()} این دستور پرداخت نیستید."))
             return redirect('payment_order_sign', pk=payment_order.pk)
 
-        # ثبت لاگ
-        ApprovalLog.objects.create(
-            tankhah=payment_order.tankhah,
-            user=user,
-            action=action_type,
-            stage=payment_order.tankhah.current_stage,
-            post=user_post.post,
-            content_type=content_type,
-            object_id=payment_order.id,
-            comment=request.POST.get('comment', '')
-        )
+        try:
+            with transaction.atomic():
+                # ثبت لاگ
+                ApprovalLog.objects.create(
+                    tankhah=payment_order.tankhah,
+                    user=user,
+                    action=action_type,
+                    stage=payment_order.current_stage,
+                    post=user_post.post,
+                    content_type=content_type,
+                    object_id=payment_order.id,
+                    comment=request.POST.get('comment', '')
+                )
 
-        # به‌روزرسانی وضعیت
-        if action == 'approve':
-            signatures = ApprovalLog.objects.filter(
-                content_type=content_type,
-                object_id=payment_order.id,
-                action='SIGN_PAYMENT'
-            ).count()
-            if signatures >= payment_order.min_signatures:
-                payment_order.status = 'ISSUED'
-                messages.success(request, _("دستور پرداخت با موفقیت صادر شد."))
-            else:
-                payment_order.status = 'PENDING_SIGNATURES'
-                messages.success(request, _("امضای شما ثبت شد."))
-        else:  # reject
-            payment_order.status = 'CANCELED'
-            messages.success(request, _("دستور پرداخت رد شد."))
+                # به‌روزرسانی وضعیت
+                if action == 'approve':
+                    signatures = ApprovalLog.objects.filter(
+                        content_type=content_type,
+                        object_id=payment_order.id,
+                        action='SIGN_PAYMENT'
+                    ).count()
+                    if signatures >= payment_order.min_signatures:
+                        payment_order.status = 'ISSUED'
+                        messages.success(request, _("دستور پرداخت با موفقیت صادر شد."))
+                        # ارسال اعلان به خزانه‌دار
+                        notify_users = CustomUser.objects.filter(
+                            userpost__post__name='خزانه‌دار', userpost__is_active=True
+                        ).distinct()
+                        notify.send(
+                            sender=user,
+                            recipient=notify_users,
+                            verb='payment_order_issued',
+                            action_object=payment_order,
+                            description=f"دستور پرداخت {payment_order.order_number} صادر شد و آماده پرداخت است."
+                        )
+                    else:
+                        payment_order.status = 'PENDING_SIGNATURES'
+                        messages.success(request, _("امضای شما ثبت شد."))
+                        # ارسال اعلان به امضاکنندگان بعدی
+                        next_posts = AccessRule.objects.filter(
+                            organization=payment_order.tankhah.organization,
+                            stage=payment_order.current_stage,
+                            action_type='SIGN_PAYMENT',
+                            entity_type='PAYMENTORDER',
+                            is_active=True
+                        ).exclude(post=user_post.post).select_related('post')
+                        for rule in next_posts:
+                            send_notification_to_post_users(rule.post, payment_order)
+                else:  # reject
+                    payment_order.status = 'CANCELED'
+                    messages.success(request, _("دستور پرداخت رد شد."))
+                    # ارسال اعلان به ایجادکننده
+                    notify.send(
+                        sender=user,
+                        recipient=payment_order.created_by,
+                        verb='payment_order_canceled',
+                        action_object=payment_order,
+                        description=f"دستور پرداخت {payment_order.order_number} توسط {user.get_full_name()} رد شد."
+                    )
 
-        payment_order.save()
+                payment_order.save()
+
+        except Exception as e:
+            logger.error(f"Error processing PaymentOrder {payment_order.order_number}: {e}", exc_info=True)
+            messages.error(request, _("خطا در پردازش دستور پرداخت."))
+            return redirect('payment_order_sign', pk=payment_order.pk)
+
         return redirect('payment_order_sign', pk=payment_order.pk)

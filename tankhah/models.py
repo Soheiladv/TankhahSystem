@@ -583,10 +583,14 @@ class Tankhah(models.Model):
             raise ValidationError({"project_budget_allocation": _("تخصیص بودجه باید متعلق به پروژه انتخاب‌شده باشد.")})
 
         remaining = self.get_remaining_budget()
-        if self.amount > remaining:
-            raise ValidationError(
-                _(f"مبلغ تنخواه ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining:,.0f} ریال) است.")
-            )
+
+        if not self.pk:  # تنخواه جدید
+            remaining_budget = self.get_remaining_budget()
+            if self.amount > remaining_budget:
+                raise ValidationError(
+                    _(f"مبلغ تنخواه ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining:,.0f} ریال) است.")
+                )
+
 
     def save(self, *args, **kwargs):
         from budgets.models import BudgetAllocation
@@ -610,12 +614,28 @@ class Tankhah(models.Model):
             self.update_remaining_budget()
             self.clean()
 
+
+
             if self.project_budget_allocation:
                 remaining = self.project_budget_allocation.get_remaining_amount()
-                if self.amount > remaining:
-                    raise ValidationError(
-                        _(f"مبلغ تنخواه ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده تخصیص ({remaining:,.0f} ریال) است.")
-                    )
+                if not self.pk is None:
+                    old_instance = Tankhah.objects.get(pk=self.pk)
+                    if old_instance.amount != self.amount:
+                        remaining = self.get_remaining_budget()
+                        if self.amount > remaining:
+                            raise ValidationError(
+                                _(f"مبلغ تنخواه ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده تخصیص ({remaining:,.0f} ریال) است.")
+                            )
+                else:
+                    remaining = self.get_remaining_budget()
+                    if  self.amount > remaining  :
+                        raise ValidationError(
+                            _(f"مبلغ تنخواه ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده تخصیص ({remaining:,.0f} ریال) است.")
+                        )
+                # if self.amount > remaining:
+                #     raise ValidationError(
+                #         _(f"مبلغ تنخواه ({self.amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده تخصیص ({remaining:,.0f} ریال) است.")
+                #     )
 
             # تنظیم فلگ‌ها
             if self.status in ['APPROVED', 'PAID'] and not self.is_locked:
@@ -1004,73 +1024,23 @@ class Factor(models.Model):
                 serial += 1
                 new_number = f"FAC{sep}{tankhah_number}{sep}{date_str}{sep}{org_code}{sep}{serial:04d}"
             return new_number
-    def clean(self):
-        super().clean()
-        if self.amount < 0:
-            raise ValidationError(_("مبلغ فاکتور نمی‌تواند منفی باشد."))
-        if not self.category:
-            raise ValidationError(_("دسته‌بندی الزامی است."))
-        if self.tankhah and (
-                self.tankhah.status not in ['DRAFT', 'PENDING'] ): #or not self.tankhah.workflow_stage.is_initial
-            raise ValidationError(_("تنخواه انتخاب‌شده در وضعیت یا مرحله مجاز نیست."))
+    def can_approve(self, user):
+        """
+        بررسی می‌کند که آیا کاربر می‌تواند این فاکتور را تأیید کند.
+        :param user: کاربر فعلی
+        :return: True اگر کاربر دسترسی دارد، False در غیر این صورت
+        """
+        # بررسی احراز هویت کاربر
+        if not user.is_authenticated:
+            return False
 
-        if self.tankhah and self.tankhah.due_date and self.tankhah.due_date.date() < timezone.now().date():
-            raise ValidationError(_('تنخواه منقضی شده است. لطفاً فاکتور را در تنخواه جدید ثبت کنید.'))
-        if self.amount and self.tankhah:
-            from budgets.budget_calculations import get_tankhah_remaining_budget
-            remaining_budget = get_tankhah_remaining_budget(self.tankhah)
-            if self.amount > remaining_budget:
-                raise ValidationError(_('مبلغ فاکتور از بودجه باقی‌مانده تنخواه بیشتر است.'))
-        #درصورت رد فاکتور
-        if self.status == 'REJECTED' and not self.rejected_reason:
-            raise ValidationError(_("دلیل رد فاکتور باید مشخص شود."))
-        if self.re_registered_in and self.status != 'PENDING':
-            raise ValidationError(_("فاکتور فقط در حالت PENDING می‌تواند به تنخواه جدید منتقل شود."))
+        # بررسی قفل بودن فاکتور یا تنخواه
+        if self.is_locked or self.tankhah.is_locked or self.tankhah.is_archived:
+            return False
 
-        #
-        # total = self.total_amount()
-        # errors = {}
-        # if self.pk and total <= 0:
-        #     raise ValidationError(_("مبلغ فاکتور باید مثبت باشد."))
-        #
-        # if abs(self.amount - total) > 0.01:
-        #     logger.warning(f"Factor {self.number}: amount ({self.amount}) != items total ({total})")
-        #     raise ValidationError(_("مبلغ فاکتور با مجموع آیتم‌ها همخوانی ندارد."))
-        #
-        # if self.tankhah:
-        #     tankhah_remaining = get_tankhah_remaining_budget(self.tankhah)
-        #     if total > tankhah_remaining:
-        #         raise ValidationError(
-        #             _(f"مبلغ فاکتور ({total:,.0f} ریال) نمی‌تواند بیشتر از بودجه باقی‌مانده تنخواه ({tankhah_remaining:,.0f} ریال) باشد.")
-        #         )
-        #
-        # if not self.category:
-        #     errors['category'] = ValidationError(_('دسته‌بندی الزامی است.'), code='category_required')
-        # if errors:
-        #     raise ValidationError(errors)
-    def __str__(self):
-        # اصلاح متد __str__ برای مدیریت tankhah=None
-        tankhah_number = self.tankhah.number if self.tankhah else "تنخواه ندارد"
-        return f"{self.number} ({tankhah_number})"
-    class Meta:
-        verbose_name = _("فاکتور")
-        verbose_name_plural = _("فاکتورها")
-        indexes = [
-            models.Index(fields=['number', 'date', 'status', 'tankhah']),
-        ]
-        default_permissions = ()
-        permissions = [
-            ('factor_add', _('افزودن فاکتور')),
-            ('factor_view', _('نمایش فاکتور')),
-            ('factor_update', _('بروزرسانی فاکتور')),
-            ('factor_delete', _('حذف فاکتور')),
-            ('factor_approve', _('تأیید فاکتور')),
-            ('factor_reject', _('رد فاکتور')),
-            ('Factor_full_edit', _('دسترسی کامل به فاکتور')),
-            ('factor_unlock', _('باز کردن فاکتور قفل‌شده')),
-
-        ]
-
+        # استفاده از تابع can_edit_approval برای بررسی دسترسی
+        from tankhah.fun_can_edit_approval  import can_edit_approval
+        return can_edit_approval(user, self.tankhah, self.tankhah.current_stage)
     def save(self, *args, **kwargs):
 
         current_user = kwargs.pop('current_user', None)
@@ -1183,6 +1153,73 @@ class Factor(models.Model):
                     )
 
             super().save(update_fields=['is_locked'])
+    def clean(self):
+        super().clean()
+        if self.amount < 0:
+            raise ValidationError(_("مبلغ فاکتور نمی‌تواند منفی باشد."))
+        if not self.category:
+            raise ValidationError(_("دسته‌بندی الزامی است."))
+        if self.tankhah and (
+                self.tankhah.status not in ['DRAFT', 'PENDING'] ): #or not self.tankhah.workflow_stage.is_initial
+            raise ValidationError(_("تنخواه انتخاب‌شده در وضعیت یا مرحله مجاز نیست."))
+
+        if self.tankhah and self.tankhah.due_date and self.tankhah.due_date.date() < timezone.now().date():
+            raise ValidationError(_('تنخواه منقضی شده است. لطفاً فاکتور را در تنخواه جدید ثبت کنید.'))
+        if self.amount and self.tankhah:
+            from budgets.budget_calculations import get_tankhah_remaining_budget
+            remaining_budget = get_tankhah_remaining_budget(self.tankhah)
+            if self.amount > remaining_budget:
+                raise ValidationError(_('مبلغ فاکتور از بودجه باقی‌مانده تنخواه بیشتر است.'))
+        #درصورت رد فاکتور
+        if self.status == 'REJECTED' and not self.rejected_reason:
+            raise ValidationError(_("دلیل رد فاکتور باید مشخص شود."))
+        if self.re_registered_in and self.status != 'PENDING':
+            raise ValidationError(_("فاکتور فقط در حالت PENDING می‌تواند به تنخواه جدید منتقل شود."))
+
+        #
+        # total = self.total_amount()
+        # errors = {}
+        # if self.pk and total <= 0:
+        #     raise ValidationError(_("مبلغ فاکتور باید مثبت باشد."))
+        #
+        # if abs(self.amount - total) > 0.01:
+        #     logger.warning(f"Factor {self.number}: amount ({self.amount}) != items total ({total})")
+        #     raise ValidationError(_("مبلغ فاکتور با مجموع آیتم‌ها همخوانی ندارد."))
+        #
+        # if self.tankhah:
+        #     tankhah_remaining = get_tankhah_remaining_budget(self.tankhah)
+        #     if total > tankhah_remaining:
+        #         raise ValidationError(
+        #             _(f"مبلغ فاکتور ({total:,.0f} ریال) نمی‌تواند بیشتر از بودجه باقی‌مانده تنخواه ({tankhah_remaining:,.0f} ریال) باشد.")
+        #         )
+        #
+        # if not self.category:
+        #     errors['category'] = ValidationError(_('دسته‌بندی الزامی است.'), code='category_required')
+        # if errors:
+        #     raise ValidationError(errors)
+    def __str__(self):
+        # اصلاح متد __str__ برای مدیریت tankhah=None
+        tankhah_number = self.tankhah.number if self.tankhah else "تنخواه ندارد"
+        return f"{self.number} ({tankhah_number})"
+    class Meta:
+        verbose_name = _("فاکتور")
+        verbose_name_plural = _("فاکتورها")
+        indexes = [
+            models.Index(fields=['number', 'date', 'status', 'tankhah']),
+        ]
+        default_permissions = ()
+        permissions = [
+            ('factor_add', _('افزودن فاکتور')),
+            ('factor_view', _('نمایش فاکتور')),
+            ('factor_update', _('بروزرسانی فاکتور')),
+            ('factor_delete', _('حذف فاکتور')),
+            # ('factor_approve', _('تأیید فاکتور')),
+            ('factor_approve', _(' 👍تایید/رد ردیف فاکتور (تایید ردیف فاکتور*استفاده در مراحل تایید*)')),
+            ('factor_reject', _('رد فاکتور')),
+            ('Factor_full_edit', _('دسترسی کامل به فاکتور')),
+            ('factor_unlock', _('باز کردن فاکتور قفل‌شده')),
+
+        ]
 
 class FactorHistory(models.Model):
     class ChangeType(models.TextChoices):

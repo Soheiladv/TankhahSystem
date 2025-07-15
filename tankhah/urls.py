@@ -61,7 +61,7 @@ urlpatterns = [
 
 
     path('factor/<int:pk>/delete/', FactorDeleteView.as_view(), name='factor_delete'),
-    path('factor/<int:pk>/approve/', FactorApproveView.as_view(), name='factor_approve'),
+    path('factor/<int:pk>/approve/',      FactorApproveView.as_view(),     name='factor_approve'),
     path('factor-item/<int:pk>/approve/', FactorItemApproveView.as_view(), name='factor_item_approve'),
     path('factor-item/<int:pk>/reject/', FactorItemRejectView.as_view(), name='factor_item_reject'),
     path('factor/<int:pk>/status-update/', FactorStatusUpdateView.as_view(), name='factor_status_update'),
@@ -84,7 +84,7 @@ urlpatterns += [
     # ... other urls ...
     # path('factor/create/wizard/',  FactorWizardView.as_view(views.FACTOR_FORMS), name='factor_wizard'), # Wizard URL
     path('ajax/tankhah-budget-info/<int:tankhah_id>/',  TankhahBudgetInfoAjaxView.as_view(), name='tankhah_budget_info_ajax'), # AJAX URL
-    path('factor/list/',  FactorListView.as_view(), name='factor_list'), # Example success URL
+    path('factor/list/',   FactorListView.as_view(), name='factor_list'), # Example success URL
     path('factor/list2/',  FactorListView2.as_view(), name='factor_list2'), # Example success URL
     path('factor/list3/',  OptimizedFactorListView.as_view(), name='factor_list3'), # Example success URL
 

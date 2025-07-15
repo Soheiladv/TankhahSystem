@@ -301,21 +301,41 @@ class PermissionBaseView(LoginRequiredMixin, View):
         qs = super().get_queryset()
         user = self.request.user
 
-        # اگر کاربر HQ است، تمام نتایج را برمی‌گرداند
-        if user.is_hq:
+        # برای DetailView نیازی به فیلتر سازمان نیست
+        if isinstance(self, DetailView):
+            logger.info(f"No organization filtering applied for DetailView: {self.__class__.__name__}")
             return qs
 
-        # اگر کاربر عادی است و فیلد فیلتر سازمان تعریف شده است
-        if self.organization_filter_field:
-            user_org_ids = user.userpost_set.filter(is_active=True).values_list('post__organization_id', flat=True)
+        # اگر کاربر HQ است، تمام نتایج را برمی‌گرداند
+        if user.is_hq:
+            logger.info("Returning unfiltered queryset for HQ user")
+            return qs
 
-            # فیلتر داینامیک بر اساس نام فیلدی که در ویو فرزند تعریف شده
-            filters = {
-                self.organization_filter_field: user_org_ids
-            }
+        if hasattr(self, 'organization_filter_field') and self.organization_filter_field:
+            user_org_ids = user.userpost_set.filter(is_active=True).values_list('post__organization_id', flat=True).distinct()
+            logger.debug(f"User organizations: {list(user_org_ids)}")
+            if not user_org_ids:
+                logger.warning(f"No organizations found for user {user.username}")
+                return qs.none()
+            filters = {f"{self.organization_filter_field}__in": user_org_ids}
+            logger.debug(f"Applying filters: {filters}")
             return qs.filter(**filters)
+        logger.warning("No organization filter field defined, returning empty queryset")
 
-        # اگر فیلد فیلتر تعریف نشده، برای امنیت، هیچ نتیجه‌ای برنگردان
+        # اگر کاربر عادی است و فیلد فیلتر سازمان تعریف شده است
+        # if self.organization_filter_field:
+        #     user_org_ids = user.userpost_set.filter(is_active=True).values_list('post__organization_id', flat=True).distinct()
+        #     logger.debug(f"User organizations: {list(user_org_ids)}")
+        #     # فیلتر داینامیک بر اساس نام فیلدی که در ویو فرزند تعریف شده
+        #     if not user_org_ids:
+        #         logger.warning(f"No organizations found for user {user.username}")
+        #         return qs.none()
+        #         # صراحتاً از __in استفاده کنید
+        #     filters = {f"{self.organization_filter_field}__in": user_org_ids}
+        #     logger.debug(f"Applying filters: {filters}")
+        #     return qs.filter(**filters)
+
+        logger.warning("No organization filter field defined, returning empty queryset")
         return qs.none()
 
 

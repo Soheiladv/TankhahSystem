@@ -141,6 +141,64 @@ class PostRuleReportView(PermissionBaseView, ListView):
         return Post.objects.select_related('organization').prefetch_related('accessrule_set').order_by(
             'organization__name', 'level')
     # template_name = 'core/accessrule/post_access_rule_assign_a.html'
+class PostAccessRuleAssignView(FormView):
+    template_name = 'core/accessrule/post_access_rule_assign_b.html'  # نام تمپلیت جدید و بهینه
+    form_class = PostAccessRuleForm
+    success_url = reverse_lazy('accessrule_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _("تنظیم قوانین دسترسی پست‌ها")
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+
+        posts_query = Post.objects.filter(is_active=True).select_related('organization', 'parent')
+
+        if not self.request.user.is_superuser:
+            user_orgs = self.request.user.userpost_set.filter(is_active=True).values_list('post__organization',
+                                                                                          flat=True).distinct()
+            posts_query = posts_query.filter(organization__id__in=user_orgs)
+
+        kwargs['posts_query'] = posts_query
+        logger.debug(f"Passing {posts_query.count()} posts to PostAccessRuleForm.")
+        return kwargs
+
+    def form_valid(self, form):
+        try:
+            form.save(user=self.request.user)
+            messages.success(self.request, _('پست‌ها و قوانین دسترسی با موفقیت ذخیره شدند.'))
+            logger.info("فرم با موفقیت ذخیره شد.")
+            return super().form_valid(form)
+        except Exception as e:
+            logger.exception(f"خطای غیرمنتظره‌ای در هنگام ذخیره‌سازی فرم رخ داد: {str(e)}")
+            messages.error(self.request, _('خطای غیرمنتظره‌ای در هنگام ذخیره‌سازی رخ داد.'))
+            return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        logger.error(f"فرم نامعتبر است. خطاها: {form.errors.as_json()}, خطاهای غیرفیلدی: {form.non_field_errors()}")
+        messages.error(self.request, _('خطایی در ذخیره‌سازی رخ داد. لطفاً ورودی‌ها را بررسی کنید.'))
+
+        for field, errors in form.errors.items():
+            display_field_name = field
+            if field.startswith('post_') and field.endswith('_level'):
+                post_id = field.split('_')[1]
+                try:
+                    post = Post.objects.get(id=post_id)
+                    display_field_name = f"{_('سطح پست')}: {post.name}"
+                except Post.DoesNotExist:
+                    pass
+            elif field.startswith('rule_') or field.startswith('signer_'):
+                display_field_name = _("قانون دسترسی")
+
+            # messages.warning(self.request, f"{_('خطا در فیلد')} {display_field_name}: {error}")
+
+        for error in form.non_field_errors():
+            messages.warning(self.request, f"{_('خطای عمومی')}: {error}")
+
+        return super().form_invalid(form)
+
 
 class OK__PostAccessRuleAssignView(FormView):
     template_name = 'core/accessrule/post_access_rule_assign_b.html'
@@ -224,60 +282,3 @@ class OK__PostAccessRuleAssignView(FormView):
 
         return super().form_invalid(form)
 
-class PostAccessRuleAssignView(FormView):
-    template_name = 'core/accessrule/post_access_rule_assign_b.html'  # نام تمپلیت جدید و بهینه
-    form_class = PostAccessRuleForm
-    success_url = reverse_lazy('accessrule_list')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = _("تنظیم قوانین دسترسی پست‌ها")
-        return context
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-
-        posts_query = Post.objects.filter(is_active=True).select_related('organization', 'parent')
-
-        if not self.request.user.is_superuser:
-            user_orgs = self.request.user.userpost_set.filter(is_active=True).values_list('post__organization',
-                                                                                          flat=True).distinct()
-            posts_query = posts_query.filter(organization__id__in=user_orgs)
-
-        kwargs['posts_query'] = posts_query
-        logger.debug(f"Passing {posts_query.count()} posts to PostAccessRuleForm.")
-        return kwargs
-
-    def form_valid(self, form):
-        try:
-            form.save(user=self.request.user)
-            messages.success(self.request, _('پست‌ها و قوانین دسترسی با موفقیت ذخیره شدند.'))
-            logger.info("فرم با موفقیت ذخیره شد.")
-            return super().form_valid(form)
-        except Exception as e:
-            logger.exception(f"خطای غیرمنتظره‌ای در هنگام ذخیره‌سازی فرم رخ داد: {str(e)}")
-            messages.error(self.request, _('خطای غیرمنتظره‌ای در هنگام ذخیره‌سازی رخ داد.'))
-            return self.form_invalid(form)
-
-    def form_invalid(self, form):
-        logger.error(f"فرم نامعتبر است. خطاها: {form.errors.as_json()}, خطاهای غیرفیلدی: {form.non_field_errors()}")
-        messages.error(self.request, _('خطایی در ذخیره‌سازی رخ داد. لطفاً ورودی‌ها را بررسی کنید.'))
-
-        for field, errors in form.errors.items():
-            display_field_name = field
-            if field.startswith('post_') and field.endswith('_level'):
-                post_id = field.split('_')[1]
-                try:
-                    post = Post.objects.get(id=post_id)
-                    display_field_name = f"{_('سطح پست')}: {post.name}"
-                except Post.DoesNotExist:
-                    pass
-            elif field.startswith('rule_') or field.startswith('signer_'):
-                display_field_name = _("قانون دسترسی")
-
-            # messages.warning(self.request, f"{_('خطا در فیلد')} {display_field_name}: {error}")
-
-        for error in form.non_field_errors():
-            messages.warning(self.request, f"{_('خطای عمومی')}: {error}")
-
-        return super().form_invalid(form)

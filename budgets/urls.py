@@ -113,7 +113,7 @@ urlpatterns = [
     path('paymentorder/<int:pk>/edit/', PaymentOrderUpdateView.as_view(), name='paymentorder_edit'),
     path('paymentorder/<int:pk>/delete/', PaymentOrderDeleteView.as_view(), name='paymentorder_delete'),
     path('payment-order/<int:pk>/sign/', PaymentOrderSignView.as_view(), name='payment_order_sign'),
-    path('payment-orders/review/', PaymentOrderReviewView.as_view(), name='payment_order_review'),
+    path('payment-orders/review/',  PaymentOrderReviewView.as_view(), name='payment_order_review'),
     path('paymentorders/<int:pk>/', PaymentOrderDetailView.as_view(), name='paymentorder_detail'),
 
     # ===================================================================

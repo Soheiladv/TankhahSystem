@@ -169,3 +169,25 @@ class RequestMiddleware:
         from threading import current_thread
         current_thread()._request = request
         return self.get_response(request)
+
+
+# accounts/middleware.py
+from threading import local
+
+_request_locals = local()
+
+class RequestMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        _request_locals.request = request
+        response = self.get_response(request)
+        return response
+
+def get_current_request():
+    return getattr(_request_locals, 'request', None)
+
+def get_current_user():
+    request = get_current_request()
+    return request.user if request and hasattr(request, 'user') and request.user.is_authenticated else None

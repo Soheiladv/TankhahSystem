@@ -8,6 +8,7 @@ from tankhah.models import Tankhah, Factor, ApprovalLog
 from decimal import Decimal
 from django.core.cache import cache
 import logging
+from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger(__name__)
 

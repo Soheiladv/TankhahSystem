@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
+from django.core.mail import send_mail
 from django.db import transaction
 import logging
 from decimal import Decimal
@@ -7,7 +8,10 @@ from django.db.models import Sum
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
+from notifications.signals import notify
+from django.utils.translation import gettext_lazy as _
 
+from accounts.models import CustomUser
 from budgets.models import PaymentOrder
 from tankhah.models import Tankhah, FactorItem, create_budget_transaction, Factor, ApprovalLog
 # فعال‌سازی سیگنال برای تأیید چندامضایی
@@ -16,9 +20,40 @@ from django.dispatch import receiver
 from .models import Tankhah, TankhahAction
 from core.models import AccessRule, Post, WorkflowStage
 
+logger = logging.getLogger('tankhah.signals')
+#///////////////////////////////////////////////////////////////////
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from tankhah.models import Tankhah, ApprovalLog
+from accounts.middleware import get_current_user
 
-logger = logging.getLogger('Signal_PaymentOrder')
 
+@receiver(pre_save, sender=Tankhah)
+def log_tanbakh_changes(sender, instance, **kwargs):
+    """
+    ثبت تغییرات وضعیت تنخواه در ApprovalLog
+    """
+    if instance.pk:
+        try:
+            old_instance = Tankhah.objects.get(pk=instance.pk)
+            if old_instance.status != instance.status:
+                user = getattr(instance, '_changed_by', None) or get_current_user()
+                if not user:
+                    logger.warning("کاربر تغییر‌دهنده یافت نشد، لاگ ثبت نمی‌شود")
+                    return
+                ApprovalLog.objects.create(
+                    tankhah=instance,
+                    action='STATUS_CHANGE',
+                    user=user,
+                    comment=f"تغییر وضعیت از {old_instance.status} به {instance.status}",
+                    stage=instance.current_stage,
+                    post=user.userpost_set.filter(is_active=True, end_date__isnull=True).first().post if user else None
+                )
+        except Tankhah.DoesNotExist:
+            logger.error(f"تنخواه با pk={instance.pk} یافت نشد")
+        except Exception as e:
+            logger.error(f"خطا در سیگنال log_tanbakh_changes: {e}", exc_info=True)
+#///////////////////////////////////////////////////////////////////
 
 @receiver(post_save, sender=FactorItem)
 def handle_factor_item_budget_transaction(sender, instance, created, **kwargs):
@@ -57,19 +92,42 @@ def handle_factor_item_budget_transaction(sender, instance, created, **kwargs):
 
 """به جای به‌روزرسانی در FactorItem.save، از سیگنال یا متد ویو استفاده کنید:"""
 from django.db.models.signals import post_save, post_delete
+# @receiver([post_save, post_delete], sender=FactorItem)
+# def update_factor_and_tankhah(sender, instance, **kwargs):
+#     try:
+#         factor = instance.factor
+#         factor.amount = factor.items.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+#         factor.save(update_fields=['amount'])
+#         tankhah = factor.tankhah
+#         from budgets.budget_calculations import get_tankhah_remaining_budget
+#         tankhah.remaining_budget = get_tankhah_remaining_budget(tankhah)
+#         tankhah.save(update_fields=['remaining_budget'])
+#     except Exception as e:
+#         logger.error(f"Error updating factor/tankhah for FactorItem (Signal Tankhah) {instance.pk}: {e}", exc_info=True)
+
 @receiver([post_save, post_delete], sender=FactorItem)
 def update_factor_and_tankhah(sender, instance, **kwargs):
     try:
         factor = instance.factor
-        factor.amount = factor.items.aggregate(total=Sum('amount'))['total'] or Decimal('0')
-        factor.save(update_fields=['amount'])
         tankhah = factor.tankhah
-        from budgets.budget_calculations import get_tankhah_remaining_budget
-        tankhah.remaining_budget = get_tankhah_remaining_budget(tankhah)
-        tankhah.save(update_fields=['remaining_budget'])
-    except Exception as e:
-        logger.error(f"Error updating factor/tankhah for FactorItem (Signal Tankhah) {instance.pk}: {e}", exc_info=True)
+        # محاسبه مبلغ فاکتور
+        new_factor_amount = factor.items.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        if factor.amount != new_factor_amount:
+            factor.amount = new_factor_amount
+            factor.save(update_fields=['amount'])
 
+        # فقط اگر فاکتور تأیید شده باشد، spent را به‌روزرسانی کن
+        if factor.status == 'APPROVED':
+            old_spent = tankhah.spent
+            new_spent = tankhah.factors.filter(status='APPROVED').aggregate(
+                total=Sum('amount')
+            )['total'] or Decimal('0')
+            if old_spent != new_spent:
+                tankhah.spent = new_spent
+                tankhah.save(update_fields=['spent'])
+                logger.info(f"Updated spent for Tankhah {tankhah.number}: {new_spent}")
+    except Exception as e:
+        logger.error(f"Error updating factor/tankhah for FactorItem {instance.pk}: {e}", exc_info=True)
 
 @receiver(post_save, sender=Factor)
 def log_factor_changes(sender, instance, created, **kwargs):
@@ -98,24 +156,6 @@ def lock_factor_after_approval(sender, instance, **kwargs):
     if instance.action == 'APPROVE' and instance.factor:
         instance.factor.locked = True
         instance.factor.save()
-
-
-@receiver(pre_save, sender=Tankhah)
-def log_tanbakh_changes(sender, instance, **kwargs):
-    """
-    عملکرد: این سیگنال قبل از ذخیره تنخواه اجرا می‌شود. اگر وضعیت (status) تنخواه تغییر کند (مثلاً از DRAFT به PAID)، یک رکورد در ApprovalLog ثبت می‌شود که تغییر وضعیت را با کاربر تغییردهنده و توضیحات ثبت می‌کند.
-    ارتباط با تنخواه: این سیگنال مستقیماً به تنخواه مربوط است و تغییرات وضعیت آن را رصد می‌کند.
-    تأثیر: در TankhahCreateView، تنخواه ابتدا با وضعیت PAID تنظیم می‌شود و سپس به DRAFT تغییر می‌کند. چون تنخواه جدید است (instance.pk وجود ندارد)، این سیگنال در مرحله ثبت اولیه اجرا نمی‌شود. اما اگر بعداً وضعیت تنخواه تغییر کند (مثلاً در جریان کاری تأیید به PAID برسد)، این سیگنال یک ApprovalLog ایجاد می‌کند.
-    """
-    if instance.pk:
-        old_instance = Tankhah.objects.get(pk=instance.pk)
-        if old_instance.status != instance.status:
-            ApprovalLog.objects.create(
-                tanbakh=instance,
-                action='STATUS_CHANGE',
-                user=instance._changed_by,
-                comment=f"تغییر وضعیت از {old_instance.status} به {instance.status}"
-            )
 
 def send_notification_to_post_users__(post, action):
     from accounts.models import CustomUser
@@ -171,10 +211,12 @@ def start_approval_process(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Factor)
 def start_payment_order_process(sender, instance, **kwargs):
     if instance.status != 'APPROVED':
+        logger.debug(f"Factor {instance.number} is not APPROVED, skipping PaymentOrder creation.")
         return
 
     current_stage = instance.tankhah.current_stage
     if not current_stage or not current_stage.triggers_payment_order:
+        logger.debug(f"Stage {current_stage.name if current_stage else 'None'} does not trigger PaymentOrder.")
         return
 
     access_rule = AccessRule.objects.filter(
@@ -197,60 +239,138 @@ def start_payment_order_process(sender, instance, **kwargs):
     ).exists()
 
     if not approval_log:
+        logger.debug(f"No valid ApprovalLog found for Factor {instance.number}.")
         return
 
     try:
         with transaction.atomic():
+            # بررسی بودجه تنخواه و پروژه
+            tankhah_remaining = instance.tankhah.budget - instance.tankhah.spent
+            project_remaining = instance.tankhah.project.budget - instance.tankhah.project.spent if instance.tankhah.project else Decimal('0')
+            if instance.amount > tankhah_remaining or (instance.tankhah.project and instance.amount > project_remaining):
+                logger.error(f"Insufficient budget for Factor {instance.number}: Tankhah remaining={tankhah_remaining}, Project remaining={project_remaining}")
+                raise ValueError(_("بودجه کافی برای تنخواه یا پروژه وجود ندارد."))
+
+            # تعیین گیرنده پرداخت
             payee = instance.tankhah.payee or instance.tankhah.organization.payees.first()
             if not payee:
-                raise ValueError("گیرنده پرداخت یافت نشد.")
+                logger.error(f"No payee found for Tankhah {instance.tankhah.number}.")
+                raise ValueError(_("گیرنده پرداخت یافت نشد."))
 
+            # محاسبه مبلغ دقیق
+            amount = instance.items.filter(status='APPROVED').aggregate(total=Sum('amount'))['total'] or instance.amount
+
+            # تعیین مرحله اولیه دستور پرداخت
+            initial_stage = WorkflowStage.objects.filter(
+                entity_type='PAYMENTORDER',
+                order=1,
+                is_active=True
+            ).first()
+            if not initial_stage:
+                logger.error(f"No valid initial WorkflowStage found for PaymentOrder.")
+                raise ValueError(_("مرحله اولیه گردش کار برای دستور پرداخت تعریف نشده است."))
+
+            # ایجاد دستور پرداخت
+            created_by = instance.approved_by.last() or instance.created_by
+            user_post = created_by.userpost_set.filter(is_active=True).first()
             payment_order = PaymentOrder.objects.create(
                 tankhah=instance.tankhah,
-                amount=instance.amount,
+                amount=amount,
                 payee=payee,
                 description=f"پرداخت فاکتور {instance.number}",
-                created_by=instance.approved_by.last(),
-                created_by_post=instance.approved_by.last().userpost_set.filter(is_active=True).first().post,
+                created_by=created_by,
+                created_by_post=user_post.post if user_post else None,
                 organization=instance.tankhah.organization,
                 project=instance.tankhah.project,
                 status='PENDING_APPROVAL',
-                min_signatures=2,
-                current_stage=WorkflowStage.objects.filter(order=1).first(),
-                issue_date=timezone.now().date()
+                min_signatures=access_rule.min_signatures or 2,
+                current_stage=initial_stage,
+                issue_date=timezone.now().date(),
+                order_number=f"PO-{instance.tankhah.number}-{int(timezone.now().timestamp())}"
             )
             payment_order.related_factors.add(instance)
 
+            # ثبت تراکنش بودجه
             create_budget_transaction(
                 allocation=instance.tankhah.project_budget_allocation,
                 transaction_type='CONSUMPTION',
-                amount=instance.amount,
+                amount=amount,
                 related_obj=payment_order,
-                created_by=instance.approved_by.last(),
-                description=f"پرداخت دستور {payment_order.order_number}",
-                transaction_id=f"TX-PO-{payment_order.order_number}"
+                created_by=created_by,
+                description=f"پرداخت دستور {payment_order.order_number} برای فاکتور {instance.number}",
+                transaction_id=f"TX-PO-{payment_order.order_number}-{int(timezone.now().timestamp())}"
             )
 
+            # ثبت لاگ‌های امضا
             required_posts = AccessRule.objects.filter(
                 organization=instance.tankhah.organization,
-                stage=payment_order.current_stage,
+                stage=initial_stage,
                 action_type='SIGN_PAYMENT',
                 entity_type='PAYMENTORDER',
                 is_active=True
             ).select_related('post')
 
+            content_type = ContentType.objects.get_for_model(PaymentOrder)
             for rule in required_posts:
                 ApprovalLog.objects.create(
                     tankhah=instance.tankhah,
-                    content_type=ContentType.objects.get_for_model(PaymentOrder),
+                    content_type=content_type,
                     object_id=payment_order.id,
                     action='PENDING_SIGNATURE',
-                    stage=payment_order.current_stage,
-                    post=rule.post
+                    stage=initial_stage,
+                    post=rule.post,
+                    comment=f"نیاز به امضای {rule.post.name} برای دستور پرداخت {payment_order.order_number}"
                 )
-                send_notification_to_post_users(rule.post, payment_order)
+
+                # ارسال اعلان به پست‌های مجاز
+                users = CustomUser.objects.filter(
+                    userpost__post=rule.post,
+                    userpost__is_active=True,
+                    userpost__post__organization=instance.tankhah.organization
+                ).distinct()
+                for user in users:
+                    notify.send(
+                        sender=created_by,
+                        recipient=user,
+                        verb='pending_signature',
+                        action_object=payment_order,
+                        description=f"دستور پرداخت {payment_order.order_number} برای فاکتور {instance.number} نیاز به امضای شما دارد.",
+                        level='HIGH'
+                    )
+                    send_mail(
+                        subject=f"دستور پرداخت جدید: {payment_order.order_number}",
+                        message=f"دستور پرداخت {payment_order.order_number} برای فاکتور {instance.number} نیاز به امضای شما دارد.",
+                        from_email='system@example.com',
+                        recipient_list=[user.email],
+                        fail_silently=True
+                    )
+
+            # اعلان به خزانه‌دار
+            treasurer_users = CustomUser.objects.filter(
+                userpost__post__name='خزانه‌دار',
+                userpost__is_active=True,
+                userpost__post__organization=instance.tankhah.organization
+            ).distinct()
+            for user in treasurer_users:
+                notify.send(
+                    sender=created_by,
+                    recipient=user,
+                    verb='payment_order_created',
+                    action_object=payment_order,
+                    description=f"دستور پرداخت {payment_order.order_number} برای فاکتور {instance.number} ایجاد شد.",
+                    level='HIGH'
+                )
+                send_mail(
+                    subject=f"دستور پرداخت جدید: {payment_order.order_number}",
+                    message=f"دستور پرداخت {payment_order.order_number} برای فاکتور {instance.number} ایجاد شد و در انتظار تأیید است.",
+                    from_email='system@example.com',
+                    recipient_list=[user.email],
+                    fail_silently=True
+                )
 
             logger.info(f"PaymentOrder {payment_order.order_number} created for Factor {instance.number}")
 
     except Exception as e:
         logger.error(f"Error creating PaymentOrder for Factor {instance.number}: {e}", exc_info=True)
+        from django.contrib import messages
+        messages.error(getattr(instance, '_request', None), _(f"خطا در ایجاد دستور پرداخت: {str(e)}"))
