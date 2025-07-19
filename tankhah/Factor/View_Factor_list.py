@@ -2,7 +2,10 @@
 import logging
 from collections import defaultdict
 
+from django.contrib.contenttypes.models import ContentType
 from persiantools import jdatetime
+
+from core.models import PostAction
 
 logger = logging.getLogger(__name__)
 
@@ -162,315 +165,181 @@ class OK_NOGroup_FactorListView(PermissionBaseView, ListView):
 
 from django.db.models import Q, Sum, Prefetch
 
+#---------------------------------
 
 class FactorListView(PermissionBaseView, ListView):
     model = Factor
     template_name = 'tankhah/factor_list.html'
     context_object_name = 'factors'
-    paginate_by = 15
     permission_codenames = ['tankhah.factor_view']
-    check_organization = False
-
-    def _user_is_hq(self, user):
-        """
-        تشخیص کاربر دفتر مرکزی (HQ).
-        """
-        logger.debug(f"[FactorListView] Checking HQ status for user: {user.username}")
-        is_superuser = user.is_superuser
-        has_full_edit = user.has_perm('tankhah.Factor_full_edit')
-        has_view_all = user.has_perm('tankhah.Tankhah_view_all')
-        hq_posts = user.userpost_set.filter(
-            is_active=True,
-            post__organization__org_type__org_type='HQ'
-        ).exists()
-        logger.debug(f"[FactorListView] is_superuser: {is_superuser}, has_full_edit: {has_full_edit}, has_view_all: {has_view_all}, hq_posts: {hq_posts}")
-        return is_superuser or has_full_edit or has_view_all or hq_posts
+    check_organization = True
+    organization_filter_field = 'tankhah__organization__id__in'
+    paginate_by = 20
 
     def get_queryset(self):
-        """آماده‌سازی کوئری اصلی برای واکشی فاکتورها با لاگ‌های دقیق."""
         user = self.request.user
         logger.info(f"--- [FactorListView] START: Fetching queryset for user: {user.username} ---")
 
-        if self._user_is_hq(user):
-            queryset = Factor.objects.all()
-            logger.info(f"HQ user '{user.username}' detected. Accessing all factors.")
-        else:
-            user_org_ids = user.userpost_set.filter(is_active=True).values_list('post__organization_id', flat=True)
-            queryset = Factor.objects.filter(tankhah__organization__id__in=user_org_ids)
-            logger.info(f"Standard user '{user.username}'. Filtering for orgs: {list(user_org_ids)}")
-
-        initial_count = queryset.count()
+        qs = super().get_queryset()
+        initial_count = qs.count()
         logger.info(f"Initial queryset count: {initial_count}")
 
-        # اعمال فیلترهای جستجو
+        user_org_ids = set()
+        user_level = None
+        for user_post in user.userpost_set.filter(is_active=True):
+            org = user_post.post.organization
+            user_org_ids.add(org.id)
+            while org.parent_organization:
+                org = org.parent_organization
+                user_org_ids.add(org.id)
+            user_level = min(user_level, user_post.post.level) if user_level else user_post.post.level
+        logger.info(f"User {user.username} organizations: {user_org_ids}, level: {user_level}")
+
         query = self.request.GET.get('q', '').strip()
         status_query = self.request.GET.get('status', '').strip()
-        if query or status_query:
-            # ... منطق فیلتر شما ...
-            if query:
-                queryset = queryset.filter(
-                    Q(number__icontains=query) | Q(description__icontains=query) | Q(tankhah__number__icontains=query))
-            if status_query:
-                queryset = queryset.filter(status=status_query)
-            logger.info(f"Applied filters. New count: {queryset.count()}")
+        date_query = self.request.GET.get('date', '').strip()
 
-        # بهینه‌سازی نهایی کوئری
-        return queryset.select_related(
+        filter_conditions = Q()
+        if query:
+            filter_conditions |= (
+                Q(number__icontains=query) |
+                Q(description__icontains=query) |
+                Q(tankhah__number__icontains=query)
+            )
+        if status_query:
+            filter_conditions &= Q(status=status_query)
+        if date_query:
+            try:
+                gregorian_date = jdatetime.datetime.strptime(date_query, '%Y-%m-%d').togregorian().date()
+                filter_conditions &= Q(date=gregorian_date)
+            except (ValueError, TypeError):
+                messages.warning(self.request, _("فرمت تاریخ برای جستجو نامعتبر است."))
+
+        if filter_conditions:
+            qs = qs.filter(filter_conditions)
+            logger.info(f"Applied filters (q='{query}', status='{status_query}', date='{date_query}'). New count: {qs.count()}")
+
+        qs = qs.select_related(
             'tankhah__organization', 'tankhah__project', 'tankhah__current_stage', 'created_by', 'category'
         ).prefetch_related(
             'items',
-            # ========= بلوک اصلاح شده =========
             Prefetch(
-                'approval_logs',  # FIX: استفاده از نام صحیح related_name که در مدل تعریف شده
-                queryset=ApprovalLog.objects.filter(action='APPROVE').select_related('user', 'post').order_by('date'),
-                # تغییر به فیلد تاریخ خودتان
-                to_attr='approvers_list'
+                'approval_logs',
+                queryset=ApprovalLog.objects.filter(action='APPROVE').select_related('user', 'post').order_by('-timestamp'),
+                to_attr='approvers_raw'
             )
-            # ========= پایان بلوک اصلاح شده =========
         ).order_by('-date', '-pk')
 
+        logger.info(f"Final queryset count: {qs.count()}")
+        for factor in qs:
+            logger.debug(f"Factor {factor.number}: org={factor.tankhah.organization.id}, status={factor.status}")
+        return qs
+
     def get_context_data(self, **kwargs):
-        """
-        ایجاد کنتکست با گروه‌بندی هماهنگ با قالب و افزودن اطلاعات تأییدکنندگان.
-        """
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        logger.info(f"[FactorListView] Creating context for user: {user.username}")
+        logger.info(f"--- [FactorListView] START: Creating context for user: {user.username} ---")
 
-        context['is_hq'] = self._user_is_hq(user)
-        context['query'] = self.request.GET.get('q', '')
-        context['date_query'] = self.request.GET.get('date', '')
-        context['status_query'] = self.request.GET.get('status', '')
-        context['status_choices'] = Factor.STATUS_CHOICES
+        user_level = None
+        user_org_ids = set()
+        for user_post in user.userpost_set.filter(is_active=True):
+            user_org_ids.add(user_post.post.organization.id)
+            user_level = min(user_level, user_post.post.level) if user_level else user_post.post.level
+        context.update({
+            'is_hq': (
+                user.is_superuser or
+                user.has_perm('tankhah.Tankhah_view_all') or
+                user.userpost_set.filter(
+                    is_active=True,
+                    post__organization__org_type__fname='HQ'
+                ).exists()
+            ),
+            'query': self.request.GET.get('q', ''),
+            'status_query': self.request.GET.get('status', ''),
+            'date_query': self.request.GET.get('date', ''),
+            'status_choices': Factor.STATUS_CHOICES,
+            'user_level': user_level,
+        })
 
         grouped_by_org = {}
-        factor_list = context[self.context_object_name]
+        factor_list = context.get(self.context_object_name, [])
+        logger.info(f"Processing {len(factor_list)} factors for grouping.")
 
         user_posts = list(
-            user.userpost_set.filter(is_active=True)
-            .select_related('post')
-            .prefetch_related('post__stageapprover_set')
+            user.userpost_set.filter(is_active=True).select_related('post').prefetch_related('post__stageapprover_set')
         )
 
         for factor in factor_list:
             try:
                 tankhah = factor.tankhah
+                if not tankhah:
+                    logger.warning(f"Factor {factor.number} has no tankhah")
+                    continue
                 org = tankhah.organization
                 project = tankhah.project
+                if not org or not project:
+                    logger.warning(f"Factor {factor.number} missing org or project")
+                    continue
 
-                org_key = org.name if org else _('بدون شعبه')
-                project_key = project.name if project else _('بدون پروژه')
-                tankhah_key = tankhah.number
-
-                if org_key not in grouped_by_org:
-                    grouped_by_org[org_key] = {
-                        'organization': org,
-                        'projects': {},
-                        'total_amount': Decimal('0')
-                    }
-
-                if project_key not in grouped_by_org[org_key]['projects']:
-                    grouped_by_org[org_key]['projects'][project_key] = {
-                        'project': project,
-                        'tankhahs': {},
-                        'total_amount': Decimal('0')
-                    }
-
-                if tankhah_key not in grouped_by_org[org_key]['projects'][project_key]['tankhahs']:
-                    grouped_by_org[org_key]['projects'][project_key]['tankhahs'][tankhah_key] = {
-                        'tankhah': tankhah,
+                org_name = org.name
+                if org_name not in grouped_by_org:
+                    grouped_by_org[org_name] = {'org_obj': org, 'projects': {}, 'total_amount': Decimal('0')}
+                if project.name not in grouped_by_org[org_name]['projects']:
+                    grouped_by_org[org_name]['projects'][project.name] = {'project_obj': project, 'tankhahs': {}, 'total_amount': Decimal('0')}
+                if tankhah.number not in grouped_by_org[org_name]['projects'][project.name]['tankhahs']:
+                    grouped_by_org[org_name]['projects'][project.name]['tankhahs'][tankhah.number] = {
+                        'tankhah_obj': tankhah,
                         'factors': {
-                            'approved': [],
-                            'rejected': [],
-                            'others': []
+                            'pending': [], 'approved': [], 'rejected': [], 'paid': [], 'draft': [], 'others': []
                         },
                         'total_amount': Decimal('0')
                     }
 
+                status_key = factor.status.lower() if factor.status else 'others'
+                grouped_by_org[org_name]['projects'][project.name]['tankhahs'][tankhah.number]['factors'][status_key].append(factor)
+
                 factor_amount = factor.amount or Decimal('0')
-                factor_status = factor.status.lower()
-                if factor_status == 'approved':
-                    grouped_by_org[org_key]['projects'][project_key]['tankhahs'][tankhah_key]['factors']['approved'].append(factor)
-                elif factor_status == 'rejected':
-                    grouped_by_org[org_key]['projects'][project_key]['tankhahs'][tankhah_key]['factors']['rejected'].append(factor)
-                else:
-                    grouped_by_org[org_key]['projects'][project_key]['tankhahs'][tankhah_key]['factors']['others'].append(factor)
+                grouped_by_org[org_name]['projects'][project.name]['tankhahs'][tankhah.number]['total_amount'] += factor_amount
+                grouped_by_org[org_name]['projects'][project.name]['total_amount'] += factor_amount
+                grouped_by_org[org_name]['total_amount'] += factor_amount
 
-                grouped_by_org[org_key]['projects'][project_key]['tankhahs'][tankhah_key]['total_amount'] += factor_amount
-                grouped_by_org[org_key]['projects'][project_key]['total_amount'] += factor_amount
-                grouped_by_org[org_key]['total_amount'] += factor_amount
-
-                # افزودن اطلاعات تأییدکنندگان
-                approval_logs = factor.approval_logs.filter(action='APPROVE')
-                factor.last_approver = approval_logs.first().user if approval_logs.exists() else None
-                factor.approvers_list = [log.user for log in approval_logs if log.user]
-                factor.approvers_display = ', '.join(
-                    [f"{approver.get_full_name() or approver.username}" for approver in factor.approvers_list]
-                ) if factor.approvers_list else _('بدون تأییدکننده')
+                raw_logs = getattr(factor, 'approvers_raw', [])
+                names = [log.user.get_full_name() or log.user.username for log in raw_logs if log.user]
+                factor.approvers_display = ', '.join(names) if names else _('بدون تأییدکننده')
+                factor.last_approver = names[0] if names else None
 
                 factor.can_approve = False
-                factor.is_locked = False
                 if tankhah.status in ['DRAFT', 'PENDING'] and tankhah.current_stage:
                     for user_post in user_posts:
                         if any(sa.stage_id == tankhah.current_stage_id for sa in user_post.post.stageapprover_set.all()):
                             factor.can_approve = True
+                            logger.debug(f"User {user.username} can approve factor {factor.number} in stage {tankhah.current_stage.name}")
                             break
-                if factor.locked_by_stage and tankhah.current_stage:
-                    factor.is_locked = factor.locked_by_stage.order < tankhah.current_stage.order
+                        if user_post.post.level <= tankhah.current_stage.order:
+                            factor.can_approve = True
+                            logger.debug(f"User {user.username} can approve factor {factor.number} due to level {user_post.post.level}")
+                            break
+
+                factor.is_locked = (
+                    factor.locked_by_stage and
+                    tankhah.current_stage and
+                    factor.locked_by_stage.order < tankhah.current_stage.order
+                )
+                logger.debug(f"Factor {factor.number}: can_approve={factor.can_approve}, is_locked={factor.is_locked}")
 
             except Exception as e:
-                logger.error(f"[FactorListView] Error processing factor {getattr(factor, 'number', factor.pk)}: {str(e)}")
+                logger.error(f"Error while grouping factor PK={factor.pk}: {e}", exc_info=True)
                 factor.can_approve = False
                 factor.is_locked = True
-                factor.last_approver = None
-                factor.approvers_list = []
                 factor.approvers_display = _('خطا در بارگذاری تأییدکنندگان')
-
-        context['grouped_by_org'] = grouped_by_org
-        logger.info(f"[FactorListView] Number of organizations in grouped_by_org: {len(grouped_by_org)}")
-        return context
-
-class  old__FactorListView2(PermissionBaseView, ListView):
-    model = Factor
-    template_name = 'tankhah/factor_list_redesigned.html'  # نام تمپلیت جدید
-    context_object_name = 'factors'
-    paginate_by = 20
-    permission_codenames = ['tankhah.factor_view']
-
-    def _user_is_hq(self, user):
-        """متد متمرکز و قابل اعتماد برای تشخیص کاربر دفتر مرکزی (HQ)."""
-        if user.is_superuser or user.has_perm('tankhah.Tankhah_view_all'):
-            logger.debug(f"User '{user.username}' is considered HQ due to superuser/permission.")
-            return True
-
-        # این شرط باید با ساختار مدل شما هماهنگ باشد
-        is_in_hq_org = user.userpost_set.filter(
-            is_active=True,
-            post__organization__org_type__fname='HQ'
-        ).exists()
-        logger.debug(f"User '{user.username}' HQ organization check returned: {is_in_hq_org}")
-        return is_in_hq_org
-
-    def get_queryset(self):
-        """آماده‌سازی کوئری اصلی برای واکشی فاکتورها با لاگ‌های دقیق."""
-        user = self.request.user
-        logger.info(f"--- [FactorListView] START: Fetching queryset for user: {user.username} ---")
-
-        if self._user_is_hq(user):
-            queryset = Factor.objects.all()
-            logger.info(f"HQ user '{user.username}' detected. Accessing all factors.")
-        else:
-            user_org_ids = user.userpost_set.filter(is_active=True).values_list('post__organization_id', flat=True)
-            queryset = Factor.objects.filter(tankhah__organization__id__in=user_org_ids)
-            logger.info(f"Standard user '{user.username}'. Filtering for orgs: {list(user_org_ids)}")
-
-        # لاگ تعداد اولیه فاکتورها قبل از فیلتر
-        initial_count = queryset.count()
-        logger.info(f"Initial queryset count: {initial_count}")
-
-        # اعمال فیلترهای جستجو
-        query = self.request.GET.get('q', '').strip()
-        status_query = self.request.GET.get('status', '').strip()
-
-        if query or status_query:
-            if query:
-                queryset = queryset.filter(
-                    Q(number__icontains=query) | Q(description__icontains=query) | Q(tankhah__number__icontains=query))
-            if status_query:
-                queryset = queryset.filter(status=status_query)
-
-            logger.info(f"Applied filters (q='{query}', status='{status_query}'). New count: {queryset.count()}")
-
-        # بهینه‌سازی نهایی کوئری
-        return queryset.select_related(
-            'tankhah__organization', 'tankhah__project', 'tankhah__current_stage', 'created_by', 'category'
-        ).prefetch_related(
-            'items',
-            # واکشی بهینه تاییدکنندگان برای هر فاکتور
-            Prefetch(
-                'approval_logs',
-                queryset=ApprovalLog.objects.filter(action='APPROVE').select_related('user', 'post').order_by(
-                    'date'),
-                to_attr='approvers_list'
-            )
-        ).order_by('-date', '-pk')
-
-    def get_context_data(self, **kwargs):
-        """
-        ایجاد کنتکست نهایی با استفاده از ID به عنوان کلید دیکشنری برای حل قطعی مشکل unpack.
-        """
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-        logger.info("--- [FactorListView] START: Creating final context data with ID-based keys ---")
-
-        # ... بخش اطلاعات پایه context بدون تغییر ...
-        context['is_hq'] = self._user_is_hq(user)
-        context['query'] = self.request.GET.get('q', '')
-        context['status_query'] = self.request.GET.get('status', '')
-        context['status_choices'] = Factor.STATUS_CHOICES
-
-        # FIX: استفاده از دیکشنری استاندارد. کلیدها اکنون ID خواهند بود.
-        grouped_by_org = {}
-
-        factor_list = context.get(self.context_object_name, [])
-        logger.info(f"Processing {len(factor_list)} factors for grouping.")
-
-        user_posts = list(user.userpost_set.filter(is_active=True)
-                          .select_related('post')
-                          .prefetch_related('post__stageapprover_set'))
-
-        for factor in factor_list:
-            try:
-                tankhah = factor.tankhah
-                if not tankhah: continue
-
-                org = tankhah.organization
-                project = tankhah.project
-                if not org or not project: continue
-
-                # --- بخش کلیدی اصلاح شده: استفاده از ID به عنوان کلید ---
-
-                # اگر سازمان برای اولین بار دیده می‌شود، آن را با کلید ID اضافه کن
-                if org.id not in grouped_by_org:
-                    grouped_by_org[org.id] = {
-                        'organization': org,  # آبجکت کامل سازمان را اینجا ذخیره می‌کنیم
-                        'projects': {}
-                    }
-
-                # اگر پروژه برای اولین بار در این سازمان دیده می‌شود، آن را با کلید ID اضافه کن
-                if project.id not in grouped_by_org[org.id]['projects']:
-                    grouped_by_org[org.id]['projects'][project.id] = {
-                        'project': project,  # آبجکت کامل پروژه را اینجا ذخیره می‌کنیم
-                        'tankhahs': {}
-                    }
-
-                # اگر تنخواه برای اولین بار در این پروژه دیده می‌شود، آن را با کلید ID اضافه کن
-                if tankhah.id not in grouped_by_org[org.id]['projects'][project.id]['tankhahs']:
-                    grouped_by_org[org.id]['projects'][project.id]['tankhahs'][tankhah.id] = {
-                        'tankhah': tankhah,  # آبجکت کامل تنخواه را اینجا ذخیره می‌کنیم
-                        'factors': []
-                    }
-
-                # --- پایان بخش اصلاح شده ---
-
-                # محاسبه دسترسی تأیید
-                can_approve = False
-                if tankhah.status in ['DRAFT', 'PENDING'] and tankhah.current_stage:
-                    for user_post in user_posts:
-                        if any(sa.stage_id == tankhah.current_stage_id for sa in user_post.post.stageapprover_set.all()):
-                            can_approve = True
-                            break
-                factor.can_approve = can_approve
-
-                # افزودن فاکتور به لیست نهایی
-                grouped_by_org[org.id]['projects'][project.id]['tankhahs'][tankhah.id]['factors'].append(factor)
-
-            except Exception as e:
-                logger.error(f"An unexpected error occurred while grouping factor PK={factor.pk}: {e}", exc_info=True)
+                factor.last_approver = None
 
         context['grouped_by_org'] = grouped_by_org
         logger.info(f"Finished grouping. Found {len(grouped_by_org)} organization groups.")
         return context
+
+#---------------------------------
+
 ##################################
 class old_1_FactorListView2(PermissionBaseView, ListView):
     model = Factor

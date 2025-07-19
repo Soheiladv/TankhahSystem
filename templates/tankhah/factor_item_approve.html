@@ -1,393 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n static rcms_custom_filters jformat %}
 
-{% block title %}{% trans "بررسی فاکتور" %} #{{ factor.number }} | {{ block.super }}{% endblock %}
-
-{% block content %}
-<div class="container my-4 my-lg-5">
-    <div class="card shadow-sm border-0 rounded-lg overflow-hidden">
-        <!-- هدر کارت -->
-        <div class="card-header bg-primary text-white py-3 px-4">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-file-invoice-dollar fs-4 me-3"></i>
-                    <div>
-                        <h5 class="mb-0 fw-semibold">{% trans "بررسی فاکتور" %}</h5>
-                        <div class="d-flex align-items-center mt-1">
-                            <span class="badge bg-white text-dark me-2">#{{ factor.number|to_persian_number }}</span>
-                            <span class="badge status-badge status-{{ factor.status|lower }}">
-                                {{ factor.get_status_display }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <a href="{% url 'dashboard_flows' %}" class="btn btn-sm btn-outline-light rounded-pill px-3">
-                    <i class="fas fa-arrow-left me-1"></i>{% trans "بازگشت" %}
-                </a>
-            </div>
-        </div>
-
-        <!-- تب‌های اصلی -->
-        <div class="card-body p-0">
-            <ul class="nav nav-tabs px-4 pt-3 border-bottom-0" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="items-tab-btn" data-bs-toggle="tab" data-bs-target="#items-tab" type="button" role="tab">
-                        <i class="fas fa-list-check me-2"></i>{% trans "ردیف‌ها" %}
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="history-tab-btn" data-bs-toggle="tab" data-bs-target="#history-tab" type="button" role="tab">
-                        <i class="fas fa-history me-2"></i>{% trans "تاریخچه" %}
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="details-tab-btn" data-bs-toggle="tab" data-bs-target="#details-tab" type="button" role="tab">
-                        <i class="fas fa-info-circle me-2"></i>{% trans "جزئیات" %}
-                    </button>
-                </li>
-            </ul>
-
-            <!-- محتوای تب‌ها -->
-            <div class="tab-content p-4">
-                <!-- تب بررسی ردیف‌ها -->
-                <div class="tab-pane fade show active" id="items-tab" role="tabpanel">
-                    {% if can_change_stage %}
-                    <div class="alert alert-info d-flex align-items-center mb-4">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <div>
-                            <form method="post" class="row g-2 align-items-center">
-                                {% csrf_token %}
-                                <div class="col-auto">
-                                    <label for="new_stage_order" class="col-form-label">{% trans "تغییر مرحله:" %}</label>
-                                </div>
-                                <div class="col-auto">
-                                    <select name="new_stage_order" id="new_stage_order" class="form-select">
-                                        {% for stage in workflow_stages %}
-                                            <option value="{{ stage.order }}" {% if stage == tankhah.current_stage %}selected{% endif %}>
-                                                {{ stage.name }} ({{ stage.order|to_persian_number }})
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-auto">
-                                    <button type="submit" name="change_stage" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-sync-alt me-1"></i>{% trans "اعمال" %}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <form method="post" class="needs-validation" novalidate id="factorItemsForm">
-                        {% csrf_token %}
-                        {{ formset.management_form }}
-
-                        {% if formset.non_form_errors %}
-                            <div class="alert alert-danger">{{ formset.non_form_errors }}</div>
-                        {% endif %}
-
-                        <!-- بخش اقدامات گروهی -->
-                        {% if can_edit %}
-                        <div class="card mb-4 border">
-                            <div class="card-body py-3">
-                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                                    <div class="d-flex flex-wrap align-items-center gap-3">
-                                        <div class="form-check form-switch mb-0">
-                                            <input class="form-check-input" type="checkbox" id="bulkApprove" name="bulk_approve">
-                                            <label class="form-check-label fw-medium text-success" for="bulkApprove">
-                                                <i class="fas fa-check-double me-1"></i>{% trans "تأیید همه" %}
-                                            </label>
-                                        </div>
-                                        <div class="form-check form-switch mb-0">
-                                            <input class="form-check-input" type="checkbox" id="bulkReject" name="bulk_reject">
-                                            <label class="form-check-label fw-medium text-danger" for="bulkReject">
-                                                <i class="fas fa-times-circle me-1"></i>{% trans "رد همه" %}
-                                            </label>
-                                        </div>
-                                        <div class="form-check form-switch mb-0">
-                                            <input class="form-check-input" type="checkbox" id="reject_factor" name="reject_factor">
-                                            <label class="form-check-label text-danger" for="reject_factor">
-                                                <i class="fas fa-ban me-1"></i>{% trans "رد کامل فاکتور" %}
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <button type="button" id="resetActions" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-undo me-1"></i>{% trans "بازنشانی" %}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        {% if show_payment_number %}
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input type="text" class="form-control number-format" id="payment_number" name="payment_number" required>
-                                    <label for="payment_number">{% trans "شماره پرداخت" %}</label>
-                                </div>
-                                <div class="form-text text-muted mt-1">{% trans "شماره پرداخت را وارد کنید" %}</div>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        <!-- جدول ردیف‌های فاکتور -->
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th width="50">#</th>
-                                        <th>{% trans "شرح" %}</th>
-                                        <th width="120">{% trans "مبلغ" %}</th>
-                                        <th width="180">{% trans "وضعیت" %}</th>
-                                        <th>{% trans "توضیحات" %}</th>
-                                        <th width="150" class="text-center">{% trans "اقدام" %}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for form, log in form_log_pairs %}
-                                    <tr class="formset-row {% if form.status.value == 'APPROVED' %}table-success{% elif form.status.value == 'REJECTED' %}table-danger{% endif %}">
-                                        {% for hidden_field in form.hidden_fields %}
-                                            {{ hidden_field }}
-                                        {% endfor %}
-                                        <td>{{ forloop.counter|to_persian_number }}</td>
-                                        <td>
-                                            <div class="text-truncate" style="max-width: 250px;" title="{{ form.instance.description|default:'-' }}">
-                                                {{ form.instance.description|default:"-" }}
-                                            </div>
-                                        </td>
-                                        <td class="fw-bold text-nowrap">{{ form.instance.amount|format_negative|to_persian_number|default:"0" }} {% trans "ریال" %}</td>
-                                        <td>
-                                            {% if log %}
-                                            <div class="d-flex flex-column">
-                                                <span class="badge bg-{% if log.action == 'APPROVE' %}success{% elif log.action == 'REJECT' %}danger{% else %}secondary{% endif %} mb-1">
-                                                    {{ log.get_action_display }}
-                                                </span>
-                                                <small class="text-muted">
-                                                    {{ log.user.get_full_name|default:log.user.username }} - {{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}
-                                                </small>
-                                            </div>
-                                            {% else %}
-                                                <span class="badge bg-secondary">{% trans "بدون اقدام" %}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {{ form.description }}
-                                            {% if form.description.errors %}
-                                                <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
-                                            {% endif %}
-                                            {% if log.comment %}
-                                            <div class="text-muted small mt-1">
-                                                <i class="fas fa-comment me-1"></i> {{ log.comment }}
-                                            </div>
-                                            {% endif %}
-                                        </td>
-                                        <td class="text-center">
-                                            <input type="hidden" name="{{ form.status.name }}" class="action-hidden-input" value="{{ form.status.value|default:'' }}">
-
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <button type="button" class="btn btn-outline-success action-btn {% if form.status.value == 'APPROVED' %}active{% endif %}"
-                                                    data-action="APPROVED" data-target="{{ form.status.name }}">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-outline-danger action-btn {% if form.status.value == 'REJECTED' %}active{% endif %}"
-                                                    data-action="REJECTED" data-target="{{ form.status.name }}">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-outline-secondary action-btn {% if not form.status.value %}active{% endif %}"
-                                                    data-action="" data-target="{{ form.status.name }}">
-                                                    <i class="fas fa-minus"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% empty %}
-                                    <tr>
-                                        <td colspan="6" class="text-center py-5 text-muted">
-                                            <i class="fas fa-folder-open fa-2x mb-3"></i>
-                                            <div>{% trans "هیچ ردیفی ثبت نشده است." %}</div>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- دکمه‌های پایین فرم -->
-                        <div class="d-flex flex-wrap justify-content-between align-items-center mt-4 pt-3 border-top">
-                            <div>
-                                <a href="{% url 'dashboard_flows' %}" class="btn btn-outline-secondary">
-                                    <i class="fas fa-arrow-right me-1"></i>{% trans "بازگشت به داشبورد" %}
-                                </a>
-                                <a href="{% url 'factor_list' %}" class="btn btn-outline-secondary ms-2">
-                                    <i class="fas fa-file-invoice me-1"></i>{% trans "لیست فاکتورها" %}
-                                </a>
-                            </div>
-
-                            {% if can_edit and not is_final_approved %}
-                                <div class="mt-2 mt-md-0">
-                                    <button type="submit" class="btn btn-primary px-4">
-                                        <i class="fas fa-save me-1"></i>{% trans "ذخیره تغییرات" %}
-                                    </button>
-                                    {% if can_final_approve_tankhah and not higher_approval_changed %}
-                                    <button type="submit" name="final_approve" value="true" class="btn btn-success px-4 ms-2">
-                                        <i class="fas fa-check-double me-1"></i>{% trans "تأیید نهایی" %}
-                                    </button>
-                                    {% endif %}
-                                </div>
-                            {% else %}
-                                <div class="alert alert-warning mb-0 py-2">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    {% if is_final_approved %}
-                                        {% trans "تأیید نهایی شده و امکان ویرایش وجود ندارد." %}
-                                    {% elif higher_approval_changed %}
-                                        {% trans "تغییرات توسط سطح بالاتری اعمال شده است." %}
-                                    {% else %}
-                                        {% trans "دسترسی شما محدود شده است." %}
-                                    {% endif %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </form>
-                </div>
-
-                <!-- تب تاریخچه -->
-                <div class="tab-pane fade" id="history-tab" role="tabpanel">
-                    <div class="timeline">
-                        {% for log in approval_logs %}
-                        <div class="timeline-item">
-                            <div class="timeline-icon bg-{% if log.action == 'REJECT' %}danger{% elif log.action == 'APPROVE' %}success{% else %}info{% endif %}">
-                                <i class="fas {% if log.action == 'REJECT' %}fa-times{% elif log.action == 'APPROVE' %}fa-check{% else %}fa-info-circle{% endif %}"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="fw-semibold">{{ log.user.get_full_name|default:log.user.username }}</span>
-                                    <small class="text-muted">{{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}</small>
-                                </div>
-                                <div class="d-flex align-items-center mb-2">
-                                    <span class="badge bg-{% if log.action == 'REJECT' %}danger{% elif log.action == 'APPROVE' %}success{% else %}secondary{% endif %}">
-                                        {{ log.get_action_display }}
-                                    </span>
-                                    {% if log.get_stage_display %}
-                                    <span class="badge bg-light text-dark ms-2">
-                                        {{ log.get_stage_display }}
-                                    </span>
-                                    {% endif %}
-                                </div>
-                                {% if log.comment %}
-                                <div class="alert alert-light p-2 mb-0">
-                                    <i class="fas fa-comment-dots me-2 text-muted"></i>
-                                    <span class="text-muted">{{ log.comment }}</span>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% empty %}
-                        <div class="text-center py-5">
-                            <div class="py-4">
-                                <i class="fas fa-history fa-3x text-muted mb-4"></i>
-                                <h5 class="text-muted">{% trans "تاریخچه‌ای ثبت نشده است" %}</h5>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <!-- تب جزئیات -->
-                <div class="tab-pane fade" id="details-tab" role="tabpanel">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card mb-4">
-                                <div class="card-header bg-light">
-                                    <h6 class="mb-0">{% trans "اطلاعات پایه" %}</h6>
-                                </div>
-                                <div class="card-body">
-                                    <dl class="row mb-0">
-                                        <dt class="col-sm-5">{% trans "شماره فاکتور:" %}</dt>
-                                        <dd class="col-sm-7">{{ factor.number|to_persian_number }}</dd>
-
-                                        <dt class="col-sm-5">{% trans "تاریخ فاکتور:" %}</dt>
-                                        <dd class="col-sm-7">{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</dd>
-
-                                        <dt class="col-sm-5">{% trans "وضعیت:" %}</dt>
-                                        <dd class="col-sm-7">
-                                            <span class="badge status-badge status-{{ factor.status|lower }}">
-                                                {{ factor.get_status_display }}
-                                            </span>
-                                        </dd>
-
-                                        <dt class="col-sm-5">{% trans "مبلغ کل:" %}</dt>
-                                        <dd class="col-sm-7">{{ factor.total_amount|format_negative|to_persian_number }} {% trans "ریال" %}</dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="card mb-4">
-                                <div class="card-header bg-light">
-                                    <h6 class="mb-0">{% trans "اطلاعات مرتبط" %}</h6>
-                                </div>
-                                <div class="card-body">
-                                    <dl class="row mb-0">
-                                        <dt class="col-sm-5">{% trans "شماره تنخواه:" %}</dt>
-                                        <dd class="col-sm-7">
-                                            <a href="{% url 'tankhah_tracking' factor.tankhah.pk %}" class="text-primary">
-                                                #{{ factor.tankhah.number|to_persian_number }}
-                                            </a>
-                                        </dd>
-
-                                        <dt class="col-sm-5">{% trans "پروژه:" %}</dt>
-                                        <dd class="col-sm-7">{{ factor.tankhah.project.name|default:"-" }}</dd>
-
-                                        <dt class="col-sm-5">{% trans "تاریخ ثبت:" %}</dt>
-                                        <dd class="col-sm-7">{{ factor.created_at|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}</dd>
-
-                                        <dt class="col-sm-5">{% trans "ثبت کننده:" %}</dt>
-                                        <dd class="col-sm-7">{{ factor.created_by.get_full_name|default:factor.created_by.username }}</dd>
-                                    </dl>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card mb-4">
-                        <div class="card-header bg-light">
-                            <h6 class="mb-0">{% trans "پیوست‌ها و توضیحات" %}</h6>
-                        </div>
-                        <div class="card-body">
-                            {% if factor.attachment %}
-                            <div class="mb-3">
-                                <dt>{% trans "فایل پیوست:" %}</dt>
-                                <dd>
-                                    <a href="{{ factor.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-paperclip me-1"></i>{% trans "دانلود فایل" %}
-                                    </a>
-                                    <small class="text-muted ms-2">{{ factor.attachment.size|filesizeformat }}</small>
-                                </dd>
-                            </div>
-                            {% endif %}
-
-                            <div>
-                                <dt>{% trans "توضیحات:" %}</dt>
-                                <dd>
-                                    {% if factor.description %}
-                                        <div class="alert alert-light p-3 mb-0">{{ factor.description }}</div>
-                                    {% else %}
-                                        <span class="text-muted">{% trans "بدون توضیحات" %}</span>
-                                    {% endif %}
-                                </dd>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
+{% block title %}{% trans "بررسی فاکتور" %} #{{ factor.factornumber|to_persian_number }} | {{ block.super }}{% endblock %}
 {% block extra_css %}
 <style>
     /* استایل‌های عمومی */
@@ -481,6 +95,14 @@
         background-color: #6c757d;
         border-color: #6c757d;
     }
+    .btn-disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .action-disabled .action-btn:hover {
+        background-color: inherit;
+        border-color: inherit;
+    }
 
     /* استایل‌های رسپانسیو */
     @media (max-width: 768px) {
@@ -503,10 +125,433 @@
 </style>
 {% endblock %}
 
+{% block content %}
+<div class="container my-4 my-lg-5">
+    <div class="card shadow-sm border-0 rounded-lg overflow-hidden">
+        <!-- هدر کارت -->
+        <div class="card-header bg-primary text-white py-3 px-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-file-invoice-dollar fs-4 me-3"></i>
+                    <div>
+                        <h5 class="mb-0 fw-semibold">{% trans "بررسی فاکتور" %}</h5>
+                        <div class="d-flex align-items-center mt-1">
+                            <span class="badge bg-white text-dark me-2">#{{ factor.factornumber|to_persian_number }}</span>
+                            <span class="badge status-badge status-{{ factor.status|lower }}">
+                                {{ factor.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'dashboard_flows' %}" class="btn btn-sm btn-outline-light rounded-pill px-3">
+                    <i class="fas fa-arrow-left me-1"></i>{% trans "بازگشت" %}
+                </a>
+            </div>
+        </div>
+
+        <!-- تب‌های اصلی -->
+        <div class="card-body p-0">
+            <ul class="nav nav-tabs px-4 pt-3 border-bottom-0" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="items-tab-btn" data-bs-toggle="tab" data-bs-target="#items-tab" type="button" role="tab">
+                        <i class="fas fa-list-check me-2"></i>{% trans "ردیف‌ها" %}
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="history-tab-btn" data-bs-toggle="tab" data-bs-target="#history-tab" type="button" role="tab">
+                        <i class="fas fa-history me-2"></i>{% trans "تاریخچه" %}
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="details-tab-btn" data-bs-toggle="tab" data-bs-target="#details-tab" type="button" role="tab">
+                        <i class="fas fa-info-circle me-2"></i>{% trans "جزئیات" %}
+                    </button>
+                </li>
+            </ul>
+
+            <!-- محتوای تب‌ها -->
+            <div class="tab-content p-4">
+                <!-- تب بررسی ردیف‌ها -->
+                <div class="tab-pane fade show active" id="items-tab" role="tabpanel">
+                    {% if can_change_stage and workflow_stages %}
+                    <div class="alert alert-info d-flex align-items-center mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <div>
+                            <form method="post" class="row g-2 align-items-center">
+                                {% csrf_token %}
+                                <div class="col-auto">
+                                    <label for="new_stage_order" class="col-form-label">{% trans "تغییر مرحله:" %}</label>
+                                </div>
+                                <div class="col-auto">
+                                    <select name="new_stage_order" id="new_stage_order" class="form-select">
+                                        {% for stage in workflow_stages %}
+                                            <option value="{{ stage.order }}" {% if stage == tankhah.current_stage %}selected{% endif %}>
+                                                {{ stage.name }} ({{ stage.order|to_persian_number }})
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="stage_change_reason" name="stage_change_reason" required>
+                                        <label for="stage_change_reason">{% trans "توضیحات تغییر مرحله (اجباری)" %}</label>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <button type="submit" name="change_stage" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-sync-alt me-1"></i>{% trans "اعمال" %}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% elif can_change_stage %}
+                    <div class="alert alert-warning d-flex align-items-center mb-4">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <div>{% trans "هیچ مرحله‌ای برای ارجاع مجاز نیست." %}</div>
+                    </div>
+                    {% endif %}
+
+                    <form method="post" class="needs-validation" novalidate id="factorItemsForm">
+                        {% csrf_token %}
+                        {{ formset.management_form }}
+
+                        {% if formset.non_form_errors %}
+                            <div class="alert alert-danger">{{ formset.non_form_errors }}</div>
+                        {% endif %}
+
+                        <!-- بخش اقدامات گروهی -->
+                        {% if can_edit and not has_previous_action and not all_items_processed %}
+                        <div class="card mb-4 border">
+                            <div class="card-body py-3">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                                    <div class="d-flex flex-wrap align-items-center gap-3">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" id="bulk_approve" name="bulk_approve">
+                                            <label class="form-check-label fw-medium text-success" for="bulkApprove">
+                                                <i class="fas fa-check-double me-1"></i>{% trans "تأیید همه" %}
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" id="bulkReject" name="bulk_reject">
+                                            <label class="form-check-label fw-medium text-danger" for="bulkReject">
+                                                <i class="fas fa-times-circle me-1"></i>{% trans "رد همه" %}
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" id="reject_factor" name="reject_factor">
+                                            <label class="form-check-label text-danger" for="reject_factor">
+                                                <i class="fas fa-ban me-1"></i>{% trans "رد کامل فاکتور" %}
+                                            </label>
+                                        </div>
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="rejected_reason" name="rejected_reason">
+                                            <label for="rejected_reason">{% trans "دلیل رد (اجباری)" %}</label>
+                                        </div>
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="approved_reason" name="approved_reason">
+                                            <label for="approved_reason">{% trans "توضیحات تأیید (اجباری)" %}</label>
+                                        </div>
+                                    </div>
+                                    <button type="button" id="resetActions" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-undo me-1"></i>{% trans "بازنشانی" %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning mb-4">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            {% if is_final_approved %}
+                                {% trans "تنخواه تأیید نهایی شده و امکان ویرایش وجود ندارد." %}
+                            {% elif higher_approval_changed %}
+                                {% trans "تغییرات توسط سطح بالاتری اعمال شده و شما نمی‌توانید ویرایش کنید." %}
+                            {% elif has_previous_action %}
+                                {% trans "شما قبلاً برای این فاکتور اقدام کرده‌اید." %}
+                            {% elif all_items_processed %}
+                                {% trans "شما قبلاً برای همه آیتم‌های این فاکتور اقدام کرده‌اید." %}
+                            {% else %}
+                                {% trans "شما دسترسی لازم برای ویرایش ندارید." %}
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        {% if show_payment_number %}
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control number-format" id="payment_number" name="payment_number" required>
+                                    <label for="payment_number">{% trans "شماره پرداخت (اجباری)" %}</label>
+                                </div>
+                                <div class="form-text text-muted mt-1">{% trans "شماره پرداخت را وارد کنید" %}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- جدول ردیف‌های فاکتور -->
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="50">#</th>
+                                        <th>{% trans "شرح" %}</th>
+                                        <th width="120">{% trans "مبلغ" %}</th>
+                                        <th width="180">{% trans "وضعیت" %}</th>
+                                        <th>{% trans "توضیحات" %}</th>
+                                        <th width="150" class="text-center">{% trans "اقدام" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for form, log in form_log_pairs %}
+                                    <tr class="formset-row {% if form.status.value == 'APPROVED' %}table-success{% elif form.status.value == 'REJECTED' %}table-danger{% endif %} {% if log and log.user == request.user %}action-disabled{% endif %}">
+                                        {% for hidden_field in form.hidden_fields %}
+                                            {{ hidden_field }}
+                                        {% endfor %}
+                                        <td>{{ forloop.counter|to_persian_number }}</td>
+                                        <td>
+                                            <div class="text-truncate" style="max-width: 250px;" title="{{ form.instance.description|default:'-' }}">
+                                                {{ form.instance.description|default:"-" }}
+                                            </div>
+                                        </td>
+                                        <td class="fw-bold text-nowrap">{{ form.instance.amount|format_negative|to_persian_number|default:"0" }} {% trans "ریال" %}</td>
+                                        <td>
+                                            {% if log %}
+                                            <div class="d-flex flex-column">
+                                                <span class="badge bg-{% if log.action == 'APPROVE' %}success{% elif log.action == 'REJECT' %}danger{% else %}secondary{% endif %} mb-1">
+                                                    {{ log.get_action_display }}
+                                                </span>
+                                                <small class="text-muted">
+                                                    {{ log.user.get_full_name|default:log.user.username }} - {{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}
+                                                </small>
+                                            </div>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{% trans "بدون اقدام" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ form.description }}
+                                            {% if form.description.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
+                                            {% endif %}
+                                            {% if log.comment %}
+                                            <div class="text-muted small mt-1">
+                                                <i class="fas fa-comment me-1"></i> {{ log.comment }}
+                                            </div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if can_edit and not log or log.user != request.user %}
+                                            <input type="hidden" name="{{ form.status.name }}" class="action-hidden-input" value="{{ form.status.value|default:'' }}">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" class="btn btn-outline-success action-btn {% if form.status.value == 'APPROVED' %}active{% endif %}"
+                                                    data-action="APPROVED" data-target="{{ form.status.name }}">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger action-btn {% if form.status.value == 'REJECTED' %}active{% endif %}"
+                                                    data-action="REJECTED" data-target="{{ form.status.name }}">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary action-btn {% if not form.status.value %}active{% endif %}"
+                                                    data-action="" data-target="{{ form.status.name }}">
+                                                    <i class="fas fa-minus"></i>
+                                                </button>
+                                            </div>
+                                            {% else %}
+                                                <span class="text-muted">{% trans "اقدام شده" %}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-5 text-muted">
+                                            <i class="fas fa-folder-open fa-2x mb-3"></i>
+                                            <div>{% trans "هیچ ردیفی ثبت نشده است." %}</div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- دکمه‌های پایین فرم -->
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <div>
+                                <a href="{% url 'dashboard_flows' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-right me-1"></i>{% trans "بازگشت به داشبورد" %}
+                                </a>
+                                <a href="{% url 'factor_list' %}" class="btn btn-outline-secondary ms-2">
+                                    <i class="fas fa-file-invoice me-1"></i>{% trans "لیست فاکتورها" %}
+                                </a>
+                            </div>
+
+                            {% if can_edit and not is_final_approved and not has_previous_action %}
+                                <div class="mt-2 mt-md-0">
+                                    <button type="submit" class="btn btn-primary px-4">
+                                        <i class="fas fa-save me-1"></i>{% trans "ذخیره تغییرات" %}
+                                    </button>
+                                    {% if can_final_approve_tankhah and not higher_approval_changed and tankhah.current_stage.is_final_stage %}
+                                    <button type="submit" name="final_approve" value="true" class="btn btn-success px-4 ms-2">
+                                        <i class="fas fa-check-double me-1"></i>{% trans "تأیید نهایی" %}
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning mb-0 py-2">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    {% if is_final_approved %}
+                                        {% trans "تنخواه تأیید نهایی شده و امکان ویرایش وجود ندارد." %}
+                                    {% elif higher_approval_changed %}
+                                        {% trans "تغییرات توسط سطح بالاتری اعمال شده و شما نمی‌توانید ویرایش کنید." %}
+                                    {% elif has_previous_action %}
+                                        {% trans "شما قبلاً برای این فاکتور اقدام کرده‌اید." %}
+                                    {% else %}
+                                        {% trans "شما دسترسی لازم برای ویرایش ندارید." %}
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+
+                <!-- تب تاریخچه -->
+                <div class="tab-pane fade" id="history-tab" role="tabpanel">
+                    <div class="timeline">
+                        {% for log in approval_logs %}
+                        <div class="timeline-item">
+                            <div class="timeline-icon bg-{% if log.action == 'REJECT' %}danger{% elif log.action == 'APPROVE' %}success{% else %}info{% endif %}">
+                                <i class="fas {% if log.action == 'REJECT' %}fa-times{% elif log.action == 'APPROVE' %}fa-check{% else %}fa-info-circle{% endif %}"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-semibold">{{ log.user.get_full_name|default:log.user.username }}</span>
+                                    <small class="text-muted">{{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge bg-{% if log.action == 'REJECT' %}danger{% elif log.action == 'APPROVE' %}success{% else %}secondary{% endif %}">
+                                        {{ log.get_action_display }}
+                                    </span>
+                                    {% if log.get_stage_display %}
+                                    <span class="badge bg-light text-dark ms-2">
+                                        {{ log.get_stage_display }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                {% if log.comment %}
+                                <div class="alert alert-light p-2 mb-0">
+                                    <i class="fas fa-comment-dots me-2 text-muted"></i>
+                                    <span class="text-muted">{{ log.comment }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5">
+                            <div class="py-4">
+                                <i class="fas fa-history fa-3x text-muted mb-4"></i>
+                                <h5 class="text-muted">{% trans "تاریخچه‌ای ثبت نشده است" %}</h5>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- تب جزئیات -->
+                <div class="tab-pane fade" id="details-tab" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">{% trans "اطلاعات پایه" %}</h6>
+                                </div>
+                                <div class="card-body">
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-5">{% trans "شماره فاکتور:" %}</dt>
+                                        <dd class="col-sm-7">{{ factor.factornumber|to_persian_number }}</dd>
+
+                                        <dt class="col-sm-5">{% trans "تاریخ فاکتور:" %}</dt>
+                                        <dd class="col-sm-7">{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</dd>
+
+                                        <dt class="col-sm-5">{% trans "وضعیت:" %}</dt>
+                                        <dd class="col-sm-7">
+                                            <span class="badge status-badge status-{{ factor.status|lower }}">
+                                                {{ factor.get_status_display }}
+                                            </span>
+                                        </dd>
+
+                                        <dt class="col-sm-5">{% trans "مبلغ کل:" %}</dt>
+                                        <dd class="col-sm-7">{{ factor.total_amount|format_negative|to_persian_number }} {% trans "ریال" %}</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">{% trans "اطلاعات مرتبط" %}</h6>
+                                </div>
+                                <div class="card-body">
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-5">{% trans "شماره تنخواه:" %}</dt>
+                                        <dd class="col-sm-7">
+                                            <a href="{% url 'tankhah_tracking' factor.tankhah.pk %}" class="text-primary">
+                                                #{{ factor.tankhah.number|to_persian_number }}
+                                            </a>
+                                        </dd>
+
+                                        <dt class="col-sm-5">{% trans "پروژه:" %}</dt>
+                                        <dd class="col-sm-7">{{ factor.tankhah.project.name|default:"-" }}</dd>
+
+                                        <dt class="col-sm-5">{% trans "تاریخ ثبت:" %}</dt>
+                                        <dd class="col-sm-7">{{ factor.created_at|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}</dd>
+
+                                        <dt class="col-sm-5">{% trans "ثبت کننده:" %}</dt>
+                                        <dd class="col-sm-7">{{ factor.created_by.get_full_name|default:factor.created_by.username }}</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">{% trans "پیوست‌ها و توضیحات" %}</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if factor.attachment %}
+                            <div class="mb-3">
+                                <dt>{% trans "فایل پیوست:" %}</dt>
+                                <dd>
+                                    <a href="{{ factor.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-paperclip me-1"></i>{% trans "دانلود فایل" %}
+                                    </a>
+                                    <small class="text-muted ms-2">{{ factor.attachment.size|filesizeformat }}</small>
+                                </dd>
+                            </div>
+                            {% endif %}
+
+                            <div>
+                                <dt>{% trans "توضیحات:" %}</dt>
+                                <dd>
+                                    {% if factor.description %}
+                                        <div class="alert alert-light p-3 mb-0">{{ factor.description }}</div>
+                                    {% else %}
+                                        <span class="text-muted">{% trans "بدون توضیحات" %}</span>
+                                    {% endif %}
+                                </dd>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // مدیریت دکمه‌های اقدام
     const factorForm = document.getElementById('factorItemsForm');
     if (factorForm) {
         // کلیک روی دکمه‌های اقدام
@@ -518,59 +563,79 @@ document.addEventListener('DOMContentLoaded', function() {
                 const hiddenInput = factorForm.querySelector(`input[name="${targetName}"]`);
                 const row = btn.closest('tr');
 
-                if (hiddenInput) {
-                    // به‌روزرسانی مقدار فیلد مخفی
+                if (hiddenInput && !row.classList.contains('action-disabled')) {
                     hiddenInput.value = action;
-
-                    // به‌روزرسانی استایل دکمه‌ها
-                    const btnGroup = btn.closest('.btn-group');
-                    btnGroup.querySelectorAll('.action-btn').forEach(b => {
-                        b.classList.remove('active');
-                    });
+                    row.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-
-                    // به‌روزرسانی استایل ردیف
                     row.classList.remove('table-success', 'table-danger');
                     if (action === 'APPROVED') {
                         row.classList.add('table-success');
                     } else if (action === 'REJECTED') {
                         row.classList.add('table-danger');
                     }
-
-                    // نمایش/مخفی کردن فیلد توضیحات برای ردیف‌های رد شده
                     const commentField = row.querySelector('textarea');
                     if (commentField) {
-                        if (action === 'REJECTED') {
-                            commentField.required = true;
-                            commentField.closest('td').querySelector('.invalid-feedback')?.remove();
-                        } else {
-                            commentField.required = false;
-                        }
+                        commentField.required = action === 'REJECTED';
+                        commentField.closest('td').querySelector('.invalid-feedback')?.remove();
                     }
                 }
+            }
+        });
+
+        // غیرفعال کردن دکمه‌ها برای ردیف‌های اقدام‌شده
+        factorForm.querySelectorAll('.formset-row').forEach(row => {
+            if (row.classList.contains('action-disabled')) {
+                row.querySelectorAll('.action-btn').forEach(btn => {
+                    btn.disabled = true;
+                    btn.classList.add('btn-disabled');
+                });
             }
         });
 
         // مدیریت اقدامات گروهی
         const bulkApprove = document.getElementById('bulkApprove');
         const bulkReject = document.getElementById('bulkReject');
+        const rejectFactor = document.getElementById('reject_factor');
+        const rejectedReason = document.getElementById('rejected_reason');
+        const approvedReason = document.getElementById('approved_reason');
 
         if (bulkApprove && bulkReject) {
             bulkApprove.addEventListener('change', function() {
                 if (this.checked) {
                     bulkReject.checked = false;
-                    factorForm.querySelectorAll('.action-btn[data-action="APPROVED"]').forEach(btn => {
+                    rejectFactor.checked = false;
+                    factorForm.querySelectorAll('.action-btn[data-action="APPROVED"]:not(.btn-disabled)').forEach(btn => {
                         btn.click();
                     });
+                    if (approvedReason) approvedReason.required = true;
+                } else {
+                    if (approvedReason) approvedReason.required = false;
                 }
             });
 
             bulkReject.addEventListener('change', function() {
                 if (this.checked) {
                     bulkApprove.checked = false;
-                    factorForm.querySelectorAll('.action-btn[data-action="REJECTED"]').forEach(btn => {
+                    rejectFactor.checked = false;
+                    factorForm.querySelectorAll('.action-btn[data-action="REJECTED"]:not(.btn-disabled)').forEach(btn => {
                         btn.click();
                     });
+                    if (rejectedReason) rejectedReason.required = true;
+                } else {
+                    if (rejectedReason) rejectedReason.required = false;
+                }
+            });
+
+            rejectFactor.addEventListener('change', function() {
+                if (this.checked) {
+                    bulkApprove.checked = false;
+                    bulkReject.checked = false;
+                    factorForm.querySelectorAll('.action-btn[data-action="REJECTED"]:not(.btn-disabled)').forEach(btn => {
+                        btn.click();
+                    });
+                    if (rejectedReason) rejectedReason.required = true;
+                } else {
+                    if (rejectedReason) rejectedReason.required = false;
                 }
             });
         }
@@ -581,13 +646,26 @@ document.addEventListener('DOMContentLoaded', function() {
             resetBtn.addEventListener('click', function() {
                 if (bulkApprove) bulkApprove.checked = false;
                 if (bulkReject) bulkReject.checked = false;
-                document.getElementById('reject_factor').checked = false;
+                if (rejectFactor) rejectFactor.checked = false;
+                if (rejectedReason) rejectedReason.required = false;
+                if (approvedReason) approvedReason.required = false;
+                if (approvedReason) approvedReason.value = '';
+                if (rejectedReason) rejectedReason.value = '';
 
-                factorForm.querySelectorAll('.action-btn[data-action=""]').forEach(btn => {
+                factorForm.querySelectorAll('.action-btn[data-action=""]:not(.btn-disabled)').forEach(btn => {
                     btn.click();
                 });
             });
         }
+
+        // اعتبارسنجی فرم
+        factorForm.addEventListener('submit', function(e) {
+            if (!factorForm.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            factorForm.classList.add('was-validated');
+        });
     }
 
     // فعال‌سازی تب‌ها

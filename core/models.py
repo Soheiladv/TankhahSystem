@@ -8,6 +8,9 @@ from django.db.models import Sum
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+
 
 logger = logging.getLogger(__name__)
 from accounts.models import CustomUser
@@ -367,37 +370,63 @@ class PostHistory(models.Model):
         ]
 #--
 class WorkflowStage(models.Model):
+    ENTITY_TYPE_CHOICES = (
+        ('TANKHAH', _('تنخواه')),
+        ('FACTOR', _('فاکتور')),
+        ('PAYMENTORDER', _('دستور پرداخت')),
+    )
+
     name = models.CharField(max_length=100, verbose_name=_('نام مرحله'))
-    order = models.IntegerField(verbose_name=_('ترتیب'))
+    order = models.PositiveIntegerField(verbose_name=_('ترتیب'), unique=True)
     description = models.TextField(blank=True, verbose_name=_('توضیحات'))
-    is_active = models.BooleanField(default=True, verbose_name=_("وضعیت فعال"))
-    is_final_stage = models.BooleanField(default=False, help_text="آیا این مرحله نهایی برای تکمیل تنخواه است؟", verbose_name=_("تعیین مرحله آخر"))
-    "اگر auto_advance=True باشد، پس از تأیید یک مرحله، فاکتور به مرحله بعدی می‌رود."
-    auto_advance = models.BooleanField(default=True, verbose_name=_("پیش‌رفت خودکار"))
-    triggers_payment_order = models.BooleanField(default=False, verbose_name=_("فعال‌سازی دستور پرداخت") , help_text=_(
-        "آیا این مرحله باعث ایجاد خودکار دستور پرداخت می‌شود؟ (برای تنخواه/فاکتور)"))
+    entity_type = models.CharField(
+        max_length=20,
+        choices=ENTITY_TYPE_CHOICES,
+        verbose_name=_('نوع موجودیت'),
+        db_index=True  # اضافه کردن ایندکس
+    )
+    is_active = models.BooleanField(default=True, verbose_name=_('فعال'))
+    min_signatures = models.PositiveIntegerField(default=1, verbose_name=_('حداقل امضاها'))
+    is_final_stage = models.BooleanField(
+        default=False,
+        help_text=_("آیا این مرحله نهایی برای تکمیل تنخواه است؟"),
+        verbose_name=_("مرحله نهایی")
+    )
+    auto_advance = models.BooleanField(
+        default=True,
+        verbose_name=_("پیش‌رفت خودکار"),
+        help_text=_("اگر فعال باشد، پس از تأیید یک مرحله، فاکتور به مرحله بعدی می‌رود.")
+    )
+    triggers_payment_order = models.BooleanField(
+        default=False,
+        verbose_name=_("فعال‌سازی دستور پرداخت"),
+        help_text=_("آیا این مرحله باعث ایجاد خودکار دستور پرداخت می‌شود؟ (برای تنخواه/فاکتور)")
+    )
 
     def save(self, *args, **kwargs):
-        if WorkflowStage.objects.exclude(pk=self.pk).filter(order=self.order).exists():
-            raise ValueError("ترتیب مرحله نمی‌تواند تکراری باشد")
+        if not self.pk and WorkflowStage.objects.filter(order=self.order).exists():
+            raise ValueError(_("ترتیب مرحله نمی‌تواند تکراری باشد"))
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.name} (مرحله {self.order})"
+        return f"{self.name} ({self.get_entity_type_display()}, ترتیب: {self.order})"
 
     class Meta:
         verbose_name = _('مرحله گردش کار')
         verbose_name_plural = _('مراحل گردش کار')
         ordering = ['order']
+        indexes = [
+            models.Index(fields=['entity_type', 'is_active']),
+        ]
         default_permissions = ()
         permissions = [
-            ('WorkflowStage_view','نمایش مرحله گردش کار'),
-            ('WorkflowStage_add','افزودن مرحله گردش کار'),
-            ('WorkflowStage_update','بروزرسانی مرحله گردش کار'),
-            ('WorkflowStage_delete','حــذف مرحله گردش کار'),
-            ('WorkflowStage_triggers_payment_order',' فعال‌سازی دستور پرداخت - مرحله گردش کار'),
+            ('WorkflowStage_view', 'نمایش مرحله گردش کار'),
+            ('WorkflowStage_add', 'افزودن مرحله گردش کار'),
+            ('WorkflowStage_update', 'بروزرسانی مرحله گردش کار'),
+            ('WorkflowStage_delete', 'حذف مرحله گردش کار'),
+            ('WorkflowStage_triggers_payment_order', 'فعال‌سازی دستور پرداخت - مرحله گردش کار'),
         ]
-#--- New Bugde
+
 class PostAction(models.Model):
     ACTION_TYPES = (
         ('APPROVE', _('تأیید')),
@@ -419,18 +448,16 @@ class PostAction(models.Model):
     action_type = models.CharField(max_length=50, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
     entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, default='TANKHAH', verbose_name=_("نوع موجودیت"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    min_level = models.IntegerField(null=True, blank=True)  # حداقل سطح دسترسی (اختیاری)
 
     triggers_payment_order = models.BooleanField(default=False, verbose_name=_("فعال‌سازی دستور پرداخت")) # مشخصه دستور پرداخت کاریر
     from django.contrib.postgres.fields import ArrayField
-    allowed_actions = ArrayField(
-        models.CharField(max_length=25, choices=[
+    allowed_actions = ArrayField(  models.CharField(max_length=25, choices=[
             ('APPROVE', 'تأیید'),
             ('REJECT', 'رد'),
             ('STAGE_CHANGE', 'تغییر مرحله'),
             ('SIGN_PAYMENT', 'امضای دستور پرداخت')
-        ]),
-        default=list,
-        verbose_name=_("اقدامات مجاز"))
+        ]), default=list, verbose_name=_("اقدامات مجاز"))
 
     def __str__(self):
         return f"{self.post} - {self.action_type} برای {self.get_entity_type_display()} در {self.stage}"
@@ -492,6 +519,28 @@ class AccessRule(models.Model):
 
     def __str__(self):
         return f"{self.organization} - {self.branch} - {self.action_type} - {self.entity_type}"
+#---
+# class StageTransitionPermission(models.Model):
+#     name = models.TextField(blank=True,null=True, verbose_name=_('شرح'))
+#     post = models.ForeignKey('core.Post', on_delete=models.CASCADE, verbose_name=_('پست'))
+#     from_stage = models.ForeignKey('core.WorkflowStage', related_name='from_transitions', on_delete=models.CASCADE, verbose_name=_('مرحله مبدا'))
+#     to_stage = models.ForeignKey('core.WorkflowStage', related_name='to_transitions', on_delete=models.CASCADE, verbose_name=_('مرحله مقصد'))
+#     is_active = models.BooleanField(default=True, verbose_name=_('فعال'))
+#
+#     class Meta:
+#         verbose_name = _('اجازه انتقال مرحله')
+#         verbose_name_plural = _('اجازه‌های انتقال مرحله')
+#         unique_together = [['post', 'from_stage', 'to_stage']]
+#         default_permissions = ()
+#         permissions = [
+#             ('StageTransitionPermission_add','افزودن اجازه انتقال مرحله'),
+#             ('StageTransitionPermission_update','ویرایش اجازه انتقال مرحله'),
+#             ('StageTransitionPermission_view','نمایش اجازه انتقال مرحله'),
+#             ('StageTransitionPermission_delete','حذف اجازه انتقال مرحله'),
+#         ]
+#
+#     def __str__(self):
+#         return f"{self.post} can transition from {self.from_stage} to {self.to_stage}"
 #---
 class SystemSettings(models.Model):
     budget_locked_percentage_default = models.DecimalField(

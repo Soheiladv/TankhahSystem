@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
 from core.models import Organization, OrganizationType, Project, Post, UserPost, PostHistory, WorkflowStage, \
-    SystemSettings,AccessRule
+    SystemSettings,AccessRule#,StageTransitionPermission
 
 
 # تابع کمکی برای کوتاه کردن متن
@@ -168,15 +168,15 @@ class PostHistoryAdmin(BaseAdmin):
 
 # ادمین مراحل گردش کار
 @admin.register(WorkflowStage) # <-- اینجا نام خود کلاس مدل WorkflowStage را بدون ' ' و بدون آدرس اپلیکیشن بنویسید
-class WorkflowStageAdmin(BaseAdmin):
-    list_display = ('name', 'order', 'description_short')
+class WorkflowStageAdmin(admin.ModelAdmin):
+    list_display = ('name', 'entity_type_display', 'order', 'is_active', 'is_final_stage')
+    list_filter = ('entity_type', 'is_active', 'is_final_stage')
     search_fields = ('name', 'description')
-    ordering = ('order',)
 
-    def description_short(self, obj):
-        return truncate_text(obj.description)
-    description_short.short_description = _('توضیحات کوتاه')
+    def entity_type_display(self, obj):
+        return obj.get_entity_type_display()
 
+    entity_type_display.short_description = _('نوع موجودیت')
 admin.site.register(SystemSettings)
 
 @admin.register(AccessRule)
@@ -185,3 +185,4 @@ class AccessRuleAdmin(admin.ModelAdmin):
     list_filter = ('organization', 'branch', 'stage', 'action_type', 'entity_type')
     search_fields = ('organization__name', 'stage__name')
     autocomplete_fields = ['organization', 'stage']
+

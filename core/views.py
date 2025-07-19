@@ -1323,54 +1323,93 @@ class WorkflowStageListView(PermissionBaseView, ListView):
     model = WorkflowStage
     template_name = "core/workflow_stage/workflow_stage_list.html"
     context_object_name = "stages"
-    # permission_required = "core.WorkflowStage_view"
-    permission_codename = 'core.WorkflowStage_view'
-    # check_organization = True  # فعال کردن چک سازمان
+    permission_codename = 'WorkflowStage_view'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        entity_type = self.request.GET.get('entity_type')
+        is_active = self.request.GET.get('is_active')
+
+        if entity_type:
+            queryset = queryset.filter(entity_type=entity_type)
+        if is_active:
+            queryset = queryset.filter(is_active=is_active == 'true')
+
+        return queryset.order_by('order')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('لیست مراحل گردش کار')
+        logger.info(f"[WorkflowStageListView] نمایش لیست مراحل توسط کاربر {self.request.user.username}")
+        return context
+
 class WorkflowStageCreateView(PermissionBaseView, CreateView):
     model = WorkflowStage
     form_class = WorkflowStageForm
     template_name = "core/workflow_stage/workflow_stage_form.html"
     success_url = reverse_lazy("workflow_stage_list")
-    # permission_required = "core.WorkflowStage_add"
-    permission_codename = 'core.WorkflowStage_add'
-    # check_organization = True  # فعال کردن چک سازمان
+    permission_codename = 'WorkflowStage_add'
+    check_organization = True  # فعال کردن چک سازمان
+
+    def form_valid(self, form):
+        try:
+            logger.info(f"[WorkflowStageCreateView] ایجاد مرحله جدید توسط کاربر {self.request.user.username}: {form.cleaned_data}")
+            response = super().form_valid(form)
+            messages.success(self.request, _('مرحله با موفقیت ایجاد شد.'))
+            return response
+        except Exception as e:
+            logger.error(f"[WorkflowStageCreateView] خطا در ایجاد مرحله: {e}", exc_info=True)
+            messages.error(self.request, _("خطا در ایجاد مرحله: {}".format(str(e))))
+            return self.form_invalid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["title"] = "افزودن مرحله جدید"
+        context['title'] = _('افزودن مرحله جدید')
+        context['action'] = 'create'
         return context
+
 class WorkflowStageUpdateView(PermissionBaseView, UpdateView):
     model = WorkflowStage
     form_class = WorkflowStageForm
     template_name = "core/workflow_stage/workflow_stage_form.html"
     success_url = reverse_lazy("workflow_stage_list")
-    permission_codenames = ['core.WorkflowStage_update']  # اصلاح typo: permission_codename به permission_codenames
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["title"] = "ویرایش مرحله"
-        return context
+    permission_codename = 'WorkflowStage_update'
+    check_organization = True  # فعال کردن چک سازمان
 
     def form_valid(self, form):
         try:
-            self.object = form.save()
+            logger.info(f"[WorkflowStageUpdateView] به‌روزرسانی مرحله {self.object.pk} توسط کاربر {self.request.user.username}: {form.cleaned_data}")
+            response = super().form_valid(form)
             messages.success(self.request, _('مرحله با موفقیت به‌روزرسانی شد.'))
-            return super().form_valid(form)
-        except ValueError as e:
-            messages.error(self.request, str(e))  # پیام خطا رو به کاربر نشون می‌ده
+            return response
+        except Exception as e:
+            logger.error(f"[WorkflowStageUpdateView] خطا در به‌روزرسانی مرحله {self.object.pk}: {e}", exc_info=True)
+            messages.error(self.request, _("خطا در به‌روزرسانی مرحله: {}".format(str(e))))
             return self.form_invalid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('ویرایش مرحله')
+        context['action'] = 'update'
+        return context
+
 class WorkflowStageDeleteView(PermissionBaseView, DeleteView):
     model = WorkflowStage
     template_name = "core/workflow_stage/workflow_stage_confirm_delete.html"
     success_url = reverse_lazy("workflow_stage_list")
-    # permission_required = "core.WorkflowStage_delete"
-    permission_codename = 'core.WorkflowStage_delete'
-    # check_organization = True  # فعال کردن چک سازمان
+    permission_codename = 'WorkflowStage_delete'
+
+    def delete(self, request, *args, **kwargs):
+        logger.info(f"[WorkflowStageDeleteView] حذف مرحله {self.get_object().pk} توسط کاربر {request.user.username}")
+        messages.success(request, _('مرحله با موفقیت حذف شد.'))
+        return super().delete(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["stage"] = self.get_object()
+        context['title'] = _('حذف مرحله')
+        context['stage'] = self.get_object()
         return context
+
 # ---- Sub Project CRUD
 class SubProjectListView(PermissionBaseView, ListView):
     model = SubProject

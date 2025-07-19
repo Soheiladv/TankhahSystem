@@ -515,7 +515,7 @@ class Tankhah(models.Model):
             ('Tankhah_delete', _('⛔حذف تنخواه')),
             ('Tankhah_approve', _('👍تأیید تنخواه')),
             ('Tankhah_reject', _('رد تنخواه👎')),
-            ('Tankhah_view_all', _('نمایش همه تنخواه‌ها (دفتر مرکزی)')),
+            ('Tankhah_view_all', _('مجوز تمامی سطوح را دارد HQ Full- نمایش همه تنخواه‌ها (دفتر مرکزی)')),
 
             ('Tankhah_part_approve', '👍تأیید رئیس قسمت'),
 
@@ -1213,14 +1213,12 @@ class Factor(models.Model):
             ('factor_view', _('نمایش فاکتور')),
             ('factor_update', _('بروزرسانی فاکتور')),
             ('factor_delete', _('حذف فاکتور')),
-            # ('factor_approve', _('تأیید فاکتور')),
             ('factor_approve', _(' 👍تایید/رد ردیف فاکتور (تایید ردیف فاکتور*استفاده در مراحل تایید*)')),
             ('factor_reject', _('رد فاکتور')),
             ('Factor_full_edit', _('دسترسی کامل به فاکتور')),
             ('factor_unlock', _('باز کردن فاکتور قفل‌شده')),
 
         ]
-
 class FactorHistory(models.Model):
     class ChangeType(models.TextChoices):
         CREATION = 'CREATION', _('ایجاد')
@@ -1264,6 +1262,7 @@ class FactorItem(models.Model):
     # Optional: Timestamps for tracking
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان ایجاد"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("زمان آخرین ویرایش"))
+    is_locked = models.BooleanField(default=False,verbose_name=_('قفل شود'))
 
 
     def clean(self):
@@ -1303,8 +1302,6 @@ class FactorItem(models.Model):
 
         # Note: Comparison between amount, unit_price, and quantity is *not* done here
         # because self.amount might still hold its default value (0) before save calculates it.
-
-
     def save(self, *args, **kwargs):
         """ذخیره آیتم با محاسبه مبلغ و اعتبارسنجی ساده"""
         logger.debug(f"Starting FactorItem save for pk={self.pk}. Qty={self.quantity}, UnitPrice={self.unit_price}, Amount={self.amount}")
@@ -1322,9 +1319,6 @@ class FactorItem(models.Model):
         # ذخیره
         super().save(*args, **kwargs)
         logger.info(f"FactorItem saved successfully (pk={self.pk}). Amount={self.amount}, Status={self.status}")
-
-
-
     def __str__(self):
         """String representation of the FactorItem."""
         # Format amount with commas for readability

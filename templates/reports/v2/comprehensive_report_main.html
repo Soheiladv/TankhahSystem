@@ -27,7 +27,7 @@
                         </span>
                         <input type="text" class="form-control form-control-lg" id="id_search_period" name="search_period"
                                placeholder="{% translate 'جستجوی دوره بودجه...' %}"
-                               value="{{ current_search_period }}">
+                               value="{{ current_search_period |to_persian_number }}">
                     </div>
                 </div>
                 <div class="col-md-2">
@@ -72,11 +72,11 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <h3 class="mb-0">
                         <i class="fas fa-calendar-check me-2"></i>
-                        {{ period_data.period.name }}
-                        <small class="fs-6">({% translate "سازمان" %}: {{ period_data.period.organization.name }})</small>
+                        {{ period_data.period.name|to_persian_number }}
+                        <small class="fs-6">({% translate "سازمان" %}: {{ period_data.period.organization.name |to_persian_number }})</small>
                     </h3>
                     <span class="badge bg-white text-primary fs-6">
-                        {{ period_data.summary.start_date_jalali }} تا {{ period_data.summary.end_date_jalali }}
+                        {{ period_data.summary.start_date_jalali |to_persian_number }} تا {{ period_data.summary.end_date_jalali |to_persian_number}}
                     </span>
                 </div>
             </div>
@@ -89,7 +89,7 @@
                             <div class="card bg-light h-100 border-0 shadow-sm">
                                 <div class="card-body text-center">
                                     <h6 class="text-muted mb-3">{% translate "بودجه کل" %}</h6>
-                                    <h3 class="text-primary">{{ period_data.summary.total_budget|floatformat:0|intcomma }}</h3>
+                                    <h3 class="text-primary">{{ period_data.summary.total_budget|floatformat:0|format_negative }}</h3>
                                     <small class="text-muted">{% translate "ریال" %}</small>
                                 </div>
                             </div>
@@ -98,7 +98,7 @@
                             <div class="card bg-light h-100 border-0 shadow-sm">
                                 <div class="card-body text-center">
                                     <h6 class="text-muted mb-3">{% translate "تخصیص یافته" %}</h6>
-                                    <h3 class="text-info">{{ period_data.summary.total_allocated|floatformat:0|intcomma }}</h3>
+                                    <h3 class="text-info">{{ period_data.summary.total_allocated|floatformat:0|format_negative }}</h3>
                                     <small class="text-muted">{% translate "ریال" %}</small>
                                 </div>
                             </div>
@@ -108,7 +108,7 @@
                                 <div class="card-body text-center">
                                     <h6 class="text-muted mb-3">{% translate "مصرف شده" %}</h6>
                                     <h3 class="{% if period_data.summary.utilization_percentage > 90 %}text-danger{% elif period_data.summary.utilization_percentage > 70 %}text-warning{% else %}text-success{% endif %}">
-                                        {{ period_data.summary.net_consumed|floatformat:0|intcomma }}
+                                        {{ period_data.summary.net_consumed|floatformat:0|format_negative }}
                                     </h3>
                                     <small class="text-muted">{% translate "ریال" %}</small>
                                 </div>
@@ -119,7 +119,7 @@
                                 <div class="card-body text-center">
                                     <h6 class="text-muted mb-3">{% translate "مانده قابل مصرف" %}</h6>
                                     <h3 class="{% if period_data.summary.utilization_percentage > 90 %}text-danger{% elif period_data.summary.utilization_percentage > 70 %}text-warning{% else %}text-success{% endif %}">
-                                        {{ period_data.summary.remaining|floatformat:0|intcomma }}
+                                        {{ period_data.summary.remaining|floatformat:0|format_negative }}
                                     </h3>
                                     <small class="text-muted">{% translate "ریال" %}</small>
                                 </div>
@@ -131,7 +131,7 @@
                         <div class="progress-bar bg-{% if period_data.summary.utilization_percentage > 90 %}danger{% elif period_data.summary.utilization_percentage > 70 %}warning{% else %}success{% endif %}" 
                              role="progressbar" 
                              style="width: {{ period_data.summary.utilization_percentage }}%" 
-                             aria-valuenow="{{ period_data.summary.utilization_percentage }}" 
+                             aria-valuenow="{{ period_data.summary.utilization_percentage|to_persian_number }}"
                              aria-valuemin="0" 
                              aria-valuemax="100">
                         </div>
@@ -139,7 +139,7 @@
                     <div class="d-flex justify-content-between mt-2">
                         <small class="text-muted">0%</small>
                         <small class="text-muted fw-bold">
-                            {% translate "درصد مصرف" %}: {{ period_data.summary.utilization_percentage|floatformat:0 }}%
+                            {% translate "درصد مصرف" %}: {{ period_data.summary.utilization_percentage|floatformat:0|to_persian_number }}%
                         </small>
                         <small class="text-muted">100%</small>
                     </div>

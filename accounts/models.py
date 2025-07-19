@@ -49,6 +49,7 @@ class City(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.province.name}"
+
 class CustomUserManager(BaseUserManager):
     def create_user(self, username, email, password=None, **extra_fields):
         if not email:
@@ -204,9 +205,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             is_active=True,
             post__organization__org_type__fname='HQ'
         ).exists()
-
-
-
 User = get_user_model()
 class CustomProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile",

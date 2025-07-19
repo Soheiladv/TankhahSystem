@@ -89,7 +89,6 @@ def handle_factor_item_budget_transaction(sender, instance, created, **kwargs):
     except Exception as e:
         logger.error(f"Error in FactorItem budget transaction signal: {e}", exc_info=True)
 
-
 """به جای به‌روزرسانی در FactorItem.save، از سیگنال یا متد ویو استفاده کنید:"""
 from django.db.models.signals import post_save, post_delete
 # @receiver([post_save, post_delete], sender=FactorItem)
@@ -115,19 +114,29 @@ def update_factor_and_tankhah(sender, instance, **kwargs):
         if factor.amount != new_factor_amount:
             factor.amount = new_factor_amount
             factor.save(update_fields=['amount'])
+            # محاسبه بودجه استفاده‌شده تنخواه
+            from budgets.budget_calculations import get_tankhah_used_budget
+            new_spent = get_tankhah_used_budget(tankhah)
+            tankhah.remaining_budget = tankhah.budget - new_spent
+            tankhah.save(update_fields=['remaining_budget'])
+            logger.info(
+                f"Updated budget for Tankhah {tankhah.number}: spent={new_spent}, remaining={tankhah.remaining_budget}")
 
-        # فقط اگر فاکتور تأیید شده باشد، spent را به‌روزرسانی کن
-        if factor.status == 'APPROVED':
-            old_spent = tankhah.spent
-            new_spent = tankhah.factors.filter(status='APPROVED').aggregate(
-                total=Sum('amount')
-            )['total'] or Decimal('0')
-            if old_spent != new_spent:
-                tankhah.spent = new_spent
-                tankhah.save(update_fields=['spent'])
-                logger.info(f"Updated spent for Tankhah {tankhah.number}: {new_spent}")
     except Exception as e:
-        logger.error(f"Error updating factor/tankhah for FactorItem {instance.pk}: {e}", exc_info=True)
+     logger.error(f"Error updating factor/tankhah for FactorItem {instance.pk}: {e}", exc_info=True)
+
+    #     # فقط اگر فاکتور تأیید شده باشد، spent را به‌روزرسانی کن
+    #     if factor.status == 'APPROVED':
+    #         old_spent = tankhah.spent
+    #         new_spent = tankhah.factors.filter(status='APPROVED').aggregate(
+    #             total=Sum('amount')
+    #         )['total'] or Decimal('0')
+    #         if old_spent != new_spent:
+    #             tankhah.spent = new_spent
+    #             tankhah.save(update_fields=['spent'])
+    #             logger.info(f"Updated spent for Tankhah {tankhah.number}: {new_spent}")
+    # except Exception as e:
+    #     logger.error(f"Error updating factor/tankhah for FactorItem {instance.pk}: {e}", exc_info=True)
 
 @receiver(post_save, sender=Factor)
 def log_factor_changes(sender, instance, created, **kwargs):
@@ -153,7 +162,8 @@ def lock_factor_after_approval(sender, instance, **kwargs):
     """
     عملکرد: این سیگنال پس از ثبت یک ApprovalLog اجرا می‌شود. اگر اقدام (action) تأیید (APPROVE) باشد و فاکتور (factor) وجود داشته باشد، فاکتور قفل می‌شود (locked = True).
     """
-    if instance.action == 'APPROVE' and instance.factor:
+    if instance.action == 'APPROVE' and instance.factor and instance.stage.is_final_stage:
+    # if instance.action == 'APPROVE' and instance.factor:
         instance.factor.locked = True
         instance.factor.save()
 

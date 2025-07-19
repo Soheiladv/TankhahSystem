@@ -379,46 +379,53 @@ class PostHistoryForm(forms.ModelForm):
             'changed_by': forms.Select(attrs={'class': 'form-control'}),
         }
 
-# forms.py
-
-from django import forms
-from django.utils.translation import gettext_lazy as _
-from .models import WorkflowStage
-
 class WorkflowStageForm(forms.ModelForm):
     class Meta:
         model = WorkflowStage
-        # تمام فیلدهایی که کاربر باید بتواند ویرایش کند را اضافه می‌کنیم
         fields = [
             'name',
             'order',
             'description',
+            'entity_type',
             'is_active',
             'is_final_stage',
             'auto_advance',
             'triggers_payment_order'
         ]
-        # ویجت‌ها برای استایل‌دهی با Bootstrap
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'order': forms.NumberInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'entity_type': forms.Select(attrs={'class': 'form-control'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_final_stage': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'auto_advance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'triggers_payment_order': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
-        # می‌توانید لیبل‌ها را هم اینجا بازنویسی کنید، هرچند از verbose_name مدل خوانده می‌شوند
         labels = {
             'name': _('نام مرحله'),
             'order': _('ترتیب نمایش'),
             'description': _('توضیحات'),
+            'entity_type': _('نوع موجودیت'),
             'is_active': _('فعال باشد'),
-            'is_final_stage': _('مرحله نهایی تایید تنخواه است'),
+            'is_final_stage': _('مرحله نهایی تأیید تنخواه است'),
             'auto_advance': _('پیش‌رفت خودکار به مرحله بعد'),
             'triggers_payment_order': _('باعث ایجاد دستور پرداخت خودکار شود'),
         }
 
+    def clean_order(self):
+        order = self.cleaned_data.get('order')
+        instance = self.instance
+        if WorkflowStage.objects.exclude(pk=instance.pk if instance else None).filter(order=order).exists():
+            raise forms.ValidationError(_("ترتیبی که انتخاب کردید قبلاً استفاده شده است."))
+        return order
+
+    def clean_entity_type(self):
+        entity_type = self.cleaned_data.get('entity_type')
+        valid_choices = [choice[0] for choice in WorkflowStage.ENTITY_TYPE_CHOICES]
+        if entity_type not in valid_choices:
+            raise forms.ValidationError(_("نوع موجودیت انتخاب‌شده معتبر نیست."))
+        return entity_type
 
 class OrganizationTypeForm(forms.ModelForm):
     class Meta:

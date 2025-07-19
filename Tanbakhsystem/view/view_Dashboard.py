@@ -34,7 +34,7 @@ from version_tracker.models import FinalVersion
 from budgets.budget_calculations import get_project_total_budget, get_project_used_budget, get_project_remaining_budget, calculate_threshold_amount
 from Tanbakhsystem.view.views_notifications import send_notification
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('Main_Dashboard')
 # لینک‌های داشبورد
 _____dashboard_links_ = {
             'روند تنخواه': [

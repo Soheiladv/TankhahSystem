@@ -4,38 +4,49 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="card p-4">
-    <h1 class="h3 mb-4">{{ title }}</h1>
-    <form method="post" novalidate>
-        {% csrf_token %}
-
-        {% for field in form %}
-            <div class="mb-3">
-                {% if field.field.widget.input_type == 'checkbox' %}
-                    <div class="form-check">
-                        {{ field }}
-                        <label class="form-check-label" for="{{ field.id_for_label }}">
-                            {{ field.label }}
-                        </label>
-                    </div>
-                {% else %}
-                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                    {{ field }}
-                {% endif %}
-
-                {% if field.help_text %}
-                    <small class="form-text text-muted">{{ field.help_text|safe }}</small>
-                {% endif %}
-                {% for error in field.errors %}
-                    <div class="text-danger small mt-1">{{ error }}</div>
-                {% endfor %}
-            </div>
-        {% endfor %}
-        
-        <div class="mt-4">
-            <button type="submit" class="btn btn-success">ذخیره</button>
-            <a href="{% url 'workflow_stage_list' %}" class="btn btn-secondary">انصراف</a>
+<div class="container-fluid py-4">
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h1 class="h3 mb-0">{{ title }}</h1>
         </div>
-    </form>
+        <div class="card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="row">
+                    {% for field in form %}
+                        <div class="col-12 col-md-6 mb-3">
+                            {% if field.field.widget.input_type == 'checkbox' %}
+                                <div class="form-check">
+                                    {{ field }}
+                                    <label class="form-check-label" for="{{ field.id_for_label }}">
+                                        {{ field.label }}
+                                    </label>
+                                </div>
+                            {% else %}
+                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                {{ field }}
+                            {% endif %}
+                            {% if field.help_text %}
+                                <small class="form-text text-muted">{{ field.help_text|safe }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-success">
+                        {% if action == 'create' %}
+                            {% trans "ایجاد مرحله" %}
+                        {% else %}
+                            {% trans "ذخیره تغییرات" %}
+                        {% endif %}
+                    </button>
+                    <a href="{% url 'workflow_stage_list' %}" class="btn btn-secondary">{% trans "انصراف" %}</a>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}

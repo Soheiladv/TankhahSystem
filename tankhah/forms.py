@@ -31,6 +31,7 @@ class FactorItemApprovalForm(forms.ModelForm):
 
     status = forms.ChoiceField(
         choices=[
+            ('', 'انتخاب کنید'),
             ('PENDING', _('در حال بررسی')),
             ('APPROVED', _('تأیید شده')),
             ('REJECTED', _('رد شده')),
@@ -63,6 +64,7 @@ class FactorItemApprovalForm(forms.ModelForm):
         if status and status != 'NONE':
             cleaned_data['status'] = status
         return cleaned_data
+
 class FactorApprovalForm(forms.ModelForm):
     comment = forms.CharField(
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
