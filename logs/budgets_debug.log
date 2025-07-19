@@ -172,3 +172,15 @@ Traceback (most recent call last):
 AttributeError: 'BudgetAllocation' object has no attribute 'budget_allocation'
 [2025-07-19 16:01:18] INFO [budgets.PaymentOrder.view_PaymentOrder:657] get_context_data - Context prepared for user admin, 0 payment orders, 0 approved factors
 [2025-07-19 16:01:21] DEBUG [budgets.views:92] get_context_data - TransactionTypeListView context: {'paginator': <django.core.paginator.Paginator object at 0x0000028EEF422E50>, 'page_obj': <Page 1 of 1>, 'is_paginated': False, 'object_list': <QuerySet [<TransactionType: بیمه تامین اجتماعی شرکت توسعه گردشگری ایران>, <TransactionType: بیمه تامین اجتماعی میراث>]>, 'transaction_types': <QuerySet [<TransactionType: بیمه تامین اجتماعی شرکت توسعه گردشگری ایران>, <TransactionType: بیمه تامین اجتماعی میراث>]>, 'view': <budgets.views.TransactionTypeListView object at 0x0000028EEE6AF610>, 'query': '', 'requires_extra_approval': ''}
+[2025-07-19 19:25:10] INFO [budgets.PaymentOrder.view_PaymentOrder:657] get_context_data - Context prepared for user admin, 0 payment orders, 0 approved factors
+[2025-07-19 19:29:29] DEBUG [budgets.models:549] save - Starting save for BudgetTransaction: amount=9200000, type=CONSUMPTION, allocation ID=72
+[2025-07-19 19:29:29] DEBUG [budgets.models:538] clean - Cleaning BudgetTransaction: amount=9200000, type=CONSUMPTION, allocation ID=72
+[2025-07-19 19:29:29] INFO [budgets.models:545] clean - BudgetTransaction validated successfully for allocation ID: 72
+[2025-07-19 19:29:29] DEBUG [budgets.signals:31] update_remaining_amount - BudgetTransaction TX-FACTOR-NEW-7-1752940769.654736 created. Invalidating cache for allocation 72
+[2025-07-19 19:29:29] DEBUG [budgets.signals:85] invalidate_tankhah_cache - Invalidated cache keys after Tankhah change: {'free_budget_72', 'tankhah_report_21_no_filters'}
+[2025-07-19 19:29:29] DEBUG [budgets.signals:37] update_remaining_amount - Updated remaining_budget for Tankhah 3
+[2025-07-19 19:29:29] DEBUG [budgets.signals:55] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'returned_budgets_21_all_no_filters', 'project_remaining_budget_8', 'budget_transfers_21_no_filters', 'free_budget_72'}
+[2025-07-19 19:29:29] INFO [budgets.models:559] save - BudgetTransaction saved with ID: 67
+[2025-07-19 19:52:31] DEBUG [budgets.signals:85] invalidate_tankhah_cache - Invalidated cache keys after Tankhah change: {'free_budget_72', 'tankhah_report_21_no_filters'}
+[2025-07-19 20:15:02] DEBUG [budgets.signals:85] invalidate_tankhah_cache - Invalidated cache keys after Tankhah change: {'free_budget_72', 'tankhah_report_21_no_filters'}
+[2025-07-19 20:23:47] DEBUG [budgets.signals:85] invalidate_tankhah_cache - Invalidated cache keys after Tankhah change: {'free_budget_72', 'tankhah_report_21_no_filters'}

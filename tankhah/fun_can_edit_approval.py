@@ -264,20 +264,23 @@ def can_edit_approval______(user, tankhah, current_stage):
     return True
 
 
-def can_edit_approval(user, tankhah, current_stage):
+def can_edit_approval(user, tankhah, current_stage, factor=None):
     """
-    بررسی می‌کند که آیا کاربر می‌تواند فاکتور یا آیتم‌های آن را ویرایش کند.
+    بررسی می‌کند که آیا کاربر می‌تواند فاکتور یا آیتم‌های آن را ویرایش/تأیید کند.
+    فقط لاگ‌های مربوط به فاکتور فعلی (اگه ارائه شده) بررسی می‌شوند.
 
     Args:
         user: کاربر فعلی
         tankhah: شیء تنخواه
         current_stage: مرحله فعلی گردش کار
+        factor: شیء فاکتور (اختیاری، برای محدود کردن به فاکتور خاص)
 
     Returns:
         bool: آیا کاربر دسترسی ویرایش/تأیید دارد؟
     """
     logger = logging.getLogger('factor_approval')
-    logger.info(f"[can_edit_approval] بررسی دسترسی ویرایش برای کاربر {user.username} در مرحله {current_stage.name}")
+    logger.info(
+        f"[can_edit_approval] بررسی دسترسی ویرایش برای کاربر {user.username} در مرحله {current_stage.name} (order={current_stage.order})، فاکتور: {factor.number if factor else 'نامشخص'}")
 
     # دسترسی کامل برای superuser، کاربران HQ، یا کسانی که Tankhah_view_all دارند
     user_org_ids = set()
@@ -318,31 +321,50 @@ def can_edit_approval(user, tankhah, current_stage):
         entity_type='FACTOR',
         is_active=True
     ).exists()
-
     if not has_action:
         logger.warning(f"[can_edit_approval] کاربر {user.username} دسترسی تأیید برای مرحله {current_stage.name} ندارد")
         return False
 
-    # بررسی قفل بودن تنخواه یا فاکتور
+    # بررسی قفل بودن تنخواه
     if tankhah.is_locked or tankhah.is_archived:
         logger.warning(f"[can_edit_approval] تنخواه {tankhah.number} قفل یا آرشیو شده است")
         return False
 
-    # بررسی اقدام قبلی برای تنخواه یا فاکتور
-    has_previous_action = ApprovalLog.objects.filter(
-        Q(tankhah=tankhah) | Q(factor__tankhah=tankhah),
-        user=user,
-        action__in=['APPROVE', 'REJECT', 'STAGE_CHANGE']
-    ).exists()
-
-    if has_previous_action:
-        logger.warning(f"[can_edit_approval] کاربر {user.username} قبلاً برای تنخواه {tankhah.number} اقدام کرده است")
+    # بررسی سطح دسترسی کاربر (سطح بالاتر = level کمتر)
+    if user_post.post.level > current_stage.order:
+        logger.warning(
+            f"[can_edit_approval] سطح کاربر ({user_post.post.level}) برای مرحله {current_stage.name} (order={current_stage.order}) کافی نیست")
         return False
 
-    # بررسی سطح دسترسی کاربر نسبت به مرحله
-    if current_stage.order > user_post.post.level:
+    # بررسی اقدامات قبلی در مراحل بالاتر (فقط برای فاکتور فعلی)
+    if current_stage.order > 1:  # فقط برای مراحل غیرابتدایی
+        query = Q(tankhah=tankhah, factor__isnull=True)  # لاگ‌های تنخواه بدون فاکتور
+        if factor:
+            query = Q(factor=factor)  # محدود به فاکتور فعلی
+        has_higher_action = ApprovalLog.objects.filter(
+            query,
+            stage__order__lt=current_stage.order,
+            action__in=['APPROVE', 'REJECT'],
+            seen_by_higher=True
+        ).exists()
+        if has_higher_action:
+            logger.warning(
+                f"[can_edit_approval] اقدامات قبلی در مراحل بالاتر (order < {current_stage.order}) برای فاکتور {factor.number if factor else 'نامشخص'} یافت شد")
+            return False
+
+    # بررسی اقدامات قبلی کاربر در مرحله فعلی (فقط برای فاکتور فعلی)
+    query = Q(tankhah=tankhah, factor__isnull=True)  # لاگ‌های تنخواه بدون فاکتور
+    if factor:
+        query = Q(factor=factor)  # محدود به فاکتور فعلی
+    has_previous_action = ApprovalLog.objects.filter(
+        query,
+        user=user,
+        stage=current_stage,
+        action__in=['APPROVE', 'REJECT', 'STAGE_CHANGE']
+    ).exists()
+    if has_previous_action:
         logger.warning(
-            f"[can_edit_approval] سطح مرحله ({current_stage.order}) بیشتر از سطح کاربر ({user_post.post.level}) است")
+            f"[can_edit_approval] کاربر {user.username} قبلاً در مرحله {current_stage.name} برای فاکتور {factor.number if factor else 'نامشخص'} اقدام کرده است")
         return False
 
     logger.info(f"[can_edit_approval] کاربر {user.username} مجاز به ویرایش در مرحله {current_stage.name} است")
