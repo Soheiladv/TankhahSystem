@@ -32,7 +32,8 @@ class FactorStatusReviewView(PermissionBaseView, ListView):
     def get_queryset(self):
         user = self.request.user
         queryset = Factor.objects.select_related(
-            'tankhah', 'tankhah__organization', 'tankhah__project', 'tankhah__current_stage',
+            'tankhah', 'tankhah__organization', 'tankhah__project',
+            # 'tankhah__current_stage',
             'category', 'created_by'
         ).prefetch_related(
             Prefetch('items', queryset=FactorItem.objects.order_by('pk')),
@@ -807,7 +808,7 @@ class AdvancedFactorStatusReviewView(PermissionBaseView, ListView):
             'tankhah',
             'tankhah__organization',
             'tankhah__project',
-            'tankhah__current_stage',
+            # 'tankhah__current_stage',
             'tankhah__project_budget_allocation',  # اصلاح‌شده
             'tankhah__project_budget_allocation__budget_item',  # اگر budget_item وجود دارد
             'category',

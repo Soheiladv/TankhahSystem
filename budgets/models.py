@@ -5,7 +5,7 @@ import logging
 from django.utils import timezone
 from django.core.cache import cache
 
-from core.models import Organization, Project, WorkflowStage, Post, UserPost
+from core.models import Organization, Project,AccessRule,  Post, UserPost
 from tankhah.models import Factor, Tankhah, ApprovalLog
 
 logger = logging.getLogger(__name__)
@@ -492,7 +492,7 @@ class BudgetTransaction(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان"))
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, verbose_name=_("کاربر"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
-    transaction_id = models.CharField(max_length=50, unique=True, verbose_name=_("شناسه تراکنش"))
+    transaction_id = models.CharField(max_length=250, unique=True, verbose_name=_("شناسه تراکنش"))
 
     class Meta:
         verbose_name = _("تراکنش بودجه")
@@ -629,6 +629,8 @@ def generate_payment_order_number(self):
 #
 """PaymentOrder (دستور پرداخت):"""
 #--------------------------------------
+from tankhah.constants import ACTION_TYPES
+
 class PaymentOrder(models.Model):
     STATUS_CHOICES = (
         ('DRAFT', _('پیش‌نویس')),
@@ -648,7 +650,7 @@ class PaymentOrder(models.Model):
     payee = models.ForeignKey(Payee, on_delete=models.PROTECT, related_name='payment_orders',verbose_name=_('دریافت‌کننده')    )
     description = models.TextField(_('شرح پرداخت'), blank=True)
     payment_id = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("شناسه پرداخت"))
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT', verbose_name=_("وضعیت"))
+    status = models.CharField(max_length=50, choices=ACTION_TYPES, default='DRAFT', verbose_name=_("وضعیت")) #STATUS_CHOICES
     created_by_post = models.ForeignKey(        Post, on_delete=models.SET_NULL, null=True, verbose_name=_("پست ایجادکننده")    )
     min_signatures = models.IntegerField(default=1, verbose_name=_("حداقل تعداد امضا"))
     created_by = models.ForeignKey(CustomUser, on_delete=models.PROTECT, related_name='created_payment_orders',verbose_name=_('ایجادکننده')    )
@@ -660,7 +662,7 @@ class PaymentOrder(models.Model):
     related_factors = models.ManyToManyField(Factor, blank=True, related_name='payment_orders', verbose_name= _('فاکتورهای مرتبط ') )
     organization = models.ForeignKey(Organization, on_delete=models.PROTECT, related_name='payment_orders_organize',verbose_name=_('سازمان'))
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True, blank=True,related_name='payment_orders', verbose_name=_('پروژه'))
-    current_stage = models.ForeignKey(WorkflowStage, on_delete=models.SET_NULL, null=True, blank=True,related_name='payment_orders', verbose_name=_('مرحله فعلی')    )
+    current_stage = models.ForeignKey(AccessRule, on_delete=models.SET_NULL, null=True, blank=True,related_name='payment_orders', verbose_name=_('مرحله فعلی')    )
     created_at = models.DateTimeField(_('تاریخ ایجاد'), auto_now_add=True)
     updated_at = models.DateTimeField(_('تاریخ به‌روزرسانی'), auto_now=True)
     is_locked = models.BooleanField(_('0قفل شده'), default=False)

@@ -26,7 +26,6 @@ class FactorStatusDashboardView(PermissionBaseView, ListView):
             'tankhah',
             'tankhah__organization',
             'tankhah__project',
-            'tankhah__current_stage',
             'tankhah__project_budget_allocation',
             'category',
             'created_by'

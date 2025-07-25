@@ -18,7 +18,7 @@ from django.views.generic import TemplateView
 
 from core.forms import OrganizationForm, ProjectForm, PostForm, UserPostForm, PostHistoryForm, WorkflowStageForm, \
     SubProjectForm
-from core.models import Project, Post, UserPost, PostHistory, WorkflowStage, SubProject, PostAction
+from core.models import Project, Post, UserPost, PostHistory, AccessRule, SubProject, PostAction
 from django.db.models import Sum, Q
 from budgets.models import BudgetAllocation, BudgetPeriod, \
     BudgetTransaction  # فرض بر این که BudgetAllocation در budgets است
@@ -45,7 +45,7 @@ class OLD_DashboardView_flows(LoginRequiredMixin, TemplateView):
         is_hq_user = any(org.org_type == 'HQ' for org in user_orgs) if user_orgs else False
 
         # گرفتن مراحل گردش کار
-        workflow_stages = WorkflowStage.objects.all().order_by('-order')
+        workflow_stages = AccessRule.objects.all().order_by('-order')
         entities_by_stage = {}
 
         for stage in workflow_stages:
@@ -222,7 +222,7 @@ class DashboardView_flows(  TemplateView):
 
     def _get_workflow_data(self, user_info):
         """دریافت داده‌های گردش کار بهینه"""
-        stages = WorkflowStage.objects.all().order_by('order').prefetch_related(
+        stages = AccessRule.objects.all().order_by('order').prefetch_related(
             'stageapprover_set__post'
         )
 
@@ -451,8 +451,8 @@ class  new__DashboardView_flows( TemplateView):
         logger.debug(f"_get_workflow_data for {user_info['user'].username}")
         # فقط مراحل فعال تنخواه را در نظر می‌گیریم (با فرض وجود entity_type)
         # و تاییدکنندگان را prefetch می‌کنیم
-        stages_qs = WorkflowStage.objects.filter(is_active=True)
-        if hasattr(WorkflowStage, 'entity_type'):
+        stages_qs = AccessRule.objects.filter(is_active=True)
+        if hasattr(AccessRule, 'entity_type'):
             stages_qs = stages_qs.filter(entity_type='TANKHAH')
 
         stages = stages_qs.order_by('order').prefetch_related(
@@ -580,7 +580,7 @@ class DashboardView_flows_1( TemplateView):
         context['user'] = self.request.user
 
         # گرفتن مراحل به ترتیب (پایین به بالا: order=5 تا order=0)
-        workflow_stages = WorkflowStage.objects.all().order_by('-order')
+        workflow_stages = AccessRule.objects.all().order_by('-order')
         context['workflow_stages'] = workflow_stages
 
         # گرفتن پست‌های سازمانی کاربر
@@ -695,7 +695,7 @@ class __DashboardView_flows(LoginRequiredMixin, TemplateView):
         }
 
         # Workflow stages with approvers
-        workflow_stages = WorkflowStage.objects.all().order_by('-order')
+        workflow_stages = AccessRule.objects.all().order_by('-order')
         Tankhah_by_stage = {}
         for stage in workflow_stages:
             stage_Tankhahs = Tankhahs.filter(current_stage=stage)
@@ -1059,7 +1059,7 @@ class ProjectDetailView(PermissionBaseView, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['tankhahs'] = Tankhah.objects.filter(project=self.object).select_related('current_stage')
+        context['tankhahs'] = Tankhah.objects.filter(project=self.object)#.select_related('current_stage')
         context['title'] = _('جزئیات پروژه') + f" - {self.object.code}"
         return context
 class ProjectCreateView(PermissionBaseView, CreateView):
@@ -1320,7 +1320,7 @@ class PostHistoryDeleteView(PermissionBaseView, DeleteView):
         return super().delete(request, *args, **kwargs)
 # ---- WorkFlow
 class WorkflowStageListView(PermissionBaseView, ListView):
-    model = WorkflowStage
+    model = AccessRule
     template_name = "core/workflow_stage/workflow_stage_list.html"
     context_object_name = "stages"
     permission_codename = 'WorkflowStage_view'
@@ -1344,7 +1344,7 @@ class WorkflowStageListView(PermissionBaseView, ListView):
         return context
 
 class WorkflowStageCreateView(PermissionBaseView, CreateView):
-    model = WorkflowStage
+    model = AccessRule
     form_class = WorkflowStageForm
     template_name = "core/workflow_stage/workflow_stage_form.html"
     success_url = reverse_lazy("workflow_stage_list")
@@ -1369,7 +1369,7 @@ class WorkflowStageCreateView(PermissionBaseView, CreateView):
         return context
 
 class WorkflowStageUpdateView(PermissionBaseView, UpdateView):
-    model = WorkflowStage
+    model = AccessRule
     form_class = WorkflowStageForm
     template_name = "core/workflow_stage/workflow_stage_form.html"
     success_url = reverse_lazy("workflow_stage_list")
@@ -1394,7 +1394,7 @@ class WorkflowStageUpdateView(PermissionBaseView, UpdateView):
         return context
 
 class WorkflowStageDeleteView(PermissionBaseView, DeleteView):
-    model = WorkflowStage
+    model = AccessRule
     template_name = "core/workflow_stage/workflow_stage_confirm_delete.html"
     success_url = reverse_lazy("workflow_stage_list")
     permission_codename = 'WorkflowStage_delete'

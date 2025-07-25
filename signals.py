@@ -4,7 +4,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from budgets.models import BudgetAllocation, BudgetTransaction, ProjectBudgetAllocation, PaymentOrder
 from core.models import Post
-from tankhah.models import Tankhah, Factor
+from tankhah.models import Tankhah, Factor, ApprovalLog
 from decimal import Decimal
 from django.core.cache import cache
 import logging
@@ -151,45 +151,86 @@ def update_allocation_lock_on_transaction(sender, instance, **kwargs):
 
 #==
 """وقتی یک ApprovalLog برای فاکتور یا تنخواه ثبت می‌شه و مرحله به یکی با triggers_payment_order=True می‌رسه، یک PaymentOrder ایجاد می‌شه:"""
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from tankhah.models import ApprovalLog,  Factor
-from decimal import Decimal
-
 @receiver(post_save, sender=ApprovalLog)
 def create_payment_order_on_approval(sender, instance, created, **kwargs):
-    """
-        این سیگنال فقط وقتی ApprovalLog با action='APPROVE' برای فاکتور ثبت می‌شه و فاکتور به وضعیت APPROVED رسیده، اجرا می‌شه.
-        مبلغ از آیتم‌های تأییدشده فاکتور محاسبه می‌شه.
-        payee باید مشخص بشه (مثلاً از اطلاعات فاکتور یا دستی توسط کاربر).
-        می‌تونید min_signatures رو از تنظیمات سیستم یا سازمان بگیرید.
-    """
-    if created and instance.action == 'APPROVE':
-        stage = instance.stage
-        if stage.triggers_payment_order:
+    if created and instance.action == 'APPROVED':
+        try:
+            logger.info(f"[create_payment_order_on_approval] Processing ApprovalLog {instance.id}")
+            if not instance.stage:
+                logger.warning(f"[create_payment_order_on_approval] No stage defined for ApprovalLog {instance.id}")
+                return
+            if not instance.stage.triggers_payment_order:
+                logger.debug(f"[create_payment_order_on_approval] triggers_payment_order=False for ApprovalLog {instance.id}")
+                return
+
             content_type = instance.content_type
-            if content_type.model == 'factor':
-                factor = Factor.objects.get(id=instance.object_id)
-                tankhah = factor.tankhah
-                # بررسی اینکه فاکتور کاملاً تأیید شده
-                if factor.status == 'APPROVED':
-                    # محاسبه مبلغ از فاکتور
-                    amount = sum(item.amount for item in factor.items.filter(status='APPROVE'))
-                    # پیدا کردن پست ایجادکننده
-                    user_post = instance.user.userpost_set.filter(is_active=True, end_date__isnull=True).first()
-                    if user_post:
-                        # ایجاد PaymentOrder
-                        payment_order = PaymentOrder.objects.create(
-                            tankhah=tankhah,
-                            amount=amount,
-                            payee=None,  # باید مشخص بشه، مثلاً از فاکتور
-                            description=f"دستور پرداخت برای فاکتور {factor.id}",
-                            created_by=instance.user,
-                            created_by_post=user_post.post,
-                            status='DRAFT',
-                            min_signatures=1  # می‌تونه از تنظیمات گرفته بشه
-                        )
-                        payment_order.related_factors.add(factor)
+            if content_type.model != 'factor':
+                logger.debug(f"[create_payment_order_on_approval] Content type is {content_type.model}, skipping")
+                return
+
+            factor = Factor.objects.get(id=instance.object_id)
+            tankhah = factor.tankhah
+            if factor.status != 'APPROVED':
+                logger.info(f"[create_payment_order_on_approval] Factor {factor.id} is not APPROVED, skipping")
+                return
+
+            amount = sum(item.amount for item in factor.items.filter(status='APPROVED'))
+            user_post = instance.user.userpost_set.filter(is_active=True, end_date__isnull=True).first()
+            if not user_post:
+                logger.warning(f"[create_payment_order_on_approval] No active user post found for user {instance.user.username}")
+                return
+
+            initial_po_stage = AccessRule.objects.filter(
+                entity_type='PAYMENTORDER',
+                stage_order=1,
+                is_active=True,
+                organization=tankhah.organization
+            ).first()
+            if not initial_po_stage:
+                logger.error(f"[create_payment_order_on_approval] No initial stage found for PAYMENTORDER")
+                return
+
+            payee = factor.payee or Payee.objects.filter(is_active=True, organization=tankhah.organization).first()
+            if not payee:
+                logger.warning(f"[create_payment_order_on_approval] No payee found for Factor {factor.id}")
+                payee = None
+
+            payment_order = PaymentOrder.objects.create(
+                tankhah=tankhah,
+                related_tankhah=tankhah,
+                amount=amount,
+                payee=payee,
+                description=f"دستور پرداخت برای فاکتور {factor.number} (تنخواه: {tankhah.number})",
+                organization=tankhah.organization,
+                project=tankhah.project,
+                status='DRAFT',
+                created_by=instance.user,
+                created_by_post=user_post.post,
+                current_stage=initial_po_stage,
+                issue_date=timezone.now().date(),
+                min_signatures=initial_po_stage.min_signatures or 1,
+                order_number=PaymentOrder().generate_payment_order_number()
+            )
+            payment_order.related_factors.add(factor)
+            logger.info(f"[create_payment_order_on_approval] Created PaymentOrder {payment_order.order_number} for Factor {factor.id}")
+
+            # ارسال اعلان
+            approving_posts = AccessRule.objects.filter(
+                stage_order=initial_po_stage.stage_order,
+                is_active=True,
+                entity_type='PAYMENTORDER',
+                action_type='APPROVE'
+            ).values_list('post', flat=True)
+            notify.send(
+                sender=instance.user,
+                recipient=CustomUser.objects.filter(userpost__post__in=approving_posts, userpost__is_active=True).distinct(),
+                verb='created',
+                action_object=payment_order,
+                description=f"دستور پرداخت {payment_order.order_number} برای فاکتور {factor.number} ایجاد شد.",
+                level='high'
+            )
+        except Exception as e:
+            logger.error(f"[create_payment_order_on_approval] Error for ApprovalLog {instance.id}: {str(e)}", exc_info=True)
 
 """تعریف PostAction برای امضای دستور پرداخت
 برای اینکه پست‌های خاصی بتونن دستور پرداخت رو امضا کنن، باید PostAction رو برای موجودیت paymentorder تعریف کنیم:"""

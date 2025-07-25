@@ -18,19 +18,85 @@
             --shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .card { border-radius: 10px; box-shadow: var(--shadow); border: none; }
-        .card-header { background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); color: white; border-radius: 10px 10px 0 0 !important; }
-        .form-control, .form-select, .select2-selection { border-radius: 8px; padding: 10px 15px; border: 1px solid #ced4da; transition: all 0.3s ease; }
-        .form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 0.25rem rgba(106, 17, 203, 0.25); }
-        .progress { height: 25px; border-radius: 12px; background-color: #e9ecef; }
-        .progress-bar { font-weight: 600; font-size: 14px; display: flex; align-items: center; justify-content: center; }
-        .budget-info { background-color: var(--light-bg); border-radius: 8px; padding: 15px; margin-bottom: 15px; }
-        .budget-info i { margin-left: 5px; }
-        .btn-primary { background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); border: none; padding: 10px 25px; font-weight: 500; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4); }
-        .select2-container--bootstrap-5 .select2-selection { padding: 8px 15px; }
-        .fade-in { animation: fadeIn 0.5s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card {
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            border: none;
+        }
+
+        .card-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+
+        .form-control, .form-select, .select2-selection {
+            border-radius: 8px;
+            padding: 10px 15px;
+            border: 1px solid #ced4da;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(106, 17, 203, 0.25);
+        }
+
+        .progress {
+            height: 25px;
+            border-radius: 12px;
+            background-color: #e9ecef;
+        }
+
+        .progress-bar {
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .budget-info {
+            background-color: var(--light-bg);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .budget-info i {
+            margin-left: 5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            padding: 10px 25px;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
+        }
+
+        .select2-container--bootstrap-5 .select2-selection {
+            padding: 8px 15px;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 {% endblock %}
 
@@ -112,7 +178,8 @@
                                 <div class="progress">
                                     <div id="project-progress-bar" class="progress-bar"
                                          role="progressbar" style="width: {{ project_budget_percentage }}%"
-                                         aria-valuenow="{{ project_budget_percentage }}">{{ project_budget_percentage|floatformat:1 }}%</div>
+                                         aria-valuenow="{{ project_budget_percentage }}">{{ project_budget_percentage|floatformat:1 }}%
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -127,7 +194,8 @@
                                 <div class="invalid-feedback d-block">{{ error }}</div>
                             {% endfor %}
 
-                            <div class="budget-info mt-2" id="subproject-budget-info" style="display: {% if subproject_total_budget %}block{% else %}none{% endif %};">
+                            <div class="budget-info mt-2" id="subproject-budget-info"
+                                 style="display: {% if subproject_total_budget %}block{% else %}none{% endif %};">
                                 <div class="d-flex justify-content-between mb-1">
                                     <span><i class="fas fa-coins text-success"></i> بودجه کل:</span>
                                     <span id="subproject-total-budget">{{ subproject_total_budget|jformat }} ریال</span>
@@ -139,7 +207,8 @@
                                 <div class="progress">
                                     <div id="subproject-progress-bar" class="progress-bar"
                                          role="progressbar" style="width: {{ subproject_budget_percentage }}%"
-                                         aria-valuenow="{{ subproject_budget_percentage }}">{{ subproject_budget_percentage|floatformat:1 }}%</div>
+                                         aria-valuenow="{{ subproject_budget_percentage }}">{{ subproject_budget_percentage|floatformat:1 }}%
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -182,7 +251,8 @@
                                 </div>
                                 <div class="progress">
                                     <div id="remaining-progress-bar" class="progress-bar"
-                                         role="progressbar" style="width: 100%">100%</div>
+                                         role="progressbar" style="width: 100%">100%
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -219,7 +289,7 @@
     <script src="{% static 'admin/js/jalali-datepicker.min.js' %}"></script>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Initialize date pickers
             jalaliDatepicker.startWatch();
 
@@ -252,6 +322,12 @@
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRFToken': csrfToken
+                },
+                success: function (data) {
+                    console.log('Heartbeat successful', data);
+                },
+                error: function (xhr, status, error) {
+                    console.error('Heartbeat failed', error);
                 }
             };
 
@@ -310,7 +386,7 @@
             let currentRemainingBudget = {{ remaining_budget|default:0 }};
             let currentTotalBudget = {{ total_budget|default:0 }};
 
-            $('#id_amount').on('input', function() {
+            $('#id_amount').on('input', function () {
                 const amount = parseFloat($(this).val()) || 0;
                 $('#amount-persian').text(formatCurrency(amount) + ' ریال');
                 $('#amount-words').text(numberToWords(amount));
@@ -337,7 +413,7 @@
             }
 
             // AJAX functions for dynamic loading
-            $('#id_organization').change(function() {
+            $('#id_organization').change(function () {
                 const orgId = $(this).val();
                 if (!orgId) {
                     resetBudgetPicker();
@@ -346,33 +422,33 @@
 
                 $.ajax({
                     url: '{% url "get_projects" %}',
-                    data: { org_id: orgId },
+                    data: {org_id: orgId},
                     ...fetchOptions
                 })
-                .done(function(data) {
-                    const $projectSelect = $('#id_project');
-                    $projectSelect.empty().append('<option value="">---------</option>');
+                    .done(function (data) {
+                        const $projectSelect = $('#id_project');
+                        $projectSelect.empty().append('<option value="">---------</option>');
 
-                    if (data.projects && data.projects.length > 0) {
-                        $.each(data.projects, function(i, project) {
-                            $projectSelect.append($('<option>', {
-                                value: project.id,
-                                text: project.name
-                            }));
-                        });
-                    } else {
-                        $projectSelect.append('<option value="">هیچ پروژه‌ای یافت نشد</option>');
-                    }
+                        if (data.projects && data.projects.length > 0) {
+                            $.each(data.projects, function (i, project) {
+                                $projectSelect.append($('<option>', {
+                                    value: project.id,
+                                    text: project.name
+                                }));
+                            });
+                        } else {
+                            $projectSelect.append('<option value="">هیچ پروژه‌ای یافت نشد</option>');
+                        }
 
-                    $('#id_subproject').empty().append('<option value="">---------</option>');
-                    resetBudgetPicker();
-                })
-                .fail(function(xhr, status, error) {
-                    console.error('Error loading projects:', error);
-                });
+                        $('#id_subproject').empty().append('<option value="">---------</option>');
+                        resetBudgetPicker();
+                    })
+                    .fail(function (xhr, status, error) {
+                        console.error('Error loading projects:', error);
+                    });
             });
 
-            $('#id_project').change(function() {
+            $('#id_project').change(function () {
                 const projectId = $(this).val();
                 if (!projectId) {
                     resetBudgetPicker();
@@ -382,52 +458,52 @@
                 // Load subprojects
                 $.ajax({
                     url: '{% url "get_subprojects" %}',
-                    data: { project_id: projectId },
+                    data: {project_id: projectId},
                     ...fetchOptions
                 })
-                .done(function(data) {
-                    const $subprojectSelect = $('#id_subproject');
-                    $subprojectSelect.empty().append('<option value="">---------</option>');
+                    .done(function (data) {
+                        const $subprojectSelect = $('#id_subproject');
+                        $subprojectSelect.empty().append('<option value="">---------</option>');
 
-                    if (data.subprojects && data.subprojects.length > 0) {
-                        $.each(data.subprojects, function(i, subproject) {
-                            $subprojectSelect.append($('<option>', {
-                                value: subproject.id,
-                                text: subproject.name
-                            }));
-                        });
-                    }
-                })
-                .fail(function(xhr, status, error) {
-                    console.error('Error loading subprojects:', error);
-                });
+                        if (data.subprojects && data.subprojects.length > 0) {
+                            $.each(data.subprojects, function (i, subproject) {
+                                $subprojectSelect.append($('<option>', {
+                                    value: subproject.id,
+                                    text: subproject.name
+                                }));
+                            });
+                        }
+                    })
+                    .fail(function (xhr, status, error) {
+                        console.error('Error loading subprojects:', error);
+                    });
 
                 // Load project budget info
                 $.ajax({
                     url: '{% url "get_budget_info" %}',
-                    data: { project_id: projectId },
+                    data: {project_id: projectId},
                     ...fetchOptions
                 })
-                .done(function(data) {
-                    if (data.total_budget && data.remaining_budget) {
-                        currentTotalBudget = parseFloat(data.total_budget);
-                        currentRemainingBudget = parseFloat(data.remaining_budget);
+                    .done(function (data) {
+                        if (data.total_budget && data.remaining_budget) {
+                            currentTotalBudget = parseFloat(data.total_budget);
+                            currentRemainingBudget = parseFloat(data.remaining_budget);
 
-                        $('#project-total-budget').text(formatCurrency(data.total_budget) + ' ریال');
-                        $('#project-remaining-budget').text(formatCurrency(data.remaining_budget) + ' ریال');
+                            $('#project-total-budget').text(formatCurrency(data.total_budget) + ' ریال');
+                            $('#project-remaining-budget').text(formatCurrency(data.remaining_budget) + ' ریال');
 
-                        const percentage = currentTotalBudget > 0 ? (data.remaining_budget / data.total_budget) * 100 : 0;
-                        $('#project-progress-bar').css('width', percentage + '%')
-                            .text(percentage.toFixed(1) + '%')
-                            .attr('aria-valuenow', percentage);
-                    }
-                })
-                .fail(function(xhr, status, error) {
-                    console.error('Error loading budget info:', error);
-                });
+                            const percentage = currentTotalBudget > 0 ? (data.remaining_budget / data.total_budget) * 100 : 0;
+                            $('#project-progress-bar').css('width', percentage + '%')
+                                .text(percentage.toFixed(1) + '%')
+                                .attr('aria-valuenow', percentage);
+                        }
+                    })
+                    .fail(function (xhr, status, error) {
+                        console.error('Error loading budget info:', error);
+                    });
             });
 
-            $('#id_subproject').change(function() {
+            $('#id_subproject').change(function () {
                 const subprojectId = $(this).val();
                 if (!subprojectId) {
                     $('#subproject-budget-info').hide();
@@ -436,27 +512,27 @@
 
                 $.ajax({
                     url: '{% url "get_budget_info" %}',
-                    data: { subproject_id: subprojectId },
+                    data: {subproject_id: subprojectId},
                     ...fetchOptions
                 })
-                .done(function(data) {
-                    if (data.subproject_total_budget && data.subproject_remaining_budget) {
-                        $('#subproject-budget-info').show();
-                        currentTotalBudget = parseFloat(data.subproject_total_budget);
-                        currentRemainingBudget = parseFloat(data.subproject_remaining_budget);
+                    .done(function (data) {
+                        if (data.subproject_total_budget && data.subproject_remaining_budget) {
+                            $('#subproject-budget-info').show();
+                            currentTotalBudget = parseFloat(data.subproject_total_budget);
+                            currentRemainingBudget = parseFloat(data.subproject_remaining_budget);
 
-                        $('#subproject-total-budget').text(formatCurrency(data.subproject_total_budget) + ' ریال');
-                        $('#subproject-remaining-budget').text(formatCurrency(data.subproject_remaining_budget) + ' ریال');
+                            $('#subproject-total-budget').text(formatCurrency(data.subproject_total_budget) + ' ریال');
+                            $('#subproject-remaining-budget').text(formatCurrency(data.subproject_remaining_budget) + ' ریال');
 
-                        const percentage = currentTotalBudget > 0 ? (data.subproject_remaining_budget / data.subproject_total_budget) * 100 : 0;
-                        $('#subproject-progress-bar').css('width', percentage + '%')
-                            .text(percentage.toFixed(1) + '%')
-                            .attr('aria-valuenow', percentage);
-                    }
-                })
-                .fail(function(xhr, status, error) {
-                    console.error('Error loading subproject budget:', error);
-                });
+                            const percentage = currentTotalBudget > 0 ? (data.subproject_remaining_budget / data.subproject_total_budget) * 100 : 0;
+                            $('#subproject-progress-bar').css('width', percentage + '%')
+                                .text(percentage.toFixed(1) + '%')
+                                .attr('aria-valuenow', percentage);
+                        }
+                    })
+                    .fail(function (xhr, status, error) {
+                        console.error('Error loading subproject budget:', error);
+                    });
             });
 
             function resetBudgetPicker() {
@@ -464,7 +540,7 @@
                 currentTotalBudget = 0;
 
                 $('#project-total-budget, #project-remaining-budget, ' +
-                  '#subproject-total-budget, #subproject-remaining-budget').text('0 ریال');
+                    '#subproject-total-budget, #subproject-remaining-budget').text('0 ریال');
 
                 $('.progress-bar').css('width', '100%')
                     .text('100%')

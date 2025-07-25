@@ -88,35 +88,42 @@ def invalidate_tankhah_cache(sender, instance, **kwargs):
 
 @receiver(post_save, sender=ApprovalLog)
 def create_payment_order_on_approval(sender, instance, created, **kwargs):
-    if created and instance.action == 'APPROVE':
-        stage = instance.stage
-        if stage.triggers_payment_order:
-            content_type = instance.content_type
-            if content_type.model == 'factor':
-                factor = Factor.objects.get(id=instance.object_id)
-                tankhah = factor.tankhah
-                if factor.status == 'APPROVED':
-                    amount = sum(item.amount for item in factor.items.filter(status='APPROVE'))
-                    user_post = instance.user.userpost_set.filter(is_active=True, end_date__isnull=True).first()
-                    if user_post:
-                        payment_order = PaymentOrder.objects.create(
-                            tankhah=tankhah,
-                            amount=amount,
-                            payee=None,
-                            description=f"دستور پرداخت برای فاکتور {factor.id}",
-                            created_by=instance.user,
-                            created_by_post=user_post.post,
-                            status='DRAFT',
-                            min_signatures=1
-                        )
-                        payment_order.related_factors.add(factor)
-                        logger.info(f"Created PaymentOrder for Factor {factor.id}")
+    if created and instance.action == 'APPROVED':
+        try:
+            if instance.stage and instance.stage.triggers_payment_order:
+                content_type = instance.content_type
+                if content_type.model == 'factor':
+                    factor = Factor.objects.get(id=instance.object_id)
+                    tankhah = factor.tankhah
+                    if factor.status == 'APPROVED':
+                        amount = sum(item.amount for item in factor.items.filter(status='APPROVED'))
+                        user_post = instance.user.userpost_set.filter(is_active=True, end_date__isnull=True).first()
+                        if user_post:
+                            payment_order = PaymentOrder.objects.create(
+                                tankhah=tankhah,
+                                amount=amount,
+                                payee=None,
+                                description=f"دستور پرداخت برای فاکتور {factor.id}",
+                                created_by=instance.user,
+                                created_by_post=user_post.post,
+                                status='DRAFT',
+                                min_signatures=1
+                            )
+                            payment_order.related_factors.add(factor)
+                            logger.info(f"Created PaymentOrder for Factor {factor.id}")
+                        else:
+                            logger.warning(f"No active user post found for user {instance.user.username}")
+            else:
+                logger.debug(f"No active AccessRule with triggers_payment_order=True for ApprovalLog {instance.id}")
+        except Exception as e:
+            logger.error(f"Error in create_payment_order_on_approval for ApprovalLog {instance.id}: {str(e)}", exc_info=True)
 
 @receiver(post_save, sender=Post)
 def create_post_actions_for_payment_order(sender, instance, created, **kwargs):
     if created and instance.is_payment_order_signer:
-        from core.models import PostAction, WorkflowStage
-        stages = WorkflowStage.objects.filter(is_active=True, triggers_payment_order=True)
+        from core.models import PostAction
+        from tankhah.models import AccessRule
+        stages = AccessRule.objects.filter(is_active=True, triggers_payment_order=True)
         content_type = ContentType.objects.get_for_model(PaymentOrder)
         for stage in stages:
             PostAction.objects.get_or_create(

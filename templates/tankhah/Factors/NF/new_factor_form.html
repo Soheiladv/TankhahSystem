@@ -587,17 +587,32 @@
                     </div>
 
                     {# --- دکمه‌های فرم --- #}
-                    <div class="d-flex justify-content-end mt-4 pt-4 border-top gap-2">
-                        <a href="{% url 'factor_list' %}" class="btn btn-outline-secondary px-4">
-                            <i class="fas fa-times me-2"></i>{% trans "انصراف" %}
-                        </a>
-                        <button type="submit" name="save_draft_incomplete" class="btn btn-outline-secondary px-4">
-                            <i class="fas fa-clock me-2"></i>{% trans "ذخیره موقت" %}
-                        </button>
-                        <button type="submit" name="save_final_draft" class="btn btn-primary px-5" id="submit-button">
-                            <i class="fas fa-save me-2"></i>{% trans "ذخیره نهایی" %}
-                        </button>
-                    </div>
+                   
+<div class="d-flex justify-content-end mt-4 pt-4 border-top gap-2">
+    <a href="{% url 'factor_list' %}" class="btn btn-outline-secondary px-4">
+        <i class="fas fa-times me-2"></i>{% trans "انصراف" %}
+    </a>
+    <button type="submit" name="save_draft_incomplete" class="btn btn-outline-secondary px-4">
+        <i class="fas fa-clock me-2"></i>{% trans "ذخیره موقت" %}
+    </button>
+    <button type="submit" name="save_final_draft" class="btn btn-primary px-5" id="submit-button">
+        <i class="fas fa-save me-2"></i>{% trans "ذخیره نهایی" %}
+    </button>
+    {% if object and object.pk and not object.is_deleted %}
+        {% with can_delete=can_delete %}
+            <button type="button"
+                    class="btn btn-danger px-4 {% if not can_delete %}disabled{% endif %}"
+                    {% if not can_delete %}
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'حذف فقط در مرحله مجاز یا برای کاربران با دسترسی کامل امکان‌پذیر است.' %}"
+                    {% endif %}
+                    id="delete-factor-btn"
+                    data-delete-url="{% url 'factor_delete' pk=object.pk %}">
+                <i class="fas fa-trash-alt me-2"></i>{% trans "حذف فاکتور" %}
+            </button>
+        {% endwith %}
+    {% endif %}
+</div>
+                
                 </form>
             </div>
         </div>
@@ -1254,5 +1269,90 @@
                 });
             }
         });
+        
+                // مدیریت دکمه حذف فاکتور
+        const deleteFactorBtn = document.getElementById('delete-factor-btn');
+        if (deleteFactorBtn) {
+            deleteFactorBtn.addEventListener('click', function (e) {
+                if (this.classList.contains('disabled')) {
+                    return;
+                }
+                e.preventDefault();
+                Swal.fire({
+                    title: '{% trans "آیا مطمئن هستید؟" %}',
+                    text: '{% trans "فاکتور و تمام ردیف‌ها و اسناد مرتبط حذف خواهند شد." %}',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '{% trans "حذف" %}',
+                    cancelButtonText: '{% trans "انصراف" %}',
+                    customClass: {
+                        popup: 'animate__animated animate__zoomIn',
+                        confirmButton: 'btn btn-danger',
+                        cancelButton: 'btn btn-secondary'
+                    },
+                    buttonsStyling: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const deleteUrl = this.getAttribute('data-delete-url');
+                        $.ajax({
+                            url: deleteUrl,
+                            method: 'POST',
+                            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                            dataType: 'json',
+                            success: function (response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        toast: true,
+                                        position: 'top-end',
+                                        icon: 'success',
+                                        title: response.message,
+                                        showConfirmButton: false,
+                                        timer: 2000,
+                                        customClass: {
+                                            popup: 'animate__animated animate__fadeInRight'
+                                        }
+                                    }).then(() => {
+                                        window.location.href = response.redirect_url;
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: '{% trans "خطا" %}',
+                                        text: response.message,
+                                        confirmButtonText: '{% trans "باشه" %}',
+                                        customClass: {
+                                            popup: 'animate__animated animate__zoomIn',
+                                            confirmButton: 'btn btn-primary'
+                                        },
+                                        buttonsStyling: false
+                                    });
+                                }
+                            },
+                            error: function (xhr) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: '{% trans "خطا" %}',
+                                    text: xhr.responseJSON?.message || '{% trans "خطایی در حذف فاکتور رخ داد." %}',
+                                    confirmButtonText: '{% trans "باشه" %}',
+                                    customClass: {
+                                        popup: 'animate__animated animate__zoomIn',
+                                        confirmButton: 'btn btn-primary'
+                                    },
+                                    buttonsStyling: false
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+        }
+
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(element => {
+            new bootstrap.Tooltip(element);
+        });
+
+
     </script>
 {% endblock %}

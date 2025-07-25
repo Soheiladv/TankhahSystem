@@ -1,9 +1,50 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
-from core.models import Organization, OrganizationType, Project, Post, UserPost, PostHistory, WorkflowStage, \
+from core.models import Organization, OrganizationType, Project, Post, UserPost, PostHistory,  \
     SystemSettings,AccessRule#,StageTransitionPermission
 
+from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
+from .models import AccessRule
+
+@admin.register(AccessRule)
+class AccessRuleAdmin(admin.ModelAdmin):
+    list_display = (
+        'organization',
+        'post',
+        'branch',
+        'min_level',
+        'stage',
+        'stage_order',
+        'action_type',
+        'entity_type',
+        'is_active',
+        'auto_advance',
+        'triggers_payment_order',
+        'is_final_stage',
+    )
+    list_filter = (
+        'organization',
+        'branch',
+        'action_type',
+        'entity_type',
+        'is_active',
+        'auto_advance',
+        'triggers_payment_order',
+        'is_final_stage',
+    )
+    search_fields = ('organization__name', 'post__name', 'stage', 'action_type', 'entity_type')
+    autocomplete_fields = ['organization', 'post']
+    list_editable = ('is_active', 'auto_advance', 'triggers_payment_order', 'is_final_stage')
+    list_per_page = 20
+    ordering = ('-stage_order', 'organization__name', 'post__name')
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('organization', 'post')
+
+    class Meta:
+        model = AccessRule
 
 # تابع کمکی برای کوتاه کردن متن
 def truncate_text(text, max_length=50):
@@ -165,24 +206,21 @@ class PostHistoryAdmin(BaseAdmin):
         return truncate_text(obj.new_value)
     new_value_short.short_description = _('مقدار جدید (کوتاه)')
 
+#
+# # ادمین مراحل گردش کار
+# from core.models import WorkflowStage
+# @admin.register(WorkflowStage) # <-- اینجا نام خود کلاس مدل WorkflowStage را بدون ' ' و بدون آدرس اپلیکیشن بنویسید
+# class WorkflowStageAdmin(admin.ModelAdmin):
+#     list_display = ('name', 'entity_type_display', 'order', 'is_active', 'is_final_stage')
+#     list_filter = ('entity_type', 'is_active', 'is_final_stage')
+#     search_fields = ('name', 'description')
+#
+#     def entity_type_display(self, obj):
+#         return obj.get_entity_type_display()
+#
+#     entity_type_display.short_description = _('نوع موجودیت')
 
-# ادمین مراحل گردش کار
-@admin.register(WorkflowStage) # <-- اینجا نام خود کلاس مدل WorkflowStage را بدون ' ' و بدون آدرس اپلیکیشن بنویسید
-class WorkflowStageAdmin(admin.ModelAdmin):
-    list_display = ('name', 'entity_type_display', 'order', 'is_active', 'is_final_stage')
-    list_filter = ('entity_type', 'is_active', 'is_final_stage')
-    search_fields = ('name', 'description')
 
-    def entity_type_display(self, obj):
-        return obj.get_entity_type_display()
-
-    entity_type_display.short_description = _('نوع موجودیت')
 admin.site.register(SystemSettings)
 
-@admin.register(AccessRule)
-class AccessRuleAdmin(admin.ModelAdmin):
-    list_display = ('organization', 'branch', 'min_level', 'stage', 'action_type', 'entity_type', 'is_active')
-    list_filter = ('organization', 'branch', 'stage', 'action_type', 'entity_type')
-    search_fields = ('organization__name', 'stage__name')
-    autocomplete_fields = ['organization', 'stage']
 

@@ -50,7 +50,44 @@ from django.core.exceptions import ValidationError
 import jdatetime
 from django.utils import timezone
 
-def parse_jalali_date(date_str, field_name="تاریخ"):
+from datetime import datetime
+import jdatetime
+from django.utils import timezone
+import re
+
+
+def parse_jalali_date(date_str):
+    """
+    تبدیل رشته تاریخ جلالی (مثل 1403/01/17 یا 1403-01-17) به تاریخ گرگوری آگاه از منطقه زمانی.
+
+    :param date_str: رشته تاریخ (مثل '1403/01/17' یا '1403-01-17')
+    :return: شیء datetime آگاه از منطقه زمانی
+    :raises ValueError: اگر فرمت تاریخ نامعتبر باشد
+    """
+    if not date_str:
+        raise ValueError("رشته تاریخ خالی است.")
+
+    # حذف فاصله‌ها و جایگزینی جداکننده‌های مختلف با /
+    date_str = date_str.strip()
+    date_str = re.sub(r'[-.]', '/', date_str)
+
+    # بررسی فرمت تاریخ با regex
+    if not re.match(r'^\d{4}/\d{2}/\d{2}$', date_str):
+        raise ValueError("فرمت تاریخ باید به صورت YYYY/MM/DD باشد (مثال: 1403/01/17)")
+
+    try:
+        # تبدیل رشته به تاریخ جلالی
+        year, month, day = map(int, date_str.split('/'))
+        jalali_date = jdatetime.date(year, month, day)
+        # تبدیل به تاریخ گرگوری
+        gregorian_date = jalali_date.togregorian()
+        # تبدیل به datetime آگاه از منطقه زمانی
+        dt = datetime(gregorian_date.year, gregorian_date.month, gregorian_date.day)
+        return timezone.make_aware(dt)
+    except (ValueError, jdatetime.JalaliDateError) as e:
+        raise ValueError(f"فرمت تاریخ نامعتبر است: {str(e)}")
+
+def parse_jalali_date__(date_str, field_name="تاریخ"):
     """
     تبدیل تاریخ شمسی (مثل '1404/01/17') به تاریخ میلادی (datetime.date).
     اگر تاریخ نامعتبر یا خالی باشه، خطای مناسب تولید می‌کنه.

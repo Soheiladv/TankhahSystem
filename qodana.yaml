@@ -1,0 +1,176 @@
+#-------------------------------------------------------------------------------#
+#               Qodana analysis is configured by qodana.yaml file               #
+#             https://www.jetbrains.com/help/qodana/qodana-yaml.html            #
+#-------------------------------------------------------------------------------#
+version: "1.0"
+#Specify inspection profile for code analysis
+profile:
+  name: qodana.starter
+#Enable inspections
+#include:
+#  - name: <SomeEnabledInspectionId>
+#Disable inspections
+#exclude:
+#  - name: <SomeDisabledInspectionId>
+#    paths:
+#      - <path/where/not/run/inspection>
+#Execute shell command before Qodana execution (Applied in CI/CD pipeline)
+#bootstrap: sh ./prepare-qodana.sh
+#Install IDE plugins before Qodana execution (Applied in CI/CD pipeline)
+#plugins:
+#  - id: <plugin.id> #(plugin id can be found at https://plugins.jetbrains.com)
+#Specify Qodana linter for analysis (Applied in CI/CD pipeline)
+linter: jetbrains/qodana-python:2024.3
+exclude:
+  - name: All
+    paths:
+      - accounts
+      - accounts/migrations
+      - accounts/migrations/0001_initial.py
+      - accounts/RCMS_Lock
+      - accounts/RCMS_Lock/security.py
+      - accounts/RCMS_Lock/views.py
+      - accounts/admin.py
+      - accounts/DashboardReset.py
+      - accounts/forms.py
+      - accounts/middleware.py
+      - accounts/models.py
+      - accounts/views.py
+      - budgets
+      - budgets/ApproveReject
+      - budgets/ApproveReject/view_ApproveReject.py
+      - budgets/Budget_Items
+      - budgets/Budget_Items/views_Budget_item.py
+      - budgets/BudgetAllocation
+      - budgets/BudgetAllocation/forms_BudgetAllocation.py
+      - budgets/BudgetAllocation/views_BudgetAllocation.py
+      - budgets/BudgetPeriod
+      - budgets/BudgetPeriod/views_BudgetPeriod.py
+      - budgets/BudgetReturn
+      - budgets/BudgetReturn/budget_Api_Return.py
+      - budgets/BudgetReturn/froms_BudgetTransferForm.py
+      - budgets/BudgetReturn/view_BudgetReturn.py
+      - budgets/BudgetReturn/views_BudgetTransferView.py
+      - budgets/BudgetTransaction
+      - budgets/BudgetTransaction/view_budgetTransaction.py
+      - budgets/PaymentOrder
+      - budgets/PaymentOrder/form_PaymentOrder.py
+      - budgets/PaymentOrder/view_PaymentOrder.py
+      - budgets/ProjectBudgetAllocation
+      - budgets/ProjectBudgetAllocation/form_Update_ProjectBudgetAllocation.py
+      - budgets/ProjectBudgetAllocation/view_Project_budget_list.py
+      - budgets/ProjectBudgetAllocation/view_Update_Project_Budget_Allocation.py
+      - budgets/ProjectBudgetAllocation/views_ProjectBudgetAllocation.py
+      - budgets/tests
+      - budgets/tests/test_budget_calculations.py
+      - budgets/admin.py
+      - budgets/budget_calculations.py
+      - budgets/models.py
+      - budgets/PaymentOrder.py
+      - budgets/signals.py
+      - budgets/views.py
+      - core
+      - core/AccessRule
+      - core/AccessRule/forms_accessrule.py
+      - core/AccessRule/views_accessrule.py
+      - core/RCMS_Lock
+      - core/RCMS_Lock/security.py
+      - core/RCMS_Lock/views.py
+      - core/templatetags
+      - core/templatetags/file_tags.py
+      - core/templatetags/rcms_custom_filters.py
+      - core/views_API
+      - core/views_API/views_api.py
+      - core/context_processors.py
+      - core/forms.py
+      - core/models.py
+      - core/PermissionBase.py
+      - core/signal.py
+      - core/views.py
+      - distutils
+      - distutils/version.py
+      - Documents
+      - Documents/انواع بودجه بندی.html
+      - Install
+      - Install/deploy_script.py
+      - media
+      - media/factors
+      - media/factors/documents
+      - media/factors/documents/2025
+      - media/factors/documents/2025/03
+      - media/factors/documents/2025/03/24
+      - media/factors/documents/2025/03/24/django_jalali..js
+      - reports
+      - reports/ComprehensiveBudgetReportView_____.py
+      - reports/ComprehensiveBudgetReportView__old__.py
+      - reports/ComprehensiveBudgetReportView.py
+      - reports/models.py
+      - reports/old____ComprehensiveBudgetReportView.py
+      - reports/views.py
+      - script
+      - script/bmysql.py
+      - script/USERACTION.py
+      - static
+      - static/admin
+      - static/admin/img
+      - static/admin/img/README.txt.py
+      - static/admin/jquery.ui.datepicker.jalali
+      - static/admin/jquery.ui.datepicker.jalali/scripts
+      - static/admin/jquery.ui.datepicker.jalali/scripts/jquery.ui.datepicker-cc.js
+      - static/admin/js
+      - static/admin/js/vendor
+      - static/admin/js/vendor/select2
+      - static/admin/js/vendor/select2/select2.full.js
+      - static/admin/js/django_jalali..js
+      - static/admin/js/persian-date.js
+      - Tanbakhsystem
+      - Tanbakhsystem/Dashboard_Project
+      - Tanbakhsystem/Dashboard_Project/Dashboard_view.py
+      - Tanbakhsystem/Dashboard_Project/DashboardView_1.py
+      - Tanbakhsystem/view
+      - Tanbakhsystem/view/view_Dashboard.py
+      - Tanbakhsystem/view/views_notifications.py
+      - Tanbakhsystem/signal.py
+      - Tanbakhsystem/views.py
+      - Tanbakhsystem/widgets.py
+      - tankhah
+      - tankhah/Factor
+      - tankhah/Factor/NF
+      - tankhah/Factor/NF/form_Nfactor.py
+      - tankhah/Factor/NF/view_Nfactor.py
+      - tankhah/Factor/FactorReRegisterView.py
+      - tankhah/Factor/FactorStatusReviewView.py
+      - tankhah/Factor/forms_Factor.py
+      - tankhah/Factor/old____view_Factor.py
+      - tankhah/Factor/old_view_Factor.py
+      - tankhah/Factor/View_Factor_list.py
+      - tankhah/Factor/view_Factor.py
+      - tankhah/Factor/view_FactorItemApprove.py
+      - tankhah/Factor/view_FactorUpdate.py
+      - tankhah/Factor/views_approval_path.py
+      - tankhah/FactorStatusDashboard
+      - tankhah/FactorStatusDashboard/FactorStatusDashboardView.py
+      - tankhah/view
+      - tankhah/view/FactorUnlockView.py
+      - tankhah/view/ProcessApprovedFactorsView.py
+      - tankhah/view_folder_tankhah
+      - tankhah/view_folder_tankhah/EnhancedTankhahUpdateStatus.py
+      - tankhah/view_folder_tankhah/view_tankhah.py
+      - tankhah/admin.py
+      - tankhah/forms.py
+      - tankhah/models.py
+      - tankhah/signal.py
+      - tankhah/TankhahTrackingView.py
+      - tankhah/views.py
+      - usb_key_validator
+      - usb_key_validator/forms.py
+      - usb_key_validator/utils.py
+      - usb_key_validator/views.py
+      - version_tracker
+      - version_tracker/admin.py
+      - version_tracker/middleware.py
+      - version_tracker/signals.py
+      - version_tracker/version_watcher.py
+      - version_tracker/views.py
+      - requirements.txt
+      - signals.py

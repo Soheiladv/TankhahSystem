@@ -357,6 +357,7 @@ class TankhahCreateView(PermissionBaseView, CreateView):
                 initial_stage_qs = WorkflowStage.objects.filter(is_active=True)
                 if hasattr(WorkflowStage, 'entity_type'):
                     initial_stage_qs = initial_stage_qs.filter(entity_type='TANKHAH')
+                    logger.info(f'initial_stage_qs Create Tankhah : {initial_stage_qs}')
                 initial_stage = initial_stage_qs.order_by('order').first()
 
                 if not initial_stage:

@@ -9,7 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget, \
     get_tankhah_remaining_budget, get_project_total_budget
 from budgets.models import BudgetTransaction, BudgetAllocation
-from core.models import Organization, Project , SubProject
+from core.models import Organization, Project, SubProject, AccessRule
 from .utils import restrict_to_user_organization
 import jdatetime
 from django.utils import timezone
@@ -28,7 +28,11 @@ class FactorItemApprovalForm(forms.ModelForm):
     class Meta:
         model = FactorItem
         fields = ['status', 'description']
-
+    comment = forms.CharField(
+        label=_("توضیحات"),
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control'})
+    )
     status = forms.ChoiceField(
         choices=[
             ('', 'انتخاب کنید'),
@@ -64,6 +68,8 @@ class FactorItemApprovalForm(forms.ModelForm):
         if status and status != 'NONE':
             cleaned_data['status'] = status
         return cleaned_data
+
+
 
 class FactorApprovalForm(forms.ModelForm):
     comment = forms.CharField(
@@ -157,6 +163,15 @@ class TankhahForm(forms.ModelForm):
         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '1'})
     )
 
+    def clean_current_stage(self):
+        current_stage = self.cleaned_data.get('current_stage')
+        if current_stage < 1:
+            raise forms.ValidationError(_("ترتیب مرحله باید حداقل 1 باشد."))
+        # بررسی هماهنگی با AccessRule.stage_order
+        if not AccessRule.objects.filter(stage_order=current_stage, entity_type='TANKHAH', is_active=True).exists():
+            raise forms.ValidationError(_("مرحله انتخاب‌شده معتبر نیست."))
+        return current_stage
+
     class Meta:
         model = Tankhah
         fields = ['date', 'organization', 'project', 'subproject', 'letter_number', 'due_date', 'amount','project_budget_allocation' ,'description']
@@ -166,6 +181,8 @@ class TankhahForm(forms.ModelForm):
             'subproject': forms.Select(attrs={'class': 'form-control'}),
             'letter_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('اختیاری')}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'current_stage': forms.NumberInput(attrs={'min': 1}),
+
         }
         labels = {
             'date': _('تاریخ'),
@@ -365,6 +382,7 @@ class TankhahForm(forms.ModelForm):
                 ))
 
         return cleaned_data
+
 #=========
 class TanbakhApprovalForm(forms.ModelForm):
     comment = forms.CharField(
@@ -406,10 +424,10 @@ class ApprovalForm(forms.ModelForm):
 class TankhahStatusForm(forms.ModelForm):
     class Meta:
         model = Tankhah
-        fields = ['status', 'current_stage', 'due_date', 'approved_by']
+        fields = ['status',  'due_date', 'approved_by'] #'current_stage',
         widgets = {
             'status': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
-            'current_stage': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            # 'current_stage': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
             'due_date': forms.DateInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
             'approved_by': forms.SelectMultiple(attrs={'class': 'form-control', 'disabled': 'disabled'}),
         }

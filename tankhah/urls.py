@@ -25,7 +25,7 @@ from tankhah.views import (
     FactorApproveView, FactorItemRejectView,
     upload_tankhah_documents, ApprovalLogListView, FactorStatusUpdateView, mark_notification_as_read,
     get_subprojects, FactorDetailView, FactorDeleteView, get_unread_notifications,
-    oldd__FactorUpdateView, ItemCategoryListView, ItemCategoryCreateView, ItemCategoryUpdateView, ItemCategoryDeleteView
+     ItemCategoryListView, ItemCategoryCreateView, ItemCategoryUpdateView, ItemCategoryDeleteView
 )
 from tankhah.Factor.view_Factor import (FactorCreateView,
                                         TankhahBudgetInfoAjaxView,  BudgetCheckView)
@@ -94,7 +94,6 @@ urlpatterns += [
 
     # ... other factor related urls ...
 ]
-
 
 urlpatterns += [
     path('categories/',  itemcategory_list, name='itemcategory_list_old'),

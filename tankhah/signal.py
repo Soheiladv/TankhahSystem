@@ -13,21 +13,20 @@ from django.utils.translation import gettext_lazy as _
 
 from accounts.models import CustomUser
 from budgets.models import PaymentOrder
-from tankhah.models import Tankhah, FactorItem, create_budget_transaction, Factor, ApprovalLog
+from tankhah.models import Tankhah, FactorItem, create_budget_transaction, Factor, ApprovalLog, FactorHistory
 # فعال‌سازی سیگنال برای تأیید چندامضایی
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import Tankhah, TankhahAction
 from core.models import AccessRule, Post, WorkflowStage
-
-logger = logging.getLogger('tankhah.signals')
-#///////////////////////////////////////////////////////////////////
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from tankhah.models import Tankhah, ApprovalLog
 from accounts.middleware import get_current_user
+from .utils import get_factor_current_stage
 
-
+logger = logging.getLogger('tankhah.signals')
+#///////////////////////////////////////////////////////////////////
 @receiver(pre_save, sender=Tankhah)
 def log_tanbakh_changes(sender, instance, **kwargs):
     """
@@ -41,18 +40,24 @@ def log_tanbakh_changes(sender, instance, **kwargs):
                 if not user:
                     logger.warning("کاربر تغییر‌دهنده یافت نشد، لاگ ثبت نمی‌شود")
                     return
+                content_type = ContentType.objects.get_for_model(Tankhah)
+                stage_order = get_factor_current_stage(None)  # برای تنخواه، stage_order از AccessRule
                 ApprovalLog.objects.create(
                     tankhah=instance,
                     action='STATUS_CHANGE',
                     user=user,
                     comment=f"تغییر وضعیت از {old_instance.status} به {instance.status}",
-                    stage=instance.current_stage,
-                    post=user.userpost_set.filter(is_active=True, end_date__isnull=True).first().post if user else None
+                    stage_order=stage_order,
+                    post=user.userpost_set.filter(is_active=True, end_date__isnull=True).first().post if user else None,
+                    content_type=content_type,
+                    object_id=instance.id
                 )
         except Tankhah.DoesNotExist:
             logger.error(f"تنخواه با pk={instance.pk} یافت نشد")
         except Exception as e:
             logger.error(f"خطا در سیگنال log_tanbakh_changes: {e}", exc_info=True)
+
+
 #///////////////////////////////////////////////////////////////////
 
 @receiver(post_save, sender=FactorItem)
@@ -104,58 +109,63 @@ from django.db.models.signals import post_save, post_delete
 #     except Exception as e:
 #         logger.error(f"Error updating factor/tankhah for FactorItem (Signal Tankhah) {instance.pk}: {e}", exc_info=True)
 
-@receiver([post_save, post_delete], sender=FactorItem)
+@receiver(post_save, sender=FactorItem)
 def update_factor_and_tankhah(sender, instance, **kwargs):
+    factor = instance.factor
+    tankhah = factor.tankhah
+
+    new_spent = sum(
+        item.amount for item in FactorItem.objects.filter(factor__tankhah=tankhah, status='APPROVE')
+        if item.amount is not None
+    )
+
     try:
-        factor = instance.factor
-        tankhah = factor.tankhah
-        # محاسبه مبلغ فاکتور
-        new_factor_amount = factor.items.aggregate(total=Sum('amount'))['total'] or Decimal('0')
-        if factor.amount != new_factor_amount:
-            factor.amount = new_factor_amount
-            factor.save(update_fields=['amount'])
-            # محاسبه بودجه استفاده‌شده تنخواه
-            from budgets.budget_calculations import get_tankhah_used_budget
-            new_spent = get_tankhah_used_budget(tankhah)
-            tankhah.remaining_budget = tankhah.budget - new_spent
-            tankhah.save(update_fields=['remaining_budget'])
-            logger.info(
-                f"Updated budget for Tankhah {tankhah.number}: spent={new_spent}, remaining={tankhah.remaining_budget}")
+        # از تابع get_tankhah_total_budget برای دریافت بودجه کل تنخواه استفاده کنید
+        from budgets.budget_calculations import get_tankhah_total_budget
+        total_tankhah_budget = get_tankhah_total_budget(tankhah)
 
+        # محاسبه بودجه باقی‌مانده و به‌روزرسانی فیلد remaining_budget
+        # (فرض می‌شود remaining_budget یک فیلد موجود در مدل Tankhah است)
+        tankhah.remaining_budget = total_tankhah_budget - new_spent
+        tankhah.save(update_fields=['remaining_budget'])
+        logger.info(f"[Signal] بودجه باقی‌مانده تنخواه {tankhah.number} به {tankhah.remaining_budget} به‌روزرسانی شد")
+    except AttributeError as e:
+        logger.error(f"[Signal] خطای ویژگی: {e}. مطمئن شوید 'remaining_budget' یک فیلد در مدل Tankhah است.")
     except Exception as e:
-     logger.error(f"Error updating factor/tankhah for FactorItem {instance.pk}: {e}", exc_info=True)
+        logger.error(f"خطا در به‌روزرسانی بودجه تنخواه برای FactorItem (Signal Tankhah) {instance.pk}: {e}", exc_info=True)
 
-    #     # فقط اگر فاکتور تأیید شده باشد، spent را به‌روزرسانی کن
-    #     if factor.status == 'APPROVED':
-    #         old_spent = tankhah.spent
-    #         new_spent = tankhah.factors.filter(status='APPROVED').aggregate(
-    #             total=Sum('amount')
-    #         )['total'] or Decimal('0')
-    #         if old_spent != new_spent:
-    #             tankhah.spent = new_spent
-    #             tankhah.save(update_fields=['spent'])
-    #             logger.info(f"Updated spent for Tankhah {tankhah.number}: {new_spent}")
-    # except Exception as e:
-    #     logger.error(f"Error updating factor/tankhah for FactorItem {instance.pk}: {e}", exc_info=True)
 
 @receiver(post_save, sender=Factor)
 def log_factor_changes(sender, instance, created, **kwargs):
-    """عملکرد: این سیگنال پس از ذخیره یا ایجاد فاکتور (Factor) اجرا می‌شود. اگر فاکتور جدید باشد، ایجاد آن لاگ می‌شود. اگر فاکتور موجود ویرایش شود، تغییرات فیلدها در لاگ ثبت می‌شوند.
-    تأثیر: اگر در فرآیند ثبت تنخواه فاکتوری ایجاد یا ویرایش شود، این سیگنال آن را لاگ می‌کند. اما در TankhahCreateView هیچ اشاره‌ای به ایجاد یا ویرایش فاکتور نیست، بنابراین این سیگنال احتمالاً در مرحله ثبت اولیه تنخواه اجرا نمی‌شود.
     """
-    user = getattr(instance, '_changed_by', None)  # کاربر تغییر دهنده
+    ثبت تغییرات فاکتور در FactorHistory
+    """
+    user = getattr(instance, '_request_user', instance.created_by)
+    if not user:
+        logger.warning(f"No user provided for FactorHistory of Factor {instance.number}")
+        user = CustomUser.objects.filter(username='system').first() or instance.created_by
+
     if created:
-        logger.info(f"فاکتور جدید ایجاد شد: {instance.number} توسط {user or 'ناشناس'}")
+        FactorHistory.objects.create(
+            factor=instance,
+            change_type=FactorHistory.ChangeType.CREATION,
+            changed_by=user,
+            description=f"فاکتور به شماره {instance.number} توسط {user.username} ایجاد شد."
+        )
     else:
-        changes = instance._meta.fields  # تغییرات را بررسی کنید
-        for field in changes:
+        for field in instance._meta.fields:
             field_name = field.name
-            old_value = getattr(instance, f'_old_{field_name}', None)
+            old_value = getattr(instance, f'_original_{field_name}', None)
             new_value = getattr(instance, field_name)
             if old_value != new_value:
-                logger.info(
-                    f"تغییر در فاکتور {instance.number}: {field_name} از {old_value} به {new_value} توسط {user or 'ناشناس'}")
-
+                FactorHistory.objects.create(
+                    factor=instance,
+                    change_type=FactorHistory.ChangeType.CREATION,
+                    changed_by=user,
+                    old_data={field_name: str(old_value)},
+                    new_data={field_name: str(new_value)},
+                    description=f"تغییر در فاکتور {instance.number}: {field_name} از {old_value} به {new_value} توسط {user.username}"
+                )
 
 @receiver(post_save, sender=ApprovalLog)
 def lock_factor_after_approval(sender, instance, **kwargs):
@@ -220,39 +230,44 @@ def start_approval_process(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Factor)
 def start_payment_order_process(sender, instance, **kwargs):
-    if instance.status != 'APPROVED':
-        logger.debug(f"Factor {instance.number} is not APPROVED, skipping PaymentOrder creation.")
-        return
-
-    current_stage = instance.tankhah.current_stage
-    if not current_stage or not current_stage.triggers_payment_order:
-        logger.debug(f"Stage {current_stage.name if current_stage else 'None'} does not trigger PaymentOrder.")
-        return
-
-    access_rule = AccessRule.objects.filter(
-        organization=instance.tankhah.organization,
-        stage=current_stage,
-        action_type='APPROVE',
-        entity_type='FACTOR',
-        is_active=True
-    ).order_by('-min_level').first()
-
-    if not access_rule:
-        logger.warning(f"No AccessRule found for Factor {instance.number}")
-        return
-
-    approval_log = ApprovalLog.objects.filter(
-        factor=instance,
-        action='APPROVE',
-        stage=current_stage,
-        post__level__gte=access_rule.min_level
-    ).exists()
-
-    if not approval_log:
-        logger.debug(f"No valid ApprovalLog found for Factor {instance.number}.")
+    if instance.status != 'APPROVE':
+        logger.debug(f"Factor {instance.number} is not APPROVE, skipping PaymentOrder creation.")
         return
 
     try:
+        # بررسی قفل بودن دوره بودجه
+        budget_allocation = instance.tankhah.project_budget_allocation
+        if budget_allocation:
+            is_locked, lock_reason = budget_allocation.budget_period.is_locked
+            if is_locked:
+                logger.warning(f"Cannot create PaymentOrder for Factor {instance.number}: {lock_reason}")
+                return
+
+        # بررسی AccessRule برای مرحله تأیید
+        current_stage_order = get_factor_current_stage(instance)
+        access_rule = AccessRule.objects.filter(
+            organization=instance.tankhah.organization,
+            action_type='APPROVE',
+            entity_type='FACTOR',
+            is_active=True,
+            stage_order=current_stage_order
+        ).order_by('-min_level').first()
+
+        if not access_rule:
+            logger.warning(f"No AccessRule found for Factor {instance.number} at stage {current_stage_order}")
+            return
+
+        approval_log = ApprovalLog.objects.filter(
+            factor=instance,
+            action='APPROVE',
+            stage_order=current_stage_order,
+            post__level__gte=access_rule.min_level
+        ).exists()
+
+        if not approval_log:
+            logger.debug(f"No valid ApprovalLog found for Factor {instance.number}.")
+            return
+
         with transaction.atomic():
             # بررسی بودجه تنخواه و پروژه
             tankhah_remaining = instance.tankhah.budget - instance.tankhah.spent
@@ -268,17 +283,18 @@ def start_payment_order_process(sender, instance, **kwargs):
                 raise ValueError(_("گیرنده پرداخت یافت نشد."))
 
             # محاسبه مبلغ دقیق
-            amount = instance.items.filter(status='APPROVED').aggregate(total=Sum('amount'))['total'] or instance.amount
+            amount = instance.items.filter(status='APPROVE').aggregate(total=Sum('amount'))['total'] or instance.amount
 
             # تعیین مرحله اولیه دستور پرداخت
-            initial_stage = WorkflowStage.objects.filter(
+            initial_rule = AccessRule.objects.filter(
                 entity_type='PAYMENTORDER',
-                order=1,
+                action_type='SIGN_PAYMENT',
+                stage_order=1,
                 is_active=True
             ).first()
-            if not initial_stage:
-                logger.error(f"No valid initial WorkflowStage found for PaymentOrder.")
-                raise ValueError(_("مرحله اولیه گردش کار برای دستور پرداخت تعریف نشده است."))
+            if not initial_rule:
+                logger.error(f"No valid initial AccessRule found for PaymentOrder.")
+                raise ValueError(_("مرحله اولیه برای دستور پرداخت تعریف نشده است."))
 
             # ایجاد دستور پرداخت
             created_by = instance.approved_by.last() or instance.created_by
@@ -294,7 +310,7 @@ def start_payment_order_process(sender, instance, **kwargs):
                 project=instance.tankhah.project,
                 status='PENDING_APPROVAL',
                 min_signatures=access_rule.min_signatures or 2,
-                current_stage=initial_stage,
+                stage_order=initial_rule.stage_order,
                 issue_date=timezone.now().date(),
                 order_number=f"PO-{instance.tankhah.number}-{int(timezone.now().timestamp())}"
             )
@@ -314,7 +330,7 @@ def start_payment_order_process(sender, instance, **kwargs):
             # ثبت لاگ‌های امضا
             required_posts = AccessRule.objects.filter(
                 organization=instance.tankhah.organization,
-                stage=initial_stage,
+                stage_order=initial_rule.stage_order,
                 action_type='SIGN_PAYMENT',
                 entity_type='PAYMENTORDER',
                 is_active=True
@@ -327,7 +343,7 @@ def start_payment_order_process(sender, instance, **kwargs):
                     content_type=content_type,
                     object_id=payment_order.id,
                     action='PENDING_SIGNATURE',
-                    stage=initial_stage,
+                    stage_order=initial_rule.stage_order,
                     post=rule.post,
                     comment=f"نیاز به امضای {rule.post.name} برای دستور پرداخت {payment_order.order_number}"
                 )
@@ -379,6 +395,13 @@ def start_payment_order_process(sender, instance, **kwargs):
                 )
 
             logger.info(f"PaymentOrder {payment_order.order_number} created for Factor {instance.number}")
+
+            # به‌روزرسانی وضعیت قفل بودجه
+            if budget_allocation:
+                budget_allocation.budget_period.update_lock_status()
+                status, message = budget_allocation.budget_period.check_budget_status_no_save()
+                if status in ['warning', 'locked', 'completed']:
+                    budget_allocation.budget_period.send_notification(status, message)
 
     except Exception as e:
         logger.error(f"Error creating PaymentOrder for Factor {instance.number}: {e}", exc_info=True)

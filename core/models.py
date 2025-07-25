@@ -1,6 +1,7 @@
 # Create your models here.
 import logging
 from decimal import Decimal
+from django.utils.translation import gettext as _immediate  # اضافه کردن تابع ترجمه فوری
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -9,20 +10,22 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.db import models
-from django.utils.translation import gettext_lazy as _
-
 
 logger = logging.getLogger(__name__)
 from accounts.models import CustomUser
-from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, get_subproject_remaining_budget
+from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, \
+    get_subproject_remaining_budget
+
 
 class OrganizationType(models.Model):
     fname = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name=_('نام شعبه/مجتمع/اداره'))
-    org_type = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name=_('نام شعبه/مجتمع/اداره'))
+    org_type = models.CharField(max_length=100, unique=True, null=True, blank=True,
+                                verbose_name=_('نام شعبه/مجتمع/اداره'))
     is_budget_allocatable = models.BooleanField(default=False, verbose_name=_("قابل استفاده برای تخصیص بودجه"))
     is_active = models.BooleanField(default=True, verbose_name=_('فعال'))
+
     def __str__(self):
-        return f"{self.fname} - {self.org_type} "or _("نامشخص")
+        return f"{self.fname} - {self.org_type} " or _("نامشخص")
 
     class Meta:
         verbose_name = _('عنوان مرکز/شعبه/اداره/سازمان')
@@ -33,7 +36,7 @@ class OrganizationType(models.Model):
             ('OrganizationType_view', 'نمایش شعبه/اداره/مجتمع/سازمان'),
             ('OrganizationType_update', 'ویرایش شعبه/اداره/مجتمع/سازمان'),
             ('OrganizationType_delete', 'حــذف شعبه/اداره/مجتمع/سازمان'),
-         ]
+        ]
 class Organization(models.Model):
     """مدل سازمان برای تعریف مجتمع‌ها و دفتر مرکزی"""
     code = models.CharField(max_length=10, unique=True, verbose_name=_("کد سازمان"))
@@ -45,9 +48,9 @@ class Organization(models.Model):
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
     is_core = models.BooleanField(default=False, verbose_name=_("دفتر مرکزی سازمان"))  # تغییر پیش‌فرض به False
-    is_holding  = models.BooleanField(default=False, verbose_name=_(" هلدینگ "))  # تغییر پیش‌فرض به False
-    parent_organization = models.ForeignKey('self', on_delete=models.SET_NULL,null=True,blank=True,
-        related_name='sub_organizations', verbose_name=_("سازمان والد") )
+    is_holding = models.BooleanField(default=False, verbose_name=_(" هلدینگ "))  # تغییر پیش‌فرض به False
+    parent_organization = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
+                                            related_name='sub_organizations', verbose_name=_("سازمان والد"))
     is_independent = models.BooleanField(default=False, verbose_name=_("مستقل"))
 
     def clean(self):
@@ -74,7 +77,6 @@ class Organization(models.Model):
         from budgets.models import BudgetAllocation
         return BudgetAllocation.objects.filter(organization=self)
 
-
     def save(self, *args, **kwargs):
         """اجرای clean قبل از ذخیره"""
         self.full_clean()  # اجرای اعتبارسنجی
@@ -85,7 +87,6 @@ class Organization(models.Model):
         # that takes organization's pk or code
         from django.urls import reverse
         return reverse('organization_detail', kwargs={'pk': self.pk})
-
 
     class Meta:
         verbose_name = _("سازمان")
@@ -104,8 +105,9 @@ class Project(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("نام پروژه"))
     code = models.CharField(max_length=80, unique=True, verbose_name=_("کد پروژه"))
     # organizations = models.ManyToManyField(Organization, limit_choices_to={'org_type': 'COMPLEX'}, verbose_name=_("مجتمع‌های مرتبط"))
-    organizations = models.ManyToManyField(Organization,limit_choices_to={'org_type__is_budget_allocatable': True},  # سازمان‌هایی که می‌توانند بودجه دریافت کنند
-        verbose_name=_("سازمان‌های مرتبط"))
+    organizations = models.ManyToManyField(Organization, limit_choices_to={'org_type__is_budget_allocatable': True},
+                                           # سازمان‌هایی که می‌توانند بودجه دریافت کنند
+                                           verbose_name=_("سازمان‌های مرتبط"))
     # allocations = models.ManyToManyField('budgets.BudgetAllocation', blank=True, verbose_name=_("تخصیص‌های بودجه مرتبط"))
     start_date = models.DateField(verbose_name=_("تاریخ شروع"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))
@@ -113,6 +115,7 @@ class Project(models.Model):
     is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
     PRIORITY_CHOICES = (('LOW', _('کم')), ('MEDIUM', _('متوسط')), ('HIGH', _('زیاد')),)
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='MEDIUM', verbose_name=_("اولویت"))
+
     # total_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("بودجه کل تخصیص‌یافته"))  # فیلد جدید
 
     def get_total_budget(self):
@@ -139,7 +142,8 @@ class Project(models.Model):
             # ('Project_Budget_allocation_Branch', 'تخصیص بودجه مجموعه پروژه(شعبه)'),
         ]
 class SubProject(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='subprojects', verbose_name=_("پروژه اصلی"))
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='subprojects',
+                                verbose_name=_("پروژه اصلی"))
     name = models.CharField(max_length=200, verbose_name=_("نام ساب‌پروژه"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
     allocated_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0,
@@ -174,21 +178,20 @@ class SubProject(models.Model):
             if total_allocated > self.project.get_remaining_budget():
                 raise ValueError("بودجه تخصیص‌یافته بیشتر از بودجه باقی‌مانده پروژه است.")
 
-
     def __str__(self):
         return f"{self.name} ({self.project.name})"
 
     class Meta:
         verbose_name = _("ساب‌پروژه")
         verbose_name_plural = _("ساب‌پروژه‌ها")
-        default_permissions =()
+        default_permissions = ()
         permissions = [
-            ('SubProject_add','افزودن زیر مجموعه پروژه'),
-            ('SubProject_update','ویرایش زیر مجموعه پروژه'),
-            ('SubProject_view','نمایش زیر مجموعه پروژه'),
-            ('SubProject_delete','حــذف زیر مجموعه پروژه'),
-            ('SubProject_Head_Office','تخصیص زیر مجموعه پروژه(دفتر مرکزی)🏠'),
-            ('SubProject_Branch','تخصیص  زیر مجموعه پروژه(شعبه)🏠'),
+            ('SubProject_add', 'افزودن زیر مجموعه پروژه'),
+            ('SubProject_update', 'ویرایش زیر مجموعه پروژه'),
+            ('SubProject_view', 'نمایش زیر مجموعه پروژه'),
+            ('SubProject_delete', 'حــذف زیر مجموعه پروژه'),
+            ('SubProject_Head_Office', 'تخصیص زیر مجموعه پروژه(دفتر مرکزی)🏠'),
+            ('SubProject_Branch', 'تخصیص  زیر مجموعه پروژه(شعبه)🏠'),
         ]
 class Post(models.Model):
     """مدل پست سازمانی برای تعریف سلسله مراتب"""
@@ -215,7 +218,8 @@ class Post(models.Model):
     branch = models.CharField(max_length=3, choices=BRANCH_CHOICES, null=True, blank=True, verbose_name=_("شاخه"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
     is_active = models.BooleanField(default=True, verbose_name=_("وضعیت فعال"))
-    max_change_level = models.IntegerField(default=1, verbose_name=_("حداکثر سطح تغییر(ارجاع به مرحله قبل تر)"), help_text=_("حداکثر مرحله‌ای که این پست می‌تواند تغییر دهد"))
+    max_change_level = models.IntegerField(default=1, verbose_name=_("حداکثر سطح تغییر(ارجاع به مرحله قبل تر)"),
+                                           help_text=_("حداکثر مرحله‌ای که این پست می‌تواند تغییر دهد"))
 
     is_payment_order_signer = models.BooleanField(default=False,
                                                   verbose_name=_("مجاز به امضای دستور پرداخت"))
@@ -256,13 +260,13 @@ class Post(models.Model):
     class Meta:
         verbose_name = _("پست سازمانی")
         verbose_name_plural = _("پست‌های سازمانی")
-        default_permissions =()
+        default_permissions = ()
         permissions = [
-            ('Post_add','افزودن  پست سازمانی برای تعریف سلسله مراتب'),
-            ('Post_update','بروزرسانی پست سازمانی برای تعریف سلسله مراتب'),
-            ('Post_view','نمایش  پست سازمانی برای تعریف سلسله مراتب'),
-            ('Post_delete','حــذف  پست سازمانی برای تعریف سلسله مراتب'),
-            ]
+            ('Post_add', 'افزودن  پست سازمانی برای تعریف سلسله مراتب'),
+            ('Post_update', 'بروزرسانی پست سازمانی برای تعریف سلسله مراتب'),
+            ('Post_view', 'نمایش  پست سازمانی برای تعریف سلسله مراتب'),
+            ('Post_delete', 'حــذف  پست سازمانی برای تعریف سلسله مراتب'),
+        ]
 class UserPost(models.Model):
     """مدل اتصال کاربر به پست"""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name=_("کاربر"))
@@ -368,7 +372,7 @@ class PostHistory(models.Model):
         indexes = [
             models.Index(fields=['post', 'changed_at']),
         ]
-#--
+# --
 class WorkflowStage(models.Model):
     ENTITY_TYPE_CHOICES = (
         ('TANKHAH', _('تنخواه')),
@@ -403,10 +407,22 @@ class WorkflowStage(models.Model):
         help_text=_("آیا این مرحله باعث ایجاد خودکار دستور پرداخت می‌شود؟ (برای تنخواه/فاکتور)")
     )
 
-    def save(self, *args, **kwargs):
-        if not self.pk and WorkflowStage.objects.filter(order=self.order).exists():
-            raise ValueError(_("ترتیب مرحله نمی‌تواند تکراری باشد"))
-        super().save(*args, **kwargs)
+    # def get_next_stage(self):
+    #     """
+    #     مرحله بعدی را بر اساس ترتیب (order) پیدا می‌کند.
+    #     اگر مرحله بعدی وجود نداشته باشد، None برمی‌گرداند.
+    #     """
+    #     try:
+    #         # مرحله با order بزرگتر از order فعلی را پیدا می‌کند
+    #         # و مطمئن می‌شود که ترتیب (order) آن حداقل یک واحد بیشتر باشد
+    #         return WorkflowStage.objects.get(order=self.order + 1)
+    #     except WorkflowStage.DoesNotExist:
+    #         return None
+    #
+    # def save(self, *args, **kwargs):
+    #     if not self.pk and WorkflowStage.objects.filter(order=self.order).exists():
+    #         raise ValueError(_("ترتیب مرحله نمی‌تواند تکراری باشد"))
+    #     super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.name} ({self.get_entity_type_display()}, ترتیب: {self.order})"
@@ -426,7 +442,6 @@ class WorkflowStage(models.Model):
             ('WorkflowStage_delete', 'حذف مرحله گردش کار'),
             ('WorkflowStage_triggers_payment_order', 'فعال‌سازی دستور پرداخت - مرحله گردش کار'),
         ]
-
 class PostAction(models.Model):
     ACTION_TYPES = (
         ('APPROVE', _('تأیید')),
@@ -436,7 +451,7 @@ class PostAction(models.Model):
         ('CUSTOM', _('سفارشی')),
     )
     ENTITY_TYPES = (
-        ('FACTOR',  _('فاکتور')),
+        ('FACTOR', _('فاکتور')),
         ('TANKHAH', _('تنخواه')),
         ('BUDGET_ALLOCATION', _('تخصیص بودجه')),
         ('BUDGET_RETURN', _('تخصیص بودجه')),
@@ -444,20 +459,22 @@ class PostAction(models.Model):
     )
 
     post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name=_("پست"))
-    stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_("مرحله"))
+    # stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_("مرحله"))
     action_type = models.CharField(max_length=50, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
-    entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, default='TANKHAH', verbose_name=_("نوع موجودیت"))
+    entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, default='TANKHAH',
+                                   verbose_name=_("نوع موجودیت"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
     min_level = models.IntegerField(null=True, blank=True)  # حداقل سطح دسترسی (اختیاری)
 
-    triggers_payment_order = models.BooleanField(default=False, verbose_name=_("فعال‌سازی دستور پرداخت")) # مشخصه دستور پرداخت کاریر
+    triggers_payment_order = models.BooleanField(default=False,
+                                                 verbose_name=_("فعال‌سازی دستور پرداخت"))  # مشخصه دستور پرداخت کاریر
     from django.contrib.postgres.fields import ArrayField
-    allowed_actions = ArrayField(  models.CharField(max_length=25, choices=[
-            ('APPROVE', 'تأیید'),
-            ('REJECT', 'رد'),
-            ('STAGE_CHANGE', 'تغییر مرحله'),
-            ('SIGN_PAYMENT', 'امضای دستور پرداخت')
-        ]), default=list, verbose_name=_("اقدامات مجاز"))
+    allowed_actions = ArrayField(models.CharField(max_length=25, choices=[
+        ('APPROVE', 'تأیید'),
+        ('REJECT', 'رد'),
+        ('STAGE_CHANGE', 'تغییر مرحله'),
+        ('SIGN_PAYMENT', 'امضای دستور پرداخت')
+    ]), default=list, verbose_name=_("اقدامات مجاز"))
 
     def __str__(self):
         return f"{self.post} - {self.action_type} برای {self.get_entity_type_display()} در {self.stage}"
@@ -466,60 +483,91 @@ class PostAction(models.Model):
     class Meta:
         verbose_name = _("اقدام مجاز پست")
         verbose_name_plural = _("اقدامات مجاز پست‌ها")
-        unique_together = ('post', 'stage', 'action_type', 'entity_type')  # اضافه کردن entity_type به unique_together
+        # unique_together = ('post', 'stage', 'action_type', 'entity_type')  # اضافه کردن entity_type به unique_together
         permissions = [
             ('PostAction_view', 'نمایش اقدامات مجاز پست'),
             ('PostAction_add', 'افزودن اقدامات مجاز پست'),
             ('PostAction_update', 'بروزرسانی اقدامات مجاز پست'),
             ('PostAction_delete', 'حذف اقدامات مجاز پست'),
         ]
-#---
+# ---
+from tankhah.constants import ACTION_TYPES, ENTITY_TYPES
+
 class AccessRule(models.Model):
     """این مدل مشخص می‌کنه که پست‌های یک سازمان، با branch و min_level خاص، چه اقداماتی می‌تونن توی چه مراحلی برای چه موجودیت‌هایی انجام بدن."""
-    ENTITY_TYPES = (
-        ('FACTOR', _('فاکتور')),
-        ('TANKHAH', _('تنخواه')),
-        ('BUDGET', _('بودجه')),
-        ('PAYMENTORDER', _('دستور پرداخت')),
-        ('REPORTS', _('گزارشات')),
-        ('GENERAL', _('عمومی')),
-    )
-    ACTION_TYPES = (
-        ('APPROVE', _('تأیید')),
-        ('REJECT', _('رد')),
-        ('VIEW', _('مشاهده')),
-        ('SIGN_PAYMENT', _('امضای دستور پرداخت')),
-        ('STATUS_CHANGE', _('تغییروضعیت')),
-    )
+    # ENTITY_TYPES = (
+    #     ('FACTOR', _('فاکتور')),
+    #     ('TANKHAH', _('تنخواه')),
+    #     ('BUDGET', _('بودجه')),
+    #     ('PAYMENTORDER', _('دستور پرداخت')),
+    #     ('REPORTS', _('گزارشات')),
+    #     ('GENERAL', _('عمومی')),
+    # )
+    # ACTION_TYPES = [
+    #     ('APPROVE', _('تأیید')),
+    #     ('REJECT', _('رد')),
+    #     ('SIGN_PAYMENT', _('امضای دستور پرداخت')),
+    #     ('EDIT', _('ویرایش')),
+    #     ('VIEW', _('مشاهده')),
+    #     ('STATUS_CHANGE', _('تغییر وضعیت')),
+    #     ('CREATE', _('ایجاد')),  # اضافه شده
+    #     ('DELETE', _('حذف'))  # اضافه شده
+    # ]
 
-
-    branch = models.CharField(max_length=3, choices=Post.BRANCH_CHOICES, blank=True, verbose_name=_('شاخه'))
-    stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_('مرحله'))
-    action_type = models.CharField(max_length=25, choices=ACTION_TYPES, verbose_name=_('نوع اقدام'))
-    entity_type = models.CharField(max_length=100, choices=ENTITY_TYPES, verbose_name=_('نوع موجودیت'))
-    is_active = models.BooleanField(default=True, verbose_name=_('فعال'))
+    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("سازمان"))
+    # stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_('مرحله'))
+    stage = models.CharField(max_length=200, verbose_name=_('نام مرحله'))
+    stage_order = models.PositiveIntegerField(verbose_name=_('ترتیب مرحله'))
     post = models.ForeignKey('core.Post', on_delete=models.CASCADE, null=True, blank=True, verbose_name=_('پست'),
                              help_text=_('پست مرتبط با این قانون. اگر خالی باشد، بر اساس min_level اعمال می‌شود.'))
-    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("سازمان"))
+    action_type = models.CharField(max_length=25, choices=ACTION_TYPES, verbose_name=_('نوع اقدام'))
+    entity_type = models.CharField(max_length=100, choices=ENTITY_TYPES, verbose_name=_('نوع موجودیت'))
     min_level = models.IntegerField(default=1, verbose_name=_("حداقل سطح"))
+    branch = models.CharField(max_length=3, choices=Post.BRANCH_CHOICES, blank=True, verbose_name=_('شاخه'))
+    is_active = models.BooleanField(default=True, verbose_name=_('فعال'))
+    min_signatures = models.PositiveIntegerField(default=1, verbose_name=_("حداقل تعداد امضا"))
+
+    auto_advance = models.BooleanField(default=True, verbose_name=_("پیش‌رفت خودکار"))
+    triggers_payment_order = models.BooleanField(default=False, verbose_name=_("فعال‌سازی دستور پرداخت"))
     is_payment_order_signer = models.BooleanField(default=False, verbose_name=_("امضاکننده دستور پرداخت"))
+    is_final_stage = models.BooleanField(default=False, verbose_name=_("مرحله نهایی"))
+    created_by = models.ForeignKey('accounts.CustomUser',related_name='access_rules', on_delete=models.SET_NULL, null=True, verbose_name=_("ایجادکننده"))
 
 
     class Meta:
-            verbose_name = _("قانون دسترسی")
-            verbose_name_plural = _("قوانین دسترسی")
-            unique_together = ('organization', 'branch', 'min_level', 'stage', 'action_type', 'entity_type')
-            default_permissions = ()
-            permissions = [
-                ('AccessRule_add','افزودن قانون دسترسی'),
-                ('AccessRule_view','نمایش قانون دسترسی'),
-                ('AccessRule_update','ویرایش قانون دسترسی'),
-                ('AccessRule_delete','حــذف قانون دسترسی'),
-            ]
+        verbose_name = _("قانون دسترسی")
+        verbose_name_plural = _("قوانین دسترسی")
+        # unique_together = ('organization', 'branch', 'min_level', 'stage', 'action_type', 'entity_type')
+        unique_together = ('organization', 'entity_type', 'stage_order')
+        default_permissions = ()
+        permissions = [
+            ('AccessRule_add', 'افزودن قانون دسترسی'),
+            ('AccessRule_view', 'نمایش قانون دسترسی'),
+            ('AccessRule_update', 'ویرایش قانون دسترسی'),
+            ('AccessRule_delete', 'حــذف قانون دسترسی'),
+        ]
 
+    def save(self, *args, **kwargs):
+        if self.stage_order and self.is_active:
+            if AccessRule.objects.filter(
+                organization=self.organization,
+                entity_type=self.entity_type,
+                stage_order=self.stage_order,
+                is_active=True
+            ).exclude(pk=self.pk).exists():
+                raise ValueError(_immediate("ترتیب مرحله {stage_order} برای سازمان {org} و موجودیت {entity} قبلاً استفاده شده است.").format(
+                    stage_order=self.stage_order,
+                    org=self.organization,
+                    entity=self.entity_type
+                ))
+        super().save(*args, **kwargs)
+
+    # def __str__(self):
+    #     return f"{self.organization} - {self.branch} - {self.action_type} - {self.entity_type}"
     def __str__(self):
-        return f"{self.organization} - {self.branch} - {self.action_type} - {self.entity_type}"
-#---
+            return f"{self.organization} - {self.post} - {self.stage} (ترتیب: {self.stage_order}) - {self.action_type}"
+
+# ---
 # class StageTransitionPermission(models.Model):
 #     name = models.TextField(blank=True,null=True, verbose_name=_('شرح'))
 #     post = models.ForeignKey('core.Post', on_delete=models.CASCADE, verbose_name=_('پست'))
@@ -541,7 +589,7 @@ class AccessRule(models.Model):
 #
 #     def __str__(self):
 #         return f"{self.post} can transition from {self.from_stage} to {self.to_stage}"
-#---
+# ---
 class SystemSettings(models.Model):
     budget_locked_percentage_default = models.DecimalField(
         max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده پیش‌فرض بودجه"))
@@ -558,9 +606,10 @@ class SystemSettings(models.Model):
         default=list, blank=True, verbose_name=_("سازمان‌های مجاز برای ثبت تنخواه"),
         help_text=_("لیست ID سازمان‌هایی که همه کاربران می‌توانند برای آن‌ها تنخواه ثبت کنند (مثل دفتر مرکزی)"))
 
-    tankhah_payment_ceiling_default = models.DecimalField(max_digits=25, decimal_places=2, null=True, blank=True,verbose_name=_("سقف پرداخت پیش‌فرض تنخواه"))
-    tankhah_payment_ceiling_enabled_default = models.BooleanField(default=False, verbose_name=_("فعال بودن پیش‌فرض سقف پرداخت تنخواه"))
-
+    tankhah_payment_ceiling_default = models.DecimalField(max_digits=25, decimal_places=2, null=True, blank=True,
+                                                          verbose_name=_("سقف پرداخت پیش‌فرض تنخواه"))
+    tankhah_payment_ceiling_enabled_default = models.BooleanField(default=False,
+                                                                  verbose_name=_("فعال بودن پیش‌فرض سقف پرداخت تنخواه"))
 
     def save(self, *args, **kwargs):
         # اطمینان از وجود تنها یک نمونه
@@ -578,37 +627,36 @@ class SystemSettings(models.Model):
 
     # def __str__(self):
     #     return "تنظیمات سیستم بودجه"
-
 ############################################################# End Off models
 class Dashboard_Core(models.Model):
     class Meta:
         default_permissions = ()
         permissions = [
-            ('Dashboard_Core_view','دسترسی به داشبورد Core پایه')
+            ('Dashboard_Core_view', 'دسترسی به داشبورد Core پایه')
         ]
 class DashboardView_flows(models.Model):
     class Meta:
         default_permissions = ()
         permissions = [
-            ('DashboardView_flows_view','دسترسی به روند تنخواه گردانی ')
+            ('DashboardView_flows_view', 'دسترسی به روند تنخواه گردانی ')
         ]
 class DashboardView(models.Model):
     class Meta:
         default_permissions = ()
         permissions = [
-            ('Dashboard__view','دسترسی به داشبورد اصلی 💻')
+            ('Dashboard__view', 'دسترسی به داشبورد اصلی 💻')
         ]
 class OrganizationChartAPIView(models.Model):
     class Meta:
         default_permissions = ()
         permissions = [
-            ('OrganizationChartAPIView_view','دسترسی به داشبورد چارت سازمانی 💻'),
+            ('OrganizationChartAPIView_view', 'دسترسی به داشبورد چارت سازمانی 💻'),
 
         ]
 class OrganizationChartView(models.Model):
     class Meta:
         default_permissions = ()
         permissions = [
-            ('OrganizationChartView_view','   دسترسی به گرافیک داشبورد چارت سازمانی 💻'),
+            ('OrganizationChartView_view', '   دسترسی به گرافیک داشبورد چارت سازمانی 💻'),
 
         ]

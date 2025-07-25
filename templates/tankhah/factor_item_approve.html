@@ -173,44 +173,44 @@
             <div class="tab-content p-4">
                 <!-- تب بررسی ردیف‌ها -->
                 <div class="tab-pane fade show active" id="items-tab" role="tabpanel">
-                    {% if can_change_stage and workflow_stages %}
-                    <div class="alert alert-info d-flex align-items-center mb-4">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <div>
-                            <form method="post" class="row g-2 align-items-center">
-                                {% csrf_token %}
-                                <div class="col-auto">
-                                    <label for="new_stage_order" class="col-form-label">{% trans "تغییر مرحله:" %}</label>
-                                </div>
-                                <div class="col-auto">
-                                    <select name="new_stage_order" id="new_stage_order" class="form-select">
-                                        {% for stage in workflow_stages %}
-                                            <option value="{{ stage.order }}" {% if stage == tankhah.current_stage %}selected{% endif %}>
-                                                {{ stage.name }} ({{ stage.order|to_persian_number }})
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="form-floating">
-                                        <input type="text" class="form-control" id="stage_change_reason" name="stage_change_reason" required>
-                                        <label for="stage_change_reason">{% trans "توضیحات تغییر مرحله (اجباری)" %}</label>
-                                    </div>
-                                </div>
-                                <div class="col-auto">
-                                    <button type="submit" name="change_stage" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-sync-alt me-1"></i>{% trans "اعمال" %}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    {% elif can_change_stage %}
-                    <div class="alert alert-warning d-flex align-items-center mb-4">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <div>{% trans "هیچ مرحله‌ای برای ارجاع مجاز نیست." %}</div>
-                    </div>
-                    {% endif %}
+{#                    {% if can_change_stage and workflow_stages %}#}
+{#                    <div class="alert alert-info d-flex align-items-center mb-4">#}
+{#                        <i class="fas fa-info-circle me-2"></i>#}
+{#                        <div>#}
+{#                            <form method="post" class="row g-2 align-items-center">#}
+{#                                {% csrf_token %}#}
+{#                                <div class="col-auto">#}
+{#                                    <label for="new_stage_order" class="col-form-label">{% trans "تغییر مرحله:" %}</label>#}
+{#                                </div>#}
+{#                                <div class="col-auto">#}
+{#                                    <select name="new_stage_order" id="new_stage_order" class="form-select">#}
+{#                                        {% for stage in workflow_stages %}#}
+{#                                            <option value="{{ stage.order }}" {% if stage == tankhah.current_stage %}selected{% endif %}>#}
+{#                                                {{ stage.name }} ({{ stage.order|to_persian_number }})#}
+{#                                            </option>#}
+{#                                        {% endfor %}#}
+{#                                    </select>#}
+{#                                </div>#}
+{#                                <div class="col-auto">#}
+{#                                    <div class="form-floating">#}
+{#                                        <input type="text" class="form-control" id="stage_change_reason" name="stage_change_reason" required>#}
+{#                                        <label for="stage_change_reason">{% trans "توضیحات تغییر مرحله (اجباری)" %}</label>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                                <div class="col-auto">#}
+{#                                    <button type="submit" name="change_stage" class="btn btn-sm btn-primary">#}
+{#                                        <i class="fas fa-sync-alt me-1"></i>{% trans "اعمال" %}#}
+{#                                    </button>#}
+{#                                </div>#}
+{#                            </form>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                    {% elif can_change_stage %}#}
+{#                    <div class="alert alert-warning d-flex align-items-center mb-4">#}
+{#                        <i class="fas fa-exclamation-triangle me-2"></i>#}
+{#                        <div>{% trans "هیچ مرحله‌ای برای ارجاع مجاز نیست." %}</div>#}
+{#                    </div>#}
+{#                    {% endif %}#}
 
                     <form method="post" class="needs-validation" novalidate id="factorItemsForm">
                         {% csrf_token %}
@@ -221,20 +221,20 @@
                         {% endif %}
 
                         <!-- بخش اقدامات گروهی -->
-                        {% if can_edit and not has_previous_action and not all_items_processed %}
+                        {% if can_edit %}
                         <div class="card mb-4 border">
                             <div class="card-body py-3">
                                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                                     <div class="d-flex flex-wrap align-items-center gap-3">
                                         <div class="form-check form-switch mb-0">
                                             <input class="form-check-input" type="checkbox" id="bulk_approve" name="bulk_approve">
-                                            <label class="form-check-label fw-medium text-success" for="bulkApprove">
+                                            <label class="form-check-label fw-medium text-success" for="bulk_approve">
                                                 <i class="fas fa-check-double me-1"></i>{% trans "تأیید همه" %}
                                             </label>
                                         </div>
                                         <div class="form-check form-switch mb-0">
-                                            <input class="form-check-input" type="checkbox" id="bulkReject" name="bulk_reject">
-                                            <label class="form-check-label fw-medium text-danger" for="bulkReject">
+                                            <input class="form-check-input" type="checkbox" id="bulk_reject" name="bulk_reject">
+                                            <label class="form-check-label fw-medium text-danger" for="bulk_reject">
                                                 <i class="fas fa-times-circle me-1"></i>{% trans "رد همه" %}
                                             </label>
                                         </div>
@@ -266,10 +266,8 @@
                                 {% trans "تنخواه تأیید نهایی شده و امکان ویرایش وجود ندارد." %}
                             {% elif higher_approval_changed %}
                                 {% trans "تغییرات توسط سطح بالاتری اعمال شده و شما نمی‌توانید ویرایش کنید." %}
-                            {% elif has_previous_action %}
-                                {% trans "شما قبلاً برای این فاکتور اقدام کرده‌اید." %}
                             {% elif all_items_processed %}
-                                {% trans "شما قبلاً برای همه آیتم‌های این فاکتور اقدام کرده‌اید." %}
+                                {% trans "تمام آیتم‌های این فاکتور قبلاً پردازش شده‌اند، اما می‌توانید وضعیت آن‌ها را مشاهده کنید." %}
                             {% else %}
                                 {% trans "شما دسترسی لازم برای ویرایش ندارید." %}
                             {% endif %}
@@ -303,7 +301,7 @@
                                 </thead>
                                 <tbody>
                                     {% for form, log in form_log_pairs %}
-                                    <tr class="formset-row {% if form.status.value == 'APPROVED' %}table-success{% elif form.status.value == 'REJECTED' %}table-danger{% endif %} {% if log and log.user == request.user %}action-disabled{% endif %}">
+                                    <tr class="formset-row {% if form.status.value == 'APPROVED' %}table-success{% elif form.status.value == 'REJECTED' %}table-danger{% endif %}">
                                         {% for hidden_field in form.hidden_fields %}
                                             {{ hidden_field }}
                                         {% endfor %}
@@ -321,8 +319,9 @@
                                                     {{ log.get_action_display }}
                                                 </span>
                                                 <small class="text-muted">
-                                                    {{ log.user.get_full_name|default:log.user.username }} - {{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}
-                                                </small>
+{#                                                    {{ log.user.get_full_name }} - {{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}#}
+                                                    {{ log.action }} توسط {{ log.user.username }} در {{ log.timestamp|date:"Y-m-d H:i" }}:
+                                                 </small>
                                             </div>
                                             {% else %}
                                                 <span class="badge bg-secondary">{% trans "بدون اقدام" %}</span>
@@ -340,7 +339,7 @@
                                             {% endif %}
                                         </td>
                                         <td class="text-center">
-                                            {% if can_edit and not log or log.user != request.user %}
+                                            {% if can_edit %}
                                             <input type="hidden" name="{{ form.status.name }}" class="action-hidden-input" value="{{ form.status.value|default:'' }}">
                                             <div class="btn-group btn-group-sm" role="group">
                                                 <button type="button" class="btn btn-outline-success action-btn {% if form.status.value == 'APPROVED' %}active{% endif %}"
@@ -384,7 +383,7 @@
                                 </a>
                             </div>
 
-                            {% if can_edit and not is_final_approved and not has_previous_action %}
+                            {% if can_edit %}
                                 <div class="mt-2 mt-md-0">
                                     <button type="submit" class="btn btn-primary px-4">
                                         <i class="fas fa-save me-1"></i>{% trans "ذخیره تغییرات" %}
@@ -402,8 +401,8 @@
                                         {% trans "تنخواه تأیید نهایی شده و امکان ویرایش وجود ندارد." %}
                                     {% elif higher_approval_changed %}
                                         {% trans "تغییرات توسط سطح بالاتری اعمال شده و شما نمی‌توانید ویرایش کنید." %}
-                                    {% elif has_previous_action %}
-                                        {% trans "شما قبلاً برای این فاکتور اقدام کرده‌اید." %}
+                                    {% elif all_items_processed %}
+                                        {% trans "تمام آیتم‌های این فاکتور قبلاً پردازش شده‌اند، اما می‌توانید وضعیت آن‌ها را مشاهده کنید." %}
                                     {% else %}
                                         {% trans "شما دسترسی لازم برای ویرایش ندارید." %}
                                     {% endif %}
@@ -563,7 +562,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const hiddenInput = factorForm.querySelector(`input[name="${targetName}"]`);
                 const row = btn.closest('tr');
 
-                if (hiddenInput && !row.classList.contains('action-disabled')) {
+                if (hiddenInput) {
                     hiddenInput.value = action;
                     row.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
@@ -582,19 +581,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // غیرفعال کردن دکمه‌ها برای ردیف‌های اقدام‌شده
-        factorForm.querySelectorAll('.formset-row').forEach(row => {
-            if (row.classList.contains('action-disabled')) {
-                row.querySelectorAll('.action-btn').forEach(btn => {
-                    btn.disabled = true;
-                    btn.classList.add('btn-disabled');
-                });
-            }
-        });
-
         // مدیریت اقدامات گروهی
-        const bulkApprove = document.getElementById('bulkApprove');
-        const bulkReject = document.getElementById('bulkReject');
+        const bulkApprove = document.getElementById('bulk_approve');
+        const bulkReject = document.getElementById('bulk_reject');
         const rejectFactor = document.getElementById('reject_factor');
         const rejectedReason = document.getElementById('rejected_reason');
         const approvedReason = document.getElementById('approved_reason');
@@ -604,7 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (this.checked) {
                     bulkReject.checked = false;
                     rejectFactor.checked = false;
-                    factorForm.querySelectorAll('.action-btn[data-action="APPROVED"]:not(.btn-disabled)').forEach(btn => {
+                    factorForm.querySelectorAll('.action-btn[data-action="APPROVED"]').forEach(btn => {
                         btn.click();
                     });
                     if (approvedReason) approvedReason.required = true;
@@ -617,7 +606,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (this.checked) {
                     bulkApprove.checked = false;
                     rejectFactor.checked = false;
-                    factorForm.querySelectorAll('.action-btn[data-action="REJECTED"]:not(.btn-disabled)').forEach(btn => {
+                    factorForm.querySelectorAll('.action-btn[data-action="REJECTED"]').forEach(btn => {
                         btn.click();
                     });
                     if (rejectedReason) rejectedReason.required = true;
@@ -630,7 +619,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (this.checked) {
                     bulkApprove.checked = false;
                     bulkReject.checked = false;
-                    factorForm.querySelectorAll('.action-btn[data-action="REJECTED"]:not(.btn-disabled)').forEach(btn => {
+                    factorForm.querySelectorAll('.action-btn[data-action="REJECTED"]').forEach(btn => {
                         btn.click();
                     });
                     if (rejectedReason) rejectedReason.required = true;
@@ -652,7 +641,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (approvedReason) approvedReason.value = '';
                 if (rejectedReason) rejectedReason.value = '';
 
-                factorForm.querySelectorAll('.action-btn[data-action=""]:not(.btn-disabled)').forEach(btn => {
+                factorForm.querySelectorAll('.action-btn[data-action=""]').forEach(btn => {
                     btn.click();
                 });
             });

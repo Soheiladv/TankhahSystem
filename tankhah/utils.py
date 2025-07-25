@@ -3,7 +3,11 @@ import logging
 
 from django.core.exceptions import PermissionDenied
 from core.models import Organization
-logger = logging.getLogger(__name__)
+from django.contrib.contenttypes.models import ContentType
+from tankhah.models import ApprovalLog
+from core.models import AccessRule
+
+logger = logging.getLogger('Util_Tankhah')
 def ok__restrict_to_user_organization(user, allowed_orgs=None):
     """
     محدود کردن دسترسی به سازمان‌های کاربر.
@@ -64,3 +68,35 @@ def restrict_to_user_organization(user):
 
 # --- Logic for allowed_orgs is removed as discussed before ---
 # This check should happen where allowed_orgs context is available.
+
+def get_factor_current_stage(factor):
+    """
+    تعیین مرحله فعلی فاکتور بر اساس آخرین ApprovalLog.
+    اگر هیچ ApprovalLog وجود نداشته باشد، اولین stage_order از AccessRule (stage_order=1) را برمی‌گرداند.
+    """
+    logger.debug(f"[get_factor_current_stage] Fetching stage for factor {factor.number}")
+    try:
+        last_log = ApprovalLog.objects.filter(
+            factor=factor,
+            content_type=ContentType.objects.get_for_model(factor),
+            object_id=factor.id
+        ).order_by('-timestamp').first()
+
+        if last_log and last_log.stage:
+            logger.debug(f"[get_factor_current_stage] Found stage_order {last_log.stage} from ApprovalLog")
+            return last_log.stage
+
+        first_rule = AccessRule.objects.filter(
+            entity_type='FACTOR',
+            action_type='APPROVE',
+            stage_order=1,
+            is_active=True
+        ).first()
+        if first_rule:
+            logger.debug(f"[get_factor_current_stage] Found stage_order {first_rule.stage_order} from AccessRule")
+            return first_rule.stage_order
+        logger.debug("[get_factor_current_stage] No ApprovalLog or AccessRule found, returning default stage 1")
+        return 1
+    except Exception as e:
+        logger.error(f"[get_factor_current_stage] Error for factor {factor.number}: {str(e)}", exc_info=True)
+        return 1

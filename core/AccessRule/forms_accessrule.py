@@ -1,10 +1,43 @@
 # core/forms.py
-from django import forms
-from core.models import AccessRule, Post,WorkflowStage
-from django.utils.translation import gettext_lazy as _
 import logging
-logger = logging.getLogger(__name__)
-class AccessRuleForm(forms.ModelForm):
+from django import forms
+from django.db import transaction
+from django.db.models import Max
+from django.utils.translation import gettext_lazy as _
+
+from core.models import AccessRule, Post,WorkflowStage, Post, WorkflowStage, AccessRule  # اطمینان حاصل کنید که مدل‌های مورد نیاز وارد شده‌اند
+from django.utils.translation import gettext_lazy as _
+from collections import defaultdict
+
+from tankhah.constants import ENTITY_TYPES, ACTION_TYPES
+
+logger = logging.getLogger('core_forms.py')
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _immediate  # اضافه کردن تابع ترجمه فوری
+
+# لیست‌های ثابت برای انواع موجودیت و اقدام
+
+MANAGED_ACTIONS = [
+    ('APPROVED', _('تأیید')),
+    ('REJECTD', _('رد')),
+    ('EDIT', _('ویرایش')),
+    ('VIEW', _('مشاهده')),
+    ('SIGN_PAYMENT', _('امضای دستور پرداخت')),
+    ('STATUS_CHANGE', _('تغییر وضعیت')),
+]
+MANAGED_ENTITIES = [
+    ('FACTOR', _('فاکتور')),
+    ('TANKHAH', _('تنخواه')),
+    ('BUDGET', _('بودجه')),
+    ('PAYMENTORDER', _('دستور پرداخت')),
+    ('REPORTS', _('گزارشات')),
+    ('GENERAL', _('عمومی')),
+]
+
+# اقدامات نیازمند انتخاب مرحله
+
+
+class AccessRuleForm_oldModels(forms.ModelForm):
     class Meta:
         model = AccessRule
         fields = [
@@ -45,459 +78,89 @@ class AccessRuleForm(forms.ModelForm):
         if action_type == 'SIGN_PAYMENT' and entity_type != 'PAYMENTORDER':
             self.add_error('action_type', _('اقدام SIGN_PAYMENT فقط برای نوع موجودیت PAYMENTORDER مجاز است.'))
         return cleaned_data
-class old__PostAccessRuleForm(forms.Form):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        logger.info("Initializing PostAccessRuleForm")
-
-        self.posts = Post.objects.filter(is_active=True).select_related('organization')
-        logger.info(f"Loaded {self.posts.count()} active posts: {[p.name for p in self.posts]}")
-
-        self.stages = WorkflowStage.objects.filter(is_active=True)
-        logger.info(f"Loaded {self.stages.count()} active stages: {[s.name for s in self.stages]}")
-
-        if not self.posts:
-            logger.warning("No active posts found. Form will be empty.")
-        if not self.stages:
-            logger.warning("No active stages found. Rule fields will lack stage selection.")
-
-        for post in self.posts:
-            # سطح
-            level_field = f'post_{post.id}_level'
-            self.fields[level_field] = forms.IntegerField(
-                label=f"{_('سطح')} {post.name}",
-                initial=post.level,
-                min_value=1,
-                required=False,
-                widget=forms.NumberInput(attrs={'class': 'form-control', 'style': 'width: 100px;'})
-            )
-            logger.debug(f"Added field: {level_field}")
-
-            # قوانین
-            for entity_type, entity_label in AccessRule.ENTITY_TYPES:
-                for action_type, action_label in AccessRule.ACTION_TYPES:
-                    rule_field = f'post_{post.id}_rule_{entity_type}_{action_type}'
-                    self.fields[rule_field] = forms.BooleanField(
-                        label=f"{entity_label} - {action_label}",
-                        required=False,
-                        initial=AccessRule.objects.filter(
-                            post=post, entity_type=entity_type, action_type=action_type, is_active=True
-                        ).exists(),
-                        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
-                    )
-                    logger.debug(f"Added field: {rule_field}")
-
-                    stage_field = f'{rule_field}_stage'
-                    self.fields[stage_field] = forms.ModelChoiceField(
-                        queryset=self.stages,
-                        label=_('مرحله'),
-                        required=False,
-                        empty_label=_('انتخاب مرحله'),
-                        widget=forms.Select(attrs={'class': 'form-control', 'style': 'width: 200px; display: inline-block;'})
-                    )
-                    logger.debug(f"Added field: {stage_field}")
-
-    def clean(self):
-        cleaned_data = super().clean()
-        logger.debug(f"Cleaned data: {cleaned_data}")
-        for field_name in cleaned_data:
-            if '_rule_' in field_name and not field_name.endswith('_stage'):
-                if cleaned_data[field_name] and not cleaned_data.get(f'{field_name}_stage'):
-                    self.add_error(f'{field_name}_stage', _('لطفاً مرحله را انتخاب کنید.'))
-                    logger.warning(f"Validation error: Stage missing for {field_name}")
-        return cleaned_data
 
 
-from collections import defaultdict
-
-# Assume these models are defined and imported correctly
-# from core.models import Post, WorkflowStage, AccessRule, Organization
-
-
-class OK___PostAccessRuleForm(forms.Form):
-    # These constants should ideally come from your AccessRule model or a dedicated constants file
-    MANAGED_ENTITIES = [
-        ('FACTOR', _('فاکتور')),
-        ('TANKHAH', _('تنخواه')),
-        ('BUDGET', _('بودجه')),
-        ('PAYMENTORDER', _('دستور پرداخت')),
-        ('REPORTS', _('گزارشات')),
-    ]
-    MANAGED_ACTIONS = [
-        ('APPROVE', _('تأیید')),
-        ('REJECT', _('رد')),
-        ('VIEW', _('مشاهده')),
-        ('SIGN_PAYMENT', _('امضای دستور پرداخت')),
-    ]
-
-    def __init__(self, *args, **kwargs):
-        user_organizations = kwargs.pop('user_organizations', None)
-        super().__init__(*args, **kwargs)
-        logger.info("Initializing PostAccessRuleForm")
-
-        # Load active posts, optionally filtered by user's organizations
-        posts_query = Post.objects.filter(is_active=True).select_related('organization')
-        if user_organizations:
-            # user_organizations is expected to be a QuerySet of organizations or a list of organization IDs
-            posts_query = posts_query.filter(organization__in=user_organizations)
-        # Order posts for consistent display in the template
-        self.posts = posts_query.order_by('organization__name', 'level', 'name')
-        logger.info(f"{self.posts.count()} active posts loaded: {[p.name for p in self.posts]}")
-
-        # Load active workflow stages
-        self.stages = WorkflowStage.objects.filter(is_active=True).order_by('order')
-        logger.info(f"{self.stages.count()} active stages loaded: {[s.name for s in self.stages]}")
-
-        if not self.posts:
-            logger.warning("No active posts found. Form will be empty.")
-        if not self.stages:
-            logger.warning(
-                "No active stages found. Rules will not have stages to select from if they were. This might indicate a problem.")
-
-        # This list will hold the structured data for the template
-        # Each dict contains 'post', 'level_field', and 'entity_groups'
-        self.post_fields_data = []
-
-        # Optimize by fetching all existing rules for the relevant posts once
-        existing_rules = AccessRule.objects.filter(post__in=self.posts)
-        existing_rules_map = {}
-        # Key: (post_id, entity_type, action_type, stage_id) -> AccessRule object
-        for rule in existing_rules:
-            existing_rules_map[(rule.post.id, rule.entity_type, rule.action_type, rule.stage.id)] = rule
-        logger.debug(f"Total existing rules for selected posts: {len(existing_rules_map)}")
-
-        for post in self.posts:
-            # 1. Post Level Field
-            level_field_name = f'post_{post.id}_level'
-            self.fields[level_field_name] = forms.IntegerField(
-                label=_("سطح پست"),
-                min_value=1,
-                initial=post.level,
-                required=False,
-                widget=forms.NumberInput(attrs={'class': 'form-control w-25', 'title': _('سطح پست')})
-            )
-
-            post_data_for_template = {
-                'post': post,
-                'level_field': self[level_field_name],  # Use BoundField for template rendering
-                'entity_groups': []  # To store rules grouped by entity type
-            }
-
-            # Group rules by entity type for the inner accordion in the template
-            entity_rules_map = defaultdict(list)
-
-            # 2. Access Rule Fields (checkboxes)
-            for entity_code, entity_label in self.MANAGED_ENTITIES:
-                for action_code, action_label in self.MANAGED_ACTIONS:
-                    for stage_obj in self.stages:
-                        # Unique field name for each specific rule (post, entity, action, stage)
-                        rule_field_name = f'rule_{post.id}_{entity_code}_{action_code}_{stage_obj.id}'
-                        signer_field_name = f'signer_{post.id}_{entity_code}_{action_code}_{stage_obj.id}'
-
-                        # Check if this specific rule combination exists and is active
-                        rule_key = (post.id, entity_code, action_code, stage_obj.id)
-                        existing_rule = existing_rules_map.get(rule_key)
-
-                        initial_rule_value = existing_rule.is_active if existing_rule else False
-                        initial_signer_value = existing_rule.is_payment_order_signer if existing_rule else False
-
-                        # Add the main rule checkbox field
-                        self.fields[rule_field_name] = forms.BooleanField(
-                            label="",  # Label is handled in the template
-                            initial=initial_rule_value,
-                            required=False,
-                            widget=forms.CheckboxInput(attrs={
-                                'class': 'form-check-input rule-checkbox',
-                                'data-entity': entity_code,
-                                'data-action': action_code,
-                                'data-stage': stage_obj.id,
-                                'data-post': post.id,
-                            })
-                        )
-                        logger.debug(f"Added rule field: {rule_field_name} (initial: {initial_rule_value})")
-
-                        # Add is_payment_order_signer checkbox only for 'SIGN_PAYMENT' action type
-                        is_signer_field = None
-                        if action_code == 'SIGN_PAYMENT':
-                            self.fields[signer_field_name] = forms.BooleanField(
-                                label=_("امضاکننده دستور پرداخت"),
-                                initial=initial_signer_value,
-                                required=False,
-                                widget=forms.CheckboxInput(attrs={
-                                    'class': 'form-check-input signer-checkbox',
-                                    'data-rule-field': rule_field_name,  # Link to its main rule checkbox
-                                })
-                            )
-                            is_signer_field = self[signer_field_name]  # Get BoundField
-
-                        # Add the rule data to the temporary map for grouping by entity
-                        entity_rules_map[entity_code].append({
-                            'action_label': action_label,
-                            'action_id': action_code,  # Use action_id for logic
-                            'stage_obj': stage_obj,  # Pass the full stage object
-                            'rule_field': self[rule_field_name],  # Pass BoundField for template rendering
-                            'is_signer_field': is_signer_field,  # Pass BoundField or None
-                        })
-
-            # Convert the grouped rules into the structure for post_fields_data
-            for entity_code, rules_list in entity_rules_map.items():
-                entity_label = dict(self.MANAGED_ENTITIES).get(entity_code, _("نامشخص"))
-                post_data_for_template['entity_groups'].append({
-                    'entity_label': entity_label,
-                    'entity_id': entity_code,
-                    # Sort rules within each entity group for consistent display
-                    'rules': sorted(rules_list, key=lambda x: (x['action_label'], x['stage_obj'].order))
-                })
-            # Sort entity groups for consistent display within a post
-            post_data_for_template['entity_groups'].sort(key=lambda x: x['entity_label'])
-
-            self.post_fields_data.append(post_data_for_template)
+class AccessRuleForm(forms.ModelForm):
+    class Meta:
+        model = AccessRule
+        fields = [
+            'organization',
+            'post',
+            'branch',
+            'min_level',
+            'stage',
+            'stage_order',
+            'action_type',
+            'entity_type',
+            'is_active',
+            'auto_advance',
+            'triggers_payment_order',
+            'is_final_stage',
+            'min_signatures',
+        ]
+        widgets = {
+            'organization': forms.Select(attrs={'class': 'form-control'}),
+            'post': forms.Select(attrs={'class': 'form-control'}),
+            'branch': forms.Select(attrs={'class': 'form-control'}),
+            'min_level': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'stage': forms.TextInput(attrs={'class': 'form-control'}),
+            'stage_order': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'action_type': forms.Select(attrs={'class': 'form-control'}),
+            'entity_type': forms.Select(attrs={'class': 'form-control'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'auto_advance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'triggers_payment_order': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_final_stage': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'min_signatures': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+        }
+        labels = {
+            'organization': _('سازمان'),
+            'post': _('پست'),
+            'branch': _('شاخه'),
+            'min_level': _('حداقل سطح'),
+            'stage': _('نام مرحله'),
+            'stage_order': _('ترتیب مرحله'),
+            'action_type': _('نوع اقدام'),
+            'entity_type': _('نوع موجودیت'),
+            'is_active': _('فعال'),
+            'auto_advance': _('پیش‌رفت خودکار'),
+            'triggers_payment_order': _('فعال‌سازی دستور پرداخت'),
+            'is_final_stage': _('مرحله نهایی'),
+            'min_signatures': _('حداقل تعداد امضا'),
+        }
 
     def clean(self):
         cleaned_data = super().clean()
-        logger.debug("شروع فرآیند اعتبارسنجی فرم PostAccessRuleForm.")
+        entity_type = cleaned_data.get('entity_type')
+        action_type = cleaned_data.get('action_type')
+        triggers_payment_order = cleaned_data.get('triggers_payment_order')
+        stage = cleaned_data.get('stage')
+        stage_order = cleaned_data.get('stage_order')
 
-        # اعتبارسنجی سطوح پست‌ها بر اساس سلسله‌مراتب والد-فرزندی
-        for post_data in self.post_fields_data:
-            post = post_data['post']
-            level_field_name = post_data['level_field'].name
-            # سطح جدید را از cleaned_data دریافت کنید، یا اگر تغییر نکرده، سطح فعلی پست را در نظر بگیرید.
-            new_level = cleaned_data.get(level_field_name)
+        # اعتبارسنجی: اگر triggers_payment_order=True، entity_type باید PAYMENTORDER یا FACTOR باشد
+        if triggers_payment_order and entity_type not in ['PAYMENTORDER', 'FACTOR']:
+            self.add_error('entity_type', _('برای فعال‌سازی دستور پرداخت، نوع موجودیت باید PAYMENTORDER یا FACTOR باشد.'))
 
-            # محاسبه سطح مورد انتظار بر اساس والد پست
-            # اگر پستی والد نداشته باشد، سطح مورد انتظارش 1 است.
-            # در غیر این صورت، سطح مورد انتظار، سطح والد + 1 است.
-            expected_level = post.parent.level + 1 if post.parent else 1
+        # اعتبارسنجی: SIGN_PAYMENT فقط برای PAYMENTORDER یا FACTOR
+        if action_type == 'SIGN_PAYMENT' and entity_type not in ['PAYMENTORDER', 'FACTOR']:
+            self.add_error('action_type', _('اقدام SIGN_PAYMENT فقط برای نوع موجودیت PAYMENTORDER یا FACTOR مجاز است.'))
 
-            # تنها در صورتی اعتبارسنجی کنید که new_level مقداری داشته باشد و با سطح مورد انتظار تفاوت داشته باشد.
-            if new_level is not None and new_level != expected_level:
-                # یک خطا برای فیلد سطح خاص اضافه کنید
-                self.add_error(
-                    level_field_name,
-                    _("سطح پست باید بر اساس والد ({}) {} باشد.").format(
-                        post.parent.name if post.parent else _("بدون والد"),
-                        expected_level
-                    )
-                )
-                logger.warning(
-                    f"سطح نامعتبر {new_level} برای پست {post.name}. مورد انتظار: {expected_level}. والد: {post.parent.name if post.parent else 'None'}")
+        # اعتبارسنجی: برای APPROVE و REJECT نیاز به stage و stage_order است
+        if action_type in ['APPROVED', 'REJECTD', 'SIGN_PAYMENT'] and not stage:
+            self.add_error('stage', _('برای این نوع اقدام، نام مرحله الزامی است.'))
+        if action_type in ['APPROVED', 'REJECTD', 'SIGN_PAYMENT'] and not stage_order:
+            self.add_error('stage_order', _('برای این نوع اقدام، ترتیب مرحله الزامی است.'))
 
-        # اطمینان از انتخاب حداقل یک قانون (اعتبارسنجی موجود شما)
-        # این بررسی ممکن است نیاز به تنظیم داشته باشد اگر فیلدهای 'rule_' شما مستقیماً در سطح بالای cleaned_data نباشند.
-        # این فرض می‌کند rule_field.name مستقیماً 'rule_{post.id}_...' است.
-        if not any(value for name, value in cleaned_data.items() if name.startswith('rule_') and value):
-            self.add_error(None, _("حداقل یک قانون دسترسی باید انتخاب شود."))
-            logger.warning("هیچ قانون دسترسی انتخاب نشده است.")
+        # اعتبارسنجی: stage_order باید مثبت باشد
+        if stage_order is not None and stage_order < 1:
+            self.add_error('stage_order', _('ترتیب مرحله باید یک عدد مثبت باشد.'))
 
-        logger.debug(f"اعتبارسنجی فرم به پایان رسید. کلیدهای داده‌های پاک‌شده: {list(cleaned_data.keys())}")
+        # اعتبارسنجی: min_level باید مثبت باشد
+        min_level = cleaned_data.get('min_level')
+        if min_level is not None and min_level < 1:
+            self.add_error('min_level', _('حداقل سطح باید یک عدد مثبت باشد.'))
+
         return cleaned_data
-
-    def save(self, user=None):  # آرگومان user را بپذیرید
-        logger.info("شروع عملیات ذخیره قوانین دسترسی.")
-
-        managed_post_ids = {post_data['post'].id for post_data in self.post_fields_data}
-        if not managed_post_ids:
-            logger.info("هیچ پستی توسط این فرم مدیریت نمی‌شود. از ذخیره خارج می‌شویم.")
-            return
-
-        # 1. به‌روزرسانی سطح پست‌ها
-        posts_to_update_individually = []
-        for post_data in self.post_fields_data:
-            post_obj = post_data['post']
-            level_field_name = post_data['level_field'].name
-            new_level = self.cleaned_data.get(level_field_name)
-
-            if new_level is not None and new_level != post_obj.level:
-                # برای ثبت تاریخچه و فراخوانی Post.save()، پست را به لیست اضافه کنید
-                # PostHistory در Post.save() با استفاده از changed_by ایجاد خواهد شد
-                post_obj.level = new_level  # سطح را روی آبجکت تغییر دهید
-                posts_to_update_individually.append(post_obj)
-                logger.debug(
-                    f"پست {post_obj.name} (ID: {post_obj.id}) برای به‌روزرسانی سطح به {new_level} آماده می‌شود.")
-
-        if posts_to_update_individually:
-            for post_obj in posts_to_update_individually:
-                # فراخوانی save() روی هر پست به صورت تک‌تک، Post.save() را اجرا می‌کند
-                # این کار باعث ثبت تاریخچه می‌شود
-                post_obj.save(changed_by=user)  # changed_by را به save مدل ارسال کنید
-            logger.info(f"سطوح {len(posts_to_update_individually)} پست به صورت تک‌تک به‌روزرسانی شد.")
-
-        # 2. حذف قوانین قبلی برای پست‌های مدیریت شده
-        AccessRule.objects.filter(post__id__in=managed_post_ids).delete()
-        logger.info(f"قوانین دسترسی موجود برای پست‌های با IDهای: {list(managed_post_ids)} حذف شد.")
-
-        # 3. ایجاد قوانین دسترسی جدید
-        rules_to_create = []
-        for post_data in self.post_fields_data:
-            post_obj = post_data['post']
-            for entity_group in post_data['entity_groups']:
-                entity_type = entity_group['entity_id']
-                for rule_item in entity_group['rules']:
-                    action_type = rule_item['action_id']
-                    stage_obj = rule_item['stage_obj']
-
-                    rule_field_name = rule_item['rule_field'].name
-                    is_active = self.cleaned_data.get(rule_field_name, False)
-
-                    is_payment_order_signer = False
-                    if rule_item['is_signer_field'] and action_type == 'SIGN_PAYMENT':
-                        signer_field_name = rule_item['is_signer_field'].name
-                        is_payment_order_signer = self.cleaned_data.get(signer_field_name, False)
-                        # اگر قانون اصلی فعال نیست، امضاکننده هم نباید فعال باشد
-                        if not is_active:
-                            is_payment_order_signer = False
-
-                    if is_active:  # فقط قوانینی که فعال هستند را ایجاد کنید
-                        rules_to_create.append(
-                            AccessRule(
-                                post=post_obj,
-                                organization=post_obj.organization,
-                                branch=post_obj.branch or '',  # اطمینان از مقداردهی صحیح branch
-                                stage=stage_obj,
-                                action_type=action_type,
-                                entity_type=entity_type,
-                                is_active=True,
-                                is_payment_order_signer=is_payment_order_signer
-                            )
-                        )
-                        logger.debug(
-                            f"قانون برای ایجاد آماده می‌شود: پست={post_obj.name}, موجودیت={entity_type}, اقدام={action_type}, مرحله={stage_obj.name}, امضاکننده={is_payment_order_signer}")
-
-        if rules_to_create:
-            # از ignore_conflicts=True برای جلوگیری از خطای تکراری در صورت وجود UniqueConstraint استفاده کنید
-            AccessRule.objects.bulk_create(rules_to_create, ignore_conflicts=True)
-            logger.info(f"با موفقیت {len(rules_to_create)} قانون دسترسی جدید ایجاد شد.")
-        else:
-            logger.info("هیچ قانون فعالی انتخاب نشد، بنابراین هیچ قانون جدیدی ایجاد نشد.")
-
-        logger.info("عملیات ذخیره قوانین دسترسی به پایان رسید.")
-
-    # def clean(self):
-    #     cleaned_data = super().clean()
-    #     logger.debug("Starting form cleaning process.")
-    #
-    #     # No specific cross-field validation needed here as the form structure
-    #     # implies the stage is tied to the rule field name itself.
-    #     # The JS ensures signer checkbox is disabled if rule is unchecked.
-    #
-    #     # Example of a general form-level validation (as in your original code)
-    #     if not any(value for name, value in cleaned_data.items() if name.startswith('rule_') and value):
-    #         self.add_error(None, _("حداقل یک قانون دسترسی باید انتخاب شود."))
-    #         logger.warning("No access rules selected.")
-    #
-    #     logger.debug(f"Form cleaning complete. Cleaned data keys: {list(cleaned_data.keys())}")
-    #     return cleaned_data
-
-    # def save(self):
-    #     """
-    #     Saves the access rules based on the cleaned_data.
-    #     This method will delete existing rules for the managed posts and create new ones.
-    #     """
-    #     logger.info("Starting save operation for Access Rules.")
-    #
-    #     # Collect post IDs that were part of this form submission
-    #     managed_post_ids = {post_data['post'].id for post_data in self.post_fields_data}
-    #     if not managed_post_ids:
-    #         logger.info("No posts managed by this form submission. Exiting save.")
-    #         return
-    #
-    #     # 1. Update Post Levels
-    #     posts_to_update = []
-    #     for post_data in self.post_fields_data:
-    #         post_obj = post_data['post']
-    #         level_field_name = post_data['level_field'].name
-    #         new_level = self.cleaned_data.get(level_field_name)
-    #
-    #         if new_level is not None and new_level != post_obj.level:
-    #             post_obj.level = new_level
-    #             posts_to_update.append(post_obj)
-    #             logger.debug(f"Post {post_obj.name} (ID: {post_obj.id}) level updated to {new_level}")
-    #
-    #     if posts_to_update:
-    #         Post.objects.bulk_update(posts_to_update, ['level'])
-    #         logger.info(f"Updated levels for {len(posts_to_update)} posts.")
-    #
-    #     # 2. Delete existing AccessRules for the managed posts
-    #     # We delete all existing rules for these posts and then recreate them
-    #     AccessRule.objects.filter(post__id__in=managed_post_ids).delete()
-    #     logger.info(f"Deleted existing access rules for posts with IDs: {list(managed_post_ids)}")
-    #
-    #     # 3. Create new AccessRules based on the form's cleaned data
-    #     rules_to_create = []
-    #     for post_data in self.post_fields_data:
-    #         post_obj = post_data['post']
-    #         for entity_group in post_data['entity_groups']:
-    #             entity_type = entity_group['entity_id']
-    #             for rule_item in entity_group['rules']:
-    #                 action_type = rule_item['action_id']
-    #                 stage_obj = rule_item['stage_obj']
-    #
-    #                 rule_field_name = rule_item['rule_field'].name
-    #                 is_active = self.cleaned_data.get(rule_field_name, False)
-    #
-    #                 is_payment_order_signer = False
-    #                 if rule_item['is_signer_field'] and action_type == 'SIGN_PAYMENT':
-    #                     signer_field_name = rule_item['is_signer_field'].name
-    #                     is_payment_order_signer = self.cleaned_data.get(signer_field_name, False)
-    #                     # If the main rule is not active, the signer should also not be active
-    #                     if not is_active:
-    #                         is_payment_order_signer = False
-    #
-    #                 if is_active:  # Only create rules that are active
-    #                     rules_to_create.append(
-    #                         AccessRule(
-    #                             post=post_obj,
-    #                             organization=post_obj.organization,
-    #                             branch=post_obj.branch,  # Assuming branch is a CharField, otherwise handle None
-    #                             stage=stage_obj,
-    #                             action_type=action_type,
-    #                             entity_type=entity_type,
-    #                             is_active=True,  # Explicitly set to True for created rules
-    #                             is_payment_order_signer=is_payment_order_signer
-    #                         )
-    #                     )
-    #                     logger.debug(
-    #                         f"Preparing to create rule: Post={post_obj.name}, Entity={entity_type}, Action={action_type}, Stage={stage_obj.name}, Signer={is_payment_order_signer}")
-    #
-    #     if rules_to_create:
-    #         AccessRule.objects.bulk_create(rules_to_create,
-    #                                        ignore_conflicts=True)  # Use ignore_conflicts for safety if unique_together is set
-    #         logger.info(f"Successfully created {len(rules_to_create)} new access rules.")
-    #     else:
-    #         logger.info("No active rules were selected, so no new rules were created.")
-    #
-    #     logger.info("Access Rule save operation complete.")
-
-
-# budgets/forms.py
-
-from django import forms
-from django.utils.translation import gettext_lazy as _
-from core.models import Post, WorkflowStage, AccessRule  # اطمینان حاصل کنید که مدل‌های مورد نیاز وارد شده‌اند
-import logging
-
-logger = logging.getLogger(__name__)
-
-# لیست‌های ثابت برای انواع موجودیت و اقدام
-MANAGED_ENTITIES = [
-    ('FACTOR', _('فاکتور')),
-    ('TANKHAH', _('تنخواه')),
-    ('BUDGET', _('بودجه')),
-    ('PAYMENTORDER', _('دستور پرداخت')),
-    ('REPORTS', _('گزارشات')),
-]
-
-MANAGED_ACTIONS = [
-    ('APPROVE', _('تأیید')),
-    ('REJECT', _('رد')),
-    ('VIEW', _('مشاهده')),
-    ('SIGN_PAYMENT', _('امضای دستور پرداخت')),
-]
-
-# اقدامات نیازمند انتخاب مرحله
-ACTIONS_REQUIRING_STAGE_SELECTION = ['APPROVE', 'REJECT']
-
-
 class PostAccessRuleForm(forms.Form):
     """
     فرم پویا برای انتساب قوانین دسترسی به پست‌ها بر اساس مراحل گردش کار.
@@ -590,7 +253,7 @@ class PostAccessRuleForm(forms.Form):
                             action_type=action_code,
                             is_active=True
                         ).first()
-                        initial_stage_id = str(current_rule.stage.id) if current_rule and current_rule.stage else ''
+                        initial_stage_id = str(current_rule.stage) if current_rule and current_rule.stage else ''
 
                         self.fields[radio_field_name] = forms.ChoiceField(
                             label=action_label,
@@ -686,7 +349,7 @@ class PostAccessRuleForm(forms.Form):
                             action_type=action_code,
                             is_active=True
                         ).first()
-                        initial_stage_id = str(current_rule.stage.id) if current_rule and current_rule.stage else ''
+                        initial_stage_id = str(current_rule.stage) if current_rule and current_rule.stage else ''
 
                         self.fields[radio_field_name] = forms.ChoiceField(
                             label=action_label,
@@ -853,3 +516,356 @@ class PostAccessRuleForm(forms.Form):
             logger.info("هیچ قانون فعالی انتخاب نشد، بنابراین هیچ قانون جدیدی ایجاد نشد.")
 
         logger.info("عملیات ذخیره قوانین دسترسی به پایان رسید.")
+
+ACTIONS_REQUIRING_STAGE_SELECTION = ['APPROVE', 'REJECT']
+ACTIONS_WITHOUT_STAGE = ['EDIT', 'VIEW', 'STATUS_CHANGE', 'CREATE', 'DELETE', 'SIGN_PAYMENT']
+
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _immediate  # اضافه کردن تابع ترجمه فوری
+
+class PostAccessRuleForm_new(forms.Form):
+
+    def __init__(self, *args, **kwargs):
+        self.posts_query = kwargs.pop('posts_query', None)
+        super().__init__(*args, **kwargs)
+        logger.info("مقداردهی اولیه PostAccessRuleForm.")
+
+        if not self.posts_query:
+            logger.warning("No posts_query provided to PostAccessRuleForm.")
+            return
+
+        self.post_fields_data = []
+        self.existing_rules = AccessRule.objects.filter(post__in=self.posts_query, is_active=True).select_related('post')
+
+        for post in self.posts_query:
+            post_data = {'post': post, 'level_field': None, 'entity_groups': []}
+            # فیلد برای سطح پست
+            field_name = f'post_{post.id}_level'
+            self.fields[field_name] = forms.IntegerField(
+                label=_immediate('سطح پست %(post_name)s') % {'post_name': post.name},
+                required=False,
+                min_value=1,
+                initial=post.level,
+                widget=forms.NumberInput(attrs={'class': 'form-control'})
+            )
+            post_data['level_field'] = self[field_name]
+
+            # گروه‌بندی قوانین بر اساس موجودیت
+            entity_groups = {}
+            for entity_type, entity_label in ENTITY_TYPES:
+                entity_groups[entity_type] = {
+                    'entity_id': entity_type,
+                    'entity_label': entity_label,
+                    'rules': [],
+                    'enable_all_field': None,
+                    'new_stage_field': None,
+                    'has_stage_actions': any(action_type in ACTIONS_REQUIRING_STAGE_SELECTION for action_type, _ in  ACTION_TYPES)
+                }
+
+                # فیلد "فعال‌سازی همه"
+                enable_all_field_name = f'enable_all_{post.id}_{entity_type}'
+                self.fields[enable_all_field_name] = forms.BooleanField(
+                    label=_immediate('فعال‌سازی همه برای %(entity_label)s') % {'entity_label': entity_label},
+                    required=False,
+                    widget=forms.CheckboxInput(attrs={
+                        'class': 'form-check-input enable-all-checkbox',
+                        'data-post-id': post.id,
+                        'data-entity-code': entity_type
+                    })
+                )
+                entity_groups[entity_type]['enable_all_field'] = self[enable_all_field_name]
+
+                # فیلد برای افزودن مرحله جدید
+                if entity_groups[entity_type]['has_stage_actions']:
+                    new_stage_field_name = f'new_stage_{post.id}_{entity_type}'
+                    self.fields[new_stage_field_name] = forms.CharField(
+                        label=_immediate('نام مرحله جدید برای %(entity_label)s') % {'entity_label': entity_label},
+                        required=False,
+                        widget=forms.TextInput(attrs={
+                            'class': 'form-control',
+                            'placeholder':_immediate('نام مرحله جدید (برای تأیید یا رد)')
+                        })
+                    )
+                    entity_groups[entity_type]['new_stage_field'] = self[new_stage_field_name]
+
+                # قوانین برای هر اقدام
+                for action_type, action_label in ACTION_TYPES:
+                    rule_data = {
+                        'action_id': action_type,
+                        'action_label': action_label,
+                        'field': None,
+                        'is_signer_field': None,
+                        'is_radio_select': action_type in ACTIONS_REQUIRING_STAGE_SELECTION
+                    }
+
+                    # فیلد قانون دسترسی
+                    field_name = f'rule_{post.id}_{entity_type}_{action_type}_stage_selection'
+                    existing_rule = self.existing_rules.filter(
+                        post=post,
+                        entity_type=entity_type,
+                        action_type=action_type
+                    ).first()
+
+                    if action_type in ACTIONS_REQUIRING_STAGE_SELECTION:
+                        # استخراج مراحل منحصربه‌فرد
+                        stages = AccessRule.objects.filter(
+                            organization=post.organization,
+                            entity_type=entity_type,
+                            action_type=action_type,
+                            is_active=True
+                        ).values('stage_order', 'stage').order_by('stage_order')
+                        seen = set()
+                        unique_stages = []
+                        for stage in stages:
+                            stage_tuple = (stage['stage_order'], stage['stage'] or f"مرحله {stage['stage_order']}")
+                            if stage_tuple not in seen:
+                                seen.add(stage_tuple)
+                                unique_stages.append(stage)
+
+                        choices = [('', _immediate('غیرفعال'))]
+                        if unique_stages:
+                            choices += [
+                                (str(stage['stage_order']), f"{stage['stage'] or 'مرحله ' + str(stage['stage_order'])} (ترتیب: {stage['stage_order']})")
+                                for stage in unique_stages
+                            ]
+                        else:
+                            choices += [('', _immediate('هیچ مرحله‌ای تعریف نشده است، لطفاً مرحله جدید اضافه کنید'))]
+
+                        self.fields[field_name] = forms.ChoiceField(
+                            label=action_label,
+                            choices=choices,
+                            required=False,
+                            initial=str(existing_rule.stage_order) if existing_rule else '',
+                            widget=forms.RadioSelect(attrs={
+                                'class': 'stage-radio-group',
+                                'data-post-id': post.id,
+                                'data-entity-code': entity_type,
+                                'data-action-code': action_type
+                            })
+                        )
+                    else:
+                        self.fields[field_name] = forms.BooleanField(
+                            label=action_label,
+                            required=False,
+                            initial=bool(existing_rule),
+                            widget=forms.CheckboxInput(attrs={
+                                'class': 'form-check-input rule-checkbox',
+                                'data-post-id': post.id,
+                                'data-entity-code': entity_type,
+                                'data-action-code': action_type
+                            })
+                        )
+                    rule_data['field'] = self[field_name]
+
+                    # فیلد امضاکننده (فقط برای SIGN_PAYMENT در PAYMENTORDER و FACTOR)
+                    if entity_type in ['PAYMENTORDER', 'FACTOR'] and action_type == 'SIGN_PAYMENT':
+                        signer_field_name = f'signer_{post.id}_{entity_type}_{action_type}'
+                        self.fields[signer_field_name] = forms.BooleanField(
+                            label=_immediate('امضاکننده'),
+                            required=False,
+                            initial=existing_rule.triggers_payment_order if existing_rule else False,
+                            widget=forms.CheckboxInput(attrs={
+                                'class': 'form-check-input signer-checkbox',
+                                'data-post-id': post.id,
+                                'data-entity-code': entity_type,
+                                'data-action-code': action_type
+                            })
+                        )
+                        rule_data['is_signer_field'] = self[signer_field_name]
+
+                    entity_groups[entity_type]['rules'].append(rule_data)
+
+                post_data['entity_groups'] = list(entity_groups.values())
+            self.post_fields_data.append(post_data)
+
+        logger.info("مقداردهی اولیه PostAccessRuleForm به پایان رسید.")
+
+    def clean(self):
+        logger.debug("شروع فرآیند اعتبارسنجی فرم PostAccessRuleForm.")
+        cleaned_data = super().clean()
+        has_any_rule = False
+
+        for post in self.posts_query:
+            for entity_type, _ in ENTITY_TYPES:
+                new_stage_field_name = f'new_stage_{post.id}_{entity_type}'
+                new_stage_name = cleaned_data.get(new_stage_field_name, '').strip()
+
+                # بررسی اقدامات نیازمند مرحله
+                for action_type in ACTIONS_REQUIRING_STAGE_SELECTION:
+                    field_name = f'rule_{post.id}_{entity_type}_{action_type}_stage_selection'
+                    stage_order = cleaned_data.get(field_name)
+
+                    if stage_order and stage_order != '':
+                        try:
+                            stage_order = int(stage_order)
+                            has_any_rule = True
+                            if not AccessRule.objects.filter(
+                                    organization=post.organization,
+                                    entity_type=entity_type,
+                                    action_type=action_type,
+                                    stage_order=stage_order,
+                                    is_active=True
+                            ).exists():
+                                self.add_error(field_name, _('مرحله انتخاب‌شده وجود ندارد یا غیرفعال است.'))
+                        except ValueError:
+                            self.add_error(field_name, _('ترتیب مرحله باید یک عدد معتبر باشد.'))
+                    elif new_stage_name:
+                        has_any_rule = True
+                        for at in ACTIONS_REQUIRING_STAGE_SELECTION:
+                            fn = f'rule_{post.id}_{entity_type}_{at}_stage_selection'
+                            if fn in cleaned_data and cleaned_data[fn]:
+                                has_any_rule = True
+                                break
+                        else:
+                            self.add_error(new_stage_field_name,
+                                           _('برای افزودن مرحله جدید، حداقل یک اقدام نیازمند مرحله (تأیید یا رد) باید انتخاب شود.'))
+
+                # بررسی اقدامات بدون مرحله
+                for action_type in ACTIONS_WITHOUT_STAGE:
+                    field_name = f'rule_{post.id}_{entity_type}_{action_type}_stage_selection'
+                    if cleaned_data.get(field_name):
+                        has_any_rule = True
+
+                # اعتبارسنجی امضاکننده
+                if entity_type in ['PAYMENTORDER', 'FACTOR']:
+                    signer_field_name = f'signer_{post.id}_{entity_type}_SIGN_PAYMENT'
+                    if cleaned_data.get(signer_field_name) and not cleaned_data.get(
+                            f'rule_{post.id}_{entity_type}_SIGN_PAYMENT_stage_selection'):
+                        self.add_error(signer_field_name,
+                                       _('برای فعال کردن امضاکننده، باید گزینه امضای دستور پرداخت فعال باشد.'))
+
+        if not has_any_rule:
+            logger.warning("هیچ قانون دسترسی انتخاب نشده است.")
+            self.add_error(None, _('حداقل یک قانون دسترسی باید انتخاب شود.'))
+
+        logger.debug(f"اعتبارسنجی فرم به پایان رسید. کلیدهای داده‌های پاک‌شده: {list(cleaned_data.keys())}")
+        return cleaned_data
+
+    def save(self, user):
+        with transaction.atomic():
+            for post in self.posts_query:
+                # به‌روزرسانی سطح پست
+                level_field_name = f'post_{post.id}_level'
+                if level_field_name in self.cleaned_data and self.cleaned_data[level_field_name]:
+                    post.level = self.cleaned_data[level_field_name]
+                    post.save()
+
+                # مدیریت قوانین دسترسی
+                for entity_type, _ in ENTITY_TYPES:
+                    new_stage_name = self.cleaned_data.get(f'new_stage_{post.id}_{entity_type}', '').strip()
+                    new_stage_order = None
+                    if new_stage_name or any(
+                        self.cleaned_data.get(f'rule_{post.id}_{entity_type}_{at}_stage_selection')
+                        for at in ACTIONS_REQUIRING_STAGE_SELECTION
+                    ):
+                        # محاسبه stage_order با در نظر گرفتن سازمان
+                        max_stage_order = AccessRule.objects.filter(
+                            organization=post.organization,
+                            entity_type=entity_type,
+                            is_active=True
+                        ).aggregate(Max('stage_order'))['stage_order__max'] or 0
+                        new_stage_order = max_stage_order + 1
+
+                    for action_type, _ in ACTION_TYPES:
+                        field_name = f'rule_{post.id}_{entity_type}_{action_type}_stage_selection'
+                        rule_value = self.cleaned_data.get(field_name)
+                        existing_rule = AccessRule.objects.filter(
+                            post=post,
+                            entity_type=entity_type,
+                            action_type=action_type,
+                            is_active=True
+                        ).first()
+
+                        if action_type in ACTIONS_REQUIRING_STAGE_SELECTION:
+                            # مدیریت قوانین با مرحله
+                            stage_order = int(rule_value) if rule_value and rule_value != '' else None
+                            if new_stage_name and not stage_order:
+                                stage_order = new_stage_order
+                            if stage_order:
+                                # بررسی یکتایی stage_order
+                                if AccessRule.objects.filter(
+                                    organization=post.organization,
+                                    entity_type=entity_type,
+                                    stage_order=stage_order,
+                                    is_active=True
+                                ).exclude(pk=existing_rule.pk if existing_rule else None).exists():
+                                    logger.error(f"تکرار stage_order={stage_order} برای سازمان={post.organization}, موجودیت={entity_type}")
+                                    raise ValueError(
+                                        _immediate("ترتیب مرحله {stage_order} برای سازمان {org} و موجودیت {entity} قبلاً استفاده شده است.").format(
+                                            stage_order=stage_order,
+                                            org=post.organization,
+                                            entity=entity_type
+                                        )
+                                    )
+                                stage_name = new_stage_name if new_stage_name else next(
+                                    (rule.stage for rule in AccessRule.objects.filter(
+                                        organization=post.organization,
+                                        entity_type=entity_type,
+                                        stage_order=stage_order,
+                                        is_active=True
+                                    )), f"مرحله {stage_order}"
+                                )
+                                if existing_rule and existing_rule.stage_order != stage_order:
+                                    existing_rule.is_active = False
+                                    existing_rule.save()
+                                    existing_rule = None
+                                if not existing_rule:
+                                    AccessRule.objects.create(
+                                        organization=post.organization,
+                                        post=post,
+                                        branch=post.branch or '',
+                                        min_level=post.level,
+                                        stage=stage_name,
+                                        stage_order=stage_order,
+                                        action_type=action_type,
+                                        entity_type=entity_type,
+                                        is_active=True,
+                                        auto_advance=True,
+                                        triggers_payment_order=False,
+                                        is_final_stage=(stage_order == AccessRule.objects.filter(
+                                            organization=post.organization,
+                                            entity_type=entity_type,
+                                            is_active=True
+                                        ).aggregate(Max('stage_order'))['stage_order__max']),
+                                        min_signatures=1,
+                                        created_by=user
+                                    )
+                            elif existing_rule:
+                                existing_rule.is_active = False
+                                existing_rule.save()
+                        else:
+                            # مدیریت قوانین بدون مرحله
+                            if rule_value and not existing_rule:
+                                AccessRule.objects.create(
+                                    organization=post.organization,
+                                    post=post,
+                                    branch=post.branch or '',
+                                    min_level=post.level,
+                                    stage='',
+                                    stage_order=0,
+                                    action_type=action_type,
+                                    entity_type=entity_type,
+                                    is_active=True,
+                                    auto_advance=False,
+                                    triggers_payment_order=False,
+                                    is_final_stage=False,
+                                    min_signatures=1,
+                                    created_by=user
+                                )
+                            elif not rule_value and existing_rule:
+                                existing_rule.is_active = False
+                                existing_rule.save()
+
+                        # مدیریت امضاکننده
+                        signer_field_name = f'signer_{post.id}_{entity_type}_{action_type}'
+                        if signer_field_name in self.cleaned_data and self.cleaned_data[signer_field_name]:
+                            rule = AccessRule.objects.filter(
+                                post=post,
+                                entity_type=entity_type,
+                                action_type=action_type,
+                                is_active=True
+                            ).first()
+                            if rule:
+                                rule.triggers_payment_order = True
+                                rule.created_by = user
+                                rule.save()

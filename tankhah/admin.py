@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
 
-from tankhah.models import Tankhah, Factor, ApprovalLog, ItemCategory
+from tankhah.models import Tankhah, Factor, ApprovalLog, ItemCategory , StageApprover
 
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -187,8 +187,32 @@ class ApprovalAdmin(admin.ModelAdmin):
 
 admin.site.register(ItemCategory)
 
+
 from .models import ItemCategory
 admin.register(ItemCategory)
 class ItemCategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'min_stage_order')
     search_fields = ('name',)
+
+
+
+from django.contrib import admin
+from tankhah.models import StageApprover
+from core.models import AccessRule
+
+@admin.register(StageApprover)
+class StageApproverAdmin(admin.ModelAdmin):
+    list_display = ('stage', 'post', 'entity_type', 'action', 'is_active')
+    list_filter = ('stage', 'entity_type', 'is_active')
+    search_fields = ('post__name', 'stage__name')
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        # همزمان AccessRule را به‌روزرسانی کنید
+        AccessRule.objects.get_or_create(
+            post=obj.post,
+            stage=obj.stage,
+            action_type=obj.action,
+            entity_type=obj.entity_type,
+            defaults={'is_active': obj.is_active}
+        )

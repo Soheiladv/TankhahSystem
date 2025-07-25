@@ -18,7 +18,7 @@ from django.views.generic import ListView
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import PermissionDenied
-from tankhah.models import Tankhah, Factor, WorkflowStage
+from tankhah.models import Tankhah, Factor
 from core.models import Post, UserPost, AccessRule, PostAction, Organization
 from django.db.models import Q
 import logging
@@ -29,7 +29,7 @@ from django.views.generic import DetailView
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import PermissionDenied
-from tankhah.models import Tankhah, Factor, ApprovalLog, WorkflowStage
+from tankhah.models import Tankhah, Factor, ApprovalLog
 from core.models import Post, UserPost, AccessRule, Organization
 
 
@@ -329,7 +329,7 @@ class TankhahStatusView(PermissionBaseView, ListView):
         # جمع‌آوری اطلاعات مراحل و وضعیت‌ها
         tankhahs_data = []
         for tankhah in self.object_list:
-            factors = tankhah.factors.all().select_related('current_stage')
+            factors = tankhah.factors.all()#.select_related('current_stage')
             payment_stage = WorkflowStage.objects.filter(triggers_payment_order=True, is_active=True).first()
 
             # وضعیت بودجه
@@ -399,7 +399,7 @@ class old__TankhahApprovalTimelineView(PermissionRequiredMixin, DetailView):
 
         # اطلاعات تنخواه
         context['title'] = _(':توجه خطاها را اصلاح کنید') + f" - {tankhah.number}"
-        context['factors'] = tankhah.factors.all().select_related('current_stage')
+        context['factors'] = tankhah.factors.all()#.select_related('current_stage')
 
         # دریافت تمام مراحل فعال
         stages = WorkflowStage.objects.filter(is_active=True).order_by('order')

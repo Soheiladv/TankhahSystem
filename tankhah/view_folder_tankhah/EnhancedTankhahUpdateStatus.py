@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum
 from core.PermissionBase import PermissionBaseView
 from core.models import Post
-from tankhah.models import Tankhah, Factor, WorkflowStage, StageApprover, ApprovalLog, CustomUser
+from tankhah.models import Tankhah, Factor , StageApprover, ApprovalLog, CustomUser
 from budgets.models import PaymentOrder, Payee
 from notificationApp.models import  NotificationRule
 import logging
