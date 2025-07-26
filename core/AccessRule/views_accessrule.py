@@ -292,7 +292,7 @@ class OK__PostAccessRuleAssignView(FormView):
             messages.warning(self.request, f"{_('خطای عمومی')}: {error}")
 
         return super().form_invalid(form)
-
+# kjbjgjhg
 #---- ایجاد قانون
 class PostAccessRuleAssignView(PermissionBaseView, FormView):
     template_name = 'core/accessrule/post_access_rule_assignnew.html'
