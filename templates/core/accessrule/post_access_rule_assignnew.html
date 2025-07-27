@@ -1,328 +1,335 @@
 {% extends 'base.html' %}
-{% load i18n static %}
+{% load i18n static rcms_custom_filters %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4 text-right">{{ title }}</h1>
-
-    <div class="card shadow-lg border-0 rounded-3">
-        <div class="card-header bg-primary text-white text-right d-flex justify-content-between align-items-center py-3">
-            <h5 class="my-0 fw-bold">{% trans "تنظیم قوانین دسترسی پست‌ها" %}</h5>
-            <i class="fas fa-cogs fa-lg opacity-75"></i>
-        </div>
-
-        <div class="card-body p-4">
-            <!-- راهنما -->
-            <div class="alert alert-info text-right mb-4">
-                <strong>{% trans "راهنما" %}:</strong> {% trans "برای هر پست، حداقل یک قانون دسترسی (مانند ایجاد، حذف، ویرایش، مشاهده، تأیید، رد یا امضای دستور پرداخت) انتخاب کنید. برای اقدامات تأیید و رد، یک مرحله جدید یا موجود انتخاب کنید. توجه: ترتیب مراحل (stage_order) برای هر سازمان و موجودیت باید یکتا باشد." %}
+    <div class="container mt-4">
+        <h1 class="mb-4 text-right">{{ title }}</h1>
+        <div class="card shadow-lg border-0 rounded-3">
+            <div class="card-header bg-primary text-white text-right d-flex justify-content-between align-items-center py-3">
+                <h5 class="my-0 fw-bold">{% trans "تنظیم قوانین دسترسی پست‌ها" %}</h5>
+                <i class="fas fa-cogs fa-lg opacity-75"></i>
             </div>
-
-            <!-- پیام‌های فلاش -->
-            {% if messages %}
-                <div class="mb-4">
-                    {% for message in messages %}
-                        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% else %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show text-right" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
+            <div class="card-body p-4">
+                <!-- راهنما -->
+                <div class="alert alert-info text-right mb-4">
+                    {% trans "برای هر پست، حداقل یک قانون دسترسی (مانند ایجاد، حذف، ویرایش، مشاهده، تأیید یا رد) انتخاب کنید. برای اقدامات تأیید و رد، یک مرحله جدید یا موجود انتخاب کنید." %}
                 </div>
-            {% endif %}
 
-            <!-- خطاهای غیرفیلدی -->
-            {% if form.non_field_errors %}
-                <div class="alert alert-danger text-right mb-4" role="alert">
-                    <strong>{% trans "خطاهای فرم:" %}</strong>
-                    <ul class="list-unstyled mb-0">
-                        {% for error in form.non_field_errors %}
-                            <li>{{ error }}</li>
+                <!-- پیام‌های فلاش -->
+                {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                            <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% else %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show text-right"
+                                 role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                        aria-label="Close"></button>
+                            </div>
                         {% endfor %}
-                    </ul>
-                </div>
-            {% endif %}
-
-            <form method="post" id="accessRuleForm">
-                {% csrf_token %}
-
-                {% if form.post_fields_data %}
-                    <div class="mb-3 d-flex justify-content-end">
-                        <button type="button" id="open-all-btn" class="btn btn-outline-primary me-2">{% trans "باز کردن همه" %}</button>
-                        <button type="button" id="close-all-btn" class="btn btn-outline-secondary">{% trans "بستن همه" %}</button>
                     </div>
+                {% endif %}
 
-                    <div class="accordion" id="postsAccordion">
-                        {% for post_data in form.post_fields_data %}
-                            <div class="accordion-item mb-3 border rounded-3 shadow-sm">
-                                <h2 class="accordion-header" id="headingPost{{ post_data.post.id }}">
-                                    <button class="accordion-button collapsed text-right bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePost{{ post_data.post.id }}" aria-expanded="false" aria-controls="collapsePost{{ post_data.post.id }}">
+                <!-- خطاهای غیرفیلدی -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger text-right mb-4">
+                        <strong>{% trans "خطاهای فرم:" %}</strong>
+                        <ul class="list-unstyled mb-0">
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <form method="post" id="accessRuleForm">
+                    {% csrf_token %}
+                    {% if form.post_fields_data %}
+                        <div class="mb-3 d-flex justify-content-end">
+                            <button type="button" id="open-all-btn"
+                                    class="btn btn-outline-primary me-2">{% trans "باز کردن همه" %}</button>
+                            <button type="button" id="close-all-btn"
+                                    class="btn btn-outline-secondary">{% trans "بستن همه" %}</button>
+                        </div>
+                        <div class="accordion" id="postsAccordion">
+                            {% for post_data in form.post_fields_data %}
+                                <div class="accordion-item mb-3 border rounded-3 shadow-sm">
+                                    <h5 style="color: greenyellow"  class="accordion-header">ردیف: {{ forloop.counter |to_persian_number }}</h5>
+                                    <h2 class="accordion-header" id="headingPost{{ post_data.post.id }}">
+                                        <button class="accordion-button collapsed text-right bg-light" type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#collapsePost{{ post_data.post.id }}"
+                                                aria-expanded="false"
+                                                aria-controls="collapsePost{{ post_data.post.id }}">
                                         <span class="d-flex align-items-center flex-grow-1">
                                             <i class="fas fa-sitemap fa-lg me-2 text-primary"></i>
                                             <strong>{{ post_data.post.name }}</strong>
                                             <small class="text-muted ms-2">
                                                 ({{ post_data.post.organization.name|default:_("بدون سازمان") }}
-                                                {% if post_data.post.branch %} - {{ post_data.post.get_branch_display }}{% endif %}
+                                                {% if post_data.post.branch %} -
+                                                    {{ post_data.post.branch.name }}{% endif %}
                                                 - {% trans "سطح" %}: {{ post_data.post.level }})
                                             </small>
                                         </span>
-                                    </button>
-                                </h2>
-                                <div id="collapsePost{{ post_data.post.id }}" class="accordion-collapse collapse" aria-labelledby="headingPost{{ post_data.post.id }}" data-bs-parent="#postsAccordion">
-                                    <div class="accordion-body p-4 bg-white">
-                                        <!-- تغییر سطح پست -->
-                                        <div class="row mb-4">
-                                            <label for="{{ post_data.level_field.id_for_label }}" class="col-sm-3 col-form-label text-right fw-bold">{% trans "سطح پست" %}:</label>
-                                            <div class="col-sm-9">
-                                                {{ post_data.level_field }}
-                                                {% if post_data.level_field.errors %}
-                                                    <div class="text-danger small mt-1">{{ post_data.level_field.errors|join:", " }}</div>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-
-                                        <!-- قوانین دسترسی -->
-                                        <h5 class="mb-3 text-right text-primary">{% trans "قوانین دسترسی" %}</h5>
-                                        <div class="accordion" id="entitiesAccordion{{ post_data.post.id }}">
-                                            {% for entity_group in post_data.entity_groups %}
-                                                <div class="accordion-item mb-2 border rounded-2">
-                                                    <h2 class="accordion-header" id="headingEntity{{ post_data.post.id }}{{ entity_group.entity_id }}">
-                                                        <button class="accordion-button collapsed text-right bg-info-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEntity{{ post_data.post.id }}{{ entity_group.entity_id }}" aria-expanded="false" aria-controls="collapseEntity{{ post_data.post.id }}{{ entity_group.entity_id }}">
+                                        </button>
+                                    </h2>
+                                    <div id="collapsePost{{ post_data.post.id }}" class="accordion-collapse collapse"
+                                         aria-labelledby="headingPost{{ post_data.post.id }}"
+                                         data-bs-parent="#postsAccordion">
+                                        <div class="accordion-body p-4 bg-white">
+                                            <h5 class="mb-3 text-right text-primary">{% trans "قوانین دسترسی" %}</h5>
+                                            <div class="accordion" id="entitiesAccordion{{ post_data.post.id }}">
+                                                {% for entity_group in post_data.entity_groups %}
+                                                    <div class="accordion-item mb-2 border rounded-2">
+                                                        <h2 class="accordion-header" id="headingEntity
+                                                                {{ post_data.post.id }}{{ entity_group.entity_id }}">
+                                                            <button class="accordion-button collapsed text-right bg-info-subtle"
+                                                                    type="button" data-bs-toggle="collapse"
+                                                                    data-bs-target="#collapseEntity
+                                                                            
+                                                                            {{ post_data.post.id }}{{ entity_group.entity_id }}"
+                                                                    aria-expanded="false" aria-controls="collapseEntity
+                                                                    
+                                                                    {{ post_data.post.id }}{{ entity_group.entity_id }}">
                                                             <span class="d-flex align-items-center flex-grow-1">
                                                                 <i class="fas fa-cube me-2 text-info"></i>
                                                                 {{ entity_group.entity_label }}
                                                             </span>
-                                                            <div class="form-check form-switch ms-auto me-2">
-                                                                {{ entity_group.enable_all_field }}
-                                                                <label class="form-check-label small text-muted" for="{{ entity_group.enable_all_field.id_for_label }}">{% trans "فعال‌سازی همه" %}</label>
-                                                            </div>
-                                                        </button>
-                                                    </h2>
-                                                    <div id="collapseEntity{{ post_data.post.id }}{{ entity_group.entity_id }}" class="accordion-collapse collapse" aria-labelledby="headingEntity{{ post_data.post.id }}{{ entity_group.entity_id }}" data-bs-parent="#entitiesAccordion{{ post_data.post.id }}">
-                                                        <div class="accordion-body p-3">
-                                                            <!-- فیلد مرحله جدید -->
-                                                            {% if entity_group.has_stage_actions %}
-                                                                <div class="row mb-3">
-                                                                    <label for="{{ entity_group.new_stage_field.id_for_label }}" class="col-sm-3 col-form-label text-right">{% trans "افزودن مرحله جدید" %}:</label>
-                                                                    <div class="col-sm-9">
-                                                                        {{ entity_group.new_stage_field }}
-                                                                        <small class="text-muted">{% trans "نام مرحله جدید برای اقدامات تأیید یا رد (مثال: 'تأیید مدیر'). اگر خالی باشد، از نام پیش‌فرض (مثل 'مرحله 1') استفاده می‌شود. ترتیب مرحله باید یکتا باشد." %}</small>
-                                                                        {% if entity_group.new_stage_field.errors %}
-                                                                            <div class="text-danger small mt-1">{{ entity_group.new_stage_field.errors|join:", " }}</div>
-                                                                        {% endif %}
-                                                                    </div>
+                                                                <div class="form-check form-switch ms-auto me-2">
+                                                                    {{ entity_group.enable_all_field }}
+                                                                    <label class="form-check-label small text-muted"
+                                                                           for="{{ entity_group.enable_all_field.id_for_label }}">{% trans "فعال‌سازی همه" %}</label>
                                                                 </div>
-                                                            {% endif %}
-                                                            <table class="table table-sm table-hover text-right">
-                                                                <thead class="table-light">
+                                                            </button>
+                                                        </h2>
+                                                        <div id="collapseEntity
+                                                                {{ post_data.post.id }}{{ entity_group.entity_id }}"
+                                                             class="accordion-collapse collapse"
+                                                             aria-labelledby="headingEntity
+                                                                     
+                                                                     {{ post_data.post.id }}{{ entity_group.entity_id }}"
+                                                             data-bs-parent="#entitiesAccordion{{ post_data.post.id }}">
+                                                            <div class="accordion-body p-3">
+                                                                {% if entity_group.has_stage_actions %}
+                                                                    <div class="row mb-3">
+                                                                        <label for="{{ entity_group.new_stage_field.id_for_label }}"
+                                                                               class="col-sm-3 col-form-label text-right">{% trans "مرحله جدید" %}:</label>
+                                                                        <div class="col-sm-9">
+                                                                            {{ entity_group.new_stage_field }}
+                                                                            <small class="form-text text-muted">{% trans "نام مرحله جدید (مثال: 'تأیید مدیر')." %}</small>
+                                                                            {% if entity_group.new_stage_field.errors %}
+                                                                                <div class="text-danger small mt-1">{{ entity_group.new_stage_field.errors|join:", " }}</div>
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    </div>
+                                                                {% endif %}
+                                                                <table class="table table-sm table-hover text-right">
+                                                                    <thead class="table-light">
                                                                     <tr>
                                                                         <th>{% trans "اقدام" %}</th>
                                                                         <th class="text-center">{% trans "مرحله/فعال" %}</th>
                                                                         <th class="text-center">{% trans "امضاکننده" %}</th>
                                                                     </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                         {% for rule_item in entity_group.rules %}
-    <tr>
-        <td>{{ rule_item.action_label }}</td>
-        <td class="text-center">
-            {% if rule_item.is_radio_select %}
-                <div class="d-flex flex-column align-items-center">
-                    {% for id, name in rule_item.field.field.choices %}
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input stage-radio-input" type="radio" name="{{ rule_item.field.html_name }}" id="{{ rule_item.field.auto_id }}_{{ forloop.counter0 }}" value="{{ id }}" {% if id == rule_item.field.value %}checked{% endif %}>
-                            <label class="form-check-label small" for="{{ rule_item.field.auto_id }}_{{ forloop.counter0 }}">{{ name }}</label>
-                        </div>
-                    {% endfor %}
-                    {% if rule_item.field.errors %}
-                        <div class="text-danger small mt-1">{{ rule_item.field.errors|join:", " }}</div>
-                    {% endif %}
-                </div>
-            {% else %}
-                <div class="form-check form-switch">
-                    {{ rule_item.field }}
-                    <label class="form-check-label" for="{{ rule_item.field.id_for_label }}"></label>
-                    {% if rule_item.field.errors %}
-                        <div class="text-danger small mt-1">{{ rule_item.field.errors|join:", " }}</div>
-                    {% endif %}
-                </div>
-            {% endif %}
-        </td>
-        <td class="text-center">
-            {% if rule_item.is_signer_field %}
-                <div class="form-check form-switch">
-                    {{ rule_item.is_signer_field }}
-                    <label class="form-check-label" for="{{ rule_item.is_signer_field.id_for_label }}"></label>
-                    {% if rule_item.is_signer_field.errors %}
-                        <div class="text-danger small mt-1">{{ rule_item.is_signer_field.errors|join:", " }}</div>
-                    {% endif %}
-                </div>
-            {% else %}
-                <span class="text-muted">—</span>
-            {% endif %}
-        </td>
-    </tr>
-{% endfor %}
-                                                                </tbody>
-                                                            </table>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                    {% for rule_item in entity_group.rules %}
+                                                                        <tr>
+                                                                            <td>{{ rule_item.action_label }}</td>
+                                                                            <td class="text-center">
+                                                                                {% if rule_item.is_radio_select %}
+                                                                                    <div class="d-flex flex-column align-items-center">
+                                                                                        {% for id, name in rule_item.field.field.choices %}
+                                                                                            <div class="form-check form-check-inline">
+                                                                                                <input class="form-check-input stage-radio-input"
+                                                                                                       type="radio"
+                                                                                                       name="{{ rule_item.field.html_name }}"
+                                                                                                       id="{{ rule_item.field.auto_id }}_{{ forloop.counter0 }}"
+                                                                                                       value="{{ id }}"
+                                                                                                       {% if id == rule_item.field.value %}checked{% endif %}>
+                                                                                                <label class="form-check-label small"
+                                                                                                       for="{{ rule_item.field.auto_id }}_{{ forloop.counter0 }}">{{ name }}</label>
+                                                                                            </div>
+                                                                                        {% endfor %}
+                                                                                        {% if rule_item.field.errors %}
+                                                                                            <div class="text-danger small mt-1">{{ rule_item.field.errors|join:", " }}</div>
+                                                                                        {% endif %}
+                                                                                    </div>
+                                                                                {% else %}
+                                                                                    <div class="form-check form-switch">
+                                                                                        {{ rule_item.field }}
+                                                                                        <label class="form-check-label"
+                                                                                               for="{{ rule_item.field.id_for_label }}"></label>
+                                                                                        {% if rule_item.field.errors %}
+                                                                                            <div class="text-danger small mt-1">{{ rule_item.field.errors|join:", " }}</div>
+                                                                                        {% endif %}
+                                                                                    </div>
+                                                                                {% endif %}
+                                                                            </td>
+                                                                            <td class="text-center">
+                                                                                {% if rule_item.is_signer_field %}
+                                                                                    <div class="form-check form-switch">
+                                                                                        {{ rule_item.is_signer_field }}
+                                                                                        <label class="form-check-label"
+                                                                                               for="{{ rule_item.is_signer_field.id_for_label }}"></label>
+                                                                                        {% if rule_item.is_signer_field.errors %}
+                                                                                            <div class="text-danger small mt-1">{{ rule_item.is_signer_field.errors|join:", " }}</div>
+                                                                                        {% endif %}
+                                                                                    </div>
+                                                                                {% else %}
+                                                                                    <span class="text-muted">—</span>
+                                                                                {% endif %}
+                                                                            </td>
+                                                                        </tr>
+                                                                    {% endfor %}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            {% endfor %}
+                                                {% endfor %}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- دکمه‌های فرم -->
-                    <div class="d-flex justify-content-end mt-4">
-                        <button type="submit" class="btn btn-primary me-2">
-                            <i class="fas fa-save me-1"></i> {% trans "ذخیره" %}
-                        </button>
-                        <a href="{% url 'accessrule_list' %}" class="btn btn-secondary">{% trans "لغو" %}</a>
-                    </div>
-                {% else %}
-                    <div class="alert alert-info text-center">{% trans "هیچ پست فعالی یافت نشد." %}</div>
-                {% endif %}
-            </form>
+                            {% endfor %}
+                        </div>
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-save me-1"></i> {% trans "ذخیره" %}
+                            </button>
+                            <a href="{% url 'accessrule_list' %}" class="btn btn-secondary">{% trans "لغو" %}</a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info text-center">{% trans "هیچ پست فعالی یافت نشد." %}</div>
+                    {% endif %}
+                </form>
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}
 
-
 {% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('accessRuleForm');
-    if (!form) return;
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('accessRuleForm');
+            if (!form) return;
 
-    // فعال/غیرفعال کردن چک‌باکس امضاکننده
-    const toggleSignerCheckbox = (ruleCheckbox) => {
-        const signerCheckbox = ruleCheckbox.closest('tr').querySelector('.signer-checkbox');
-        if (signerCheckbox) {
-            signerCheckbox.disabled = !ruleCheckbox.checked;
-            if (!ruleCheckbox.checked) signerCheckbox.checked = false;
-        }
-    };
+            const toggleSignerCheckbox = (ruleCheckbox) => {
+                const signerCheckbox = ruleCheckbox.closest('tr').querySelector('.signer-checkbox');
+                if (signerCheckbox) {
+                    signerCheckbox.disabled = !ruleCheckbox.checked;
+                    if (!ruleCheckbox.checked) signerCheckbox.checked = false;
+                }
+            };
 
-    // به‌روزرسانی وضعیت چک‌باکس "فعال‌سازی همه"
-    const updateEnableAllState = (enableAllCheckbox) => {
-        const { postId, entityCode } = enableAllCheckbox.dataset;
-        const groupRules = form.querySelectorAll(`.rule-checkbox[data-post-id="${postId}"][data-entity-code="${entityCode}"], .stage-radio-group[data-post-id="${postId}"][data-entity-code="${entityCode}"]`);
-        let allChecked = true;
-        let anyChecked = false;
+            const updateEnableAllState = (enableAllCheckbox) => {
+                const {postId, entityCode} = enableAllCheckbox.dataset;
+                const groupRules = form.querySelectorAll(`.rule-checkbox[data-post-id="${postId}"][data-entity-code="${entityCode}"], .stage-radio-group[data-post-id="${postId}"][data-entity-code="${entityCode}"]`);
+                let allChecked = true, anyChecked = false;
 
-        for (let element of groupRules) {
-            if (element.classList.contains('rule-checkbox')) {
-                if (element.checked) anyChecked = true;
-                else allChecked = false;
-            } else if (element.classList.contains('stage-radio-group')) {
-                const checkedRadio = element.querySelector('input[type="radio"]:checked');
-                if (checkedRadio && checkedRadio.value) anyChecked = true;
-                else allChecked = false;
-            }
-        }
+                groupRules.forEach(element => {
+                    if (element.classList.contains('rule-checkbox')) {
+                        if (element.checked) anyChecked = true;
+                        else allChecked = false;
+                    } else {
+                        const checkedRadio = element.querySelector('input[type="radio"]:checked');
+                        if (checkedRadio && checkedRadio.value) anyChecked = true;
+                        else allChecked = false;
+                    }
+                });
 
-        enableAllCheckbox.checked = allChecked;
-        enableAllCheckbox.indeterminate = anyChecked && !allChecked;
-    };
+                enableAllCheckbox.checked = allChecked;
+                enableAllCheckbox.indeterminate = anyChecked && !allChecked;
+            };
 
-    // مدیریت تغییر "فعال‌سازی همه"
-    const handleEnableAllCheckboxes = (enableAllCheckbox) => {
-        const { postId, entityCode } = enableAllCheckbox.dataset;
-        const isChecked = enableAllCheckbox.checked;
+            const handleEnableAllCheckboxes = (enableAllCheckbox) => {
+                const {postId, entityCode} = enableAllCheckbox.dataset;
+                const isChecked = enableAllCheckbox.checked;
 
-        form.querySelectorAll(`.rule-checkbox[data-post-id="${postId}"][data-entity-code="${entityCode}"]`).forEach(cb => {
-            cb.checked = isChecked;
-            toggleSignerCheckbox(cb);
-        });
+                form.querySelectorAll(`.rule-checkbox[data-post-id="${postId}"][data-entity-code="${entityCode}"]`).forEach(cb => {
+                    cb.checked = isChecked;
+                    toggleSignerCheckbox(cb);
+                });
 
-        form.querySelectorAll(`.stage-radio-group[data-post-id="${postId}"][data-entity-code="${entityCode}"]`).forEach(group => {
-            const radios = group.querySelectorAll('input[type="radio"]');
-            const firstOption = isChecked ? radios[1] || radios[0] : radios[0];
-            if (firstOption) firstOption.checked = true;
-        });
-    };
+                form.querySelectorAll(`.stage-radio-group[data-post-id="${postId}"][data-entity-code="${entityCode}"]`).forEach(group => {
+                    const radios = group.querySelectorAll('input[type="radio"]');
+                    const firstOption = isChecked ? radios[1] || radios[0] : radios[0];
+                    if (firstOption) firstOption.checked = true;
+                });
+            };
 
-    // باز کردن آکاردئون‌های دارای خطا یا پست‌های جستجو شده
-    const openAccordionsWithErrorsOrSearch = () => {
-        const searchQuery = new URLSearchParams(window.location.search).get('search_post');
-        form.querySelectorAll('.text-danger').forEach(errorEl => {
-            const collapse = errorEl.closest('.accordion-collapse');
-            if (collapse && !collapse.classList.contains('show')) {
-                new bootstrap.Collapse(collapse, { toggle: true });
-            }
-            const parentCollapse = collapse?.closest('.accordion-item')?.closest('.accordion-collapse');
-            if (parentCollapse && !parentCollapse.classList.contains('show')) {
-                new bootstrap.Collapse(parentCollapse, { toggle: true });
-            }
-        });
+            const openAccordionsWithErrorsOrSearch = () => {
+                const searchQuery = new URLSearchParams(window.location.search).get('search_post');
+                form.querySelectorAll('.text-danger').forEach(errorEl => {
+                    const collapse = errorEl.closest('.accordion-collapse');
+                    if (collapse && !collapse.classList.contains('show')) {
+                        bootstrap.Collapse.getOrCreateInstance(collapse).show();
+                    }
+                    const parentCollapse = collapse?.closest('.accordion-item')?.closest('.accordion-collapse');
+                    if (parentCollapse && !parentCollapse.classList.contains('show')) {
+                        bootstrap.Collapse.getOrCreateInstance(parentCollapse).show();
+                    }
+                });
 
-        // باز کردن آکاردئون‌های پست‌های جستجو شده
-        if (searchQuery) {
-            form.querySelectorAll('.accordion-collapse').forEach(collapse => {
-                const postName = collapse.closest('.accordion-item').querySelector('.accordion-button strong').textContent;
-                if (postName.includes(searchQuery)) {
-                    new bootstrap.Collapse(collapse, { toggle: true });
+                if (searchQuery) {
+                    form.querySelectorAll('.accordion-collapse').forEach(collapse => {
+                        const postName = collapse.closest('.accordion-item').querySelector('.accordion-button strong').textContent;
+                        if (postName.includes(searchQuery)) {
+                            bootstrap.Collapse.getOrCreateInstance(collapse).show();
+                        }
+                    });
+                }
+            };
+
+            form.addEventListener('change', (event) => {
+                const target = event.target;
+                if (target.matches('.rule-checkbox')) {
+                    toggleSignerCheckbox(target);
+                    updateEnableAllState(form.querySelector(`.enable-all-checkbox[data-post-id="${target.dataset.postId}"][data-entity-code="${target.dataset.entityCode}"]`));
+                } else if (target.matches('.stage-radio-input')) {
+                    updateEnableAllState(form.querySelector(`.enable-all-checkbox[data-post-id="${target.closest('.stage-radio-group').dataset.postId}"][data-entity-code="${target.closest('.stage-radio-group').dataset.entityCode}"]`));
+                } else if (target.matches('.enable-all-checkbox')) {
+                    handleEnableAllCheckboxes(target);
                 }
             });
-        }
-    };
 
-    // رویدادها
-    form.addEventListener('change', (event) => {
-        const target = event.target;
-        if (target.matches('.rule-checkbox')) {
-            toggleSignerCheckbox(target);
-            updateEnableAllState(form.querySelector(`.enable-all-checkbox[data-post-id="${target.dataset.postId}"][data-entity-code="${target.dataset.entityCode}"]`));
-        } else if (target.matches('.stage-radio-input')) {
-            updateEnableAllState(form.querySelector(`.enable-all-checkbox[data-post-id="${target.closest('.stage-radio-group').dataset.postId}"][data-entity-code="${target.closest('.stage-radio-group').dataset.entityCode}"]`));
-        } else if (target.matches('.enable-all-checkbox')) {
-            handleEnableAllCheckboxes(target);
-        }
-    });
+            document.getElementById('open-all-btn')?.addEventListener('click', () => {
+                document.querySelectorAll('#postsAccordion .accordion-collapse').forEach(el => bootstrap.Collapse.getOrCreateInstance(el).show());
+            });
 
-    // دکمه‌های باز/بستن همه آکاردئون‌ها
-    const openAllBtn = document.getElementById('open-all-btn');
-    const closeAllBtn = document.getElementById('close-all-btn');
-    if (openAllBtn && closeAllBtn) {
-        openAllBtn.addEventListener('click', () => {
-            document.querySelectorAll('#postsAccordion .accordion-collapse').forEach(el => new bootstrap.Collapse(el, { toggle: true }).show());
+            document.getElementById('close-all-btn')?.addEventListener('click', () => {
+                document.querySelectorAll('#postsAccordion .accordion-collapse').forEach(el => bootstrap.Collapse.getOrCreateInstance(el).hide());
+            });
+
+            document.querySelectorAll('.rule-checkbox').forEach(toggleSignerCheckbox);
+            document.querySelectorAll('.enable-all-checkbox').forEach(updateEnableAllState);
+            setTimeout(openAccordionsWithErrorsOrSearch, 100);
+
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
         });
-        closeAllBtn.addEventListener('click', () => {
-            document.querySelectorAll('#postsAccordion .accordion-collapse').forEach(el => new bootstrap.Collapse(el, { toggle: true }).hide());
-        });
-    }
+    </script>
 
-    // راه‌اندازی اولیه
-    document.querySelectorAll('.rule-checkbox').forEach(toggleSignerCheckbox);
-    document.querySelectorAll('.enable-all-checkbox').forEach(updateEnableAllState);
-    setTimeout(openAccordionsWithErrorsOrSearch, 100);
-
-    // فعال‌سازی تولتیپ‌های بوت‌استرپ
-    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
-});
-</script>
-
-<style>
-    .accordion-button:not(.collapsed) {
-        background-color: #e7f1ff;
-        color: #0c63e4;
-    }
-    .table th, .table td {
-        vertical-align: middle;
-    }
-    @media (max-width: 767px) {
-        .table-responsive table {
-            font-size: 0.9rem;
+    <style>
+        .accordion-button:not(.collapsed) {
+            background-color: #e7f1ff;
+            color: #0c63e4;
         }
+
         .table th, .table td {
-            padding: 0.5rem;
+            vertical-align: middle;
         }
+
         .form-check-inline {
             margin-bottom: 0.5rem;
         }
-    }
-</style>
+
+        @media (max-width: 767px) {
+            .table {
+                font-size: 0.9rem;
+            }
+
+            .table th, .table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
 {% endblock %}

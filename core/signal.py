@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from tankhah.models import Tankhah
-from budgets.models import BudgetTransaction, ProjectBudgetAllocation, PaymentOrder, BudgetAllocation
+from budgets.models import BudgetTransaction,   PaymentOrder, BudgetAllocation
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from core.models import   WorkflowStage
@@ -43,7 +43,6 @@ from tankhah.models import FactorItem, Factor, Tankhah
 @receiver(post_save, sender=Tankhah)
 def handle_tankhah_status_change(sender, instance, **kwargs):
     if instance.status == 'PAID' and instance.budget_allocation:
-        # project_allocation = ProjectBudgetAllocation.objects.filter(
         project_allocation = BudgetAllocation.objects.filter(
             budget_allocation=instance.budget_allocation,
             project=instance.project,
@@ -63,7 +62,7 @@ def handle_tankhah_status_change(sender, instance, **kwargs):
 @receiver(post_save, sender=Post)
 def create_post_actions_for_post(sender, instance, created, **kwargs):
     if created or kwargs.get('update_fields') is None:
-        stages = WorkflowStage.objects.filter(is_active=True)
+        stages = AccessRule.objects.filter(is_active=True)
         entity_types = {
             'FACTORITEM': ContentType.objects.get_for_model(FactorItem).model.upper(),
             'FACTOR': ContentType.objects.get_for_model(Factor).model.upper(),
@@ -79,7 +78,7 @@ def create_post_actions_for_post(sender, instance, created, **kwargs):
                     entity_type=entity_type,
                     is_active=True
                 ).filter(
-                    models.Q(branch=instance.branch, min_level__lte=instance.level) |
+                    models.Q(branch=instance.branch.code if instance.branch else '', min_level__lte=instance.level) |
                     models.Q(is_payment_order_signer=True, entity_type='PAYMENTORDER')
                 )
 

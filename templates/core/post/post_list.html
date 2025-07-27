@@ -1,88 +1,406 @@
 {% extends 'base.html' %}
-{% load i18n static jalali_tags rcms_custom_filters %}
+{% load static i18n rcms_custom_filters %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h1 class="card-title mb-0"><i class="fas fa-list me-2"></i>{{ title }}</h1>
-            <div class="d-flex align-items-center">
-                <div class="dropdown me-3">
-                    <button class="btn btn-light dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-sort me-1"></i> {% trans "مرتب‌سازی" %}
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="sortDropdown">
-                        <li>
-                            <a class="dropdown-item {% if current_sort == 'asc' %}active{% endif %}" href="?sort=asc">
-                                <i class="fas fa-arrow-up me-1"></i> {% trans "سطح: پایین به بالا" %}
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item {% if current_sort == 'desc' %}active{% endif %}" href="?sort=desc">
-                                <i class="fas fa-arrow-down me-1"></i> {% trans "سطح: بالا به پایین" %}
-                            </a>
-                        </li>
-                    </ul>
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card animate__animated animate__fadeInDown"> {# Card entrance animation #}
+                    <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-center bg-light py-3">
+                        <h4 class="mb-2 mb-md-0 text-primary">{% trans "لیست پست‌های سازمانی" %}</h4>
+
+                        <div class="d-flex flex-column flex-md-row align-items-center w-100 w-md-auto">
+                            {# Search Form #}
+                            <form method="GET" class="d-flex me-md-2 mb-2 mb-md-0 w-100 w-md-auto">
+                                <input type="search" name="q" class="form-control form-control-sm me-2"
+                                       placeholder="{% trans 'جستجو...' %}" value="{{ search_query|default:'' }}"
+                                       aria-label="{% trans 'جستجو در پست‌ها' %}">
+                                <input type="hidden" name="sort" value="{{ current_sort }}"> {# Preserve current sort #}
+                                <button class="btn btn-outline-primary btn-sm" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </form>
+
+                            {# Sort Buttons #}
+                            <div class="btn-group btn-group-sm me-md-2 mb-2 mb-md-0" role="group"
+                                 aria-label="{% trans 'مرتب‌سازی' %}">
+                                <a href="?sort=asc{% if search_query %}&q={{ search_query }}{% endif %}"
+                                   class="btn {% if current_sort == 'asc' %}btn-primary{% else %}btn-outline-primary{% endif %}"
+                                   data-bs-toggle="tooltip" title="{% trans 'مرتب‌سازی صعودی بر اساس سطح' %}">
+                                    <i class="fas fa-sort-numeric-up"></i> {% trans "سطح صعودی" %}
+                                </a>
+                                <a href="?sort=desc{% if search_query %}&q={{ search_query }}{% endif %}"
+                                   class="btn {% if current_sort == 'desc' %}btn-primary{% else %}btn-outline-primary{% endif %}"
+                                   data-bs-toggle="tooltip" title="{% trans 'مرتب‌سازی نزولی بر اساس سطح' %}">
+                                    <i class="fas fa-sort-numeric-down"></i> {% trans "سطح نزولی" %}
+                                </a>
+                            </div>
+
+                            {# Add New Post Button #}
+                            {% if perms.core.Post_add %}
+                                <a href="{% url 'post_create' %}" class="btn btn-success btn-sm w-100 w-md-auto">
+                                    <i class="fas fa-plus me-1"></i> {% trans "پست جدید" %}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped align-middle">
+                                <thead class="table-dark">
+                                <tr>
+                                    <th width="5%">#</th>
+                                    <th>{% trans "نام پست" %}</th>
+                                    <th>{% trans "سازمان" %}</th>
+                                    <th>{% trans "شاخه" %}</th>
+                                    <th>{% trans "سطح" %}</th>
+                                    <th>{% trans "وضعیت" %}</th>
+                                    <th>{% trans "تایید نهایی" %}</th>
+                                    <th width="15%">{% trans "عملیات" %}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for post in posts %} {# Use context_object_name 'posts' #}
+                                    <tr class="animate__animated animate__fadeInUp"
+                                        style="animation-delay: {{ forloop.counter0 | multiply:0.05 }}s;">
+                                        <td>{{ forloop.counter|to_persian_number }}</td>
+                                        <td>{{ post.name }}</td>
+                                        <td>{{ post.organization.name }}</td>
+                                        <td>{{ post.branch.name|default:"-" }}</td>
+                                        <td>
+                                        <span class="badge rounded-pill bg-level-{{ post.level }}">
+                                            {{ post.level }}
+                                        </span>
+                                        </td>
+                                        <td>
+                                        <span class="badge rounded-pill bg-{% if post.is_active %}success{% else %}danger{% endif %}">
+                                            {% if post.is_active %}{% trans "فعال" %}{% else %}
+                                                {% trans "غیرفعال" %}{% endif %}
+                                        </span>
+                                        </td>
+                                        <td>
+                                            {% if post.can_final_approve_budget %}
+                                                بودجه
+                                            {% endif %}
+                                            {% if post.can_final_approve_factor %}
+                                                فاکتور
+                                            {% endif %}
+                                            {% if post.can_final_approve_tankhah %}
+                                                تنخواه
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{% url 'post_detail' post.pk %}" class="btn btn-info"
+                                                   data-bs-toggle="tooltip" title="{% trans 'مشاهده جزئیات' %}">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                {% if perms.core.Post_update %}
+                                                    <a href="{% url 'post_update' post.pk %}" class="btn btn-warning"
+                                                       data-bs-toggle="tooltip" title="{% trans 'ویرایش' %}">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                {% endif %}
+                                                {% if perms.core.Post_delete %}
+                                                    <button class="btn btn-danger delete-btn" data-id="{{ post.pk }}"
+                                                            data-bs-toggle="tooltip" title="{% trans 'حذف' %}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr class="animate__animated animate__fadeIn">
+                                        <td colspan="7" class="text-center py-4 text-muted">
+                                            <i class="fas fa-database fa-2x mb-2"></i>
+                                            <p>{% trans "هیچ پست سازمانی یافت نشد." %}</p>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {# Django Pagination #}
+                    {% if is_paginated %}
+                        <div class="card-footer bg-light py-3">
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center mb-0">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=
+                                                    {{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}"
+                                               aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for num in page_obj.paginator.page_range %}
+                                        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                            <a class="page-link" href="?page=
+                                                    {{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">{{ num }}</a>
+                                        </li>
+                                    {% endfor %}
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=
+                                                    {{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}"
+                                               aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    {% endif %}
                 </div>
-                <a href="{% url 'post_create' %}" class="btn btn-light btn-sm"><i class="fas fa-plus me-1"></i>{% trans "ایجاد پست" %}</a>
             </div>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover table-sm">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>{% trans "ردیف" %}</th>
-                            <th>{% trans "نام" %}</th>
-                            <th>{% trans "سازمان" %}</th>
-                            <th>{% trans "سطح" %}</th>
-                            <th>{% trans "شاخه" %}</th>
-                            <th>{% trans "اقدامات" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for post in posts %}
-                            <tr>
-                                <td>{{ forloop.counter|to_persian_number }}</td>
-                                <td>{{ post.name }}</td>
-                                <td>{{ post.organization }}</td>
-                                <td>{{ post.level }}</td>
-                                <td>{{ post.get_branch_display|default:'-' }}</td>
-                                <td>
-                                    <a href="{% url 'post_detail' post.pk %}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
-                                    <a href="{% url 'post_update' post.pk %}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
-                                    <a href="{% url 'post_delete' post.pk %}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
-                                </td>
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="6" class="text-center">{% trans "پستی یافت نشد." %}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% include 'core/pagination.html' %}
         </div>
     </div>
-</div>
 
-<style>
-    .dropdown-menu {
-        min-width: 200px;
-    }
-    .dropdown-item:hover {
-        background-color: #f1f1f1;
-    }
-    .dropdown-item.active {
-        background-color: #007bff;
-        color: white;
-    }
-    .btn-light {
-        transition: background-color 0.3s;
-    }
-    .btn-light:hover {
-        background-color: #e9ecef;
-    }
-</style>
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content animate__animated animate__zoomIn">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">{% trans "تأیید حذف" %}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>{% trans "آیا از حذف این پست سازمانی اطمینان دارید؟" %}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">{% trans "انصراف" %}</button>
+                    <form id="deleteForm" method="post" action="">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">{% trans "حذف" %}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+          integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <style>
+        /* General Card & Button Styling */
+        .card {
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            border-radius: 0.75rem;
+            overflow: hidden; /* Ensures shadows and borders are contained */
+        }
+
+        .card-header {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background-color: #f8f9fa !important;
+            color: #343a40 !important;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .card-footer {
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            background-color: #f8f9fa !important;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .btn {
+            transition: all 0.3s ease;
+            border-radius: 0.375rem;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+        }
+
+        .btn-outline-primary {
+            color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+
+        .btn-info {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #212529; /* Darker text for warning */
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        /* Table Specific Styling */
+        .table thead th {
+            border-bottom: 2px solid #dee2e6;
+            vertical-align: middle;
+            text-align: right; /* RTL support */
+        }
+
+        .table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(0, 123, 255, 0.05); /* Light blue hover effect */
+        }
+
+        .table td, .table th {
+            padding: 0.75rem 1.5rem; /* More padding for spacious feel */
+        }
+
+        /* Level Badges - Consistent Colors */
+        .badge.bg-level-1 {
+            background-color: #007bff !important;
+        }
+
+        /* Primary blue */
+        .badge.bg-level-2 {
+            background-color: #28a745 !important;
+        }
+
+        /* Success green */
+        .badge.bg-level-3 {
+            background-color: #ffc107 !important;
+            color: #212529 !important;
+        }
+
+        /* Warning yellow */
+        .badge.bg-level-4 {
+            background-color: #17a2b8 !important;
+        }
+
+        /* Info cyan */
+        .badge.bg-level-5 {
+            background-color: #dc3545 !important;
+        }
+
+        /* Danger red */
+        /* Add more levels if needed for distinct colors */
+        .badge.rounded-pill {
+            padding: 0.5em 0.8em;
+            font-size: 0.8em;
+            min-width: 50px; /* Ensure badges have a minimum width */
+        }
+
+        /* Animations */
+        .animate__animated.animate__fadeInDown {
+            animation-duration: 0.8s;
+        }
+
+        .animate__animated.animate__fadeInUp {
+            animation-duration: 0.6s;
+        }
+
+        .animate__animated.animate__zoomIn {
+            animation-duration: 0.4s;
+        }
+
+        /* Responsive Adjustments for Header */
+        @media (max-width: 767.98px) {
+            .card-header {
+                flex-direction: column;
+                align-items: stretch !important;
+            }
+
+            .card-header h4 {
+                text-align: center;
+                margin-bottom: 1rem;
+            }
+
+            .card-header .d-flex {
+                flex-direction: column;
+                align-items: stretch !important;
+            }
+
+            .card-header .d-flex > * {
+                width: 100% !important;
+                margin-bottom: 0.5rem;
+            }
+
+            .card-header .d-flex > *:last-child {
+                margin-bottom: 0;
+            }
+
+            .form-control-sm, .btn-sm {
+                height: calc(1.5em + 0.5rem + 2px); /* Adjust height for consistent sizing */
+                padding: 0.25rem 0.5rem;
+                font-size: 0.875rem;
+                border-radius: 0.2rem;
+            }
+        }
+
+    </style>
+{% endblock %}
+
+{% block extra_js %}
+    {# Ensure Bootstrap's JS bundle (which includes Tooltip, Modal) is loaded #}
+    {# Example: <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Tooltip initialization
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Delete button click handler
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const postId = this.dataset.id;
+                    const deleteUrl = `{% url 'post_delete' 0 %}`.replace('0', postId);
+                    const deleteForm = document.getElementById('deleteForm');
+                    deleteForm.setAttribute('action', deleteUrl);
+
+                    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+                    deleteModal.show();
+                });
+            });
+
+            // Function to apply animations on table rows after page load
+            // This provides a staggered entrance effect for each row
+            function applyRowAnimations() {
+                const rows = document.querySelectorAll('tbody tr.animate__fadeInUp');
+                rows.forEach((row, index) => {
+                    row.style.animationDelay = `${index * 0.05}s`;
+                    row.classList.add('animate__animated'); // Re-add if removed by other processes
+                });
+            }
+
+            // Call animation on DOMContentLoaded
+            applyRowAnimations();
+        });
+    </script>
 {% endblock %}

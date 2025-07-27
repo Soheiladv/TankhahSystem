@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ title }}</h2>
+    <hr>
+    <div class="alert alert-warning" role="alert">
+        <p>{% translate "آیا مطمئن هستید که می‌خواهید شاخه سازمانی زیر را حذف کنید؟ این عمل غیرقابل بازگشت است." %}</p>
+        <p><strong>{% translate "کد شاخه" %}:</strong> {{ branch.code }}</p>
+        <p><strong>{% translate "نام شاخه" %}:</strong> {{ branch.name }}</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">{% translate "بله، حذف کن" %}</button>
+        <a href="{% url 'branch_detail' branch.pk %}" class="btn btn-secondary">{% translate "لغو" %}</a>
+    </form>
+</div>
+{% endblock %}

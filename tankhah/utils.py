@@ -76,11 +76,12 @@ def get_factor_current_stage(factor):
     """
     logger.debug(f"[get_factor_current_stage] Fetching stage for factor {factor.number}")
     try:
+
         last_log = ApprovalLog.objects.filter(
-            factor=factor,
-            content_type=ContentType.objects.get_for_model(factor),
-            object_id=factor.id
-        ).order_by('-timestamp').first()
+                factor=factor,
+                content_type=ContentType.objects.get_for_model(factor),
+                object_id=factor.id
+            ).order_by('-timestamp').first()
 
         if last_log and last_log.stage:
             logger.debug(f"[get_factor_current_stage] Found stage_order {last_log.stage} from ApprovalLog")
@@ -88,7 +89,7 @@ def get_factor_current_stage(factor):
 
         first_rule = AccessRule.objects.filter(
             entity_type='FACTOR',
-            action_type='APPROVE',
+            action_type='APPROVED',
             stage_order=1,
             is_active=True
         ).first()
@@ -96,7 +97,19 @@ def get_factor_current_stage(factor):
             logger.debug(f"[get_factor_current_stage] Found stage_order {first_rule.stage_order} from AccessRule")
             return first_rule.stage_order
         logger.debug("[get_factor_current_stage] No ApprovalLog or AccessRule found, returning default stage 1")
+        if factor:
+            latest_log = ApprovalLog.objects.filter(factor=factor).order_by('-timestamp').first()
+            if latest_log and latest_log.stage:
+                logger.debug(
+                    f"[get_factor_current_stage] Found stage_order {latest_log.stage.stage_order} from ApprovalLog")
+                return latest_log.stage.stage_order
+            elif factor.tankhah.current_stage:
+                logger.debug(
+                    f"[get_factor_current_stage] Using tankhah current stage: {factor.tankhah.current_stage.stage_order}")
+                return factor.tankhah.current_stage.stage_order
+        logger.debug("[get_factor_current_stage] No stage found, returning default stage_order=1")
         return 1
+
     except Exception as e:
         logger.error(f"[get_factor_current_stage] Error for factor {factor.number}: {str(e)}", exc_info=True)
         return 1

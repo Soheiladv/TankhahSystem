@@ -49,6 +49,13 @@ urlpatterns = [
     path('tankhah/<int:pk>/timeline/', TankhahApprovalTimelineView.as_view(), name='tankhah_approval_timeline'),
 
     path('factors/', FactorListView.as_view(), name='factor_list'),
+    # path('factor/list/', FactorListView.as_view(), name='factor_list'),  # Example success URL
+    # path('factor/create/wizard/',  FactorWizardView.as_view(views.FACTOR_FORMS), name='factor_wizard'), # Wizard URL
+    path('ajax/tankhah-budget-info/<int:tankhah_id>/', TankhahBudgetInfoAjaxView.as_view(), name='tankhah_budget_info_ajax'),  # AJAX URL
+    path('factor/list2/', FactorListView2.as_view(), name='factor_list2'),  # Example success URL
+    path('factor/list3/', OptimizedFactorListView.as_view(), name='factor_list3'),  # Example success URL
+
+
     path('factor/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'),
     path('factor/create/', FactorCreateView.as_view(), name='factor_create'),
     path('factor/create/new/', New_FactorCreateView.as_view(), name='Nfactor_create'),
@@ -58,13 +65,14 @@ urlpatterns = [
     # path('factor/<int:pk>/update/', oldd__FactorUpdateView.as_view(), name='factor_update'),
 
     path('factors/<int:pk>/edit/', FactorUpdateView.as_view(), name='factor_edit'),
-
+    path('factor/<int:pk>/status-update/', FactorStatusUpdateView.as_view(), name='factor_status_update'),
 
     path('factor/<int:pk>/delete/', FactorDeleteView.as_view(), name='factor_delete'),
-    path('factor/<int:pk>/approve/',      FactorApproveView.as_view(),     name='factor_approve'),
-    path('factor-item/<int:pk>/approve/', FactorItemApproveView.as_view(), name='factor_item_approve'),
+
+    path('factor/<int:pk>/approve/',        FactorApproveView.as_view(),      name='factor_approve'),
+    path('factor/<int:pk>/approval-path/',  FactorApprovalPathView.as_view(), name='factor_approval_path'), # مسیر تایید فاکتورها
+    path('factor-item/<int:pk>/approve/',   FactorItemApproveView.as_view(), name='factor_item_approve'),
     path('factor-item/<int:pk>/reject/', FactorItemRejectView.as_view(), name='factor_item_reject'),
-    path('factor/<int:pk>/status-update/', FactorStatusUpdateView.as_view(), name='factor_status_update'),
 
     # path('factor-items/<int:pk>/factoritemsdetail', FactorItemsDetailView, name='factor_items_detail'),
 
@@ -81,18 +89,8 @@ urlpatterns = [
     path('get_budget_info/', BudgetCheckView.as_view(), name='budget_check'),
 ]
 urlpatterns += [
-    # ... other urls ...
-    # path('factor/create/wizard/',  FactorWizardView.as_view(views.FACTOR_FORMS), name='factor_wizard'), # Wizard URL
-    path('ajax/tankhah-budget-info/<int:tankhah_id>/',  TankhahBudgetInfoAjaxView.as_view(), name='tankhah_budget_info_ajax'), # AJAX URL
-    path('factor/list/',   FactorListView.as_view(), name='factor_list'), # Example success URL
-    path('factor/list2/',  FactorListView2.as_view(), name='factor_list2'), # Example success URL
-    path('factor/list3/',  OptimizedFactorListView.as_view(), name='factor_list3'), # Example success URL
-
-    path('factor/<int:pk>/approval-path/', FactorApprovalPathView.as_view(), name='factor_approval_path'),#مسیر تایید فاکتورها
-
     path('factor/factor_status_dashboard/', FactorStatusDashboardView.as_view(), name='factor_status_dashboard'),
 
-    # ... other factor related urls ...
 ]
 
 urlpatterns += [

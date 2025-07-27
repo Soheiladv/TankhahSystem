@@ -6,7 +6,7 @@ from Tanbakhsystem.widgets import NumberToWordsWidget
 from accounts.models import TimeLockModel
 from budgets.models import BudgetAllocation
 from core.models import Project, Organization, UserPost, Post, PostHistory, WorkflowStage, SubProject, OrganizationType, \
-    SystemSettings
+    SystemSettings, AccessRule, Branch, PostAction
 from django import forms
 from .models import Project, Organization
 from django.utils.translation import gettext_lazy as _
@@ -304,54 +304,73 @@ class OrganizationForm(forms.ModelForm):
             'description': _('توضیحات'),
         }
 # -- new
+from django import forms
+from .models import Post, Branch, Organization
+from tankhah.models import AccessRule, PostAction
+
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['name', 'organization', 'parent', 'level', 'branch', 'description','max_change_level','is_active']
+        fields = [
+            'name', 'organization', 'parent', 'branch', 'description',
+            'is_active', 'max_change_level', 'is_payment_order_signer',
+            'can_final_approve_factor', 'can_final_approve_tankhah', 'can_final_approve_budget'
+        ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام پست'}),
             'organization': forms.Select(attrs={'class': 'form-control'}),
             'parent': forms.Select(attrs={'class': 'form-control'}),
-            'level': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'branch': forms.Select(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'max_change_level': forms.NumberInput(attrs={'class': 'form-control', 'min': 1,'max': 1, 'placeholder': 'حداکثر سطح تغییر(ارجاع به مرحله قبل تر)'}),
-            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input' , 'placeholder': 'فعال'}),
+            'max_change_level': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'placeholder': 'حداکثر سطح تغییر'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['workflow_stages'] = forms.ModelMultipleChoiceField(
-            queryset=WorkflowStage.objects.all(),
+        self.fields['branch'].queryset = Branch.objects.filter(is_active=True)
+        self.fields['parent'].queryset = Post.objects.filter(is_active=True).exclude(pk=self.instance.pk if self.instance.pk else None)
+        self.fields['access_rules'] = forms.ModelMultipleChoiceField(
+            queryset=AccessRule.objects.filter(is_active=True),
             widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
             required=False,
             label=_('مراحل تأیید'),
-            initial=WorkflowStage.objects.filter(stageapprover__post=self.instance,
-                                                 stageapprover__is_active=True) if self.instance.pk else None
+            initial=AccessRule.objects.filter(postactions__post=self.instance, postactions__is_active=True) if self.instance.pk else None
         )
 
     def save(self, commit=True):
         post = super().save(commit=False)
         if commit:
-            post.save()
-            # به‌روزرسانی StageApprover
-            selected_stages = self.cleaned_data.get('workflow_stages', [])
-            from tankhah.models import StageApprover
-            current_approvers = StageApprover.objects.filter(post=post)
-            current_stages = set(current_approvers.values_list('stage_id', flat=True))
+            post.save(changed_by=self.instance.changed_by or self._user)
+            selected_rules = self.cleaned_data.get('access_rules', [])
+            current_actions = PostAction.objects.filter(post=post)
+            current_rule_ids = set(current_actions.values_list('stage_id', flat=True))
 
-            # حذف مراحل غیرانتخاب‌شده
-            StageApprover.objects.filter(
+            PostAction.objects.filter(
                 post=post,
-                stage__in=WorkflowStage.objects.exclude(id__in=[s.id for s in selected_stages])
+                stage__in=AccessRule.objects.exclude(id__in=[r.id for r in selected_rules])
             ).delete()
 
-            # اضافه کردن مراحل جدید
-            for stage in selected_stages:
-                if stage.id not in current_stages:
-                    StageApprover.objects.create(post=post, stage=stage, is_active=True)
+            for rule in selected_rules:
+                if rule.id not in current_rule_ids:
+                    PostAction.objects.create(
+                        post=post,
+                        stage=rule,
+                        action_type=rule.action_type,
+                        entity_type=rule.entity_type,
+                        is_active=True
+                    )
 
         return post
+
+    def _get_user(self):
+        """Helper to access user from the view."""
+        return getattr(self, '_user', None)
+
+    def __init__(self, *args, user=None, **kwargs):
+        self._user = user  # Store user for use in save
+        super().__init__(*args, **kwargs)
+
 
 class UserPostForm(forms.ModelForm):
     class Meta:

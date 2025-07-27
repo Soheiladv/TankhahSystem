@@ -31,7 +31,6 @@ ENTITY_TYPE_CHOICES = [
     ('REPORTS', _('گزارشات')),
 ]
 from tankhah.constants import ACTION_TYPES, ENTITY_TYPES
-
 #-------------- New AccessRule Models
 class AccessRuleListView(PermissionBaseView, ListView):
     model = AccessRule
@@ -294,7 +293,8 @@ class OK__PostAccessRuleAssignView(FormView):
         return super().form_invalid(form)
 # kjbjgjhg
 #---- ایجاد قانون
-class PostAccessRuleAssignView(PermissionBaseView, FormView):
+
+class PostAccessRuleAssignView______configlit(PermissionBaseView, FormView):
     template_name = 'core/accessrule/post_access_rule_assignnew.html'
     form_class = PostAccessRuleForm_new
     success_url = reverse_lazy('accessrule_list')
@@ -351,6 +351,75 @@ class PostAccessRuleAssignView(PermissionBaseView, FormView):
                 except Post.DoesNotExist:
                     pass
             elif field.startswith('rule_') or field.startswith('signer_') or field.startswith('new_stage_'):
+                display_field_name = _("قانون دسترسی یا مرحله جدید")
+            for error in errors:
+                messages.warning(self.request, f"{_('خطا در فیلد')} {display_field_name}: {error}")
+
+        for error in form.non_field_errors():
+            messages.warning(self.request, f"{_('خطای عمومی')}: {error}")
+
+        return super().form_invalid(form)
+
+class PostAccessRuleAssignView(PermissionBaseView, FormView):
+    template_name = 'core/accessrule/post_access_rule_assignnew.html'
+    form_class = PostAccessRuleForm_new
+    success_url = reverse_lazy('accessrule_list')
+    permission_codenames = ['core.AccessRule_add', 'core.AccessRule_update']
+    check_organization = True
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _("تنظیم قوانین دسترسی پست‌ها")
+        context['action_type_choices'] =  ACTION_TYPES
+        context['entity_type_choices'] =  ENTITY_TYPES
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        # مهم: پست‌ها را بر اساس level مرتب کنید تا در فرم نیز به همین ترتیب نمایش داده شوند.
+        # این کار را قبلاً انجام داده‌اید و درست است.
+        posts_query = Post.objects.filter(is_active=True).select_related('organization', 'parent').order_by('level', 'name')
+
+        if not self.request.user.is_superuser:
+            user_orgs = self.request.user.userpost_set.filter(is_active=True).values_list('post__organization', flat=True).distinct()
+            posts_query = posts_query.filter(organization__id__in=user_orgs)
+
+        kwargs['posts_query'] = posts_query
+        logger.debug(f"Passing {posts_query.count()} posts to PostAccessRuleForm, sorted by level.")
+        return kwargs
+
+    def form_valid(self, form):
+        try:
+            with transaction.atomic():
+                # تابع save در فرم اکنون بدون تلاش برای تغییر level پست، فقط قوانین را ذخیره می‌کند.
+                form.save(user=self.request.user)
+                messages.success(self.request, _('قوانین دسترسی پست‌ها با موفقیت ذخیره شدند.'))
+                logger.info("PostAccessRuleForm successfully saved.")
+                return super().form_valid(form)
+        except ValueError as e:
+            logger.exception(f"ValueError while saving form: {str(e)}")
+            messages.error(self.request, f"{_('خطا در ذخیره‌سازی قوانین')}: {str(e)}")
+            return self.form_invalid(form)
+        except Exception as e:
+            logger.exception(f"Unexpected error while saving form: {str(e)}")
+            messages.error(self.request, _('خطای غیرمنتظره‌ای در هنگام ذخیره‌سازی رخ داد. لطفاً با پشتیبانی تماس بگیرید.'))
+            return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        logger.error(f"Form invalid. Errors: {form.errors.as_json()}, Non-field errors: {form.non_field_errors()}")
+        messages.error(self.request, _('لطفاً حداقل یک قانون دسترسی (مانند ویرایش، مشاهده، تأیید یا رد) برای یکی از پست‌ها انتخاب کنید یا ترتیب مراحل را بررسی کنید.'))
+
+        for field, errors in form.errors.items():
+            display_field_name = field
+            # این بخش مربوط به فیلد level بود که حذف خواهد شد
+            # if field.startswith('post_') and field.endswith('_level'):
+            #     post_id = field.split('_')[1]
+            #     try:
+            #         post = Post.objects.get(id=post_id)
+            #         display_field_name = f"{_('سطح پست')}: {post.name}"
+            #     except Post.DoesNotExist:
+            #         pass
+            if field.startswith('rule_') or field.startswith('signer_') or field.startswith('new_stage_'):
                 display_field_name = _("قانون دسترسی یا مرحله جدید")
             for error in errors:
                 messages.warning(self.request, f"{_('خطا در فیلد')} {display_field_name}: {error}")

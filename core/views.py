@@ -150,11 +150,10 @@ logger = logging.getLogger("DashboardFlowsView")
 from django.db import DatabaseError
 from django.core.exceptions import ObjectDoesNotExist
 
+#--------------------------------------------------------------
 
-class DashboardView_flows(  TemplateView):
+class DashboardView_flows_______(TemplateView):
     template_name = 'core/dashboard_Status_1.html'
-    # template_name = 'reports/report_Flow_tankhah/dashboard_creative_v2.html'
-    # permission_required = ('tankhah.Tankhah_view', 'tankhah.DashboardView_flows_view')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -182,7 +181,7 @@ class DashboardView_flows(  TemplateView):
                 'user_info': user_info,
                 'workflow_data': workflow_data,
                 'summary_stats': summary_stats,
-            }, 300)
+            }, 60)  # کاهش زمان کش به 60 ثانیه برای داده‌های پویا
 
         except DatabaseError as e:
             logger.error(f"خطای پایگاه داده برای کاربر {user.username}: {e}")
@@ -201,13 +200,14 @@ class DashboardView_flows(  TemplateView):
         user_posts = user.userpost_set.filter(
             is_active=True
         ).select_related(
-            'post__organization'
+            'post__organization', 'post__branch'
         ).only(
             'post__organization__org_type',
             'post__organization__name',
             'post__level',
-            'post__name'
-        ).prefetch_related('post__postaction_set')
+            'post__name',
+            'post__branch__name'
+        )
 
         user_orgs = list(set(up.post.organization for up in user_posts))
         is_hq_user = any(org.org_type.org_type == 'HQ' for org in user_orgs if org.org_type)
@@ -222,9 +222,7 @@ class DashboardView_flows(  TemplateView):
 
     def _get_workflow_data(self, user_info):
         """دریافت داده‌های گردش کار بهینه"""
-        stages = AccessRule.objects.all().order_by('order').prefetch_related(
-            'stageapprover_set__post'
-        )
+        stages = AccessRule.objects.filter(is_active=True).order_by('stage_order').select_related('post', 'organization', 'branch').distinct()
 
         workflow_data = []
         for stage in stages:
@@ -235,16 +233,20 @@ class DashboardView_flows(  TemplateView):
 
     def _process_stage_data(self, stage, user_info):
         """پردازش داده‌های هر مرحله"""
-        base_tankhah_qs = Tankhah.objects.filter(current_stage=stage)
-        base_budget_qs = BudgetAllocation.objects.all()
+        # استفاده از approval_logs برای تعیین تنخواه‌های مرتبط با مرحله
+        base_tankhah_qs = Tankhah.objects.filter(
+            approval_logs__stage=stage.stage,
+            approval_logs__stage_order=stage.stage_order
+        ).distinct()
+
+        base_budget_qs = BudgetAllocation.objects.filter(
+            stage=stage.stage,
+            stage_order=stage.stage_order
+        )
 
         if not user_info['is_admin']:
-            base_tankhah_qs = base_tankhah_qs.filter(
-                organization__in=user_info['user_orgs']
-            )
-            base_budget_qs = base_budget_qs.filter(
-                organization__in=user_info['user_orgs']
-            )
+            base_tankhah_qs = base_tankhah_qs.filter(organization__in=user_info['user_orgs'])
+            base_budget_qs = base_budget_qs.filter(organization__in=user_info['user_orgs'])
 
         tankhah_stats = base_tankhah_qs.aggregate(
             total=Count('id'),
@@ -256,18 +258,19 @@ class DashboardView_flows(  TemplateView):
         )
 
         permissions = self._get_user_stage_permissions(stage, user_info)
-        approvers = [
-            {
-                'name': approver.post.name,
-                'organization': approver.post.organization.name if approver.post.organization else None,
-                'level': approver.post.level,
-            }
-            for approver in stage.stageapprover_set.filter(is_active=True)
-        ]
+
+        approvers = []
+        if stage.post:
+            approvers.append({
+                'name': stage.post.name,
+                'organization': stage.organization.name,
+                'level': stage.post.level,
+                'branch': stage.post.branch.name if stage.post.branch else None,
+            })
 
         return {
             'stage': stage,
-            'tankhah_stats': tankhah_stats,
+            'tankhah_stats': tankhah_stats or {'total': 0, 'draft': 0, 'pending': 0, 'approved': 0, 'rejected': 0, 'paid': 0},
             'permissions': permissions,
             'approvers': approvers,
             'recent_items': self._get_recent_items(base_tankhah_qs, base_budget_qs),
@@ -279,19 +282,17 @@ class DashboardView_flows(  TemplateView):
 
         if total_items == 0:
             return {'class': 'secondary', 'label': 'خالی', 'priority': 0}
-
         if tankhah_stats['rejected'] > 0:
             return {'class': 'danger', 'label': 'رد شده', 'priority': 4}
-        elif tankhah_stats['draft'] > 0:
+        if tankhah_stats['draft'] > 0:
             return {'class': 'warning', 'label': 'پیش‌نویس', 'priority': 3}
-        elif tankhah_stats['pending'] > 0:
+        if tankhah_stats['pending'] > 0:
             return {'class': 'info', 'label': 'در انتظار', 'priority': 2}
-        elif tankhah_stats['paid'] > 0:
+        if tankhah_stats['paid'] > 0:
             return {'class': 'primary', 'label': 'پرداخت شده', 'priority': 1}
-        elif tankhah_stats['approved'] > 0:
+        if tankhah_stats['approved'] > 0:
             return {'class': 'success', 'label': 'تأیید شده', 'priority': 1}
-        else:
-            return {'class': 'info', 'label': 'در حال بررسی', 'priority': 2}
+        return {'class': 'info', 'label': 'در حال بررسی', 'priority': 2}
 
     def _get_user_stage_permissions(self, stage, user_info):
         """بررسی دسترسی‌های کاربر برای هر مرحله"""
@@ -300,29 +301,24 @@ class DashboardView_flows(  TemplateView):
             'can_reject_tankhah': False,
             'can_approve_budget': False,
             'can_reject_budget': False,
+            'can_final_approve_tankhah': False,
         }
 
         if user_info['is_admin']:
             return {key: True for key in permissions.keys()}
 
         for user_post in user_info['user_posts']:
-            post_actions = PostAction.objects.filter(
-                post=user_post.post,
-                stage=stage,
-                is_active=True
-            )
-
-            for action in post_actions:
-                if action.entity_type == 'TANKHAH':
-                    if action.action_type == 'APPROVE' and user_info['user'].has_perm('tankhah.Tankhah_approve'):
-                        permissions['can_approve_tankhah'] = True
-                    elif action.action_type == 'REJECT' and user_info['user'].has_perm('tankhah.Tankhah_reject'):
-                        permissions['can_reject_tankhah'] = True
-                elif action.entity_type == 'BUDGET_ALLOCATION':
-                    if action.action_type == 'APPROVE' and user_info['user'].has_perm('budgets.BudgetAllocation_approve'):
-                        permissions['can_approve_budget'] = True
-                    elif action.action_type == 'REJECT' and user_info['user'].has_perm('budgets.BudgetAllocation_reject'):
-                        permissions['can_reject_budget'] = True
+            if stage.post == user_post.post and stage.organization in user_info['user_orgs']:
+                if stage.action_type == 'APPROVE' and user_info['user'].has_perm('tankhah.Tankhah_approve'):
+                    permissions['can_approve_tankhah'] = True
+                if stage.action_type == 'REJECT' and user_info['user'].has_perm('tankhah.Tankhah_reject'):
+                    permissions['can_reject_tankhah'] = True
+                if stage.action_type == 'APPROVE' and user_info['user'].has_perm('budgets.BudgetAllocation_approve'):
+                    permissions['can_approve_budget'] = True
+                if stage.action_type == 'REJECT' and user_info['user'].has_perm('budgets.BudgetAllocation_reject'):
+                    permissions['can_reject_budget'] = True
+                if stage.is_final_stage and user_post.post.can_final_approve_tankhah:
+                    permissions['can_final_approve_tankhah'] = True
 
         return permissions
 
@@ -345,18 +341,14 @@ class DashboardView_flows(  TemplateView):
         base_budget_qs = BudgetAllocation.objects.all()
 
         if not user_info['is_admin']:
-            base_tankhah_qs = base_tankhah_qs.filter(
-                organization__in=user_info['user_orgs']
-            )
-            base_budget_qs = base_budget_qs.filter(
-                organization__in=user_info['user_orgs']
-            )
+            base_tankhah_qs = base_tankhah_qs.filter(organization__in=user_info['user_orgs'])
+            base_budget_qs = base_budget_qs.filter(organization__in=user_info['user_orgs'])
 
         return {
             'total_tankhahs': base_tankhah_qs.count(),
             'pending_tankhahs': base_tankhah_qs.filter(status='PENDING').count(),
             'total_budgets': base_budget_qs.count(),
-            'pending_budgets': base_budget_qs.filter(is_active=True, is_locked=False).count(),  # اصلاح شده
+            'pending_budgets': base_budget_qs.filter(is_active=True, is_locked=False).count(),
             'my_tasks': self._get_user_tasks_count(user_info),
         }
 
@@ -365,11 +357,232 @@ class DashboardView_flows(  TemplateView):
         if user_info['is_admin']:
             return Tankhah.objects.filter(status='PENDING').count()
 
-        return Tankhah.objects.filter(
-            status='PENDING',
-            organization__in=user_info['user_orgs']
-        ).count()
+        task_count = 0
+        for stage in AccessRule.objects.filter(is_active=True, organization__in=user_info['user_orgs']):
+            if stage.post in [up.post for up in user_info['user_posts']]:
+                task_count += Tankhah.objects.filter(
+                    status='PENDING',
+                    approval_logs__stage=stage.stage,
+                    approval_logs__stage_order=stage.stage_order,
+                    organization__in=user_info['user_orgs']
+                ).distinct().count()
 
+        return task_count
+
+class DashboardView_flows(TemplateView):
+    template_name = 'core/dashboard_Status_1.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        cache_key = f"dashboard_flows_{user.id}"
+        cached_data = cache.get(cache_key)
+
+        if cached_data and not self.request.GET.get('refresh'):
+            context.update(cached_data)
+            return context
+
+        try:
+            user_info = self._get_user_info(user)
+            workflow_data = self._get_workflow_data(user_info)
+            summary_stats = self._get_summary_stats(user_info)
+
+            context.update({
+                'user_info': user_info,
+                'workflow_data': workflow_data,
+                'summary_stats': summary_stats,
+                'page_title': 'داشبورد گردش کار',
+            })
+
+            cache.set(cache_key, {
+                'user_info': user_info,
+                'workflow_data': workflow_data,
+                'summary_stats': summary_stats,
+            }, 60)  # 60 ثانیه کش برای داده‌های پویا
+
+        except DatabaseError as e:
+            logger.error(f"خطای پایگاه داده برای کاربر {user.username}: {e}")
+            context['error_message'] = "خطا در ارتباط با پایگاه داده"
+        except ObjectDoesNotExist as e:
+            logger.error(f"داده‌ای برای کاربر {user.username} یافت نشد: {e}")
+            context['error_message'] = "داده‌ای یافت نشد"
+        except Exception as e:
+            logger.error(f"خطای غیرمنتظره برای کاربر {user.username}: {e}")
+            context['error_message'] = "خطا در بارگذاری داده‌ها"
+
+        return context
+
+    def _get_user_info(self, user):
+        """استخراج اطلاعات کاربر و سازمان‌ها"""
+        user_posts = user.userpost_set.filter(
+            is_active=True
+        ).select_related(
+            'post__organization', 'post__branch'
+        ).only(
+            'post__organization__org_type',
+            'post__organization__name',
+            'post__level',
+            'post__name',
+            'post__branch__name'
+        )
+
+        user_orgs = list(set(up.post.organization for up in user_posts))
+        is_hq_user = any(org.org_type.org_type == 'HQ' for org in user_orgs if org.org_type)
+
+        return {
+            'user': user,
+            'user_posts': user_posts,
+            'user_orgs': user_orgs,
+            'is_hq_user': is_hq_user,
+            'is_admin': user.is_superuser or is_hq_user,
+        }
+
+    def _get_workflow_data(self, user_info):
+        """دریافت داده‌های گردش کار بهینه"""
+        stages = AccessRule.objects.filter(is_active=True).order_by('stage_order').select_related('post', 'organization', 'branch').distinct()
+
+        workflow_data = []
+        for stage in stages:
+            stage_data = self._process_stage_data(stage, user_info)
+            workflow_data.append(stage_data)
+
+        return workflow_data
+
+    def _process_stage_data(self, stage, user_info):
+        """پردازش داده‌های هر مرحله"""
+        # به جای approval_logs، از فیلتر کلی بر اساس سازمان و status استفاده می‌کنیم
+        base_tankhah_qs = Tankhah.objects.all()
+        base_budget_qs = BudgetAllocation.objects.all()
+
+        if not user_info['is_admin']:
+            base_tankhah_qs = base_tankhah_qs.filter(organization__in=user_info['user_orgs'])
+            base_budget_qs = base_budget_qs.filter(organization__in=user_info['user_orgs'])
+
+        # برای نمایش مراحل، فرض می‌کنیم هر مرحله می‌تونه تنخواه‌های خاصی رو نشون بده
+        tankhah_stats = base_tankhah_qs.aggregate(
+            total=Count('id'),
+            draft=Count('id', filter=Q(status='DRAFT')),
+            pending=Count('id', filter=Q(status='PENDING')),
+            approved=Count('id', filter=Q(status='APPROVED')),
+            rejected=Count('id', filter=Q(status='REJECTED')),
+            paid=Count('id', filter=Q(status='PAID')),
+        )
+
+        permissions = self._get_user_stage_permissions(stage, user_info)
+
+        approvers = []
+        if stage.post:
+            approvers.append({
+                'name': stage.post.name,
+                'organization': stage.organization.name,
+                'level': stage.post.level,
+                'branch': stage.post.branch.name if stage.post.branch else None,
+            })
+
+        return {
+            'stage': stage,
+            'tankhah_stats': tankhah_stats or {'total': 0, 'draft': 0, 'pending': 0, 'approved': 0, 'rejected': 0, 'paid': 0},
+            'permissions': permissions,
+            'approvers': approvers,
+            'recent_items': self._get_recent_items(base_tankhah_qs, base_budget_qs),
+        }
+
+    def _determine_stage_status(self, tankhah_stats):
+        """تعیین وضعیت و رنگ مرحله"""
+        total_items = tankhah_stats['total']
+
+        if total_items == 0:
+            return {'class': 'secondary', 'label': 'خالی', 'priority': 0}
+        if tankhah_stats['rejected'] > 0:
+            return {'class': 'danger', 'label': 'رد شده', 'priority': 4}
+        if tankhah_stats['draft'] > 0:
+            return {'class': 'warning', 'label': 'پیش‌نویس', 'priority': 3}
+        if tankhah_stats['pending'] > 0:
+            return {'class': 'info', 'label': 'در انتظار', 'priority': 2}
+        if tankhah_stats['paid'] > 0:
+            return {'class': 'primary', 'label': 'پرداخت شده', 'priority': 1}
+        if tankhah_stats['approved'] > 0:
+            return {'class': 'success', 'label': 'تأیید شده', 'priority': 1}
+        return {'class': 'info', 'label': 'در حال بررسی', 'priority': 2}
+
+    def _get_user_stage_permissions(self, stage, user_info):
+        """بررسی دسترسی‌های کاربر برای هر مرحله"""
+        permissions = {
+            'can_approve_tankhah': False,
+            'can_reject_tankhah': False,
+            'can_approve_budget': False,
+            'can_reject_budget': False,
+            'can_final_approve_tankhah': False,
+        }
+
+        if user_info['is_admin']:
+            return {key: True for key in permissions.keys()}
+
+        for user_post in user_info['user_posts']:
+            if stage.post == user_post.post and stage.organization in user_info['user_orgs']:
+                if stage.action_type == 'APPROVE' and user_info['user'].has_perm('tankhah.Tankhah_approve'):
+                    permissions['can_approve_tankhah'] = True
+                if stage.action_type == 'REJECT' and user_info['user'].has_perm('tankhah.Tankhah_reject'):
+                    permissions['can_reject_tankhah'] = True
+                if stage.action_type == 'APPROVE' and user_info['user'].has_perm('budgets.BudgetAllocation_approve'):
+                    permissions['can_approve_budget'] = True
+                if stage.action_type == 'REJECT' and user_info['user'].has_perm('budgets.BudgetAllocation_reject'):
+                    permissions['can_reject_budget'] = True
+                if stage.is_final_stage and user_post.post.can_final_approve_tankhah:
+                    permissions['can_final_approve_tankhah'] = True
+
+        return permissions
+
+    def _get_recent_items(self, tankhah_qs, budget_qs, limit=5):
+        """دریافت آیتم‌های اخیر"""
+        recent_tankhahs = list(tankhah_qs.order_by('-created_at')[:limit].select_related('organization').values(
+            'id', 'number', 'amount', 'status', 'created_at', 'organization__name'
+        ))
+        recent_budgets = list(budget_qs.order_by('-created_at')[:limit].select_related('organization').values(
+            'id', 'budget_period__name', 'allocated_amount', 'is_locked', 'created_at', 'organization__name'
+        ))
+        return {
+            'tankhahs': recent_tankhahs,
+            'budgets': recent_budgets,
+        }
+
+    def _get_summary_stats(self, user_info):
+        """آمار کلی داشبورد"""
+        base_tankhah_qs = Tankhah.objects.all()
+        base_budget_qs = BudgetAllocation.objects.all()
+
+        if not user_info['is_admin']:
+            base_tankhah_qs = base_tankhah_qs.filter(organization__in=user_info['user_orgs'])
+            base_budget_qs = base_budget_qs.filter(organization__in=user_info['user_orgs'])
+
+        tankhah_status_counts = base_tankhah_qs.values('status').annotate(count=Count('id'))
+        budget_status_counts = base_budget_qs.values('is_active', 'is_locked').annotate(count=Count('id'))
+
+        return {
+            'total_tankhahs': base_tankhah_qs.count(),
+            'pending_tankhahs': base_tankhah_qs.filter(status='PENDING').count(),
+            'total_budgets': base_budget_qs.count(),
+            'pending_budgets': base_budget_qs.filter(is_active=True, is_locked=False).count(),
+            'my_tasks': self._get_user_tasks_count(user_info),
+            'tankhah_status_counts': list(tankhah_status_counts),
+            'budget_status_counts': list(budget_status_counts),
+        }
+
+    def _get_user_tasks_count(self, user_info):
+        """تعداد وظایف کاربر"""
+        if user_info['is_admin']:
+            return Tankhah.objects.filter(status='PENDING').count()
+
+        task_count = 0
+        for stage in AccessRule.objects.filter(is_active=True, organization__in=user_info['user_orgs']):
+            if stage.post in [up.post for up in user_info['user_posts']]:
+                task_count += Tankhah.objects.filter(
+                    status='PENDING',
+                    organization__in=user_info['user_orgs']
+                ).count()
+
+        return task_count
+#--------------------------------------------------------------
 
 class  new__DashboardView_flows( TemplateView):
     template_name = 'reports/report_Flow_tankhah/dashboard_creative_v2.html'  # نام تمپلیت خلاقانه و جدید
@@ -1168,29 +1381,49 @@ class ProjectDeleteView(PermissionBaseView, DeleteView):
         return super().delete(request, *args, **kwargs)
 # --------------
 #-- روند تنخواه گردانی داشبورد ---
+
 class PostListView(PermissionBaseView, ListView):
     model = Post
     template_name = 'core/post/post_list.html'
     context_object_name = 'posts'
-    paginate_by = 10
+    paginate_by = 10  # Django handles pagination automatically with this setting
     extra_context = {'title': _('لیست پست‌های سازمانی')}
     permission_codenames = ['core.Post_view']
 
     def get_queryset(self):
         qs = super().get_queryset()
-        sort_order = self.request.GET.get('sort', 'asc')  # پیش‌فرض: از پایین به بالا
+
+        # --- Search Functionality ---
+        search_query = self.request.GET.get('q')
+        if search_query:
+            logger.info(f"Searching for posts with query: '{search_query}'")
+            # Using Q objects for flexible search across multiple fields
+            qs = qs.filter(
+                Q(name__icontains=search_query) |  # Search by post name
+                Q(organization__name__icontains=search_query) |  # Search by organization name
+                Q(branch__name__icontains=search_query) |  # Search by branch name
+                Q(description__icontains=search_query)  # Search by description
+            ).distinct()  # Use .distinct() to avoid duplicate results if a post matches multiple Q conditions
+
+        # --- Sorting Functionality ---
+        sort_order = self.request.GET.get('sort', 'asc')  # Default: ascending by level
         if sort_order == 'desc':
-            qs = qs.order_by('-level')  # از بالا به پایین
+            qs = qs.order_by('-level')  # Descending: high to low level
             logger.info("Sorting posts from high to low level")
         else:
-            qs = qs.order_by('level')  # از پایین به بالا
+            qs = qs.order_by('level')  # Ascending: low to high level
             logger.info("Sorting posts from low to high level")
+
         return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # Pass the current search query back to the template for display in the search bar
+        context['search_query'] = self.request.GET.get('q', '')
+        # Pass the current sort order to the template to highlight the active sort option
         context['current_sort'] = self.request.GET.get('sort', 'asc')
         return context
+
 class PostDetailView(PermissionBaseView, DetailView):
     model = Post
     template_name = 'core/post/post_detail.html'
@@ -1204,31 +1437,52 @@ class PostDetailView(PermissionBaseView, DetailView):
         from tankhah.models import StageApprover
         context['stages'] = StageApprover.objects.filter(post=self.object).select_related('stage')
         return context
+
 class PostCreateView(PermissionBaseView, CreateView):
     model = Post
     form_class = PostForm
     template_name = 'core/post/post_form.html'
     success_url = reverse_lazy('post_list')
-    # permission_required = 'core.Post_add'
-    permission_codename = 'core.Post_add'
-    # check_organization = True  # فعال کردن چک سازمان
+    permission_codenames = ['Post_add']
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def form_valid(self, form):
+        form.instance.changed_by = self.request.user
         messages.success(self.request, _('پست سازمانی با موفقیت ایجاد شد.'))
         return super().form_valid(form)
+
+    def form_invalid(self, form):
+        logger.error(f"Form invalid: {form.errors}")
+        messages.error(self.request, _('خطا در ایجاد پست: لطفاً اطلاعات را بررسی کنید.'))
+        return super().form_invalid(form)
+
 class PostUpdateView(PermissionBaseView, UpdateView):
     model = Post
     form_class = PostForm
     template_name = 'core/post/post_form.html'
     success_url = reverse_lazy('post_list')
-    # permission_required = 'core.Post_update'
-    permission_codename = 'core.Post_update'
-    # check_organization = True  # فعال کردن چک سازمان
+    permission_codenames = ['Post_update']
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def form_valid(self, form):
+        form.instance.changed_by = self.request.user
         logger.debug(f"Form data: {self.request.POST}")
         messages.success(self.request, _('پست سازمانی با موفقیت به‌روزرسانی شد.'))
         return super().form_valid(form)
+
+    def form_invalid(self, form):
+        logger.error(f"Form invalid: {form.errors}")
+        messages.error(self.request, _('خطا در به‌روزرسانی پست: لطفاً اطلاعات را بررسی کنید.'))
+        return super().form_invalid(form)
+
 class PostDeleteView(PermissionBaseView, DeleteView):
     model = Post
     template_name = 'core/post/post_confirm_delete.html'
@@ -1240,6 +1494,7 @@ class PostDeleteView(PermissionBaseView, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('پست سازمانی با موفقیت حذف شد.'))
         return super().delete(request, *args, **kwargs)
+
 # --- UserPost Views ---
 class UserPostListView(PermissionBaseView, ListView):
     model = UserPost

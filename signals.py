@@ -2,8 +2,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Sum
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from budgets.models import BudgetAllocation, BudgetTransaction, ProjectBudgetAllocation, PaymentOrder
-from core.models import Post
+from django.utils import timezone
+from notifications.signals import notify
+
+from accounts.models import CustomUser
+from budgets.models import BudgetAllocation, BudgetTransaction, PaymentOrder, Payee
+from core.models import Post, AccessRule
 from tankhah.models import Tankhah, Factor, ApprovalLog
 from decimal import Decimal
 from django.core.cache import cache
@@ -44,7 +48,7 @@ def update_budget_fields(sender, instance, **kwargs):
         logger.debug(f"Invalidating cache for BudgetAllocation {allocation.id}")
         cache.delete(f"allocation_remaining_{allocation.id}")
 
-        project_allocation = ProjectBudgetAllocation.objects.filter(budget_allocation=allocation).first()
+        project_allocation = BudgetAllocation.objects.filter(budget_allocation=allocation).first()
         if project_allocation:
             logger.debug(f"Invalidating cache for ProjectBudgetAllocation {project_allocation.id}")
             cache.delete(f"project_allocation_remaining_{project_allocation.id}")
@@ -95,7 +99,7 @@ def invalidate_allocation_cache(sender, instance, **kwargs):
         logger.error(f"Error invalidating cache for BudgetAllocation {instance.pk}: {str(e)}", exc_info=True)
         # لاگ خطا
 
-@receiver([post_save, post_delete], sender=ProjectBudgetAllocation)
+@receiver([post_save, post_delete], sender=BudgetAllocation)
 def invalidate_project_allocation_cache(sender, instance, **kwargs):
     # ابطال کش بعد از تغییر تخصیص پروژه
     cache_keys = set()

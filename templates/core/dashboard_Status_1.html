@@ -84,16 +84,16 @@
     </div>
 
     {% if not error_message %}
-    <div class="row mb-5 g-4">  
+    <div class="row mb-5 g-4">
         <div class="col-xl-3 col-md-6">
-            <div class="card h-100 border-start-lg border-start-primary shadow-sm rounded-3 hover-effect">  
+            <div class="card h-100 border-start-lg border-start-primary shadow-sm rounded-3 hover-effect">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-primary mb-1 fw-bold">{% translate "کل تنخواه‌ها" %}</h6>
-                            <h4 class="fw-bolder mb-0 text-dark">{{ summary_stats.total_tankhahs|format_negative }}</h4> 
+                            <h4 class="fw-bolder mb-0 text-dark">{{ summary_stats.total_tankhahs|format_negative }}</h4>
                         </div>
-                        <div class="icon-circle bg-primary-subtle text-primary shadow-sm">  
+                        <div class="icon-circle bg-primary-subtle text-primary shadow-sm">
                             <i class="fas fa-file-invoice-dollar fs-4"></i>
                         </div>
                     </div>
@@ -160,9 +160,9 @@
                 </div>
                 <div class="card-body p-4">
                     {% if workflow_data %}
-                        <div class="workflow-container d-flex flex-nowrap overflow-auto pb-3"> 
+                        <div class="workflow-container d-flex flex-nowrap overflow-auto pb-3">
                             {% for stage_data in workflow_data %}
-                            <div class="workflow-stage flex-shrink-0 rounded-3 shadow-sm hover-effect">  
+                            <div class="workflow-stage flex-shrink-0 rounded-3 shadow-sm hover-effect">
                                 <div class="stage-header py-3 px-4 d-flex justify-content-between align-items-center
                                     {% if stage_data.tankhah_stats.total > 0 %}has-items{% endif %}">
                                     <h6 class="stage-title text-primary fw-bold mb-0">{{ stage_data.stage.name }}</h6>
@@ -272,9 +272,9 @@
                                         <td>{{ tankhah.organization__name|truncatechars:20 }}</td>
                                         <td class="fw-bold">{{ tankhah.amount|format_negative }} ریال</td>
                                         <td>
-                                              
+
                                             <span class="badge rounded-pill status-badge-{{ tankhah.status }} text-dark px-3 py-2 fw-bold">
-                                                {% with tankhah_obj=tankhah.id %} 
+                                                {% with tankhah_obj=tankhah.id %}
                                                     {{ tankhah_obj.get_status_display }}
                                                 {% endwith %}
                                             </span>
@@ -365,7 +365,7 @@
         </div>
     </div>
 
-    
+
     <div class="row mt-5">
         <div class="col-lg-6 mb-4">
             <div class="card shadow-lg border-0 rounded-4 h-100">

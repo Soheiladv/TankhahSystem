@@ -1,22 +1,26 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Q, Max
+
+from accounts.models import CustomUser
 from core.models import AccessRule, Organization, Post
 import logging
 
 logger = logging.getLogger('Log_check_user_factor_access')
 User = get_user_model()
 
+
 def check_user_factor_access(username, tankhah=None, action_type='EDIT', entity_type='FACTOR', default_stage_order=1):
     """
-    بررسی دسترسی کاربر برای انجام عملیاتی (مثل ایجاد فاکتور) بر اساس پست سازمانی و AccessRule.
+     بررسی دسترسی کاربر برای انجام عملیاتی (مثل ایجاد فاکتور) بر اساس پست سازمانی و AccessRule.
 
-    :param username: نام کاربری
-    :param tankhah: شیء تنخواه (اختیاری، برای محدود کردن به سازمان/پروژه تنخواه)
-    :param action_type: نوع عملیات (مثل EDIT، DELETE)
-    :param entity_type: نوع موجودیت (مثل FACTOR)
-    :param default_stage_order: مرحله پیش‌فرض برای فاکتورها (پیش‌فرض: 1)
-    :return: dict شامل اطلاعات دسترسی (has_access, allowed_stages, user_posts, user_orgs, max_post_level)
-    """
+     :param username: نام کاربری
+     :param tankhah: شیء تنخواه (اختیاری، برای محدود کردن به سازمان/پروژه تنخواه)
+     :param action_type: نوع عملیات (مثل EDIT، DELETE)
+     :param entity_type: نوع موجودیت (مثل FACTOR)
+     :param default_stage_order: مرحله پیش‌فرض برای فاکتورها (پیش‌فرض: 1)
+     :return: dict شامل اطلاعات دسترسی (has_access, allowed_stages, user_posts, user_orgs, max_post_level)
+     """
+
     try:
         user = User.objects.get(username=username)
         if not user.is_authenticated:
@@ -27,36 +31,38 @@ def check_user_factor_access(username, tankhah=None, action_type='EDIT', entity_
                 'user_posts': [],
                 'user_orgs': [],
                 'max_post_level': 1,
-                'error': 'کاربر احراز هویت نشده است.'
+                'error': 'کاربر احراز هویت نشده است.',
+                'stage': None
             }
 
-        # بررسی دسترسی کامل (superuser یا HQ یا Tankhah_view_all)
         is_hq_user = any(
             Organization.objects.filter(id=up.post.organization.id, is_core=True).exists()
             for up in user.userpost_set.filter(is_active=True, end_date__isnull=True)
         )
         if user.is_superuser or is_hq_user or user.has_perm('tankhah.Tankhah_view_all'):
             logger.info(f"کاربر {username} دسترسی کامل دارد.")
+            access_rule = AccessRule.objects.filter(
+                entity_type=entity_type,
+                stage_order=default_stage_order,
+                is_active=True
+            ).first()
             return {
                 'has_access': True,
-                'allowed_stages': None,  # دسترسی به همه مراحل
+                'allowed_stages': None,
                 'user_posts': [up.post.id for up in user.userpost_set.filter(is_active=True, end_date__isnull=True)],
-                'user_orgs': [up.post.organization.id for up in
-                              user.userpost_set.filter(is_active=True, end_date__isnull=True)],
-                'max_post_level': None,  # بدون محدودیت سطح
-                'error': None
+                'user_orgs': [up.post.organization.id for up in user.userpost_set.filter(is_active=True, end_date__isnull=True)],
+                'max_post_level': None,
+                'error': None,
+                'stage': access_rule
             }
 
-        # دریافت پست‌های فعال کاربر
         user_posts = user.userpost_set.filter(is_active=True, end_date__isnull=True).select_related('post')
         user_post_ids = [up.post.id for up in user_posts]
         user_orgs = [up.post.organization.id for up in user_posts]
         max_post_level = user_posts.aggregate(max_level=Max('post__level'))['max_level'] or 1
 
-        logger.debug(
-            f"کاربر {username} - پست‌ها: {user_post_ids}, سازمان‌ها: {user_orgs}, حداکثر سطح: {max_post_level}")
+        logger.debug(f"کاربر {username} - پست‌ها: {user_post_ids}, سازمان‌ها: {user_orgs}, حداکثر سطح: {max_post_level}")
 
-        # بررسی قوانین دسترسی برای فاکتورها
         access_rules = AccessRule.objects.filter(
             post__id__in=user_post_ids,
             organization__id__in=user_orgs,
@@ -66,7 +72,6 @@ def check_user_factor_access(username, tankhah=None, action_type='EDIT', entity_
             min_level__lte=max_post_level
         )
 
-        # اگر تنخواه مشخص شده، محدود کردن به سازمان/پروژه تنخواه
         if tankhah:
             access_rules = access_rules.filter(
                 Q(organization=tankhah.organization) |
@@ -74,11 +79,11 @@ def check_user_factor_access(username, tankhah=None, action_type='EDIT', entity_
                 Q(organization__in=tankhah.subproject.project.organizations.all() if tankhah.subproject else [])
             )
 
+        access_rule = access_rules.filter(stage_order=default_stage_order).first()
         allowed_stages = list(access_rules.values_list('stage_order', flat=True).distinct())
-        has_access = access_rules.filter(stage_order=default_stage_order).exists()
+        has_access = access_rule is not None
 
-        logger.debug(
-            f"دسترسی کاربر {username} به فاکتور در مرحله {default_stage_order}: {has_access}, مراحل مجاز: {allowed_stages}")
+        logger.debug(f"دسترسی کاربر {username} به فاکتور در مرحله {default_stage_order}: {has_access}, مراحل مجاز: {allowed_stages}")
 
         return {
             'has_access': has_access,
@@ -86,7 +91,8 @@ def check_user_factor_access(username, tankhah=None, action_type='EDIT', entity_
             'user_posts': user_post_ids,
             'user_orgs': user_orgs,
             'max_post_level': max_post_level,
-            'error': None
+            'error': None if has_access else f'User level {max_post_level} not sufficient for stage {default_stage_order}',
+            'stage': access_rule
         }
 
     except User.DoesNotExist:
@@ -97,7 +103,8 @@ def check_user_factor_access(username, tankhah=None, action_type='EDIT', entity_
             'user_posts': [],
             'user_orgs': [],
             'max_post_level': 1,
-            'error': 'کاربر یافت نشد.'
+            'error': 'کاربر یافت نشد.',
+            'stage': None
         }
     except Exception as e:
         logger.error(f"خطا در بررسی دسترسی کاربر {username}: {str(e)}")
@@ -107,8 +114,10 @@ def check_user_factor_access(username, tankhah=None, action_type='EDIT', entity_
             'user_posts': [],
             'user_orgs': [],
             'max_post_level': 1,
-            'error': f'خطای غیرمنتظره: {str(e)}'
+            'error': f'خطای غیرمنتظره: {str(e)}',
+            'stage': None
         }
+
 '''
 ورودی‌ها: نام کاربری، شیء تنخواه (اختیاری)، نوع عملیات (پیش‌فرض EDIT)، و نوع موجودیت (پیش‌فرض FACTOR).
 خروجی: دیکشنری شامل:has_access: آیا کاربر دسترسی دارد یا خیر.
@@ -126,3 +135,24 @@ error: پیام خطا (در صورت وجود).
 
 مدیریت خطا: خطاها (مثل کاربر ناموجود یا خطای دسترسی به current_stage) لاگ شده و خروجی مناسب برگردانده می‌شود.
 '''
+
+
+def check_user_factor_access__(username, tankhah, action_type, entity_type, default_stage_order=1):
+    user = CustomUser.objects.get(username=username)
+    user_post = user.userpost_set.filter(is_active=True).first()
+    if not user_post:
+        return {'has_access': False, 'error': 'No active post'}
+
+    user_level = user_post.post.level
+    access_rule = AccessRule.objects.filter(
+        entity_type=entity_type,
+        stage_order=default_stage_order,
+        action_type=action_type,
+        organization=tankhah.organization,
+        min_level__gte=user_level,  # تغییر به gte برای سازگاری با level کمتر = مقام بالاتر
+        is_active=True
+    ).first()
+
+    if access_rule:
+        return {'has_access': True}
+    return {'has_access': False, 'error': f'User level {user_level} not sufficient for min_level'}

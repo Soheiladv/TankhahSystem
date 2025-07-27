@@ -12,7 +12,7 @@ from django.views.generic import DetailView, UpdateView, CreateView, ListView
 from django.views.generic import View, DeleteView
 from django.utils.translation import gettext_lazy as _
 
-from core.models import Organization, PostAction
+from core.models import Organization, PostAction, AccessRule
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 def get_lowest_access_level():
     """پیدا کردن پایین سطح کاربر در سازمان"""
     from core.models import WorkflowStage
-    lowest_stage = WorkflowStage.objects.order_by('order').first()  # پایین‌ترین order
+    lowest_stage = AccessRule.objects.order_by('order').first()  # پایین‌ترین order
     # lowest_stage = WorkflowStage.objects.order_by('-order').first()  # بالاترین order رو می‌گیره
     return lowest_stage.order if lowest_stage else 1  # اگه هیچ مرحله‌ای نبود، 1 برگردون
 
@@ -28,7 +28,7 @@ def get_initial_stage_order():
     """پیدا کردن مرحله اولیه (مرحله ثبت فاکتور)"""
     from core.models import WorkflowStage
     # initial_stage = WorkflowStage.objects.order_by('order').first()  # بالاترین order (مثلاً 5)
-    initial_stage = WorkflowStage.objects.order_by('-order').first()  # بالاترین order
+    initial_stage = AccessRule.objects.order_by('-order').first()  # بالاترین order
     logger.info(f'initial_stage 😎 {initial_stage}')
     return initial_stage.order if initial_stage else 1
 

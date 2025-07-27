@@ -114,8 +114,35 @@ urlpatterns += [
 
  ] # قوانین سیستم
 
+
+# core/urls.py
+from django.urls import path
+from core.Branch.views_branch import (
+    BranchListView,
+    BranchDetailView,
+    BranchCreateView,
+    BranchUpdateView,
+    BranchDeleteView
+)
+
+urlpatterns += [
+    # لیست تمام شاخه‌ها
+    path('branches/', BranchListView.as_view(), name='branch_list'),
+    # ایجاد شاخه جدید
+    path('branches/add/', BranchCreateView.as_view(), name='branch_add'),
+    # نمایش جزئیات یک شاخه (بر اساس PK)
+    path('branches/<int:pk>/', BranchDetailView.as_view(), name='branch_detail'),
+    # ویرایش یک شاخه (بر اساس PK)
+    path('branches/<int:pk>/edit/', BranchUpdateView.as_view(), name='branch_edit'),
+    # حذف یک شاخه (بر اساس PK)
+    path('branches/<int:pk>/delete/', BranchDeleteView.as_view(), name='branch_delete'),
+]#Branch شاخه های پست در سازمان
+
+
 urlpatterns += [
     path('Help_AccessRule',userGiud_AccessRule , name= 'user_Giud_AccessRule'),
     path('user-guide/', UserGuideView.as_view(), name='user_guide'),
 path ('simple-chart/', SimpleChartView.as_view(), name='simple_chart'),
 ]#راهنما
+
+

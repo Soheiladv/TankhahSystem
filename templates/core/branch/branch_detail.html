@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static jformat i18n rcms_custom_filters %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/animate.min.css' %}">
+<style>
+    .branch-detail-card {
+        border-radius: 12px;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+        border: none;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    .branch-detail-card:hover {
+        transform: translateY(-5px);
+    }
+    .card-header {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: white;
+        padding: 1.5rem;
+        border-bottom: none;
+    }
+    .detail-item {
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+    }
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+    .detail-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(37, 117, 252, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 15px;
+        color: #2575fc;
+        font-size: 1.1rem;
+    }
+    .status-badge {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    .action-btn {
+        min-width: 120px;
+        border-radius: 8px;
+        font-weight: 500;
+        margin: 0 5px;
+        transition: all 0.3s;
+    }
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .back-btn {
+        background: #f8f9fa;
+        color: #495057;
+        border: 1px solid #dee2e6;
+    }
+    .back-btn:hover {
+        background: #e9ecef;
+    }
+    .timestamp {
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 8px 12px;
+        display: inline-flex;
+        align-items: center;
+    }
+    .timestamp i {
+        margin-left: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4 animate__animated animate__fadeIn">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="branch-detail-card card mb-4">
+                <div class="card-header animate__animated animate__fadeInDown">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">
+                            <i class="fas fa-code-branch me-2"></i>{{ branch.name }}
+                            <span class="badge bg-light text-dark ms-2">{{ branch.code }}</span>
+                        </h3>
+                        {% if branch.is_active %}
+                            <span class="status-badge bg-success animate__animated animate__pulse">
+                                <i class="fas fa-check-circle me-1"></i>{% translate "فعال" %}
+                            </span>
+                        {% else %}
+                            <span class="status-badge bg-danger">
+                                <i class="fas fa-times-circle me-1"></i>{% translate "غیرفعال" %}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="detail-item animate__animated animate__fadeInLeft">
+                        <div class="detail-icon">
+                            <i class="fas fa-hashtag"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">{% translate "کد شاخه" %}</h6>
+                            <p class="mb-0 h5">{{ branch.code }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item animate__animated animate__fadeInLeft" style="animation-delay: 0.1s">
+                        <div class="detail-icon">
+                            <i class="fas fa-signature"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">{% translate "نام شاخه" %}</h6>
+                            <p class="mb-0 h5">{{ branch.name }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item animate__animated animate__fadeInLeft" style="animation-delay: 0.2s">
+                        <div class="detail-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">{% translate "وضعیت" %}</h6>
+                            <p class="mb-0">
+                                {% if branch.is_active %}
+                                    <span class="status-badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>{% translate "فعال" %}
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge bg-danger">
+                                        <i class="fas fa-times-circle me-1"></i>{% translate "غیرفعال" %}
+                                    </span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item animate__animated animate__fadeInLeft" style="animation-delay: 0.3s">
+                        <div class="detail-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1">{% translate "تاریخ ایجاد" %}</h6>
+                            <p class="mb-0">
+                                <span class="timestamp">
+                                    <i class="far fa-calendar me-2"></i>
+                                    {{ branch.created_at|jformat:"%Y/%m/%d"|to_persian_number }}
+                                    <i class="far fa-clock ms-3 me-2"></i>
+                                    {{ branch.created_at|jformat:"%H:%M"|to_persian_number }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-white border-top-0 text-center py-3 animate__animated animate__fadeInUp">
+                    <a href="{% url 'branch_list' %}" class="btn action-btn back-btn">
+                        <i class="fas fa-arrow-right me-2"></i>{% translate "بازگشت به لیست" %}
+                    </a>
+                    <a href="{% url 'branch_edit' branch.pk %}" class="btn action-btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>{% translate "ویرایش" %}
+                    </a>
+                    <a href="{% url 'branch_delete' branch.pk %}" class="btn action-btn btn-danger">
+                        <i class="fas fa-trash-alt me-2"></i>{% translate "حذف" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add animation when scrolling to elements
+        window.addEventListener('scroll', function() {
+            const elements = document.querySelectorAll('.animate__animated');
+            
+            elements.forEach(element => {
+                const position = element.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                
+                if (position < windowHeight - 100) {
+                    const animation = element.getAttribute('class').split(' ').find(cls => cls.startsWith('animate__'));
+                    element.classList.add(animation);
+                }
+            });
+        });
+        
+        // Trigger scroll event once to animate visible elements on load
+        window.dispatchEvent(new Event('scroll'));
+    });
+</script>
+{% endblock %}

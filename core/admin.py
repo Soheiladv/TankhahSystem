@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
-from core.models import Organization, OrganizationType, Project, Post, UserPost, PostHistory,  \
-    SystemSettings,AccessRule#,StageTransitionPermission
+from core.models import Organization, OrganizationType, Project, Post, UserPost, PostHistory, \
+    SystemSettings, AccessRule, Branch  # ,StageTransitionPermission
 
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
@@ -162,17 +162,79 @@ class ProjectAdmin(BaseAdmin):
 
 # ادمین پست سازمانی
 @admin.register(Post)
-class PostAdmin(BaseAdmin):
-    list_display = ('name', 'organization', 'parent', 'level', 'branch')
-    list_filter = ('organization', 'branch', 'level')
-    search_fields = ('name', 'description')
-    list_select_related = ('organization', 'parent')
-    autocomplete_fields = ('parent',)
-    ordering = ('organization', 'level', 'name')
-    fieldsets = (
-        (None, {'fields': ('name', 'organization', 'parent', 'level', 'branch')}),
-        (_('توضیحات'), {'fields': ('description',), 'classes': ('collapse',)}),
+class PostAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'organization',
+        'parent',
+        'level',
+        'branch',
+        'is_active',
+        'is_payment_order_signer',
+        'can_final_approve_factor',
+        # 'display_post_permissions', # اگر می‌خواهید مجوزهای پست را هم نمایش دهید
     )
+    list_filter = (
+        'organization',
+        'branch',
+        'is_active',
+        'level',
+        'is_payment_order_signer',
+        'can_final_approve_factor',
+        'can_final_approve_tankhah',
+        'can_final_approve_budget',
+    )
+    search_fields = (
+        'name',
+        'organization__name', # جستجو بر اساس نام سازمان
+        'organization__code', # جستجو بر اساس کد سازمان
+        'branch__name', # جستجو بر اساس نام شاخه
+    )
+    # برای فیلدهای ForeignKey، می‌توانید از raw_id_fields استفاده کنید
+    # تا به جای Dropdown بزرگ، یک فیلد متنی با قابلیت جستجو نمایش داده شود
+    raw_id_fields = (
+        'organization',
+        'parent',
+        'branch',
+    )
+    fieldsets = (
+        (_("اطلاعات اصلی"), {
+            'fields': (
+                'name',
+                'organization',
+                'parent',
+                'branch',
+                'description',
+                'is_active',
+            )
+        }),
+        (_("تنظیمات سلسله مراتب و دسترسی"), {
+            'fields': (
+                'level', # این فیلد به صورت خودکار محاسبه می‌شود، اما می‌توان آن را نمایش داد
+                'max_change_level',
+                'is_payment_order_signer',
+                'can_final_approve_factor',
+                'can_final_approve_tankhah',
+                'can_final_approve_budget',
+            )
+        }),
+    )
+    readonly_fields = (
+        'level', # سطح به صورت خودکار محاسبه می‌شود
+    )
+    ordering = (
+        'organization',
+        'level',
+        'name',
+    )
+
+    # اگر می‌خواهید مجوزهای Post را نمایش دهید، می‌توانید متدی شبیه BranchAdmin بنویسید:
+    # def display_post_permissions(self, obj):
+    #     permissions = [
+    #         _("افزودن پست"), _("بروزرسانی پست"), _("نمایش پست"), _("حذف پست")
+    #     ]
+    #     return ", ".join([str(p) for p in permissions])
+    # display_post_permissions.short_description = _("مجوزها")
 
 # ادمین اتصال کاربر به پست
 @admin.register(UserPost)
@@ -220,7 +282,80 @@ class PostHistoryAdmin(BaseAdmin):
 #
 #     entity_type_display.short_description = _('نوع موجودیت')
 
+# core/admin.py
+from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
+from .models import Branch # مدل Branch را وارد کنید
 
+@admin.register(Branch)
+class BranchAdmin(admin.ModelAdmin):
+    # فیلدهایی که در لیست ادمین نمایش داده می‌شوند
+    list_display = (
+        'code',
+        'name',
+        'is_active',
+        'created_at',
+        'display_branch_permissions' # یک متد سفارشی برای نمایش مجوزها
+    )
+
+    # فیلدهایی که قابل جستجو هستند
+    search_fields = (
+        'code',
+        'name',
+    )
+
+    # فیلدهایی که می‌توان بر اساس آن‌ها فیلتر کرد
+    list_filter = (
+        'is_active',
+        'created_at',
+    )
+
+    # فیلدهایی که در فرم اضافه/ویرایش نمایش داده می‌شوند
+    fields = (
+        'code',
+        'name',
+        'is_active',
+    )
+
+    # فیلدهایی که فقط خواندنی هستند (در فرم قابل ویرایش نیستند)
+    readonly_fields = (
+        'created_at',
+    )
+
+    # مرتب‌سازی پیش‌فرض لیست
+    ordering = (
+        'name',
+    )
+
+    # متد سفارشی برای نمایش مجوزها
+    def display_branch_permissions(self, obj):
+        # این متد مجوزهای مربوط به مدل Branch را نمایش می‌دهد
+        # 💡 تغییر: تبدیل هر آیتم LazyI18nString به string
+        permissions = [
+            _("افزودن شاخه سازمانی"), # استفاده از متن کامل ترجمه برای وضوح بیشتر
+            _("ویرایش شاخه سازمانی"),
+            _("نمایش شاخه سازمانی"),
+            _("حــذف شاخه سازمانی"),
+        ]
+        # تبدیل هر LazyI18nString در لیست به یک رشته واقعی قبل از join
+        return ", ".join([str(p) for p in permissions])
+
+    display_branch_permissions.short_description = _("مجوزهای شاخه") # نام ستون در لیست
+
+    # می‌توانید متدهای دیگری برای کارهای خاص مثل فعال/غیرفعال کردن چندین شیء همزمان اضافه کنید
+    # actions = ['make_active', 'make_inactive']
+
+    # def make_active(self, request, queryset):
+    #     queryset.update(is_active=True)
+    #     self.message_user(request, _("شاخه(های) انتخابی فعال شدند."))
+    # make_active.short_description = _("فعال کردن شاخه‌های انتخابی")
+
+    # def make_inactive(self, request, queryset):
+    #     queryset.update(is_active=False)
+    #     self.message_user(request, _("شاخه(های) انتخابی غیرفعال شدند."))
+    # make_inactive.short_description = _("غیرفعال کردن شاخه‌های انتخابی")
+
+# admin.site.register(Branch)
 admin.site.register(SystemSettings)
 
 

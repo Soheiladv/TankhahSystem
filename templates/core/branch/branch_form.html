@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/animate.min.css' %}">
+<style>
+    .form-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+    }
+    .form-header {
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+    }
+    .form-floating label {
+        padding-right: 3.5rem;
+    }
+    .form-control, .form-select {
+        border-radius: 10px;
+        padding: 12px 15px;
+        transition: all 0.3s;
+    }
+    .form-control:focus, .form-select:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        border-color: #86b7fe;
+    }
+    .btn-submit {
+        border-radius: 10px;
+        padding: 10px 25px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .btn-cancel {
+        border-radius: 10px;
+        padding: 10px 25px;
+        transition: all 0.3s;
+    }
+    .error-message {
+        color: #dc3545;
+        font-size: 0.875em;
+        margin-top: 5px;
+        animation: shake 0.5s;
+    }
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-5px); }
+        40%, 80% { transform: translateX(5px); }
+    }
+    .is-invalid {
+        border-color: #dc3545;
+        background-image: none;
+    }
+    .is-invalid:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 animate__animated animate__fadeIn">
+            <div class="form-container">
+                <div class="form-header">
+                    <h3 class="mb-0"><i class="fas fa-{% if form.instance.pk %}edit{% else %}plus-circle{% endif %} me-2"></i>{{ title }}</h3>
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show animate__animated animate__bounceIn">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                    <div class="mb-4 form-floating">
+                        {{ field }}
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+                        {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+
+                        {% for error in field.errors %}
+                            <div class="error-message animate__animated animate__headShake">
+                                <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger animate__animated animate__headShake">
+                            {% for error in form.non_field_errors %}
+                                <p><i class="fas fa-exclamation-triangle me-2"></i>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between mt-5">
+                        <button type="submit" class="btn btn-primary btn-submit">
+                            <i class="fas fa-save me-2"></i>{% translate "ذخیره تغییرات" %}
+                        </button>
+                        <a href="{% url 'branch_list' %}" class="btn btn-outline-secondary btn-cancel">
+                            <i class="fas fa-times me-2"></i>{% translate "انصراف" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add floating label functionality
+        const inputs = document.querySelectorAll('.form-floating input, .form-floating select, .form-floating textarea');
+
+        inputs.forEach(input => {
+            // Check if input has value on load
+            if (input.value) {
+                input.nextElementSibling.classList.add('active');
+            }
+
+            // Add event listeners
+            input.addEventListener('focus', function() {
+                this.nextElementSibling.classList.add('active');
+            });
+
+            input.addEventListener('blur', function() {
+                if (!this.value) {
+                    this.nextElementSibling.classList.remove('active');
+                }
+            });
+        });
+
+        // Form validation
+        const forms = document.querySelectorAll('.needs-validation');
+
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+
+                form.classList.add('was-validated');
+            }, false);
+        });
+    });
+</script>
+{% endblock %}

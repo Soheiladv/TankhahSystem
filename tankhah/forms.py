@@ -22,24 +22,46 @@ from decimal import Decimal
 from django.core.cache import cache
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('FactorItemApprovalForm')
+from tankhah.constants import ACTION_TYPES
+
 
 class FactorItemApprovalForm(forms.ModelForm):
-    class Meta:
-        model = FactorItem
-        fields = ['status', 'description']
     comment = forms.CharField(
         label=_("توضیحات"),
         required=False,
         widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control'})
     )
+
     status = forms.ChoiceField(
         choices=[
-            ('', 'انتخاب کنید'),
+            # ('', _('-------')),
+            ('DRAFT', 'پیش‌نویس'),
             ('PENDING', _('در حال بررسی')),
-            ('APPROVED', _('تأیید شده')),
-            ('REJECTED', _('رد شده')),
+            ('APPROVE', _('تأیید شده')),
+            ('REJECTE', _('رد شده')),
+            ('STAGE_CHANGE', 'تغییر مرحله'),
+            ('DELETE', 'حذف'),
+            ('CREATE', 'ایجاد'),
+            ('EDIT', 'ویرایش'),
+            ('VIEW', 'مشاهده'),
+            ('PAID', 'پرداخت شده'),
+            ('PARTIAL', 'تأیید جزئی'),
+            ('PENDING_APPROVAL', _('در انتظار تأیید')),
+            ('APPROVED_INTERMEDIATE', _('تأیید میانی')),
+            ('APPROVED_FINAL', _('تأیید نهایی')),
+            ('SIGN_PAYMENT', 'امضای دستور پرداخت'),
+            ('SENT_TO_HQ', _('ارسال‌شده به HQ')),
+            ('HQ_OPS_PENDING', _('در حال بررسی - بهره‌برداری')),
+            ('HQ_OPS_APPROVED', _('تأییدشده - بهره‌برداری')),
+            ('HQ_FIN_PENDING', _('در حال بررسی - مالی')),
         ],
+        # choices= [
+        #     ('', 'انتخاب کنید'),
+        #     ('PENDING', _('در حال بررسی')),
+        #     ('APPROVE', _('تأیید شده')),
+        #     ('REJECTE', _('رد شده')),
+        # ],
         widget=forms.Select(attrs={'class': 'form-control form-select', 'style': 'max-width: 200px;'}),
         label=_("اقدام"),
         required=False,
@@ -56,21 +78,41 @@ class FactorItemApprovalForm(forms.ModelForm):
         required=False,
         label=_("توضیحات")
     )
+    is_temporary = forms.BooleanField(required=False, label=_("تأیید/رد موقت"))
+
+    class Meta:
+        model = FactorItem
+        fields = ('status', 'description', 'comment', 'is_temporary')
+        widgets = {
+            'status': forms.HiddenInput(),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'comment': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'is_temporary': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.status:
-            self.fields['status'].initial = self.instance.status
+            # self.fields['status'].initial = self.instance.status
+            # اطمینان حاصل کنید که مقدار initial از بین choices موجود انتخاب می‌شود.
+            if self.instance.status in dict(self.fields['status'].choices):
+                self.fields['status'].initial = self.instance.status
+            else:
+                # اگر وضعیت موجود در choices نیست، به PENDING برگردانید یا یک مقدار پیش‌فرض دیگر
+                self.fields['status'].initial = 'PENDING'
 
     def clean(self):
         cleaned_data = super().clean()
         status = cleaned_data.get('status')
-        if status and status != 'NONE':
-            cleaned_data['status'] = status
+        description = cleaned_data.get('description', '').strip()
+        is_temporary = cleaned_data.get('is_temporary')
+
+        # فقط برای رد، توضیحات اجباری است
+        if status == 'REJECTE' and not description:
+            self.add_error('description', _('برای رد کردن یک ردیف، نوشتن توضیحات الزامی است.'))
+
         return cleaned_data
-
-
-
+# ===
 class FactorApprovalForm(forms.ModelForm):
     comment = forms.CharField(
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
@@ -88,8 +130,8 @@ class FactorApprovalForm(forms.ModelForm):
             self.fields[f'action_{item.id}'] = forms.ChoiceField(
                 choices=[
                     ('', _('-------')),
-                    ('APPROVED', _('تأیید')),
-                    ('REJECTED', _('رد')),
+                    ('APPROVE', _('تأیید')),
+                    ('REJECTE', _('رد')),
                 ],
                 label=f"وضعیت ردیف: {item.description}",
                 widget=forms.Select(attrs={'class': 'form-control'}),
@@ -113,7 +155,9 @@ class FactorApprovalForm(forms.ModelForm):
                     item.comment = self.cleaned_data[comment_field]
                     item.save()
         return instance
-#===
+
+
+# ===
 class JalaliDateFormConvert(forms.ModelForm):
     def set_jalali_initial(self, field_name, instance_field):
         if self.instance and getattr(self.instance, instance_field):
@@ -136,7 +180,9 @@ class JalaliDateFormConvert(forms.ModelForm):
                 logger.error(f"Error parsing {field_name}: {e}")
                 raise forms.ValidationError(_("تاریخ را به فرمت درست وارد کنید (مثل 1404/01/17)"))
         return None
-#========= Tankhah Forms
+
+
+# ========= Tankhah Forms
 class TankhahForm(forms.ModelForm):
     date = forms.CharField(
         label=_('تاریخ'),
@@ -174,7 +220,8 @@ class TankhahForm(forms.ModelForm):
 
     class Meta:
         model = Tankhah
-        fields = ['date', 'organization', 'project', 'subproject', 'letter_number', 'due_date', 'amount','project_budget_allocation' ,'description']
+        fields = ['date', 'organization', 'project', 'subproject', 'letter_number', 'due_date', 'amount',
+                  'project_budget_allocation', 'description']
         widgets = {
             'organization': forms.Select(attrs={'class': 'form-control'}),
             'project': forms.Select(attrs={'class': 'form-control'}),
@@ -383,7 +430,8 @@ class TankhahForm(forms.ModelForm):
 
         return cleaned_data
 
-#=========
+
+# =========
 class TanbakhApprovalForm(forms.ModelForm):
     comment = forms.CharField(
         widget=forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
@@ -394,6 +442,7 @@ class TanbakhApprovalForm(forms.ModelForm):
     class Meta:
         model = Tankhah
         fields = []
+
 
 class ApprovalForm(forms.ModelForm):
     action = forms.ChoiceField(choices=[
@@ -421,10 +470,11 @@ class ApprovalForm(forms.ModelForm):
             'action': _('شاخه'),
         }
 
+
 class TankhahStatusForm(forms.ModelForm):
     class Meta:
         model = Tankhah
-        fields = ['status',  'due_date', 'approved_by'] #'current_stage',
+        fields = ['status', 'due_date', 'approved_by']  # 'current_stage',
         widgets = {
             'status': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
             # 'current_stage': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
@@ -443,6 +493,7 @@ class TankhahStatusForm(forms.ModelForm):
         for field in self.fields.values():
             field.disabled = True
 
+
 class FactorStatusForm(forms.ModelForm):
     class Meta:
         model = Factor
@@ -458,8 +509,10 @@ class FactorStatusForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['status'].disabled = True
 
+
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
+
 
 class MultipleFileField(forms.FileField):
     def __init__(self, *args, **kwargs):
@@ -474,8 +527,10 @@ class MultipleFileField(forms.FileField):
             result = single_file_clean(data, initial)
         return result
 
+
 ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png']
 ALLOWED_EXTENSIONS_STR = ", ".join(ALLOWED_EXTENSIONS)
+
 
 class FactorDocumentForm(forms.Form):
     files = MultipleFileField(
@@ -499,7 +554,8 @@ class FactorDocumentForm(forms.Form):
                     ext = os.path.splitext(uploaded_file.name)[1].lower()
                     if ext not in ALLOWED_EXTENSIONS:
                         invalid_files.append(uploaded_file.name)
-                        logger.warning(f"Invalid file type uploaded for FactorDocument: {uploaded_file.name} (type: {ext})")
+                        logger.warning(
+                            f"Invalid file type uploaded for FactorDocument: {uploaded_file.name} (type: {ext})")
 
             if invalid_files:
                 invalid_files_str = ", ".join(invalid_files)
@@ -509,6 +565,7 @@ class FactorDocumentForm(forms.Form):
                 )
                 raise ValidationError(error_msg)
         return files
+
 
 class TankhahDocumentForm(forms.Form):
     documents = MultipleFileField(
@@ -532,7 +589,8 @@ class TankhahDocumentForm(forms.Form):
                     ext = os.path.splitext(uploaded_file.name)[1].lower()
                     if ext not in ALLOWED_EXTENSIONS:
                         invalid_files.append(uploaded_file.name)
-                        logger.warning(f"Invalid file type uploaded for TankhahDocument: {uploaded_file.name} (type: {ext})")
+                        logger.warning(
+                            f"Invalid file type uploaded for TankhahDocument: {uploaded_file.name} (type: {ext})")
 
             if invalid_files:
                 invalid_files_str = ", ".join(invalid_files)
@@ -542,6 +600,7 @@ class TankhahDocumentForm(forms.Form):
                 )
                 raise ValidationError(error_msg)
         return files
+
 
 def get_factor_item_formset():
     from django.forms import inlineformset_factory
@@ -553,7 +612,8 @@ def get_factor_item_formset():
         extra=1, can_delete=True, min_num=1, validate_min=True, max_num=100
     )
 
-#---
+
+# ---
 class ItemCategoryForm(forms.ModelForm):
     class Meta:
         model = ItemCategory

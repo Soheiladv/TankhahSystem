@@ -630,7 +630,6 @@ def generate_payment_order_number(self):
 """PaymentOrder (دستور پرداخت):"""
 #--------------------------------------
 from tankhah.constants import ACTION_TYPES
-
 class PaymentOrder(models.Model):
     STATUS_CHOICES = (
         ('DRAFT', _('پیش‌نویس')),
@@ -830,7 +829,7 @@ class BudgetHistory(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('اکشن در تاریخ و ساعت'))
     details = models.TextField(blank=True, verbose_name=_('جزئیات'))
     transaction_type = models.CharField(max_length=20, choices=[('ALLOCATION', _('تخصیص')), ('CONSUMPTION', _('مصرف')), ('RETURN', _('برگشت'))],verbose_name=_("نوع تراکنش"))
-    transaction_id = models.CharField(max_length=50, unique=True, verbose_name=_("شناسه تراکنش"))
+    transaction_id = models.CharField(max_length=250, unique=True, verbose_name=_("شناسه تراکنش"))
 
 
     def __str__(self):

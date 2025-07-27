@@ -2,20 +2,20 @@
 import logging
 from decimal import Decimal
 from django.utils.translation import gettext as _immediate  # اضافه کردن تابع ترجمه فوری
-
 from django.core.exceptions import ValidationError
-from django.db import models
 from django.db.models import Sum
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.db import models
-
-logger = logging.getLogger(__name__)
 from accounts.models import CustomUser
 from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, \
     get_subproject_remaining_budget
+from core import AccessRule
+from tankhah.constants import ENTITY_TYPES, ACTION_TYPES
+from tankhah.constants import ACTION_TYPES, ENTITY_TYPES
 
+logger = logging.getLogger(__name__)
 
 class OrganizationType(models.Model):
     fname = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name=_('نام شعبه/مجتمع/اداره'))
@@ -193,6 +193,26 @@ class SubProject(models.Model):
             ('SubProject_Head_Office', 'تخصیص زیر مجموعه پروژه(دفتر مرکزی)🏠'),
             ('SubProject_Branch', 'تخصیص  زیر مجموعه پروژه(شعبه)🏠'),
         ]
+class Branch(models.Model):
+    code = models.CharField(max_length=10, unique=True, verbose_name=_("کد شاخه"))
+    name = models.CharField(max_length=250, verbose_name=_("نام شاخه"))
+    is_active = models.BooleanField(default=True, verbose_name=_("وضعیت فعال"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان ایجاد"))
+
+    def __str__(self):
+        return f'{self.name} - {self.name} - {self.is_active}'
+
+    class Meta:
+        verbose_name = _("شاخه سازمانی")
+        verbose_name_plural = _("شاخه‌های سازمانی")
+        default_permissions = ()
+        permissions = [
+            ('Branch_add','افزودن شاخه سازمانی'),
+            ('Branch_edit','ویرایش شاخه سازمانی'),
+            ('Branch_view','نمایش شاخه سازمانی'),
+            ('Branch_delete','حــذف شاخه سازمانی'),
+        ]
+
 class Post(models.Model):
     """مدل پست سازمانی برای تعریف سلسله مراتب"""
     # BRANCH_CHOICES = (
@@ -203,47 +223,47 @@ class Post(models.Model):
     #     ('OPS', _('دیگر واحدهای ستادی')),
     #     (None, _('بدون شاخه')),
     # )
-    BRANCH_CHOICES = (
-        ('CEO', _('مدیرعامل')),
-        ('FIN', _('مالی و اداری')),
-        ('INV', _('سرمایه‌گذاری')),
-        ('HOT', _('هتل‌ها')),
-        ('STF', _('دیگر واحدهای ستادی')),
-        (None, _('بدون شاخه')),
-    )
+    # BRANCH_CHOICES = (
+    #     ('CEO', _('مدیرعامل')),
+    #     ('FIN', _('مالی و اداری')),
+    #     ('INV', _('سرمایه‌گذاری')),
+    #     ('HOT', _('هتل‌ها')),
+    #     ('STF', _('دیگر واحدهای ستادی')),
+    #     (None, _('بدون شاخه')),
+    # )
     name = models.CharField(max_length=100, verbose_name=_("نام پست"))
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, verbose_name=_("سازمان"))
     parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("پست والد"))
     level = models.IntegerField(default=1, verbose_name=_("سطح"))
-    branch = models.CharField(max_length=3, choices=BRANCH_CHOICES, null=True, blank=True, verbose_name=_("شاخه"))
+    # branch = models.CharField(max_length=3, choices=BRANCH_CHOICES, null=True, blank=True, verbose_name=_("شاخه"))
+    branch = models.ForeignKey(Branch, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("شاخه"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
     is_active = models.BooleanField(default=True, verbose_name=_("وضعیت فعال"))
-    max_change_level = models.IntegerField(default=1, verbose_name=_("حداکثر سطح تغییر(ارجاع به مرحله قبل تر)"),
-                                           help_text=_("حداکثر مرحله‌ای که این پست می‌تواند تغییر دهد"))
-
-    is_payment_order_signer = models.BooleanField(default=False,
-                                                  verbose_name=_("مجاز به امضای دستور پرداخت"))
+    max_change_level = models.IntegerField(default=1, verbose_name=_("حداکثر سطح تغییر(ارجاع به مرحله قبل تر)"), help_text=_("حداکثر مرحله‌ای که این پست می‌تواند تغییر دهد"))
+    is_payment_order_signer = models.BooleanField(default=False,verbose_name=_("مجاز به امضای دستور پرداخت"))
+    can_final_approve_factor = models.BooleanField(default=False, verbose_name=_("مجاز به تأیید نهایی فاکتور"))
+    can_final_approve_tankhah = models.BooleanField(default=False, verbose_name=_("مجاز به تأیید نهایی تنخواه"))
+    can_final_approve_budget = models.BooleanField(default=False, verbose_name=_("مجاز به تأیید نهایی بودجه"))
 
     def __str__(self):
         branch = self.branch or "بدون شاخه"
-        branch = self.get_branch_display() or _('بدون شاخه')
-        return f"{self.name} ({self.organization.code}) - {branch}"
+        branch_name = self.branch.name if self.branch else _('بدون شاخه')
+        return f"{self.name} ({self.organization.code}) - {branch_name}"
 
-    def save(self, *args, changed_by=None, **kwargs):  # آرگومان changed_by را بپذیرید
-        old_level = self.level if self.pk else None  # سطح قدیمی را برای تاریخچه ثبت کنید
+    def get_absolute_url(self):
+        return reverse('post_detail', kwargs={'pk': self.pk})
 
-        # منطق محاسبه خودکار سطح (بر اساس والد)
+    def save(self, *args, changed_by=None, **kwargs):
+        old_level = self.level if self.pk else None
+        # محاسبه خودکار سطح بر اساس والد
         if self.parent:
             self.level = self.parent.level + 1
         else:
             self.level = 1
-
-        # مطمئن می‌شیم max_change_level از level کمتر نباشه
+        # اطمینان از اینکه max_change_level کمتر از level نباشد
         if self.max_change_level < self.level:
             self.max_change_level = self.level
-
-        super().save(*args, **kwargs)  # ذخیره مدل
-
+        super().save(*args, **kwargs)
         # ثبت تاریخچه تغییرات سطح
         if old_level != self.level:
             PostHistory.objects.create(
@@ -251,11 +271,20 @@ class Post(models.Model):
                 changed_field='level',
                 old_value=str(old_level),
                 new_value=str(self.level),
-                changed_by=changed_by  # از کاربر تغییردهنده (که از ویو منتقل شده) استفاده کنید
+                changed_by=changed_by
             )
+        # به‌روزرسانی سطح فرزندان به‌صورت بازگشتی
+        self._update_children_levels(changed_by=changed_by)
 
-    def get_absolute_url(self):
-        return reverse('post_detail', kwargs={'pk': self.pk})
+    def _update_children_levels(self, changed_by=None):
+        """Recursively update levels of child posts."""
+        children = Post.objects.filter(parent=self, is_active=True)
+        for child in children:
+            old_child_level = child.level
+            child.level = self.level + 1
+            if child.max_change_level < child.level:
+                child.max_change_level = child.level
+            child.save(changed_by=changed_by, update_fields=['level', 'max_change_level'])
 
     class Meta:
         verbose_name = _("پست سازمانی")
@@ -442,57 +471,8 @@ class WorkflowStage(models.Model):
             ('WorkflowStage_delete', 'حذف مرحله گردش کار'),
             ('WorkflowStage_triggers_payment_order', 'فعال‌سازی دستور پرداخت - مرحله گردش کار'),
         ]
-class PostAction(models.Model):
-    ACTION_TYPES = (
-        ('APPROVE', _('تأیید')),
-        ('REJECT', _('رد')),
-        ('FINALIZE', _('اتمام')),
-        ('STAGE_CHANGE', _('تغییروضعیت')),
-        ('CUSTOM', _('سفارشی')),
-    )
-    ENTITY_TYPES = (
-        ('FACTOR', _('فاکتور')),
-        ('TANKHAH', _('تنخواه')),
-        ('BUDGET_ALLOCATION', _('تخصیص بودجه')),
-        ('BUDGET_RETURN', _('تخصیص بودجه')),
-        ('ISSUE_PAYMENT_ORDER', _('صدور دستور پرداخت')),
-    )
-
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name=_("پست"))
-    # stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_("مرحله"))
-    action_type = models.CharField(max_length=50, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
-    entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, default='TANKHAH',
-                                   verbose_name=_("نوع موجودیت"))
-    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
-    min_level = models.IntegerField(null=True, blank=True)  # حداقل سطح دسترسی (اختیاری)
-
-    triggers_payment_order = models.BooleanField(default=False,
-                                                 verbose_name=_("فعال‌سازی دستور پرداخت"))  # مشخصه دستور پرداخت کاریر
-    from django.contrib.postgres.fields import ArrayField
-    allowed_actions = ArrayField(models.CharField(max_length=25, choices=[
-        ('APPROVE', 'تأیید'),
-        ('REJECT', 'رد'),
-        ('STAGE_CHANGE', 'تغییر مرحله'),
-        ('SIGN_PAYMENT', 'امضای دستور پرداخت')
-    ]), default=list, verbose_name=_("اقدامات مجاز"))
-
-    def __str__(self):
-        return f"{self.post} - {self.action_type} برای {self.get_entity_type_display()} در {self.stage}"
-        # return f"{self.post} - {self.action_type} در {self.stage}"
-
-    class Meta:
-        verbose_name = _("اقدام مجاز پست")
-        verbose_name_plural = _("اقدامات مجاز پست‌ها")
-        # unique_together = ('post', 'stage', 'action_type', 'entity_type')  # اضافه کردن entity_type به unique_together
-        permissions = [
-            ('PostAction_view', 'نمایش اقدامات مجاز پست'),
-            ('PostAction_add', 'افزودن اقدامات مجاز پست'),
-            ('PostAction_update', 'بروزرسانی اقدامات مجاز پست'),
-            ('PostAction_delete', 'حذف اقدامات مجاز پست'),
-        ]
+from django.contrib.postgres.fields import ArrayField
 # ---
-from tankhah.constants import ACTION_TYPES, ENTITY_TYPES
-
 class AccessRule(models.Model):
     """این مدل مشخص می‌کنه که پست‌های یک سازمان، با branch و min_level خاص، چه اقداماتی می‌تونن توی چه مراحلی برای چه موجودیت‌هایی انجام بدن."""
     # ENTITY_TYPES = (
@@ -523,7 +503,9 @@ class AccessRule(models.Model):
     action_type = models.CharField(max_length=25, choices=ACTION_TYPES, verbose_name=_('نوع اقدام'))
     entity_type = models.CharField(max_length=100, choices=ENTITY_TYPES, verbose_name=_('نوع موجودیت'))
     min_level = models.IntegerField(default=1, verbose_name=_("حداقل سطح"))
-    branch = models.CharField(max_length=3, choices=Post.BRANCH_CHOICES, blank=True, verbose_name=_('شاخه'))
+
+    branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="شاخه")
+
     is_active = models.BooleanField(default=True, verbose_name=_('فعال'))
     min_signatures = models.PositiveIntegerField(default=1, verbose_name=_("حداقل تعداد امضا"))
 
@@ -532,7 +514,6 @@ class AccessRule(models.Model):
     is_payment_order_signer = models.BooleanField(default=False, verbose_name=_("امضاکننده دستور پرداخت"))
     is_final_stage = models.BooleanField(default=False, verbose_name=_("مرحله نهایی"))
     created_by = models.ForeignKey('accounts.CustomUser',related_name='access_rules', on_delete=models.SET_NULL, null=True, verbose_name=_("ایجادکننده"))
-
 
     class Meta:
         verbose_name = _("قانون دسترسی")
@@ -546,8 +527,28 @@ class AccessRule(models.Model):
             ('AccessRule_update', 'ویرایش قانون دسترسی'),
             ('AccessRule_delete', 'حــذف قانون دسترسی'),
         ]
+    #
+    # def save(self, *args, **kwargs):
+    #     if self.stage_order and self.is_active:
+    #         if AccessRule.objects.filter(
+    #             organization=self.organization,
+    #             entity_type=self.entity_type,
+    #             stage_order=self.stage_order,
+    #             is_active=True
+    #         ).exclude(pk=self.pk).exists():
+    #             raise ValueError(_immediate("ترتیب مرحله {stage_order} برای سازمان {org} و موجودیت {entity} قبلاً استفاده شده است.").format(
+    #                 stage_order=self.stage_order,
+    #                 org=self.organization,
+    #                 entity=self.entity_type
+    #             ))
+    #     super().save(*args, **kwargs)
+
+    # def __str__(self):
+    #     return f"{self.organization} - {self.branch} - {self.action_type} - {self.entity_type}"
 
     def save(self, *args, **kwargs):
+        # بررسی یکتایی stage_order در سطح مدل، که قبلا داشتید و بسیار خوب است.
+        # این باعث می‌شود حتی اگر از جاهای دیگر هم AccessRule ایجاد شود، تداخل پیش نیاید.
         if self.stage_order and self.is_active:
             if AccessRule.objects.filter(
                 organization=self.organization,
@@ -557,15 +558,60 @@ class AccessRule(models.Model):
             ).exclude(pk=self.pk).exists():
                 raise ValueError(_immediate("ترتیب مرحله {stage_order} برای سازمان {org} و موجودیت {entity} قبلاً استفاده شده است.").format(
                     stage_order=self.stage_order,
-                    org=self.organization,
+                    org=self.organization.name, # استفاده از .name برای نمایش بهتر
                     entity=self.entity_type
                 ))
         super().save(*args, **kwargs)
 
-    # def __str__(self):
-    #     return f"{self.organization} - {self.branch} - {self.action_type} - {self.entity_type}"
     def __str__(self):
             return f"{self.organization} - {self.post} - {self.stage} (ترتیب: {self.stage_order}) - {self.action_type}"
+
+class PostAction(models.Model):
+    # ACTION_TYPES = (
+    #     ('APPROVE', _('تأیید')),
+    #     ('REJECT', _('رد')),
+    #     ('FINALIZE', _('اتمام')),
+    #     ('STAGE_CHANGE', _('تغییروضعیت')),
+    #     ('CUSTOM', _('سفارشی')),
+    # )
+    # ENTITY_TYPES = (
+    #     ('FACTOR', _('فاکتور')),
+    #     ('TANKHAH', _('تنخواه')),
+    #     ('BUDGET_ALLOCATION', _('تخصیص بودجه')),
+    #     ('BUDGET_RETURN', _('تخصیص بودجه')),
+    #     ('ISSUE_PAYMENT_ORDER', _('صدور دستور پرداخت')),
+    # )
+
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name=_("پست"))
+    # stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_("مرحله"))
+    action_type = models.CharField(max_length=50, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
+    entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, default='TANKHAH',verbose_name=_("نوع موجودیت"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    min_level = models.IntegerField(null=True, blank=True)  # حداقل سطح دسترسی (اختیاری)
+
+    triggers_payment_order = models.BooleanField(default=False,  verbose_name=_("فعال‌سازی دستور پرداخت"))  # مشخصه دستور پرداخت کاریر
+    allowed_actions = ArrayField(models.CharField(max_length=25, choices=[
+        ('APPROVE', 'تأیید'),
+        ('REJECT', 'رد'),
+        ('STAGE_CHANGE', 'تغییر مرحله'),
+        ('SIGN_PAYMENT', 'امضای دستور پرداخت')
+    ]), default=list, verbose_name=_("اقدامات مجاز"))
+    stage = models.ForeignKey(AccessRule, on_delete=models.CASCADE, related_name='postactions', verbose_name=_("مرحله"))
+
+    def __str__(self):
+        return f"{self.post} - {self.action_type} برای {self.get_entity_type_display()} در {self.stage}"
+        # return f"{self.post} - {self.action_type} در {self.stage}"
+
+    class Meta:
+        verbose_name = _("اقدام مجاز پست")
+        verbose_name_plural = _("اقدامات مجاز پست‌ها")
+        # unique_together = ('post', 'stage', 'action_type', 'entity_type')  # اضافه کردن entity_type به unique_together
+        permissions = [
+            ('PostAction_view', 'نمایش اقدامات مجاز پست'),
+            ('PostAction_add', 'افزودن اقدامات مجاز پست'),
+            ('PostAction_update', 'بروزرسانی اقدامات مجاز پست'),
+            ('PostAction_delete', 'حذف اقدامات مجاز پست'),
+        ]
 
 # ---
 # class StageTransitionPermission(models.Model):

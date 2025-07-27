@@ -5,7 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models import Sum, Max
+from django.db.models import Sum, Max, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
@@ -1078,7 +1078,7 @@ class Factor(models.Model):
             ('factor_reject', _('رد فاکتور')),
             ('Factor_full_edit', _('دسترسی کامل به فاکتور')),
             ('factor_unlock', _('باز کردن فاکتور قفل‌شده')),
-
+            ('factor_approval_path', _('بررسی مسیر تایید/رد فاکتور⛓️‍💥')),
         ]
 
 class FactorHistory(models.Model):
@@ -1217,7 +1217,8 @@ class ApprovalLog(models.Model):
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_logs', verbose_name=_("فاکتور"))
     factor_item = models.ForeignKey(FactorItem, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_logs', verbose_name=_("ردیف فاکتور"))
     action = models.CharField(max_length=45, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
-    stage = models.ForeignKey('core.AccessRule', on_delete=models.SET_NULL, null=True, blank=True, related_name='approval_logs_access', verbose_name=_("مرحله"))
+    # stage = models.ForeignKey('core.AccessRule', on_delete=models.SET_NULL, null=False, blank=True,default=None, related_name='approval_logs_access', verbose_name=_("مرحله"))
+    stage = models.ForeignKey('core.AccessRule', on_delete=models.SET_NULL, null= True , default=None,related_name='approval_logs_access', verbose_name=_("مرحله"))
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, verbose_name=_("کاربر"))
     comment = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
     timestamp = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان"))
@@ -1231,6 +1232,7 @@ class ApprovalLog(models.Model):
     object_id = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("شناسه موجودیت"))
     content_object = GenericForeignKey('content_type', 'object_id')
     is_final_approval = models.BooleanField(default=False, verbose_name=_("نهایی شده"))
+    is_temporary = models.BooleanField(default=False, verbose_name="موقت")  # اضافه شده
 
     def save(self, *args, **kwargs):
         if self.pk is None:
@@ -1252,10 +1254,15 @@ class ApprovalLog(models.Model):
             is_hq_user = any(Organization.objects.filter(id=org_id, is_core=True).exists() for org_id in user_org_ids)
             logger.info(f"[ApprovalLog] User {self.user.username} is_hq_user: {is_hq_user}")
 
+            # تنظیم stage اگر وجود نداشته باشد
+            if not self.stage and self.factor:
+                logger.info(f"[ApprovalLog] Setting stage from factor.current_stage for user {self.user.username}")
+                self.stage = self.factor.current_stage
+            if not self.stage:
+                logger.error(f"[ApprovalLog] Stage is required for ApprovalLog, but none provided")
+                raise ValueError("Stage is required for ApprovalLog")
+
             if self.user.is_superuser or is_hq_user or self.user.has_perm('tankhah.Tankhah_view_all'):
-                if not self.stage:
-                    logger.error(f"[ApprovalLog] Stage is required for ApprovalLog, but none provided")
-                    raise ValueError("Stage is required for ApprovalLog")
                 logger.info(f"[ApprovalLog] User {self.user.username} has full access, saving directly")
                 super().save(*args, **kwargs)
                 return
@@ -1269,18 +1276,14 @@ class ApprovalLog(models.Model):
             else:
                 entity_type = 'GENERAL'
             logger.info(f"[ApprovalLog] Entity type: {entity_type}")
-
-            if not self.stage:
-                logger.error(f"[ApprovalLog] No stage provided for ApprovalLog")
-                raise ValueError("Stage is required for ApprovalLog")
-
+            branch_filter = Q(branch=user_post.post.branch) if user_post.post.branch else Q(branch__isnull=True)  # 💡 تغییر
             access_rule = AccessRule.objects.filter(
                 organization=user_post.post.organization,
-                stage=self.stage.stage,
+                stage=self.stage.stage,  # این خط ممکن است مشکل داشته باشد
                 action_type=self.action,
                 entity_type=entity_type,
                 min_level__lte=user_post.post.level,
-                branch=user_post.post.branch or '',
+                branch=    branch_filter, # استفاده از Q object
                 is_active=True
             ).first()
 
@@ -1290,7 +1293,7 @@ class ApprovalLog(models.Model):
                     stage=self.stage.stage,
                     action_type=self.action,
                     entity_type__in=['FACTOR', 'FACTORITEM'],
-                    min_level__lte=user_post.post.level,
+                    branch=branch_filter,  # استفاده از Q object
                     is_active=True
                 ).first()
                 if not general_rule:
@@ -1318,6 +1321,7 @@ class ApprovalLog(models.Model):
             ('Approval_update', 'ویرایش تأیید برای ثبت اقدامات تأیید یا رد'),
             ('Approval_delete', 'حــذف تأیید برای ثبت اقدامات تأیید یا رد'),
             ('Approval_view', 'نمایش تأیید برای ثبت اقدامات تأیید یا رد'),
+            ('Stepchange', 'تغییر مرحله'),
         ]
         indexes = [models.Index(fields=['factor', 'tankhah', 'user', 'stage', 'action'])]
 

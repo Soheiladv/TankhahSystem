@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
 from django.db import transaction
@@ -59,15 +60,15 @@ def log_tanbakh_changes(sender, instance, **kwargs):
 
 
 #///////////////////////////////////////////////////////////////////
-
 @receiver(post_save, sender=FactorItem)
 def handle_factor_item_budget_transaction(sender, instance, created, **kwargs):
     if created and instance.status not in ['APPROVED', 'PAID']:
-        return  # برای آیتم‌های جدید با وضعیت غیرتأیید، تراکنش ثبت نمی‌شود
+        return
     try:
         original_status = None
         if not created:
-            original_status = FactorItem.objects.get(pk=instance.pk).status
+            original = FactorItem.objects.get(pk=instance.pk)
+            original_status = original.status  # اصلاح
         if instance.status != original_status:
             logger.info(f"FactorItem {instance.pk} status changed from {original_status} to {instance.status}")
             allocation = instance.factor.tankhah.budget_allocation
@@ -115,7 +116,7 @@ def update_factor_and_tankhah(sender, instance, **kwargs):
     tankhah = factor.tankhah
 
     new_spent = sum(
-        item.amount for item in FactorItem.objects.filter(factor__tankhah=tankhah, status='APPROVE')
+        item.amount for item in FactorItem.objects.filter(factor__tankhah=tankhah, status='APPROVED')
         if item.amount is not None
     )
 
@@ -172,10 +173,25 @@ def lock_factor_after_approval(sender, instance, **kwargs):
     """
     عملکرد: این سیگنال پس از ثبت یک ApprovalLog اجرا می‌شود. اگر اقدام (action) تأیید (APPROVE) باشد و فاکتور (factor) وجود داشته باشد، فاکتور قفل می‌شود (locked = True).
     """
-    if instance.action == 'APPROVE' and instance.factor and instance.stage.is_final_stage:
-    # if instance.action == 'APPROVE' and instance.factor:
+    if (
+            instance.action == 'APPROVED'
+            and instance.factor
+            and instance.stage.is_final_stage
+            and instance.factor.status == 'APPROVED'
+            and getattr(instance, '_final_approve', False)
+    ):
         instance.factor.locked = True
-        instance.factor.save()
+        instance.factor.save(update_fields=['locked'])
+        logger.info(f"Factor {instance.factor.number} locked after final approval by user {instance.user.username}")
+    else:
+        logger.debug(
+            f"Factor {instance.factor.number} not locked: "
+            f"action={instance.action}, "
+            f"is_final_stage={instance.stage.is_final_stage}, "
+            f"factor_status={instance.factor.status}, "
+            f"final_approve={getattr(instance, '_final_approve', False)}"
+        )
+
 
 def send_notification_to_post_users__(post, action):
     from accounts.models import CustomUser
@@ -228,10 +244,11 @@ def start_approval_process(sender, instance, created, **kwargs):
             send_notification_to_post_users(rule.post, instance)
             logger.info(f"Created ActionApproval for post {rule.post.name} on TankhahAction {instance.id}")
 
+
 @receiver(post_save, sender=Factor)
 def start_payment_order_process(sender, instance, **kwargs):
-    if instance.status != 'APPROVE':
-        logger.debug(f"Factor {instance.number} is not APPROVE, skipping PaymentOrder creation.")
+    if instance.status != 'APPROVED':
+        logger.debug(f"Factor {instance.number} is not APPROVED, skipping PaymentOrder creation.")
         return
 
     try:
@@ -243,11 +260,14 @@ def start_payment_order_process(sender, instance, **kwargs):
                 logger.warning(f"Cannot create PaymentOrder for Factor {instance.number}: {lock_reason}")
                 return
 
+        # دریافت مرحله فعلی از تنخواه
+        current_stage_order = instance.tankhah.current_stage.stage_order if instance.tankhah.current_stage else 1
+        logger.debug(f"[start_payment_order_process] Current stage_order: {current_stage_order}")
+
         # بررسی AccessRule برای مرحله تأیید
-        current_stage_order = get_factor_current_stage(instance)
         access_rule = AccessRule.objects.filter(
             organization=instance.tankhah.organization,
-            action_type='APPROVE',
+            action_type='APPROVED',
             entity_type='FACTOR',
             is_active=True,
             stage_order=current_stage_order
@@ -257,9 +277,10 @@ def start_payment_order_process(sender, instance, **kwargs):
             logger.warning(f"No AccessRule found for Factor {instance.number} at stage {current_stage_order}")
             return
 
+        # بررسی وجود ApprovalLog
         approval_log = ApprovalLog.objects.filter(
             factor=instance,
-            action='APPROVE',
+            action='APPROVED',
             stage_order=current_stage_order,
             post__level__gte=access_rule.min_level
         ).exists()
@@ -283,14 +304,15 @@ def start_payment_order_process(sender, instance, **kwargs):
                 raise ValueError(_("گیرنده پرداخت یافت نشد."))
 
             # محاسبه مبلغ دقیق
-            amount = instance.items.filter(status='APPROVE').aggregate(total=Sum('amount'))['total'] or instance.amount
+            amount = instance.items.filter(status='APPROVED').aggregate(total=Sum('amount'))['total'] or instance.amount
 
             # تعیین مرحله اولیه دستور پرداخت
             initial_rule = AccessRule.objects.filter(
                 entity_type='PAYMENTORDER',
                 action_type='SIGN_PAYMENT',
                 stage_order=1,
-                is_active=True
+                is_active=True,
+                organization=instance.tankhah.organization
             ).first()
             if not initial_rule:
                 logger.error(f"No valid initial AccessRule found for PaymentOrder.")
@@ -315,6 +337,8 @@ def start_payment_order_process(sender, instance, **kwargs):
                 order_number=f"PO-{instance.tankhah.number}-{int(timezone.now().timestamp())}"
             )
             payment_order.related_factors.add(instance)
+            payment_order._request = getattr(instance, '_request', None)
+            payment_order.save()
 
             # ثبت تراکنش بودجه
             create_budget_transaction(
@@ -366,7 +390,7 @@ def start_payment_order_process(sender, instance, **kwargs):
                     send_mail(
                         subject=f"دستور پرداخت جدید: {payment_order.order_number}",
                         message=f"دستور پرداخت {payment_order.order_number} برای فاکتور {instance.number} نیاز به امضای شما دارد.",
-                        from_email='system@example.com',
+                        from_email='soheiladv@gmail.com',
                         recipient_list=[user.email],
                         fail_silently=True
                     )
@@ -405,5 +429,5 @@ def start_payment_order_process(sender, instance, **kwargs):
 
     except Exception as e:
         logger.error(f"Error creating PaymentOrder for Factor {instance.number}: {e}", exc_info=True)
-        from django.contrib import messages
-        messages.error(getattr(instance, '_request', None), _(f"خطا در ایجاد دستور پرداخت: {str(e)}"))
+        if hasattr(instance, '_request') and instance._request:
+            messages.error(instance._request, _(f"خطا در ایجاد دستور پرداخت: {str(e)}"))

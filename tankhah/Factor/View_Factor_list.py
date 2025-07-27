@@ -8,9 +8,6 @@ from persiantools import jdatetime
 from accounts.AccessRule.check_user_access import check_user_factor_access
 from core.models import PostAction
 from tankhah.utils import get_factor_current_stage
-
-logger = logging.getLogger(__name__)
-
 from django.views.generic import ListView
 from django.contrib import messages
 from django.db.models import Q, Sum

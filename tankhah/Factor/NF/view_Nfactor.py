@@ -29,9 +29,7 @@ from budgets.budget_calculations import (
 )
 
 # --- End Assumptions ---
-
-logger = logging.getLogger(__name__)
-
+logger = logging.getLogger('New_FactorCreateView')
 # Define the inline formset factory (can be defined globally or inside the view methods)
 FactorItemFormSet = inlineformset_factory(
     Factor,
@@ -42,10 +40,8 @@ FactorItemFormSet = inlineformset_factory(
     # min_num=1,  # Enforce at least one item
     # validate_min=True # Validate the minimum number
 )
-
 ###############################################################################################
 ###############################################################################################
-
 
 class New_FactorCreateView__(PermissionBaseView, CreateView):
     model = Factor
@@ -193,7 +189,7 @@ class New_FactorCreateView__(PermissionBaseView, CreateView):
     def form_invalid(self, form):
         messages.error(self.request, _('ثبت فاکتور با خطا مواجه شد. لطفاً موارد مشخص شده را بررسی کنید.'))
         return super().form_invalid(form)
-
+##############################################################################################
 class New_FactorCreateView(PermissionBaseView, CreateView):
     model = Factor
     form_class = FactorForm
@@ -249,7 +245,6 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
         form_kwargs = self.get_form_kwargs()
         if 'tankhah' in form_kwargs and form_kwargs['tankhah']:
             context['tankhah'] = form_kwargs['tankhah']
-            # اضافه کردن اطلاعات بودجه به context
             try:
                 budget_allocation = form_kwargs['tankhah'].project_budget_allocation
                 if budget_allocation:
@@ -306,6 +301,25 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
                 self.object = form.save(commit=False)
                 self.object.created_by = self.request.user
                 self.object._request_user = self.request.user
+
+                # بررسی دسترسی کاربر
+                access_info = check_user_factor_access(
+                    self.request.user.username,
+                    tankhah=form.cleaned_data['tankhah'],
+                    action_type='EDIT',
+                    entity_type='FACTOR',
+                    default_stage_order=1
+                )
+                if not access_info['has_access'] and not (
+                    self.request.user.is_superuser or
+                    any(Organization.objects.filter(id=up.post.organization.id, is_core=True).exists()
+                        for up in self.request.user.userpost_set.filter(is_active=True))
+                    or self.request.user.has_perm('tankhah.Tankhah_view_all')
+                ):
+                    logger.warning(f"کاربر {self.request.user.username} اجازه ثبت فاکتور را ندارد: {access_info['error']}")
+                    messages.error(self.request, _('شما اجازه ثبت فاکتور را ندارید: {}').format(access_info['error']))
+                    return self.form_invalid(form)
+
                 # تنظیم مرحله اولیه
                 current_stage = AccessRule.objects.filter(
                     entity_type='FACTOR',
@@ -315,21 +329,34 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
                 if not current_stage:
                     raise ValueError(_('هیچ قانون دسترسی فعالی برای مرحله اولیه فاکتور یافت نشد.'))
 
-                # بررسی سطح کاربر
-                user_level =  AccessRule.min_level  # فرض می‌کنیم فیلد level در مدل User وجود دارد
-                logger.info(f'userlevel: {user_level} , current_stage: {current_stage}')
-                if user_level > current_stage.min_level:
-                    raise ValueError(
-                        _('سطح شما ({}) برای ثبت فاکتور در این مرحله ({}) کافی نیست.').format(
-                            user_level, current_stage.min_level
+                # بررسی سطح کاربر (فقط اگر کاربر superuser یا HQ نباشد)
+                user_post = self.request.user.userpost_set.filter(is_active=True).first()
+                if user_post and not (
+                        self.request.user.is_superuser or
+                        any(Organization.objects.filter(id=up.post.organization.id, is_core=True).exists()
+                            for up in self.request.user.userpost_set.filter(is_active=True))
+                        or self.request.user.has_perm('tankhah.Tankhah_view_all')
+                ):
+                    user_level = user_post.post.level
+                    logger.info(
+                        f'user_level: {user_level}, current_stage: {current_stage}, min_level: {current_stage.min_level}')
+                    if user_level < current_stage.min_level:
+                        logger.warning(
+                            f"کاربر {self.request.user.username} با سطح {user_level} اجازه ثبت فاکتور در مرحله {current_stage.stage_order} با min_level={current_stage.min_level} را ندارد."
                         )
-                    )
+                        messages.error(
+                            self.request,
+                            _('سطح شما ({}) برای ثبت فاکتور در این مرحله ({}) کافی نیست.').format(
+                                user_level, current_stage.min_level
+                            )
+                        )
+                        return self.form_invalid(form)
 
+                logger.debug(f"Setting factor current_stage: {current_stage}")
                 self.object.current_stage = current_stage
                 self.object.status = 'PENDING_APPROVAL'
-                self.object.save()
+                self.object.save(current_user=self.request.user)
                 logger.info(f"Factor saved: PK={self.object.pk}, Number={self.object.number}")
-
                 item_formset.instance = self.object
                 item_formset.save()
 
@@ -350,14 +377,18 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
                         )
 
                 # ثبت در ApprovalLog
+                logger.debug(
+                    f"Before saving ApprovalLog: factor_pk={self.object.pk}, current_stage={self.object.current_stage}")
                 ApprovalLog.objects.create(
                     tankhah=self.object.tankhah,
+                    factor=self.object,
                     user=self.request.user,
+                    post=user_post.post if user_post else None,
                     action="CREATED",
-                    stage=current_stage.stage_order,  # استفاده از stage_order
-                    object_id=self.object.pk,
+                    stage=self.object.current_stage,
                     content_type=ContentType.objects.get_for_model(Factor),
-                    description=f"فاکتور {self.object.number} توسط {self.request.user.username} ایجاد شد."
+                    object_id=self.object.pk,
+                    comment=f"فاکتور {self.object.number} توسط {self.request.user.username} ایجاد شد."
                 )
 
                 create_budget_transaction(
@@ -396,6 +427,3 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
     def form_invalid(self, form):
         messages.error(self.request, _('ثبت فاکتور با خطا مواجه شد. لطفاً موارد مشخص شده را بررسی کنید.'))
         return super().form_invalid(form)
-
-
-###############################################################################################
