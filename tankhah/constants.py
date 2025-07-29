@@ -21,7 +21,7 @@ ACTION_TYPES = (
     ('HQ_OPS_PENDING', _('در حال بررسی - بهره‌برداری')),
     ('HQ_OPS_APPROVED', _('تأییدشده - بهره‌برداری')),
     ('HQ_FIN_PENDING', _('در حال بررسی - مالی')),
-)
+ )
 
 
 ENTITY_TYPES = (

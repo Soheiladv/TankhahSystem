@@ -1,1078 +1,1306 @@
 {% extends 'base.html' %}
 {% load i18n static humanize jformat rcms_custom_filters %}
+
+{% block title %}
+    {% trans "لیست فاکتورها" %} | {{ block.super }}
+{% endblock %}
+
 {% block extra_head %}
-    <style>
-        :root {
-            --primary: #4361ee;
-            --success: #28a745; /* سبز برای تأییدشده */
-            --danger: #dc3545; /* قرمز برای ردشده */
-            --warning: #ffc107; /* زرد برای پیش‌نویس */
-            --info: #17a2b8; /* فیروزه‌ای برای در انتظار */
-            --pending-approval: #007bff; /* آبی برای در انتظار تأیید */
-            --partial: #6c757d; /* خاکستری برای جزئی */
-            --paid: #6f42c1; /* بنفش برای پرداخت‌شده */
-            --light: #f8f9fa;
-            --bg: #f5f7fb;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-            --approver-bg: #e6ffe6; /* سبز کم‌رنگ برای پس‌زمینه تأییدکنندگان */
-            --approver-alt-bg: #fff3cd; /* زرد کم‌رنگ برای بدون تأییدکننده */
-            --approver-text: #155724; /* سبز تیره برای متن تأییدکنندگان */
-        }
+<link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/themes/material_blue.css" rel="stylesheet">
+<style>
+:root {
+    --primary: #4361ee;
+    --success: #28a745;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --info: #17a2b8;
+    --pending-approval: #007bff;
+    --partial: #6c757d;
+    --paid: #6f42c1;
+    --light: #f8fafc;
+    --bg: #f5f7fb;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --border-radius: 12px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-        /* بقیه استایل‌ها */
-        .table-pending-approval {
-            background: rgba(var(--pending-approval), 0.1);
-        }
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
+}
 
-        .status-pending-approval {
-            background: var(--pending-approval);
-        }
-    </style>
+/* کارت اصلی */
+.main-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+    animation: slideUp 0.8s ease-out;
+}
+
+/* هدر */
+.card-header-modern {
+    background: linear-gradient(135deg, var(--primary), #5a67d8);
+    color: white;
+    padding: 2rem;
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-header-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.1;
+}
+
+.card-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    position: relative;
+    z-index: 2;
+}
+
+/* فرم فیلتر */
+.filter-form {
+    background: var(--light);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid #e2e8f0;
+}
+
+.form-control-modern {
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: var(--transition);
+    background: white;
+}
+
+.form-control-modern:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    outline: none;
+}
+
+.btn-modern {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: var(--transition);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-modern:hover::before {
+    left: 100%;
+}
+
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), #5a67d8);
+    color: white;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success), #20c997);
+    color: white;
+}
+
+/* آکاردئون */
+.accordion-modern {
+    border: none;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.accordion-item {
+    border: none;
+    margin-bottom: 0.5rem;
+    border-radius: var(--border-radius) !important;
+    overflow: hidden;
+}
+
+.accordion-button {
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    border: none;
+    padding: 1.5rem;
+    font-weight: 600;
+    color: #2d3748;
+    border-radius: var(--border-radius) !important;
+    transition: var(--transition);
+}
+
+.accordion-button:not(.collapsed) {
+    background: linear-gradient(135deg, var(--primary), #5a67d8);
+    color: white;
+    box-shadow: none;
+}
+
+.accordion-button:focus {
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
+.accordion-body {
+    padding: 0;
+    background: white;
+}
+
+/* جدول */
+.table-modern {
+    margin: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-modern thead th {
+    background: linear-gradient(135deg, #2d3748, #4a5568);
+    color: white;
+    padding: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.85rem;
+    border: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table-modern tbody tr {
+    transition: var(--transition);
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.table-modern tbody tr:hover {
+    background: rgba(67, 97, 238, 0.05);
+    transform: scale(1.01);
+}
+
+.table-modern td {
+    padding: 1rem;
+    vertical-align: middle;
+    border: none;
+}
+
+/* نشان‌های وضعیت */
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+}
+
+.status-badge:hover {
+    transform: scale(1.05);
+}
+
+.status-draft {
+    background: linear-gradient(135deg, #718096, #a0aec0);
+    color: white;
+}
+
+.status-pending {
+    background: linear-gradient(135deg, var(--warning), #f6ad55);
+    color: white;
+}
+
+.status-pending-approval {
+    background: linear-gradient(135deg, var(--pending-approval), #4299e1);
+    color: white;
+}
+
+.status-partial {
+    background: linear-gradient(135deg, var(--partial), #9ca3af);
+    color: white;
+}
+
+.status-approve {
+    background: linear-gradient(135deg, var(--success), #48bb78);
+    color: white;
+}
+
+.status-rejecte {
+    background: linear-gradient(135deg, var(--danger), #f56565);
+    color: white;
+}
+
+.status-paid {
+    background: linear-gradient(135deg, var(--paid), #9f7aea);
+    color: white;
+}
+
+/* نشان تأییدکنندگان */
+.approver-badge {
+    background: linear-gradient(135deg, #e6fffa, #b2f5ea);
+    color: #234e52;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid #81e6d9;
+    transition: var(--transition);
+}
+
+.approver-badge.alt {
+    background: linear-gradient(135deg, #fef5e7, #fed7aa);
+    color: #9c4221;
+    border-color: #f6ad55;
+}
+
+.approver-badge:hover {
+    transform: scale(1.05);
+}
+
+/* ردیف‌های جدول بر اساس وضعیت */
+.table-draft {
+    background: rgba(113, 128, 150, 0.05);
+}
+
+.table-pending {
+    background: rgba(255, 193, 7, 0.05);
+}
+
+.table-pending-approval {
+    background: rgba(0, 123, 255, 0.05);
+}
+
+.table-partial {
+    background: rgba(108, 117, 125, 0.05);
+}
+
+.table-approve {
+    background: rgba(40, 167, 69, 0.05);
+}
+
+.table-rejecte {
+    background: rgba(220, 53, 69, 0.05);
+}
+
+.table-paid {
+    background: rgba(111, 66, 193, 0.05);
+}
+
+.locked-row {
+    opacity: 0.7;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255, 0, 0, 0.03) 10px,
+        rgba(255, 0, 0, 0.03) 20px
+    );
+}
+
+/* دراپ‌داون */
+.dropdown-menu {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    padding: 0.5rem;
+    min-width: 200px;
+}
+
+.dropdown-item {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+.dropdown-item:hover {
+    background: linear-gradient(135deg, var(--primary), #5a67d8);
+    color: white;
+    transform: translateX(5px);
+}
+
+/* آمار */
+.stats-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(10px);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: var(--transition);
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.stats-label {
+    color: #64748b;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.85rem;
+}
+
+/* انیمیشن‌ها */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+/* صفحه‌بندی */
+.pagination {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.page-link {
+    border: none;
+    padding: 0.75rem 1rem;
+    color: var(--primary);
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.page-link:hover {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.05);
+}
+
+.page-item.active .page-link {
+    background: linear-gradient(135deg, var(--primary), #5a67d8);
+    border-color: var(--primary);
+}
+
+/* مودال */
+.modal-content {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--primary), #5a67d8);
+    border: none;
+    padding: 1.5rem 2rem;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.modal-footer {
+    border: none;
+    padding: 1rem 2rem 2rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card-title {
+        font-size: 1.5rem;
+    }
+    
+    .filter-form {
+        padding: 1rem;
+    }
+    
+    .table-modern {
+        font-size: 0.85rem;
+    }
+    
+    .table-modern th,
+    .table-modern td {
+        padding: 0.5rem;
+    }
+    
+    .accordion-button {
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .stats-number {
+        font-size: 1.5rem;
+    }
+}
+
+/* حالت چاپ */
+@media print {
+    body {
+        background: white !important;
+    }
+    
+    .main-card {
+        box-shadow: none !important;
+        background: white !important;
+    }
+    
+    .filter-form,
+    .dropdown,
+    .btn-modern {
+        display: none !important;
+    }
+    
+    .table-modern {
+        border-collapse: collapse !important;
+    }
+    
+    .table-modern th,
+    .table-modern td {
+        border: 1px solid #000 !important;
+    }
+}
+
+/* تم تاریک */
+@media (prefers-color-scheme: dark) {
+    .main-card {
+        background: rgba(31, 41, 55, 0.95);
+        color: white;
+    }
+    
+    .filter-form {
+        background: #374151;
+        border-color: #4b5563;
+    }
+    
+    .form-control-modern {
+        background: #374151;
+        border-color: #4b5563;
+        color: white;
+    }
+    
+    .accordion-button {
+        background: #374151;
+        color: white;
+    }
+    
+    .table-modern tbody tr:hover {
+        background: rgba(67, 97, 238, 0.1);
+    }
+}
+</style>
 {% endblock %}
 
 {% block content %}
-    <div class="container py-5">
-        <div class="card fade-in">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="card-title m-0">
-                        <i class="fas fa-file-invoice-dollar me-2"></i> {% trans "لیست فاکتورها" %}
-                    </h2>
-                    <a href="{% url 'Nfactor_create' %}" class="btn btn-success btn-custom">
-                        <i class="fas fa-plus me-2"></i> {% trans "ایجاد فاکتور جدید" %}
-                    </a>
-                </div>
+<div class="container-fluid py-4">
+    <!-- آمار کلی -->
+    {% if total_factors %}
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-number">{{ total_factors|to_persian_number }}</div>
+                <div class="stats-label">{% trans "کل فاکتورها" %}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-number">{{ organizations_count|to_persian_number }}</div>
+                <div class="stats-label">{% trans "سازمان‌ها" %}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <div class="stats-number">{{ total_amount|floatformat:0|intcomma|to_persian_number }}</div>
+                <div class="stats-label">{% trans "مبلغ کل (ریال)" %}</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
-                <!-- فرم فیلتر -->
-                <form method="get" class="mb-4">
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <input type="text" name="q" value="{{ query|default_if_none:'' }}" class="form-control"
-                                   placeholder="{% trans 'شماره فاکتور، تنخواه، مرکزهزینه...' %}"
-                                   aria-label="{% trans 'جستجو' %}">
-                        </div>
-                        <div class="col-md-3">
-                            <input type="text" name="date" id="jalali-date" value="{{ date_query|default_if_none:'' }}"
-                                   class="form-control" placeholder="1403/05/15" aria-label="{% trans 'تاریخ' %}">
-                        </div>
-                        <div class="col-md-2">
-                            <select name="status" class="form-select" aria-label="{% trans 'وضعیت' %}">
-                                <option value="">{% trans "همه وضعیت‌ها" %}</option>
-                                {% for status, display in status_choices %}
-                                    <option value="{{ status }}"
-                                            {% if status == status_query %}selected{% endif %}>{{ display }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary btn-custom w-100">
-                                <i class="fas fa-filter me-2"></i> {% trans "فیلتر" %}
+    <!-- کارت اصلی -->
+    <div class="main-card">
+        <!-- هدر -->
+        <div class="card-header-modern">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="card-title">
+                        <i class="fas fa-file-invoice-dollar me-3"></i>
+                        {% trans "لیست فاکتورها" %}
+                    </h1>
+                    <p class="mb-0 opacity-90">{% trans "مدیریت و نظارت بر فاکتورهای سازمان" %}</p>
+                </div>
+                <a href="{% url 'Nfactor_create' %}" class="btn btn-success btn-modern">
+                    <i class="fas fa-plus me-2"></i>
+                    {% trans "فاکتور جدید" %}
+                </a>
+            </div>
+        </div>
+
+        <div class="p-4">
+            <!-- فرم فیلتر -->
+            <form method="get" class="filter-form">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-search me-2"></i>
+                            {% trans "جستجو" %}
+                        </label>
+                        <input type="text" 
+                               name="q" 
+                               value="{{ query|default_if_none:'' }}" 
+                               class="form-control form-control-modern"
+                               placeholder="{% trans 'شماره فاکتور، تنخواه، پروژه، سازمان...' %}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-calendar me-2"></i>
+                            {% trans "تاریخ" %}
+                        </label>
+                        <input type="text" 
+                               name="date" 
+                               id="jalali-date" 
+                               value="{{ date_query|default_if_none:'' }}"
+                               class="form-control form-control-modern" 
+                               placeholder="1403/05/15"
+                               readonly>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-filter me-2"></i>
+                            {% trans "وضعیت" %}
+                        </label>
+                        <select name="status" class="form-select form-control-modern">
+                            <option value="">{% trans "همه وضعیت‌ها" %}</option>
+                            {% for status, display in status_choices %}
+                                <option value="{{ status }}" {% if status == status_query %}selected{% endif %}>
+                                    {{ display }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-modern">
+                                <i class="fas fa-search me-2"></i>
+                                {% trans "جستجو" %}
                             </button>
-                        </div>
-                        <div class="col-md-2">
-                            <a href="?" class="btn btn-outline-secondary btn-custom w-100">
-                                <i class="fas fa-times me-2"></i> {% trans "پاک کردن" %}
+                            <a href="?" class="btn btn-outline-secondary btn-modern">
+                                <i class="fas fa-times me-2"></i>
+                                {% trans "پاک کردن" %}
                             </a>
                         </div>
                     </div>
-                </form>
+                </div>
+            </form>
 
-                <!-- پیام‌ها -->
-                {% if messages %}
-                    <div class="alert alert-dismissible fade show alert-info" role="alert">
-                        {% for message in messages %}
-                            <div class="alert-{{ message.tags|default:'info' }}">{{ message }}</div>
-                        {% endfor %}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                aria-label="{% trans 'بستن' %}"></button>
+            <!-- پیام‌ها -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'warning' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
-                {% endif %}
+                {% endfor %}
+            {% endif %}
 
-                <!-- لیست فاکتورها -->
-                {% if grouped_by_org %}
-                    <div class="accordion" id="orgAccordion">
-                        {% for org_name, org_data in grouped_by_org.items %}
-                            <div class="accordion-item fade-in">
-                                <h2 class="accordion-header" id="orgHeading{{ forloop.counter }}">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                            data-bs-target="#orgCollapse{{ forloop.counter }}" aria-expanded="false"
-                                            aria-controls="orgCollapse{{ forloop.counter }}">
-                                        <i class="fas fa-building me-2"></i>
-                                        {{ org_name }}
-                                        ({{ org_data.projects|length|to_persian_number }} {% trans "مرکز هزینه" %})
-                                        <span class="ms-3">
-                                            - {% trans "مبلغ" %}: <strong
-                                                style="color: forestgreen">{{ org_data.total_amount|floatformat:0|intcomma|to_persian_number }}</strong> {% trans "ریال" %}
-                                        </span>
-                                    </button>
-                                </h2>
-                                <div id="orgCollapse{{ forloop.counter }}" class="accordion-collapse collapse"
-                                     aria-labelledby="orgHeading{{ forloop.counter }}" data-bs-parent="#orgAccordion">
-                                    <div class="accordion-body">
-                                        <div class="accordion" id="projectAccordion{{ forloop.counter }}">
-                                            {% for project_name, project_data in org_data.projects.items %}
-                                                <div class="accordion-item">
-                                                    <h3 class="accordion-header"
-                                                        id="projectHeading{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
-                                                        <button class="accordion-button collapsed" type="button"
-                                                                data-bs-toggle="collapse"
-                                                                data-bs-target="#projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}"
-                                                                aria-expanded="false"
-                                                                aria-controls="projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
-                                                            <i class="fas fa-project-diagram me-2"></i>
-                                                            {{ forloop.counter|to_persian_number }} - {{ project_name }}
-                                                            ({{ project_data.tankhahs|length|to_persian_number }} {% trans "تنخواه" %})
-                                                            <span class="ms-3">
-                                                                - {% trans "مبلغ" %}: {{ project_data.total_amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
-                                                            </span>
-                                                        </button>
-                                                    </h3>
-                                                    <div id="projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}"
-                                                         class="accordion-collapse collapse"
-                                                         aria-labelledby="projectHeading{{ forloop.parentloop.counter }}_{{ forloop.counter }}"
-                                                         data-bs-parent="#projectAccordion{{ forloop.counter }}">
-                                                        <div class="accordion-body">
-                                                            <div class="accordion"
-                                                                 id="tankhahAccordion{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
-                                                                {% for tankhah_key, tankhah_data in project_data.tankhahs.items %}
-                                                                    <div class="accordion-item">
-                                                                        <h4 class="accordion-header"
-                                                                            id="tankhahHeading{{ forloop.parentloop.parentloop.counter }}_{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
-                                                                            <button class="accordion-button collapsed"
-                                                                                    type="button"
-                                                                                    data-bs-toggle="collapse"
-                                                                                    data-bs-target="#tankhahCollapse{{ forloop.parentloop.parentloop.counter }}_{{ forloop.parentloop.counter }}_{{ forloop.counter }}"
-                                                                                    aria-expanded="false"
-                                                                                    aria-controls="tankhahCollapse{{ forloop.parentloop.parentloop.counter }}_{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
-                                                                                <i class="fas fa-wallet me-2"></i>
-                                                                                {{ forloop.counter|to_persian_number }}
-                                                                                - {{ tankhah_key }}
-                                                                                ({{ tankhah_data.factors.draft|length|add:tankhah_data.factors.pending|length|add:tankhah_data.factors.pending_approval|length|add:tankhah_data.factors.partial|length|add:tankhah_data.factors.approve|length|add:tankhah_data.factors.rejected|length|add:tankhah_data.factors.paid|length|add:tankhah_data.factors.others|length|to_persian_number }} {% trans "فاکتور" %})
-                                                                                <span class="ms-3">
-                                                                                    - {% trans "مبلغ" %}: {{ tankhah_data.total_amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
-                                                                                </span>
-                                                                            </button>
-                                                                        </h4>
-                                                                        <div id="tankhahCollapse{{ forloop.parentloop.parentloop.counter }}_{{ forloop.parentloop.counter }}_{{ forloop.counter }}"
-                                                                             class="accordion-collapse collapse"
-                                                                             aria-labelledby="tankhahHeading{{ forloop.parentloop.parentloop.counter }}_{{ forloop.parentloop.counter }}_{{ forloop.counter }}"
-                                                                             data-bs-parent="#tankhahAccordion{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
-                                                                            <div class="accordion-body">
-                                                                                <table class="table table-hover">
+            <!-- لیست فاکتورها -->
+            {% if grouped_by_org %}
+                <div class="accordion accordion-modern" id="orgAccordion">
+                    {% for org_name, org_data in grouped_by_org.items %}
+                        <div class="accordion-item fade-in" style="animation-delay: {{ forloop.counter0|mul:0.1 }}s">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" 
+                                        type="button" 
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#orgCollapse{{ forloop.counter }}" 
+                                        aria-expanded="false">
+                                    <div class="d-flex align-items-center w-100">
+                                        <i class="fas fa-building me-3"></i>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-bold">{{ org_name }}</div>
+                                            <small class="text-muted">
+                                                {{ org_data.projects|length|to_persian_number }} {% trans "پروژه" %} • 
+                                                {{ org_data.total_factors|to_persian_number }} {% trans "فاکتور" %}
+                                            </small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="fw-bold text-success">
+                                                {{ org_data.total_amount|floatformat:0|intcomma|to_persian_number }}
+                                            </div>
+                                            <small class="text-muted">{% trans "ریال" %}</small>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="orgCollapse{{ forloop.counter }}" 
+                                 class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <div class="accordion" id="projectAccordion{{ forloop.counter }}">
+                                        {% for project_name, project_data in org_data.projects.items %}
+                                            <div class="accordion-item">
+                                                <h3 class="accordion-header">
+                                                    <button class="accordion-button collapsed" 
+                                                            type="button"
+                                                            data-bs-toggle="collapse"
+                                                            data-bs-target="#projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                                        <div class="d-flex align-items-center w-100">
+                                                            <i class="fas fa-project-diagram me-3"></i>
+                                                            <div class="flex-grow-1">
+                                                                <div class="fw-bold">{{ project_name }}</div>
+                                                                <small class="text-muted">
+                                                                    {{ project_data.tankhahs|length|to_persian_number }} {% trans "تنخواه" %} • 
+                                                                    {{ project_data.total_factors|to_persian_number }} {% trans "فاکتور" %}
+                                                                </small>
+                                                            </div>
+                                                            <div class="text-end">
+                                                                <div class="fw-bold text-primary">
+                                                                    {{ project_data.total_amount|floatformat:0|intcomma|to_persian_number }}
+                                                                </div>
+                                                                <small class="text-muted">{% trans "ریال" %}</small>
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                </h3>
+                                                <div id="projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}"
+                                                     class="accordion-collapse collapse">
+                                                    <div class="accordion-body">
+                                                        <div class="accordion" id="tankhahAccordion{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                                            {% for tankhah_key, tankhah_data in project_data.tankhahs.items %}
+                                                                <div class="accordion-item">
+                                                                    <h4 class="accordion-header">
+                                                                        <button class="accordion-button collapsed"
+                                                                                type="button"
+                                                                                data-bs-toggle="collapse"
+                                                                                data-bs-target="#tankhahCollapse{{ forloop.parentloop.parentloop.counter }}_{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                                                            <div class="d-flex align-items-center w-100">
+                                                                                <i class="fas fa-wallet me-3"></i>
+                                                                                <div class="flex-grow-1">
+                                                                                    <div class="fw-bold">{{ tankhah_key }}</div>
+                                                                                    <small class="text-muted">
+                                                                                        {{ tankhah_data.total_factors|to_persian_number }} {% trans "فاکتور" %}
+                                                                                    </small>
+                                                                                </div>
+                                                                                <div class="text-end">
+                                                                                    <div class="fw-bold text-info">
+                                                                                        {{ tankhah_data.total_amount|floatformat:0|intcomma|to_persian_number }}
+                                                                                    </div>
+                                                                                    <small class="text-muted">{% trans "ریال" %}</small>
+                                                                                </div>
+                                                                            </div>
+                                                                        </button>
+                                                                    </h4>
+                                                                    <div id="tankhahCollapse{{ forloop.parentloop.parentloop.counter }}_{{ forloop.parentloop.counter }}_{{ forloop.counter }}"
+                                                                         class="accordion-collapse collapse">
+                                                                        <div class="accordion-body">
+                                                                            <div class="table-responsive">
+                                                                                <table class="table table-modern table-hover">
                                                                                     <thead>
-                                                                                    <tr>
-                                                                                        <th>{% trans "ردیف" %}</th>
-                                                                                        <th>{% trans "شماره فاکتور" %}</th>
-                                                                                        <th>{% trans "تاریخ" %}</th>
-                                                                                        <th>{% trans "مبلغ" %}</th>
-                                                                                        <th>{% trans "وضعیت" %}</th>
-                                                                                        <th>{% trans "آخرین تأییدکننده" %}</th>
-                                                                                        <th>{% trans "عملیات" %}</th>
-                                                                                    </tr>
+                                                                                        <tr>
+                                                                                            <th width="5%">
+                                                                                                <i class="fas fa-hashtag me-1"></i>
+                                                                                                {% trans "ردیف" %}
+                                                                                            </th>
+                                                                                            <th width="15%">
+                                                                                                <i class="fas fa-barcode me-1"></i>
+                                                                                                {% trans "شماره فاکتور" %}
+                                                                                            </th>
+                                                                                            <th width="12%">
+                                                                                                <i class="fas fa-calendar me-1"></i>
+                                                                                                {% trans "تاریخ" %}
+                                                                                            </th>
+                                                                                            <th width="15%">
+                                                                                                <i class="fas fa-money-bill-wave me-1"></i>
+                                                                                                {% trans "مبلغ" %}
+                                                                                            </th>
+                                                                                            <th width="12%">
+                                                                                                <i class="fas fa-info-circle me-1"></i>
+                                                                                                {% trans "وضعیت" %}
+                                                                                            </th>
+                                                                                            <th width="20%">
+                                                                                                <i class="fas fa-user-check me-1"></i>
+                                                                                                {% trans "آخرین تأییدکننده" %}
+                                                                                            </th>
+                                                                                            <th width="8%">
+                                                                                                <i class="fas fa-list-ol me-1"></i>
+                                                                                                {% trans "ردیف‌ها" %}
+                                                                                            </th>
+                                                                                            <th width="13%">
+                                                                                                <i class="fas fa-cogs me-1"></i>
+                                                                                                {% trans "عملیات" %}
+                                                                                            </th>
+                                                                                        </tr>
                                                                                     </thead>
                                                                                     <tbody>
-                                                                                    {% for factor in tankhah_data.factors.draft %}
-                                                                                        <tr class="fade-in table-draft {% if factor.is_locked %}locked-row{% endif %}">
-                                                                                            <td>{{ forloop.counter|to_persian_number }}</td>
-                                                                                            <td>{{ factor.number|to_persian_number }}</td>
-                                                                                            <td>{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
-                                                                                            <td>{{ factor.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
-                                                                                            <td><span class="status-badge status-draft">{{ factor.get_status_display }}</span> </td>
-                                                                                            <td>
-                                                                                                    <span class="approver-badge {% if factor.last_approver == _('بدون تأییدکننده') %}alt{% endif %}"
-                                                                                                          data-bs-toggle="tooltip"
-                                                                                                          title="{{ factor.approvers_display }}">
-                                                                                                        {{ factor.last_approver|default:_("بدون تأییدکننده") }}
-                                                                                                    </span>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                <div class="d-flex justify-content-center align-items-center">
-                                                                                                    <div class="badge bg-light text-dark rounded-pill me-2"
-                                                                                                         style="min-width: 60px;">
-                                                                                                        <i class="fas fa-list-ol text-primary me-1"></i>
-                                                                                                        <span class="fw-bold">{{ factor.items.count|to_persian_number }}</span>
-                                                                                                        <small class="text-muted">{% trans "ردیف" %}</small>
-                                                                                                    </div>
-                                                                                                    <div class="dropdown">
-                                                                                                        <button class="btn btn-sm btn-outline-primary dropdown-toggle"
-                                                                                                                type="button"
-                                                                                                                id="factorActions-{{ factor.pk }}"
-                                                                                                                data-bs-toggle="dropdown"
-                                                                                                                aria-expanded="false"
-                                                                                                                data-bs-offset="10,10">
-                                                                                                            <i class="fas fa-ellipsis-v"> </i>
-                                                                                                        </button>
-                                                                                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm"
-                                                                                                            aria-labelledby="factorActions-{{ factor.pk }}">
-                                                                                                            <li>
-                                                                                                                <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                   href="{% url 'factor_detail' factor.pk %}">
-                                                                                                                    <i class="fas fa-eye fa-fw text-info me-2"></i>
-                                                                                                                    <span>{% trans "مشاهده جزئیات" %}</span>
-                                                                                                                </a>
-                                                                                                            </li>
-                                                                                                            {% if not factor.is_locked and not factor.tankhah.is_locked %}
+                                                                                        {% for status_key, factors in tankhah_data.factors.items %}
+                                                                                            {% for factor in factors %}
+                                                                                                <tr class="fade-in table-{{ status_key }} {% if factor.is_locked %}locked-row{% endif %}"
+                                                                                                    style="animation-delay: {{ forloop.counter0|mul:0.05 }}s">
+                                                                                                    <td class="text-center">
+                                                                                                        <span class="badge bg-secondary">
+                                                                                                            {{ forloop.counter|to_persian_number }}
+                                                                                                        </span>
+                                                                                                    </td>
+                                                                                                    <td>
+                                                                                                        <div class="fw-bold">{{ factor.number|to_persian_number }}</div>
+                                                                                                        {% if factor.is_locked %}
+                                                                                                            <small class="text-danger">
+                                                                                                                <i class="fas fa-lock me-1"></i>
+                                                                                                                {% trans "قفل شده" %}
+                                                                                                            </small>
+                                                                                                        {% endif %}
+                                                                                                    </td>
+                                                                                                    <td>
+                                                                                                        <div class="fw-semibold">{{ factor.jalali_date }}</div>
+                                                                                                        <small class="text-muted">{{ factor.jalali_created_at }}</small>
+                                                                                                    </td>
+                                                                                                    <td>
+                                                                                                        <div class="fw-bold text-success">
+                                                                                                            {{ factor.amount|floatformat:0|intcomma|to_persian_number }}
+                                                                                                        </div>
+                                                                                                        <small class="text-muted">{% trans "ریال" %}</small>
+                                                                                                    </td>
+                                                                                                    <td>
+                                                                                                        <span class="status-badge status-{{ status_key }}">
+                                                                                                            <i class="fas fa-{% if status_key == 'approve' %}check-circle{% elif status_key == 'rejected' %}times-circle{% elif status_key == 'paid' %}credit-card{% elif status_key == 'pending' %}clock{% elif status_key == 'pending_approval' %}hourglass-half{% elif status_key == 'partial' %}adjust{% else %}file-alt{% endif %}"></i>
+                                                                                                            {{ factor.get_status_display }}
+                                                                                                        </span>
+                                                                                                    </td>
+                                                                                                    <td>
+                                                                                                        <span class="approver-badge {% if factor.last_approver == None %}alt{% endif %}"
+                                                                                                              data-bs-toggle="tooltip"
+                                                                                                              title="{{ factor.approvers_display }}">
+                                                                                                            <i class="fas fa-user me-1"></i>
+                                                                                                            {{ factor.last_approver|default:_("بدون تأییدکننده") }}
+                                                                                                        </span>
+                                                                                                    </td>
+                                                                                                    <td class="text-center">
+                                                                                                        <div class="badge bg-light text-dark rounded-pill">
+                                                                                                            <i class="fas fa-list-ol text-primary me-1"></i>
+                                                                                                            <span class="fw-bold">{{ factor.items.count|to_persian_number }}</span>
+                                                                                                        </div>
+                                                                                                    </td>
+                                                                                                    <td>
+                                                                                                        <div class="dropdown">
+                                                                                                            <button class="btn btn-sm btn-outline-primary dropdown-toggle"
+                                                                                                                    type="button"
+                                                                                                                    data-bs-toggle="dropdown">
+                                                                                                                <i class="fas fa-ellipsis-v"></i>
+                                                                                                            </button>
+                                                                                                            <ul class="dropdown-menu dropdown-menu-end">
                                                                                                                 <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_edit' factor.pk %}">
-                                                                                                                        <i class="fas fa-edit fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "ویرایش فاکتور" %}</span>
+                                                                                                                    <a class="dropdown-item" href="{% url 'factor_detail' factor.pk %}">
+                                                                                                                        <i class="fas fa-eye fa-fw text-info me-2"></i>
+                                                                                                                        {% trans "مشاهده جزئیات" %}
                                                                                                                     </a>
                                                                                                                 </li>
                                                                                                                 <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2 text-danger factor-action-btn"
-                                                                                                                       data-action="delete"
-                                                                                                                       href="{% url 'factor_delete' factor.pk %}">
-                                                                                                                        <i class="fas fa-trash-alt fa-fw me-2"></i>
-                                                                                                                        <span>{% trans "حذف فاکتور" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                            {% endif %}
-                                                                                                            {% if factor.can_approve %}
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2 text-success factor-action-btn"
-                                                                                                                       data-action="approve"
-                                                                                                                       href="{% url 'factor_approve' factor.pk %}">
-                                                                                                                        <i class="fas fa-check-circle fa-fw me-2"></i>
-                                                                                                                        <span>{% trans "تأیید نهایی" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2 text-danger factor-action-btn"
-                                                                                                                       data-action="reject"
-                                                                                                                       href="{% url 'factor_reject' factor.pk %}">
-                                                                                                                        <i class="fas fa-times-circle fa-fw me-2"></i>
-                                                                                                                        <span>{% trans "رد فاکتور" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_item_approve' factor.pk %}">
+                                                                                                                    <a class="dropdown-item" href="{% url 'factor_item_approve' factor.pk %}">
                                                                                                                         <i class="fas fa-tasks fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "تایید/رد" %}</span>
-                                                                                                                        <span class="badge bg-primary bg-opacity-10 text-primary ms-auto">
-                                                                                                                        </span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_approval_path' factor.pk %}">
-                                                                                                                        <i class="fas fa-tasks fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "گردش این فاکتور🤷‍♂️" %}</span>
-                                                                                                                    </a> 
-                                                                                                                </li> 
-                                                                                                            {% endif %}
-
-                                                                                                        </ul>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    {% endfor %}
-                                                                                    {% for factor in tankhah_data.factors.pending %}
-                                                                                        <tr class="fade-in table-pending {% if factor.is_locked %}locked-row{% endif %}">
-                                                                                            <td>{{ forloop.counter|to_persian_number }}</td>
-                                                                                            <td>{{ factor.number|to_persian_number }}</td>
-                                                                                            <td>{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
-                                                                                            <td>{{ factor.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
-                                                                                            <td>
-                                                                                                <span class="status-badge status-pending">{{ factor.get_status_display }}</span>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                    <span class="approver-badge {% if factor.last_approver == _('بدون تأییدکننده') %}alt{% endif %}"
-                                                                                                          data-bs-toggle="tooltip"
-                                                                                                          title="{{ factor.approvers_display }}">
-                                                                                                        {{ factor.last_approver|default:_("بدون تأییدکننده") }}
-                                                                                                    </span>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                <div class="d-flex justify-content-center align-items-center">
-                                                                                                    <div class="badge bg-light text-dark rounded-pill me-2"
-                                                                                                         style="min-width: 60px;">
-                                                                                                        <i class="fas fa-list-ol text-primary me-1"></i>
-                                                                                                        <span class="fw-bold">{{ factor.items.count|to_persian_number }}</span>
-                                                                                                        <small class="text-muted">{% trans "ردیف" %}</small>
-                                                                                                    </div>
-                                                                                                    <div class="dropdown">
-                                                                                                        <button class="btn btn-sm btn-outline-primary dropdown-toggle"
-                                                                                                                type="button"
-                                                                                                                id="factorActions-{{ factor.pk }}"
-                                                                                                                data-bs-toggle="dropdown"
-                                                                                                                aria-expanded="false"
-                                                                                                                data-bs-offset="10,10">
-                                                                                                            <i class="fas fa-ellipsis-v"></i>
-                                                                                                        </button>
-                                                                                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm"
-                                                                                                            aria-labelledby="factorActions-{{ factor.pk }}">
-                                                                                                            <li>
-                                                                                                                <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                   href="{% url 'factor_detail' factor.pk %}">
-                                                                                                                    <i class="fas fa-eye fa-fw text-info me-2"></i>
-                                                                                                                    <span>{% trans "مشاهده جزئیات" %}</span>
-                                                                                                                </a>
-                                                                                                            </li>
-                                                                                                            {% if not factor.is_locked and not factor.tankhah.is_locked %}
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_edit' factor.pk %}">
-                                                                                                                        <i class="fas fa-edit fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "ویرایش فاکتور" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2 text-danger factor-action-btn"
-                                                                                                                       data-action="delete"
-                                                                                                                       href="{% url 'factor_delete' factor.pk %}">
-                                                                                                                        <i class="fas fa-trash-alt fa-fw me-2"></i>
-                                                                                                                        <span>{% trans "حذف فاکتور" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                            {% endif %}
-                                                                                                            {% if factor.can_approve %}
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2 text-success factor-action-btn"
-                                                                                                                       data-action="approve"
-                                                                                                                       href="{% url 'factor_approve' factor.pk %}">
-                                                                                                                        <i class="fas fa-check-circle fa-fw me-2"></i>
-                                                                                                                        <span>{% trans "تأیید نهایی" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2 text-danger factor-action-btn"
-                                                                                                                       data-action="reject"
-                                                                                                                       href="{% url 'factor_item_reject' factor.pk %}">
-                                                                                                                        <i class="fas fa-times-circle fa-fw me-2"></i>
-                                                                                                                        <span>{% trans "رد فاکتور" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                            {% endif %}
-                                                                                                            <li> 
-                                                                                                                  <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_item_approve' factor.pk %}">
-                                                                                                                        <i class="fas fa-tasks fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "تایید/رد" %}</span>
+                                                                                                                        {% trans "تأیید/رد آیتم‌ها" %}
                                                                                                                         <span class="badge bg-primary bg-opacity-10 text-primary ms-auto">
                                                                                                                             {{ factor.items.count|to_persian_number }}
                                                                                                                         </span>
                                                                                                                     </a>
                                                                                                                 </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_approval_path' factor.pk %}">
-                                                                                                                        <i class="fas fa-tasks fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "گردش این فاکتور🤷‍♂️" %}</span>
-                                                                                                                    </a>  
-                                                                                                            </li>
-                                                                                                        </ul>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    {% endfor %}
-                                                                                    {% for factor in tankhah_data.factors.pending_approval %}
-                                                                                        <tr class="fade-in table-pending-approval {% if factor.is_locked %}locked-row{% endif %}">
-                                                                                            <td>{{ forloop.counter|to_persian_number }}</td>
-                                                                                            <td>{{ factor.number|to_persian_number }}</td>
-                                                                                            <td>{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
-                                                                                            <td>{{ factor.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
-                                                                                            <td>
-                                                                                                <span class="status-badge status-pending-approval">{{ factor.get_status_display }}</span>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                    <span class="approver-badge {% if factor.last_approver == _('بدون تأییدکننده') %}alt{% endif %}"
-                                                                                                          data-bs-toggle="tooltip"
-                                                                                                          title="{{ factor.approvers_display }}">
-                                                                                                        {{ factor.last_approver|default:_("بدون تأییدکننده") }}
-                                                                                                    </span>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                <div class="d-flex justify-content-center align-items-center">
-                                                                                                    <div class="badge bg-light text-dark rounded-pill me-2"
-                                                                                                         style="min-width: 60px;">
-                                                                                                        <i class="fas fa-list-ol text-primary me-1"></i>
-                                                                                                        <span class="fw-bold">{{ factor.items.count|to_persian_number }}</span>
-                                                                                                        <small class="text-muted">{% trans "ردیف" %}</small>
-                                                                                                    </div>
-                                                                                                    <div class="dropdown">
-                                                                                                        <button class="btn btn-sm btn-outline-primary dropdown-toggle"
-                                                                                                                type="button"
-                                                                                                                id="factorActions-{{ factor.pk }}"
-                                                                                                                data-bs-toggle="dropdown"
-                                                                                                                aria-expanded="false"
-                                                                                                                data-bs-offset="10,10">
-                                                                                                            <i class="fas fa-ellipsis-v"></i>
-                                                                                                        </button>
-                                                                                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm"
-                                                                                                            aria-labelledby="factorActions-{{ factor.pk }}">
-                                                                                                            <li>
-                                                                                                                <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                   href="{% url 'factor_detail' factor.pk %}">
-                                                                                                                    <i class="fas fa-eye fa-fw text-info me-2"></i>
-                                                                                                                    <span>{% trans "مشاهده جزئیات" %}</span>
-                                                                                                                </a>
-                                                                                                            </li>
-                                                                                                            {% if not factor.is_locked and not factor.tankhah.is_locked %}
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_edit' factor.pk %}">
-                                                                                                                        <i class="fas fa-edit fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "ویرایش فاکتور" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2 text-danger factor-action-btn"
-                                                                                                                       data-action="delete"
-                                                                                                                       href="{% url 'factor_delete' factor.pk %}">
-                                                                                                                        <i class="fas fa-trash-alt fa-fw me-2"></i>
-                                                                                                                        <span>{% trans "حذف فاکتور" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                            {% endif %}
-                                                                                                            {% if factor.can_approve %}
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2 text-success factor-action-btn"
-                                                                                                                       data-action="approve"
-                                                                                                                       href="{% url 'factor_approve' factor.pk %}">
-                                                                                                                        <i class="fas fa-check-circle fa-fw me-2"></i>
-                                                                                                                        <span>{% trans "تأیید نهایی" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2 text-danger factor-action-btn"
-                                                                                                                       data-action="reject"
-                                                                                                                       href="{% url 'factor_item_reject' factor.pk %}">
-                                                                                                                        <i class="fas fa-times-circle fa-fw me-2"></i>
-                                                                                                                        <span>{% trans "رد فاکتور" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                            {% endif %}
-                                                                                                            <li>
-                                                                                                                 <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_item_approve' factor.pk %}">
-                                                                                                                        <i class="fas fa-tasks fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "تایید/رد" %}</span>
-                                                                                                                        <span class="badge bg-primary bg-opacity-10 text-primary ms-auto">
-                                                                                                                            {{ factor.items.count|to_persian_number }}
-                                                                                                                        </span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_approval_path' factor.pk %}">
-                                                                                                                        <i class="fas fa-tasks fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "گردش این فاکتور🤷‍♂️" %}</span>
-                                                                                                                    </a> 
-                                                                                                            </li>
-                                                                                                        </ul>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    {% endfor %}
-                                                                                    {% for factor in tankhah_data.factors.partial %}
-                                                                                        <tr class="fade-in table-partial {% if factor.is_locked %}locked-row{% endif %}">
-                                                                                            <td>{{ forloop.counter|to_persian_number }}</td>
-                                                                                            <td>{{ factor.number|to_persian_number }}</td>
-                                                                                            <td>{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
-                                                                                            <td>{{ factor.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
-                                                                                            <td>
-                                                                                                <span class="status-badge status-partial">{{ factor.get_status_display }}</span>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                    <span class="approver-badge {% if factor.last_approver == _('بدون تأییدکننده') %}alt{% endif %}"
-                                                                                                          data-bs-toggle="tooltip"
-                                                                                                          title="{{ factor.approvers_display }}">
-                                                                                                        {{ factor.last_approver|default:_("بدون تأییدکننده") }}
-                                                                                                    </span>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                <div class="d-flex justify-content-center align-items-center">
-                                                                                                    <div class="badge bg-light text-dark rounded-pill me-2"
-                                                                                                         style="min-width: 60px;">
-                                                                                                        <i class="fas fa-list-ol text-primary me-1"></i>
-                                                                                                        <span class="fw-bold">{{ factor.items.count|to_persian_number }}</span>
-                                                                                                        <small class="text-muted">{% trans "ردیف" %}</small>
-                                                                                                    </div>
-                                                                                                    <div class="dropdown">
-                                                                                                        <button class="btn btn-sm btn-outline-primary dropdown-toggle"
-                                                                                                                type="button"
-                                                                                                                id="factorActions-{{ factor.pk }}"
-                                                                                                                data-bs-toggle="dropdown"
-                                                                                                                aria-expanded="false"
-                                                                                                                data-bs-offset="10,10">
-                                                                                                            <i class="fas fa-ellipsis-v"></i>
-                                                                                                        </button>
-                                                                                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm"
-                                                                                                            aria-labelledby="factorActions-{{ factor.pk }}">
-                                                                                                            <li>
-                                                                                                                <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                   href="{% url 'factor_detail' factor.pk %}">
-                                                                                                                    <i class="fas fa-eye fa-fw text-info me-2"></i>
-                                                                                                                    <span>{% trans "مشاهده جزئیات" %}</span>
-                                                                                                                </a>
-                                                                                                            </li>
-                                                                                                            {% if not factor.is_locked and not factor.tankhah.is_locked %}
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_edit' factor.pk %}">
-                                                                                                                        <i class="fas fa-edit fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "ویرایش فاکتور" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2 text-danger factor-action-btn"
-                                                                                                                       data-action="delete"
-                                                                                                                       href="{% url 'factor_delete' factor.pk %}">
-                                                                                                                        <i class="fas fa-trash-alt fa-fw me-2"></i>
-                                                                                                                        <span>{% trans "حذف فاکتور" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                            {% endif %}
-                                                                                                            {% if factor.can_approve %}
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2 text-success factor-action-btn"
-                                                                                                                       data-action="approve"
-                                                                                                                       href="{% url 'factor_approve' factor.pk %}">
-                                                                                                                        <i class="fas fa-check-circle fa-fw me-2"></i>
-                                                                                                                        <span>{% trans "تأیید نهایی" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2 text-danger factor-action-btn"
-                                                                                                                       data-action="reject"
-                                                                                                                       href="{% url 'factor_reject' factor.pk %}">
-                                                                                                                        <i class="fas fa-times-circle fa-fw me-2"></i>
-                                                                                                                        <span>{% trans "رد فاکتور" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                            {% endif %}
-                                                                                                            <li>
-                                                                                                                  <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_item_approve' factor.pk %}">
-                                                                                                                        <i class="fas fa-tasks fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "تایید/رد" %}</span>
-                                                                                                                        <span class="badge bg-primary bg-opacity-10 text-primary ms-auto">
-                                                                                                                            {{ factor.items.count|to_persian_number }}
-                                                                                                                        </span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_approval_path' factor.pk %}">
-                                                                                                                        <i class="fas fa-tasks fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "گردش این فاکتور🤷‍♂️" %}</span>
-                                                                                                                    </a> 
-                                                                                                            </li>
-                                                                                                        </ul>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    {% endfor %}
-                                                                                    {% for factor in tankhah_data.factors.approve %}
-                                                                                        <tr class="fade-in table-approve {% if factor.is_locked %}locked-row{% endif %}">
-                                                                                            <td>{{ forloop.counter|to_persian_number }}</td>
-                                                                                            <td>{{ factor.number|to_persian_number }}</td>
-                                                                                            <td>{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
-                                                                                            <td>{{ factor.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
-                                                                                            <td>
-                                                                                                <span class="status-badge status-approve">{{ factor.get_status_display }}</span>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                    <span class="approver-badge {% if factor.last_approver == _('بدون تأییدکننده') %}alt{% endif %}"
-                                                                                                          data-bs-toggle="tooltip"
-                                                                                                          title="{{ factor.approvers_display }}">
-                                                                                                        {{ factor.last_approver|default:_("بدون تأییدکننده") }}
-                                                                                                    </span>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                <div class="d-flex justify-content-center align-items-center">
-                                                                                                    <div class="badge bg-light text-dark rounded-pill me-2"
-                                                                                                         style="min-width: 60px;">
-                                                                                                        <i class="fas fa-list-ol text-primary me-1"></i>
-                                                                                                        <span class="fw-bold">{{ factor.items.count|to_persian_number }}</span>
-                                                                                                        <small class="text-muted">{% trans "ردیف" %}</small>
-                                                                                                    </div>
-                                                                                                    <div class="dropdown">
-                                                                                                        <button class="btn btn-sm btn-outline-primary dropdown-toggle"
-                                                                                                                type="button"
-                                                                                                                id="factorActions-{{ factor.pk }}"
-                                                                                                                data-bs-toggle="dropdown"
-                                                                                                                aria-expanded="false"
-                                                                                                                data-bs-offset="10,10">
-                                                                                                            <i class="fas fa-ellipsis-v"></i>
-                                                                                                        </button>
-                                                                                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm"
-                                                                                                            aria-labelledby="factorActions-{{ factor.pk }}">
-                                                                                                            <li>
-                                                                                                                <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                   href="{% url 'factor_detail' factor.pk %}">
-                                                                                                                    <i class="fas fa-eye fa-fw text-info me-2"></i>
-                                                                                                                    <span>{% trans "مشاهده جزئیات" %}</span>
-                                                                                                                </a>
-                                                                                                            </li>
-                                                                                                            <li>
-                                                                                                                  <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_item_approve' factor.pk %}">
-                                                                                                                        <i class="fas fa-tasks fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "تایید/رد" %}</span>
-                                                                                                                        <span class="badge bg-primary bg-opacity-10 text-primary ms-auto">
-                                                                                                                            {{ factor.items.count|to_persian_number }}
-                                                                                                                        </span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_approval_path' factor.pk %}">
-                                                                                                                        <i class="fas fa-tasks fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "گردش این فاکتور🤷‍♂️" %}</span>
-                                                                                                                    </a> 
-                                                                                                            </li>
-                                                                                                        </ul>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    {% endfor %}
-                                                                                    {% for factor in tankhah_data.factors.rejected %}
-                                                                                        <tr class="fade-in table-rejecte {% if factor.is_locked %}locked-row{% endif %}">
-                                                                                            <td>{{ forloop.counter|to_persian_number }}</td>
-                                                                                            <td>{{ factor.number|to_persian_number }}</td>
-                                                                                            <td>{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
-                                                                                            <td>{{ factor.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
-                                                                                            <td>
-                                                                                                <span class="status-badge status-rejecte">{{ factor.get_status_display }}</span>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                    <span class="approver-badge {% if factor.last_approver == _('بدون تأییدکننده') %}alt{% endif %}"
-                                                                                                          data-bs-toggle="tooltip"
-                                                                                                          title="{{ factor.approvers_display }}">
-                                                                                                        {{ factor.last_approver|default:_("بدون تأییدکننده") }}
-                                                                                                    </span>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                <div class="d-flex justify-content-center align-items-center">
-                                                                                                    <div class="badge bg-light text-dark rounded-pill me-2"
-                                                                                                         style="min-width: 60px;">
-                                                                                                        <i class="fas fa-list-ol text-primary me-1"></i>
-                                                                                                        <span class="fw-bold">{{ factor.items.count|to_persian_number }}</span>
-                                                                                                        <small class="text-muted">{% trans "ردیف" %}</small>
-                                                                                                    </div>
-                                                                                                    <div class="dropdown">
-                                                                                                        <button class="btn btn-sm btn-outline-primary dropdown-toggle"
-                                                                                                                type="button"
-                                                                                                                id="factorActions-{{ factor.pk }}"
-                                                                                                                data-bs-toggle="dropdown"
-                                                                                                                aria-expanded="false"
-                                                                                                                data-bs-offset="10,10">
-                                                                                                            <i class="fas fa-ellipsis-v"></i>
-                                                                                                        </button>
-                                                                                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm"
-                                                                                                            aria-labelledby="factorActions-{{ factor.pk }}">
-                                                                                                            <li>
-                                                                                                                <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                   href="{% url 'factor_detail' factor.pk %}">
-                                                                                                                    <i class="fas fa-eye fa-fw text-info me-2"></i>
-                                                                                                                    <span>{% trans "مشاهده جزئیات" %}</span>
-                                                                                                                </a>
-                                                                                                            </li>
-                                                                                                            {% if not factor.is_locked and not factor.tankhah.is_locked %}
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_edit' factor.pk %}">
-                                                                                                                        <i class="fas fa-edit fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "ویرایش فاکتور" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2 text-danger factor-action-btn"
-                                                                                                                       data-action="delete"
-                                                                                                                       href="{% url 'factor_delete' factor.pk %}">
-                                                                                                                        <i class="fas fa-trash-alt fa-fw me-2"></i>
-                                                                                                                        <span>{% trans "حذف فاکتور" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                            {% endif %}
-                                                                                                            <li>
-                                                                                                                  <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_item_approve' factor.pk %}">
-                                                                                                                        <i class="fas fa-tasks fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "تایید/رد" %}</span>
-                                                                                                                        <span class="badge bg-primary bg-opacity-10 text-primary ms-auto">
-                                                                                                                            {{ factor.items.count|to_persian_number }}
-                                                                                                                        </span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_approval_path' factor.pk %}">
-                                                                                                                        <i class="fas fa-tasks fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "گردش این فاکتور🤷‍♂️" %}</span>
-                                                                                                                    </a> 
-                                                                                                            </li>
-                                                                                                        </ul>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    {% endfor %}
-                                                                                    {% for factor in tankhah_data.factors.paid %}
-                                                                                        <tr class="fade-in table-paid {% if factor.is_locked %}locked-row{% endif %}">
-                                                                                            <td>{{ forloop.counter|to_persian_number }}</td>
-                                                                                            <td>{{ factor.number|to_persian_number }}</td>
-                                                                                            <td>{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
-                                                                                            <td>{{ factor.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
-                                                                                            <td>
-                                                                                                <span class="status-badge status-paid">{{ factor.get_status_display }}</span>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                    <span class="approver-badge {% if factor.last_approver == _('بدون تأییدکننده') %}alt{% endif %}"
-                                                                                                          data-bs-toggle="tooltip"
-                                                                                                          title="{{ factor.approvers_display }}">
-                                                                                                        {{ factor.last_approver|default:_("بدون تأییدکننده") }}
-                                                                                                    </span>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                <div class="d-flex justify-content-center align-items-center">
-                                                                                                    <div class="badge bg-light text-dark rounded-pill me-2"
-                                                                                                         style="min-width: 60px;">
-                                                                                                        <i class="fas fa-list-ol text-primary me-1"></i>
-                                                                                                        <span class="fw-bold">{{ factor.items.count|to_persian_number }}</span>
-                                                                                                        <small class="text-muted">{% trans "ردیف" %}</small>
-                                                                                                    </div>
-                                                                                                    <div class="dropdown">
-                                                                                                        <button class="btn btn-sm btn-outline-primary dropdown-toggle"
-                                                                                                                type="button"
-                                                                                                                id="factorActions-{{ factor.pk }}"
-                                                                                                                data-bs-toggle="dropdown"
-                                                                                                                aria-expanded="false"
-                                                                                                                data-bs-offset="10,10">
-                                                                                                            <i class="fas fa-ellipsis-v"></i>
-                                                                                                        </button>
-                                                                                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm"
-                                                                                                            aria-labelledby="factorActions-{{ factor.pk }}">
-                                                                                                            <li>
-                                                                                                                <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                   href="{% url 'factor_detail' factor.pk %}">
-                                                                                                                    <i class="fas fa-eye fa-fw text-info me-2"></i>
-                                                                                                                    <span>{% trans "مشاهده جزئیات" %}</span>
-                                                                                                                </a>
-                                                                                                            </li>
-                                                                                                            <li>
-                                                                                                                  <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_item_approve' factor.pk %}">
-                                                                                                                        <i class="fas fa-tasks fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "تایید/رد" %}</span>
-                                                                                                                        <span class="badge bg-primary bg-opacity-10 text-primary ms-auto">
-                                                                                                                            {{ factor.items.count|to_persian_number }}
-                                                                                                                        </span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_approval_path' factor.pk %}">
-                                                                                                                        <i class="fas fa-tasks fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "گردش این فاکتور🤷‍♂️" %}</span>
-                                                                                                                    </a> 
-                                                                                                            </li>
-                                                                                                        </ul>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    {% endfor %}
-                                                                                    {% for factor in tankhah_data.factors.others %}
-                                                                                        <tr class="fade-in table-{{ factor.status|lower|default:'draft' }} {% if factor.is_locked %}locked-row{% endif %}">
-                                                                                            <td>{{ forloop.counter|to_persian_number }}</td>
-                                                                                            <td>{{ factor.number|to_persian_number }}</td>
-                                                                                            <td>{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
-                                                                                            <td>{{ factor.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
-                                                                                            <td>
-                                                                                                <span class="status-badge status-{{ factor.status|lower|default:'draft' }}">{{ factor.get_status_display|default:_("نامشخص") }}</span>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                    <span class="approver-badge {% if factor.last_approver == _('بدون تأییدکننده') %}alt{% endif %}"
-                                                                                                          data-bs-toggle="tooltip"
-                                                                                                          title="{{ factor.approvers_display }}">
-                                                                                                        {{ factor.last_approver|default:_("بدون تأییدکننده") }}
-                                                                                                    </span>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                <div class="d-flex justify-content-center align-items-center">
-                                                                                                    <div class="badge bg-light text-dark rounded-pill me-2"
-                                                                                                         style="min-width: 60px;">
-                                                                                                        <i class="fas fa-list-ol text-primary me-1"></i>
-                                                                                                        <span class="fw-bold">{{ factor.items.count|to_persian_number }}</span>
-                                                                                                        <small class="text-muted">{% trans "ردیف" %}</small>
-                                                                                                    </div>
-                                                                                                    <div class="dropdown">
-                                                                                                        <button class="btn btn-sm btn-outline-primary dropdown-toggle"
-                                                                                                                type="button"
-                                                                                                                id="factorActions-{{ factor.pk }}"
-                                                                                                                data-bs-toggle="dropdown"
-                                                                                                                aria-expanded="false"
-                                                                                                                data-bs-offset="10,10">
-                                                                                                            <i class="fas fa-ellipsis-v"></i>
-                                                                                                        </button>
-                                                                                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm"
-                                                                                                            aria-labelledby="factorActions-{{ factor.pk }}">
-                                                                                                            <li>
-                                                                                                                <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                   href="{% url 'factor_detail' factor.pk %}">
-                                                                                                                    <i class="fas fa-eye fa-fw text-info me-2"></i>
-                                                                                                                    <span>{% trans "مشاهده جزئیات" %}</span>
-                                                                                                                </a>
-                                                                                                            </li>
-                                                                                                            {% if not factor.is_locked and not factor.tankhah.is_locked %}
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_edit' factor.pk %}">
-                                                                                                                        <i class="fas fa-edit fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "ویرایش فاکتور" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2 text-danger factor-action-btn"
-                                                                                                                       data-action="delete"
-                                                                                                                       href="{% url 'factor_delete' factor.pk %}">
-                                                                                                                        <i class="fas fa-trash-alt fa-fw me-2"></i>
-                                                                                                                        <span>{% trans "حذف فاکتور" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                            {% endif %}
-                                                                                                            {% if factor.can_approve %}
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2 text-success factor-action-btn"
-                                                                                                                       data-action="approve"
-                                                                                                                       href="{% url 'factor_approve' factor.pk %}">
-                                                                                                                        <i class="fas fa-check-circle fa-fw me-2"></i>
-                                                                                                                        <span>{% trans "تأیید نهایی" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2 text-danger factor-action-btn"
-                                                                                                                       data-action="reject"
-                                                                                                                       href="{% url 'factor_reject' factor.pk %}">
-                                                                                                                        <i class="fas fa-times-circle fa-fw me-2"></i>
-                                                                                                                        <span>{% trans "رد فاکتور" %}</span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                            {% endif %}
-                                                                                                            <li>
-                                                                                                                 <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_item_approve' factor.pk %}">
-                                                                                                                        <i class="fas fa-tasks fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "تایید/رد" %}</span>
-                                                                                                                        <span class="badge bg-primary bg-opacity-10 text-primary ms-auto">
-                                                                                                                            {{ factor.items.count|to_persian_number }}
-                                                                                                                        </span>
-                                                                                                                    </a>
-                                                                                                                </li>
-                                                                                                                <li>
-                                                                                                                    <a class="dropdown-item d-flex align-items-center py-2"
-                                                                                                                       href="{% url 'factor_approval_path' factor.pk %}">
-                                                                                                                        <i class="fas fa-tasks fa-fw text-primary me-2"></i>
-                                                                                                                        <span>{% trans "گردش این فاکتور🤷‍♂️" %}</span>
-                                                                                                                    </a> 
-                                                                                                            </li>
-                                                                                                        </ul>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    {% endfor %}
+                                                                                                                {% if not factor.is_locked and not factor.tankhah.is_locked %}
+                                                                                                                    <li>
+                                                                                                                        <a class="dropdown-item" href="{% url 'factor_edit' factor.pk %}">
+                                                                                                                            <i class="fas fa-edit fa-fw text-warning me-2"></i>
+                                                                                                                            {% trans "ویرایش فاکتور" %}
+                                                                                                                        </a>
+                                                                                                                    </li>
+                                                                                                                    <li><hr class="dropdown-divider"></li>
+                                                                                                                    <li>
+                                                                                                                        <a class="dropdown-item text-danger factor-action-btn"
+                                                                                                                           data-action="delete"
+                                                                                                                           href="{% url 'factor_delete' factor.pk %}">
+                                                                                                                            <i class="fas fa-trash-alt fa-fw me-2"></i>
+                                                                                                                            {% trans "حذف فاکتور" %}
+                                                                                                                        </a>
+                                                                                                                    </li>
+                                                                                                                {% endif %}
+                                                                                                                {% if factor.can_approve %}
+                                                                                                                    <li><hr class="dropdown-divider"></li>
+                                                                                                                    <li>
+                                                                                                                        <a class="dropdown-item text-success factor-action-btn"
+                                                                                                                           data-action="approve"
+                                                                                                                           href="{% url 'factor_approve' factor.pk %}">
+                                                                                                                            <i class="fas fa-check-circle fa-fw me-2"></i>
+                                                                                                                            {% trans "تأیید نهایی" %}
+                                                                                                                        </a>
+                                                                                                                    </li>
+                                                                                                                    <li>
+{#                                                                                                                        <a class="dropdown-item text-danger factor-action-btn"#}
+{#                                                                                                                           data-action="reject"#}
+{#                                                                                                                           href="{% url 'factor_reject' factor.pk %}">#}
+{#                                                                                                                            <i class="fas fa-times-circle fa-fw me-2"></i>#}
+{#                                                                                                                            {% trans "رد فاکتور" %}#}
+{#                                                                                                                        </a>#}
+                                                                                                                    </li>
+                                                                                                                {% endif %}
+                                                                                                            </ul>
+                                                                                                        </div>
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                            {% endfor %}
+                                                                                        {% endfor %}
                                                                                     </tbody>
                                                                                 </table>
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                {% endfor %}
-                                                            </div>
+                                                                </div>
+                                                            {% endfor %}
                                                         </div>
                                                     </div>
                                                 </div>
-                                            {% endfor %}
-                                        </div>
+                                            </div>
+                                        {% endfor %}
                                     </div>
                                 </div>
                             </div>
-                        {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-file-invoice fa-4x text-muted opacity-50"></i>
                     </div>
-                {% else %}
-                    <div class="text-center py-5">
-                        <i class="fas fa-file-invoice fa-4x text-muted mb-4"></i>
-                        <h5 class="text-muted">{% trans "فاکتوری یافت نشد" %}</h5>
-                        <p class="text-muted mb-4">{% trans "می‌توانید با کلیک روی دکمه زیر یک فاکتور جدید ایجاد کنید" %}</p>
-                        <a href="{% url 'Nfactor_create' %}" class="btn btn-primary btn-custom">
-                            <i class="fas fa-plus me-2"></i> {% trans "ایجاد فاکتور جدید" %}
+                    <h4 class="text-muted mb-3">{% trans "فاکتوری یافت نشد" %}</h4>
+                    <p class="text-muted mb-4">
+                        {% if query or status_query or date_query %}
+                            {% trans "با فیلترهای انتخابی هیچ فاکتوری یافت نشد. لطفاً فیلترها را تغییر دهید." %}
+                        {% else %}
+                            {% trans "هنوز هیچ فاکتوری ثبت نشده است. می‌توانید اولین فاکتور را ایجاد کنید." %}
+                        {% endif %}
+                    </p>
+                    <div class="d-flex gap-3 justify-content-center">
+                        <a href="{% url 'Nfactor_create' %}" class="btn btn-primary btn-modern">
+                            <i class="fas fa-plus me-2"></i>
+                            {% trans "ایجاد فاکتور جدید" %}
                         </a>
+                        {% if query or status_query or date_query %}
+                            <a href="?" class="btn btn-outline-secondary btn-modern">
+                                <i class="fas fa-times me-2"></i>
+                                {% trans "پاک کردن فیلترها" %}
+                            </a>
+                        {% endif %}
                     </div>
-                {% endif %}
+                </div>
+            {% endif %}
 
-                <!-- صفحه‌بندی -->
-                {% if is_paginated %}
-                    <nav aria-label="{% trans 'صفحه‌بندی' %}" class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=
+            <!-- صفحه‌بندی -->
+            {% if is_paginated %}
+                <nav aria-label="{% trans 'صفحه‌بندی' %}" class="mt-5">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}{% if status_query %}&status={{ status_query }}{% endif %}">
+                                    <i class="fas fa-chevron-right me-1"></i>
+                                    {% trans "قبلی" %}
+                                </a>
+                            </li>
+                        {% endif %}
 
-
-
-
-
-
-                                            {{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}{% if status_query %}&status={{ status_query }}{% endif %}"
-                                       aria-label="{% trans 'صفحه قبلی' %}">
-                                        « {% trans "قبلی" %}
-                                    </a>
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num|to_persian_number }}</span>
                                 </li>
-                            {% endif %}
-                            {% for num in page_obj.paginator.page_range %}
-                                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                                    <a class="page-link" href="?page=
-
-
-
-
-
-
-                                            {{ num }}{% if query %}&q={{ query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}{% if status_query %}&status={{ status_query }}{% endif %}">
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}{% if status_query %}&status={{ status_query }}{% endif %}">
                                         {{ num|to_persian_number }}
                                     </a>
                                 </li>
-                            {% endfor %}
-                            {% if page_obj.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=
-
-
-
-
-
-
-                                            {{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}{% if status_query %}&status={{ status_query }}{% endif %}"
-                                       aria-label="{% trans 'صفحه بعدی' %}">
-                                        {% trans "بعدی" %} »
-                                    </a>
-                                </li>
                             {% endif %}
-                        </ul>
-                    </nav>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+                        {% endfor %}
 
-    <!-- مودال تأیید عملیات -->
-    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="confirmationModalLabel">{% trans "تأیید عملیات" %}</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                            aria-label="{% trans 'بستن' %}"></button>
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}{% if status_query %}&status={{ status_query }}{% endif %}">
+                                    {% trans "بعدی" %}
+                                    <i class="fas fa-chevron-left ms-1"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- مودال تأیید عملیات -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% trans "تأیید عملیات" %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <i class="fas fa-question-circle fa-4x text-warning"></i>
                 </div>
-                <div class="modal-body py-4">
-                    <div class="text-center mb-3">
-                        <i class="fas fa-exclamation-circle fa-4x text-warning mb-3"></i>
-                        <p id="confirmationMessage">{% trans "آیا از انجام این عملیات مطمئن هستید؟" %}</p>
-                    </div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-2"></i> {% trans "انصراف" %}
-                    </button>
-                    <a href="#" id="confirmActionBtn" class="btn btn-primary">
-                        <i class="fas fa-check me-2"></i> {% trans "تأیید" %}
-                    </a>
-                </div>
+                <p id="confirmationMessage" class="fs-5">
+                    {% trans "آیا از انجام این عملیات مطمئن هستید؟" %}
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-modern" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>
+                    {% trans "انصراف" %}
+                </button>
+                <a href="#" id="confirmActionBtn" class="btn btn-primary btn-modern">
+                    <i class="fas fa-check me-2"></i>
+                    {% trans "تأیید" %}
+                </a>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr-jalali@1.0.0/dist/flatpickr-jalali.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // دیتاپیکر جلالی
-            flatpickr("#jalali-date", {
-                dateFormat: "Y/m/d",
-                locale: "fa",
-                disableMobile: true,
-                altInput: true,
-                altFormat: "Y/m/d",
-                plugins: [
-                    new flatpickrJalaliPlugin({showSwitcher: true})
-                ]
-            });
+{#<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>#}
+{#<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/fa.js"></script>#}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // تنظیم تاریخ‌پیکر شمسی
+    flatpickr("#jalali-date", {
+        dateFormat: "Y/m/d",
+        locale: "fa",
+        disableMobile: true,
+        allowInput: true,
+        clickOpens: true,
+        onChange: function(selectedDates, dateStr, instance) {
+            // تبدیل تاریخ میلادی به شمسی
+            if (selectedDates.length > 0) {
+                const gregorianDate = selectedDates[0];
+                const jalaliDate = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                }).format(gregorianDate);
+                
+                // تبدیل فرمت به Y/m/d
+                const parts = jalaliDate.split('/');
+                if (parts.length === 3) {
+                    instance.input.value = `${parts[0]}/${parts[1]}/${parts[2]}`;
+                }
+            }
+        }
+    });
 
-            // فعال‌سازی ابزارتیپ‌ها
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl, {
-                    placement: 'top',
-                    trigger: 'hover'
-                });
-            });
-
-            // انیمیشن‌های lazy
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('fade-in');
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, {threshold: 0.1});
-
-            document.querySelectorAll('.accordion-item, .table tbody tr').forEach((el, index) => {
-                el.style.animationDelay = `${index * 0.1}s`;
-                observer.observe(el);
-            });
-
-            // مودال تأیید عملیات
-            const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
-            document.querySelectorAll('.factor-action-btn').forEach(btn => {
-                btn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const actionUrl = this.getAttribute('href');
-                    const actionType = this.getAttribute('data-action');
-                    const modalTitle = document.getElementById('confirmationModalLabel');
-                    const confirmBtn = document.getElementById('confirmActionBtn');
-                    const message = document.getElementById('confirmationMessage');
-
-                    if (actionType === 'reject') {
-                        modalTitle.textContent = '{% trans "تأیید رد فاکتور" %}';
-                        message.textContent = '{% trans "آیا از رد کردن این فاکتور مطمئن هستید؟ این عمل قابل بازگشت نیست." %}';
-                        confirmBtn.classList.remove('btn-success');
-                        confirmBtn.classList.add('btn-danger');
-                        confirmBtn.innerHTML = '<i class="fas fa-times-circle me-2"></i> {% trans "رد کن" %}';
-                    } else if (actionType === 'approve') {
-                        modalTitle.textContent = '{% trans "تأیید فاکتور" %}';
-                        message.textContent = '{% trans "آیا از تأیید این فاکتور مطمئن هستید؟ پس از تأیید امکان ویرایش وجود ندارد." %}';
-                        confirmBtn.classList.remove('btn-danger');
-                        confirmBtn.classList.add('btn-success');
-                        confirmBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i> {% trans "تأیید کن" %}';
-                    } else if (actionType === 'delete') {
-                        modalTitle.textContent = '{% trans "حذف فاکتور" %}';
-                        message.textContent = '{% trans "آیا از حذف این فاکتور مطمئن هستید؟ این عمل قابل بازگشت نیست." %}';
-                        confirmBtn.classList.remove('btn-success');
-                        confirmBtn.classList.add('btn-danger');
-                        confirmBtn.innerHTML = '<i class="fas fa-trash-alt me-2"></i> {% trans "حذف کن" %}';
-                    }
-
-                    confirmBtn.setAttribute('href', actionUrl);
-                    confirmationModal.show();
-                });
-            });
-
-            document.getElementById('confirmActionBtn').addEventListener('click', function (e) {
-                e.preventDefault();
-                window.location.href = this.getAttribute('href');
-            });
+    // فعال‌سازی tooltip ها
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl, {
+            placement: 'top',
+            trigger: 'hover focus'
         });
-    </script>
+    });
+
+    // انیمیشن lazy loading
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    // مشاهده المان‌های قابل انیمیشن
+    document.querySelectorAll('.accordion-item, .table tbody tr, .stats-card').forEach((el, index) => {
+        el.style.animationDelay = `${index * 0.05}s`;
+        observer.observe(el);
+    });
+
+    // مدیریت مودال تأیید
+    const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+    const modalTitle = document.getElementById('confirmationModalLabel');
+    const confirmBtn = document.getElementById('confirmActionBtn');
+    const message = document.getElementById('confirmationMessage');
+
+    document.querySelectorAll('.factor-action-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const actionUrl = this.getAttribute('href');
+            const actionType = this.getAttribute('data-action');
+            
+            // تنظیم محتوای مودال بر اساس نوع عملیات
+            switch(actionType) {
+                case 'reject':
+                    modalTitle.innerHTML = '<i class="fas fa-times-circle me-2"></i>{% trans "تأیید رد فاکتور" %}';
+                    message.textContent = '{% trans "آیا از رد کردن این فاکتور مطمئن هستید؟ این عمل قابل بازگشت نیست." %}';
+                    confirmBtn.className = 'btn btn-danger btn-modern';
+                    confirmBtn.innerHTML = '<i class="fas fa-times-circle me-2"></i>{% trans "رد کن" %}';
+                    break;
+                    
+                case 'approve':
+                    modalTitle.innerHTML = '<i class="fas fa-check-circle me-2"></i>{% trans "تأیید فاکتور" %}';
+                    message.textContent = '{% trans "آیا از تأیید این فاکتور مطمئن هستید؟ پس از تأیید امکان ویرایش محدود می‌شود." %}';
+                    confirmBtn.className = 'btn btn-success btn-modern';
+                    confirmBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>{% trans "تأیید کن" %}';
+                    break;
+                    
+                case 'delete':
+                    modalTitle.innerHTML = '<i class="fas fa-trash-alt me-2"></i>{% trans "حذف فاکتور" %}';
+                    message.textContent = '{% trans "آیا از حذف این فاکتور مطمئن هستید؟ این عمل قابل بازگشت نیست و تمام اطلاعات مرتبط حذف خواهد شد." %}';
+                    confirmBtn.className = 'btn btn-danger btn-modern';
+                    confirmBtn.innerHTML = '<i class="fas fa-trash-alt me-2"></i>{% trans "حذف کن" %}';
+                    break;
+                    
+                default:
+                    modalTitle.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>{% trans "تأیید عملیات" %}';
+                    message.textContent = '{% trans "آیا از انجام این عملیات مطمئن هستید؟" %}';
+                    confirmBtn.className = 'btn btn-primary btn-modern';
+                    confirmBtn.innerHTML = '<i class="fas fa-check me-2"></i>{% trans "تأیید" %}';
+            }
+            
+            confirmBtn.setAttribute('href', actionUrl);
+            confirmationModal.show();
+        });
+    });
+
+    // مدیریت کلیک تأیید در مودال
+    confirmBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // نمایش loading
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{% trans "در حال پردازش..." %}';
+        this.disabled = true;
+        
+        // انتقال به صفحه مقصد
+        setTimeout(() => {
+            window.location.href = this.getAttribute('href');
+        }, 500);
+    });
+
+    // بهبود تجربه کاربری فرم‌ها
+    document.querySelectorAll('.form-control-modern, .form-select').forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+            this.parentElement.classList.remove('focused');
+        });
+        
+        // اعتبارسنجی real-time
+        input.addEventListener('input', function() {
+            if (this.checkValidity()) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            } else {
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
+            }
+        });
+    });
+
+    // مدیریت کلیدهای میانبر
+    document.addEventListener('keydown', function(e) {
+        // Ctrl+F برای فوکوس روی جستجو
+        if (e.ctrlKey && e.key === 'f') {
+            e.preventDefault();
+            document.querySelector('input[name="q"]').focus();
+        }
+        
+        // Escape برای بستن مودال‌ها
+        if (e.key === 'Escape') {
+            const openModal = document.querySelector('.modal.show');
+            if (openModal) {
+                bootstrap.Modal.getInstance(openModal).hide();
+            }
+        }
+    });
+
+    // ذخیره وضعیت آکاردئون در localStorage
+    document.querySelectorAll('.accordion-button').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const target = this.getAttribute('data-bs-target');
+            const isExpanded = this.getAttribute('aria-expanded') === 'true';
+            
+            // ذخیره وضعیت
+            localStorage.setItem(`accordion_${target}`, !isExpanded);
+        });
+    });
+
+    // بازیابی وضعیت آکاردئون
+    document.querySelectorAll('.accordion-collapse').forEach(collapse => {
+        const id = collapse.id;
+        const savedState = localStorage.getItem(`accordion_#${id}`);
+        
+        if (savedState === 'true') {
+            const bsCollapse = new bootstrap.Collapse(collapse, {
+                show: true
+            });
+        }
+    });
+
+    // نمایش پیشرفت بارگذاری صفحه
+    window.addEventListener('beforeunload', function() {
+        document.body.style.opacity = '0.7';
+        document.body.style.pointerEvents = 'none';
+    });
+
+    // اعلان موفقیت‌آمیز بودن عملیات
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success')) {
+        const successMessage = urlParams.get('message') || '{% trans "عملیات با موفقیت انجام شد." %}';
+        showNotification(successMessage, 'success');
+        
+        // پاک کردن پارامترها از URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+    }
+
+    // تابع نمایش اعلان
+    function showNotification(message, type = 'info', duration = 5000) {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = `
+            top: 20px; right: 20px; z-index: 1060; min-width: 300px; max-width: 500px;
+            box-shadow: var(--shadow-lg); border-radius: var(--border-radius);
+            animation: slideDown 0.5s ease-out;
+        `;
+        
+        notification.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                <div class="flex-grow-1">${message}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // حذف خودکار پس از مدت زمان مشخص
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.style.animation = 'slideUp 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, duration);
+    }
+
+    // بهینه‌سازی عملکرد با debouncing برای جستجو
+    let searchTimeout;
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                // می‌توان اینجا جستجوی AJAX اضافه کرد
+                console.log('جستجو برای:', this.value);
+            }, 300);
+        });
+    }
+
+    console.log('✅ Factor List UI initialized successfully!');
+});
+
+// انیمیشن‌های CSS اضافی
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    }
+    
+    .focused {
+        transform: scale(1.02);
+        transition: transform 0.2s ease;
+    }
+    
+    .is-valid {
+        border-color: var(--success) !important;
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1) !important;
+    }
+    
+    .is-invalid {
+        border-color: var(--danger) !important;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+    }
+`;
+document.head.appendChild(style);
+</script>
 {% endblock %}

@@ -1,335 +1,1212 @@
 {% extends 'base.html' %}
 {% load i18n static rcms_custom_filters %}
 
+{% block extra_css %}
+
+    <style>
+:root {
+    --primary-color: #4f46e5;
+    --primary-light: #818cf8;
+    --primary-dark: #3730a3;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #06b6d4;
+    --dark-color: #1f2937;
+    --light-color: #f8fafc;
+    --border-radius: 12px;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] {
+    --primary-color: #6366f1;
+    --light-color: #1f2937;
+    --dark-color: #f8fafc;
+}
+
+/* Enhanced Card Design */
+.main-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    position: relative;
+}
+
+.main-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--success-color), var(--info-color), var(--primary-color));
+}
+
+.card-header-enhanced {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: none;
+    padding: 1.5rem;
+}
+
+.card-body-enhanced {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+}
+
+/* Enhanced Accordion */
+.accordion-enhanced {
+    border: none;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.accordion-item-enhanced {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.accordion-item-enhanced:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.accordion-button-enhanced {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border: none;
+    padding: 1.25rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.accordion-button-enhanced::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s;
+}
+
+.accordion-button-enhanced:hover::before {
+    left: 100%;
+}
+
+.accordion-button-enhanced:not(.collapsed) {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+/* Enhanced Badge */
+.badge-enhanced {
+    background: linear-gradient(135deg, var(--success-color) 0%, #34d399 100%);
+    color: white;
+    font-weight: 700;
+    padding: 0.5rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.875rem;
+    box-shadow: var(--shadow-sm);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Enhanced Form Controls */
+.form-switch-enhanced .form-check-input {
+    width: 3rem;
+    height: 1.5rem;
+    border-radius: 50px;
+    background-color: #e5e7eb;
+    border: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.form-switch-enhanced .form-check-input:checked {
+    background: linear-gradient(135deg, var(--success-color) 0%, #34d399 100%);
+    box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25);
+}
+
+.form-switch-enhanced .form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
+}
+
+/* Enhanced Radio Buttons */
+.radio-enhanced {
+    position: relative;
+    margin: 0.25rem;
+}
+
+.radio-enhanced input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.radio-enhanced .radio-label {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: #f1f5f9;
+    border: 2px solid #e2e8f0;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.radio-enhanced input[type="radio"]:checked + .radio-label {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    color: white;
+    border-color: var(--primary-color);
+    transform: scale(1.05);
+    box-shadow: var(--shadow-md);
+}
+
+.radio-enhanced:hover .radio-label {
+    border-color: var(--primary-light);
+    transform: translateY(-1px);
+}
+
+/* Enhanced Table */
+.table-enhanced {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    background: white;
+}
+
+.table-enhanced thead th {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border: none;
+    font-weight: 600;
+    color: var(--dark-color);
+    padding: 1rem;
+}
+
+.table-enhanced tbody tr {
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.table-enhanced tbody tr:hover {
+    background: linear-gradient(135deg, #fef7ff 0%, #f3e8ff 100%);
+    transform: scale(1.01);
+}
+
+.table-enhanced tbody td {
+    padding: 1rem;
+    border-color: #f1f5f9;
+    vertical-align: middle;
+}
+
+/* Enhanced Buttons */
+.btn-enhanced {
+    border-radius: 50px;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    border: none;
+}
+
+.btn-enhanced::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-enhanced:hover::before {
+    left: 100%;
+}
+
+.btn-primary-enhanced {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary-enhanced:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-outline-enhanced {
+    background: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btn-outline-enhanced:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Loading Animation */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Progress Bar */
+.progress-enhanced {
+    height: 6px;
+    border-radius: 50px;
+    background: #e5e7eb;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.progress-bar-enhanced {
+    background: linear-gradient(90deg, var(--success-color), var(--info-color));
+    height: 100%;
+    border-radius: 50px;
+    transition: width 0.3s ease;
+}
+
+/* Enhanced Alerts */
+.alert-enhanced {
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.alert-enhanced::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: currentColor;
+}
+
+.alert-info-enhanced {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+    border-left: 4px solid var(--info-color);
+}
+
+.alert-success-enhanced {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+    border-left: 4px solid var(--success-color);
+}
+
+.alert-danger-enhanced {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    color: #991b1b;
+    border-left: 4px solid var(--danger-color);
+}
+
+/* Search and Filter */
+.search-container {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 3rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 50px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+/* Tooltip Enhanced */
+.tooltip-enhanced {
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    backdrop-filter: blur(10px);
+}
+
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+    .accordion-button-enhanced {
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .badge-enhanced {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.5rem;
+    }
+    
+    .btn-enhanced {
+        padding: 0.5rem 1.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .table-enhanced {
+        font-size: 0.875rem;
+    }
+    
+    .table-enhanced th,
+    .table-enhanced td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+/* Dark Mode Styles */
+@media (prefers-color-scheme: dark) {
+    .card-body-enhanced {
+        background: rgba(31, 41, 55, 0.95);
+        color: white;
+    }
+    
+    .accordion-button-enhanced {
+        background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+        color: white;
+    }
+    
+    .table-enhanced {
+        background: #1f2937;
+        color: white;
+    }
+    
+    .table-enhanced thead th {
+        background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+        color: white;
+    }
+    
+    .search-input {
+        background: #374151;
+        border-color: #4b5563;
+        color: white;
+    }
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+/* Floating Action Button */
+.fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    color: white;
+    border: none;
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.fab:hover {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-xl);
+}
+
+/* Status Indicators */
+.status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.status-active {
+    background: var(--success-color);
+    animation: pulse-green 2s infinite;
+}
+
+.status-inactive {
+    background: var(--danger-color);
+}
+
+.status-pending {
+    background: var(--warning-color);
+    animation: pulse-yellow 2s infinite;
+}
+
+@keyframes pulse-green {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes pulse-yellow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-    <div class="container mt-4">
-        <h1 class="mb-4 text-right">{{ title }}</h1>
-        <div class="card shadow-lg border-0 rounded-3">
-            <div class="card-header bg-primary text-white text-right d-flex justify-content-between align-items-center py-3">
-                <h5 class="my-0 fw-bold">{% trans "تنظیم قوانین دسترسی پست‌ها" %}</h5>
-                <i class="fas fa-cogs fa-lg opacity-75"></i>
+<div class="container mt-4 fade-in">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0 text-right fw-bold text-gradient">{{ title }}</h1>
+        <button class="btn btn-outline-enhanced" id="theme-toggle">
+            <i class="fas fa-moon" id="theme-icon"></i>
+        </button>
+    </div>
+    
+    <!-- Progress Bar -->
+    <div class="progress-enhanced">
+        <div class="progress-bar-enhanced" style="width: 0%" id="form-progress"></div>
+    </div>
+    
+    <!-- Main Card -->
+    <div class="card main-card shadow-lg border-0 rounded-3">
+        <div class="card-header card-header-enhanced text-white text-right d-flex justify-content-between align-items-center py-3">
+            <h5 class="my-0 fw-bold d-flex align-items-center">
+                <i class="fas fa-cogs fa-lg me-2 opacity-75"></i>
+                {% trans "تنظیم قوانین دسترسی پست‌ها" %}
+            </h5>
+            <div class="d-flex align-items-center">
+                <span class="badge bg-light text-dark me-2" id="posts-count">0 پست</span>
+                <i class="fas fa-shield-alt fa-lg opacity-75"></i>
             </div>
-            <div class="card-body p-4">
-                <!-- راهنما -->
-                <div class="alert alert-info text-right mb-4">
-                    {% trans "برای هر پست، حداقل یک قانون دسترسی (مانند ایجاد، حذف، ویرایش، مشاهده، تأیید یا رد) انتخاب کنید. برای اقدامات تأیید و رد، یک مرحله جدید یا موجود انتخاب کنید." %}
+        </div>
+        
+        <div class="card-body card-body-enhanced p-4">
+            <!-- Search Section -->
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" id="search-posts" placeholder="جستجو در پست‌ها...">
+            </div>
+            
+            <!-- Enhanced Guide -->
+            <div class="alert alert-info-enhanced text-right mb-4 slide-in">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-info-circle fa-lg me-2 mt-1"></i>
+                    <div>
+                        <strong>راهنما:</strong>
+                        {% trans "برای هر پست، حداقل یک قانون دسترسی (مانند ایجاد، حذف، ویرایش، مشاهده، تأیید یا رد) انتخاب کنید. برای اقدامات تأیید و رد، یک مرحله جدید یا موجود انتخاب کنید." %}
+                    </div>
                 </div>
-
-                <!-- پیام‌های فلاش -->
-                {% if messages %}
-                    <div class="mb-4">
-                        {% for message in messages %}
-                            <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% else %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show text-right"
-                                 role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                        aria-label="Close"></button>
+            </div>
+            
+            <!-- Flash Messages -->
+            {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% else %}{{ message.tags }}{% endif %}-enhanced alert-dismissible fade show text-right animate__animated animate__fadeInDown" role="alert">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-{% if message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2 mt-1"></i>
+                                <div class="flex-grow-1">{{ message }}</div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-
-                <!-- خطاهای غیرفیلدی -->
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger text-right mb-4">
-                        <strong>{% trans "خطاهای فرم:" %}</strong>
-                        <ul class="list-unstyled mb-0">
-                            {% for error in form.non_field_errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                {% endif %}
-
-                <form method="post" id="accessRuleForm">
-                    {% csrf_token %}
-                    {% if form.post_fields_data %}
-                        <div class="mb-3 d-flex justify-content-end">
-                            <button type="button" id="open-all-btn"
-                                    class="btn btn-outline-primary me-2">{% trans "باز کردن همه" %}</button>
-                            <button type="button" id="close-all-btn"
-                                    class="btn btn-outline-secondary">{% trans "بستن همه" %}</button>
                         </div>
-                        <div class="accordion" id="postsAccordion">
-                            {% for post_data in form.post_fields_data %}
-                                <div class="accordion-item mb-3 border rounded-3 shadow-sm">
-                                    <h5 style="color: greenyellow"  class="accordion-header">ردیف: {{ forloop.counter |to_persian_number }}</h5>
-                                    <h2 class="accordion-header" id="headingPost{{ post_data.post.id }}">
-                                        <button class="accordion-button collapsed text-right bg-light" type="button"
-                                                data-bs-toggle="collapse"
-                                                data-bs-target="#collapsePost{{ post_data.post.id }}"
-                                                aria-expanded="false"
-                                                aria-controls="collapsePost{{ post_data.post.id }}">
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- Form Errors -->
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger-enhanced text-right mb-4 animate__animated animate__shakeX">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-exclamation-triangle fa-lg me-2 mt-1"></i>
+                        <div>
+                            <strong>{% trans "خطاهای فرم:" %}</strong>
+                            <ul class="list-unstyled mb-0 mt-2">
+                                {% for error in form.non_field_errors %}
+                                    <li class="mb-1">• {{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <form method="post" id="accessRuleForm">
+                {% csrf_token %}
+                
+                {% if form.post_fields_data %}
+                    <!-- Control Buttons -->
+                    <div class="mb-4 d-flex justify-content-between align-items-center">
+                        <div class="d-flex gap-2">
+                            <button type="button" id="open-all-btn" class="btn btn-outline-enhanced">
+                                <i class="fas fa-expand-alt me-1"></i>
+                                {% trans "باز کردن همه" %}
+                            </button>
+                            <button type="button" id="close-all-btn" class="btn btn-outline-enhanced">
+                                <i class="fas fa-compress-alt me-1"></i>
+                                {% trans "بستن همه" %}
+                            </button>
+                            <button type="button" id="select-all-btn" class="btn btn-outline-enhanced">
+                                <i class="fas fa-check-double me-1"></i>
+                                {% trans "انتخاب همه" %}
+                            </button>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="text-muted me-2">پیشرفت:</span>
+                            <span id="completion-percentage" class="fw-bold text-primary">0%</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Enhanced Accordion -->
+                    <div class="accordion accordion-enhanced" id="postsAccordion">
+                        {% for post_data in form.post_fields_data %}
+                            <div class="accordion-item accordion-item-enhanced mb-3 fade-in" style="animation-delay: {{ forloop.counter0|mul:0.1 }}s">
+                                <h2 class="accordion-header" id="headingPost{{ post_data.post.id }}">
+                                    <button class="accordion-button accordion-button-enhanced collapsed text-right" 
+                                            type="button" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#collapsePost{{ post_data.post.id }}" 
+                                            aria-expanded="false" 
+                                            aria-controls="collapsePost{{ post_data.post.id }}">
                                         <span class="d-flex align-items-center flex-grow-1">
-                                            <i class="fas fa-sitemap fa-lg me-2 text-primary"></i>
-                                            <strong>{{ post_data.post.name }}</strong>
-                                            <small class="text-muted ms-2">
-                                                ({{ post_data.post.organization.name|default:_("بدون سازمان") }}
-                                                {% if post_data.post.branch %} -
-                                                    {{ post_data.post.branch.name }}{% endif %}
-                                                - {% trans "سطح" %}: {{ post_data.post.level }})
-                                            </small>
+                                            <span class="badge badge-enhanced me-3">
+                                                {{ forloop.counter|to_persian_number }}
+                                            </span>
+                                            <div class="d-flex align-items-center">
+                                                <span class="status-indicator status-pending me-2"></span>
+                                                <i class="fas fa-sitemap fa-lg me-2"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <strong class="d-block">{{ post_data.post.name }}</strong>
+                                                <small class="text-muted d-block mt-1">
+                                                    <i class="fas fa-building me-1"></i>
+                                                    {{ post_data.post.organization.name|default:_("بدون سازمان") }}
+                                                    {% if post_data.post.branch %}
+                                                        <i class="fas fa-code-branch me-1 ms-2"></i>
+                                                        {{ post_data.post.branch.name }}
+                                                    {% endif %}
+                                                    <i class="fas fa-layer-group me-1 ms-2"></i>
+                                                    {% trans "سطح" %}: {{ post_data.post.level }}
+                                                </small>
+                                            </div>
                                         </span>
-                                        </button>
-                                    </h2>
-                                    <div id="collapsePost{{ post_data.post.id }}" class="accordion-collapse collapse"
-                                         aria-labelledby="headingPost{{ post_data.post.id }}"
-                                         data-bs-parent="#postsAccordion">
-                                        <div class="accordion-body p-4 bg-white">
-                                            <h5 class="mb-3 text-right text-primary">{% trans "قوانین دسترسی" %}</h5>
-                                            <div class="accordion" id="entitiesAccordion{{ post_data.post.id }}">
-                                                {% for entity_group in post_data.entity_groups %}
-                                                    <div class="accordion-item mb-2 border rounded-2">
-                                                        <h2 class="accordion-header" id="headingEntity
-                                                                {{ post_data.post.id }}{{ entity_group.entity_id }}">
-                                                            <button class="accordion-button collapsed text-right bg-info-subtle"
-                                                                    type="button" data-bs-toggle="collapse"
-                                                                    data-bs-target="#collapseEntity
-                                                                            
-                                                                            {{ post_data.post.id }}{{ entity_group.entity_id }}"
-                                                                    aria-expanded="false" aria-controls="collapseEntity
-                                                                    
-                                                                    {{ post_data.post.id }}{{ entity_group.entity_id }}">
+                                        <div class="d-flex align-items-center me-3">
+                                            <span class="badge bg-secondary post-completion" data-post-id="{{ post_data.post.id }}">0%</span>
+                                        </div>
+                                    </button>
+                                </h2>
+                                
+                                <div id="collapsePost{{ post_data.post.id }}" 
+                                     class="accordion-collapse collapse" 
+                                     aria-labelledby="headingPost{{ post_data.post.id }}" 
+                                     data-bs-parent="#postsAccordion">
+                                    <div class="accordion-body p-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h5 class="mb-0 text-primary d-flex align-items-center">
+                                                <i class="fas fa-key me-2"></i>
+                                                {% trans "قوانین دسترسی" %}
+                                            </h5>
+                                            <div class="d-flex gap-2">
+                                                <button type="button" class="btn btn-sm btn-outline-success enable-all-post" data-post-id="{{ post_data.post.id }}">
+                                                    <i class="fas fa-check-circle me-1"></i>
+                                                    فعال‌سازی همه
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger disable-all-post" data-post-id="{{ post_data.post.id }}">
+                                                    <i class="fas fa-times-circle me-1"></i>
+                                                    غیرفعال‌سازی همه
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="accordion" id="entitiesAccordion{{ post_data.post.id }}">
+                                            {% for entity_group in post_data.entity_groups %}
+                                                <div class="accordion-item mb-3 border rounded-3 shadow-sm">
+                                                    <h2 class="accordion-header" id="headingEntity{{ post_data.post.id }}{{ entity_group.entity_id }}">
+                                                        <button class="accordion-button collapsed text-right bg-light" 
+                                                                type="button" 
+                                                                data-bs-toggle="collapse" 
+                                                                data-bs-target="#collapseEntity{{ post_data.post.id }}{{ entity_group.entity_id }}" 
+                                                                aria-expanded="false" 
+                                                                aria-controls="collapseEntity{{ post_data.post.id }}{{ entity_group.entity_id }}">
                                                             <span class="d-flex align-items-center flex-grow-1">
                                                                 <i class="fas fa-cube me-2 text-info"></i>
-                                                                {{ entity_group.entity_label }}
+                                                                <strong>{{ entity_group.entity_label }}</strong>
                                                             </span>
-                                                                <div class="form-check form-switch ms-auto me-2">
-                                                                    {{ entity_group.enable_all_field }}
-                                                                    <label class="form-check-label small text-muted"
-                                                                           for="{{ entity_group.enable_all_field.id_for_label }}">{% trans "فعال‌سازی همه" %}</label>
-                                                                </div>
-                                                            </button>
-                                                        </h2>
-                                                        <div id="collapseEntity
-                                                                {{ post_data.post.id }}{{ entity_group.entity_id }}"
-                                                             class="accordion-collapse collapse"
-                                                             aria-labelledby="headingEntity
-                                                                     
-                                                                     {{ post_data.post.id }}{{ entity_group.entity_id }}"
-                                                             data-bs-parent="#entitiesAccordion{{ post_data.post.id }}">
-                                                            <div class="accordion-body p-3">
-                                                                {% if entity_group.has_stage_actions %}
-                                                                    <div class="row mb-3">
-                                                                        <label for="{{ entity_group.new_stage_field.id_for_label }}"
-                                                                               class="col-sm-3 col-form-label text-right">{% trans "مرحله جدید" %}:</label>
-                                                                        <div class="col-sm-9">
+                                                            <div class="form-check form-switch form-switch-enhanced ms-auto me-2">
+                                                                {{ entity_group.enable_all_field }}
+                                                                <label class="form-check-label small text-muted" 
+                                                                       for="{{ entity_group.enable_all_field.id_for_label }}"
+                                                                       data-bs-toggle="tooltip"
+                                                                       title="فعال‌سازی تمام قوانین این بخش">
+                                                                    {% trans "فعال‌سازی همه" %}
+                                                                </label>
+                                                            </div>
+                                                        </button>
+                                                    </h2>
+                                                    
+                                                    <div id="collapseEntity{{ post_data.post.id }}{{ entity_group.entity_id }}" 
+                                                         class="accordion-collapse collapse" 
+                                                         aria-labelledby="headingEntity{{ post_data.post.id }}{{ entity_group.entity_id }}" 
+                                                         data-bs-parent="#entitiesAccordion{{ post_data.post.id }}">
+                                                        <div class="accordion-body p-4">
+                                                            {% if entity_group.has_stage_actions %}
+                                                                <div class="row mb-4">
+                                                                    <label for="{{ entity_group.new_stage_field.id_for_label }}" 
+                                                                           class="col-sm-3 col-form-label text-right fw-bold">
+                                                                        <i class="fas fa-plus-circle me-1 text-success"></i>
+                                                                        {% trans "مرحله جدید" %}:
+                                                                    </label>
+                                                                    <div class="col-sm-9">
+                                                                        <div class="input-group">
+                                                                            <span class="input-group-text">
+                                                                                <i class="fas fa-tag"></i>
+                                                                            </span>
                                                                             {{ entity_group.new_stage_field }}
-                                                                            <small class="form-text text-muted">{% trans "نام مرحله جدید (مثال: 'تأیید مدیر')." %}</small>
-                                                                            {% if entity_group.new_stage_field.errors %}
-                                                                                <div class="text-danger small mt-1">{{ entity_group.new_stage_field.errors|join:", " }}</div>
-                                                                            {% endif %}
                                                                         </div>
+                                                                        <small class="form-text text-muted mt-1">
+                                                                            <i class="fas fa-info-circle me-1"></i>
+                                                                            {% trans "نام مرحله جدید (مثال: 'تأیید مدیر')." %}
+                                                                        </small>
+                                                                        {% if entity_group.new_stage_field.errors %}
+                                                                            <div class="text-danger small mt-2">
+                                                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                                                {{ entity_group.new_stage_field.errors|join:", " }}
+                                                                            </div>
+                                                                        {% endif %}
                                                                     </div>
-                                                                {% endif %}
-                                                                <table class="table table-sm table-hover text-right">
-                                                                    <thead class="table-light">
-                                                                    <tr>
-                                                                        <th>{% trans "اقدام" %}</th>
-                                                                        <th class="text-center">{% trans "مرحله/فعال" %}</th>
-                                                                        <th class="text-center">{% trans "امضاکننده" %}</th>
-                                                                    </tr>
+                                                                </div>
+                                                            {% endif %}
+                                                            
+                                                            <div class="table-responsive">
+                                                                <table class="table table-enhanced table-hover text-right">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th class="fw-bold">
+                                                                                <i class="fas fa-tasks me-1"></i>
+                                                                                {% trans "اقدام" %}
+                                                                            </th>
+                                                                            <th class="text-center fw-bold">
+                                                                                <i class="fas fa-toggle-on me-1"></i>
+                                                                                {% trans "مرحله/فعال" %}
+                                                                            </th>
+                                                                            <th class="text-center fw-bold">
+                                                                                <i class="fas fa-signature me-1"></i>
+                                                                                {% trans "امضاکننده" %}
+                                                                            </th>
+                                                                        </tr>
                                                                     </thead>
                                                                     <tbody>
-                                                                    {% for rule_item in entity_group.rules %}
-                                                                        <tr>
-                                                                            <td>{{ rule_item.action_label }}</td>
-                                                                            <td class="text-center">
-                                                                                {% if rule_item.is_radio_select %}
-                                                                                    <div class="d-flex flex-column align-items-center">
-                                                                                        {% for id, name in rule_item.field.field.choices %}
-                                                                                            <div class="form-check form-check-inline">
-                                                                                                <input class="form-check-input stage-radio-input"
-                                                                                                       type="radio"
-                                                                                                       name="{{ rule_item.field.html_name }}"
-                                                                                                       id="{{ rule_item.field.auto_id }}_{{ forloop.counter0 }}"
-                                                                                                       value="{{ id }}"
-                                                                                                       {% if id == rule_item.field.value %}checked{% endif %}>
-                                                                                                <label class="form-check-label small"
-                                                                                                       for="{{ rule_item.field.auto_id }}_{{ forloop.counter0 }}">{{ name }}</label>
+                                                                        {% for rule_item in entity_group.rules %}
+                                                                            <tr class="rule-row" data-rule-type="{{ rule_item.action_label }}">
+                                                                                <td class="fw-medium">
+                                                                                    <div class="d-flex align-items-center">
+                                                                                        <i class="fas fa-{% if 'ایجاد' in rule_item.action_label %}plus{% elif 'حذف' in rule_item.action_label %}trash{% elif 'ویرایش' in rule_item.action_label %}edit{% elif 'مشاهده' in rule_item.action_label %}eye{% elif 'تأیید' in rule_item.action_label %}check{% elif 'رد' in rule_item.action_label %}times{% else %}cog{% endif %} me-2 text-muted"></i>
+                                                                                        {{ rule_item.action_label }}
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td class="text-center">
+                                                                                    {% if rule_item.is_radio_select %}
+                                                                                        <div class="d-flex flex-wrap justify-content-center gap-1">
+                                                                                            {% for id, name in rule_item.field.field.choices %}
+                                                                                                <div class="radio-enhanced">
+                                                                                                    <input type="radio" 
+                                                                                                           name="{{ rule_item.field.html_name }}" 
+                                                                                                           id="{{ rule_item.field.auto_id }}_{{ forloop.counter0 }}" 
+                                                                                                           value="{{ id }}" 
+                                                                                                           {% if id == rule_item.field.value %}checked{% endif %}
+                                                                                                           class="stage-radio-input">
+                                                                                                    <label class="radio-label" 
+                                                                                                           for="{{ rule_item.field.auto_id }}_{{ forloop.counter0 }}">
+                                                                                                        {{ name }}
+                                                                                                    </label>
+                                                                                                </div>
+                                                                                            {% endfor %}
+                                                                                        </div>
+                                                                                        {% if rule_item.field.errors %}
+                                                                                            <div class="text-danger small mt-2">
+                                                                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                                                                {{ rule_item.field.errors|join:", " }}
                                                                                             </div>
-                                                                                        {% endfor %}
-                                                                                        {% if rule_item.field.errors %}
-                                                                                            <div class="text-danger small mt-1">{{ rule_item.field.errors|join:", " }}</div>
                                                                                         {% endif %}
-                                                                                    </div>
-                                                                                {% else %}
-                                                                                    <div class="form-check form-switch">
-                                                                                        {{ rule_item.field }}
-                                                                                        <label class="form-check-label"
-                                                                                               for="{{ rule_item.field.id_for_label }}"></label>
+                                                                                    {% else %}
+                                                                                        <div class="form-check form-switch form-switch-enhanced d-flex justify-content-center">
+                                                                                            {{ rule_item.field }}
+                                                                                            <label class="form-check-label" 
+                                                                                                   for="{{ rule_item.field.id_for_label }}"></label>
+                                                                                        </div>
                                                                                         {% if rule_item.field.errors %}
-                                                                                            <div class="text-danger small mt-1">{{ rule_item.field.errors|join:", " }}</div>
+                                                                                            <div class="text-danger small mt-1">
+                                                                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                                                                {{ rule_item.field.errors|join:", " }}
+                                                                                            </div>
                                                                                         {% endif %}
-                                                                                    </div>
-                                                                                {% endif %}
-                                                                            </td>
-                                                                            <td class="text-center">
-                                                                                {% if rule_item.is_signer_field %}
-                                                                                    <div class="form-check form-switch">
-                                                                                        {{ rule_item.is_signer_field }}
-                                                                                        <label class="form-check-label"
-                                                                                               for="{{ rule_item.is_signer_field.id_for_label }}"></label>
+                                                                                    {% endif %}
+                                                                                </td>
+                                                                                <td class="text-center">
+                                                                                    {% if rule_item.is_signer_field %}
+                                                                                        <div class="form-check form-switch form-switch-enhanced d-flex justify-content-center">
+                                                                                            {{ rule_item.is_signer_field }}
+                                                                                            <label class="form-check-label" 
+                                                                                                   for="{{ rule_item.is_signer_field.id_for_label }}"
+                                                                                                   data-bs-toggle="tooltip"
+                                                                                                   title="آیا این کاربر امضاکننده است؟"></label>
+                                                                                        </div>
                                                                                         {% if rule_item.is_signer_field.errors %}
-                                                                                            <div class="text-danger small mt-1">{{ rule_item.is_signer_field.errors|join:", " }}</div>
+                                                                                            <div class="text-danger small mt-1">
+                                                                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                                                                {{ rule_item.is_signer_field.errors|join:", " }}
+                                                                                            </div>
                                                                                         {% endif %}
-                                                                                    </div>
-                                                                                {% else %}
-                                                                                    <span class="text-muted">—</span>
-                                                                                {% endif %}
-                                                                            </td>
-                                                                        </tr>
-                                                                    {% endfor %}
+                                                                                    {% else %}
+                                                                                        <span class="text-muted">—</span>
+                                                                                    {% endif %}
+                                                                                </td>
+                                                                            </tr>
+                                                                        {% endfor %}
                                                                     </tbody>
                                                                 </table>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                {% endfor %}
-                                            </div>
+                                                </div>
+                                            {% endfor %}
                                         </div>
                                     </div>
                                 </div>
-                            {% endfor %}
-                        </div>
-                        <div class="d-flex justify-content-end mt-4">
-                            <button type="submit" class="btn btn-primary me-2">
-                                <i class="fas fa-save me-1"></i> {% trans "ذخیره" %}
-                            </button>
-                            <a href="{% url 'accessrule_list' %}" class="btn btn-secondary">{% trans "لغو" %}</a>
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info text-center">{% trans "هیچ پست فعالی یافت نشد." %}</div>
-                    {% endif %}
-                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Enhanced Action Buttons -->
+                    <div class="d-flex justify-content-end mt-5 gap-3">
+                        <button type="submit" class="btn btn-primary-enhanced btn-enhanced" id="save-btn">
+                            <span class="btn-text">
+                                <i class="fas fa-save me-2"></i>
+                                {% trans "ذخیره تغییرات" %}
+                            </span>
+                            <span class="loading-spinner d-none"></span>
+                        </button>
+                        <a href="{% url 'accessrule_list' %}" class="btn btn-outline-enhanced btn-enhanced">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            {% trans "بازگشت" %}
+                        </a>
+                        <button type="button" class="btn btn-outline-enhanced btn-enhanced" id="preview-btn">
+                            <i class="fas fa-eye me-2"></i>
+                            {% trans "پیش‌نمایش" %}
+                        </button>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info-enhanced text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5>{% trans "هیچ پست فعالی یافت نشد." %}</h5>
+                        <p class="text-muted mb-0">لطفاً ابتدا پست‌های مورد نظر را ایجاد کنید.</p>
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Action Button -->
+<button class="fab" id="scroll-to-top" title="بازگشت به بالا">
+    <i class="fas fa-arrow-up"></i>
+</button>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="previewModalLabel">
+                    <i class="fas fa-eye me-2"></i>
+                    پیش‌نمایش قوانین دسترسی
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="preview-content">
+                <!-- Preview content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                <button type="button" class="btn btn-primary" id="export-preview">
+                    <i class="fas fa-download me-1"></i>
+                    خروجی PDF
+                </button>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('accessRuleForm');
-            if (!form) return;
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('accessRuleForm');
+    if (!form) return;
 
-            const toggleSignerCheckbox = (ruleCheckbox) => {
-                const signerCheckbox = ruleCheckbox.closest('tr').querySelector('.signer-checkbox');
-                if (signerCheckbox) {
-                    signerCheckbox.disabled = !ruleCheckbox.checked;
-                    if (!ruleCheckbox.checked) signerCheckbox.checked = false;
-                }
-            };
+    // Initialize components
+    initializeFormHandlers();
+    initializeSearchFunctionality();
+    initializeProgressTracking();
+    initializeThemeToggle();
+    initializeTooltips();
+    initializeAnimations();
+    initializeFAB();
+    
+    // Form handlers
+    function initializeFormHandlers() {
+        // Toggle signer checkbox
+        const toggleSignerCheckbox = (ruleCheckbox) => {
+            const signerCheckbox = ruleCheckbox.closest('tr').querySelector('.signer-checkbox');
+            if (signerCheckbox) {
+                signerCheckbox.disabled = !ruleCheckbox.checked;
+                if (!ruleCheckbox.checked) signerCheckbox.checked = false;
+            }
+        };
 
-            const updateEnableAllState = (enableAllCheckbox) => {
-                const {postId, entityCode} = enableAllCheckbox.dataset;
-                const groupRules = form.querySelectorAll(`.rule-checkbox[data-post-id="${postId}"][data-entity-code="${entityCode}"], .stage-radio-group[data-post-id="${postId}"][data-entity-code="${entityCode}"]`);
-                let allChecked = true, anyChecked = false;
+        // Update enable all state
+        const updateEnableAllState = (enableAllCheckbox) => {
+            const { postId, entityCode } = enableAllCheckbox.dataset;
+            const groupRules = form.querySelectorAll(`.rule-checkbox[data-post-id="${postId}"][data-entity-code="${entityCode}"], .stage-radio-group[data-post-id="${postId}"][data-entity-code="${entityCode}"]`);
+            let allChecked = true, anyChecked = false;
 
-                groupRules.forEach(element => {
-                    if (element.classList.contains('rule-checkbox')) {
-                        if (element.checked) anyChecked = true;
-                        else allChecked = false;
-                    } else {
-                        const checkedRadio = element.querySelector('input[type="radio"]:checked');
-                        if (checkedRadio && checkedRadio.value) anyChecked = true;
-                        else allChecked = false;
-                    }
-                });
-
-                enableAllCheckbox.checked = allChecked;
-                enableAllCheckbox.indeterminate = anyChecked && !allChecked;
-            };
-
-            const handleEnableAllCheckboxes = (enableAllCheckbox) => {
-                const {postId, entityCode} = enableAllCheckbox.dataset;
-                const isChecked = enableAllCheckbox.checked;
-
-                form.querySelectorAll(`.rule-checkbox[data-post-id="${postId}"][data-entity-code="${entityCode}"]`).forEach(cb => {
-                    cb.checked = isChecked;
-                    toggleSignerCheckbox(cb);
-                });
-
-                form.querySelectorAll(`.stage-radio-group[data-post-id="${postId}"][data-entity-code="${entityCode}"]`).forEach(group => {
-                    const radios = group.querySelectorAll('input[type="radio"]');
-                    const firstOption = isChecked ? radios[1] || radios[0] : radios[0];
-                    if (firstOption) firstOption.checked = true;
-                });
-            };
-
-            const openAccordionsWithErrorsOrSearch = () => {
-                const searchQuery = new URLSearchParams(window.location.search).get('search_post');
-                form.querySelectorAll('.text-danger').forEach(errorEl => {
-                    const collapse = errorEl.closest('.accordion-collapse');
-                    if (collapse && !collapse.classList.contains('show')) {
-                        bootstrap.Collapse.getOrCreateInstance(collapse).show();
-                    }
-                    const parentCollapse = collapse?.closest('.accordion-item')?.closest('.accordion-collapse');
-                    if (parentCollapse && !parentCollapse.classList.contains('show')) {
-                        bootstrap.Collapse.getOrCreateInstance(parentCollapse).show();
-                    }
-                });
-
-                if (searchQuery) {
-                    form.querySelectorAll('.accordion-collapse').forEach(collapse => {
-                        const postName = collapse.closest('.accordion-item').querySelector('.accordion-button strong').textContent;
-                        if (postName.includes(searchQuery)) {
-                            bootstrap.Collapse.getOrCreateInstance(collapse).show();
-                        }
-                    });
-                }
-            };
-
-            form.addEventListener('change', (event) => {
-                const target = event.target;
-                if (target.matches('.rule-checkbox')) {
-                    toggleSignerCheckbox(target);
-                    updateEnableAllState(form.querySelector(`.enable-all-checkbox[data-post-id="${target.dataset.postId}"][data-entity-code="${target.dataset.entityCode}"]`));
-                } else if (target.matches('.stage-radio-input')) {
-                    updateEnableAllState(form.querySelector(`.enable-all-checkbox[data-post-id="${target.closest('.stage-radio-group').dataset.postId}"][data-entity-code="${target.closest('.stage-radio-group').dataset.entityCode}"]`));
-                } else if (target.matches('.enable-all-checkbox')) {
-                    handleEnableAllCheckboxes(target);
+            groupRules.forEach(element => {
+                if (element.classList.contains('rule-checkbox')) {
+                    if (element.checked) anyChecked = true;
+                    else allChecked = false;
+                } else {
+                    const checkedRadio = element.querySelector('input[type="radio"]:checked');
+                    if (checkedRadio && checkedRadio.value) anyChecked = true;
+                    else allChecked = false;
                 }
             });
 
-            document.getElementById('open-all-btn')?.addEventListener('click', () => {
-                document.querySelectorAll('#postsAccordion .accordion-collapse').forEach(el => bootstrap.Collapse.getOrCreateInstance(el).show());
+            enableAllCheckbox.checked = allChecked;
+            enableAllCheckbox.indeterminate = anyChecked && !allChecked;
+        };
+
+        // Handle enable all checkboxes
+        const handleEnableAllCheckboxes = (enableAllCheckbox) => {
+            const { postId, entityCode } = enableAllCheckbox.dataset;
+            const isChecked = enableAllCheckbox.checked;
+
+            form.querySelectorAll(`.rule-checkbox[data-post-id="${postId}"][data-entity-code="${entityCode}"]`).forEach(cb => {
+                cb.checked = isChecked;
+                toggleSignerCheckbox(cb);
             });
 
-            document.getElementById('close-all-btn')?.addEventListener('click', () => {
-                document.querySelectorAll('#postsAccordion .accordion-collapse').forEach(el => bootstrap.Collapse.getOrCreateInstance(el).hide());
+            form.querySelectorAll(`.stage-radio-group[data-post-id="${postId}"][data-entity-code="${entityCode}"]`).forEach(group => {
+                const radios = group.querySelectorAll('input[type="radio"]');
+                const firstOption = isChecked ? radios[1] || radios[0] : radios[0];
+                if (firstOption) firstOption.checked = true;
             });
+        };
 
-            document.querySelectorAll('.rule-checkbox').forEach(toggleSignerCheckbox);
-            document.querySelectorAll('.enable-all-checkbox').forEach(updateEnableAllState);
-            setTimeout(openAccordionsWithErrorsOrSearch, 100);
-
-            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+        // Event listeners
+        form.addEventListener('change', (event) => {
+            const target = event.target;
+            
+            if (target.matches('.rule-checkbox')) {
+                toggleSignerCheckbox(target);
+                updateEnableAllState(form.querySelector(`.enable-all-checkbox[data-post-id="${target.dataset.postId}"][data-entity-code="${target.dataset.entityCode}"]`));
+                updateProgress();
+            } else if (target.matches('.stage-radio-input')) {
+                updateEnableAllState(form.querySelector(`.enable-all-checkbox[data-post-id="${target.closest('.stage-radio-group').dataset.postId}"][data-entity-code="${target.closest('.stage-radio-group').dataset.entityCode}"]`));
+                updateProgress();
+            } else if (target.matches('.enable-all-checkbox')) {
+                handleEnableAllCheckboxes(target);
+                updateProgress();
+            }
         });
-    </script>
 
-    <style>
-        .accordion-button:not(.collapsed) {
-            background-color: #e7f1ff;
-            color: #0c63e4;
+        // Control buttons
+        document.getElementById('open-all-btn')?.addEventListener('click', () => {
+            document.querySelectorAll('#postsAccordion .accordion-collapse').forEach(el => {
+                bootstrap.Collapse.getOrCreateInstance(el).show();
+            });
+        });
+
+        document.getElementById('close-all-btn')?.addEventListener('click', () => {
+            document.querySelectorAll('#postsAccordion .accordion-collapse').forEach(el => {
+                bootstrap.Collapse.getOrCreateInstance(el).hide();
+            });
+        });
+
+        document.getElementById('select-all-btn')?.addEventListener('click', () => {
+            form.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(input => {
+                if (input.type === 'checkbox') {
+                    input.checked = true;
+                } else if (input.type === 'radio' && input.value) {
+                    input.checked = true;
+                }
+            });
+            updateProgress();
+        });
+
+        // Initialize states
+        document.querySelectorAll('.rule-checkbox').forEach(toggleSignerCheckbox);
+        document.querySelectorAll('.enable-all-checkbox').forEach(updateEnableAllState);
+    }
+
+    // Search functionality
+    function initializeSearchFunctionality() {
+        const searchInput = document.getElementById('search-posts');
+        if (!searchInput) return;
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const accordionItems = document.querySelectorAll('.accordion-item-enhanced');
+
+            accordionItems.forEach(item => {
+                const postName = item.querySelector('.accordion-button strong').textContent.toLowerCase();
+                const shouldShow = postName.includes(query);
+                
+                item.style.display = shouldShow ? 'block' : 'none';
+                
+                if (shouldShow && query) {
+                    item.classList.add('animate__animated', 'animate__fadeIn');
+                }
+            });
+        });
+    }
+
+    // Progress tracking
+    function initializeProgressTracking() {
+        updateProgress();
+        updatePostsCount();
+    }
+
+    function updateProgress() {
+        const totalInputs = form.querySelectorAll('input[type="checkbox"], input[type="radio"]').length;
+        const checkedInputs = form.querySelectorAll('input[type="checkbox"]:checked, input[type="radio"]:checked').length;
+        const percentage = totalInputs > 0 ? Math.round((checkedInputs / totalInputs) * 100) : 0;
+        
+        const progressBar = document.getElementById('form-progress');
+        const completionPercentage = document.getElementById('completion-percentage');
+        
+        if (progressBar) {
+            progressBar.style.width = percentage + '%';
+        }
+        
+        if (completionPercentage) {
+            completionPercentage.textContent = percentage + '%';
         }
 
-        .table th, .table td {
-            vertical-align: middle;
-        }
-
-        .form-check-inline {
-            margin-bottom: 0.5rem;
-        }
-
-        @media (max-width: 767px) {
-            .table {
-                font-size: 0.9rem;
+        // Update individual post progress
+        document.querySelectorAll('.accordion-item-enhanced').forEach(item => {
+            const postId = item.querySelector('[data-bs-target]').getAttribute('data-bs-target').replace('#collapsePost', '');
+            const postInputs = item.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+            const postChecked = item.querySelectorAll('input[type="checkbox"]:checked, input[type="radio"]:checked');
+            const postPercentage = postInputs.length > 0 ? Math.round((postChecked.length / postInputs.length) * 100) : 0;
+            
+            const badge = item.querySelector('.post-completion');
+            if (badge) {
+                badge.textContent = postPercentage + '%';
+                badge.className = `badge ${postPercentage === 100 ? 'bg-success' : postPercentage > 50 ? 'bg-warning' : 'bg-secondary'} post-completion`;
             }
 
-            .table th, .table td {
-                padding: 0.5rem;
+            // Update status indicator
+            const statusIndicator = item.querySelector('.status-indicator');
+            if (statusIndicator) {
+                statusIndicator.className = `status-indicator ${postPercentage === 100 ? 'status-active' : postPercentage > 0 ? 'status-pending' : 'status-inactive'}`;
             }
+        });
+    }
+
+    function updatePostsCount() {
+        const postsCount = document.querySelectorAll('.accordion-item-enhanced').length;
+        const postsCountElement = document.getElementById('posts-count');
+        if (postsCountElement) {
+            postsCountElement.textContent = postsCount + ' پست';
         }
-    </style>
+    }
+
+    // Theme toggle
+    function initializeThemeToggle() {
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        
+        if (!themeToggle) return;
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    }
+
+    // Initialize tooltips
+    function initializeTooltips() {
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+            new bootstrap.Tooltip(el, {
+                customClass: 'tooltip-enhanced'
+            });
+        });
+    }
+
+    // Initialize animations
+    function initializeAnimations() {
+        // Animate elements on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate__animated', 'animate__fadeInUp');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.accordion-item-enhanced').forEach(el => {
+            observer.observe(el);
+        });
+    }
+
+    // Initialize Floating Action Button
+    function initializeFAB() {
+        const fab = document.getElementById('scroll-to-top');
+        if (!fab) return;
+
+        fab.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                fab.style.display = 'block';
+            } else {
+                fab.style.display = 'none';
+            }
+        });
+    }
+
+    // Form submission with loading state
+    form.addEventListener('submit', (e) => {
+        const saveBtn = document.getElementById('save-btn');
+        const btnText = saveBtn.querySelector('.btn-text');
+        const spinner = saveBtn.querySelector('.loading-spinner');
+        
+        btnText.classList.add('d-none');
+        spinner.classList.remove('d-none');
+        saveBtn.disabled = true;
+    });
+
+    // Preview functionality
+    document.getElementById('preview-btn')?.addEventListener('click', () => {
+        const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+        const previewContent = document.getElementById('preview-content');
+        
+        // Generate preview content
+        let content = '<div class="preview-summary">';
+        content += '<h6>خلاصه تنظیمات:</h6>';
+        content += '<ul>';
+        
+        document.querySelectorAll('.accordion-item-enhanced').forEach(item => {
+            const postName = item.querySelector('.accordion-button strong').textContent;
+            const checkedCount = item.querySelectorAll('input:checked').length;
+            content += `<li>${postName}: ${checkedCount} قانون فعال</li>`;
+        });
+        
+        content += '</ul></div>';
+        previewContent.innerHTML = content;
+        
+        modal.show();
+    });
+
+    // Auto-save functionality (optional)
+    let autoSaveTimeout;
+    form.addEventListener('change', () => {
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(() => {
+            // Auto-save logic here
+            console.log('Auto-saving...');
+        }, 5000);
+    });
+
+    // Initialize everything
+    setTimeout(() => {
+        updateProgress();
+        
+        // Open accordions with errors
+        form.querySelectorAll('.text-danger').forEach(errorEl => {
+            const collapse = errorEl.closest('.accordion-collapse');
+            if (collapse && !collapse.classList.contains('show')) {
+                bootstrap.Collapse.getOrCreateInstance(collapse).show();
+            }
+        });
+    }, 100);
+});
+</script>
 {% endblock %}

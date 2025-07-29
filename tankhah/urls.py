@@ -72,6 +72,7 @@ urlpatterns = [
     path('factor/<int:pk>/approve/',        FactorApproveView.as_view(),      name='factor_approve'),
     path('factor/<int:pk>/approval-path/',  FactorApprovalPathView.as_view(), name='factor_approval_path'), # مسیر تایید فاکتورها
     path('factor-item/<int:pk>/approve/',   FactorItemApproveView.as_view(), name='factor_item_approve'),
+
     path('factor-item/<int:pk>/reject/', FactorItemRejectView.as_view(), name='factor_item_reject'),
 
     # path('factor-items/<int:pk>/factoritemsdetail', FactorItemsDetailView, name='factor_items_detail'),

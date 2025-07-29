@@ -25,7 +25,7 @@ except ImportError:
     jdate = None
     logging.error("jdatetime is not installed. Please install it using 'pip install jdatetime'")
 #---------------------------------
-class FactorListView(PermissionBaseView, ListView):
+class FactorListView__ok(PermissionBaseView, ListView):
     model = Factor
     template_name = 'tankhah/factor_list.html'
     context_object_name = 'factors'
@@ -212,6 +212,381 @@ class FactorListView(PermissionBaseView, ListView):
         context['grouped_by_org'] = grouped_by_org
         logger.info(f"Finished grouping. Found {len(grouped_by_org)} organization groups.")
         return context
+
+
+class FactorListView(PermissionBaseView, ListView):
+    model = Factor
+    template_name = 'tankhah/factor_list.html'
+    context_object_name = 'factors'
+    permission_codenames = ['tankhah.factor_view']
+    check_organization = True
+    organization_filter_field = 'tankhah__organization__id__in'
+    paginate_by = 20
+
+    def get_queryset(self):
+        user = self.request.user
+        logger.info(f"[FACTOR_LIST] شروع دریافت لیست فاکتورها برای کاربر: {user.username}")
+
+        # کوئری پایه با بهینه‌سازی - فقط فیلدهای موجود
+        qs = super().get_queryset().select_related(
+            'tankhah__organization',
+            'tankhah__project',
+            'created_by',
+            'category',
+            'locked_by_stage'
+            # 'payee' را حذف کردیم چون وجود ندارد
+        ).prefetch_related(
+            'items',
+            Prefetch(
+                'approval_logs',
+                queryset=ApprovalLog.objects.filter(
+                    action__in=['APPROVED', 'INTERMEDIATE_APPROVE', 'FINAL_APPROVE', 'APPROVE', 'TEMP_APPROVED']
+                ).select_related('user', 'post', 'stage').order_by('-timestamp'),
+                to_attr='approvers_raw'
+            )
+        )
+
+        initial_count = qs.count()
+        logger.info(f"[FACTOR_LIST] تعداد اولیه فاکتورها: {initial_count}")
+
+        # دریافت سازمان‌های کاربر
+        user_org_ids = set()
+        user_level = None
+
+        try:
+            for user_post in user.userpost_set.filter(is_active=True).select_related('post__organization'):
+                org = user_post.post.organization
+                user_org_ids.add(org.id)
+                # اضافه کردن سازمان‌های والد
+                while org.parent_organization:
+                    org = org.parent_organization
+                    user_org_ids.add(org.id)
+                user_level = min(user_level, user_post.post.level) if user_level else user_post.post.level
+        except Exception as e:
+            logger.error(f"[FACTOR_LIST] خطا در دریافت سازمان‌های کاربر: {e}")
+            user_org_ids = set()
+            user_level = None
+
+        logger.info(f"[FACTOR_LIST] سازمان‌های کاربر: {user_org_ids}, سطح: {user_level}")
+
+        # اعمال فیلترها
+        filter_conditions = Q()
+
+        # فیلتر جستجو
+        query = self.request.GET.get('q', '').strip()
+        if query:
+            filter_conditions &= (
+                    Q(number__icontains=query) |
+                    Q(description__icontains=query) |
+                    Q(tankhah__number__icontains=query) |
+                    Q(tankhah__project__name__icontains=query) |
+                    Q(tankhah__organization__name__icontains=query)
+            )
+            logger.info(f"[FACTOR_LIST] فیلتر جستجو اعمال شد: {query}")
+
+        # فیلتر وضعیت
+        status_query = self.request.GET.get('status', '').strip()
+        if status_query:
+            filter_conditions &= Q(status=status_query)
+            logger.info(f"[FACTOR_LIST] فیلتر وضعیت اعمال شد: {status_query}")
+
+        # فیلتر تاریخ شمسی
+        date_query = self.request.GET.get('date', '').strip()
+        if date_query:
+            try:
+                # تبدیل تاریخ شمسی به میلادی
+                if '/' in date_query:
+                    date_parts = date_query.split('/')
+                    if len(date_parts) == 3:
+                        year, month, day = map(int, date_parts)
+                        jalali_date = jdatetime.date(year, month, day)
+                        gregorian_date = jalali_date.togregorian()
+                        filter_conditions &= Q(date=gregorian_date)
+                        logger.info(f"[FACTOR_LIST] فیلتر تاریخ اعمال شد: {date_query} -> {gregorian_date}")
+                    else:
+                        raise ValueError("فرمت تاریخ نامعتبر")
+                else:
+                    raise ValueError("فرمت تاریخ نامعتبر")
+            except (ValueError, TypeError) as e:
+                logger.warning(f"[FACTOR_LIST] خطا در تبدیل تاریخ: {e}")
+                messages.warning(self.request, _("فرمت تاریخ نامعتبر است. لطفاً از فرمت 1403/05/15 استفاده کنید."))
+
+        # فیلتر محدودیت سازمانی
+        if not (user.is_superuser or user.has_perm('tankhah.Tankhah_view_all')):
+            if user_org_ids:
+                filter_conditions &= Q(tankhah__organization__id__in=user_org_ids)
+                logger.info(f"[FACTOR_LIST] محدودیت سازمانی اعمال شد")
+            else:
+                # اگر کاربر هیچ سازمانی ندارد، هیچ فاکتوری نمایش نده
+                filter_conditions &= Q(pk__in=[])
+                logger.warning(f"[FACTOR_LIST] کاربر هیچ سازمانی ندارد")
+
+        # اعمال فیلترها
+        if filter_conditions:
+            qs = qs.filter(filter_conditions)
+            logger.info(f"[FACTOR_LIST] پس از اعمال فیلترها: {qs.count()}")
+
+        # مرتب‌سازی
+        qs = qs.order_by('-date', '-created_at', '-pk')
+
+        logger.info(f"[FACTOR_LIST] تعداد نهایی فاکتورها: {qs.count()}")
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+
+        logger.info(f"[FACTOR_LIST_CONTEXT] شروع ایجاد context برای کاربر: {user.username}")
+
+        # بررسی دسترسی‌های کاربر
+        is_hq = (
+                user.is_superuser or
+                user.has_perm('tankhah.Tankhah_view_all') or
+                user.userpost_set.filter(
+                    is_active=True,
+                    post__organization__org_type__fname='HQ'
+                ).exists()
+        )
+
+        # دریافت اطلاعات کاربر
+        user_level = None
+        user_org_ids = set()
+
+        try:
+            user_posts = list(
+                user.userpost_set.filter(is_active=True)
+                .select_related('post__organization')
+                .prefetch_related('post__stageapprover_set')
+            )
+
+            for user_post in user_posts:
+                user_org_ids.add(user_post.post.organization.id)
+                user_level = min(user_level, user_post.post.level) if user_level else user_post.post.level
+        except Exception as e:
+            logger.error(f"[FACTOR_LIST_CONTEXT] خطا در دریافت اطلاعات کاربر: {e}")
+
+        # اضافه کردن متغیرهای context
+        context.update({
+            'is_hq': is_hq,
+            'query': self.request.GET.get('q', ''),
+            'status_query': self.request.GET.get('status', ''),
+            'date_query': self.request.GET.get('date', ''),
+            'status_choices': Factor.STATUS_CHOICES,
+            'user_level': user_level,
+            'user_org_ids': user_org_ids,
+        })
+
+        # گروه‌بندی فاکتورها
+        grouped_by_org = {}
+        factor_list = list(context.get(self.context_object_name, []))  # تبدیل به لیست
+
+        logger.info(f"[FACTOR_LIST_CONTEXT] پردازش {len(factor_list)} فاکتور برای گروه‌بندی")
+
+        for factor in factor_list:
+            try:
+                tankhah = factor.tankhah
+                if not tankhah or not tankhah.organization or not tankhah.project:
+                    logger.warning(f"[FACTOR_LIST_CONTEXT] فاکتور {factor.number} فاقد تنخواه، سازمان یا پروژه")
+                    continue
+
+                org_name = tankhah.organization.name
+                project_name = tankhah.project.name
+                tankhah_number = tankhah.number
+
+                # ایجاد ساختار گروه‌بندی
+                if org_name not in grouped_by_org:
+                    grouped_by_org[org_name] = {
+                        'org_obj': tankhah.organization,
+                        'projects': {},
+                        'total_amount': Decimal('0'),
+                        'total_factors': 0
+                    }
+
+                if project_name not in grouped_by_org[org_name]['projects']:
+                    grouped_by_org[org_name]['projects'][project_name] = {
+                        'project_obj': tankhah.project,
+                        'tankhahs': {},
+                        'total_amount': Decimal('0'),
+                        'total_factors': 0
+                    }
+
+                if tankhah_number not in grouped_by_org[org_name]['projects'][project_name]['tankhahs']:
+                    grouped_by_org[org_name]['projects'][project_name]['tankhahs'][tankhah_number] = {
+                        'tankhah_obj': tankhah,
+                        'factors': {
+                            'draft': [],
+                            'pending': [],
+                            'pending_approval': [],
+                            'partial': [],
+                            'approve': [],
+                            'rejected': [],
+                            'paid': [],
+                            'others': []
+                        },
+                        'total_amount': Decimal('0'),
+                        'total_factors': 0
+                    }
+
+                # تعیین کلید وضعیت
+                status_key = self._get_status_key(factor.status)
+
+                # اضافه کردن فاکتور به گروه مناسب
+                grouped_by_org[org_name]['projects'][project_name]['tankhahs'][tankhah_number]['factors'][
+                    status_key].append(factor)
+
+                # محاسبه مبالغ
+                factor_amount = factor.amount or Decimal('0')
+                grouped_by_org[org_name]['projects'][project_name]['tankhahs'][tankhah_number][
+                    'total_amount'] += factor_amount
+                grouped_by_org[org_name]['projects'][project_name]['tankhahs'][tankhah_number]['total_factors'] += 1
+                grouped_by_org[org_name]['projects'][project_name]['total_amount'] += factor_amount
+                grouped_by_org[org_name]['projects'][project_name]['total_factors'] += 1
+                grouped_by_org[org_name]['total_amount'] += factor_amount
+                grouped_by_org[org_name]['total_factors'] += 1
+
+                # پردازش تأییدکنندگان
+                self._process_factor_approvers(factor)
+
+                # بررسی دسترسی‌های فاکتور
+                self._check_factor_permissions(factor, user, tankhah)
+
+                # تبدیل تاریخ به شمسی
+                self._convert_dates_to_jalali(factor)
+
+                logger.debug(
+                    f"[FACTOR_LIST_CONTEXT] فاکتور {factor.number}: can_approve={getattr(factor, 'can_approve', False)}, is_locked={getattr(factor, 'is_locked', True)}")
+
+            except Exception as e:
+                logger.error(f"[FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور {getattr(factor, 'pk', 'نامشخص')}: {e}",
+                             exc_info=True)
+                # تنظیم مقادیر پیش‌فرض در صورت خطا
+                self._set_default_factor_values(factor)
+
+        context['grouped_by_org'] = grouped_by_org
+
+        # محاسبه آمار کلی
+        total_factors = sum(org_data['total_factors'] for org_data in grouped_by_org.values())
+        total_amount = sum(org_data['total_amount'] for org_data in grouped_by_org.values())
+
+        context.update({
+            'total_factors': total_factors,
+            'total_amount': total_amount,
+            'organizations_count': len(grouped_by_org)
+        })
+
+        logger.info(
+            f"[FACTOR_LIST_CONTEXT] گروه‌بندی تکمیل شد. {len(grouped_by_org)} سازمان، {total_factors} فاکتور، مبلغ کل: {total_amount}")
+
+        return context
+
+    def _get_status_key(self, status):
+        """تعیین کلید وضعیت برای گروه‌بندی"""
+        status_mapping = {
+            'DRAFT': 'draft',
+            'PENDING': 'pending',
+            'PENDING_APPROVAL': 'pending_approval',
+            'PARTIAL': 'partial',
+            'APPROVE': 'approve',
+            'REJECTE': 'rejected',
+            'PAID': 'paid'
+        }
+        return status_mapping.get(status, 'others')
+
+    def _process_factor_approvers(self, factor):
+        """پردازش تأییدکنندگان فاکتور"""
+        try:
+            raw_logs = getattr(factor, 'approvers_raw', [])
+            approver_names = []
+
+            for log in raw_logs:
+                if log.user:
+                    name = log.user.get_full_name() or log.user.username
+                    if name not in approver_names:  # جلوگیری از تکرار
+                        approver_names.append(name)
+
+            factor.approvers_display = ', '.join(approver_names) if approver_names else _('بدون تأییدکننده')
+            factor.last_approver = approver_names[0] if approver_names else None
+
+            logger.debug(
+                f"[FACTOR_APPROVERS] فاکتور {getattr(factor, 'number', 'نامشخص')}: {len(approver_names)} تأییدکننده")
+
+        except Exception as e:
+            logger.error(
+                f"[FACTOR_APPROVERS] خطا در پردازش تأییدکنندگان فاکتور {getattr(factor, 'number', 'نامشخص')}: {e}")
+            factor.approvers_display = _('خطا در بارگذاری')
+            factor.last_approver = None
+
+    def _check_factor_permissions(self, factor, user, tankhah):
+        """بررسی دسترسی‌های فاکتور"""
+        try:
+            # دریافت مرحله فعلی
+            current_stage_order = get_factor_current_stage(factor)
+
+            # بررسی دسترسی کاربر
+            access_info = check_user_factor_access(
+                user.username,
+                tankhah=tankhah,
+                action_type='APPROVE',
+                entity_type='FACTOR',
+                default_stage_order=current_stage_order
+            )
+
+            # تعیین امکان تأیید
+            factor.can_approve = (
+                    access_info.get('has_access', False) and
+                    factor.status in ['DRAFT', 'PENDING', 'PENDING_APPROVAL', 'PARTIAL'] and
+                    not getattr(factor, 'locked', False) and
+                    not getattr(tankhah, 'is_locked', False) and
+                    not getattr(tankhah, 'is_archived', False)
+            )
+
+            # تعیین وضعیت قفل
+            factor.is_locked = (
+                    getattr(factor, 'locked', False) or
+                    getattr(tankhah, 'is_locked', False) or
+                    getattr(tankhah, 'is_archived', False) or
+                    (factor.locked_by_stage and factor.locked_by_stage.order < current_stage_order)
+            )
+
+            logger.debug(
+                f"[FACTOR_PERMISSIONS] فاکتور {getattr(factor, 'number', 'نامشخص')}: can_approve={factor.can_approve}, is_locked={factor.is_locked}")
+
+        except Exception as e:
+            logger.error(
+                f"[FACTOR_PERMISSIONS] خطا در بررسی دسترسی‌های فاکتور {getattr(factor, 'number', 'نامشخص')}: {e}")
+            factor.can_approve = False
+            factor.is_locked = True
+
+    def _convert_dates_to_jalali(self, factor):
+        """تبدیل تاریخ‌ها به شمسی"""
+        try:
+            # تبدیل تاریخ فاکتور به شمسی
+            if factor.date:
+                jalali_date = jdatetime.date.fromgregorian(date=factor.date)
+                factor.jalali_date = jalali_date.strftime('%Y/%m/%d')
+            else:
+                factor.jalali_date = ''
+
+            # تبدیل تاریخ ایجاد به شمسی
+            if factor.created_at:
+                jalali_datetime = jdatetime.datetime.fromgregorian(datetime=factor.created_at)
+                factor.jalali_created_at = jalali_datetime.strftime('%Y/%m/%d %H:%M')
+            else:
+                factor.jalali_created_at = ''
+
+        except Exception as e:
+            logger.error(f"[FACTOR_DATES] خطا در تبدیل تاریخ‌های فاکتور {getattr(factor, 'number', 'نامشخص')}: {e}")
+            factor.jalali_date = ''
+            factor.jalali_created_at = ''
+
+    def _set_default_factor_values(self, factor):
+        """تنظیم مقادیر پیش‌فرض در صورت خطا"""
+        factor.can_approve = False
+        factor.is_locked = True
+        factor.approvers_display = _('خطا در بارگذاری تأییدکنندگان')
+        factor.last_approver = None
+        factor.jalali_date = ''
+        factor.jalali_created_at = ''
 
 # views.py  ───────────────────────────────────────────────────────────────────
 class FactorListView2(PermissionBaseView, ListView):

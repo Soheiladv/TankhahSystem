@@ -68,6 +68,28 @@ def restrict_to_user_organization(user):
 
 # --- Logic for allowed_orgs is removed as discussed before ---
 # This check should happen where allowed_orgs context is available.
+def get_factor_current_stage___(factor):
+    logger.debug(f"[get_factor_current_stage] Fetching stage for factor {factor.factornumber}")
+    try:
+        # ابتدا بررسی ApprovalLog برای آخرین مرحله ثبت‌شده
+        last_log = ApprovalLog.objects.filter(
+            factor=factor,
+            stage__isnull=False
+        ).order_by('-timestamp').first()
+        if last_log and last_log.stage:
+            logger.debug(f"[get_factor_current_stage] Found stage_order {last_log.stage.stage_order} from ApprovalLog")
+            return last_log.stage.stage_order  # عدد stage_order رو برگردون
+        # در غیر این صورت، stage_order تنخواه رو برگردون
+        stage = factor.tankhah.current_stage
+        if stage:
+            logger.debug(f"[get_factor_current_stage] Found stage_order {stage.stage_order} from AccessRule")
+            return stage.stage_order
+        # اگه هیچ مرحله‌ای پیدا نشد، مقدار پیش‌فرض (مثلاً 1)
+        logger.debug(f"[get_factor_current_stage] No stage found, defaulting to 1")
+        return 1
+    except Exception as e:
+        logger.error(f"[get_factor_current_stage] Error fetching stage for factor {factor.factornumber}: {e}", exc_info=True)
+        return 1  # مقدار پیش‌فرض در صورت خطا
 
 def get_factor_current_stage(factor):
     """

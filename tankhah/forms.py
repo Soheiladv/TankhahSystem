@@ -27,11 +27,6 @@ from tankhah.constants import ACTION_TYPES
 
 
 class FactorItemApprovalForm(forms.ModelForm):
-    comment = forms.CharField(
-        label=_("توضیحات"),
-        required=False,
-        widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control'})
-    )
 
     status = forms.ChoiceField(
         choices=[
@@ -62,22 +57,32 @@ class FactorItemApprovalForm(forms.ModelForm):
         #     ('APPROVE', _('تأیید شده')),
         #     ('REJECTE', _('رد شده')),
         # ],
-        widget=forms.Select(attrs={'class': 'form-control form-select', 'style': 'max-width: 200px;'}),
-        label=_("اقدام"),
+        widget=forms.Select(attrs={'class': 'form-control form-select',
+                               'placeholder': _('اقدام'),
+                                'style': 'max-width: 200px;'}),
+                                label=_("اقدام"),
+                                required=False,
+                                initial='PENDING'
+    )
+    comment = forms.CharField(
+        label=_("توضیحات"),
         required=False,
-        initial='PENDING'
+        help_text='توضیحات',
+        widget=forms.Textarea(attrs={'rows': 4,
+             'placeholder': _(' شرح تغییر خود را اینجا وارد کنید...comment'),
+            'class': 'form-control'})
     )
 
     description = forms.CharField(
         widget=forms.Textarea(attrs={
             'class': 'form-control',
             'rows': 2,
-            'placeholder': _('توضیحات خود را اینجا وارد کنید...'),
+            'placeholder': _(' توضیحات خود را اینجا وارد کنید...'),
             'style': 'max-width: 500px;'
         }),
         required=False,
-        label=_("توضیحات")
-    )
+        label=_("شرح"),
+     )
     is_temporary = forms.BooleanField(required=False, label=_("تأیید/رد موقت"))
 
     class Meta:
@@ -112,6 +117,8 @@ class FactorItemApprovalForm(forms.ModelForm):
             self.add_error('description', _('برای رد کردن یک ردیف، نوشتن توضیحات الزامی است.'))
 
         return cleaned_data
+
+
 # ===
 class FactorApprovalForm(forms.ModelForm):
     comment = forms.CharField(
