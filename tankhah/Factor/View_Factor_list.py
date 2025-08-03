@@ -1,9 +1,4 @@
-
-import logging
-from collections import defaultdict
-
-from django.contrib.contenttypes.models import ContentType
-from persiantools import jdatetime
+import jdatetime
 
 from accounts.AccessRule.check_user_access import check_user_factor_access
 from core.models import PostAction
@@ -24,194 +19,7 @@ try:
 except ImportError:
     jdate = None
     logging.error("jdatetime is not installed. Please install it using 'pip install jdatetime'")
-#---------------------------------
-class FactorListView__ok(PermissionBaseView, ListView):
-    model = Factor
-    template_name = 'tankhah/factor_list.html'
-    context_object_name = 'factors'
-    permission_codenames = ['tankhah.factor_view']
-    check_organization = True
-    organization_filter_field = 'tankhah__organization__id__in'
-    paginate_by = 20
-
-    def get_queryset(self):
-        user = self.request.user
-        logger.info(f"--- [FactorListView] START: Fetching queryset for user: {user.username} ---")
-
-        qs = super().get_queryset().select_related(
-            'tankhah__organization', 'tankhah__project', 'created_by', 'category', 'locked_by_stage'
-        ).prefetch_related(
-            'items',
-            Prefetch(
-                'approval_logs',
-                queryset=ApprovalLog.objects.filter(
-                    action__in=['APPROVED', 'INTERMEDIATE_APPROVE', 'FINAL_APPROVE']
-                ).select_related('user', 'post', 'stage'),  # اضافه کردن stage به select_related
-                to_attr='approvers_raw'
-            )
-        )
-
-        initial_count = qs.count()
-        logger.info(f"Initial queryset count: {initial_count}")
-
-        user_org_ids = set()
-        user_level = None
-        for user_post in user.userpost_set.filter(is_active=True).select_related('post__organization'):
-            org = user_post.post.organization
-            user_org_ids.add(org.id)
-            while org.parent_organization:
-                org = org.parent_organization
-                user_org_ids.add(org.id)
-            user_level = min(user_level, user_post.post.level) if user_level else user_post.post.level
-        logger.info(f"User {user.username} organizations: {user_org_ids}, level: {user_level}")
-
-        filter_conditions = Q()
-        query = self.request.GET.get('q', '').strip()
-        status_query = self.request.GET.get('status', '').strip()
-        date_query = self.request.GET.get('date', '').strip()
-
-        if query:
-            filter_conditions |= (
-                Q(number__icontains=query) |
-                Q(description__icontains=query) |
-                Q(tankhah__number__icontains=query)
-            )
-        if status_query:
-            filter_conditions &= Q(status=status_query)
-        if date_query:
-            try:
-                gregorian_date = jdatetime.strptime(date_query, '%Y/%m/%d').togregorian().date()
-                filter_conditions &= Q(date=gregorian_date)
-            except (ValueError, TypeError):
-                messages.warning(self.request, _("فرمت تاریخ برای جستجو نامعتبر است."))
-
-        if not (user.is_superuser or user.has_perm('tankhah.Tankhah_view_all')):
-            filter_conditions &= Q(tankhah__organization__id__in=user_org_ids)
-
-        if filter_conditions:
-            qs = qs.filter(filter_conditions)
-            logger.info(f"Applied filters (q='{query}', status='{status_query}', date='{date_query}'). New count: {qs.count()}")
-
-        qs = qs.order_by('-date', '-pk')
-        logger.info(f"Final queryset count: {qs.count()}")
-        for factor in qs:
-            logger.debug(f"Factor {factor.number}: org={factor.tankhah.organization.id}, status={factor.status}")
-        return qs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-        logger.info(f"--- [FactorListView] START: Creating context for user: {user.username} ---")
-
-        is_hq = (
-            user.is_superuser or
-            user.has_perm('tankhah.Tankhah_view_all') or
-            user.userpost_set.filter(
-                is_active=True,
-                post__organization__org_type__fname='HQ'
-            ).exists()
-        )
-        user_level = None
-        user_org_ids = set()
-        user_posts = list(
-            user.userpost_set.filter(is_active=True).select_related('post').prefetch_related('post__stageapprover_set')
-        )
-        for user_post in user_posts:
-            user_org_ids.add(user_post.post.organization.id)
-            user_level = min(user_level, user_post.post.level) if user_level else user_post.post.level
-
-        context.update({
-            'is_hq': is_hq,
-            'query': self.request.GET.get('q', ''),
-            'status_query': self.request.GET.get('status', ''),
-            'date_query': self.request.GET.get('date', ''),
-            'status_choices': Factor.STATUS_CHOICES,
-            'user_level': user_level,
-        })
-
-        grouped_by_org = {}
-        factor_list = context.get(self.context_object_name, [])
-        logger.info(f"Processing {len(factor_list)} factors for grouping.")
-
-        for factor in factor_list:
-            try:
-                tankhah = factor.tankhah
-                if not tankhah or not tankhah.organization or not tankhah.project:
-                    logger.warning(f"Factor {factor.number} missing tankhah, org, or project")
-                    continue
-
-                org_name = tankhah.organization.name
-                project_name = tankhah.project.name
-                tankhah_number = tankhah.number
-
-                if org_name not in grouped_by_org:
-                    grouped_by_org[org_name] = {'org_obj': tankhah.organization, 'projects': {}, 'total_amount': Decimal('0')}
-                if project_name not in grouped_by_org[org_name]['projects']:
-                    grouped_by_org[org_name]['projects'][project_name] = {'project_obj': tankhah.project, 'tankhahs': {}, 'total_amount': Decimal('0')}
-                if tankhah_number not in grouped_by_org[org_name]['projects'][project_name]['tankhahs']:
-                    grouped_by_org[org_name]['projects'][project_name]['tankhahs'][tankhah_number] = {
-                        'tankhah_obj': tankhah,
-                        'factors': {
-                            'draft': [],
-                            'pending': [],
-                            'pending_approval': [],
-                            'partial': [],
-                            'approve': [],
-                            'rejected': [],
-                            'paid': [],
-                            'others': []
-                        },
-                        'total_amount': Decimal('0')
-                    }
-
-                status_key = (
-                    'pending_approval' if factor.status == 'PENDING_APPROVAL' else
-                    factor.status.lower() if factor.status else 'others'
-                )
-                grouped_by_org[org_name]['projects'][project_name]['tankhahs'][tankhah_number]['factors'][status_key].append(factor)
-
-                factor_amount = factor.amount or Decimal('0')
-                grouped_by_org[org_name]['projects'][project_name]['tankhahs'][tankhah_number]['total_amount'] += factor_amount
-                grouped_by_org[org_name]['projects'][project_name]['total_amount'] += factor_amount
-                grouped_by_org[org_name]['total_amount'] += factor_amount
-
-                raw_logs = getattr(factor, 'approvers_raw', [])
-                names = [log.user.get_full_name() or log.user.username for log in raw_logs if log.user]
-                factor.approvers_display = ', '.join(names) if names else _('بدون تأییدکننده')
-                factor.last_approver = names[0] if names else None
-
-                current_stage_order = get_factor_current_stage(factor)
-                access_info = check_user_factor_access(
-                    user.username,
-                    tankhah=tankhah,
-                    action_type='APPROVE',
-                    entity_type='FACTOR',
-                    default_stage_order=current_stage_order
-                )
-                factor.can_approve = (
-                    access_info['has_access'] and
-                    factor.status in ['DRAFT', 'PENDING', 'PENDING_APPROVAL', 'PARTIAL'] and
-                    not factor.is_locked and
-                    not tankhah.is_locked and
-                    not tankhah.is_archived
-                )
-
-                factor.is_locked = (
-                    factor.locked_by_stage and
-                    factor.locked_by_stage.order < current_stage_order
-                )
-                logger.debug(f"Factor {factor.number}: can_approve={factor.can_approve}, is_locked={factor.is_locked}, stage_order={current_stage_order}")
-
-            except Exception as e:
-                logger.error(f"Error while grouping factor PK={factor.pk}: {e}", exc_info=True)
-                factor.can_approve = False
-                factor.is_locked = True
-                factor.approvers_display = _('خطا در بارگذاری تأییدکنندگان')
-                factor.last_approver = None
-
-        context['grouped_by_org'] = grouped_by_org
-        logger.info(f"Finished grouping. Found {len(grouped_by_org)} organization groups.")
-        return context
+#---------------------------------.
 
 
 class FactorListView(PermissionBaseView, ListView):
@@ -233,17 +41,22 @@ class FactorListView(PermissionBaseView, ListView):
             'tankhah__project',
             'created_by',
             'category',
-            'locked_by_stage'
-            # 'payee' را حذف کردیم چون وجود ندارد
-        ).prefetch_related(
+            'locked_by_stage',
+            'tankhah__project_budget_allocation__budget_item' # Correct path ends here
+          ).prefetch_related(
             'items',
             Prefetch(
                 'approval_logs',
-                queryset=ApprovalLog.objects.filter(
-                    action__in=['APPROVED', 'INTERMEDIATE_APPROVE', 'FINAL_APPROVE', 'APPROVE', 'TEMP_APPROVED']
-                ).select_related('user', 'post', 'stage').order_by('-timestamp'),
-                to_attr='approvers_raw'
+                queryset=ApprovalLog.objects.select_related('user', 'post').order_by('-timestamp'),
+                to_attr='all_logs'  # 💡 RENAME: Fetch all logs to find the last one
             )
+            # Prefetch(
+            #     'approval_logs',
+            #     queryset=ApprovalLog.objects.filter(
+            #         action__in=['APPROVED', 'INTERMEDIATE_APPROVE', 'FINAL_APPROVE', 'APPROVE', 'TEMP_APPROVED']
+            #     ).select_related('user', 'post', 'stage').order_by('-timestamp'),
+            #     to_attr='approvers_raw'
+            # )
         )
 
         initial_count = qs.count()
@@ -294,22 +107,35 @@ class FactorListView(PermissionBaseView, ListView):
         date_query = self.request.GET.get('date', '').strip()
         if date_query:
             try:
-                # تبدیل تاریخ شمسی به میلادی
-                if '/' in date_query:
-                    date_parts = date_query.split('/')
-                    if len(date_parts) == 3:
-                        year, month, day = map(int, date_parts)
-                        jalali_date = jdatetime.date(year, month, day)
-                        gregorian_date = jalali_date.togregorian()
-                        filter_conditions &= Q(date=gregorian_date)
-                        logger.info(f"[FACTOR_LIST] فیلتر تاریخ اعمال شد: {date_query} -> {gregorian_date}")
-                    else:
-                        raise ValueError("فرمت تاریخ نامعتبر")
-                else:
-                    raise ValueError("فرمت تاریخ نامعتبر")
-            except (ValueError, TypeError) as e:
-                logger.warning(f"[FACTOR_LIST] خطا در تبدیل تاریخ: {e}")
-                messages.warning(self.request, _("فرمت تاریخ نامعتبر است. لطفاً از فرمت 1403/05/15 استفاده کنید."))
+                year, month, day = map(int, date_query.split('/'))
+                logger.debug(f"[FACTOR_LIST] Parsed date: {year}/{month}/{day}")
+                jalali_date_obj = jdatetime.date(year, month, day)
+                logger.debug(f"[FACTOR_LIST] Jalali date object: {jalali_date_obj}")
+                gregorian_date_obj = jalali_date_obj.togregorian()
+                logger.debug(f"[FACTOR_LIST] Gregorian date: {gregorian_date_obj}")
+                filter_conditions &= Q(date=gregorian_date_obj)
+                logger.info(f"[FACTOR_LIST] Date filter applied: {date_query} -> {gregorian_date_obj}")
+            except Exception as e:
+              logger.error(f"[FACTOR_LIST] Error processing date '{date_query}': {e}", exc_info=True)
+              messages.warning(self.request, _("فرمت تاریخ نامعتبر است. لطفاً از فرمت 1403/05/15 استفاده کنید."))
+            # try:
+            #     # تبدیل تاریخ شمسی به میلادی
+            #     if '/' in date_query:
+            #         date_parts = date_query.split('/')
+            #         if len(date_parts) == 3:
+            #             year, month, day = map(int, date_parts)
+            #             jalali_date = jdatetime.date(year, month, day)
+            #             # gregorian_date = jalali_date.togregorian()
+            #             gregorian_date = jalali_date.strftime("%Y:%m:%d %H:%M:%S")
+            #             filter_conditions &= Q(date=gregorian_date)
+            #             logger.info(f"[FACTOR_LIST] فیلتر تاریخ اعمال شد: {date_query} -> {gregorian_date}")
+            #         else:
+            #             raise ValueError("فرمت تاریخ نامعتبر")
+            #     else:
+            #         raise ValueError("فرمت تاریخ نامعتبر")
+            # except (ValueError, TypeError) as e:
+            #     logger.warning(f"[FACTOR_LIST] خطا در تبدیل تاریخ: {e}")
+            #     messages.warning(self.request, _("فرمت تاریخ نامعتبر است. لطفاً از فرمت 1403/05/15 استفاده کنید."))
 
         # فیلتر محدودیت سازمانی
         if not (user.is_superuser or user.has_perm('tankhah.Tankhah_view_all')):
@@ -494,27 +320,58 @@ class FactorListView(PermissionBaseView, ListView):
 
     def _process_factor_approvers(self, factor):
         """پردازش تأییدکنندگان فاکتور"""
+        # try:
+        #     raw_logs = getattr(factor, 'approvers_raw', [])
+        #     approver_names = []
+        #
+        #     for log in raw_logs:
+        #         if log.user:
+        #             name = log.user.get_full_name() or log.user.username
+        #             if name not in approver_names:  # جلوگیری از تکرار
+        #                 approver_names.append(name)
+        #
+        #     factor.approvers_display = ', '.join(approver_names) if approver_names else _('بدون تأییدکننده')
+        #     factor.last_approver = approver_names[0] if approver_names else None
+        #
+        #     logger.debug(
+        #         f"[FACTOR_APPROVERS] فاکتور {getattr(factor, 'number', 'نامشخص')}: {len(approver_names)} تأییدکننده")
+        #
+        # except Exception as e:
+        #     logger.error(
+        #         f"[FACTOR_APPROVERS] خطا در پردازش تأییدکنندگان فاکتور {getattr(factor, 'number', 'نامشخص')}: {e}")
+        #     factor.approvers_display = _('خطا در بارگذاری')
+        #     factor.last_approver = None
         try:
-            raw_logs = getattr(factor, 'approvers_raw', [])
+            # Note: We now use 'all_logs' which is prefetched in get_queryset
+            all_logs = getattr(factor, 'all_logs', [])
+
+            # Find the very last log entry (the most recent action)
+            last_log = all_logs[0] if all_logs else None
+
+            if last_log and last_log.user:
+                factor.last_actor_name = last_log.user.get_full_name() or last_log.user.username
+                factor.last_action_verb = last_log.get_action_display()
+            else:
+                factor.last_actor_name = _('بدون اقدام')
+                factor.last_action_verb = ''
+
+            # You can still create a list of all approvers if needed for a tooltip
             approver_names = []
-
-            for log in raw_logs:
-                if log.user:
+            seen_users = set()
+            for log in all_logs:
+                if log.user and log.user.id not in seen_users:
                     name = log.user.get_full_name() or log.user.username
-                    if name not in approver_names:  # جلوگیری از تکرار
-                        approver_names.append(name)
+                    approver_names.append(name)
+                    seen_users.add(log.user.id)
 
-            factor.approvers_display = ', '.join(approver_names) if approver_names else _('بدون تأییدکننده')
-            factor.last_approver = approver_names[0] if approver_names else None
-
-            logger.debug(
-                f"[FACTOR_APPROVERS] فاکتور {getattr(factor, 'number', 'نامشخص')}: {len(approver_names)} تأییدکننده")
+            factor.approvers_display_list = ', '.join(approver_names)
 
         except Exception as e:
             logger.error(
-                f"[FACTOR_APPROVERS] خطا در پردازش تأییدکنندگان فاکتور {getattr(factor, 'number', 'نامشخص')}: {e}")
-            factor.approvers_display = _('خطا در بارگذاری')
-            factor.last_approver = None
+                f"[FACTOR_APPROVERS] Error processing approvers for factor {getattr(factor, 'number', 'N/A')}: {e}")
+            factor.last_actor_name = _('خطا')
+            factor.last_action_verb = ''
+            factor.approvers_display_list = _('خطا در بارگذاری')
 
     def _check_factor_permissions(self, factor, user, tankhah):
         """بررسی دسترسی‌های فاکتور"""
@@ -557,27 +414,6 @@ class FactorListView(PermissionBaseView, ListView):
             factor.can_approve = False
             factor.is_locked = True
 
-    def _convert_dates_to_jalali(self, factor):
-        """تبدیل تاریخ‌ها به شمسی"""
-        try:
-            # تبدیل تاریخ فاکتور به شمسی
-            if factor.date:
-                jalali_date = jdatetime.date.fromgregorian(date=factor.date)
-                factor.jalali_date = jalali_date.strftime('%Y/%m/%d')
-            else:
-                factor.jalali_date = ''
-
-            # تبدیل تاریخ ایجاد به شمسی
-            if factor.created_at:
-                jalali_datetime = jdatetime.datetime.fromgregorian(datetime=factor.created_at)
-                factor.jalali_created_at = jalali_datetime.strftime('%Y/%m/%d %H:%M')
-            else:
-                factor.jalali_created_at = ''
-
-        except Exception as e:
-            logger.error(f"[FACTOR_DATES] خطا در تبدیل تاریخ‌های فاکتور {getattr(factor, 'number', 'نامشخص')}: {e}")
-            factor.jalali_date = ''
-            factor.jalali_created_at = ''
 
     def _set_default_factor_values(self, factor):
         """تنظیم مقادیر پیش‌فرض در صورت خطا"""
@@ -587,6 +423,32 @@ class FactorListView(PermissionBaseView, ListView):
         factor.last_approver = None
         factor.jalali_date = ''
         factor.jalali_created_at = ''
+
+    def _convert_dates_to_jalali(self, factor):
+        """Converts Gregorian dates to Jalali strings for display."""
+        try:
+            # 💡 IMPROVEMENT: Check if the date field exists and is not None
+            if factor.date:
+                # Use jdatetime directly as it's more reliable
+                jalali_date_obj = jdatetime.date.fromgregorian(date=factor.date)
+                factor.jalali_date = jalali_date_obj.strftime('%Y/%m/%d')
+            else:
+                # Set a default empty string if the date is None
+                factor.jalali_date = ''
+
+            if factor.created_at:
+                # Ensure created_at is a datetime object before conversion
+                jalali_datetime_obj = jdatetime.datetime.fromgregorian(datetime=factor.created_at)
+                factor.jalali_created_at = jalali_datetime_obj.strftime('%Y/%m/%d %H:%M')
+            else:
+                factor.jalali_created_at = ''
+
+        except Exception as e:
+            logger.error(f"[DATE_CONVERSION_ERROR] for factor {getattr(factor, 'pk', 'N/A')}: {e}")
+            # In case of any error, set default empty values to prevent template errors
+            factor.jalali_date = _('خطا در تاریخ')
+            factor.jalali_created_at = _('خطا در تاریخ')
+
 
 # views.py  ───────────────────────────────────────────────────────────────────
 class FactorListView2(PermissionBaseView, ListView):

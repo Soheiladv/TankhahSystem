@@ -1,8 +1,8 @@
 import jdatetime
 from django.forms import forms
 from django.utils.translation import gettext_lazy as _
-
-
+import logging
+logger = logging.getLogger(__name__)
 def convert_jalali_to_gregorian(date_str):
     """تبدیل تاریخ شمسی (Jalali) به میلادی (Gregorian)"""
     try:
@@ -115,3 +115,14 @@ def format_jalali_date(date_obj):
         return j_date.strftime('%Y/%m/%d')
     except (TypeError, ValueError):
         return ''
+
+
+
+def jalali_to_gregorian(year, month, day):
+    try:
+        jalali_date = jdatetime.date(year, month, day)
+        gregorian_date = jalali_date.togregorian()
+        return gregorian_date
+    except Exception as e:
+        logger.error(f"Error converting Jalali to Gregorian: {year}/{month}/{day} - {e}")
+        return None

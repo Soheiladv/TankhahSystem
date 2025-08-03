@@ -39,7 +39,6 @@ urlpatterns = [
     path('tankhah/', TankhahListView.as_view(), name='tankhah_list'),
     path('tankhah/<int:pk>/'       , TankhahDetailView.as_view(),        name='tankhah_detail'),
 
-
     path('tankhah/create/', TankhahCreateView.as_view(), name='tankhah_create'),
     path('tankhah/update/<int:pk>/', TankhahUpdateView.as_view(), name='tankhah_update'),
     path('tankhah/<int:pk>/delete/', TankhahDeleteView.as_view(), name='tankhah_delete'),
@@ -49,7 +48,7 @@ urlpatterns = [
     path('tankhah/status/', TankhahStatusView.as_view(), name='tankhah_status'),
     path('tankhah/<int:pk>/timeline/', TankhahApprovalTimelineView.as_view(), name='tankhah_approval_timeline'),
 
-    path('factors/', FactorListView.as_view(), name='factor_list'),
+    path('factors/', FactorListView.as_view(), name='factor_list'), # فهرست فاکتور ها
     # path('factor/list/', FactorListView.as_view(), name='factor_list'),  # Example success URL
     # path('factor/create/wizard/',  FactorWizardView.as_view(views.FACTOR_FORMS), name='factor_wizard'), # Wizard URL
     path('ajax/tankhah-budget-info/<int:tankhah_id>/', TankhahBudgetInfoAjaxView.as_view(), name='tankhah_budget_info_ajax'),  # AJAX URL

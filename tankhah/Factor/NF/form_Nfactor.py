@@ -33,6 +33,93 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models import Q, Max
 from budgets.budget_calculations import get_tankhah_remaining_budget
 
+# ====
+# --- Form for Factor Documents (Multiple Upload) ---
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+class MultipleFileField(forms.FileField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput(attrs={'multiple': True, 'class': 'form-control'}))
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            result = [single_file_clean(d, initial) for d in data if d is not None]
+        else:
+            result = single_file_clean(data, initial)
+        return result
+ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png']
+ALLOWED_EXTENSIONS_STR = ", ".join(ALLOWED_EXTENSIONS)
+
+class FactorDocumentForm(forms.Form):
+    files = MultipleFileField(
+        label=_("بارگذاری اسناد فاکتور (فقط {} مجاز است)".format(ALLOWED_EXTENSIONS_STR)),
+        required=False,
+        widget=MultipleFileInput(
+            attrs={
+                'multiple': True,
+                'class': 'form-control form-control-sm',
+                'accept': ",".join(ALLOWED_EXTENSIONS)
+            }
+        )
+    )
+
+    def clean_files(self):
+        files = self.cleaned_data.get('files')
+        if files:
+            invalid_files = []
+            for uploaded_file in files:
+                if uploaded_file:
+                    import os
+                    ext = os.path.splitext(uploaded_file.name)[1].lower()
+                    if ext not in ALLOWED_EXTENSIONS:
+                        invalid_files.append(uploaded_file.name)
+                        logger.warning(f"Invalid file type uploaded for FactorDocument: {uploaded_file.name} (type: {ext})")
+
+            if invalid_files:
+                invalid_files_str = ", ".join(invalid_files)
+                error_msg = _("فایل(های) زیر دارای فرمت غیرمجاز هستند: {files}. فرمت‌های مجاز: {allowed}").format(
+                    files=invalid_files_str,
+                    allowed=ALLOWED_EXTENSIONS_STR
+                )
+                raise ValidationError(error_msg)
+        return files
+# --- Form for Tankhah Documents (Multiple Upload) ---
+class TankhahDocumentForm(forms.Form):
+    documents = MultipleFileField(
+        label=_("پیوست‌های تنخواه - بارگذاری مدارک تنخواه (فقط {} مجاز است)".format(ALLOWED_EXTENSIONS_STR)),
+        required=False,
+        widget=MultipleFileInput(
+            attrs={
+                'multiple': True,
+                'class': 'form-control form-control-sm',
+                'accept': ",".join(ALLOWED_EXTENSIONS)
+            }
+        )
+    )
+
+    def clean_documents(self):
+        files = self.cleaned_data.get('documents')
+        if files:
+            invalid_files = []
+            for uploaded_file in files:
+                if uploaded_file:
+                    import os
+                    ext = os.path.splitext(uploaded_file.name)[1].lower()
+                    if ext not in ALLOWED_EXTENSIONS:
+                        invalid_files.append(uploaded_file.name)
+                        logger.warning(f"Invalid file type uploaded for TankhahDocument: {uploaded_file.name} (type: {ext})")
+
+            if invalid_files:
+                invalid_files_str = ", ".join(invalid_files)
+                error_msg = _("فایل(های) زیر دارای فرمت غیرمجاز هستند: {files}. فرمت‌های مجاز: {allowed}").format(
+                    files=invalid_files_str,
+                    allowed=ALLOWED_EXTENSIONS_STR
+                )
+                raise ValidationError(error_msg)
+        return files
+#-----------------------------------------------------------------------------------------------------------
 class FactorForm(forms.ModelForm):
     date = forms.CharField(
         label=_('تاریخ فاکتور'),
@@ -179,7 +266,6 @@ class FactorForm(forms.ModelForm):
             raise forms.ValidationError(_('دسته‌بندی الزامی است.'))
 
         return cleaned_data
-#--------------------------------------------------------------
 #--------------------------------------------------------------
 # ====
 class Update_FactorForm(forms.ModelForm):
@@ -375,90 +461,3 @@ class FactorItemForm(forms.ModelForm):
              logger.debug(f"FactorItemForm clean: Calculated amount={calculated_amount} for desc='{description}'")
 
         return cleaned_data
-# ====
-# --- Form for Factor Documents (Multiple Upload) ---
-class MultipleFileInput(forms.ClearableFileInput):
-    allow_multiple_selected = True
-class MultipleFileField(forms.FileField):
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault("widget", MultipleFileInput(attrs={'multiple': True, 'class': 'form-control'}))
-        super().__init__(*args, **kwargs)
-
-    def clean(self, data, initial=None):
-        single_file_clean = super().clean
-        if isinstance(data, (list, tuple)):
-            result = [single_file_clean(d, initial) for d in data if d is not None]
-        else:
-            result = single_file_clean(data, initial)
-        return result
-ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png']
-ALLOWED_EXTENSIONS_STR = ", ".join(ALLOWED_EXTENSIONS)
-
-class FactorDocumentForm(forms.Form):
-    files = MultipleFileField(
-        label=_("بارگذاری اسناد فاکتور (فقط {} مجاز است)".format(ALLOWED_EXTENSIONS_STR)),
-        required=False,
-        widget=MultipleFileInput(
-            attrs={
-                'multiple': True,
-                'class': 'form-control form-control-sm',
-                'accept': ",".join(ALLOWED_EXTENSIONS)
-            }
-        )
-    )
-
-    def clean_files(self):
-        files = self.cleaned_data.get('files')
-        if files:
-            invalid_files = []
-            for uploaded_file in files:
-                if uploaded_file:
-                    import os
-                    ext = os.path.splitext(uploaded_file.name)[1].lower()
-                    if ext not in ALLOWED_EXTENSIONS:
-                        invalid_files.append(uploaded_file.name)
-                        logger.warning(f"Invalid file type uploaded for FactorDocument: {uploaded_file.name} (type: {ext})")
-
-            if invalid_files:
-                invalid_files_str = ", ".join(invalid_files)
-                error_msg = _("فایل(های) زیر دارای فرمت غیرمجاز هستند: {files}. فرمت‌های مجاز: {allowed}").format(
-                    files=invalid_files_str,
-                    allowed=ALLOWED_EXTENSIONS_STR
-                )
-                raise ValidationError(error_msg)
-        return files
-
-# --- Form for Tankhah Documents (Multiple Upload) ---
-class TankhahDocumentForm(forms.Form):
-    documents = MultipleFileField(
-        label=_("پیوست‌های تنخواه - بارگذاری مدارک تنخواه (فقط {} مجاز است)".format(ALLOWED_EXTENSIONS_STR)),
-        required=False,
-        widget=MultipleFileInput(
-            attrs={
-                'multiple': True,
-                'class': 'form-control form-control-sm',
-                'accept': ",".join(ALLOWED_EXTENSIONS)
-            }
-        )
-    )
-
-    def clean_documents(self):
-        files = self.cleaned_data.get('documents')
-        if files:
-            invalid_files = []
-            for uploaded_file in files:
-                if uploaded_file:
-                    import os
-                    ext = os.path.splitext(uploaded_file.name)[1].lower()
-                    if ext not in ALLOWED_EXTENSIONS:
-                        invalid_files.append(uploaded_file.name)
-                        logger.warning(f"Invalid file type uploaded for TankhahDocument: {uploaded_file.name} (type: {ext})")
-
-            if invalid_files:
-                invalid_files_str = ", ".join(invalid_files)
-                error_msg = _("فایل(های) زیر دارای فرمت غیرمجاز هستند: {files}. فرمت‌های مجاز: {allowed}").format(
-                    files=invalid_files_str,
-                    allowed=ALLOWED_EXTENSIONS_STR
-                )
-                raise ValidationError(error_msg)
-        return files

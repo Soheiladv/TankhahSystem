@@ -2,6 +2,8 @@ D@d123
 
 ######### Compile Output Project Create  ########################
 python -m compileall -b .
+################################# Install Requirement
+python -m pip install -r requirements.txt
 #################################
 
 from tankhah.models import Tankhah, Factor, ApprovalLog

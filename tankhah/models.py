@@ -894,13 +894,11 @@ class Factor(models.Model):
         # بررسی احراز هویت کاربر
         if not user.is_authenticated:
             return False
-
         # بررسی قفل بودن فاکتور یا تنخواه
         if self.is_locked or self.tankhah.is_locked or self.tankhah.is_archived:
             return False
-
         # استفاده از تابع can_edit_approval برای بررسی دسترسی
-        from tankhah.fun_can_edit_approval  import can_edit_approval
+        from tankhah.Factor.Approved.fun_can_edit_approval import can_edit_approval
         return can_edit_approval(user, self.tankhah, self.tankhah.current_stage)
     def save(self, *args, **kwargs):
 

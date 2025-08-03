@@ -130,6 +130,14 @@ class PermissionBaseView(LoginRequiredMixin, View):
                 logger.warning(f"[PermissionBaseView] کاربر {request.user} به سازمان مرتبط دسترسی ندارد")
                 return self.handle_no_permission()
 
+            # 💡 NEW: Enforce that any non-superuser must have an active post for POST requests
+        if request.method == 'POST' and not request.user.is_superuser:
+            if not request.user.userpost_set.filter(is_active=True).exists():
+                logger.warning(f"User '{request.user.username}' attempted a POST action without an active post.")
+                messages.error(request, _("شما برای انجام این عملیات باید یک پست سازمانی فعال داشته باشید."))
+                # Redirect back to the same page or a dashboard
+                return redirect(request.path_info)
+
         return super().dispatch(request, *args, **kwargs)
 
     def _has_permissions(self, user):
