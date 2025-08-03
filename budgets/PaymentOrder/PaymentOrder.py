@@ -2,19 +2,15 @@ from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import redirect
 from django.views.generic import DetailView
-from notifications.signals import notify
-
 from accounts.models import CustomUser
 from budgets.models import PaymentOrder
 from core.PermissionBase import PermissionBaseView
+from notificationApp.utils import send_notification
 from tankhah.models import  ApprovalLog
 from core.models import PostAction, UserPost, AccessRule
 from django.contrib.contenttypes.models import ContentType
 import logging
 from django.utils.translation import gettext_lazy as _
-
-from tankhah.signal import send_notification_to_post_users
-
 
 class PaymentOrderSignView(PermissionBaseView, DetailView):
     model = PaymentOrder
@@ -83,13 +79,17 @@ class PaymentOrderSignView(PermissionBaseView, DetailView):
                         notify_users = CustomUser.objects.filter(
                             userpost__post__name='خزانه‌دار', userpost__is_active=True
                         ).distinct()
-                        notify.send(
-                            sender=user,
-                            recipient=notify_users,
-                            verb='payment_order_issued',
-                            action_object=payment_order,
-                            description=f"دستور پرداخت {payment_order.order_number} صادر شد و آماده پرداخت است."
-                        )
+
+                        send_notification(self.request.user, users=None, posts=None, verb='payment_order_issued',
+                                          description=f"دستور پرداخت {payment_order.order_number} صادر شد و آماده پرداخت است.", target=self.object,
+                                          entity_type=None, priority='MEDIUM')
+                        # notify.send(
+                        #     sender=user,
+                        #     recipient=notify_users,
+                        #     verb='payment_order_issued',
+                        #     action_object=payment_order,
+                        #     description=
+                        # )
                     else:
                         payment_order.status = 'PENDING_SIGNATURES'
                         messages.success(request, _("امضای شما ثبت شد."))
@@ -102,18 +102,19 @@ class PaymentOrderSignView(PermissionBaseView, DetailView):
                             is_active=True
                         ).exclude(post=user_post.post).select_related('post')
                         for rule in next_posts:
-                            send_notification_to_post_users(rule.post, payment_order)
+                            pass
+                            # send_notification_to_post_users(rule.post, payment_order)
                 else:  # reject
                     payment_order.status = 'CANCELED'
                     messages.success(request, _("دستور پرداخت رد شد."))
                     # ارسال اعلان به ایجادکننده
-                    notify.send(
-                        sender=user,
-                        recipient=payment_order.created_by,
-                        verb='payment_order_canceled',
-                        action_object=payment_order,
-                        description=f"دستور پرداخت {payment_order.order_number} توسط {user.get_full_name()} رد شد."
-                    )
+                    # notify.send(
+                    #     sender=user,
+                    #     recipient=payment_order.created_by,
+                    #     verb='payment_order_canceled',
+                    #     action_object=payment_order,
+                    #     description=f"دستور پرداخت {payment_order.order_number} توسط {user.get_full_name()} رد شد."
+                    # )
 
                 payment_order.save()
 

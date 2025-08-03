@@ -8,13 +8,13 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
 from django.db import transaction
 from falcon import async_to_sync
-from notifications.signals import notify
 
 from accounts.models import CustomUser
 from budgets.PaymentOrder.form_PaymentOrder import PaymentOrderForm
 from budgets.models import PaymentOrder, generate_payment_order_number, Payee
 from core.models import Organization, Project, UserPost, WorkflowStage
 from notificationApp.models import NotificationRule
+from notificationApp.utils import send_notification
 from tankhah.models import Tankhah, StageApprover, ApprovalLog, Factor, TankhahAction, TankhActionType
 
 logger = logging.getLogger(__name__)
@@ -30,202 +30,7 @@ from django.db.models import Q, Prefetch, Count
 
 
 """ایجاد خوکار دستور پرداخت """
-class TankhahUpdateStatusView__(UpdateView): # باید از PermissionBaseView هم ارث‌بری کند اگر نیاز به چک مجوز دارد
-    model = Tankhah
-    fields = ['status', 'current_stage'] # فیلدهایی که در فرم تغییر وضعیت تنخواه نمایش داده می‌شوند
-    template_name = 'budgets/paymentorder/tankhah_update_status.html' # یک تمپلیت برای فرم تغییر وضعیت تنخواه
-    # success_url = reverse_lazy('tankhah:tankhah_list') # یا هر URL دیگری
 
-    def get_success_url(self):
-        # بعد از موفقیت، به جزئیات همان تنخواه برگردد یا به لیست تنخواه
-        return reverse_lazy('tankhah:tankhah_detail', kwargs={'pk': self.object.pk})
-
-
-    def form_valid(self, form):
-        user = self.request.user
-        try:
-            with transaction.atomic():
-                tankhah = form.save(commit=False) # هنوز در دیتابیس ذخیره نکن
-
-                # اگر created_by در تنخواه ندارید یا می‌خواهید ثبت کننده تغییر وضعیت را نگه دارید:
-                # tankhah.last_modified_by = user # یک فیلد فرضی
-
-                tankhah.save() # حالا ذخیره کن
-                logger.info(f"Tankhah {tankhah.number} status updated to {tankhah.status} and stage to {tankhah.current_stage.name if tankhah.current_stage else 'None'} by user {user.username}")
-
-
-                # بررسی شرایط ایجاد خودکار دستور پرداخت
-                if tankhah.current_stage and \
-                   hasattr(tankhah.current_stage, 'triggers_payment_order') and \
-                   tankhah.current_stage.triggers_payment_order and \
-                   tankhah.status == 'APPROVED': # یا هر وضعیت دیگری که برای شما منطقی است
-
-                    logger.info(f"Conditions met to auto-create PaymentOrder for Tankhah {tankhah.number}.")
-
-                    # --- منطق تعیین Payee ---
-                    # این بخش بسیار مهم است و باید با توجه به ساختار شما پیاده‌سازی شود
-                    target_payee = None
-                    if hasattr(tankhah, 'payee_beneficiary') and tankhah.payee_beneficiary: # اگر تنخواه مستقیما ذینفع دارد
-                        target_payee = tankhah.payee_beneficiary
-                    elif tankhah.related_factors.filter(payee__isnull=False).exists(): # اگر فاکتورهای مرتبط payee دارند
-                        # اگر همه فاکتورها یک payee دارند، آن را انتخاب کن
-                        # در غیر این صورت، یا اولین payee را انتخاب کن یا اجازه ایجاد نده/به کاربر اطلاع بده
-                        distinct_payees = tankhah.related_factors.filter(payee__isnull=False).values_list('payee', flat=True).distinct()
-                        if len(distinct_payees) == 1:
-                            target_payee = Payee.objects.get(pk=distinct_payees[0])
-                        else:
-                            logger.warning(f"Tankhah {tankhah.number} has factors with multiple or no payees. Cannot auto-determine payee for PaymentOrder.")
-                            messages.warning(self.request, _("امکان تعیین خودکار دریافت‌کننده برای دستور پرداخت تنخواه {num} وجود ندارد. لطفاً به صورت دستی ایجاد کنید.").format(num=tankhah.number))
-                            # return super().form_valid(form) # ادامه بدون ایجاد PO
-                    else:
-                        # یک Payee پیش‌فرض یا عمومی اگر هیچ اطلاعاتی نیست (مثلا خود سازمان/فرد تنخواه‌گیر)
-                        # این هم باید با منطق شما سازگار باشد
-                        # target_payee = Payee.objects.filter(is_default_for_tankhah_settlement=True).first()
-                        logger.warning(f"No specific payee found for Tankhah {tankhah.number}. Attempting to use a default or skipping PaymentOrder creation.")
-                        # می‌توانید اینجا یک پیام به کاربر بدهید یا اجازه ایجاد ندهید
-
-                    if target_payee:
-                        logger.info(f"Target Payee for PaymentOrder: {target_payee}")
-
-                        # یافتن مرحله اولیه گردش کار دستور پرداخت
-                        # **مهم:** مطمئن شوید مدل WorkflowStage فیلد entity_type را دارد
-                        # و مقداری برای 'PAYMENTORDER' برای آن تعریف کرده‌اید.
-                        initial_po_stage = None
-                        if hasattr(WorkflowStage, 'entity_type'):
-                             initial_po_stage = WorkflowStage.objects.filter(entity_type='PAYMENTORDER', order=1, is_active=True).first()
-
-                        if not initial_po_stage:
-                             logger.error("Could not find initial workflow stage for PAYMENTORDER (entity_type='PAYMENTORDER', order=1). PaymentOrder will not be created.")
-                             messages.error(self.request, _("خطا: مرحله اولیه گردش کار برای دستور پرداخت تعریف نشده است."))
-                        else:
-                            logger.info(f"Initial stage for new PaymentOrder: {initial_po_stage.name}")
-                            # ایجاد دستور پرداخت
-                            # تابع generate_payment_order_number باید خارج از مدل PaymentOrder باشد
-                            # یا از متد generate_payment_order_number خود نمونه PaymentOrder در save استفاده شود.
-                            # برای سادگی، فرض می‌کنیم در save مدل هندل می‌شود اگر order_number خالی باشد.
-
-                            payment_order_instance = PaymentOrder(
-                                payee=target_payee,
-                                amount=tankhah.amount_to_be_paid, # یا tankhah.amount یا هر فیلد مناسب دیگری
-                                description=f"پرداخت/تسویه برای تنخواه شماره {tankhah.number}",
-                                related_tankhah=tankhah,
-                                organization=tankhah.organization, # سازمان از تنخواه گرفته می‌شود
-                                project=tankhah.project, # پروژه از تنخواه گرفته می‌شود
-                                status='DRAFT', # یا مرحله اولیه گردش کار
-                                created_by=user, # کاربری که باعث این اقدام شده
-                                current_stage=initial_po_stage,
-                                issue_date=timezone.now().date() # تاریخ صدور امروز
-                                # order_number به صورت خودکار در save مدل پر می‌شود
-                            )
-                            payment_order_instance.save() # این save متد generate_payment_order_number مدل را (اگر در save هست) فراخوانی می‌کند
-                                                        # و همچنین payee_account_number و iban را از payee پر می‌کند.
-
-                            if payment_order_instance and payment_order_instance.current_stage:
-                                logger.info(
-                                    f"PaymentOrder {payment_order_instance.order_number} created and is in stage: {payment_order_instance.current_stage.name}")
-                            eligible_users_for_po_action = set()  # استفاده از set برای جلوگیری از ارسال نوتیفیکیشن تکراری به یک کاربر
-                            # یافتن پست‌های مجاز برای مرحله فعلی دستور پرداخت
-                            # **مهم:** مطمئن شوید مدل StageApprover فیلد entity_type دارد.
-                            required_entity_type = 'PAYMENTORDER'  # یا هر مقداری که برای دستور پرداخت در نظر گرفته‌اید
-
-                            approving_posts_query = []
-                            if hasattr(StageApprover, 'entity_type'):
-                                approving_posts_query = StageApprover.objects.filter(
-                                    stage=payment_order_instance.current_stage,
-                                    entity_type__iexact=required_entity_type,  # برای case-insensitive
-                                    is_active=True
-                                ).select_related('post')
-                            else:
-                                # اگر StageApprover فیلد entity_type ندارد، ممکن است نیاز به منطق دیگری باشد
-                                # یا فرض کنید تمام StageApprover های این مرحله برای همه انواع موجودیت‌ها هستند (که ایده‌آل نیست)
-                                logger.warning(
-                                    f"StageApprover model does not seem to have 'entity_type' field. Notification logic might be inaccurate.")
-                                approving_posts_query = StageApprover.objects.filter(
-                                    stage=payment_order_instance.current_stage,
-                                    is_active=True
-                                ).select_related('post')
-
-                            if not approving_posts_query.exists():
-                                logger.warning(
-                                    f"No active StageApprovers found for stage '{payment_order_instance.current_stage.name}' and entity_type '{required_entity_type}'. Cannot determine recipients for notification.")
-                            else:
-                                for stage_approver in approving_posts_query:
-                                    if stage_approver.post:
-                                        # یافتن تمام کاربران فعال منتسب به آن پست
-                                        users_in_post = UserPost.objects.filter(
-                                            post=stage_approver.post,
-                                            is_active=True,
-                                            end_date__isnull=True  # کاربر هنوز در این پست فعال است
-                                        ).select_related('user')
-
-                                        for user_post_entry in users_in_post:
-                                            eligible_users_for_po_action.add(user_post_entry.user)
-                                    else:
-                                        logger.warning(
-                                            f"StageApprover (PK: {stage_approver.pk}) for stage '{payment_order_instance.current_stage.name}' has no associated post.")
-
-                            if eligible_users_for_po_action:
-                                logger.info(
-                                    f"Found {len(eligible_users_for_po_action)} eligible users for action on PaymentOrder {payment_order_instance.order_number}: {[u.username for u in eligible_users_for_po_action]}")
-                                from notifications.signals import \
-                                    notify  # یا روش import مناسب برای سیستم نوتیفیکیشن شما
-
-                                for user_to_notify in eligible_users_for_po_action:
-                                    if user_to_notify == user:  # به خود ایجاد کننده که همین الان اقدام کرده، نوتیف نده (اگر منطقی است)
-                                        # continue # این خط را اگر نمی‌خواهید به ایجاد کننده نوتیف بدهید فعال کنید
-                                        pass
-
-                                    try:
-                                        notify.send(
-                                            sender=user,  # کاربری که باعث ایجاد دستور پرداخت شد (یا یک کاربر سیستمی)
-                                            recipient=user_to_notify,
-                                            verb=_('دستور پرداخت جدید منتظر اقدام شماست'),
-                                            action_object=payment_order_instance,  # خود دستور پرداخت
-                                            target=tankhah,  # تنخواهی که باعث ایجاد این دستور پرداخت شد (اختیاری)
-                                            description=_(
-                                                'دستور پرداخت شماره {po_num} برای تنخواه {tk_num} ایجاد شده و نیاز به بررسی/امضای شما در مرحله "{stage}" دارد.').format(
-                                                po_num=payment_order_instance.order_number,
-                                                tk_num=tankhah.number,
-                                                stage=payment_order_instance.current_stage.name
-                                            ),
-                                            # level='info', # یا هر سطح دیگری که در سیستم نوتیفیکیشن شما تعریف شده
-                                        )
-                                        logger.info(
-                                            f"Notification sent to {user_to_notify.username} for PaymentOrder {payment_order_instance.order_number}")
-                                    except Exception as e:
-                                        logger.error(
-                                            f"Failed to send notification to {user_to_notify.username} for PaymentOrder {payment_order_instance.order_number}: {e}",
-                                            exc_info=True)
-                            else:
-                                logger.warning(
-                                    f"No eligible users found to notify for PaymentOrder {payment_order_instance.order_number} in stage {payment_order_instance.current_stage.name}.")
-
-                            # اگر فاکتورهایی به تنخواه لینک هستند، آنها را به دستور پرداخت هم لینک کنید
-                            if tankhah.related_factors.exists(): # فرض related_name='related_factors' برای Factor->Tankhah
-                                payment_order_instance.related_factors.set(tankhah.related_factors.all())
-
-                            logger.info(f"PaymentOrder {payment_order_instance.order_number} created successfully for Tankhah {tankhah.number}.")
-                            messages.success(self.request, _("دستور پرداخت {po_num} برای تنخواه {tk_num} به صورت خودکار ایجاد شد.").format(po_num=payment_order_instance.order_number, tk_num=tankhah.number))
-
-                            # اینجا می‌توانید نوتیفیکیشن ارسال کنید
-                            # notify.send(...)
-                    else:
-                        logger.warning(f"PaymentOrder NOT created for Tankhah {tankhah.number} due to missing payee.")
-                        messages.info(self.request, _("دستور پرداخت برای تنخواه {num} به دلیل عدم تعیین دریافت‌کننده ایجاد نشد.").format(num=tankhah.number))
-
-        except Exception as e:
-            logger.error(f"Error in TankhahUpdateStatusView form_valid for tankhah {self.object.pk if self.object else 'None'}: {e}", exc_info=True)
-            messages.error(self.request, _("خطایی در پردازش به‌روزرسانی تنخواه رخ داد."))
-            # اگر خطا رخ داد، بسته به نوع خطا، ممکن است بخواهید فرم را دوباره نمایش دهید یا به صفحه خطا هدایت کنید
-            return self.form_invalid(form) # یا یک HttpResponseServerError
-
-        return super().form_valid(form)
-
-    def get_form_kwargs(self):
-        """Pass the user to the form."""
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
 class TankhahUpdateStatusView(PermissionBaseView, UpdateView):
     model = Tankhah
     fields = ['status', 'current_stage']
@@ -316,15 +121,11 @@ class TankhahUpdateStatusView(PermissionBaseView, UpdateView):
                         eligible_users.update(users)
                     for user_to_notify in eligible_users:
                         if user_to_notify != user:
-                            from notifications.signals import notify
-                            notify.send(
-                                sender=user,
-                                recipient=user_to_notify,
-                                verb='needs_approval',
-                                action_object=payment_order,
-                                target=tankhah,
-                                description=f"دستور پرداخت {payment_order.order_number} نیاز به امضای شما دارد."
-                            )
+
+                            send_notification(self.request.user, users=None, posts=None,
+                                              verb='needs_approval', description=f"دستور پرداخت {payment_order.order_number} نیاز به امضای شما دارد.",
+                                              target=self.object,
+                                              entity_type=None, priority='MEDIUM')
 
                     logger.info(f"PaymentOrder {payment_order.order_number} created for Tankhah {tankhah.number}")
                     messages.success(self.request, f"دستور پرداخت {payment_order.order_number} ایجاد شد.")
@@ -753,14 +554,10 @@ class PaymentOrderDetailView(PermissionBaseView, DetailView):
             for post in rule.recipients.all():
                 users = CustomUser.objects.filter(userpost__post=post, userpost__is_active=True)
                 for user in users:
-                    notify.send(
-                        sender=self.request.user,
-                        recipient=user,
-                        verb=action.lower(),
-                        action_object=entity,
-                        description=description,
-                        level=rule.priority
-                    )
+
+                    send_notification(self.request.user, users=None, posts=None, verb=action.lower(),
+                                      description=description +rule.priority, target=self.object,
+                                      entity_type=None, priority='MEDIUM')
                     if rule.channel == 'EMAIL':
                         send_mail(
                             subject=description,
@@ -886,14 +683,10 @@ class PaymentOrderDetailView__(PermissionBaseView, DetailView):
                     userpost__is_active=True
                 )
                 for user in treasury_users:
-                    from notifications.signals import notify
-                    notify.send(
-                        sender=request.user,
-                        recipient=user,
-                        verb='ready_for_payment',
-                        action_object=action,
-                        description=f"دستور پرداخت {action.order_number} تأیید شده و آماده پرداخت است."
-                    )
+                    send_notification(self.request.user, users=None, posts=None, verb='ready_for_payment',
+                                      description=f"دستور پرداخت {action.order_number} تأیید شده و آماده پرداخت است.",
+                                      target=self.object,
+                                      entity_type=None, priority='MEDIUM')
         else:
             messages.error(request, "شما مجاز به امضای این دستور پرداخت نیستید.")
 

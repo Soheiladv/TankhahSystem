@@ -4,6 +4,7 @@ from django.http import JsonResponse
 
 from budgets.models import BudgetAllocation, BudgetTransaction
 from core.models import Organization, Project, WorkflowStage, UserPost, SubProject
+from notificationApp.utils import send_notification
 from tankhah.forms import TankhahForm
 from tankhah.models import Factor
 
@@ -13,7 +14,7 @@ from django.db import transaction
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, DeleteView, View
 from django.views.generic.list import ListView
-from notifications.signals import notify
+
 from accounts.models import CustomUser
 from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, \
     get_subproject_total_budget, get_subproject_remaining_budget
@@ -143,12 +144,8 @@ class old__TankhahCreateView(PermissionBaseView, CreateView):
 
             approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=initial_stage)
             if approvers.exists():
-                notify.send(
-                    sender=self.request.user,
-                    recipient=approvers,
-                    verb='تنخواه برای تأیید آماده است',
-                    target=self.object
-                )
+                send_notification(self.request.user, users=None, posts=None,  verb='تنخواه برای تأیید آماده است',  description=approvers, target=self.object,
+                                  entity_type=None, priority='MEDIUM'  )
                 logger.info(f"Notification sent to {approvers.count()} approvers for stage {initial_stage.name}")
 
         messages.success(self.request, _('تنخواه با موفقیت ثبت شد.'))
@@ -1024,12 +1021,10 @@ class TankhahApproveView(PermissionBaseView, View):
                     userpost__post__organization=tankhah.organization
                 ).distinct()
                 if approvers.exists():
-                    notify.send(
-                        sender=request.user,
-                        recipient=approvers,
-                        verb='تنخواه برای تأیید آماده است',
-                        target=tankhah
-                    )
+                    send_notification(self.request.user, users=None, posts=None, verb='تنخواه برای تأیید آماده است',
+                                      description=approvers, target=self.object,
+                                      entity_type=None, priority='MEDIUM')
+
                     logger.info(f"Notification sent to {approvers.count()} users for stage {next_stage.name}")
                 else:
                     logger.warning(f"No approvers found for stage {next_stage.name}")

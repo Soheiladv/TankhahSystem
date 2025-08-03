@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}جزئیات فاکتور {{ factor.number }}{% endblock %}
+{% block content %}
+<h1>جزئیات فاکتور {{ factor.number }}</h1>
+<div class="card">
+    <div class="card-body">
+        <p><strong>تنخواه:</strong> {{ factor.tankhah.number }}</p>
+        <p><strong>مبلغ:</strong> {{ factor.amount|floatformat:2 }}</p>
+        <p><strong>وضعیت:</strong> {{ factor.get_status_display }}</p>
+        <p><strong>دلیل رد:</strong> {{ factor.rejected_reason|default:"-" }}</p>
+        <p><strong>ایجادکننده:</strong> {{ factor.created_by.get_full_name }}</p>
+    </div>
+</div>
+<h2>آیتم‌ها</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>شرح</th>
+            <th>تعداد</th>
+            <th>قیمت واحد</th>
+            <th>مبلغ</th>
+            <th>وضعیت</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+            <tr>
+                <td>{{ item.description }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.unit_price|floatformat:2 }}</td>
+                <td>{{ item.amount|floatformat:2 }}</td>
+                <td>{{ item.get_status_display }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>تاریخچه اقدامات</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>کاربر</th>
+            <th>اقدام</th>
+            <th>توضیحات</th>
+            <th>زمان</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in approval_logs %}
+            <tr>
+                <td>{{ log.user.get_full_name }}</td>
+                <td>{{ log.get_action_display }}</td>
+                <td>{{ log.comment|default:"-" }}</td>
+                <td>{{ log.timestamp }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<div class="mt-3">
+    {% if can_approve %}
+        <a href="{% url 'factor_approve' factor.pk %}" class="btn btn-success">تأیید</a>
+        <a href="{% url 'factor_temp_approve' factor.pk %}" class="btn btn-warning">تأیید موقت</a>
+    {% endif %}
+    {% if can_reject %}
+        <a href="{% url 'factor_reject' factor.pk %}" class="btn btn-danger">رد</a>
+    {% endif %}
+    {% if request.user.has_perm 'tankhah.Stepchange' %}
+        <a href="{% url 'factor_change_stage' factor.pk %}" class="btn btn-info">تغییر مرحله</a>
+    {% endif %}
+    {% if factor.status == 'APPROVED' and factor.tankhah.current_stage.triggers_payment_order %}
+        <a href="{% url 'factor_issue_payment' factor.pk %}" class="btn btn-primary">صدور دستور پرداخت</a>
+    {% endif %}
+    {% if can_unlock %}
+        <a href="{% url 'factor_unlock' factor.pk %}" class="btn btn-secondary">باز کردن قفل</a>
+    {% endif %}
+    {% if factor.created_by == request.user or request.user.has_perm 'tankhah.factor_update' %}
+        <a href="{% url 'factor_edit' factor.pk %}" class="btn btn-secondary">ویرایش</a>
+    {% endif %}
+</div>
+{% endblock %}

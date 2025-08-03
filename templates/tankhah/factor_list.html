@@ -456,25 +456,25 @@ body {
     .card-title {
         font-size: 1.5rem;
     }
-    
+
     .filter-form {
         padding: 1rem;
     }
-    
+
     .table-modern {
         font-size: 0.85rem;
     }
-    
+
     .table-modern th,
     .table-modern td {
         padding: 0.5rem;
     }
-    
+
     .accordion-button {
         padding: 1rem;
         font-size: 0.9rem;
     }
-    
+
     .stats-number {
         font-size: 1.5rem;
     }
@@ -485,22 +485,22 @@ body {
     body {
         background: white !important;
     }
-    
+
     .main-card {
         box-shadow: none !important;
         background: white !important;
     }
-    
+
     .filter-form,
     .dropdown,
     .btn-modern {
         display: none !important;
     }
-    
+
     .table-modern {
         border-collapse: collapse !important;
     }
-    
+
     .table-modern th,
     .table-modern td {
         border: 1px solid #000 !important;
@@ -513,23 +513,23 @@ body {
         background: rgba(31, 41, 55, 0.95);
         color: white;
     }
-    
+
     .filter-form {
         background: #374151;
         border-color: #4b5563;
     }
-    
+
     .form-control-modern {
         background: #374151;
         border-color: #4b5563;
         color: white;
     }
-    
+
     .accordion-button {
         background: #374151;
         color: white;
     }
-    
+
     .table-modern tbody tr:hover {
         background: rgba(67, 97, 238, 0.1);
     }
@@ -591,9 +591,9 @@ body {
                             <i class="fas fa-search me-2"></i>
                             {% trans "جستجو" %}
                         </label>
-                        <input type="text" 
-                               name="q" 
-                               value="{{ query|default_if_none:'' }}" 
+                        <input type="text"
+                               name="q"
+                               value="{{ query|default_if_none:'' }}"
                                class="form-control form-control-modern"
                                placeholder="{% trans 'شماره فاکتور، تنخواه، پروژه، سازمان...' %}">
                     </div>
@@ -602,11 +602,11 @@ body {
                             <i class="fas fa-calendar me-2"></i>
                             {% trans "تاریخ" %}
                         </label>
-                        <input type="text" 
-                               name="date" 
-                               id="jalali-date" 
+                        <input type="text"
+                               name="date"
+                               id="jalali-date"
                                value="{{ date_query|default_if_none:'' }}"
-                               class="form-control form-control-modern" 
+                               class="form-control form-control-modern"
                                placeholder="1403/05/15"
                                readonly>
                     </div>
@@ -657,17 +657,17 @@ body {
                     {% for org_name, org_data in grouped_by_org.items %}
                         <div class="accordion-item fade-in" style="animation-delay: {{ forloop.counter0|mul:0.1 }}s">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" 
-                                        type="button" 
+                                <button class="accordion-button collapsed"
+                                        type="button"
                                         data-bs-toggle="collapse"
-                                        data-bs-target="#orgCollapse{{ forloop.counter }}" 
+                                        data-bs-target="#orgCollapse{{ forloop.counter }}"
                                         aria-expanded="false">
                                     <div class="d-flex align-items-center w-100">
                                         <i class="fas fa-building me-3"></i>
                                         <div class="flex-grow-1">
                                             <div class="fw-bold">{{ org_name }}</div>
                                             <small class="text-muted">
-                                                {{ org_data.projects|length|to_persian_number }} {% trans "پروژه" %} • 
+                                                {{ org_data.projects|length|to_persian_number }} {% trans "پروژه" %} •
                                                 {{ org_data.total_factors|to_persian_number }} {% trans "فاکتور" %}
                                             </small>
                                         </div>
@@ -680,14 +680,14 @@ body {
                                     </div>
                                 </button>
                             </h2>
-                            <div id="orgCollapse{{ forloop.counter }}" 
+                            <div id="orgCollapse{{ forloop.counter }}"
                                  class="accordion-collapse collapse">
                                 <div class="accordion-body">
                                     <div class="accordion" id="projectAccordion{{ forloop.counter }}">
                                         {% for project_name, project_data in org_data.projects.items %}
                                             <div class="accordion-item">
                                                 <h3 class="accordion-header">
-                                                    <button class="accordion-button collapsed" 
+                                                    <button class="accordion-button collapsed"
                                                             type="button"
                                                             data-bs-toggle="collapse"
                                                             data-bs-target="#projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
@@ -696,7 +696,7 @@ body {
                                                             <div class="flex-grow-1">
                                                                 <div class="fw-bold">{{ project_name }}</div>
                                                                 <small class="text-muted">
-                                                                    {{ project_data.tankhahs|length|to_persian_number }} {% trans "تنخواه" %} • 
+                                                                    {{ project_data.tankhahs|length|to_persian_number }} {% trans "تنخواه" %} •
                                                                     {{ project_data.total_factors|to_persian_number }} {% trans "فاکتور" %}
                                                                 </small>
                                                             </div>
@@ -845,6 +845,13 @@ body {
                                                                                                                     <a class="dropdown-item" href="{% url 'factor_item_approve' factor.pk %}">
                                                                                                                         <i class="fas fa-tasks fa-fw text-primary me-2"></i>
                                                                                                                         {% trans "تأیید/رد آیتم‌ها" %}
+                                                                                                                        <span class="badge bg-primary bg-opacity-10 text-primary ms-auto">
+                                                                                                                            {{ factor.items.count|to_persian_number }}
+                                                                                                                        </span>
+                                                                                                                    </a>
+                                                                                                                    <a class="dropdown-item" href="{% url 'factor_approve_API' factor.pk %}">
+                                                                                                                        <i class="fas fa-tasks fa-fw text-primary me-2"></i>
+                                                                                                                        {% trans "   API تأیید/رد آیتم‌ها" %}
                                                                                                                         <span class="badge bg-primary bg-opacity-10 text-primary ms-auto">
                                                                                                                             {{ factor.items.count|to_persian_number }}
                                                                                                                         </span>
@@ -1035,7 +1042,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     month: '2-digit',
                     day: '2-digit'
                 }).format(gregorianDate);
-                
+
                 // تبدیل فرمت به Y/m/d
                 const parts = jalaliDate.split('/');
                 if (parts.length === 3) {
@@ -1084,10 +1091,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.factor-action-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            
+
             const actionUrl = this.getAttribute('href');
             const actionType = this.getAttribute('data-action');
-            
+
             // تنظیم محتوای مودال بر اساس نوع عملیات
             switch(actionType) {
                 case 'reject':
@@ -1096,28 +1103,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     confirmBtn.className = 'btn btn-danger btn-modern';
                     confirmBtn.innerHTML = '<i class="fas fa-times-circle me-2"></i>{% trans "رد کن" %}';
                     break;
-                    
+
                 case 'approve':
                     modalTitle.innerHTML = '<i class="fas fa-check-circle me-2"></i>{% trans "تأیید فاکتور" %}';
                     message.textContent = '{% trans "آیا از تأیید این فاکتور مطمئن هستید؟ پس از تأیید امکان ویرایش محدود می‌شود." %}';
                     confirmBtn.className = 'btn btn-success btn-modern';
                     confirmBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>{% trans "تأیید کن" %}';
                     break;
-                    
+
                 case 'delete':
                     modalTitle.innerHTML = '<i class="fas fa-trash-alt me-2"></i>{% trans "حذف فاکتور" %}';
                     message.textContent = '{% trans "آیا از حذف این فاکتور مطمئن هستید؟ این عمل قابل بازگشت نیست و تمام اطلاعات مرتبط حذف خواهد شد." %}';
                     confirmBtn.className = 'btn btn-danger btn-modern';
                     confirmBtn.innerHTML = '<i class="fas fa-trash-alt me-2"></i>{% trans "حذف کن" %}';
                     break;
-                    
+
                 default:
                     modalTitle.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>{% trans "تأیید عملیات" %}';
                     message.textContent = '{% trans "آیا از انجام این عملیات مطمئن هستید؟" %}';
                     confirmBtn.className = 'btn btn-primary btn-modern';
                     confirmBtn.innerHTML = '<i class="fas fa-check me-2"></i>{% trans "تأیید" %}';
             }
-            
+
             confirmBtn.setAttribute('href', actionUrl);
             confirmationModal.show();
         });
@@ -1126,11 +1133,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // مدیریت کلیک تأیید در مودال
     confirmBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        
+
         // نمایش loading
         this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{% trans "در حال پردازش..." %}';
         this.disabled = true;
-        
+
         // انتقال به صفحه مقصد
         setTimeout(() => {
             window.location.href = this.getAttribute('href');
@@ -1142,11 +1149,11 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('focus', function() {
             this.parentElement.classList.add('focused');
         });
-        
+
         input.addEventListener('blur', function() {
             this.parentElement.classList.remove('focused');
         });
-        
+
         // اعتبارسنجی real-time
         input.addEventListener('input', function() {
             if (this.checkValidity()) {
@@ -1166,7 +1173,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             document.querySelector('input[name="q"]').focus();
         }
-        
+
         // Escape برای بستن مودال‌ها
         if (e.key === 'Escape') {
             const openModal = document.querySelector('.modal.show');
@@ -1181,7 +1188,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             const target = this.getAttribute('data-bs-target');
             const isExpanded = this.getAttribute('aria-expanded') === 'true';
-            
+
             // ذخیره وضعیت
             localStorage.setItem(`accordion_${target}`, !isExpanded);
         });
@@ -1191,7 +1198,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.accordion-collapse').forEach(collapse => {
         const id = collapse.id;
         const savedState = localStorage.getItem(`accordion_#${id}`);
-        
+
         if (savedState === 'true') {
             const bsCollapse = new bootstrap.Collapse(collapse, {
                 show: true
@@ -1210,7 +1217,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (urlParams.get('success')) {
         const successMessage = urlParams.get('message') || '{% trans "عملیات با موفقیت انجام شد." %}';
         showNotification(successMessage, 'success');
-        
+
         // پاک کردن پارامترها از URL
         const newUrl = window.location.pathname;
         window.history.replaceState({}, document.title, newUrl);
@@ -1225,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', function() {
             box-shadow: var(--shadow-lg); border-radius: var(--border-radius);
             animation: slideDown 0.5s ease-out;
         `;
-        
+
         notification.innerHTML = `
             <div class="d-flex align-items-center">
                 <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
@@ -1233,9 +1240,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         `;
-        
+
         document.body.appendChild(notification);
-        
+
         // حذف خودکار پس از مدت زمان مشخص
         setTimeout(() => {
             if (notification.parentNode) {
@@ -1274,7 +1281,7 @@ style.textContent = `
             transform: translateY(0);
         }
     }
-    
+
     @keyframes slideUp {
         from {
             opacity: 1;
@@ -1285,17 +1292,17 @@ style.textContent = `
             transform: translateY(-20px);
         }
     }
-    
+
     .focused {
         transform: scale(1.02);
         transition: transform 0.2s ease;
     }
-    
+
     .is-valid {
         border-color: var(--success) !important;
         box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1) !important;
     }
-    
+
     .is-invalid {
         border-color: var(--danger) !important;
         box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;

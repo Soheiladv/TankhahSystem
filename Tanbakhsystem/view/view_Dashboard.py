@@ -1,40 +1,29 @@
-import logging
-from decimal import Decimal
-from django.shortcuts import render
-from django.utils import timezone
-from django.contrib.contenttypes.models import ContentType
-from django.db.models import Sum, Q, Count
-from django.db.models.functions import Coalesce, TruncMonth, TruncQuarter
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy
-import jdatetime
-from datetime import timedelta
-import json
 
-from django.views.generic import View
-# --
-import logging
-from decimal import Decimal
 from django.shortcuts import render
-from django.utils import timezone
-from django.contrib.contenttypes.models import ContentType
-from django.db.models import Sum, Q
-from django.db.models.functions import Coalesce, TruncMonth, TruncQuarter
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy
-import jdatetime
-from datetime import timedelta
-import json
-from core.models import Project, Organization, SubProject
-from budgets.models import BudgetPeriod, BudgetAllocation, BudgetTransaction
-from tankhah.models import Tankhah, Factor, ApprovalLog, FactorItem
-from notifications.models import Notification
-from django.utils.translation import gettext_lazy as _
+from django.db.models.functions import Coalesce
+from notificationApp.models import NotificationRule, Notification
+from notificationApp.views import send_notification
+from tankhah.models import   ApprovalLog
+
 from version_tracker.models import FinalVersion
 from budgets.budget_calculations import get_project_total_budget, get_project_used_budget, get_project_remaining_budget, \
     calculate_threshold_amount
-from Tanbakhsystem.view.views_notifications import send_notification
-
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views import View
+from django.urls import reverse_lazy
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from django.db.models import Sum, Q
+from django.db.models.functions import TruncMonth, TruncQuarter
+from decimal import Decimal
+import jdatetime
+import json
+import logging
+from datetime import timedelta
+from tankhah.models import Tankhah, Factor
+from budgets.models import BudgetPeriod, BudgetAllocation, BudgetTransaction
+from core.models import Project
+from django.contrib.contenttypes.models import ContentType
 logger = logging.getLogger('Main_Dashboard')
 # لینک‌های داشبورد
 _____dashboard_links_ = {
@@ -140,6 +129,9 @@ dashboard_links = {
         # {'name': _('وضعیت فاکتورها'), 'url': 'factor_approval_path', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
         # {'name': _('وضعیت فاکتورها'), 'url': 'factor_approval_path', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
         {'name': _('وضعیت کلی فاکتورها '), 'url': 'approval_list', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
+        {'name': _('وضعیت کلی factor_list___ '), 'url': 'factor_list___', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
+        {'name': _('وضعیت کلی dashboard__ '), 'url': 'dashboard__', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
+
     ],
     'تنخواه': [
         {'name': _('فهرست تنخواه'), 'url': 'tankhah_list', 'permission': 'tankhah.view_tankhah',
@@ -247,7 +239,7 @@ dashboard_links = {
 }
 
 
-class DashboardView(LoginRequiredMixin, View):
+class DashboardView___(LoginRequiredMixin, View):
     template_name = 'core/dashboard.html'
     login_url = reverse_lazy('accounts:login')
     # final_version = '3.0.0.303'
@@ -637,21 +629,29 @@ class DashboardView(LoginRequiredMixin, View):
                             'remaining': remaining,
                             'percentage_consumed': percentage_consumed
                         })
-                        # logger.info(
-                        #     f"Project status: id={project.id}, name={project.name}, "
-                        #     f"allocated={allocated}, consumed={consumed}, remaining={remaining}, "
-                        #     f"percentage={percentage_consumed}"
-                        # )
+
                         # ارسال اعلان برای بودجه کم
                         if allocated > 0 and remaining <= calculate_threshold_amount(allocated, Decimal('10')):
                             try:
                                 recipients = project.organizations.first().users.all() if project.organizations.exists() else []
                                 if recipients:
+                                    # ارسال اعلان
                                     send_notification(
-                                        target=project,
-                                        status='warning',
-                                        message=f"بودجه پروژه {project.name} به آستانه هشدار (10٪) رسیده است.",
-                                        recipients_queryset=recipients
+                                        sender=request.user,
+                                        posts=NotificationRule.objects.filter(
+                                            entity_type='FACTOR',
+                                            action='APPROVED',
+                                            is_active=True
+                                        ).first().recipients.all() if NotificationRule.objects.filter(
+                                            entity_type='FACTOR',
+                                            action='APPROVED',
+                                            is_active=True
+                                        ).exists() else [],
+                                        verb='APPROVED',
+                                        description=f"بودجه پروژه {project.name} به آستانه هشدار (10٪) رسیده است.",
+                                        # target=factor,
+                                        entity_type='FACTOR',
+                                        priority='HIGH'
                                     )
                                 else:
                                     logger.warning(f"No recipients found for project {project.id} notification")
@@ -690,7 +690,7 @@ class DashboardView(LoginRequiredMixin, View):
             try:
                 budget_period_ct = ContentType.objects.get_for_model(BudgetPeriod)
                 budget_allocation_ct = ContentType.objects.get_for_model(BudgetAllocation)
-                recent_warnings = Notification.objects.filter(
+                recent_warnings = NotificationRule.objects.filter(
                     Q(target_content_type=budget_period_ct) | Q(target_content_type=budget_allocation_ct),
                     level__in=['warning', 'error', 'locked']
                 ).select_related('recipient').prefetch_related('actor', 'target').order_by('-timestamp')[:5]
@@ -717,10 +717,10 @@ class DashboardView(LoginRequiredMixin, View):
                 context['recent_budget_warnings'] = []
 
         # گرفتن اعلان‌های خوانده‌نشده کاربر
-        context['notifications'] = Notification.objects.filter(
+        context['notifications'] = NotificationRule.objects.filter(
             recipient=request.user, unread=True
         )[:5]  # محدود به 5 اعلان
-        context['unread_count'] = Notification.objects.filter(
+        context['unread_count'] = NotificationRule.objects.filter(
             recipient=request.user, unread=True
         ).count()
 
@@ -752,6 +752,362 @@ class DashboardView(LoginRequiredMixin, View):
         # logger.info("Rendering dashboard template")
         return render(request, self.template_name, context)
 
+
+class DashboardView(LoginRequiredMixin, View):
+    template_name = 'core/dashboard.html'
+    login_url = reverse_lazy('accounts:login')
+    final_version = FinalVersion.calculate_final_version()  # فرض می‌کنیم FinalVersion تعریف شده است
+
+    def get_jalali_month_name(self, month_number):
+        j_months_fa = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+        try:
+            month_number = int(month_number)
+            if 1 <= month_number <= 12:
+                return j_months_fa[month_number - 1]
+            return str(month_number)
+        except (ValueError, IndexError):
+            return str(month_number)
+
+    def get_project_total_budget(self, project, filters=None):
+        try:
+            total = get_project_total_budget(project, filters=filters)
+            return total
+        except Exception as e:
+            logger.error(f"خطا در محاسبه بودجه کل برای پروژه {project.id}: {e}", exc_info=True)
+            return Decimal('0')
+
+    def get_project_used_budget(self, project, filters=None):
+        try:
+            total = get_project_used_budget(project, filters=filters)
+            return total
+        except Exception as e:
+            logger.error(f"خطا در محاسبه بودجه مصرف‌شده برای پروژه {project.id}: {e}", exc_info=True)
+            return Decimal('0')
+
+    def get_project_remaining_budget(self, project, filters=None):
+        try:
+            remaining = get_project_remaining_budget(project, filters=filters)
+            return remaining
+        except Exception as e:
+            logger.error(f"خطا در محاسبه بودجه باقی‌مانده برای پروژه {project.id}: {e}", exc_info=True)
+            return Decimal('0')
+
+    def _get_tankhah_stats(self):
+        """آمار تنخواه و فاکتورها"""
+        now = timezone.now()
+        j_now = jdatetime.datetime.now()
+        stats = {
+            'active_tankhah_count': 0,
+            'pending_tankhah_count': 0,
+            'rejected_factors_count': 0,
+            'current_month_paid_factors': Decimal('0'),
+            'total_allocated_tankhah': Decimal('0'),
+            'total_spent_factors': Decimal('0'),
+            'monthly_factors_data': {'labels': [], 'values': []},
+            'quarterly_factors_data': {'labels': [], 'values': []}
+        }
+
+        try:
+            # آمار پایه
+            stats.update({
+                'active_tankhah_count': Tankhah.objects.filter(
+                    status__in=['PENDING', 'APPROVED', 'SENT_TO_HQ', 'HQ_OPS_PENDING', 'HQ_OPS_APPROVED', 'HQ_FIN_PENDING']
+                ).count(),
+                'pending_tankhah_count': Tankhah.objects.filter(
+                    status__in=['PENDING', 'SENT_TO_HQ', 'HQ_OPS_PENDING', 'HQ_FIN_PENDING']
+                ).count(),
+                'rejected_factors_count': Factor.objects.filter(
+                    status='REJECTED',
+                    date__gte=now - timedelta(days=90)
+                ).count(),
+                'total_allocated_tankhah': Tankhah.objects.aggregate(
+                    total=Coalesce(Sum('amount'), Decimal('0'))
+                )['total'],
+                'total_spent_factors': Factor.objects.filter(status='PAID').aggregate(
+                    total=Coalesce(Sum('amount'), Decimal('0'))
+                )['total'],
+            })
+
+            # محاسبه مبلغ فاکتورهای پرداخت‌شده ماه جاری
+            month_start = jdatetime.date(j_now.year, j_now.month, 1).togregorian()
+            month_end = (jdatetime.date(j_now.year, j_now.month,
+                                        jdatetime.j_days_in_month[j_now.month - 1]).togregorian() + timedelta(days=1))
+            stats['current_month_paid_factors'] = Factor.objects.filter(
+                status='PAID',
+                date__range=(month_start, month_end)
+            ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+
+            # روند ماهانه فاکتورها
+            monthly_factors = []
+            seen_months = set()
+            for i in range(5, -1, -1):
+                month = (j_now.month - i - 1) % 12 + 1
+                year = j_now.year + (j_now.month - i - 1) // 12
+                start_date = jdatetime.date(year, month, 1).togregorian()
+                end_date = (jdatetime.date(year, month, jdatetime.j_days_in_month[month - 1]).togregorian() + timedelta(days=1))
+                month_label = f"{self.get_jalali_month_name(month)} {year}"
+                if month_label not in seen_months:
+                    seen_months.add(month_label)
+                    monthly_factors.append({
+                        'label': month_label,
+                        'value': float(Factor.objects.filter(
+                            status='PAID',
+                            date__range=(start_date, end_date)
+                        ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'])
+                    })
+
+            stats['monthly_factors_data'] = {
+                'labels': json.dumps([m['label'] for m in monthly_factors], ensure_ascii=False),
+                'values': json.dumps([m['value'] for m in monthly_factors])
+            }
+
+            # روند فصلی فاکتورها
+            quarterly_factors = []
+            for i in range(3, -1, -1):
+                quarter = ((j_now.month - 1) // 3 - i) % 4 + 1
+                year = j_now.year + ((j_now.month - 1) // 3 - i) // 4
+                start_month = (quarter - 1) * 3 + 1
+                end_month = quarter * 3
+                start_date = jdatetime.date(year, start_month, 1).togregorian()
+                end_date = (jdatetime.date(year, end_month,
+                                           jdatetime.j_days_in_month[end_month - 1]).togregorian() + timedelta(days=1))
+                quarterly_factors.append({
+                    'label': f"فصل {quarter} {year}",
+                    'value': float(Factor.objects.filter(
+                        status='PAID',
+                        date__range=(start_date, end_date)
+                    ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'])
+                })
+
+            stats['quarterly_factors_data'] = {
+                'labels': json.dumps([q['label'] for q in quarterly_factors], ensure_ascii=False),
+                'values': json.dumps([q['value'] for q in quarterly_factors])
+            }
+        except Exception as e:
+            logger.error(f"خطا در محاسبه آمار تنخواه: {e}", exc_info=True)
+
+        return stats
+
+    def get_context_data(self, request):
+        context = {}
+        user = request.user
+        now = timezone.now()
+        j_now = jdatetime.datetime.now()
+        current_jalali_year = j_now.year
+        current_jalali_month = j_now.month
+
+        # اطلاعات پایه
+        context['title'] = _("داشبورد جامع سیستم تنخواه و بودجه")
+        context['version'] = self.final_version
+
+        # دسترسی‌ها
+        context['can_view_budget_stats'] = True
+        context['can_view_tankhah_stats'] = True
+        context['can_view_project_status'] = True
+        context['can_view_budget_alerts'] = True
+
+        # لینک‌های داشبورد
+        context['dashboard_links'] = dashboard_links
+
+        # متغیرهای کلیدی برای تمپلیت
+        context['active_budget_periods_count'] = BudgetPeriod.objects.filter(is_active=True, is_completed=False).count() or 0
+        context['active_budget_allocations_count'] = BudgetAllocation.objects.filter(is_active=True).count() or 0
+        context['active_cost_centers_count'] = Project.objects.filter(is_active=True).count() or 0
+        context['total_allocated_tankhah'] = Tankhah.objects.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'] or Decimal('0')
+        context['total_spent_on_factors'] = Factor.objects.filter(status='PAID').aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'] or Decimal('0')
+        context['total_unspent_tankhah'] = (context['total_allocated_tankhah'] - context['total_spent_on_factors']) or Decimal('0')
+
+        # آمار بودجه
+        if context['can_view_budget_stats']:
+            try:
+                active_budget_periods = BudgetPeriod.objects.filter(is_active=True, is_completed=False)
+                total_allocated = active_budget_periods.aggregate(total=Coalesce(Sum('total_amount'), Decimal('0')))['total']
+                total_consumed = BudgetTransaction.objects.filter(
+                    allocation__budget_period__in=active_budget_periods,
+                    transaction_type='CONSUMPTION'
+                ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+
+                context['total_allocated_budget'] = total_allocated or Decimal('10000000')
+                context['total_consumed_budget'] = total_consumed or Decimal('4000000')
+                context['remaining_total_budget'] = (total_allocated - total_consumed) or Decimal('6000000')
+                context['percentage_consumed_budget'] = (
+                    (total_consumed / total_allocated * 100) if total_allocated > 0 else 0
+                )
+
+                # مصرف بودجه بر اساس دسته
+                category_consumption = Factor.objects.filter(status='PAID').values('category__name').annotate(
+                    total_spent=Sum('amount')
+                ).order_by('-total_spent')[:7]
+                if not category_consumption:
+                    category_consumption = [
+                        {'category__name': 'دسته ۱', 'total_spent': 2000000},
+                        {'category__name': 'دسته ۲', 'total_spent': 1500000},
+                    ]
+                context['budget_category_consumption'] = {
+                    'labels': json.dumps([item['category__name'] or _("نامشخص") for item in category_consumption], ensure_ascii=False),
+                    'values': json.dumps([float(item['total_spent'] or 0) for item in category_consumption])
+                }
+
+                # بودجه تخصیص‌یافته در مقابل مصرف‌شده
+                budget_vs_actual_labels = []
+                budget_vs_actual_allocated_data = []
+                budget_vs_actual_consumed_data = []
+                seen_months = set()
+                for i in range(5, -1, -1):
+                    month_start_gregorian = (now.replace(day=1) - timedelta(days=i * 30)).replace(day=1)
+                    month_end_gregorian = (month_start_gregorian + timedelta(days=31)).replace(day=1) - timedelta(days=1)
+                    j_month_start = jdatetime.date.fromgregorian(date=month_start_gregorian)
+                    month_label = f"{self.get_jalali_month_name(j_month_start.month)} {j_month_start.year}"
+                    if month_label not in seen_months:
+                        seen_months.add(month_label)
+                        budget_vs_actual_labels.append(month_label)
+                        monthly_allocated = BudgetAllocation.objects.filter(
+                            allocation_date__range=(month_start_gregorian, month_end_gregorian)
+                        ).aggregate(total=Coalesce(Sum('allocated_amount'), Decimal('0')))['total']
+                        monthly_consumed = BudgetTransaction.objects.filter(
+                            transaction_type='CONSUMPTION',
+                            timestamp__range=(month_start_gregorian, month_end_gregorian)
+                        ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+                        budget_vs_actual_allocated_data.append(float(monthly_allocated or (1000000 * (6 - i))))
+                        budget_vs_actual_consumed_data.append(float(monthly_consumed or (500000 * (6 - i))))
+
+                context['budget_vs_actual_data'] = {
+                    'labels': json.dumps(budget_vs_actual_labels, ensure_ascii=False),
+                    'allocated': json.dumps(budget_vs_actual_allocated_data),
+                    'consumed': json.dumps(budget_vs_actual_consumed_data)
+                }
+            except Exception as e:
+                logger.error(f"خطا در محاسبه آمار بودجه: {e}", exc_info=True)
+                context['budget_category_consumption'] = {'labels': json.dumps([]), 'values': json.dumps([])}
+                context['budget_vs_actual_data'] = {'labels': json.dumps([]), 'allocated': json.dumps([]), 'consumed': json.dumps([])}
+
+        # آمار تنخواه
+        if context['can_view_tankhah_stats']:
+            try:
+                tankhah_stats = self._get_tankhah_stats()
+                context.update(tankhah_stats)
+            except Exception as e:
+                logger.error(f"خطا در محاسبه آمار تنخواه: {e}", exc_info=True)
+                context['monthly_report_data'] = {'labels': json.dumps([]), 'values': json.dumps([])}
+                context['quarterly_report_data'] = {'labels': json.dumps([]), 'values': json.dumps([])}
+
+        # وضعیت پروژه‌ها
+        if context['can_view_project_status']:
+            try:
+                projects_status = []
+                active_projects = Project.objects.filter(
+                    is_active=True
+                ).annotate(
+                    total_budget=Coalesce(Sum('budget_allocations__allocated_amount'), Decimal('0'))
+                ).filter(
+                    total_budget__gt=0
+                ).order_by('-start_date')[:5]
+                for project in active_projects:
+                    allocated = self.get_project_total_budget(project)
+                    consumed = self.get_project_used_budget(project)
+                    remaining = self.get_project_remaining_budget(project)
+                    percentage_consumed = (consumed / allocated * 100) if allocated > 0 else 0
+                    projects_status.append({
+                        'name': project.name or "پروژه بدون نام",
+                        'allocated': allocated,
+                        'consumed': consumed,
+                        'remaining': remaining,
+                        'percentage_consumed': percentage_consumed
+                    })
+
+                    # ارسال اعلان برای بودجه کم
+                    if allocated > 0 and remaining <= calculate_threshold_amount(allocated, Decimal('10')):
+                        try:
+                            posts = project.organizations.first().posts.filter(userpost__is_active=True).distinct() if project.organizations.exists() else []
+                            if posts:
+                                send_notification(
+                                    sender=user,
+                                    posts=posts,
+                                    verb='LOW_BUDGET',
+                                    description=f"بودجه پروژه {project.name} به آستانه هشدار (10٪) رسیده است.",
+                                    target=project,
+                                    entity_type='PROJECT',
+                                    priority='HIGH'
+                                )
+                            else:
+                                logger.warning(f"هیچ پستی برای پروژه {project.id} یافت نشد")
+                        except Exception as e:
+                            logger.error(f"خطا در ارسال اعلان برای پروژه {project.id}: {e}", exc_info=True)
+
+                if not projects_status:
+                    projects_status = [
+                        {'name': 'پروژه نمونه', 'allocated': Decimal('1000000'), 'consumed': Decimal('400000'), 'remaining': Decimal('600000'), 'percentage_consumed': 40.0}
+                    ]
+                context['project_budget_status'] = projects_status
+                context['project_chart_data'] = {
+                    'labels': json.dumps([project['name'] for project in projects_status], ensure_ascii=False),
+                    'allocated': json.dumps([float(project['allocated']) for project in projects_status]),
+                    'consumed': json.dumps([float(project['consumed']) for project in projects_status]),
+                    'remaining': json.dumps([float(project['remaining']) for project in projects_status])
+                }
+            except Exception as e:
+                logger.error(f"خطا در محاسبه وضعیت پروژه‌ها: {e}", exc_info=True)
+                context['project_budget_status'] = []
+                context['project_chart_data'] = {'labels': json.dumps([]), 'allocated': json.dumps([]), 'consumed': json.dumps([]), 'remaining': json.dumps([])}
+
+        # هشدارهای بودجه
+        if context['can_view_budget_alerts']:
+            try:
+                budget_period_ct = ContentType.objects.get_for_model(BudgetPeriod)
+                budget_allocation_ct = ContentType.objects.get_for_model(BudgetAllocation)
+                recent_warnings = Notification.objects.filter(
+                    Q(target_content_type=budget_period_ct) | Q(target_content_type=budget_allocation_ct),
+                    priority__in=['warning', 'error', 'locked']
+                ).select_related('recipient', 'actor').prefetch_related('target').order_by('-timestamp')[:5]
+
+                budget_warnings_transformed = []
+                for notif in recent_warnings:
+                    target_obj_display = str(notif.target) if notif.target else _("نامشخص")
+                    actor_username = getattr(notif.actor, 'username', str(notif.actor)) if notif.actor else 'سیستم'
+                    budget_warnings_transformed.append({
+                        'details': f"{notif.verb}: {target_obj_display} - {notif.description or ''}",
+                        'timestamp': notif.timestamp,
+                        'created_by': {'username': actor_username}
+                    })
+                if not budget_warnings_transformed:
+                    budget_warnings_transformed = [
+                        {'details': 'هشدار نمونه: بودجه کم است', 'timestamp': now, 'created_by': {'username': 'سیستم'}}
+                    ]
+                context['recent_budget_warnings'] = budget_warnings_transformed
+            except Exception as e:
+                logger.error(f"خطا در محاسبه هشدارهای بودجه: {e}", exc_info=True)
+                context['recent_budget_warnings'] = []
+
+        # گرفتن اعلان‌های خوانده‌نشده کاربر
+        context['notifications'] = Notification.objects.filter(
+            recipient=request.user, unread=True, deleted=False
+        ).select_related('actor', 'target').order_by('-timestamp')[:5]
+        context['unread_count'] = Notification.objects.filter(
+            recipient=request.user, unread=True, deleted=False
+        ).count()
+
+        # فعالیت‌های اخیر
+        try:
+            context['recent_activities'] = ApprovalLog.objects.select_related('user', 'tankhah', 'factor', 'stage').order_by('-timestamp')[:7]
+            if not context['recent_activities']:
+                context['recent_activities'] = [
+                    {
+                        'tankhah': {'number': 'T001'},
+                        'get_action_display': lambda: 'تأیید',
+                        'user': {'username': 'کاربر نمونه'},
+                        'timestamp': now,
+                        'comment': 'تأیید نمونه'
+                    }
+                ]
+        except Exception as e:
+            logger.error(f"خطا در محاسبه فعالیت‌های اخیر: {e}", exc_info=True)
+            context['recent_activities'] = []
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(request)
+        return render(request, self.template_name, context)
 
 class SimpleChartView(LoginRequiredMixin, View):
     template_name = 'core/simple_chart.html'

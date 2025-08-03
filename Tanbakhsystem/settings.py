@@ -22,7 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'notifications',
+    # 'notifications',
     'core.apps.CoreConfig',
     'reports.apps.ReportsConfig',
     'django_jalali',
@@ -69,7 +69,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.version_info',
-                'core.context_processors.notifications',
+                # 'core.context_processors.notifications',
             ],
         },
     },
@@ -248,12 +248,12 @@ else:
         "RCMS_SECRET_KEY_CIPHER is initialized with a dummy key. Decryption will likely fail for TimeLockModel.")
 
 ##########################################################################################################
-DJANGO_NOTIFICATIONS_CONFIG = {
-    'USE_JSONFIELD': True,
-    'SOFT_DELETE': True,
-}
-NOTIFICATIONS_USE_JSONFIELD = True
-NOTIFICATIONS_SOFT_DELETE = True
+# DJANGO_NOTIFICATIONS_CONFIG = {
+#     'USE_JSONFIELD': True,
+#     'SOFT_DELETE': True,
+# }
+# NOTIFICATIONS_USE_JSONFIELD = True
+# NOTIFICATIONS_SOFT_DELETE = True
 
 # --- End of your existing settings.py ---
 
@@ -367,3 +367,16 @@ LOGGING  = {
 }
 
 # --- End of Logging Configuration ---
+# -----------------------------------------------------------------
+#  تنظیمات WebSocket در settings.py:
+ASGI_APPLICATION = 'tankhah.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
+}
+# -----------------------------------------------------------------

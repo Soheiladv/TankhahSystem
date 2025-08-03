@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}گزارش فاکتورها{% endblock %}
+{% block content %}
+<h1>گزارش فاکتورها</h1>
+<form method="get" class="mb-3">
+    <div class="row">
+        <div class="col-md-4">
+            <select name="status" class="form-control" onchange="this.form.submit()">
+                <option value="">همه وضعیت‌ها</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+        </div>
+        <div class="col-md-4">
+            <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">فیلتر</button>
+</form>
+<table class="table">
+    <thead>
+        <tr>
+            <th>شماره فاکتور</th>
+            <th>تنخواه</th>
+            <th>مبلغ</th>
+            <th>وضعیت</th>
+            <th>تاریخ</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for factor in factors %}
+            <tr>
+                <td>{{ factor.number }}</td>
+                <td>{{ factor.tankhah.number }}</td>
+                <td>{{ factor.amount|floatformat:2 }}</td>
+                <td>{{ factor.get_status_display }}</td>
+                <td>{{ factor.date }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<p><strong>مجموع مبلغ:</strong> {{ total_amount|floatformat:2 }}</p>
+<a href="{% url 'factor_report' %}?{{ request.GET.urlencode }}&format=pdf" class="btn btn-secondary">دانلود PDF</a>
+{% endblock %}

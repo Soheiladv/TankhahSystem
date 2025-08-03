@@ -9,31 +9,20 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, View, TemplateView, ListView
-from notifications.signals import notify
+
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from accounts.models import CustomUser
 from core.models import UserPost, WorkflowStage, SubProject, Project
-from .Factor.forms_Factor import FactorForm
-from .fun_can_edit_approval import can_edit_approval
 from tankhah.models import ApprovalLog, Tankhah, StageApprover, Factor, FactorItem, FactorDocument, TankhahDocument, \
     FactorHistory, create_budget_transaction
 from .utils import restrict_to_user_organization, get_factor_current_stage
-from persiantools.jdatetime import JalaliDate
-from django.db.models import Q
-from core.views import PermissionBaseView
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import PermissionDenied
-from django.db import transaction
 from django.contrib import messages
-from django.forms import inlineformset_factory
-# from tankhah.forms import FactorForm, FactorItemForm, FactorDocumentForm, TankhahDocumentForm
 from budgets.budget_calculations import get_tankhah_remaining_budget, get_factor_remaining_budget
 from core.PermissionBase import PermissionBaseView, get_lowest_access_level
 
-from tankhah.forms import (
-    FactorDocumentForm, TankhahDocumentForm, get_factor_item_formset, FactorApprovalForm
-)
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import permission_required
 from .models import ItemCategory
@@ -543,59 +532,6 @@ class FactorDetailView(PermissionBaseView, DetailView):
         messages.error(self.request, self.permission_denied_message)
         return redirect('factor_list')
 #------------------------------------------------
-"""  ویو برای تأیید فاکتور"""
-class FactorApproveView(UpdateView):
-    model =  Factor
-    form_class =  FactorApprovalForm   # فرض بر وجود این فرم
-    template_name = 'tankhah/factor_approval.html'
-    success_url = reverse_lazy('factor_list')
-    permission_codenames = ['tankhah.factor_view', 'tankhah.factor_update']
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = _('تأیید فاکتور') + f" - {self.object.number}"
-        context['items'] = self.object.items.all()
-        return context
-
-    def form_valid(self, form):
-        factor = self.object
-        tankhah = factor.tankhah
-        user_posts = self.request.user.userpost_set.all()
-
-        if not any(p.post.stageapprover_set.filter(stage=tankhah.current_stage).exists() for p in user_posts):
-            messages.error(self.request, _('شما مجاز به تأیید در این مرحله نیستید.'))
-            return self.form_invalid(form)
-
-        with transaction.atomic():
-            self.object = form.save()
-            all_items_approved = all(item.status == 'APPROVED' for item in self.object.items.all())
-            if all_items_approved:
-                factor.status = 'APPROVED'
-                factor.approved_by.add(self.request.user)
-                factor.locked_by_stage = tankhah.current_stage  # قفل برای مراحل بالاتر
-                factor.save()
-
-                all_factors_approved = all(f.status == 'APPROVED' for f in tankhah.factors.all())
-                if all_factors_approved:
-                    next_stage = WorkflowStage.objects.filter(order__lt=tankhah.current_stage.order).order_by('-order').first()
-                    if next_stage:
-                        tankhah.current_stage = next_stage
-                        tankhah.status = 'PENDING'
-                        tankhah.save()
-                        approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=next_stage)
-                        if approvers.exists():
-                            notify.send(self.request.user, recipient=approvers, verb='تنخواه برای تأیید آماده است', target=tankhah)
-                            messages.info(self.request, f"تنخواه به مرحله {next_stage.name} منتقل شد.")
-                    else:
-                        tankhah.status = 'COMPLETED'
-                        tankhah.save()
-                        messages.success(self.request, _('تنخواه تکمیل شد.'))
-                else:
-                    messages.success(self.request, _('فاکتور تأیید شد اما فاکتورهای دیگر در انتظارند.'))
-            else:
-                messages.warning(self.request, _('برخی ردیف‌ها هنوز تأیید نشده‌اند.'))
-
-        return super().form_valid(form)
 
 """تأیید آیتم‌های فاکتور"""
 class FactorItemRejectView(PermissionBaseView, View):

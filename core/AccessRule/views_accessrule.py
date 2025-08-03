@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.views.generic import FormView
 from django.views.generic import ListView
-from core.AccessRule.forms_accessrule import AccessRuleForm, PostAccessRuleForm, PostAccessRuleForm_new
+from core.AccessRule.forms_accessrule import PostAccessRuleForm_new, PostAccessRuleHybridForm
 from core.models import AccessRule, Post, Organization
 from core.views import PermissionBaseView
 logger = logging.getLogger(__name__)
@@ -106,7 +106,7 @@ class AccessRuleDetailView(PermissionBaseView, DetailView):
         return context
 class AccessRuleCreateView(PermissionBaseView, CreateView):
     model = AccessRule
-    form_class = AccessRuleForm
+    form_class = PostAccessRuleForm_new
     template_name = 'core/accessrule/accessrule_form.html'
     success_url = reverse_lazy('accessrule_list')
     permission_codenames = ['core.AccessRule_add']
@@ -118,7 +118,7 @@ class AccessRuleCreateView(PermissionBaseView, CreateView):
         return super().form_valid(form)
 class AccessRuleUpdateView(PermissionBaseView, UpdateView):
     model = AccessRule
-    form_class = AccessRuleForm
+    form_class = PostAccessRuleForm_new
     template_name = 'core/accessrule/accessrule_form.html'
     success_url = reverse_lazy('accessrule_list')
     permission_codenames = ['core.AccessRule_update']
@@ -154,7 +154,7 @@ class PostRuleReportView(PermissionBaseView, ListView):
             'organization__name', 'level')
     # template_name = 'core/accessrule/post_access_rule_assign_a.html'
 
-class PostAccessRuleAssignView(PermissionBaseView, FormView):
+class PostAccessRuleAssignView________(PermissionBaseView, FormView):
     template_name = 'core/accessrule/post_access_rule_assignnew.html'
     form_class = PostAccessRuleForm_new
     success_url = reverse_lazy('accessrule_list')
@@ -221,4 +221,55 @@ class PostAccessRuleAssignView(PermissionBaseView, FormView):
         for error in form.non_field_errors():
             messages.warning(self.request, f"{_('خطای عمومی')}: {error}")
 
+        return super().form_invalid(form)
+
+
+#- NEW
+from tankhah.constants import ENTITY_TYPES, ACTION_TYPES
+
+
+class PostAccessRuleAssignView(PermissionBaseView, FormView):
+    template_name = 'core/accessrule/post_access_rule_assign_hybrid.html'
+    form_class = PostAccessRuleHybridForm
+    success_url = reverse_lazy('accessrule_list')
+    permission_codenames = ['core.AccessRule_add', 'core.AccessRule_update']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _("تنظیم مجوزهای پست‌ها (مدل هیبریدی)")
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user  # اضافه کردن کاربر به kwargs فرم
+
+        posts_query = Post.objects.filter(is_active=True).select_related(
+            'organization', 'branch'
+        ).order_by('organization__name', 'level', 'name')
+
+        if not self.request.user.is_superuser:
+            user_org_ids = self.request.user.userpost_set.filter(
+                is_active=True
+            ).values_list('post__organization_id', flat=True).distinct()
+            posts_query = posts_query.filter(organization_id__in=user_org_ids)
+
+        kwargs['posts_query'] = posts_query
+        return kwargs
+
+    def form_valid(self, form):
+        try:
+            if form.save():  # فراخوانی متد save بدون پارامتر
+                messages.success(self.request, _('مجوزهای پست‌ها با موفقیت به‌روزرسانی شدند.'))
+            else:
+                messages.warning(self.request, _('هیچ تغییری در مجوزهای پست‌ها اعمال نشد.'))
+        except Exception as e:
+            logger.exception(f"Error while saving Hybrid Access Rule Form: {e}")
+            messages.error(self.request, _('خطایی در هنگام ذخیره‌سازی رخ داد: {}').format(e))
+            return self.form_invalid(form)
+
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request,
+                     _('لطفاً خطاهای فرم را برطرف کنید. به یاد داشته باشید که برای تأیید/رد، تعیین سطح الزامی است.'))
         return super().form_invalid(form)

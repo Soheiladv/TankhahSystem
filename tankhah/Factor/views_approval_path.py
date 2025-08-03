@@ -7,7 +7,7 @@ from django.db.models import Q
 from tankhah.models import Factor, ApprovalLog, StageApprover
 from core.models import WorkflowStage, UserPost, AccessRule
 from core.PermissionBase import PermissionBaseView
-from tankhah.fun_can_edit_approval import can_edit_approval
+from tankhah.Factor.Approved.fun_can_edit_approval import can_edit_approval
 
 # تنظیم لاگ‌گیری برای ردیابی دقیق خطاها و دیباگ
 logger = logging.getLogger("FactorApprovalPathView")

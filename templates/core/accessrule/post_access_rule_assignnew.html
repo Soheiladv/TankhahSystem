@@ -1,512 +1,671 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %} {# Assuming base.html is now base_dashboard.html #}
+
 {% load i18n static rcms_custom_filters %}
 
 {% block extra_css %}
+<style>
+    /* Root Variables for Theming */
+    :root {
+        /* Light Theme Defaults */
+        --primary-color: #4f46e5; /* Indigo 600 */
+        --primary-light: #818cf8; /* Indigo 400 */
+        --primary-dark: #3730a3; /* Indigo 800 */
+        --success-color: #10b981; /* Emerald 500 */
+        --warning-color: #f59e0b; /* Amber 500 */
+        --danger-color: #ef4444; /* Red 500 */
+        --info-color: #06b6d4; /* Cyan 500 */
+        --dark-text-color: #1f2937; /* Gray 900 */
+        --light-text-color: #f8fafc; /* Gray 50 */
+        --body-bg: #f0f2f5; /* Light Gray */
+        --card-bg: #ffffff;
+        --card-border: #e2e8f0; /* Light Grayish Blue */
+        --header-bg-gradient-start: #667eea; /* Blue-Purple */
+        --header-bg-gradient-end: #764ba2; /* Dark Purple */
+        --accordion-btn-bg-start: #f8fafc; /* Light Gray */
+        --accordion-btn-bg-end: #e2e8f0; /* Lighter Gray */
+        --accordion-item-border: rgba(0, 0, 0, 0.08);
+        --table-header-bg-start: #f8fafc;
+        --table-header-bg-end: #e2e8f0;
+        --table-row-hover-bg-start: #fef7ff; /* Very light purple */
+        --table-row-hover-bg-end: #f3e8ff; /* Light purple */
+        --input-border: #e5e7eb;
+        --alert-info-bg-start: #dbeafe;
+        --alert-info-bg-end: #bfdbfe;
+        --alert-info-text: #1e40af;
+        --alert-success-bg-start: #d1fae5;
+        --alert-success-bg-end: #a7f3d0;
+        --alert-success-text: #065f46;
+        --alert-danger-bg-start: #fee2e2;
+        --alert-danger-bg-end: #fecaca;
+        --alert-danger-text: #991b1b;
+        --tooltip-bg: rgba(0, 0, 0, 0.9);
 
-    <style>
-:root {
-    --primary-color: #4f46e5;
-    --primary-light: #818cf8;
-    --primary-dark: #3730a3;
-    --success-color: #10b981;
-    --warning-color: #f59e0b;
-    --danger-color: #ef4444;
-    --info-color: #06b6d4;
-    --dark-color: #1f2937;
-    --light-color: #f8fafc;
-    --border-radius: 12px;
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-}
-
-/* Dark Mode Support */
-[data-theme="dark"] {
-    --primary-color: #6366f1;
-    --light-color: #1f2937;
-    --dark-color: #f8fafc;
-}
-
-/* Enhanced Card Design */
-.main-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-xl);
-    overflow: hidden;
-    position: relative;
-}
-
-.main-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--success-color), var(--info-color), var(--primary-color));
-}
-
-.card-header-enhanced {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: none;
-    padding: 1.5rem;
-}
-
-.card-body-enhanced {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-}
-
-/* Enhanced Accordion */
-.accordion-enhanced {
-    border: none;
-    border-radius: var(--border-radius);
-    overflow: hidden;
-}
-
-.accordion-item-enhanced {
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: var(--border-radius);
-    margin-bottom: 1rem;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
-}
-
-.accordion-item-enhanced:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-}
-
-.accordion-button-enhanced {
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    border: none;
-    padding: 1.25rem 1.5rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.accordion-button-enhanced::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-    transition: left 0.5s;
-}
-
-.accordion-button-enhanced:hover::before {
-    left: 100%;
-}
-
-.accordion-button-enhanced:not(.collapsed) {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-    color: white;
-    box-shadow: var(--shadow-md);
-}
-
-/* Enhanced Badge */
-.badge-enhanced {
-    background: linear-gradient(135deg, var(--success-color) 0%, #34d399 100%);
-    color: white;
-    font-weight: 700;
-    padding: 0.5rem 0.75rem;
-    border-radius: 50px;
-    font-size: 0.875rem;
-    box-shadow: var(--shadow-sm);
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-/* Enhanced Form Controls */
-.form-switch-enhanced .form-check-input {
-    width: 3rem;
-    height: 1.5rem;
-    border-radius: 50px;
-    background-color: #e5e7eb;
-    border: none;
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.form-switch-enhanced .form-check-input:checked {
-    background: linear-gradient(135deg, var(--success-color) 0%, #34d399 100%);
-    box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25);
-}
-
-.form-switch-enhanced .form-check-input:focus {
-    box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
-}
-
-/* Enhanced Radio Buttons */
-.radio-enhanced {
-    position: relative;
-    margin: 0.25rem;
-}
-
-.radio-enhanced input[type="radio"] {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-}
-
-.radio-enhanced .radio-label {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    background: #f1f5f9;
-    border: 2px solid #e2e8f0;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-
-.radio-enhanced input[type="radio"]:checked + .radio-label {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-    color: white;
-    border-color: var(--primary-color);
-    transform: scale(1.05);
-    box-shadow: var(--shadow-md);
-}
-
-.radio-enhanced:hover .radio-label {
-    border-color: var(--primary-light);
-    transform: translateY(-1px);
-}
-
-/* Enhanced Table */
-.table-enhanced {
-    border-radius: var(--border-radius);
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
-    background: white;
-}
-
-.table-enhanced thead th {
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    border: none;
-    font-weight: 600;
-    color: var(--dark-color);
-    padding: 1rem;
-}
-
-.table-enhanced tbody tr {
-    transition: all 0.2s ease;
-    border: none;
-}
-
-.table-enhanced tbody tr:hover {
-    background: linear-gradient(135deg, #fef7ff 0%, #f3e8ff 100%);
-    transform: scale(1.01);
-}
-
-.table-enhanced tbody td {
-    padding: 1rem;
-    border-color: #f1f5f9;
-    vertical-align: middle;
-}
-
-/* Enhanced Buttons */
-.btn-enhanced {
-    border-radius: 50px;
-    padding: 0.75rem 2rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    border: none;
-}
-
-.btn-enhanced::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
-}
-
-.btn-enhanced:hover::before {
-    left: 100%;
-}
-
-.btn-primary-enhanced {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-    color: white;
-    box-shadow: var(--shadow-md);
-}
-
-.btn-primary-enhanced:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
-
-.btn-outline-enhanced {
-    background: transparent;
-    border: 2px solid var(--primary-color);
-    color: var(--primary-color);
-}
-
-.btn-outline-enhanced:hover {
-    background: var(--primary-color);
-    color: white;
-    transform: translateY(-2px);
-}
-
-/* Loading Animation */
-.loading-spinner {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: white;
-    animation: spin 1s ease-in-out infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Progress Bar */
-.progress-enhanced {
-    height: 6px;
-    border-radius: 50px;
-    background: #e5e7eb;
-    overflow: hidden;
-    margin-bottom: 1rem;
-}
-
-.progress-bar-enhanced {
-    background: linear-gradient(90deg, var(--success-color), var(--info-color));
-    height: 100%;
-    border-radius: 50px;
-    transition: width 0.3s ease;
-}
-
-/* Enhanced Alerts */
-.alert-enhanced {
-    border: none;
-    border-radius: var(--border-radius);
-    padding: 1.25rem;
-    margin-bottom: 1.5rem;
-    position: relative;
-    overflow: hidden;
-}
-
-.alert-enhanced::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: currentColor;
-}
-
-.alert-info-enhanced {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    color: #1e40af;
-    border-left: 4px solid var(--info-color);
-}
-
-.alert-success-enhanced {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    color: #065f46;
-    border-left: 4px solid var(--success-color);
-}
-
-.alert-danger-enhanced {
-    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-    color: #991b1b;
-    border-left: 4px solid var(--danger-color);
-}
-
-/* Search and Filter */
-.search-container {
-    position: relative;
-    margin-bottom: 1.5rem;
-}
-
-.search-input {
-    width: 100%;
-    padding: 0.75rem 1rem 0.75rem 3rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 50px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    background: white;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-}
-
-.search-icon {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #9ca3af;
-}
-
-/* Tooltip Enhanced */
-.tooltip-enhanced {
-    background: rgba(0, 0, 0, 0.9);
-    color: white;
-    padding: 0.5rem 0.75rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    backdrop-filter: blur(10px);
-}
-
-/* Responsive Enhancements */
-@media (max-width: 768px) {
-    .accordion-button-enhanced {
-        padding: 1rem;
-        font-size: 0.9rem;
+        --border-radius-sm: 8px;
+        --border-radius-md: 12px;
+        --border-radius-lg: 16px;
+        --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
-    
-    .badge-enhanced {
-        font-size: 0.75rem;
-        padding: 0.375rem 0.5rem;
-    }
-    
-    .btn-enhanced {
-        padding: 0.5rem 1.5rem;
-        font-size: 0.875rem;
-    }
-    
-    .table-enhanced {
-        font-size: 0.875rem;
-    }
-    
-    .table-enhanced th,
-    .table-enhanced td {
-        padding: 0.75rem 0.5rem;
-    }
-}
 
-/* Dark Mode Styles */
-@media (prefers-color-scheme: dark) {
+    /* Dark Theme */
+    body.theme-dark {
+        --primary-color: #6366f1; /* Indigo 500 */
+        --primary-light: #818cf8; /* Indigo 400 */
+        --primary-dark: #4338ca; /* Indigo 700 */
+        --success-color: #34d399; /* Emerald 400 */
+        --warning-color: #fbbf24; /* Amber 400 */
+        --danger-color: #f87171; /* Red 400 */
+        --info-color: #22d3ee; /* Cyan 400 */
+        --dark-text-color: #f8fafc; /* Gray 50 */
+        --light-text-color: #1f2937; /* Gray 900 */
+        --body-bg: #1f2937; /* Dark Gray */
+        --card-bg: #2c3034; /* Darker Gray */
+        --card-border: #495057; /* Gray 700 */
+        --header-bg-gradient-start: #374151; /* Gray 700 */
+        --header-bg-gradient-end: #4b5563; /* Gray 600 */
+        --accordion-btn-bg-start: #374151;
+        --accordion-btn-bg-end: #4b5563;
+        --accordion-item-border: rgba(255, 255, 255, 0.1);
+        --table-header-bg-start: #374151;
+        --table-header-bg-end: #4b5563;
+        --table-row-hover-bg-start: #374151;
+        --table-row-hover-bg-end: #4b5563;
+        --input-border: #4b5563;
+        --alert-info-bg-start: #1e3a8a;
+        --alert-info-bg-end: #1d4ed8;
+        --alert-info-text: #bfdbfe;
+        --alert-success-bg-start: #065f46;
+        --alert-success-bg-end: #047857;
+        --alert-success-text: #a7f3d0;
+        --alert-danger-bg-start: #7f1d1d;
+        --alert-danger-bg-end: #991b1b;
+        --alert-danger-text: #fecaca;
+        --tooltip-bg: rgba(255, 255, 255, 0.9);
+    }
+
+    /* Blue Theme */
+    body.theme-blue {
+        --primary-color: #2196f3; /* Blue 500 */
+        --primary-light: #64b5f6; /* Blue 300 */
+        --primary-dark: #1565c0; /* Blue 700 */
+        --success-color: #4caf50; /* Green 500 */
+        --warning-color: #ffc107; /* Amber 500 */
+        --danger-color: #f44336; /* Red 500 */
+        --info-color: #03a9f4; /* Light Blue 500 */
+        --dark-text-color: #0d47a1; /* Blue 900 */
+        --light-text-color: #e3f2fd; /* Blue 50 */
+        --body-bg: #e3f2fd;
+        --card-bg: #ffffff;
+        --card-border: #bbdefb;
+        --header-bg-gradient-start: #1976d2;
+        --header-bg-gradient-end: #2196f3;
+        --accordion-btn-bg-start: #e3f2fd;
+        --accordion-btn-bg-end: #bbdefb;
+        --accordion-item-border: rgba(0, 0, 0, 0.08);
+        --table-header-bg-start: #e3f2fd;
+        --table-header-bg-end: #bbdefb;
+        --table-row-hover-bg-start: #e0f2f7;
+        --table-row-hover-bg-end: #b3e5fc;
+        --input-border: #90caf9;
+        --alert-info-bg-start: #bbdefb;
+        --alert-info-bg-end: #90caf9;
+        --alert-info-text: #0d47a1;
+        --alert-success-bg-start: #c8e6c9;
+        --alert-success-bg-end: #a5d6a7;
+        --alert-success-text: #1b5e20;
+        --alert-danger-bg-start: #ffcdd2;
+        --alert-danger-bg-end: #ef9a9a;
+        --alert-danger-text: #b71c1c;
+        --tooltip-bg: rgba(0, 0, 0, 0.9);
+    }
+
+    /* Green Theme */
+    body.theme-green {
+        --primary-color: #4caf50; /* Green 500 */
+        --primary-light: #81c784; /* Green 300 */
+        --primary-dark: #388e3c; /* Green 700 */
+        --success-color: #66bb6a; /* Green 400 */
+        --warning-color: #ffc107; /* Amber 500 */
+        --danger-color: #f44336; /* Red 500 */
+        --info-color: #26c6da; /* Cyan 400 */
+        --dark-text-color: #1b5e20; /* Green 900 */
+        --light-text-color: #e8f5e9; /* Green 50 */
+        --body-bg: #e8f5e9;
+        --card-bg: #ffffff;
+        --card-border: #c8e6c9;
+        --header-bg-gradient-start: #43a047;
+        --header-bg-gradient-end: #4caf50;
+        --accordion-btn-bg-start: #e8f5e9;
+        --accordion-btn-bg-end: #c8e6c9;
+        --accordion-item-border: rgba(0, 0, 0, 0.08);
+        --table-header-bg-start: #e8f5e9;
+        --table-header-bg-end: #c8e6c9;
+        --table-row-hover-bg-start: #f1f8e9;
+        --table-row-hover-bg-end: #dcedc8;
+        --input-border: #a5d6a7;
+        --alert-info-bg-start: #b2ebf2;
+        --alert-info-bg-end: #80deea;
+        --alert-info-text: #006064;
+        --alert-success-bg-start: #c8e6c9;
+        --alert-success-bg-end: #a5d6a7;
+        --alert-success-text: #1b5e20;
+        --alert-danger-bg-start: #ffcdd2;
+        --alert-danger-bg-end: #ef9a9a;
+        --alert-danger-text: #b71c1c;
+        --tooltip-bg: rgba(0, 0, 0, 0.9);
+    }
+
+    /* General UI Enhancements */
+    .main-card {
+        background: linear-gradient(135deg, var(--header-bg-gradient-start) 0%, var(--header-bg-gradient-end) 100%);
+        border: none;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-xl);
+        overflow: hidden;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .main-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px; /* Thicker top border */
+        background: linear-gradient(90deg, var(--success-color), var(--info-color), var(--primary-color));
+        border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    }
+
+    .card-header-enhanced {
+        background: rgba(255, 255, 255, 0.15); /* Slightly more opaque */
+        backdrop-filter: blur(12px); /* Stronger blur */
+        border: none;
+        padding: 1.75rem; /* More padding */
+        color: var(--light-text-color);
+        font-size: 1.25rem;
+        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
     .card-body-enhanced {
-        background: rgba(31, 41, 55, 0.95);
-        color: white;
+        background-color: var(--card-bg);
+        color: var(--dark-text-color);
+        padding: 2rem; /* More padding */
+        border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+        box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.05); /* Inner shadow */
     }
-    
+
+    /* Enhanced Accordion */
+    .accordion-enhanced {
+        border: none;
+        border-radius: var(--border-radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+    }
+
+    .accordion-item-enhanced {
+        border: 1px solid var(--accordion-item-border);
+        border-radius: var(--border-radius-md);
+        margin-bottom: 1rem;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        background-color: var(--card-bg); /* Ensure background is card-bg */
+    }
+
+    .accordion-item-enhanced:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-3px); /* More pronounced lift */
+    }
+
     .accordion-button-enhanced {
-        background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
-        color: white;
+        background: linear-gradient(135deg, var(--accordion-btn-bg-start) 0%, var(--accordion-btn-bg-end) 100%);
+        border: none;
+        padding: 1.5rem 1.75rem; /* More padding */
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        color: var(--dark-text-color);
+        font-size: 1.1rem;
+        border-radius: var(--border-radius-md);
     }
-    
+
+    .accordion-button-enhanced::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent); /* Stronger shimmer */
+        transition: left 0.5s;
+    }
+
+    .accordion-button-enhanced:hover::before {
+        left: 100%;
+    }
+
+    .accordion-button-enhanced:not(.collapsed) {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+        color: white;
+        box-shadow: var(--shadow-md);
+        border-bottom-left-radius: 0; /* For open state */
+        border-bottom-right-radius: 0;
+    }
+
+    .accordion-collapse.collapse:not(.show) {
+        border-bottom-left-radius: var(--border-radius-md);
+        border-bottom-right-radius: var(--border-radius-md);
+    }
+
+    .accordion-body {
+        background-color: var(--card-bg);
+        border-top: 1px solid var(--accordion-item-border);
+        border-bottom-left-radius: var(--border-radius-md);
+        border-bottom-right-radius: var(--border-radius-md);
+    }
+
+    /* Enhanced Badge */
+    .badge-enhanced {
+        background: linear-gradient(135deg, var(--success-color) 0%, #34d399 100%);
+        color: white;
+        font-weight: 700;
+        padding: 0.6rem 1rem; /* More padding */
+        border-radius: 50px;
+        font-size: 0.9rem;
+        box-shadow: var(--shadow-sm);
+        animation: pulse 2s infinite;
+        min-width: 80px; /* Ensure consistent width */
+        text-align: center;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 0.8; }
+    }
+
+    /* Enhanced Form Controls */
+    .form-switch-enhanced .form-check-input {
+        width: 3.5rem; /* Wider switch */
+        height: 1.75rem; /* Taller switch */
+        border-radius: 50px;
+        background-color: #e5e7eb;
+        border: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e"); /* Custom thumb */
+        background-position: right center; /* Initial position for RTL */
+    }
+
+    .form-switch-enhanced .form-check-input:checked {
+        background: linear-gradient(135deg, var(--success-color) 0%, #34d399 100%);
+        box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25);
+        background-position: left center; /* Final position for RTL */
+    }
+
+    .form-switch-enhanced .form-check-input:focus {
+        box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
+    }
+
+    /* Enhanced Radio Buttons */
+    .radio-enhanced {
+        position: relative;
+        margin: 0.25rem;
+    }
+
+    .radio-enhanced input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .radio-enhanced .radio-label {
+        display: inline-block;
+        padding: 0.6rem 1.2rem; /* More padding */
+        background: var(--body-bg);
+        border: 2px solid var(--input-border);
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--dark-text-color);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .radio-enhanced input[type="radio"]:checked + .radio-label {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+        color: white;
+        border-color: var(--primary-color);
+        transform: scale(1.02); /* Subtle scale */
+        box-shadow: var(--shadow-md);
+    }
+
+    .radio-enhanced:hover .radio-label {
+        border-color: var(--primary-light);
+        transform: translateY(-1px);
+    }
+
+    /* Enhanced Table */
     .table-enhanced {
-        background: #1f2937;
-        color: white;
+        border-radius: var(--border-radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        background: var(--card-bg);
+        width: 100%;
+        margin-bottom: 1rem;
     }
-    
+
     .table-enhanced thead th {
-        background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
-        color: white;
+        background: linear-gradient(135deg, var(--table-header-bg-start) 0%, var(--table-header-bg-end) 100%);
+        border: none;
+        font-weight: 600;
+        color: var(--dark-text-color);
+        padding: 1.2rem 1rem; /* More padding */
+        font-size: 1rem;
+        vertical-align: middle;
     }
-    
+
+    .table-enhanced tbody tr {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid var(--accordion-item-border); /* Subtle row separator */
+    }
+
+    .table-enhanced tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .table-enhanced tbody tr:hover {
+        background: linear-gradient(135deg, var(--table-row-hover-bg-start) 0%, var(--table-row-hover-bg-end) 100%);
+        transform: scale(1.005); /* Very subtle scale */
+    }
+
+    .table-enhanced tbody td {
+        padding: 1rem;
+        border-color: var(--accordion-item-border);
+        vertical-align: middle;
+        color: var(--dark-text-color);
+    }
+
+    /* Enhanced Buttons */
+    .btn-enhanced {
+        border-radius: 50px;
+        padding: 0.85rem 2.25rem; /* More padding */
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        border: none;
+        font-size: 1rem;
+    }
+
+    .btn-enhanced::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent); /* Stronger shimmer */
+        transition: left 0.5s;
+    }
+
+    .btn-enhanced:hover::before {
+        left: 100%;
+    }
+
+    .btn-primary-enhanced {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+        color: white;
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary-enhanced:hover {
+        transform: translateY(-3px); /* More pronounced lift */
+        box-shadow: var(--shadow-lg);
+    }
+
+    .btn-outline-enhanced {
+        background: transparent;
+        border: 2px solid var(--primary-color);
+        color: var(--primary-color);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-outline-enhanced:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Loading Animation */
+    .loading-spinner {
+        display: inline-block;
+        width: 22px;
+        height: 22px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+        vertical-align: middle;
+        margin-left: 0.5rem; /* Adjust for RTL */
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Progress Bar */
+    .progress-enhanced {
+        height: 8px; /* Thicker progress bar */
+        border-radius: 50px;
+        background: #e5e7eb;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress-bar-enhanced {
+        background: linear-gradient(90deg, var(--success-color), var(--info-color));
+        height: 100%;
+        border-radius: 50px;
+        transition: width 0.3s ease;
+    }
+
+    /* Enhanced Alerts */
+    .alert-enhanced {
+        border: none;
+        border-radius: var(--border-radius-md);
+        padding: 1.5rem; /* More padding */
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        font-size: 1rem;
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .alert-enhanced::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0; /* For RTL */
+        width: 6px; /* Thicker side border */
+        height: 100%;
+        background: currentColor; /* Uses the text color of the alert */
+        border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+    }
+
+    .alert-enhanced i {
+        font-size: 1.5rem;
+        margin-left: 1rem; /* Adjust for RTL */
+        margin-top: 0.2rem;
+        opacity: 0.8;
+    }
+
+    .alert-enhanced strong {
+        font-weight: 700;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .alert-info-enhanced {
+        background: linear-gradient(135deg, var(--alert-info-bg-start) 0%, var(--alert-info-bg-end) 100%);
+        color: var(--alert-info-text);
+    }
+
+    .alert-success-enhanced {
+        background: linear-gradient(135deg, var(--alert-success-bg-start) 0%, var(--alert-success-bg-end) 100%);
+        color: var(--alert-success-text);
+    }
+
+    .alert-danger-enhanced {
+        background: linear-gradient(135deg, var(--alert-danger-bg-start) 0%, var(--alert-danger-bg-end) 100%);
+        color: var(--alert-danger-text);
+    }
+
+    /* Search and Filter */
+    .search-container {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+
     .search-input {
-        background: #374151;
-        border-color: #4b5563;
-        color: white;
+        width: 100%;
+        padding: 0.85rem 1.25rem 0.85rem 3.5rem; /* Adjust padding for icon */
+        border: 2px solid var(--input-border);
+        border-radius: 50px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: var(--card-bg);
+        color: var(--dark-text-color);
+        box-shadow: var(--shadow-sm);
     }
-}
 
-/* Animation Classes */
-.fade-in {
-    animation: fadeIn 0.5s ease-in;
-}
+    .search-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+    }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+    .search-icon {
+        position: absolute;
+        left: 1.25rem; /* Position icon on the left for RTL */
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 1.1rem;
+    }
 
-.slide-in {
-    animation: slideIn 0.3s ease-out;
-}
+    /* Tooltip Enhanced */
+    .tooltip-enhanced {
+        background: var(--tooltip-bg);
+        color: white;
+        padding: 0.6rem 0.9rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        backdrop-filter: blur(10px);
+        box-shadow: var(--shadow-md);
+    }
 
-@keyframes slideIn {
-    from { transform: translateX(-100%); }
-    to { transform: translateX(0); }
-}
+    /* Status Indicators */
+    .status-indicator {
+        display: inline-block;
+        width: 10px; /* Slightly larger */
+        height: 10px;
+        border-radius: 50%;
+        margin-left: 0.75rem; /* Adjust for RTL */
+        vertical-align: middle;
+    }
 
-/* Floating Action Button */
-.fab {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-    color: white;
-    border: none;
-    box-shadow: var(--shadow-lg);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 1000;
-}
+    .status-active {
+        background: var(--success-color);
+        animation: pulse-green 2s infinite;
+    }
 
-.fab:hover {
-    transform: scale(1.1);
-    box-shadow: var(--shadow-xl);
-}
+    .status-inactive {
+        background: var(--danger-color);
+    }
 
-/* Status Indicators */
-.status-indicator {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 0.5rem;
-}
+    .status-pending {
+        background: var(--warning-color);
+        animation: pulse-yellow 2s infinite;
+    }
 
-.status-active {
-    background: var(--success-color);
-    animation: pulse-green 2s infinite;
-}
+    @keyframes pulse-green {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    }
 
-.status-inactive {
-    background: var(--danger-color);
-}
+    @keyframes pulse-yellow {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+    }
 
-.status-pending {
-    background: var(--warning-color);
-    animation: pulse-yellow 2s infinite;
-}
+    /* Stage Order Input */
+    .stage-order-input {
+        width: 80px !important; /* Fixed width */
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+        padding: 0.5rem 0.25rem;
+        border-radius: 0.4rem;
+        background-color: var(--body-bg); /* Match body background */
+        color: var(--dark-text-color);
+        border: 1px solid var(--input-border);
+    }
 
-@keyframes pulse-green {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-@keyframes pulse-yellow {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
+    /* Responsive Enhancements */
+    @media (max-width: 768px) {
+        .card-header-enhanced {
+            padding: 1rem;
+            font-size: 1rem;
+        }
+        .card-body-enhanced {
+            padding: 1.5rem;
+        }
+        .accordion-button-enhanced {
+            padding: 1rem;
+            font-size: 0.95rem;
+        }
+        .badge-enhanced {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.7rem;
+        }
+        .btn-enhanced {
+            padding: 0.6rem 1.5rem;
+            font-size: 0.9rem;
+        }
+        .table-enhanced {
+            font-size: 0.9rem;
+        }
+        .table-enhanced th,
+        .table-enhanced td {
+            padding: 0.8rem 0.6rem;
+        }
+        .search-input {
+            padding: 0.7rem 1rem 0.7rem 3rem;
+            font-size: 0.9rem;
+        }
+        .search-icon {
+            left: 0.8rem;
+            font-size: 1rem;
+        }
+        .messages-container {
+            top: 70px;
+            width: 95%;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -514,315 +673,130 @@
 <div class="container mt-4 fade-in">
     <!-- Header Section -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0 text-right fw-bold text-gradient">{{ title }}</h1>
-        <button class="btn btn-outline-enhanced" id="theme-toggle">
-            <i class="fas fa-moon" id="theme-icon"></i>
-        </button>
+        <h1 class="mb-0 fw-bold text-dark-text-color">{{ title }}</h1>
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-enhanced" id="open-all-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'باز کردن همه' %}">
+                <i class="fas fa-folder-open"></i>
+            </button>
+            <button class="btn btn-outline-enhanced" id="close-all-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'بستن همه' %}">
+                <i class="fas fa-folder-minus"></i>
+            </button>
+            <button class="btn btn-outline-enhanced" id="select-all-btn" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'انتخاب همه' %}">
+                <i class="fas fa-check-double"></i>
+            </button>
+        </div>
     </div>
-    
-    <!-- Progress Bar -->
-    <div class="progress-enhanced">
-        <div class="progress-bar-enhanced" style="width: 0%" id="form-progress"></div>
-    </div>
-    
+
     <!-- Main Card -->
     <div class="card main-card shadow-lg border-0 rounded-3">
-        <div class="card-header card-header-enhanced text-white text-right d-flex justify-content-between align-items-center py-3">
+        <div class="card-header card-header-enhanced">
             <h5 class="my-0 fw-bold d-flex align-items-center">
                 <i class="fas fa-cogs fa-lg me-2 opacity-75"></i>
                 {% trans "تنظیم قوانین دسترسی پست‌ها" %}
             </h5>
             <div class="d-flex align-items-center">
-                <span class="badge bg-light text-dark me-2" id="posts-count">0 پست</span>
+                <span class="badge bg-light text-dark-text-color me-2" id="posts-count">{{ form.posts_query|length }} {% trans "پست" %}</span>
                 <i class="fas fa-shield-alt fa-lg opacity-75"></i>
             </div>
         </div>
-        
-        <div class="card-body card-body-enhanced p-4">
+        <div class="card-body card-body-enhanced">
             <!-- Search Section -->
             <div class="search-container">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" class="search-input" id="search-posts" placeholder="جستجو در پست‌ها...">
+                <input type="text" class="form-control search-input" id="search-posts" placeholder="{% trans 'جستجو در پست‌ها...' %}">
             </div>
-            
-            <!-- Enhanced Guide -->
-            <div class="alert alert-info-enhanced text-right mb-4 slide-in">
-                <div class="d-flex align-items-start">
-                    <i class="fas fa-info-circle fa-lg me-2 mt-1"></i>
-                    <div>
-                        <strong>راهنما:</strong>
-                        {% trans "برای هر پست، حداقل یک قانون دسترسی (مانند ایجاد، حذف، ویرایش، مشاهده، تأیید یا رد) انتخاب کنید. برای اقدامات تأیید و رد، یک مرحله جدید یا موجود انتخاب کنید." %}
-                    </div>
+
+            <!-- Guide -->
+            <div class="alert alert-info-enhanced mb-4">
+                <i class="fas fa-info-circle fa-lg"></i>
+                <div>
+                    <strong>{% trans "راهنما:" %}</strong>
+                    {% trans "برای هر پست، قوانین مورد نظر را فعال کنید. برای اقدامات نیازمند مرحله (مانند تأیید)، شماره ترتیب مرحله را وارد نمایید. سیستم به طور خودکار نام مرحله و وضعیت نهایی بودن آن را مدیریت می‌کند." %}
                 </div>
             </div>
-            
-            <!-- Flash Messages -->
-            {% if messages %}
-                <div class="mb-4">
-                    {% for message in messages %}
-                        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% else %}{{ message.tags }}{% endif %}-enhanced alert-dismissible fade show text-right animate__animated animate__fadeInDown" role="alert">
-                            <div class="d-flex align-items-start">
-                                <i class="fas fa-{% if message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2 mt-1"></i>
-                                <div class="flex-grow-1">{{ message }}</div>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-            
-            <!-- Form Errors -->
+
+            <!-- Flash & Form Errors -->
             {% if form.non_field_errors %}
-                <div class="alert alert-danger-enhanced text-right mb-4 animate__animated animate__shakeX">
-                    <div class="d-flex align-items-start">
-                        <i class="fas fa-exclamation-triangle fa-lg me-2 mt-1"></i>
-                        <div>
-                            <strong>{% trans "خطاهای فرم:" %}</strong>
-                            <ul class="list-unstyled mb-0 mt-2">
-                                {% for error in form.non_field_errors %}
-                                    <li class="mb-1">• {{ error }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
+                <div class="alert alert-danger-enhanced">
+                    <i class="fas fa-exclamation-triangle fa-lg"></i>
+                    <div>
+                        <strong>{% trans "خطا:" %}</strong>
+                        {% for error in form.non_field_errors %}
+                            <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
                     </div>
                 </div>
             {% endif %}
-            
+
             <form method="post" id="accessRuleForm">
                 {% csrf_token %}
-                
                 {% if form.post_fields_data %}
-                    <!-- Control Buttons -->
-                    <div class="mb-4 d-flex justify-content-between align-items-center">
-                        <div class="d-flex gap-2">
-                            <button type="button" id="open-all-btn" class="btn btn-outline-enhanced">
-                                <i class="fas fa-expand-alt me-1"></i>
-                                {% trans "باز کردن همه" %}
-                            </button>
-                            <button type="button" id="close-all-btn" class="btn btn-outline-enhanced">
-                                <i class="fas fa-compress-alt me-1"></i>
-                                {% trans "بستن همه" %}
-                            </button>
-                            <button type="button" id="select-all-btn" class="btn btn-outline-enhanced">
-                                <i class="fas fa-check-double me-1"></i>
-                                {% trans "انتخاب همه" %}
-                            </button>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <span class="text-muted me-2">پیشرفت:</span>
-                            <span id="completion-percentage" class="fw-bold text-primary">0%</span>
-                        </div>
+                    <div class="progress-enhanced mb-4">
+                        <div class="progress-bar progress-bar-enhanced" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="form-progress"></div>
                     </div>
-                    
-                    <!-- Enhanced Accordion -->
+                    <p class="text-end text-muted small mb-3">{% trans "پیشرفت کلی:" %} <span id="completion-percentage">0%</span></p>
+
                     <div class="accordion accordion-enhanced" id="postsAccordion">
                         {% for post_data in form.post_fields_data %}
-                            <div class="accordion-item accordion-item-enhanced mb-3 fade-in" style="animation-delay: {{ forloop.counter0|mul:0.1 }}s">
+                            <div class="accordion-item accordion-item-enhanced mb-3 animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter0|mul:0.05 }}s;">
                                 <h2 class="accordion-header" id="headingPost{{ post_data.post.id }}">
-                                    <button class="accordion-button accordion-button-enhanced collapsed text-right" 
-                                            type="button" 
-                                            data-bs-toggle="collapse" 
-                                            data-bs-target="#collapsePost{{ post_data.post.id }}" 
-                                            aria-expanded="false" 
-                                            aria-controls="collapsePost{{ post_data.post.id }}">
-                                        <span class="d-flex align-items-center flex-grow-1">
-                                            <span class="badge badge-enhanced me-3">
-                                                {{ forloop.counter|to_persian_number }}
-                                            </span>
-                                            <div class="d-flex align-items-center">
-                                                <span class="status-indicator status-pending me-2"></span>
-                                                <i class="fas fa-sitemap fa-lg me-2"></i>
-                                            </div>
-                                            <div class="flex-grow-1">
-                                                <strong class="d-block">{{ post_data.post.name }}</strong>
+                                    <button class="accordion-button accordion-button-enhanced collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePost{{ post_data.post.id }}" aria-expanded="false" aria-controls="collapsePost{{ post_data.post.id }}">
+                                        <div class="d-flex w-100 justify-content-between align-items-center">
+                                            <span>
+                                                <span class="status-indicator"></span>
+                                                <strong>{{ post_data.post.name }}</strong>
                                                 <small class="text-muted d-block mt-1">
-                                                    <i class="fas fa-building me-1"></i>
-                                                    {{ post_data.post.organization.name|default:_("بدون سازمان") }}
-                                                    {% if post_data.post.branch %}
-                                                        <i class="fas fa-code-branch me-1 ms-2"></i>
-                                                        {{ post_data.post.branch.name }}
-                                                    {% endif %}
-                                                    <i class="fas fa-layer-group me-1 ms-2"></i>
-                                                    {% trans "سطح" %}: {{ post_data.post.level }}
+                                                    {{ post_data.post.organization.name }} / {% trans "سطح" %}: {{ post_data.post.level|to_persian_number }}
                                                 </small>
-                                            </div>
-                                        </span>
-                                        <div class="d-flex align-items-center me-3">
-                                            <span class="badge bg-secondary post-completion" data-post-id="{{ post_data.post.id }}">0%</span>
+                                            </span>
+                                            <span class="badge badge-enhanced post-completion">0%</span>
                                         </div>
                                     </button>
                                 </h2>
-                                
-                                <div id="collapsePost{{ post_data.post.id }}" 
-                                     class="accordion-collapse collapse" 
-                                     aria-labelledby="headingPost{{ post_data.post.id }}" 
-                                     data-bs-parent="#postsAccordion">
+                                <div id="collapsePost{{ post_data.post.id }}" class="accordion-collapse collapse" aria-labelledby="headingPost{{ post_data.post.id }}" data-bs-parent="#postsAccordion">
                                     <div class="accordion-body p-4">
-                                        <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <h5 class="mb-0 text-primary d-flex align-items-center">
-                                                <i class="fas fa-key me-2"></i>
-                                                {% trans "قوانین دسترسی" %}
-                                            </h5>
-                                            <div class="d-flex gap-2">
-                                                <button type="button" class="btn btn-sm btn-outline-success enable-all-post" data-post-id="{{ post_data.post.id }}">
-                                                    <i class="fas fa-check-circle me-1"></i>
-                                                    فعال‌سازی همه
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-outline-danger disable-all-post" data-post-id="{{ post_data.post.id }}">
-                                                    <i class="fas fa-times-circle me-1"></i>
-                                                    غیرفعال‌سازی همه
-                                                </button>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="accordion" id="entitiesAccordion{{ post_data.post.id }}">
-                                            {% for entity_group in post_data.entity_groups %}
-                                                <div class="accordion-item mb-3 border rounded-3 shadow-sm">
-                                                    <h2 class="accordion-header" id="headingEntity{{ post_data.post.id }}{{ entity_group.entity_id }}">
-                                                        <button class="accordion-button collapsed text-right bg-light" 
-                                                                type="button" 
-                                                                data-bs-toggle="collapse" 
-                                                                data-bs-target="#collapseEntity{{ post_data.post.id }}{{ entity_group.entity_id }}" 
-                                                                aria-expanded="false" 
-                                                                aria-controls="collapseEntity{{ post_data.post.id }}{{ entity_group.entity_id }}">
-                                                            <span class="d-flex align-items-center flex-grow-1">
-                                                                <i class="fas fa-cube me-2 text-info"></i>
-                                                                <strong>{{ entity_group.entity_label }}</strong>
-                                                            </span>
-                                                            <div class="form-check form-switch form-switch-enhanced ms-auto me-2">
-                                                                {{ entity_group.enable_all_field }}
-                                                                <label class="form-check-label small text-muted" 
-                                                                       for="{{ entity_group.enable_all_field.id_for_label }}"
-                                                                       data-bs-toggle="tooltip"
-                                                                       title="فعال‌سازی تمام قوانین این بخش">
-                                                                    {% trans "فعال‌سازی همه" %}
-                                                                </label>
+                                        <div class="row">
+                                            {% for group in post_data.entity_groups %}
+                                                <div class="col-md-6 mb-4">
+                                                    <div class="card h-100 shadow-sm border-0 rounded-3">
+                                                        <div class="card-header bg-light text-dark-text-color fw-bold py-3">
+                                                            {{ group.entity_label }}
+                                                            <div class="form-check form-switch form-switch-enhanced d-inline-block ms-3">
+                                                                <input class="form-check-input enable-all-checkbox" type="checkbox" role="switch"
+                                                                       data-post-id="{{ post_data.post.id }}" data-entity-code="{{ group.entity_code }}"
+                                                                       id="enableAll_{{ post_data.post.id }}_{{ group.entity_code }}">
+                                                                <label class="form-check-label small text-muted" for="enableAll_{{ post_data.post.id }}_{{ group.entity_code }}">{% trans "فعال‌سازی همه" %}</label>
                                                             </div>
-                                                        </button>
-                                                    </h2>
-                                                    
-                                                    <div id="collapseEntity{{ post_data.post.id }}{{ entity_group.entity_id }}" 
-                                                         class="accordion-collapse collapse" 
-                                                         aria-labelledby="headingEntity{{ post_data.post.id }}{{ entity_group.entity_id }}" 
-                                                         data-bs-parent="#entitiesAccordion{{ post_data.post.id }}">
-                                                        <div class="accordion-body p-4">
-                                                            {% if entity_group.has_stage_actions %}
-                                                                <div class="row mb-4">
-                                                                    <label for="{{ entity_group.new_stage_field.id_for_label }}" 
-                                                                           class="col-sm-3 col-form-label text-right fw-bold">
-                                                                        <i class="fas fa-plus-circle me-1 text-success"></i>
-                                                                        {% trans "مرحله جدید" %}:
+                                                        </div>
+                                                        <div class="card-body">
+                                                            {% for action_type, field in group.fields.items %}
+                                                                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                                                                    <label for="{{ field.id_for_label }}" class="form-label mb-0 fw-medium text-dark-text-color">
+                                                                        {{ field.label }}
                                                                     </label>
-                                                                    <div class="col-sm-9">
-                                                                        <div class="input-group">
-                                                                            <span class="input-group-text">
-                                                                                <i class="fas fa-tag"></i>
-                                                                            </span>
-                                                                            {{ entity_group.new_stage_field }}
-                                                                        </div>
-                                                                        <small class="form-text text-muted mt-1">
-                                                                            <i class="fas fa-info-circle me-1"></i>
-                                                                            {% trans "نام مرحله جدید (مثال: 'تأیید مدیر')." %}
-                                                                        </small>
-                                                                        {% if entity_group.new_stage_field.errors %}
-                                                                            <div class="text-danger small mt-2">
-                                                                                <i class="fas fa-exclamation-triangle me-1"></i>
-                                                                                {{ entity_group.new_stage_field.errors|join:", " }}
+                                                                    <div>
+                                                                        {% if action_type in "APPROVE REJECTE SIGN_PAYMENT" %}
+                                                                            <input type="number" name="{{ field.html_name }}" id="{{ field.id_for_label }}"
+                                                                                   class="form-control form-control-sm stage-order-input"
+                                                                                   value="{{ field.value|default:'' }}"
+                                                                                   data-post-id="{{ post_data.post.id }}" data-entity-code="{{ group.entity_code }}"
+                                                                                   data-action-type="{{ action_type }}"
+                                                                                   min="0" step="1">
+                                                                        {% else %}
+                                                                            <div class="form-check form-switch form-switch-enhanced">
+                                                                                <input class="form-check-input rule-checkbox" type="checkbox" role="switch"
+                                                                                       name="{{ field.html_name }}" id="{{ field.id_for_label }}"
+                                                                                       {% if field.value %}checked{% endif %}
+                                                                                       data-post-id="{{ post_data.post.id }}" data-entity-code="{{ group.entity_code }}"
+                                                                                       data-action-type="{{ action_type }}">
                                                                             </div>
                                                                         {% endif %}
                                                                     </div>
                                                                 </div>
-                                                            {% endif %}
-                                                            
-                                                            <div class="table-responsive">
-                                                                <table class="table table-enhanced table-hover text-right">
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th class="fw-bold">
-                                                                                <i class="fas fa-tasks me-1"></i>
-                                                                                {% trans "اقدام" %}
-                                                                            </th>
-                                                                            <th class="text-center fw-bold">
-                                                                                <i class="fas fa-toggle-on me-1"></i>
-                                                                                {% trans "مرحله/فعال" %}
-                                                                            </th>
-                                                                            <th class="text-center fw-bold">
-                                                                                <i class="fas fa-signature me-1"></i>
-                                                                                {% trans "امضاکننده" %}
-                                                                            </th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        {% for rule_item in entity_group.rules %}
-                                                                            <tr class="rule-row" data-rule-type="{{ rule_item.action_label }}">
-                                                                                <td class="fw-medium">
-                                                                                    <div class="d-flex align-items-center">
-                                                                                        <i class="fas fa-{% if 'ایجاد' in rule_item.action_label %}plus{% elif 'حذف' in rule_item.action_label %}trash{% elif 'ویرایش' in rule_item.action_label %}edit{% elif 'مشاهده' in rule_item.action_label %}eye{% elif 'تأیید' in rule_item.action_label %}check{% elif 'رد' in rule_item.action_label %}times{% else %}cog{% endif %} me-2 text-muted"></i>
-                                                                                        {{ rule_item.action_label }}
-                                                                                    </div>
-                                                                                </td>
-                                                                                <td class="text-center">
-                                                                                    {% if rule_item.is_radio_select %}
-                                                                                        <div class="d-flex flex-wrap justify-content-center gap-1">
-                                                                                            {% for id, name in rule_item.field.field.choices %}
-                                                                                                <div class="radio-enhanced">
-                                                                                                    <input type="radio" 
-                                                                                                           name="{{ rule_item.field.html_name }}" 
-                                                                                                           id="{{ rule_item.field.auto_id }}_{{ forloop.counter0 }}" 
-                                                                                                           value="{{ id }}" 
-                                                                                                           {% if id == rule_item.field.value %}checked{% endif %}
-                                                                                                           class="stage-radio-input">
-                                                                                                    <label class="radio-label" 
-                                                                                                           for="{{ rule_item.field.auto_id }}_{{ forloop.counter0 }}">
-                                                                                                        {{ name }}
-                                                                                                    </label>
-                                                                                                </div>
-                                                                                            {% endfor %}
-                                                                                        </div>
-                                                                                        {% if rule_item.field.errors %}
-                                                                                            <div class="text-danger small mt-2">
-                                                                                                <i class="fas fa-exclamation-triangle me-1"></i>
-                                                                                                {{ rule_item.field.errors|join:", " }}
-                                                                                            </div>
-                                                                                        {% endif %}
-                                                                                    {% else %}
-                                                                                        <div class="form-check form-switch form-switch-enhanced d-flex justify-content-center">
-                                                                                            {{ rule_item.field }}
-                                                                                            <label class="form-check-label" 
-                                                                                                   for="{{ rule_item.field.id_for_label }}"></label>
-                                                                                        </div>
-                                                                                        {% if rule_item.field.errors %}
-                                                                                            <div class="text-danger small mt-1">
-                                                                                                <i class="fas fa-exclamation-triangle me-1"></i>
-                                                                                                {{ rule_item.field.errors|join:", " }}
-                                                                                            </div>
-                                                                                        {% endif %}
-                                                                                    {% endif %}
-                                                                                </td>
-                                                                                <td class="text-center">
-                                                                                    {% if rule_item.is_signer_field %}
-                                                                                        <div class="form-check form-switch form-switch-enhanced d-flex justify-content-center">
-                                                                                            {{ rule_item.is_signer_field }}
-                                                                                            <label class="form-check-label" 
-                                                                                                   for="{{ rule_item.is_signer_field.id_for_label }}"
-                                                                                                   data-bs-toggle="tooltip"
-                                                                                                   title="آیا این کاربر امضاکننده است؟"></label>
-                                                                                        </div>
-                                                                                        {% if rule_item.is_signer_field.errors %}
-                                                                                            <div class="text-danger small mt-1">
-                                                                                                <i class="fas fa-exclamation-triangle me-1"></i>
-                                                                                                {{ rule_item.is_signer_field.errors|join:", " }}
-                                                                                            </div>
-                                                                                        {% endif %}
-                                                                                    {% else %}
-                                                                                        <span class="text-muted">—</span>
-                                                                                    {% endif %}
-                                                                                </td>
-                                                                            </tr>
-                                                                        {% endfor %}
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
+                                                                {% if field.errors %}
+                                                                    <div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>
+                                                                {% endif %}
+                                                            {% endfor %}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -833,63 +807,24 @@
                             </div>
                         {% endfor %}
                     </div>
-                    
-                    <!-- Enhanced Action Buttons -->
+                    <!-- Action Buttons -->
                     <div class="d-flex justify-content-end mt-5 gap-3">
+                        <a href="{% url 'accessrule_list' %}" class="btn btn-outline-enhanced">{% trans "انصراف" %}</a>
                         <button type="submit" class="btn btn-primary-enhanced btn-enhanced" id="save-btn">
                             <span class="btn-text">
-                                <i class="fas fa-save me-2"></i>
-                                {% trans "ذخیره تغییرات" %}
+                                <i class="fas fa-save me-2"></i>{% trans "ذخیره قوانین" %}
                             </span>
                             <span class="loading-spinner d-none"></span>
-                        </button>
-                        <a href="{% url 'accessrule_list' %}" class="btn btn-outline-enhanced btn-enhanced">
-                            <i class="fas fa-arrow-left me-2"></i>
-                            {% trans "بازگشت" %}
-                        </a>
-                        <button type="button" class="btn btn-outline-enhanced btn-enhanced" id="preview-btn">
-                            <i class="fas fa-eye me-2"></i>
-                            {% trans "پیش‌نمایش" %}
                         </button>
                     </div>
                 {% else %}
                     <div class="alert alert-info-enhanced text-center py-5">
-                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
                         <h5>{% trans "هیچ پست فعالی یافت نشد." %}</h5>
-                        <p class="text-muted mb-0">لطفاً ابتدا پست‌های مورد نظر را ایجاد کنید.</p>
+                        <p class="text-muted mb-0">{% trans "برای ادامه، لطفاً ابتدا پست‌های مورد نظر را ایجاد کنید." %}</p>
                     </div>
                 {% endif %}
             </form>
-        </div>
-    </div>
-</div>
-
-<!-- Floating Action Button -->
-<button class="fab" id="scroll-to-top" title="بازگشت به بالا">
-    <i class="fas fa-arrow-up"></i>
-</button>
-
-<!-- Preview Modal -->
-<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="previewModalLabel">
-                    <i class="fas fa-eye me-2"></i>
-                    پیش‌نمایش قوانین دسترسی
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="preview-content">
-                <!-- Preview content will be loaded here -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
-                <button type="button" class="btn btn-primary" id="export-preview">
-                    <i class="fas fa-download me-1"></i>
-                    خروجی PDF
-                </button>
-            </div>
         </div>
     </div>
 </div>
@@ -897,316 +832,1472 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('accessRuleForm');
-    if (!form) return;
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('accessRuleForm');
+        if (!form) return;
 
-    // Initialize components
-    initializeFormHandlers();
-    initializeSearchFunctionality();
-    initializeProgressTracking();
-    initializeThemeToggle();
-    initializeTooltips();
-    initializeAnimations();
-    initializeFAB();
-    
-    // Form handlers
-    function initializeFormHandlers() {
-        // Toggle signer checkbox
-        const toggleSignerCheckbox = (ruleCheckbox) => {
-            const signerCheckbox = ruleCheckbox.closest('tr').querySelector('.signer-checkbox');
-            if (signerCheckbox) {
-                signerCheckbox.disabled = !ruleCheckbox.checked;
-                if (!ruleCheckbox.checked) signerCheckbox.checked = false;
-            }
-        };
+        // Initialize components
+        initializeFormHandlers();
+        initializeSearchFunctionality();
+        initializeProgressTracking();
+        initializeTooltips();
+        initializeAnimations();
 
-        // Update enable all state
-        const updateEnableAllState = (enableAllCheckbox) => {
-            const { postId, entityCode } = enableAllCheckbox.dataset;
-            const groupRules = form.querySelectorAll(`.rule-checkbox[data-post-id="${postId}"][data-entity-code="${entityCode}"], .stage-radio-group[data-post-id="${postId}"][data-entity-code="${entityCode}"]`);
-            let allChecked = true, anyChecked = false;
+        // Form handlers
+        function initializeFormHandlers() {
+            // Handle enable all checkboxes
+            const handleEnableAllCheckboxes = (enableAllCheckbox) => {
+                const postId = enableAllCheckbox.dataset.postId;
+                const entityCode = enableAllCheckbox.dataset.entityCode;
+                const isChecked = enableAllCheckbox.checked;
 
-            groupRules.forEach(element => {
-                if (element.classList.contains('rule-checkbox')) {
-                    if (element.checked) anyChecked = true;
-                    else allChecked = false;
-                } else {
-                    const checkedRadio = element.querySelector('input[type="radio"]:checked');
-                    if (checkedRadio && checkedRadio.value) anyChecked = true;
-                    else allChecked = false;
+                // Select all related checkboxes and number inputs
+                const relatedInputs = form.querySelectorAll(
+                    `input[type="checkbox"][data-post-id="${postId}"][data-entity-code="${entityCode}"], ` +
+                    `input[type="number"][data-post-id="${postId}"][data-entity-code="${entityCode}"]`
+                );
+
+                relatedInputs.forEach(input => {
+                    if (input.type === 'checkbox') {
+                        input.checked = isChecked;
+                    } else if (input.type === 'number') {
+                        input.value = isChecked ? '1' : ''; // Set to 1 if checked, empty if unchecked
+                    }
+                });
+            };
+
+            // Update enable all state based on individual rules
+            const updateEnableAllState = (postId, entityCode) => {
+                const enableAllCheckbox = form.querySelector(`.enable-all-checkbox[data-post-id="${postId}"][data-entity-code="${entityCode}"]`);
+                if (!enableAllCheckbox) return;
+
+                const relatedInputs = form.querySelectorAll(
+                    `input[type="checkbox"][data-post-id="${postId}"][data-entity-code="${entityCode}"], ` +
+                    `input[type="number"][data-post-id="${postId}"][data-entity-code="${entityCode}"]`
+                );
+
+                let allChecked = true;
+                let anyChecked = false;
+
+                relatedInputs.forEach(input => {
+                    if (input.type === 'checkbox') {
+                        if (input.checked) anyChecked = true;
+                        else allChecked = false;
+                    } else if (input.type === 'number') {
+                        if (input.value && parseInt(input.value) > 0) anyChecked = true;
+                        else allChecked = false; // If any number input is empty or 0, not all are "checked"
+                    }
+                });
+
+                enableAllCheckbox.checked = allChecked;
+                enableAllCheckbox.indeterminate = anyChecked && !allChecked;
+            };
+
+            // Event listeners for changes
+            form.addEventListener('change', (event) => {
+                const target = event.target;
+                if (target.matches('.rule-checkbox') || target.matches('.stage-order-input')) {
+                    const postId = target.dataset.postId;
+                    const entityCode = target.dataset.entityCode;
+                    updateEnableAllState(postId, entityCode);
+                    updateProgress();
+                } else if (target.matches('.enable-all-checkbox')) {
+                    handleEnableAllCheckboxes(target);
+                    updateProgress();
                 }
             });
 
-            enableAllCheckbox.checked = allChecked;
-            enableAllCheckbox.indeterminate = anyChecked && !allChecked;
-        };
-
-        // Handle enable all checkboxes
-        const handleEnableAllCheckboxes = (enableAllCheckbox) => {
-            const { postId, entityCode } = enableAllCheckbox.dataset;
-            const isChecked = enableAllCheckbox.checked;
-
-            form.querySelectorAll(`.rule-checkbox[data-post-id="${postId}"][data-entity-code="${entityCode}"]`).forEach(cb => {
-                cb.checked = isChecked;
-                toggleSignerCheckbox(cb);
+            // Control buttons
+            document.getElementById('open-all-btn')?.addEventListener('click', () => {
+                document.querySelectorAll('#postsAccordion .accordion-collapse').forEach(el => {
+                    bootstrap.Collapse.getOrCreateInstance(el).show();
+                });
             });
 
-            form.querySelectorAll(`.stage-radio-group[data-post-id="${postId}"][data-entity-code="${entityCode}"]`).forEach(group => {
-                const radios = group.querySelectorAll('input[type="radio"]');
-                const firstOption = isChecked ? radios[1] || radios[0] : radios[0];
-                if (firstOption) firstOption.checked = true;
+            document.getElementById('close-all-btn')?.addEventListener('click', () => {
+                document.querySelectorAll('#postsAccordion .accordion-collapse').forEach(el => {
+                    bootstrap.Collapse.getOrCreateInstance(el).hide();
+                });
             });
-        };
 
-        // Event listeners
-        form.addEventListener('change', (event) => {
-            const target = event.target;
-            
-            if (target.matches('.rule-checkbox')) {
-                toggleSignerCheckbox(target);
-                updateEnableAllState(form.querySelector(`.enable-all-checkbox[data-post-id="${target.dataset.postId}"][data-entity-code="${target.dataset.entityCode}"]`));
+            document.getElementById('select-all-btn')?.addEventListener('click', () => {
+                form.querySelectorAll('.enable-all-checkbox').forEach(cb => {
+                    cb.checked = true;
+                    handleEnableAllCheckboxes(cb);
+                });
                 updateProgress();
-            } else if (target.matches('.stage-radio-input')) {
-                updateEnableAllState(form.querySelector(`.enable-all-checkbox[data-post-id="${target.closest('.stage-radio-group').dataset.postId}"][data-entity-code="${target.closest('.stage-radio-group').dataset.entityCode}"]`));
-                updateProgress();
-            } else if (target.matches('.enable-all-checkbox')) {
-                handleEnableAllCheckboxes(target);
-                updateProgress();
-            }
-        });
-
-        // Control buttons
-        document.getElementById('open-all-btn')?.addEventListener('click', () => {
-            document.querySelectorAll('#postsAccordion .accordion-collapse').forEach(el => {
-                bootstrap.Collapse.getOrCreateInstance(el).show();
             });
-        });
 
-        document.getElementById('close-all-btn')?.addEventListener('click', () => {
-            document.querySelectorAll('#postsAccordion .accordion-collapse').forEach(el => {
-                bootstrap.Collapse.getOrCreateInstance(el).hide();
+            // Initialize states on load
+            document.querySelectorAll('.accordion-item-enhanced').forEach(item => {
+                const postId = item.querySelector('[data-bs-target]').getAttribute('data-bs-target').replace('#collapsePost', '');
+                item.querySelectorAll('.card-header').forEach(header => {
+                    const entityCode = header.querySelector('.enable-all-checkbox').dataset.entityCode;
+                    updateEnableAllState(postId, entityCode);
+                });
             });
-        });
+        }
 
-        document.getElementById('select-all-btn')?.addEventListener('click', () => {
-            form.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(input => {
-                if (input.type === 'checkbox') {
-                    input.checked = true;
-                } else if (input.type === 'radio' && input.value) {
-                    input.checked = true;
-                }
+        // Search functionality
+        function initializeSearchFunctionality() {
+            const searchInput = document.getElementById('search-posts');
+            if (!searchInput) return;
+
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                const accordionItems = document.querySelectorAll('.accordion-item-enhanced');
+                accordionItems.forEach(item => {
+                    const postName = item.querySelector('.accordion-button strong').textContent.toLowerCase();
+                    const shouldShow = postName.includes(query);
+                    item.style.display = shouldShow ? 'block' : 'none';
+                    if (shouldShow && query) {
+                        // Re-apply animation for visible items if query is active
+                        item.classList.remove('animate__fadeInUp');
+                        void item.offsetWidth; // Trigger reflow
+                        item.classList.add('animate__fadeInUp');
+                    }
+                });
             });
+        }
+
+        // Progress tracking
+        function initializeProgressTracking() {
             updateProgress();
-        });
+            updatePostsCount();
+        }
 
-        // Initialize states
-        document.querySelectorAll('.rule-checkbox').forEach(toggleSignerCheckbox);
-        document.querySelectorAll('.enable-all-checkbox').forEach(updateEnableAllState);
-    }
+        function updateProgress() {
+            const allInputs = form.querySelectorAll('input[type="checkbox"], input[type="number"]');
+            let totalCount = 0;
+            let checkedCount = 0;
 
-    // Search functionality
-    function initializeSearchFunctionality() {
-        const searchInput = document.getElementById('search-posts');
-        if (!searchInput) return;
-
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            const accordionItems = document.querySelectorAll('.accordion-item-enhanced');
-
-            accordionItems.forEach(item => {
-                const postName = item.querySelector('.accordion-button strong').textContent.toLowerCase();
-                const shouldShow = postName.includes(query);
-                
-                item.style.display = shouldShow ? 'block' : 'none';
-                
-                if (shouldShow && query) {
-                    item.classList.add('animate__animated', 'animate__fadeIn');
+            allInputs.forEach(input => {
+                totalCount++;
+                if (input.type === 'checkbox' && input.checked) {
+                    checkedCount++;
+                } else if (input.type === 'number' && input.value && parseInt(input.value) > 0) {
+                    checkedCount++;
                 }
             });
-        });
-    }
 
-    // Progress tracking
-    function initializeProgressTracking() {
-        updateProgress();
-        updatePostsCount();
-    }
+            const percentage = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
+            const progressBar = document.getElementById('form-progress');
+            const completionPercentage = document.getElementById('completion-percentage');
 
-    function updateProgress() {
-        const totalInputs = form.querySelectorAll('input[type="checkbox"], input[type="radio"]').length;
-        const checkedInputs = form.querySelectorAll('input[type="checkbox"]:checked, input[type="radio"]:checked').length;
-        const percentage = totalInputs > 0 ? Math.round((checkedInputs / totalInputs) * 100) : 0;
-        
-        const progressBar = document.getElementById('form-progress');
-        const completionPercentage = document.getElementById('completion-percentage');
-        
-        if (progressBar) {
-            progressBar.style.width = percentage + '%';
-        }
-        
-        if (completionPercentage) {
-            completionPercentage.textContent = percentage + '%';
-        }
-
-        // Update individual post progress
-        document.querySelectorAll('.accordion-item-enhanced').forEach(item => {
-            const postId = item.querySelector('[data-bs-target]').getAttribute('data-bs-target').replace('#collapsePost', '');
-            const postInputs = item.querySelectorAll('input[type="checkbox"], input[type="radio"]');
-            const postChecked = item.querySelectorAll('input[type="checkbox"]:checked, input[type="radio"]:checked');
-            const postPercentage = postInputs.length > 0 ? Math.round((postChecked.length / postInputs.length) * 100) : 0;
-            
-            const badge = item.querySelector('.post-completion');
-            if (badge) {
-                badge.textContent = postPercentage + '%';
-                badge.className = `badge ${postPercentage === 100 ? 'bg-success' : postPercentage > 50 ? 'bg-warning' : 'bg-secondary'} post-completion`;
+            if (progressBar) {
+                progressBar.style.width = percentage + '%';
+                progressBar.setAttribute('aria-valuenow', percentage);
+            }
+            if (completionPercentage) {
+                completionPercentage.textContent = percentage + '%';
             }
 
-            // Update status indicator
-            const statusIndicator = item.querySelector('.status-indicator');
-            if (statusIndicator) {
-                statusIndicator.className = `status-indicator ${postPercentage === 100 ? 'status-active' : postPercentage > 0 ? 'status-pending' : 'status-inactive'}`;
-            }
-        });
-    }
+            // Update individual post progress
+            document.querySelectorAll('.accordion-item-enhanced').forEach(item => {
+                const postInputs = item.querySelectorAll('input[type="checkbox"], input[type="number"]');
+                let postCheckedCount = 0;
+                let postTotalCount = 0;
 
-    function updatePostsCount() {
-        const postsCount = document.querySelectorAll('.accordion-item-enhanced').length;
-        const postsCountElement = document.getElementById('posts-count');
-        if (postsCountElement) {
-            postsCountElement.textContent = postsCount + ' پست';
-        }
-    }
+                postInputs.forEach(input => {
+                    postTotalCount++;
+                    if (input.type === 'checkbox' && input.checked) {
+                        postCheckedCount++;
+                    } else if (input.type === 'number' && input.value && parseInt(input.value) > 0) {
+                        postCheckedCount++;
+                    }
+                });
 
-    // Theme toggle
-    function initializeThemeToggle() {
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-        
-        if (!themeToggle) return;
+                const postPercentage = postTotalCount > 0 ? Math.round((postCheckedCount / postTotalCount) * 100) : 0;
+                const badge = item.querySelector('.post-completion');
+                if (badge) {
+                    badge.textContent = postPercentage + '%';
+                    badge.className = `badge badge-enhanced post-completion ${postPercentage === 100 ? 'bg-success' : postPercentage > 50 ? 'bg-warning' : 'bg-secondary'}`;
+                }
 
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            document.documentElement.setAttribute('data-theme', newTheme);
-            themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            
-            localStorage.setItem('theme', newTheme);
-        });
-
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-    }
-
-    // Initialize tooltips
-    function initializeTooltips() {
-        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
-            new bootstrap.Tooltip(el, {
-                customClass: 'tooltip-enhanced'
-            });
-        });
-    }
-
-    // Initialize animations
-    function initializeAnimations() {
-        // Animate elements on scroll
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animate__animated', 'animate__fadeInUp');
+                // Update status indicator
+                const statusIndicator = item.querySelector('.status-indicator');
+                if (statusIndicator) {
+                    statusIndicator.className = `status-indicator ${postPercentage === 100 ? 'status-active' : postPercentage > 0 ? 'status-pending' : 'status-inactive'}`;
                 }
             });
-        }, observerOptions);
+        }
 
-        document.querySelectorAll('.accordion-item-enhanced').forEach(el => {
-            observer.observe(el);
-        });
-    }
+        function updatePostsCount() {
+            const postsCount = document.querySelectorAll('.accordion-item-enhanced').length;
+            const postsCountElement = document.getElementById('posts-count');
+            if (postsCountElement) {
+                postsCountElement.textContent = postsCount + ' {% trans "پست" %}';
+            }
+        }
 
-    // Initialize Floating Action Button
-    function initializeFAB() {
-        const fab = document.getElementById('scroll-to-top');
-        if (!fab) return;
-
-        fab.addEventListener('click', () => {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
+        // Initialize tooltips
+        function initializeTooltips() {
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+                new bootstrap.Tooltip(el, {
+                    customClass: 'tooltip-enhanced'
+                });
             });
-        });
+        }
 
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                fab.style.display = 'block';
-            } else {
-                fab.style.display = 'none';
+        // Initialize animations (for elements entering viewport)
+        function initializeAnimations() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate__animated', 'animate__fadeInUp');
+                        observer.unobserve(entry.target); // Stop observing once animated
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.accordion-item-enhanced').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        // Form submission with loading state
+        form.addEventListener('submit', (e) => {
+            const saveBtn = document.getElementById('save-btn');
+            if (saveBtn) {
+                const btnText = saveBtn.querySelector('.btn-text');
+                const spinner = saveBtn.querySelector('.loading-spinner');
+                if (btnText && spinner) {
+                    btnText.classList.add('d-none');
+                    spinner.classList.remove('d-none');
+                }
+                saveBtn.disabled = true;
             }
         });
-    }
 
-    // Form submission with loading state
-    form.addEventListener('submit', (e) => {
-        const saveBtn = document.getElementById('save-btn');
-        const btnText = saveBtn.querySelector('.btn-text');
-        const spinner = saveBtn.querySelector('.loading-spinner');
-        
-        btnText.classList.add('d-none');
-        spinner.classList.remove('d-none');
-        saveBtn.disabled = true;
+        // Open accordions with errors on load
+        setTimeout(() => {
+            form.querySelectorAll('.text-danger').forEach(errorEl => {
+                const collapse = errorEl.closest('.accordion-collapse');
+                if (collapse && !collapse.classList.contains('show')) {
+                    bootstrap.Collapse.getOrCreateInstance(collapse).show();
+                }
+            });
+        }, 100);
     });
-
-    // Preview functionality
-    document.getElementById('preview-btn')?.addEventListener('click', () => {
-        const modal = new bootstrap.Modal(document.getElementById('previewModal'));
-        const previewContent = document.getElementById('preview-content');
-        
-        // Generate preview content
-        let content = '<div class="preview-summary">';
-        content += '<h6>خلاصه تنظیمات:</h6>';
-        content += '<ul>';
-        
-        document.querySelectorAll('.accordion-item-enhanced').forEach(item => {
-            const postName = item.querySelector('.accordion-button strong').textContent;
-            const checkedCount = item.querySelectorAll('input:checked').length;
-            content += `<li>${postName}: ${checkedCount} قانون فعال</li>`;
-        });
-        
-        content += '</ul></div>';
-        previewContent.innerHTML = content;
-        
-        modal.show();
-    });
-
-    // Auto-save functionality (optional)
-    let autoSaveTimeout;
-    form.addEventListener('change', () => {
-        clearTimeout(autoSaveTimeout);
-        autoSaveTimeout = setTimeout(() => {
-            // Auto-save logic here
-            console.log('Auto-saving...');
-        }, 5000);
-    });
-
-    // Initialize everything
-    setTimeout(() => {
-        updateProgress();
-        
-        // Open accordions with errors
-        form.querySelectorAll('.text-danger').forEach(errorEl => {
-            const collapse = errorEl.closest('.accordion-collapse');
-            if (collapse && !collapse.classList.contains('show')) {
-                bootstrap.Collapse.getOrCreateInstance(collapse).show();
-            }
-        });
-    }, 100);
-});
 </script>
 {% endblock %}
+
+
+
+
+{#{% extends 'base.html' %}#}
+{#{% load i18n static rcms_custom_filters %}#}
+{##}
+{#{% block extra_css %}#}
+{##}
+{#    <style>#}
+{#:root {#}
+{#    --primary-color: #4f46e5;#}
+{#    --primary-light: #818cf8;#}
+{#    --primary-dark: #3730a3;#}
+{#    --success-color: #10b981;#}
+{#    --warning-color: #f59e0b;#}
+{#    --danger-color: #ef4444;#}
+{#    --info-color: #06b6d4;#}
+{#    --dark-color: #1f2937;#}
+{#    --light-color: #f8fafc;#}
+{#    --border-radius: 12px;#}
+{#    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);#}
+{#    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);#}
+{#    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);#}
+{#    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);#}
+{#}#}
+{##}
+{#/* Dark Mode Support */#}
+{#[data-theme="dark"] {#}
+{#    --primary-color: #6366f1;#}
+{#    --light-color: #1f2937;#}
+{#    --dark-color: #f8fafc;#}
+{#}#}
+{##}
+{#/* Enhanced Card Design */#}
+{#.main-card {#}
+{#    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);#}
+{#    border: none;#}
+{#    border-radius: var(--border-radius);#}
+{#    box-shadow: var(--shadow-xl);#}
+{#    overflow: hidden;#}
+{#    position: relative;#}
+{#}#}
+{##}
+{#.main-card::before {#}
+{#    content: '';#}
+{#    position: absolute;#}
+{#    top: 0;#}
+{#    left: 0;#}
+{#    right: 0;#}
+{#    height: 4px;#}
+{#    background: linear-gradient(90deg, var(--success-color), var(--info-color), var(--primary-color));#}
+{#}#}
+{##}
+{#.card-header-enhanced {#}
+{#    background: rgba(255, 255, 255, 0.1);#}
+{#    backdrop-filter: blur(10px);#}
+{#    border: none;#}
+{#    padding: 1.5rem;#}
+{#}#}
+{##}
+{#.card-body-enhanced {#}
+{#    background: rgba(255, 255, 255, 0.95);#}
+{#    backdrop-filter: blur(10px);#}
+{#}#}
+{##}
+{#/* Enhanced Accordion */#}
+{#.accordion-enhanced {#}
+{#    border: none;#}
+{#    border-radius: var(--border-radius);#}
+{#    overflow: hidden;#}
+{#}#}
+{##}
+{#.accordion-item-enhanced {#}
+{#    border: 1px solid rgba(0, 0, 0, 0.08);#}
+{#    border-radius: var(--border-radius);#}
+{#    margin-bottom: 1rem;#}
+{#    box-shadow: var(--shadow-sm);#}
+{#    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);#}
+{#    overflow: hidden;#}
+{#}#}
+{##}
+{#.accordion-item-enhanced:hover {#}
+{#    box-shadow: var(--shadow-md);#}
+{#    transform: translateY(-2px);#}
+{#}#}
+{##}
+{#.accordion-button-enhanced {#}
+{#    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);#}
+{#    border: none;#}
+{#    padding: 1.25rem 1.5rem;#}
+{#    font-weight: 600;#}
+{#    transition: all 0.3s ease;#}
+{#    position: relative;#}
+{#    overflow: hidden;#}
+{#}#}
+{##}
+{#.accordion-button-enhanced::before {#}
+{#    content: '';#}
+{#    position: absolute;#}
+{#    top: 0;#}
+{#    left: -100%;#}
+{#    width: 100%;#}
+{#    height: 100%;#}
+{#    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);#}
+{#    transition: left 0.5s;#}
+{#}#}
+{##}
+{#.accordion-button-enhanced:hover::before {#}
+{#    left: 100%;#}
+{#}#}
+{##}
+{#.accordion-button-enhanced:not(.collapsed) {#}
+{#    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);#}
+{#    color: white;#}
+{#    box-shadow: var(--shadow-md);#}
+{#}#}
+{##}
+{#/* Enhanced Badge */#}
+{#.badge-enhanced {#}
+{#    background: linear-gradient(135deg, var(--success-color) 0%, #34d399 100%);#}
+{#    color: white;#}
+{#    font-weight: 700;#}
+{#    padding: 0.5rem 0.75rem;#}
+{#    border-radius: 50px;#}
+{#    font-size: 0.875rem;#}
+{#    box-shadow: var(--shadow-sm);#}
+{#    animation: pulse 2s infinite;#}
+{#}#}
+{##}
+{#@keyframes pulse {#}
+{#    0%, 100% { transform: scale(1); }#}
+{#    50% { transform: scale(1.05); }#}
+{#}#}
+{##}
+{#/* Enhanced Form Controls */#}
+{#.form-switch-enhanced .form-check-input {#}
+{#    width: 3rem;#}
+{#    height: 1.5rem;#}
+{#    border-radius: 50px;#}
+{#    background-color: #e5e7eb;#}
+{#    border: none;#}
+{#    transition: all 0.3s ease;#}
+{#    cursor: pointer;#}
+{#}#}
+{##}
+{#.form-switch-enhanced .form-check-input:checked {#}
+{#    background: linear-gradient(135deg, var(--success-color) 0%, #34d399 100%);#}
+{#    box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25);#}
+{#}#}
+{##}
+{#.form-switch-enhanced .form-check-input:focus {#}
+{#    box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);#}
+{#}#}
+{##}
+{#/* Enhanced Radio Buttons */#}
+{#.radio-enhanced {#}
+{#    position: relative;#}
+{#    margin: 0.25rem;#}
+{#}#}
+{##}
+{#.radio-enhanced input[type="radio"] {#}
+{#    position: absolute;#}
+{#    opacity: 0;#}
+{#    cursor: pointer;#}
+{#}#}
+{##}
+{#.radio-enhanced .radio-label {#}
+{#    display: inline-block;#}
+{#    padding: 0.5rem 1rem;#}
+{#    background: #f1f5f9;#}
+{#    border: 2px solid #e2e8f0;#}
+{#    border-radius: 50px;#}
+{#    cursor: pointer;#}
+{#    transition: all 0.3s ease;#}
+{#    font-size: 0.875rem;#}
+{#    font-weight: 500;#}
+{#}#}
+{##}
+{#.radio-enhanced input[type="radio"]:checked + .radio-label {#}
+{#    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);#}
+{#    color: white;#}
+{#    border-color: var(--primary-color);#}
+{#    transform: scale(1.05);#}
+{#    box-shadow: var(--shadow-md);#}
+{#}#}
+{##}
+{#.radio-enhanced:hover .radio-label {#}
+{#    border-color: var(--primary-light);#}
+{#    transform: translateY(-1px);#}
+{#}#}
+{##}
+{#/* Enhanced Table */#}
+{#.table-enhanced {#}
+{#    border-radius: var(--border-radius);#}
+{#    overflow: hidden;#}
+{#    box-shadow: var(--shadow-sm);#}
+{#    background: white;#}
+{#}#}
+{##}
+{#.table-enhanced thead th {#}
+{#    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);#}
+{#    border: none;#}
+{#    font-weight: 600;#}
+{#    color: var(--dark-color);#}
+{#    padding: 1rem;#}
+{#}#}
+{##}
+{#.table-enhanced tbody tr {#}
+{#    transition: all 0.2s ease;#}
+{#    border: none;#}
+{#}#}
+{##}
+{#.table-enhanced tbody tr:hover {#}
+{#    background: linear-gradient(135deg, #fef7ff 0%, #f3e8ff 100%);#}
+{#    transform: scale(1.01);#}
+{#}#}
+{##}
+{#.table-enhanced tbody td {#}
+{#    padding: 1rem;#}
+{#    border-color: #f1f5f9;#}
+{#    vertical-align: middle;#}
+{#}#}
+{##}
+{#/* Enhanced Buttons */#}
+{#.btn-enhanced {#}
+{#    border-radius: 50px;#}
+{#    padding: 0.75rem 2rem;#}
+{#    font-weight: 600;#}
+{#    text-transform: uppercase;#}
+{#    letter-spacing: 0.5px;#}
+{#    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);#}
+{#    position: relative;#}
+{#    overflow: hidden;#}
+{#    border: none;#}
+{#}#}
+{##}
+{#.btn-enhanced::before {#}
+{#    content: '';#}
+{#    position: absolute;#}
+{#    top: 0;#}
+{#    left: -100%;#}
+{#    width: 100%;#}
+{#    height: 100%;#}
+{#    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);#}
+{#    transition: left 0.5s;#}
+{#}#}
+{##}
+{#.btn-enhanced:hover::before {#}
+{#    left: 100%;#}
+{#}#}
+{##}
+{#.btn-primary-enhanced {#}
+{#    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);#}
+{#    color: white;#}
+{#    box-shadow: var(--shadow-md);#}
+{#}#}
+{##}
+{#.btn-primary-enhanced:hover {#}
+{#    transform: translateY(-2px);#}
+{#    box-shadow: var(--shadow-lg);#}
+{#}#}
+{##}
+{#.btn-outline-enhanced {#}
+{#    background: transparent;#}
+{#    border: 2px solid var(--primary-color);#}
+{#    color: var(--primary-color);#}
+{#}#}
+{##}
+{#.btn-outline-enhanced:hover {#}
+{#    background: var(--primary-color);#}
+{#    color: white;#}
+{#    transform: translateY(-2px);#}
+{#}#}
+{##}
+{#/* Loading Animation */#}
+{#.loading-spinner {#}
+{#    display: inline-block;#}
+{#    width: 20px;#}
+{#    height: 20px;#}
+{#    border: 3px solid rgba(255, 255, 255, 0.3);#}
+{#    border-radius: 50%;#}
+{#    border-top-color: white;#}
+{#    animation: spin 1s ease-in-out infinite;#}
+{#}#}
+{##}
+{#@keyframes spin {#}
+{#    to { transform: rotate(360deg); }#}
+{#}#}
+{##}
+{#/* Progress Bar */#}
+{#.progress-enhanced {#}
+{#    height: 6px;#}
+{#    border-radius: 50px;#}
+{#    background: #e5e7eb;#}
+{#    overflow: hidden;#}
+{#    margin-bottom: 1rem;#}
+{#}#}
+{##}
+{#.progress-bar-enhanced {#}
+{#    background: linear-gradient(90deg, var(--success-color), var(--info-color));#}
+{#    height: 100%;#}
+{#    border-radius: 50px;#}
+{#    transition: width 0.3s ease;#}
+{#}#}
+{##}
+{#/* Enhanced Alerts */#}
+{#.alert-enhanced {#}
+{#    border: none;#}
+{#    border-radius: var(--border-radius);#}
+{#    padding: 1.25rem;#}
+{#    margin-bottom: 1.5rem;#}
+{#    position: relative;#}
+{#    overflow: hidden;#}
+{#}#}
+{##}
+{#.alert-enhanced::before {#}
+{#    content: '';#}
+{#    position: absolute;#}
+{#    top: 0;#}
+{#    left: 0;#}
+{#    width: 4px;#}
+{#    height: 100%;#}
+{#    background: currentColor;#}
+{#}#}
+{##}
+{#.alert-info-enhanced {#}
+{#    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);#}
+{#    color: #1e40af;#}
+{#    border-left: 4px solid var(--info-color);#}
+{#}#}
+{##}
+{#.alert-success-enhanced {#}
+{#    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);#}
+{#    color: #065f46;#}
+{#    border-left: 4px solid var(--success-color);#}
+{#}#}
+{##}
+{#.alert-danger-enhanced {#}
+{#    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);#}
+{#    color: #991b1b;#}
+{#    border-left: 4px solid var(--danger-color);#}
+{#}#}
+{##}
+{#/* Search and Filter */#}
+{#.search-container {#}
+{#    position: relative;#}
+{#    margin-bottom: 1.5rem;#}
+{#}#}
+{##}
+{#.search-input {#}
+{#    width: 100%;#}
+{#    padding: 0.75rem 1rem 0.75rem 3rem;#}
+{#    border: 2px solid #e5e7eb;#}
+{#    border-radius: 50px;#}
+{#    font-size: 1rem;#}
+{#    transition: all 0.3s ease;#}
+{#    background: white;#}
+{#}#}
+{##}
+{#.search-input:focus {#}
+{#    outline: none;#}
+{#    border-color: var(--primary-color);#}
+{#    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);#}
+{#}#}
+{##}
+{#.search-icon {#}
+{#    position: absolute;#}
+{#    left: 1rem;#}
+{#    top: 50%;#}
+{#    transform: translateY(-50%);#}
+{#    color: #9ca3af;#}
+{#}#}
+{##}
+{#/* Tooltip Enhanced */#}
+{#.tooltip-enhanced {#}
+{#    background: rgba(0, 0, 0, 0.9);#}
+{#    color: white;#}
+{#    padding: 0.5rem 0.75rem;#}
+{#    border-radius: 6px;#}
+{#    font-size: 0.875rem;#}
+{#    backdrop-filter: blur(10px);#}
+{#}#}
+{##}
+{#/* Responsive Enhancements */#}
+{#@media (max-width: 768px) {#}
+{#    .accordion-button-enhanced {#}
+{#        padding: 1rem;#}
+{#        font-size: 0.9rem;#}
+{#    }#}
+{##}
+{#    .badge-enhanced {#}
+{#        font-size: 0.75rem;#}
+{#        padding: 0.375rem 0.5rem;#}
+{#    }#}
+{##}
+{#    .btn-enhanced {#}
+{#        padding: 0.5rem 1.5rem;#}
+{#        font-size: 0.875rem;#}
+{#    }#}
+{##}
+{#    .table-enhanced {#}
+{#        font-size: 0.875rem;#}
+{#    }#}
+{##}
+{#    .table-enhanced th,#}
+{#    .table-enhanced td {#}
+{#        padding: 0.75rem 0.5rem;#}
+{#    }#}
+{#}#}
+{##}
+{#/* Dark Mode Styles */#}
+{#@media (prefers-color-scheme: dark) {#}
+{#    .card-body-enhanced {#}
+{#        background: rgba(31, 41, 55, 0.95);#}
+{#        color: white;#}
+{#    }#}
+{##}
+{#    .accordion-button-enhanced {#}
+{#        background: linear-gradient(135deg, #374151 0%, #4b5563 100%);#}
+{#        color: white;#}
+{#    }#}
+{##}
+{#    .table-enhanced {#}
+{#        background: #1f2937;#}
+{#        color: white;#}
+{#    }#}
+{##}
+{#    .table-enhanced thead th {#}
+{#        background: linear-gradient(135deg, #374151 0%, #4b5563 100%);#}
+{#        color: white;#}
+{#    }#}
+{##}
+{#    .search-input {#}
+{#        background: #374151;#}
+{#        border-color: #4b5563;#}
+{#        color: white;#}
+{#    }#}
+{#}#}
+{##}
+{#/* Animation Classes */#}
+{#.fade-in {#}
+{#    animation: fadeIn 0.5s ease-in;#}
+{#}#}
+{##}
+{#@keyframes fadeIn {#}
+{#    from { opacity: 0; transform: translateY(20px); }#}
+{#    to { opacity: 1; transform: translateY(0); }#}
+{#}#}
+{##}
+{#.slide-in {#}
+{#    animation: slideIn 0.3s ease-out;#}
+{#}#}
+{##}
+{#@keyframes slideIn {#}
+{#    from { transform: translateX(-100%); }#}
+{#    to { transform: translateX(0); }#}
+{#}#}
+{##}
+{#/* Floating Action Button */#}
+{#.fab {#}
+{#    position: fixed;#}
+{#    bottom: 2rem;#}
+{#    right: 2rem;#}
+{#    width: 60px;#}
+{#    height: 60px;#}
+{#    border-radius: 50%;#}
+{#    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);#}
+{#    color: white;#}
+{#    border: none;#}
+{#    box-shadow: var(--shadow-lg);#}
+{#    cursor: pointer;#}
+{#    transition: all 0.3s ease;#}
+{#    z-index: 1000;#}
+{#}#}
+{##}
+{#.fab:hover {#}
+{#    transform: scale(1.1);#}
+{#    box-shadow: var(--shadow-xl);#}
+{#}#}
+{##}
+{#/* Status Indicators */#}
+{#.status-indicator {#}
+{#    display: inline-block;#}
+{#    width: 8px;#}
+{#    height: 8px;#}
+{#    border-radius: 50%;#}
+{#    margin-right: 0.5rem;#}
+{#}#}
+{##}
+{#.status-active {#}
+{#    background: var(--success-color);#}
+{#    animation: pulse-green 2s infinite;#}
+{#}#}
+{##}
+{#.status-inactive {#}
+{#    background: var(--danger-color);#}
+{#}#}
+{##}
+{#.status-pending {#}
+{#    background: var(--warning-color);#}
+{#    animation: pulse-yellow 2s infinite;#}
+{#}#}
+{##}
+{#@keyframes pulse-green {#}
+{#    0%, 100% { opacity: 1; }#}
+{#    50% { opacity: 0.5; }#}
+{#}#}
+{##}
+{#@keyframes pulse-yellow {#}
+{#    0%, 100% { opacity: 1; }#}
+{#    50% { opacity: 0.5; }#}
+{#}#}
+{#</style>#}
+{#{% endblock %}#}
+{##}
+{#{% block content %}#}
+{#<div class="container mt-4 fade-in">#}
+{#    <!-- Header Section -->#}
+{#    <div class="d-flex justify-content-between align-items-center mb-4">#}
+{#        <h1 class="mb-0 text-right fw-bold text-gradient">{{ title }}</h1>#}
+{#        <button class="btn btn-outline-enhanced" id="theme-toggle">#}
+{#            <i class="fas fa-moon" id="theme-icon"></i>#}
+{#        </button>#}
+{#    </div>#}
+{##}
+{#    <!-- Progress Bar -->#}
+{#    <div class="progress-enhanced">#}
+{#        <div class="progress-bar-enhanced" style="width: 0%" id="form-progress"></div>#}
+{#    </div>#}
+{##}
+{#    <!-- Main Card -->#}
+{#    <div class="card main-card shadow-lg border-0 rounded-3">#}
+{#        <div class="card-header card-header-enhanced text-white text-right d-flex justify-content-between align-items-center py-3">#}
+{#            <h5 class="my-0 fw-bold d-flex align-items-center">#}
+{#                <i class="fas fa-cogs fa-lg me-2 opacity-75"></i>#}
+{#                {% trans "تنظیم قوانین دسترسی پست‌ها" %}#}
+{#            </h5>#}
+{#            <div class="d-flex align-items-center">#}
+{#                <span class="badge bg-light text-dark me-2" id="posts-count">0 پست</span>#}
+{#                <i class="fas fa-shield-alt fa-lg opacity-75"></i>#}
+{#            </div>#}
+{#        </div>#}
+{##}
+{#        <div class="card-body card-body-enhanced p-4">#}
+{#            <!-- Search Section -->#}
+{#            <div class="search-container">#}
+{#                <i class="fas fa-search search-icon"></i>#}
+{#                <input type="text" class="search-input" id="search-posts" placeholder="جستجو در پست‌ها...">#}
+{#            </div>#}
+{##}
+{#            <!-- Enhanced Guide -->#}
+{#            <div class="alert alert-info-enhanced text-right mb-4 slide-in">#}
+{#                <div class="d-flex align-items-start">#}
+{#                    <i class="fas fa-info-circle fa-lg me-2 mt-1"></i>#}
+{#                    <div>#}
+{#                        <strong>راهنما:</strong>#}
+{#                        {% trans "برای هر پست، حداقل یک قانون دسترسی (مانند ایجاد، حذف، ویرایش، مشاهده، تأیید یا رد) انتخاب کنید. برای اقدامات تأیید و رد، یک مرحله جدید یا موجود انتخاب کنید." %}#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{##}
+{#            <!-- Flash Messages -->#}
+{#            {% if messages %}#}
+{#                <div class="mb-4">#}
+{#                    {% for message in messages %}#}
+{#                        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% else %}{{ message.tags }}{% endif %}-enhanced alert-dismissible fade show text-right animate__animated animate__fadeInDown" role="alert">#}
+{#                            <div class="d-flex align-items-start">#}
+{#                                <i class="fas fa-{% if message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2 mt-1"></i>#}
+{#                                <div class="flex-grow-1">{{ message }}</div>#}
+{#                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    {% endfor %}#}
+{#                </div>#}
+{#            {% endif %}#}
+{##}
+{#            <!-- Form Errors -->#}
+{#            {% if form.non_field_errors %}#}
+{#                <div class="alert alert-danger-enhanced text-right mb-4 animate__animated animate__shakeX">#}
+{#                    <div class="d-flex align-items-start">#}
+{#                        <i class="fas fa-exclamation-triangle fa-lg me-2 mt-1"></i>#}
+{#                        <div>#}
+{#                            <strong>{% trans "خطاهای فرم:" %}</strong>#}
+{#                            <ul class="list-unstyled mb-0 mt-2">#}
+{#                                {% for error in form.non_field_errors %}#}
+{#                                    <li class="mb-1">• {{ error }}</li>#}
+{#                                {% endfor %}#}
+{#                            </ul>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            {% endif %}#}
+{##}
+{#            <form method="post" id="accessRuleForm">#}
+{#                {% csrf_token %}#}
+{##}
+{#                {% if form.post_fields_data %}#}
+{#                    <!-- Control Buttons -->#}
+{#                    <div class="mb-4 d-flex justify-content-between align-items-center">#}
+{#                        <div class="d-flex gap-2">#}
+{#                            <button type="button" id="open-all-btn" class="btn btn-outline-enhanced">#}
+{#                                <i class="fas fa-expand-alt me-1"></i>#}
+{#                                {% trans "باز کردن همه" %}#}
+{#                            </button>#}
+{#                            <button type="button" id="close-all-btn" class="btn btn-outline-enhanced">#}
+{#                                <i class="fas fa-compress-alt me-1"></i>#}
+{#                                {% trans "بستن همه" %}#}
+{#                            </button>#}
+{#                            <button type="button" id="select-all-btn" class="btn btn-outline-enhanced">#}
+{#                                <i class="fas fa-check-double me-1"></i>#}
+{#                                {% trans "انتخاب همه" %}#}
+{#                            </button>#}
+{#                        </div>#}
+{#                        <div class="d-flex align-items-center">#}
+{#                            <span class="text-muted me-2">پیشرفت:</span>#}
+{#                            <span id="completion-percentage" class="fw-bold text-primary">0%</span>#}
+{#                        </div>#}
+{#                    </div>#}
+{##}
+{#                    <!-- Enhanced Accordion -->#}
+{#                    <div class="accordion accordion-enhanced" id="postsAccordion">#}
+{#                        {% for post_data in form.post_fields_data %}#}
+{#                            <div class="accordion-item accordion-item-enhanced mb-3 fade-in" style="animation-delay: {{ forloop.counter0|mul:0.1 }}s">#}
+{#                                <h2 class="accordion-header" id="headingPost{{ post_data.post.id }}">#}
+{#                                    <button class="accordion-button accordion-button-enhanced collapsed text-right"#}
+{#                                            type="button"#}
+{#                                            data-bs-toggle="collapse"#}
+{#                                            data-bs-target="#collapsePost{{ post_data.post.id }}"#}
+{#                                            aria-expanded="false"#}
+{#                                            aria-controls="collapsePost{{ post_data.post.id }}">#}
+{#                                        <span class="d-flex align-items-center flex-grow-1">#}
+{#                                            <span class="badge badge-enhanced me-3">#}
+{#                                                {{ forloop.counter|to_persian_number }}#}
+{#                                            </span>#}
+{#                                            <div class="d-flex align-items-center">#}
+{#                                                <span class="status-indicator status-pending me-2"></span>#}
+{#                                                <i class="fas fa-sitemap fa-lg me-2"></i>#}
+{#                                            </div>#}
+{#                                            <div class="flex-grow-1">#}
+{#                                                <strong class="d-block">{{ post_data.post.name }}</strong>#}
+{#                                                <small class="text-muted d-block mt-1">#}
+{#                                                    <i class="fas fa-building me-1"></i>#}
+{#                                                    {{ post_data.post.organization.name|default:_("بدون سازمان") }}#}
+{#                                                    {% if post_data.post.branch %}#}
+{#                                                        <i class="fas fa-code-branch me-1 ms-2"></i>#}
+{#                                                        {{ post_data.post.branch.name }}#}
+{#                                                    {% endif %}#}
+{#                                                    <i class="fas fa-layer-group me-1 ms-2"></i>#}
+{#                                                    {% trans "سطح" %}: {{ post_data.post.level }}#}
+{#                                                </small>#}
+{#                                            </div>#}
+{#                                        </span>#}
+{#                                        <div class="d-flex align-items-center me-3">#}
+{#                                            <span class="badge bg-secondary post-completion" data-post-id="{{ post_data.post.id }}">0%</span>#}
+{#                                        </div>#}
+{#                                    </button>#}
+{#                                </h2>#}
+{##}
+{#                                <div id="collapsePost{{ post_data.post.id }}"#}
+{#                                     class="accordion-collapse collapse"#}
+{#                                     aria-labelledby="headingPost{{ post_data.post.id }}"#}
+{#                                     data-bs-parent="#postsAccordion">#}
+{#                                    <div class="accordion-body p-4">#}
+{#                                        <div class="d-flex justify-content-between align-items-center mb-3">#}
+{#                                            <h5 class="mb-0 text-primary d-flex align-items-center">#}
+{#                                                <i class="fas fa-key me-2"></i>#}
+{#                                                {% trans "قوانین دسترسی" %}#}
+{#                                            </h5>#}
+{#                                            <div class="d-flex gap-2">#}
+{#                                                <button type="button" class="btn btn-sm btn-outline-success enable-all-post" data-post-id="{{ post_data.post.id }}">#}
+{#                                                    <i class="fas fa-check-circle me-1"></i>#}
+{#                                                    فعال‌سازی همه#}
+{#                                                </button>#}
+{#                                                <button type="button" class="btn btn-sm btn-outline-danger disable-all-post" data-post-id="{{ post_data.post.id }}">#}
+{#                                                    <i class="fas fa-times-circle me-1"></i>#}
+{#                                                    غیرفعال‌سازی همه#}
+{#                                                </button>#}
+{#                                            </div>#}
+{#                                        </div>#}
+{##}
+{#                                        <div class="accordion" id="entitiesAccordion{{ post_data.post.id }}">#}
+{#                                            {% for entity_group in post_data.entity_groups %}#}
+{#                                                <div class="accordion-item mb-3 border rounded-3 shadow-sm">#}
+{#                                                    <h2 class="accordion-header" id="headingEntity{{ post_data.post.id }}{{ entity_group.entity_id }}">#}
+{#                                                        <button class="accordion-button collapsed text-right bg-light"#}
+{#                                                                type="button"#}
+{#                                                                data-bs-toggle="collapse"#}
+{#                                                                data-bs-target="#collapseEntity{{ post_data.post.id }}{{ entity_group.entity_id }}"#}
+{#                                                                aria-expanded="false"#}
+{#                                                                aria-controls="collapseEntity{{ post_data.post.id }}{{ entity_group.entity_id }}">#}
+{#                                                            <span class="d-flex align-items-center flex-grow-1">#}
+{#                                                                <i class="fas fa-cube me-2 text-info"></i>#}
+{#                                                                <strong>{{ entity_group.entity_label }}</strong>#}
+{#                                                            </span>#}
+{#                                                            <div class="form-check form-switch form-switch-enhanced ms-auto me-2">#}
+{#                                                                {{ entity_group.enable_all_field }}#}
+{#                                                                <label class="form-check-label small text-muted"#}
+{#                                                                       for="{{ entity_group.enable_all_field.id_for_label }}"#}
+{#                                                                       data-bs-toggle="tooltip"#}
+{#                                                                       title="فعال‌سازی تمام قوانین این بخش">#}
+{#                                                                    {% trans "فعال‌سازی همه" %}#}
+{#                                                                </label>#}
+{#                                                            </div>#}
+{#                                                        </button>#}
+{#                                                    </h2>#}
+{##}
+{#                                                    <div id="collapseEntity{{ post_data.post.id }}{{ entity_group.entity_id }}"#}
+{#                                                         class="accordion-collapse collapse"#}
+{#                                                         aria-labelledby="headingEntity{{ post_data.post.id }}{{ entity_group.entity_id }}"#}
+{#                                                         data-bs-parent="#entitiesAccordion{{ post_data.post.id }}">#}
+{#                                                        <div class="accordion-body p-4">#}
+{#                                                            {% if entity_group.has_stage_actions %}#}
+{#                                                                <div class="row mb-4">#}
+{#                                                                    <label for="{{ entity_group.new_stage_field.id_for_label }}"#}
+{#                                                                           class="col-sm-3 col-form-label text-right fw-bold">#}
+{#                                                                        <i class="fas fa-plus-circle me-1 text-success"></i>#}
+{#                                                                        {% trans "مرحله جدید" %}:#}
+{#                                                                    </label>#}
+{#                                                                    <div class="col-sm-9">#}
+{#                                                                        <div class="input-group">#}
+{#                                                                            <span class="input-group-text">#}
+{#                                                                                <i class="fas fa-tag"></i>#}
+{#                                                                            </span>#}
+{#                                                                            {{ entity_group.new_stage_field }}#}
+{#                                                                        </div>#}
+{#                                                                        <small class="form-text text-muted mt-1">#}
+{#                                                                            <i class="fas fa-info-circle me-1"></i>#}
+{#                                                                            {% trans "نام مرحله جدید (مثال: 'تأیید مدیر')." %}#}
+{#                                                                        </small>#}
+{#                                                                        {% if entity_group.new_stage_field.errors %}#}
+{#                                                                            <div class="text-danger small mt-2">#}
+{#                                                                                <i class="fas fa-exclamation-triangle me-1"></i>#}
+{#                                                                                {{ entity_group.new_stage_field.errors|join:", " }}#}
+{#                                                                            </div>#}
+{#                                                                        {% endif %}#}
+{#                                                                    </div>#}
+{#                                                                </div>#}
+{#                                                            {% endif %}#}
+{##}
+{#                                                            <div class="table-responsive">#}
+{#                                                                <table class="table table-enhanced table-hover text-right">#}
+{#                                                                    <thead>#}
+{#                                                                        <tr>#}
+{#                                                                            <th class="fw-bold">#}
+{#                                                                                <i class="fas fa-tasks me-1"></i>#}
+{#                                                                                {% trans "اقدام" %}#}
+{#                                                                            </th>#}
+{#                                                                            <th class="text-center fw-bold">#}
+{#                                                                                <i class="fas fa-toggle-on me-1"></i>#}
+{#                                                                                {% trans "مرحله/فعال" %}#}
+{#                                                                            </th>#}
+{#                                                                            <th class="text-center fw-bold">#}
+{#                                                                                <i class="fas fa-signature me-1"></i>#}
+{#                                                                                {% trans "امضاکننده" %}#}
+{#                                                                            </th>#}
+{#                                                                        </tr>#}
+{#                                                                    </thead>#}
+{#                                                                    <tbody>#}
+{#                                                                        {% for rule_item in entity_group.rules %}#}
+{#                                                                            <tr class="rule-row" data-rule-type="{{ rule_item.action_label }}">#}
+{#                                                                                <td class="fw-medium">#}
+{#                                                                                    <div class="d-flex align-items-center">#}
+{#                                                                                        <i class="fas fa-{% if 'ایجاد' in rule_item.action_label %}plus{% elif 'حذف' in rule_item.action_label %}trash{% elif 'ویرایش' in rule_item.action_label %}edit{% elif 'مشاهده' in rule_item.action_label %}eye{% elif 'تأیید' in rule_item.action_label %}check{% elif 'رد' in rule_item.action_label %}times{% else %}cog{% endif %} me-2 text-muted"></i>#}
+{#                                                                                        {{ rule_item.action_label }}#}
+{#                                                                                    </div>#}
+{#                                                                                </td>#}
+{#                                                                                <td class="text-center">#}
+{#                                                                                    {% if rule_item.is_radio_select %}#}
+{#                                                                                        <div class="d-flex flex-wrap justify-content-center gap-1">#}
+{#                                                                                            {% for id, name in rule_item.field.field.choices %}#}
+{#                                                                                                <div class="radio-enhanced">#}
+{#                                                                                                    <input type="radio"#}
+{#                                                                                                           name="{{ rule_item.field.html_name }}"#}
+{#                                                                                                           id="{{ rule_item.field.auto_id }}_{{ forloop.counter0 }}"#}
+{#                                                                                                           value="{{ id }}"#}
+{#                                                                                                           {% if id == rule_item.field.value %}checked{% endif %}#}
+{#                                                                                                           class="stage-radio-input">#}
+{#                                                                                                    <label class="radio-label"#}
+{#                                                                                                           for="{{ rule_item.field.auto_id }}_{{ forloop.counter0 }}">#}
+{#                                                                                                        {{ name }}#}
+{#                                                                                                    </label>#}
+{#                                                                                                </div>#}
+{#                                                                                            {% endfor %}#}
+{#                                                                                        </div>#}
+{#                                                                                        {% if rule_item.field.errors %}#}
+{#                                                                                            <div class="text-danger small mt-2">#}
+{#                                                                                                <i class="fas fa-exclamation-triangle me-1"></i>#}
+{#                                                                                                {{ rule_item.field.errors|join:", " }}#}
+{#                                                                                            </div>#}
+{#                                                                                        {% endif %}#}
+{#                                                                                    {% else %}#}
+{#                                                                                        <div class="form-check form-switch form-switch-enhanced d-flex justify-content-center">#}
+{#                                                                                            {{ rule_item.field }}#}
+{#                                                                                            <label class="form-check-label"#}
+{#                                                                                                   for="{{ rule_item.field.id_for_label }}"></label>#}
+{#                                                                                        </div>#}
+{#                                                                                        {% if rule_item.field.errors %}#}
+{#                                                                                            <div class="text-danger small mt-1">#}
+{#                                                                                                <i class="fas fa-exclamation-triangle me-1"></i>#}
+{#                                                                                                {{ rule_item.field.errors|join:", " }}#}
+{#                                                                                            </div>#}
+{#                                                                                        {% endif %}#}
+{#                                                                                    {% endif %}#}
+{#                                                                                </td>#}
+{#                                                                                <td class="text-center">#}
+{#                                                                                    {% if rule_item.is_signer_field %}#}
+{#                                                                                        <div class="form-check form-switch form-switch-enhanced d-flex justify-content-center">#}
+{#                                                                                            {{ rule_item.is_signer_field }}#}
+{#                                                                                            <label class="form-check-label"#}
+{#                                                                                                   for="{{ rule_item.is_signer_field.id_for_label }}"#}
+{#                                                                                                   data-bs-toggle="tooltip"#}
+{#                                                                                                   title="آیا این کاربر امضاکننده است؟"></label>#}
+{#                                                                                        </div>#}
+{#                                                                                        {% if rule_item.is_signer_field.errors %}#}
+{#                                                                                            <div class="text-danger small mt-1">#}
+{#                                                                                                <i class="fas fa-exclamation-triangle me-1"></i>#}
+{#                                                                                                {{ rule_item.is_signer_field.errors|join:", " }}#}
+{#                                                                                            </div>#}
+{#                                                                                        {% endif %}#}
+{#                                                                                    {% else %}#}
+{#                                                                                        <span class="text-muted">—</span>#}
+{#                                                                                    {% endif %}#}
+{#                                                                                </td>#}
+{#                                                                            </tr>#}
+{#                                                                        {% endfor %}#}
+{#                                                                    </tbody>#}
+{#                                                                </table>#}
+{#                                                            </div>#}
+{#                                                        </div>#}
+{#                                                    </div>#}
+{#                                                </div>#}
+{#                                            {% endfor %}#}
+{#                                        </div>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        {% endfor %}#}
+{#                    </div>#}
+{##}
+{#                    <!-- Enhanced Action Buttons -->#}
+{#                    <div class="d-flex justify-content-end mt-5 gap-3">#}
+{#                        <button type="submit" class="btn btn-primary-enhanced btn-enhanced" id="save-btn">#}
+{#                            <span class="btn-text">#}
+{#                                <i class="fas fa-save me-2"></i>#}
+{#                                {% trans "ذخیره تغییرات" %}#}
+{#                            </span>#}
+{#                            <span class="loading-spinner d-none"></span>#}
+{#                        </button>#}
+{#                        <a href="{% url 'accessrule_list' %}" class="btn btn-outline-enhanced btn-enhanced">#}
+{#                            <i class="fas fa-arrow-left me-2"></i>#}
+{#                            {% trans "بازگشت" %}#}
+{#                        </a>#}
+{#                        <button type="button" class="btn btn-outline-enhanced btn-enhanced" id="preview-btn">#}
+{#                            <i class="fas fa-eye me-2"></i>#}
+{#                            {% trans "پیش‌نمایش" %}#}
+{#                        </button>#}
+{#                    </div>#}
+{#                {% else %}#}
+{#                    <div class="alert alert-info-enhanced text-center py-5">#}
+{#                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>#}
+{#                        <h5>{% trans "هیچ پست فعالی یافت نشد." %}</h5>#}
+{#                        <p class="text-muted mb-0">لطفاً ابتدا پست‌های مورد نظر را ایجاد کنید.</p>#}
+{#                    </div>#}
+{#                {% endif %}#}
+{#            </form>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+{##}
+{#<!-- Floating Action Button -->#}
+{#<button class="fab" id="scroll-to-top" title="بازگشت به بالا">#}
+{#    <i class="fas fa-arrow-up"></i>#}
+{#</button>#}
+{##}
+{#<!-- Preview Modal -->#}
+{#<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">#}
+{#    <div class="modal-dialog modal-xl">#}
+{#        <div class="modal-content">#}
+{#            <div class="modal-header bg-primary text-white">#}
+{#                <h5 class="modal-title" id="previewModalLabel">#}
+{#                    <i class="fas fa-eye me-2"></i>#}
+{#                    پیش‌نمایش قوانین دسترسی#}
+{#                </h5>#}
+{#                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>#}
+{#            </div>#}
+{#            <div class="modal-body" id="preview-content">#}
+{#                <!-- Preview content will be loaded here -->#}
+{#            </div>#}
+{#            <div class="modal-footer">#}
+{#                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>#}
+{#                <button type="button" class="btn btn-primary" id="export-preview">#}
+{#                    <i class="fas fa-download me-1"></i>#}
+{#                    خروجی PDF#}
+{#                </button>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+{#{% endblock %}#}
+{##}
+{#{% block extra_js %}#}
+{#<script>#}
+{#document.addEventListener('DOMContentLoaded', () => {#}
+{#    const form = document.getElementById('accessRuleForm');#}
+{#    if (!form) return;#}
+{##}
+{#    // Initialize components#}
+{#    initializeFormHandlers();#}
+{#    initializeSearchFunctionality();#}
+{#    initializeProgressTracking();#}
+{#    initializeThemeToggle();#}
+{#    initializeTooltips();#}
+{#    initializeAnimations();#}
+{#    initializeFAB();#}
+{##}
+{#    // Form handlers#}
+{#    function initializeFormHandlers() {#}
+{#        // Toggle signer checkbox#}
+{#        const toggleSignerCheckbox = (ruleCheckbox) => {#}
+{#            const signerCheckbox = ruleCheckbox.closest('tr').querySelector('.signer-checkbox');#}
+{#            if (signerCheckbox) {#}
+{#                signerCheckbox.disabled = !ruleCheckbox.checked;#}
+{#                if (!ruleCheckbox.checked) signerCheckbox.checked = false;#}
+{#            }#}
+{#        };#}
+{##}
+{#        // Update enable all state#}
+{#        const updateEnableAllState = (enableAllCheckbox) => {#}
+{#            const { postId, entityCode } = enableAllCheckbox.dataset;#}
+{#            const groupRules = form.querySelectorAll(`.rule-checkbox[data-post-id="${postId}"][data-entity-code="${entityCode}"], .stage-radio-group[data-post-id="${postId}"][data-entity-code="${entityCode}"]`);#}
+{#            let allChecked = true, anyChecked = false;#}
+{##}
+{#            groupRules.forEach(element => {#}
+{#                if (element.classList.contains('rule-checkbox')) {#}
+{#                    if (element.checked) anyChecked = true;#}
+{#                    else allChecked = false;#}
+{#                } else {#}
+{#                    const checkedRadio = element.querySelector('input[type="radio"]:checked');#}
+{#                    if (checkedRadio && checkedRadio.value) anyChecked = true;#}
+{#                    else allChecked = false;#}
+{#                }#}
+{#            });#}
+{##}
+{#            enableAllCheckbox.checked = allChecked;#}
+{#            enableAllCheckbox.indeterminate = anyChecked && !allChecked;#}
+{#        };#}
+{##}
+{#        // Handle enable all checkboxes#}
+{#        const handleEnableAllCheckboxes = (enableAllCheckbox) => {#}
+{#            const { postId, entityCode } = enableAllCheckbox.dataset;#}
+{#            const isChecked = enableAllCheckbox.checked;#}
+{##}
+{#            form.querySelectorAll(`.rule-checkbox[data-post-id="${postId}"][data-entity-code="${entityCode}"]`).forEach(cb => {#}
+{#                cb.checked = isChecked;#}
+{#                toggleSignerCheckbox(cb);#}
+{#            });#}
+{##}
+{#            form.querySelectorAll(`.stage-radio-group[data-post-id="${postId}"][data-entity-code="${entityCode}"]`).forEach(group => {#}
+{#                const radios = group.querySelectorAll('input[type="radio"]');#}
+{#                const firstOption = isChecked ? radios[1] || radios[0] : radios[0];#}
+{#                if (firstOption) firstOption.checked = true;#}
+{#            });#}
+{#        };#}
+{##}
+{#        // Event listeners#}
+{#        form.addEventListener('change', (event) => {#}
+{#            const target = event.target;#}
+{##}
+{#            if (target.matches('.rule-checkbox')) {#}
+{#                toggleSignerCheckbox(target);#}
+{#                updateEnableAllState(form.querySelector(`.enable-all-checkbox[data-post-id="${target.dataset.postId}"][data-entity-code="${target.dataset.entityCode}"]`));#}
+{#                updateProgress();#}
+{#            } else if (target.matches('.stage-radio-input')) {#}
+{#                updateEnableAllState(form.querySelector(`.enable-all-checkbox[data-post-id="${target.closest('.stage-radio-group').dataset.postId}"][data-entity-code="${target.closest('.stage-radio-group').dataset.entityCode}"]`));#}
+{#                updateProgress();#}
+{#            } else if (target.matches('.enable-all-checkbox')) {#}
+{#                handleEnableAllCheckboxes(target);#}
+{#                updateProgress();#}
+{#            }#}
+{#        });#}
+{##}
+{#        // Control buttons#}
+{#        document.getElementById('open-all-btn')?.addEventListener('click', () => {#}
+{#            document.querySelectorAll('#postsAccordion .accordion-collapse').forEach(el => {#}
+{#                bootstrap.Collapse.getOrCreateInstance(el).show();#}
+{#            });#}
+{#        });#}
+{##}
+{#        document.getElementById('close-all-btn')?.addEventListener('click', () => {#}
+{#            document.querySelectorAll('#postsAccordion .accordion-collapse').forEach(el => {#}
+{#                bootstrap.Collapse.getOrCreateInstance(el).hide();#}
+{#            });#}
+{#        });#}
+{##}
+{#        document.getElementById('select-all-btn')?.addEventListener('click', () => {#}
+{#            form.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(input => {#}
+{#                if (input.type === 'checkbox') {#}
+{#                    input.checked = true;#}
+{#                } else if (input.type === 'radio' && input.value) {#}
+{#                    input.checked = true;#}
+{#                }#}
+{#            });#}
+{#            updateProgress();#}
+{#        });#}
+{##}
+{#        // Initialize states#}
+{#        document.querySelectorAll('.rule-checkbox').forEach(toggleSignerCheckbox);#}
+{#        document.querySelectorAll('.enable-all-checkbox').forEach(updateEnableAllState);#}
+{#    }#}
+{##}
+{#    // Search functionality#}
+{#    function initializeSearchFunctionality() {#}
+{#        const searchInput = document.getElementById('search-posts');#}
+{#        if (!searchInput) return;#}
+{##}
+{#        searchInput.addEventListener('input', (e) => {#}
+{#            const query = e.target.value.toLowerCase();#}
+{#            const accordionItems = document.querySelectorAll('.accordion-item-enhanced');#}
+{##}
+{#            accordionItems.forEach(item => {#}
+{#                const postName = item.querySelector('.accordion-button strong').textContent.toLowerCase();#}
+{#                const shouldShow = postName.includes(query);#}
+{##}
+{#                item.style.display = shouldShow ? 'block' : 'none';#}
+{##}
+{#                if (shouldShow && query) {#}
+{#                    item.classList.add('animate__animated', 'animate__fadeIn');#}
+{#                }#}
+{#            });#}
+{#        });#}
+{#    }#}
+{##}
+{#    // Progress tracking#}
+{#    function initializeProgressTracking() {#}
+{#        updateProgress();#}
+{#        updatePostsCount();#}
+{#    }#}
+{##}
+{#    function updateProgress() {#}
+{#        const totalInputs = form.querySelectorAll('input[type="checkbox"], input[type="radio"]').length;#}
+{#        const checkedInputs = form.querySelectorAll('input[type="checkbox"]:checked, input[type="radio"]:checked').length;#}
+{#        const percentage = totalInputs > 0 ? Math.round((checkedInputs / totalInputs) * 100) : 0;#}
+{##}
+{#        const progressBar = document.getElementById('form-progress');#}
+{#        const completionPercentage = document.getElementById('completion-percentage');#}
+{##}
+{#        if (progressBar) {#}
+{#            progressBar.style.width = percentage + '%';#}
+{#        }#}
+{##}
+{#        if (completionPercentage) {#}
+{#            completionPercentage.textContent = percentage + '%';#}
+{#        }#}
+{##}
+{#        // Update individual post progress#}
+{#        document.querySelectorAll('.accordion-item-enhanced').forEach(item => {#}
+{#            const postId = item.querySelector('[data-bs-target]').getAttribute('data-bs-target').replace('#collapsePost', '');#}
+{#            const postInputs = item.querySelectorAll('input[type="checkbox"], input[type="radio"]');#}
+{#            const postChecked = item.querySelectorAll('input[type="checkbox"]:checked, input[type="radio"]:checked');#}
+{#            const postPercentage = postInputs.length > 0 ? Math.round((postChecked.length / postInputs.length) * 100) : 0;#}
+{##}
+{#            const badge = item.querySelector('.post-completion');#}
+{#            if (badge) {#}
+{#                badge.textContent = postPercentage + '%';#}
+{#                badge.className = `badge ${postPercentage === 100 ? 'bg-success' : postPercentage > 50 ? 'bg-warning' : 'bg-secondary'} post-completion`;#}
+{#            }#}
+{##}
+{#            // Update status indicator#}
+{#            const statusIndicator = item.querySelector('.status-indicator');#}
+{#            if (statusIndicator) {#}
+{#                statusIndicator.className = `status-indicator ${postPercentage === 100 ? 'status-active' : postPercentage > 0 ? 'status-pending' : 'status-inactive'}`;#}
+{#            }#}
+{#        });#}
+{#    }#}
+{##}
+{#    function updatePostsCount() {#}
+{#        const postsCount = document.querySelectorAll('.accordion-item-enhanced').length;#}
+{#        const postsCountElement = document.getElementById('posts-count');#}
+{#        if (postsCountElement) {#}
+{#            postsCountElement.textContent = postsCount + ' پست';#}
+{#        }#}
+{#    }#}
+{##}
+{#    // Theme toggle#}
+{#    function initializeThemeToggle() {#}
+{#        const themeToggle = document.getElementById('theme-toggle');#}
+{#        const themeIcon = document.getElementById('theme-icon');#}
+{##}
+{#        if (!themeToggle) return;#}
+{##}
+{#        themeToggle.addEventListener('click', () => {#}
+{#            const currentTheme = document.documentElement.getAttribute('data-theme');#}
+{#            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';#}
+{##}
+{#            document.documentElement.setAttribute('data-theme', newTheme);#}
+{#            themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';#}
+{##}
+{#            localStorage.setItem('theme', newTheme);#}
+{#        });#}
+{##}
+{#        // Load saved theme#}
+{#        const savedTheme = localStorage.getItem('theme') || 'light';#}
+{#        document.documentElement.setAttribute('data-theme', savedTheme);#}
+{#        themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';#}
+{#    }#}
+{##}
+{#    // Initialize tooltips#}
+{#    function initializeTooltips() {#}
+{#        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {#}
+{#            new bootstrap.Tooltip(el, {#}
+{#                customClass: 'tooltip-enhanced'#}
+{#            });#}
+{#        });#}
+{#    }#}
+{##}
+{#    // Initialize animations#}
+{#    function initializeAnimations() {#}
+{#        // Animate elements on scroll#}
+{#        const observerOptions = {#}
+{#            threshold: 0.1,#}
+{#            rootMargin: '0px 0px -50px 0px'#}
+{#        };#}
+{##}
+{#        const observer = new IntersectionObserver((entries) => {#}
+{#            entries.forEach(entry => {#}
+{#                if (entry.isIntersecting) {#}
+{#                    entry.target.classList.add('animate__animated', 'animate__fadeInUp');#}
+{#                }#}
+{#            });#}
+{#        }, observerOptions);#}
+{##}
+{#        document.querySelectorAll('.accordion-item-enhanced').forEach(el => {#}
+{#            observer.observe(el);#}
+{#        });#}
+{#    }#}
+{##}
+{#    // Initialize Floating Action Button#}
+{#    function initializeFAB() {#}
+{#        const fab = document.getElementById('scroll-to-top');#}
+{#        if (!fab) return;#}
+{##}
+{#        fab.addEventListener('click', () => {#}
+{#            window.scrollTo({#}
+{#                top: 0,#}
+{#                behavior: 'smooth'#}
+{#            });#}
+{#        });#}
+{##}
+{#        window.addEventListener('scroll', () => {#}
+{#            if (window.scrollY > 300) {#}
+{#                fab.style.display = 'block';#}
+{#            } else {#}
+{#                fab.style.display = 'none';#}
+{#            }#}
+{#        });#}
+{#    }#}
+{##}
+{#    // Form submission with loading state#}
+{#    form.addEventListener('submit', (e) => {#}
+{#        const saveBtn = document.getElementById('save-btn');#}
+{#        const btnText = saveBtn.querySelector('.btn-text');#}
+{#        const spinner = saveBtn.querySelector('.loading-spinner');#}
+{##}
+{#        btnText.classList.add('d-none');#}
+{#        spinner.classList.remove('d-none');#}
+{#        saveBtn.disabled = true;#}
+{#    });#}
+{##}
+{#    // Preview functionality#}
+{#    document.getElementById('preview-btn')?.addEventListener('click', () => {#}
+{#        const modal = new bootstrap.Modal(document.getElementById('previewModal'));#}
+{#        const previewContent = document.getElementById('preview-content');#}
+{##}
+{#        // Generate preview content#}
+{#        let content = '<div class="preview-summary">';#}
+{#        content += '<h6>خلاصه تنظیمات:</h6>';#}
+{#        content += '<ul>';#}
+{##}
+{#        document.querySelectorAll('.accordion-item-enhanced').forEach(item => {#}
+{#            const postName = item.querySelector('.accordion-button strong').textContent;#}
+{#            const checkedCount = item.querySelectorAll('input:checked').length;#}
+{#            content += `<li>${postName}: ${checkedCount} قانون فعال</li>`;#}
+{#        });#}
+{##}
+{#        content += '</ul></div>';#}
+{#        previewContent.innerHTML = content;#}
+{##}
+{#        modal.show();#}
+{#    });#}
+{##}
+{#    // Auto-save functionality (optional)#}
+{#    let autoSaveTimeout;#}
+{#    form.addEventListener('change', () => {#}
+{#        clearTimeout(autoSaveTimeout);#}
+{#        autoSaveTimeout = setTimeout(() => {#}
+{#            // Auto-save logic here#}
+{#            console.log('Auto-saving...');#}
+{#        }, 5000);#}
+{#    });#}
+{##}
+{#    // Initialize everything#}
+{#    setTimeout(() => {#}
+{#        updateProgress();#}
+{##}
+{#        // Open accordions with errors#}
+{#        form.querySelectorAll('.text-danger').forEach(errorEl => {#}
+{#            const collapse = errorEl.closest('.accordion-collapse');#}
+{#            if (collapse && !collapse.classList.contains('show')) {#}
+{#                bootstrap.Collapse.getOrCreateInstance(collapse).show();#}
+{#            }#}
+{#        });#}
+{#    }, 100);#}
+{#});#}
+{#</script>#}
+{#{% endblock %}#}

@@ -11,6 +11,21 @@ import os
 
 from django.core.asgi import get_asgi_application
 
+from notificationApp.consumers import NotificationConsumer
+from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+from django.urls import re_path
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Tanbakhsystem.settings')
 
-application = get_asgi_application()
+# application = get_asgi_application()
+# -----------
+application = ProtocolTypeRouter({
+    "http": get_asgi_application(),
+    "websocket": AuthMiddlewareStack(
+        URLRouter([
+            re_path(r'ws/notifications/$', NotificationConsumer.as_asgi()),
+        ])
+    ),
+})

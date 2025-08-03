@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}تأیید گروهی فاکتورها{% endblock %}
+{% block content %}
+<h1>تأیید گروهی فاکتورها</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>شماره فاکتور</th>
+                <th>تنخواه</th>
+                <th>مبلغ</th>
+                <th>وضعیت</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for factor in factors %}
+                <tr>
+                    <td>{{ factor.number }}</td>
+                    <td>{{ factor.tankhah.number }}</td>
+                    <td>{{ factor.amount|floatformat:2 }}</td>
+                    <td>{{ factor.get_status_display }}</td>
+                    <input type="hidden" name="factor_ids" value="{{ factor.pk }}">
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-primary">تأیید همه</button>
+    <a href="{% url 'factor_list' %}" class="btn btn-secondary">لغو</a>
+</form>
+{% endblock %}

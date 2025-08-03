@@ -1,0 +1,38 @@
+<!-- templates/components/workflow_progress.html -->
+
+<div class="workflow-progress mb-4">
+    <div class="progress-header d-flex justify-content-between mb-2">
+        <span class="text-muted">پیشرفت تأیید</span>
+        <span class="badge bg-primary">مرحله {{ stage_info.current_index|add:1 }} از {{ stage_info.total_stages }}</span>
+    </div>
+    
+    <div class="progress mb-3" style="height: 8px;">
+        <div class="progress-bar bg-success" 
+             style="width: {{ stage_info.progress_percentage }}%"
+             aria-valuenow="{{ stage_info.progress_percentage }}" 
+             aria-valuemin="0" 
+             aria-valuemax="100">
+        </div>
+    </div>
+    
+    <div class="stages-timeline">
+        {% for stage in stage_info.all_stages %}
+        <div class="stage-item {% if stage.stage_order <= stage_info.current_stage.stage_order %}completed{% endif %} 
+                    {% if stage.stage_order == stage_info.current_stage.stage_order %}current{% endif %}">
+            <div class="stage-icon">
+                {% if stage.stage_order < stage_info.current_stage.stage_order %}
+                    <i class="fas fa-check text-success"></i>
+                {% elif stage.stage_order == stage_info.current_stage.stage_order %}
+                    <i class="fas fa-clock text-warning"></i>
+                {% else %}
+                    <i class="fas fa-circle text-muted"></i>
+                {% endif %}
+            </div>
+            <div class="stage-info">
+                <div class="stage-name">{{ stage.stage }}</div>
+                <div class="stage-order text-muted">مرحله {{ stage.stage_order }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>

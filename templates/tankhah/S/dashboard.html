@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}داشبورد{% endblock %}
+{% block content %}
+<h1>داشبورد تحلیلی</h1>
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">تعداد کل فاکتورها</h5>
+                <p class="card-text">{{ total_factors }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">فاکتورهای در انتظار</h5>
+                <p class="card-text">{{ pending_factors }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">فاکتورهای ردشده</h5>
+                <p class="card-text">{{ rejected_factors }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+<canvas id="statusChart" class="mt-4"></canvas>
+<script>
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['در انتظار', 'ردشده', 'تأییدشده'],
+            datasets: [{
+                data: [{{ pending_factors }}, {{ rejected_factors }}, {{ total_factors|subtract:pending_factors|subtract:rejected_factors }}],
+                backgroundColor: ['#007bff', '#dc3545', '#28a745']
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+</script>
+{% endblock %}

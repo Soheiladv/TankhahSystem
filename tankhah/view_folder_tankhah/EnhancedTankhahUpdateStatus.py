@@ -4,13 +4,14 @@ from django.core.mail import send_mail
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic.edit import UpdateView
-from notifications.signals import notify
+
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum
 from core.PermissionBase import PermissionBaseView
-from core.models import Post
+from core.models import Post, AccessRule
+from notificationApp.utils import send_notification
 from tankhah.models import Tankhah, Factor , StageApprover, ApprovalLog, CustomUser
 from budgets.models import PaymentOrder, Payee
 from notificationApp.models import  NotificationRule
@@ -35,13 +36,8 @@ class EnhancedTankhahUpdateStatusView(PermissionBaseView, UpdateView):
             for post in rule.recipients.all():
                 users = CustomUser.objects.filter(userpost__post=post, userpost__is_active=True)
                 for user in users:
-                    notify.send(
-                        sender=self.request.user,
-                        recipient=user,
-                        verb=action.lower(),
-                        action_object=entity,
-                        description=description,
-                        level=rule.priority
+                    send_notification(self.request.user, users=None, posts=None, verb=None, description=None, target=None,
+                                          entity_type=None, priority='MEDIUM'
                     )
                     if rule.channel == 'EMAIL':
                         send_mail(
@@ -113,7 +109,7 @@ class EnhancedTankhahUpdateStatusView(PermissionBaseView, UpdateView):
             return self.form_invalid(form)
 
     def create_payment_order(self, tankhah, payee, user):
-        initial_po_stage = WorkflowStage.objects.filter(
+        initial_po_stage = AccessRule.objects.filter(
             entity_type='PAYMENTORDER',
             order=1,
             is_active=True

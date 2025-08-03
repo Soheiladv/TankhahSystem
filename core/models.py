@@ -504,7 +504,8 @@ class AccessRule(models.Model):
     entity_type = models.CharField(max_length=100, choices=ENTITY_TYPES, verbose_name=_('نوع موجودیت'))
     min_level = models.IntegerField(default=1, verbose_name=_("حداقل سطح"))
 
-    branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="شاخه")
+    # branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True,default=None, verbose_name="شاخه")
+    branch = models.ForeignKey('core.Branch', on_delete=models.SET_NULL, null=True, blank=True, default=None, verbose_name="شاخه")
 
     is_active = models.BooleanField(default=True, verbose_name=_('فعال'))
     min_signatures = models.PositiveIntegerField(default=1, verbose_name=_("حداقل تعداد امضا"))
@@ -519,7 +520,8 @@ class AccessRule(models.Model):
         verbose_name = _("قانون دسترسی")
         verbose_name_plural = _("قوانین دسترسی")
         # unique_together = ('organization', 'branch', 'min_level', 'stage', 'action_type', 'entity_type')
-        unique_together = ('organization', 'entity_type', 'stage_order')
+        unique_together = ('organization', 'entity_type', 'stage_order' , 'post', 'action_type')
+
         default_permissions = ()
         permissions = [
             ('AccessRule_add', 'افزودن قانون دسترسی'),
@@ -546,22 +548,22 @@ class AccessRule(models.Model):
     # def __str__(self):
     #     return f"{self.organization} - {self.branch} - {self.action_type} - {self.entity_type}"
 
-    def save(self, *args, **kwargs):
-        # بررسی یکتایی stage_order در سطح مدل، که قبلا داشتید و بسیار خوب است.
-        # این باعث می‌شود حتی اگر از جاهای دیگر هم AccessRule ایجاد شود، تداخل پیش نیاید.
-        if self.stage_order and self.is_active:
-            if AccessRule.objects.filter(
-                organization=self.organization,
-                entity_type=self.entity_type,
-                stage_order=self.stage_order,
-                is_active=True
-            ).exclude(pk=self.pk).exists():
-                raise ValueError(_immediate("ترتیب مرحله {stage_order} برای سازمان {org} و موجودیت {entity} قبلاً استفاده شده است.").format(
-                    stage_order=self.stage_order,
-                    org=self.organization.name, # استفاده از .name برای نمایش بهتر
-                    entity=self.entity_type
-                ))
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     # بررسی یکتایی stage_order در سطح مدل، که قبلا داشتید و بسیار خوب است.
+    #     # این باعث می‌شود حتی اگر از جاهای دیگر هم AccessRule ایجاد شود، تداخل پیش نیاید.
+    #     if self.stage_order and self.is_active:
+    #         if AccessRule.objects.filter(
+    #             organization=self.organization,
+    #             entity_type=self.entity_type,
+    #             stage_order=self.stage_order,
+    #             is_active=True
+    #         ).exclude(pk=self.pk).exists():
+    #             raise ValueError(_immediate("ترتیب مرحله {stage_order} برای سازمان {org} و موجودیت {entity} قبلاً استفاده شده است.").format(
+    #                 stage_order=self.stage_order,
+    #                 org=self.organization.name, # استفاده از .name برای نمایش بهتر
+    #                 entity=self.entity_type
+    #             ))
+    #     super().save(*args, **kwargs)
 
     def __str__(self):
             return f"{self.organization} - {self.post} - {self.stage} (ترتیب: {self.stage_order}) - {self.action_type}"

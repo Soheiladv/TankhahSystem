@@ -1,7 +1,7 @@
 
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from notifications.signals import notify
+
 from tankhah.models import Tankhah, Factor
 from budgets.models import BudgetTransaction
 from django.contrib.auth import get_user_model

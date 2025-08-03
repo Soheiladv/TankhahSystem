@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}تغییر مرحله فاکتور {{ factor.number }}{% endblock %}
+{% block content %}
+<h1>تغییر مرحله فاکتور {{ factor.number }}</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-info">تغییر مرحله</button>
+    <a href="{% url 'factor_detail' factor.pk %}" class="btn btn-secondary">لغو</a>
+</form>
+{% endblock %}

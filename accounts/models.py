@@ -96,6 +96,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         related_query_name='user',
     )
 
+    # در مدل CustomUser
+    def get_active_branch(self):
+        '''خروجی نام برنچ سازمانی کاربر'''
+        active_post = self.userpost_set.filter(is_active=True).first()
+        return active_post.post.branch if active_post else None
+
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']
 

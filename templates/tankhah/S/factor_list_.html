@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}لیست فاکتورها{% endblock %}
+{% block content %}
+<h1>لیست فاکتورها</h1>
+<form method="get" class="mb-3">
+    <div class="row">
+        <div class="col-md-4">
+            <select name="status" class="form-control" onchange="this.form.submit()">
+                <option value="">همه وضعیت‌ها</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <select name="category" class="form-control" onchange="this.form.submit()">
+                <option value="">همه دسته‌بندی‌ها</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</form>
+<form method="post" action="{% url 'factor_batch_approve' %}" id="batch-approve-form">
+    {% csrf_token %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="select-all"></th>
+                <th>شماره فاکتور</th>
+                <th>تنخواه</th>
+                <th>مبلغ</th>
+                <th>وضعیت</th>
+                <th>دسته‌بندی</th>
+                <th>اقدامات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for factor in factors %}
+                <tr>
+                    <td><input type="checkbox" name="factor_ids" value="{{ factor.pk }}"  ></td>
+                    <td>{{ factor.number }}</td>
+                    <td>{{ factor.tankhah.number }}</td>
+                    <td>{{ factor.amount|floatformat:2 }}</td>
+                    <td>{{ factor.get_status_display }}</td>
+                    <td>{{ factor.category.name }}</td>
+                    <td>
+                        <a href="{% url 'factor_detail' factor.pk %}" class="btn btn-info btn-sm">جزئیات</a>
+{#                        {% if factor.can_approve request.user %}#}
+                            <a href="{% url 'factor_approve___' factor.pk %}" class="btn btn-success btn-sm">تأیید</a>
+                            <a href="{% url 'factor_temp_approve' factor.pk %}" class="btn btn-warning btn-sm">تأیید موقت</a>
+{#                        {% endif %}#}
+{#                        {% if request.user.has_perm 'tankhah.factor_reject' %}#}
+                            <a href="{% url 'factor_reject' factor.pk %}" class="btn btn-danger btn-sm">رد</a>
+{#                        {% endif %}#}
+{#                        {% if request.user.has_perm 'tankhah.factor_update' and factor.status == 'REJECTED' %}#}
+                            <a href="{% url 'factor_edit' factor.pk %}" class="btn btn-secondary btn-sm">اصلاح</a>
+{#                        {% endif %}#}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if can_batch_approve %}
+        <button type="submit" class="btn btn-primary">تأیید گروهی</button>
+    {% endif %}
+</form>
+{% endblock %}

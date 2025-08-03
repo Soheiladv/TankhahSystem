@@ -1,182 +1,182 @@
 {% extends 'base.html' %}
-{% load i18n static jformat %}
+{% load static i18n jformat %}
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .notification-card {
+        border-right: 5px solid transparent;
+        transition: all 0.3s ease;
+        border-radius: 0.75rem;
+    }
+    .notification-card.unread {
+        background-color: #f8f9fa;
+        border-right-color: var(--bs-primary);
+    }
+    .notification-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.1);
+    }
+    .notification-icon {
+        width: 45px;
+        height: 45px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        color: white;
+    }
+    .priority-HIGH { background-color: var(--bs-danger); }
+    .priority-MEDIUM { background-color: var(--bs-warning); }
+    .priority-LOW { background-color: var(--bs-info); }
+
+    .action-buttons a, .action-buttons button {
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    .notification-card:hover .action-buttons a,
+    .notification-card:hover .action-buttons button {
+        opacity: 1;
+    }
+
+    @media (max-width: 768px) {
+        .notification-card {
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+        .action-buttons {
+            margin-top: 1rem;
+            width: 100%;
+            justify-content: flex-end;
+        }
+        .action-buttons a, .action-buttons button {
+            opacity: 1;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <div class="card shadow-lg">
-        <div class="card-header bg-primary text-white">
-            <div class="d-flex justify-content-between align-items-center">
-                <h3 class="card-title mb-0">
-                    <i class="fas fa-inbox me-2"></i> {{ title }}
-                </h3>
-                <div>
-                    <span class="badge bg-light text-dark">
-                        {% trans "تعداد اعلان‌های خوانده نشده:" %} {{ unread_count }}
-                    </span>
-                </div>
-            </div>
+<div class="container fade-in">
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center py-3">
+            <h4 class="mb-0 fw-bold"><i class="fas fa-inbox me-2 text-primary"></i>{{ title }}</h4>
+            <span class="badge bg-primary rounded-pill fs-6">{{ unread_count|default:0 }} {% trans "خوانده نشده" %}</span>
         </div>
-
         <div class="card-body">
-            <div class="mb-3">
-                <a href="?status=all"
-                   class="btn btn-sm btn-outline-primary {% if status == 'all' %}active{% endif %}">{% trans "همه" %}</a>
-                <a href="?status=unread"
-                   class="btn btn-sm btn-outline-primary {% if status == 'unread' %}active{% endif %}">{% trans "خوانده‌نشده" %}</a>
-                <a href="?status=read"
-                   class="btn btn-sm btn-outline-primary {% if status == 'read' %}active{% endif %}">{% trans "خوانده‌شده" %}</a>
+            <div class="btn-group mb-4" role="group">
+                <a href="?status=all" class="btn {% if status == 'all' or not status %}btn-primary{% else %}btn-outline-primary{% endif %}">{% trans "همه" %}</a>
+                <a href="?status=unread" class="btn {% if status == 'unread' %}btn-primary{% else %}btn-outline-primary{% endif %}">{% trans "خوانده نشده" %}</a>
+                <a href="?status=read" class="btn {% if status == 'read' %}btn-primary{% else %}btn-outline-primary{% endif %}">{% trans "خوانده شده" %}</a>
             </div>
 
-            {% if page_obj.object_list %}
-                <div class="list-group">
-                    {% for notice in page_obj.object_list %}
-                        <div class="list-group-item list-group-item-action {% if notice.unread %}list-group-item-primary{% endif %}">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="me-3">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <i class="fas fa-{% if notice.unread %}envelope{% else %}envelope-open-text{% endif %} me-2 text-{% if notice.unread %}danger{% else %}success{% endif %}"></i>
-                                        <h5 class="mb-0">{{ notice.verb }}</h5>
-                                    </div>
-                                    {% if notice.description %}
-                                        <p class="mb-2 text-muted">{{ notice.description }}</p>
-                                    {% endif %}
-                                    <small class="text-muted">
-                                        <i class="far fa-clock me-1"></i>
-                                        {{ notice.timestamp|jformat:"%Y/%m/%d - %H:%M" }}
-                                    </small>
-                                </div>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
-                                            id="dropdownMenuButton{{ notice.id }}" data-bs-toggle="dropdown"
-                                            aria-expanded="false">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ notice.id }}">
-                                        <li>
-                                            <a class="dropdown-item"
-                                               href="{% url 'notifications:mark_as_read' notice.id %}?next={% url 'notifications_inbox' %}">
-                                                <i class="fas fa-check me-2"></i> {% trans "علامت به عنوان خوانده شده" %}
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="#"
-                                               onclick="deleteNotification({{ notice.id }})">
-                                                <i class="fas fa-trash me-2"></i> {% trans "حذف اعلان" %}
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            {% if notice.target %}
-                                <div class="mt-2">
-                                    <a href="{{ notice.target.get_absolute_url }}"
-                                       class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-external-link-alt me-1"></i> {% trans "مشاهده جزئیات" %}
-                                    </a>
-                                </div>
-                            {% endif %}
+            <div id="notification-container">
+                {% for notice in page_obj %}
+                    <div class="notification-card d-flex align-items-center p-3 mb-3 shadow-sm {% if notice.unread %}unread{% endif %}" id="notification-{{ notice.id }}">
+                        <div class="notification-icon priority-{{ notice.priority }}">
+                            <i class="fas fa-bell"></i>
                         </div>
-                    {% endfor %}
-                </div>
-
-                <!-- صفحه‌بندی -->
-                <nav aria-label="Page navigation" class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status %}&status={{ status }}{% endif %}"
-                                   aria-label="Previous">
-                                    <span aria-hidden="true">«</span>
-                                </a>
-                            </li>
-                        {% endif %}
-
-                        {% for num in page_obj.paginator.page_range %}
-                            {% if page_obj.number == num %}
-                                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                                <li class="page-item"><a class="page-link" href="?page={{ num }}{% if status %}&status={{ status }}{% endif %}">{{ num }}</a></li>
+                        <div class="flex-grow-1 mx-3">
+                            <p class="mb-1">
+                                {{ notice.actor|default:"سیستم" }} <strong>{{ notice.verb }}</strong>
+                                {% if notice.target %}
+                                    <span class="text-primary">({{ notice.target }})</span>
+                                {% endif %}
+                            </p>
+                            {% if notice.description %}<p class="mb-1 text-muted small">{{ notice.description }}</p>{% endif %}
+                            <small class="text-muted">{{ notice.timestamp|jformat:"%Y/%m/%d - %H:%M" }}</small>
+                        </div>
+                        <div class="action-buttons d-flex gap-2">
+                            {% if notice.target and notice.target.get_absolute_url %}
+                            <a href="{% url 'notifications:mark_as_read' notice.id %}?next={{ notice.target.get_absolute_url }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="{% trans 'مشاهده و علامت‌گذاری به عنوان خوانده شده' %}"><i class="fas fa-eye"></i></a>
                             {% endif %}
-                        {% endfor %}
+                            <button class="btn btn-sm btn-outline-danger delete-notification-btn" data-id="{{ notice.id }}" data-bs-toggle="tooltip" title="{% trans 'حذف' %}"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-envelope-open-text fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">{% trans "صندوق ورودی شما خالی است." %}</h5>
+                    </div>
+                {% endfor %}
+            </div>
 
-                        {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status %}&status={{ status }}{% endif %}" aria-label="Next">
-                                    <span aria-hidden="true">»</span>
-                                </a>
-                            </li>
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav class="mt-4 d-flex justify-content-center">
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status %}&status={{ status }}{% endif %}">«</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">«</span></li>
+                    {% endif %}
+                    
+                    {% for i in page_obj.paginator.get_elided_page_range %}
+                        {% if page_obj.number == i %}
+                            <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                        {% else %}
+                            {% if i == page_obj.paginator.ELLIPSIS %}
+                                <li class="page-item disabled"><span class="page-link">{{ i }}</span></li>
+                            {% else %}
+                                <li class="page-item"><a class="page-link" href="?page={{ i }}{% if status %}&status={{ status }}{% endif %}">{{ i }}</a></li>
+                            {% endif %}
                         {% endif %}
-                    </ul>
-                </nav>
-            {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-inbox fa-4x text-muted mb-4"></i>
-                    <h4 class="text-muted">{% trans "صندوق دریافتی شما خالی است" %}</h4>
-                    <p class="text-muted">{% trans "هیچ اعلانی دریافت نکرده‌اید" %}</p>
-                </div>
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status %}&status={{ status }}{% endif %}">»</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">»</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
             {% endif %}
         </div>
-
-        <div class="card-footer bg-light">
-            <div class="d-flex justify-content-between">
-                <a href="{% url 'notifications:mark_all_as_read' %}?next={% url 'notifications_inbox' %}" class="btn btn-success">
-                    <i class="fas fa-check-double me-2"></i> {% trans "خواندن همه اعلان‌ها" %}
-                </a>
-                <a href="{% url 'notifications:all' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-list me-2"></i> {% trans "مشاهده همه اعلان‌ها" %}
-                </a>
-            </div>
-        </div>
     </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-    <script>
-        // حذف اعلان با AJAX
-        function deleteNotification(notificationId) {
-            if (confirm('{% trans "آیا از حذف این اعلان اطمینان دارید؟" %}')) {
-                fetch(`/inbox/notifications/delete/${notificationId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',
-                        'Content-Type': 'application/json'
-                    }
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            location.reload();
-                        } else {
-                            alert('{% trans "خطایی در حذف اعلان رخ داد" %}');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('{% trans "خطایی در حذف اعلان رخ داد" %}');
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+    document.getElementById('notification-container').addEventListener('click', function(event) {
+        const target = event.target.closest('.delete-notification-btn');
+        if (!target) return;
+
+        const notificationId = target.dataset.id;
+        const notificationElement = document.getElementById(`notification-${notificationId}`);
+
+        if (confirm("{% trans 'آیا از حذف این اعلان اطمینان دارید؟' %}")) {
+            fetch("{% url 'notifications:delete' 0 %}".replace('0', notificationId), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    notificationElement.classList.add('animate__animated', 'animate__fadeOut');
+                    notificationElement.addEventListener('animationend', () => {
+                        notificationElement.remove();
                     });
-            }
+                } else {
+                    alert(data.message || "{% trans 'خطایی در حذف اعلان رخ داد.' %}");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("{% trans 'یک خطای غیرمنتظره رخ داد.' %}");
+            });
         }
-
-        // به‌روزرسانی شمارنده اعلان‌ها
-        function updateNotificationCount() {
-            fetch("{% url 'notifications:live_unread_notification_count' %}")
-                .then(response => response.json())
-                .then(data => {
-                    const badge = document.querySelector('.notification-badge');
-                    if (badge) {
-                        if (data.unread_count > 0) {
-                            badge.textContent = data.unread_count;
-                            badge.style.display = 'inline-block';
-                        } else {
-                            badge.style.display = 'none';
-                        }
-                    }
-                })
-                .catch(error => console.error('Error fetching notification count:', error));
-        }
-
-        // هر 30 ثانیه شمارنده را به‌روزرسانی کن
-        setInterval(updateNotificationCount, 30000);
-    </script>
+    });
+});
+</script>
 {% endblock %}
+ 

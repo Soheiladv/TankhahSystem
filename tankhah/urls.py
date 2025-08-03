@@ -8,10 +8,11 @@ from tankhah.Factor.FactorStatusReviewView import FactorStatusReviewView, Advanc
     ComprehensiveFactorDetailView, UltimateFactorDetailView
 from tankhah.Factor.NF.view_Nfactor import New_FactorCreateView
 from tankhah.Factor.View_Factor_list import FactorListView, FactorListView2, OptimizedFactorListView
-from tankhah.Factor.view_FactorItemApprove import FactorItemApproveView
+from tankhah.Factor.Approved.view_FactorItemApprove import FactorItemApproveView, FactorApproveView
 from tankhah.Factor.view_FactorUpdate import FactorUpdateView
 from tankhah.Factor.views_approval_path import FactorApprovalPathView
 from tankhah.FactorStatusDashboard.FactorStatusDashboardView import FactorStatusDashboardView
+from tankhah.Services.views_FactorApproval import FactorApprovalView
 from tankhah.TankhahTrackingView import TankhahTrackingViewOLDer, TankhahStatusView, TankhahApprovalTimelineView
 from tankhah.view_folder_tankhah.EnhancedTankhahUpdateStatus import EnhancedTankhahUpdateStatusView
 # from tankhah.view.view_Notification import NotificationListView, NotificationCreateView, NotificationUpdateView, \
@@ -22,7 +23,7 @@ from tankhah.view_folder_tankhah.view_tankhah import (
 )
 from tankhah.views import (
     ApprovalListView, ApprovalCreateView, ApprovalDetailView, ApprovalUpdateView, ApprovalDeleteView,
-    FactorApproveView, FactorItemRejectView,
+    FactorItemRejectView,
     upload_tankhah_documents, ApprovalLogListView, FactorStatusUpdateView, mark_notification_as_read,
     get_subprojects, FactorDetailView, FactorDeleteView, get_unread_notifications,
      ItemCategoryListView, ItemCategoryCreateView, ItemCategoryUpdateView, ItemCategoryDeleteView
@@ -75,7 +76,7 @@ urlpatterns = [
 
     path('factor-item/<int:pk>/reject/', FactorItemRejectView.as_view(), name='factor_item_reject'),
 
-    # path('factor-items/<int:pk>/factoritemsdetail', FactorItemsDetailView, name='factor_items_detail'),
+    path('factor/<int:pk>/approve/', FactorApprovalView.as_view(), name='factor_approve_API'),
 
     path('approvals/', ApprovalListView.as_view(), name='approval_list'),
     path('tankhah/<str:tankhah_number>/approvals/', ApprovalLogListView.as_view(), name='approval_log_list'),
@@ -230,4 +231,67 @@ urlpatterns += [
 #     path('get_subprojects/',  get_subprojects, name='get_subprojects'),
 #     path('get-budget-info/',  get_budget_info, name='get_budget_info'),
 #
+# ]
+
+from tankhah.Services.views_approved_2 import FactorRejectView,FactorEditView,FactorListView__,FactorDetailView,FactorApproveView__,\
+FactorTempApproveView,FactorChangeStageView,FactorBatchApproveView,FactorIssuePaymentView,FactorUnlockView,DashboardView___
+
+urlpatterns += [
+    # لیست فاکتورها
+    path('factors/lis___/', FactorListView__.as_view(), name='factor_list___'),
+    # جزئیات فاکتور
+    path('factors/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'),
+    # ویرایش فاکتور
+    path('factors/<int:pk>/edit/', FactorEditView.as_view(), name='factor_edit'),
+    # تأیید سریع فاکتور
+    path('factors/<int:pk>/approve/', FactorApproveView.as_view(), name='factor_approve___'),
+    # رد فاکتور
+    path('factors/<int:pk>/reject/', FactorRejectView.as_view(), name='factor_reject'),
+    # تأیید موقت
+    path('factors/<int:pk>/temp-approve/', FactorTempApproveView.as_view(), name='factor_temp_approve'),
+    # تغییر مرحله
+    path('factors/<int:pk>/change-stage/', FactorChangeStageView.as_view(), name='factor_change_stage'),
+    # تأیید گروهی
+    path('factors/batch-approve/', FactorBatchApproveView.as_view(), name='factor_batch_approve'),
+    # صدور دستور پرداخت
+    path('factors/<int:pk>/issue-payment/', FactorIssuePaymentView.as_view(), name='factor_issue_payment'),
+    # باز کردن قفل فاکتور
+    path('factors/<int:pk>/unlock/', FactorUnlockView.as_view(), name='factor_unlock'),
+
+    path('dashboard/', DashboardView___.as_view(), name='dashboard__'),
+
+
+
+]
+
+
+
+#
+# urlpatterns = [
+#     # داشبورد تحلیلی
+#     path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
+#     # لیست فاکتورها
+#     path('因素/', views.FactorListView.as_view(), name='factor_list'),
+#     # جزئیات فاکتور
+#     path('factors/<int:pk>/', views.FactorDetailView.as_view(), name='factor_detail'),
+#     # ایجاد فاکتور جدید
+#     path('factors/create/', views.FactorCreateView.as_view(), name='factor_create'),
+#     # ویرایش فاکتور
+#     path('factors/<int:pk>/edit/', views.FactorEditView.as_view(), name='factor_edit'),
+#     # تأیید سریع فاکتور
+#     path('factors/<int:pk>/approve/', views.FactorApproveView.as_view(), name='factor_approve'),
+#     # رد فاکتور
+#     path('factors/<int:pk>/reject/', views.FactorRejectView.as_view(), name='factor_reject'),
+#     # تأیید موقت
+#     path('factors/<int:pk>/temp-approve/', views.FactorTempApproveView.as_view(), name='factor_temp_approve'),
+#     # تغییر مرحله
+#     path('factors/<int:pk>/change-stage/', views.FactorChangeStageView.as_view(), name='factor_change_stage'),
+#     # تأیید گروهی
+#     path('factors/batch-approve/', views.FactorBatchApproveView.as_view(), name='factor_batch_approve'),
+#     # صدور دستور پرداخت
+#     path('factors/<int:pk>/issue-payment/', views.FactorIssuePaymentView.as_view(), name='factor_issue_payment'),
+#     # باز کردن قفل فاکتور
+#     path('factors/<int:pk>/unlock/', views.FactorUnlockView.as_view(), name='factor_unlock'),
+#     # گزارش‌گیری
+#     path('reports/', views.FactorReportView.as_view(), name='factor_report'),
 # ]

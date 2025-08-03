@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}رد فاکتور {{ factor.number }}{% endblock %}
+{% block content %}
+<h1>رد فاکتور {{ factor.number }}</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-danger">رد فاکتور</button>
+    <a href="{% url 'factor_detail' factor.pk %}" class="btn btn-secondary">لغو</a>
+</form>
+{% endblock %}

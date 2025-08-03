@@ -1,0 +1,553 @@
+{% extends 'base.html' %}
+
+{% load i18n static rcms_custom_filters %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+
+<style>
+    :root {
+        --primary-color: #4f46e5;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --primary-light: #818cf8;
+        --primary-dark: #3730a3;
+        --info-color: #06b6d4;
+        --dark-color: #1f2937;
+        --light-color: #f8fafc;
+        --border-radius: 12px;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    }
+
+    /* Main Card with Gradient */
+    .main-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-xl);
+        overflow: hidden;
+    }
+
+    .card-header-enhanced {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Nested Accordion System */
+    .outer-accordion {
+        --bs-accordion-border-radius: var(--border-radius);
+        --bs-accordion-inner-border-radius: calc(var(--border-radius) - 1px);
+        --bs-accordion-btn-padding-x: 1.5rem;
+        --bs-accordion-btn-padding-y: 1.25rem;
+        --bs-accordion-body-padding-x: 1.5rem;
+        --bs-accordion-body-padding-y: 1rem;
+        --bs-accordion-active-bg: rgba(255, 255, 255, 0.15);
+        --bs-accordion-active-color: white;
+    }
+
+    .inner-accordion {
+        --bs-accordion-border-radius: calc(var(--border-radius) - 5px);
+        --bs-accordion-inner-border-radius: calc(var(--border-radius) - 6px);
+        --bs-accordion-btn-padding-x: 1rem;
+        --bs-accordion-btn-padding-y: 0.75rem;
+        --bs-accordion-body-padding-x: 1rem;
+        --bs-accordion-body-padding-y: 0.75rem;
+        --bs-accordion-active-bg: rgba(79, 70, 229, 0.1);
+        --bs-accordion-active-color: var(--primary-color);
+    }
+
+    .accordion-button {
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .accordion-button:not(.collapsed)::after {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%234f46e5'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    }
+
+    .outer-accordion .accordion-button:not(.collapsed)::after {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    }
+
+    /* User status indicators */
+    .user-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-approved {
+        background-color: rgba(16, 185, 129, 0.1);
+        color: var(--success-color);
+    }
+
+    .status-pending {
+        background-color: rgba(245, 158, 11, 0.1);
+        color: var(--warning-color);
+    }
+
+    .status-rejected {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-left: 0.5rem;
+    }
+
+    .dot-approved {
+        background-color: var(--success-color);
+    }
+
+    .dot-pending {
+        background-color: var(--warning-color);
+        animation: pulse 2s infinite;
+    }
+
+    .dot-rejected {
+        background-color: var(--danger-color);
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    /* Rule items */
+    .rule-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .rule-item:last-child {
+        border-bottom: none;
+    }
+
+    .rule-label {
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+    }
+
+    .rule-icon {
+        margin-left: 0.75rem;
+        color: var(--primary-color);
+        width: 20px;
+        text-align: center;
+    }
+
+    /* Enhanced Checkbox Styles */
+    .checkbox-enhanced {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 26px;
+    }
+
+    .checkbox-enhanced input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .checkbox-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .checkbox-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    .checkbox-enhanced input:checked + .checkbox-slider {
+        background-color: var(--success-color);
+    }
+
+    .checkbox-enhanced input:focus + .checkbox-slider {
+        box-shadow: 0 0 1px var(--success-color);
+    }
+
+    .checkbox-enhanced input:checked + .checkbox-slider:before {
+        transform: translateX(24px);
+    }
+
+    /* Checkbox with different colors */
+    .checkbox-warning input:checked + .checkbox-slider {
+        background-color: var(--warning-color);
+    }
+
+    .checkbox-primary input:checked + .checkbox-slider {
+        background-color: var(--primary-color);
+    }
+
+    .checkbox-danger input:checked + .checkbox-slider {
+        background-color: var(--danger-color);
+    }
+
+    /* Enhanced Form Controls */
+    .form-switch-enhanced .form-check-input {
+        width: 3.5rem;
+        height: 1.75rem;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23ffffff'/%3e%3c/svg%3e");
+        background-position: left center;
+        border-radius: 2rem;
+    }
+
+    .form-switch-enhanced .form-check-input:checked {
+        background-position: right center;
+        background-color: var(--success-color);
+        border-color: var(--success-color);
+    }
+
+    /* Progress Badge */
+    .post-completion-badge {
+        min-width: 80px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    /* Control Buttons */
+    .control-buttons .btn {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Header with Controls -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-0 fw-bold">{{ title }}</h1>
+            <p class="text-muted mb-0"><i class="fas fa-info-circle me-2"></i>{% trans "مدیریت دسترسی های پست های سازمانی" %}</p>
+        </div>
+        
+        <div class="d-flex gap-2 control-buttons">
+            <button class="btn btn-outline-primary" id="open-all-btn" data-bs-toggle="tooltip" title="{% trans 'باز کردن همه' %}">
+                <i class="fas fa-expand"></i>
+            </button>
+            <button class="btn btn-outline-secondary" id="close-all-btn" data-bs-toggle="tooltip" title="{% trans 'بستن همه' %}">
+                <i class="fas fa-compress"></i>
+            </button>
+            <button class="btn btn-outline-success" id="print-btn" data-bs-toggle="tooltip" title="{% trans 'چاپ گزارش' %}">
+                <i class="fas fa-print"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="card main-card shadow-lg border-0 rounded-3" id="print-area">
+        <div class="card-header card-header-enhanced text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="my-0 fw-bold"><i class="fas fa-shield-alt me-2"></i>{% trans "تنظیم مجوزهای پست‌ها" %}</h5>
+                    <span class="badge bg-light text-dark mt-2">
+                        <i class="fas fa-users me-1"></i> {{ form.posts_query|length|to_persian_number }} {% trans "پست" %}
+                    </span>
+                </div>
+                <span class="badge bg-success">
+                    <i class="fas fa-check-circle me-1"></i> {% trans "مدیریت پیشرفته" %}
+                </span>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <!-- User Status Legend -->
+            <div class="p-4 pb-2">
+                <div class="d-flex flex-wrap gap-2">
+                    <div class="user-status status-approved">
+                        <label class="checkbox-enhanced checkbox-success me-2">
+                            <input type="checkbox" checked disabled>
+                            <span class="checkbox-slider"></span>
+                        </label>
+                        <span>{% trans "تایید شده" %}</span>
+                        <span class="status-dot dot-approved"></span>
+                    </div>
+                    <div class="user-status status-pending">
+                        <label class="checkbox-enhanced checkbox-warning me-2">
+                            <input type="checkbox" disabled>
+                            <span class="checkbox-slider"></span>
+                        </label>
+                        <span>{% trans "در انتظار تایید" %}</span>
+                        <span class="status-dot dot-pending"></span>
+                    </div>
+                    <div class="user-status status-rejected">
+                        <label class="checkbox-enhanced checkbox-danger me-2">
+                            <input type="checkbox" disabled>
+                            <span class="checkbox-slider"></span>
+                        </label>
+                        <span>{% trans "رد شده" %}</span>
+                        <span class="status-dot dot-rejected"></span>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" id="accessRuleForm">
+                {% csrf_token %}
+                {% if form.post_fields_data %}
+                    <div class="accordion outer-accordion" id="postsAccordion">
+                        {% for post_data in form.post_fields_data %}
+                            <div class="accordion-item border-0 mb-2">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" 
+                                            data-bs-toggle="collapse" data-bs-target="#collapse-post-{{ post_data.post.id }}">
+                                        <div class="d-flex w-100 justify-content-between align-items-center">
+                                            <div>
+                                                <strong>{{ post_data.post.name }}</strong>
+                                                <div class="d-flex flex-wrap align-items-center gap-3 mt-1 text-muted small">
+                                                    <span><i class="fas fa-building me-1"></i>{{ post_data.post.organization.name }}</span>
+                                                    <span><i class="fas fa-layer-group me-1"></i>{% trans "سطح" %}: {{ post_data.post.level|to_persian_number }}</span>
+                                                    {% if post_data.post.branch %}
+                                                    <span><i class="fas fa-code-branch me-1"></i>{{ post_data.post.branch.name }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <span class="badge post-completion-badge bg-secondary ms-3" data-post-id="{{ post_data.post.id }}">
+                                                0%
+                                            </span>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="collapse-post-{{ post_data.post.id }}" class="accordion-collapse collapse" 
+                                     data-bs-parent="#postsAccordion">
+                                    <div class="accordion-body pt-0">
+                                        <div class="accordion inner-accordion" id="entityAccordion-{{ post_data.post.id }}">
+                                            {% for group in post_data.entity_groups %}
+                                                <div class="accordion-item">
+                                                    <h2 class="accordion-header">
+                                                        <button class="accordion-button collapsed" type="button" 
+                                                                data-bs-toggle="collapse" 
+                                                                data-bs-target="#collapse-entity-{{ post_data.post.id }}-{{ group.entity_code }}">
+                                                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                                                <div>
+                                                                    <i class="fas fa-folder-open me-2 text-primary"></i>
+                                                                    {{ group.entity_label }}
+                                                                </div>
+                                                                <label class="checkbox-enhanced checkbox-primary m-0">
+                                                                    <input class="enable-all-checkbox" 
+                                                                           type="checkbox" 
+                                                                           data-post-id="{{ post_data.post.id }}" 
+                                                                           data-entity-code="{{ group.entity_code }}">
+                                                                    <span class="checkbox-slider"></span>
+                                                                </label>
+                                                            </div>
+                                                        </button>
+                                                    </h2>
+                                                    <div id="collapse-entity-{{ post_data.post.id }}-{{ group.entity_code }}" 
+                                                         class="accordion-collapse collapse" 
+                                                         data-bs-parent="#entityAccordion-{{ post_data.post.id }}">
+                                                        <div class="accordion-body">
+                                                            <div class="row">
+                                                                {% for rule in group.rules %}
+                                                                    <div class="col-md-3 mb-3">
+                                                                        <div class="rule-item">
+                                                                            <div class="d-flex align-items-center">
+                                                                                <label class="rule-label" for="{{ rule.field.id_for_label }}">
+                                                                                    <span class="rule-icon">
+                                                                                        <i class="fas fa-{% if 'view' in rule.action_label %}eye{% elif 'add' in rule.action_label %}plus-circle{% elif 'change' in rule.action_label %}edit{% elif 'delete' in rule.action_label %}trash-alt{% else %}check-circle{% endif %}"></i>
+                                                                                    </span>
+                                                                                    {{ rule.action_label }}
+                                                                                </label>
+                                                                            </div>
+                                                                            <label class="checkbox-enhanced {% if rule.field.value %}checkbox-success{% else %}checkbox-warning{% endif %}">
+                                                                                {{ rule.field }}
+                                                                                <span class="checkbox-slider"></span>
+                                                                            </label>
+                                                                        </div>
+                                                                    </div>
+                                                                {% endfor %}
+                                                            </div>
+                                                            
+                                                            <!-- User approvals section -->
+                                                            <div class="mt-3 pt-3 border-top">
+                                                                <h6 class="small text-muted mb-2">{% trans "وضعیت تاییدها:" %}</h6>
+                                                                <div class="d-flex flex-wrap gap-2">
+                                                                    {% for approval in post_data.post.approvals.all %}
+                                                                    <div class="user-status status-{{ approval.status|lower }}">
+                                                                        <label class="checkbox-enhanced checkbox-{{ approval.status|lower }} me-2">
+                                                                            <input type="checkbox" {% if approval.status == 'APPROVED' %}checked{% endif %} {% if approval.status == 'REJECTED' %}disabled{% endif %}>
+                                                                            <span class="checkbox-slider"></span>
+                                                                        </label>
+                                                                        <span>{{ approval.user.get_full_name }}</span>
+                                                                        <span class="status-dot dot-{{ approval.status|lower }}"></span>
+                                                                    </div>
+                                                                    {% endfor %}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Form actions -->
+                    <div class="p-4 border-top">
+                        <div class="d-flex justify-content-end gap-3">
+                            <a href="{% url 'accessrule_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-right me-1"></i> {% trans "انصراف" %}
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="save-btn">
+                                <i class="fas fa-save me-1"></i> {% trans "ذخیره قوانین" %}
+                            </button>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="p-4">
+                        <div class="alert alert-warning text-center py-5">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <h5>{% trans "هیچ پست فعالی یافت نشد." %}</h5>
+                            <p class="text-muted mb-0">{% trans "برای ادامه، لطفاً ابتدا پست‌های مورد نظر را ایجاد کنید." %}</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Update completion badges
+    const updatePostCompletion = (postAccordionItem) => {
+        const totalSwitches = postAccordionItem.querySelectorAll('.checkbox-enhanced input[type="checkbox"]').length;
+        const checkedSwitches = postAccordionItem.querySelectorAll('.checkbox-enhanced input[type="checkbox"]:checked').length;
+        const percentage = totalSwitches > 0 ? Math.round((checkedSwitches / totalSwitches) * 100) : 0;
+        const badge = postAccordionItem.querySelector('.post-completion-badge');
+        
+        if (badge) {
+            badge.textContent = `${percentage}%`;
+            badge.className = 'badge post-completion-badge ms-3';
+            
+            if (percentage === 100) {
+                badge.classList.add('bg-success');
+            } else if (percentage > 0) {
+                badge.classList.add('bg-warning');
+            } else {
+                badge.classList.add('bg-secondary');
+            }
+        }
+    };
+
+    // Initialize all completion badges
+    document.querySelectorAll('.outer-accordion .accordion-item').forEach(item => {
+        updatePostCompletion(item);
+    });
+
+    // Handle form changes
+    document.getElementById('accessRuleForm').addEventListener('change', (e) => {
+        if (e.target.classList.contains('form-check-input') || e.target.type === 'checkbox') {
+            const postItem = e.target.closest('.outer-accordion .accordion-item');
+            if (postItem) updatePostCompletion(postItem);
+        }
+    });
+
+    // Enable all for entity group
+    document.querySelectorAll('.enable-all-checkbox').forEach(btn => {
+        btn.addEventListener('change', (e) => {
+            const postId = e.target.dataset.postId;
+            const entityCode = e.target.dataset.entityCode;
+            const isChecked = e.target.checked;
+            
+            const entityItem = e.target.closest('.inner-accordion .accordion-item');
+            entityItem.querySelectorAll('.checkbox-enhanced input[type="checkbox"]').forEach(input => {
+                input.checked = isChecked;
+                // Trigger change event manually
+                const event = new Event('change');
+                input.dispatchEvent(event);
+            });
+            
+            const postItem = document.querySelector(`#collapse-post-${postId}`).closest('.accordion-item');
+            updatePostCompletion(postItem);
+        });
+    });
+
+    // Control buttons functionality
+    const openAllAccordions = (accordionId) => {
+        document.querySelectorAll(`#${accordionId} .accordion-collapse`).forEach(el => {
+            new bootstrap.Collapse(el, { show: true });
+        });
+    };
+
+    const closeAllAccordions = (accordionId) => {
+        document.querySelectorAll(`#${accordionId} .accordion-collapse`).forEach(el => {
+            new bootstrap.Collapse(el, { hide: true });
+        });
+    };
+
+    document.getElementById('open-all-btn')?.addEventListener('click', () => {
+        openAllAccordions('postsAccordion');
+        document.querySelectorAll('.inner-accordion').forEach(acc => {
+            openAllAccordions(acc.id);
+        });
+    });
+
+    document.getElementById('close-all-btn')?.addEventListener('click', () => {
+        closeAllAccordions('postsAccordion');
+        document.querySelectorAll('.inner-accordion').forEach(acc => {
+            closeAllAccordions(acc.id);
+        });
+    });
+
+    document.getElementById('print-btn')?.addEventListener('click', () => {
+        window.print();
+    });
+
+    // Form submission loading state
+    document.getElementById('accessRuleForm').addEventListener('submit', function() {
+        const saveBtn = document.getElementById('save-btn');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> {% trans "در حال ذخیره..." %}';
+        }
+    });
+});
+</script>
+{% endblock %}

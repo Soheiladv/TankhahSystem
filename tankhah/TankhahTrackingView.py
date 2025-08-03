@@ -5,10 +5,9 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView
-from notifications.signals import notify
 from accounts.models import CustomUser
 from core.models import UserPost
-from .fun_can_edit_approval import can_edit_approval
+from tankhah.Factor.Approved.fun_can_edit_approval import can_edit_approval
 from core.models import  WorkflowStage
 from tankhah.models import Tankhah, ApprovalLog
 from core.views import PermissionBaseView
