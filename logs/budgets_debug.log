@@ -67,3 +67,27 @@
 [2025-08-04 13:53:37] INFO [budgets.models:559] save - BudgetTransaction saved with ID: 79
 [2025-08-04 13:53:37] DEBUG [budgets.models:171] update_lock_status - Updated lock status for BudgetPeriod 22: is_active=True, is_completed=False
 [2025-08-04 13:53:37] DEBUG [budgets.models:142] check_budget_status_no_save - check_budget_status_no_save: obj=شش ماهه ابتدای سال 1404 (HQ_ITDC), result=('normal', 'وضعیت عادی')
+[2025-08-04 22:24:38] DEBUG [budgets.models:549] save - Starting save for BudgetTransaction: amount=10000, type=CONSUMPTION, allocation ID=76
+[2025-08-04 22:24:38] DEBUG [budgets.models:538] clean - Cleaning BudgetTransaction: amount=10000, type=CONSUMPTION, allocation ID=76
+[2025-08-04 22:24:38] INFO [budgets.models:545] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-08-04 22:24:38] DEBUG [budgets.signals:31] update_remaining_amount - BudgetTransaction TX-FACTOR-NEW-38-1754333678.374856 created. Invalidating cache for allocation 76
+[2025-08-04 22:24:38] DEBUG [budgets.signals:85] invalidate_tankhah_cache - Invalidated cache keys after Tankhah change: {'tankhah_report_22_no_filters', 'free_budget_76'}
+[2025-08-04 22:24:38] DEBUG [budgets.signals:37] update_remaining_amount - Updated remaining_budget for Tankhah 5
+[2025-08-04 22:24:38] DEBUG [budgets.signals:55] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'free_budget_76', 'budget_transfers_22_no_filters', 'returned_budgets_22_all_no_filters', 'project_remaining_budget_8'}
+[2025-08-04 22:24:38] INFO [budgets.models:559] save - BudgetTransaction saved with ID: 80
+[2025-08-04 22:30:36] DEBUG [budgets.models:549] save - Starting save for BudgetTransaction: amount=1111, type=CONSUMPTION, allocation ID=76
+[2025-08-04 22:30:36] DEBUG [budgets.models:538] clean - Cleaning BudgetTransaction: amount=1111, type=CONSUMPTION, allocation ID=76
+[2025-08-04 22:30:36] INFO [budgets.models:545] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-08-04 22:30:36] DEBUG [budgets.signals:31] update_remaining_amount - BudgetTransaction TX-FACTOR-NEW-39-1754334036.338245 created. Invalidating cache for allocation 76
+[2025-08-04 22:30:36] DEBUG [budgets.signals:85] invalidate_tankhah_cache - Invalidated cache keys after Tankhah change: {'free_budget_76', 'tankhah_report_22_no_filters'}
+[2025-08-04 22:30:36] DEBUG [budgets.signals:37] update_remaining_amount - Updated remaining_budget for Tankhah 5
+[2025-08-04 22:30:36] DEBUG [budgets.signals:55] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'free_budget_76', 'returned_budgets_22_all_no_filters', 'budget_transfers_22_no_filters', 'project_remaining_budget_8'}
+[2025-08-04 22:30:36] INFO [budgets.models:559] save - BudgetTransaction saved with ID: 81
+[2025-08-04 22:31:21] DEBUG [budgets.models:549] save - Starting save for BudgetTransaction: amount=100000, type=CONSUMPTION, allocation ID=76
+[2025-08-04 22:31:21] DEBUG [budgets.models:538] clean - Cleaning BudgetTransaction: amount=100000, type=CONSUMPTION, allocation ID=76
+[2025-08-04 22:31:21] INFO [budgets.models:545] clean - BudgetTransaction validated successfully for allocation ID: 76
+[2025-08-04 22:31:21] DEBUG [budgets.signals:31] update_remaining_amount - BudgetTransaction TX-FACTOR-NEW-40-1754334081.118672 created. Invalidating cache for allocation 76
+[2025-08-04 22:31:21] DEBUG [budgets.signals:85] invalidate_tankhah_cache - Invalidated cache keys after Tankhah change: {'free_budget_76', 'tankhah_report_22_no_filters'}
+[2025-08-04 22:31:21] DEBUG [budgets.signals:37] update_remaining_amount - Updated remaining_budget for Tankhah 5
+[2025-08-04 22:31:21] DEBUG [budgets.signals:55] invalidate_transaction_cache - Invalidated cache keys after BudgetTransaction change: {'returned_budgets_22_all_no_filters', 'free_budget_76', 'project_remaining_budget_8', 'budget_transfers_22_no_filters'}
+[2025-08-04 22:31:21] INFO [budgets.models:559] save - BudgetTransaction saved with ID: 82

@@ -262,7 +262,7 @@
                 <div class="col-md-3">
                     <label for="date" class="form-label fw-semibold">{% trans "تاریخ فاکتور" %}</label>
                     <input type="text" name="date" id="date" data-jdp value="{{ date_query|default_if_none:'' }}"
-                           class="form-control" placeholder="{% trans 'مثال: 1403/05/15' %}">
+                           class="form-control" placeholder="{% trans 'مثال: 1403/05/15'|to_persian_number %}">
                 </div>
                 <div class="col-md-3">
                     <label for="status" class="form-label fw-semibold">{% trans "وضعیت" %}</label>

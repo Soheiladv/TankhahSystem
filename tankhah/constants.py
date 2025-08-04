@@ -1,9 +1,30 @@
 from django.utils.translation import gettext_lazy as _
+#
+# فایل: tankhah/constants.py (نسخه نهایی و تمیز شده)
+#
+from django.utils.translation import gettext_lazy as _
+
+# --- وضعیت‌های ممکن برای فاکتور و ردیف‌های آن ---
+FACTOR_STATUSES = (
+    ('DRAFT', _('پیش‌نویس')),
+    ('PENDING_APPROVAL', _('در انتظار تأیید')),
+    ('APPROVED_INTERMEDIATE', _('تأیید میانی')),
+    ('APPROVED_FINAL', _('تأیید نهایی')),
+    ('REJECT', _('رد شده')),
+    ('PAID', _('پرداخت شده')),
+    ('PARTIAL', _('تأیید جزئی')),
+)
+
+# --- اقدامات ممکن توسط کاربران در سیستم ---
+# این لیست شامل هم اقدامات گردش کار و هم اقدامات عمومی است
 ACTION_TYPES = (
+    # اقدامات گردش کار
     ('APPROVE', _('تأیید')),
     ('REJECT', _('رد')),
     ('SUBMIT', _('ارسال برای تایید')),
     ('FINAL_APPROVE', _('تایید نهایی')),
+
+    # اقدامات عمومی (بدون نیاز به مرحله)
     ('VIEW', _('مشاهده')),
     ('EDIT', _('ویرایش')),
     ('CREATE', _('ایجاد')),
@@ -11,9 +32,10 @@ ACTION_TYPES = (
     ('SIGN_PAYMENT', _('امضای دستور پرداخت')),
 )
 
-# این لیست کدهای رشته‌ای است
-ACTIONS_WITHOUT_STAGE = ('VIEW', 'EDIT', 'CREATE', 'DELETE', 'SIGN_PAYMENT')
+# --- لیستی برای تفکیک اقدامات عمومی از اقدامات گردش کار ---
+# این لیست باید شامل کدهایی از ACTION_TYPES باشد که به مرحله (stage) نیازی ندارند.
 
+# --- انواع موجودیت‌ها در سیستم ---
 ENTITY_TYPES = (
     ('FACTOR', _('فاکتور')),
     ('FACTORITEM', _('ردیف فاکتور')),
@@ -23,6 +45,29 @@ ENTITY_TYPES = (
     ('REPORTS', _('گزارشات')),
     ('GENERAL', _('عمومی')),
 )
+ACTION_TYPES_ = (
+    ('DRAFT', _('پیش‌نویس')),
+    ('APPROVE', _('تأیید')),
+    ('REJECT', _('رد شده')),  # از 'REJECTE' به 'REJECT' اصلاح شد تا استاندارد باشد
+    ('SUBMIT', _('ارسال برای تایید')),
+    ('PENDING_APPROVAL', _('در انتظار تأیید')),
+    ('APPROVED_INTERMEDIATE', _('تأیید میانی')),
+    ('FINAL_APPROVE', _('تایید نهایی')),
+    ('VIEW', _('مشاهده')),
+    ('EDIT', _('ویرایش')),
+    ('CREATE', _('ایجاد')),
+    ('DELETE', _('حذف')),
+    ('SIGN_PAYMENT', _('امضای دستور پرداخت')),
+
+    ('APPROVED_FINAL', _('تأیید نهایی')),
+    ('PAID', _('پرداخت شده')),
+    ('PARTIAL', _('تأیید جزئی')),
+)
+
+# این لیست کدهای رشته‌ای است
+ACTIONS_WITHOUT_STAGE = ('VIEW', 'EDIT', 'CREATE', 'DELETE', 'SIGN_PAYMENT')
+
+
 
 #
 # ACTIONS_WITHOUT_STAGE = ( ['VIEW', 'EDIT', 'CREATE', 'DELETE', 'SIGN_PAYMENT'] )

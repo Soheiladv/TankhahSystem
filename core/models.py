@@ -102,6 +102,7 @@ class Organization(models.Model):
         indexes = [
             models.Index(fields=['code', 'org_type']),
         ]
+
 class Branch(models.Model):
     code = models.CharField(max_length=10, unique=True, verbose_name=_("کد شاخه"))
     name = models.CharField(max_length=250, verbose_name=_("نام شاخه"))
@@ -411,7 +412,8 @@ class AccessRule(models.Model):
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("سازمان"))
     # stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_('مرحله'))
     stage = models.CharField(max_length=200, verbose_name=_('نام مرحله'))
-    stage_order = models.PositiveIntegerField(verbose_name=_('ترتیب مرحله'))
+    # stage_order = models.PositiveIntegerField(verbose_name=_('ترتیب مرحله'))
+    stage_order = models.PositiveIntegerField(verbose_name=_('ترتیب مرحله'), null=True, blank=True)
     post = models.ForeignKey('core.Post', on_delete=models.CASCADE, null=True, blank=True, verbose_name=_('پست'),
                              help_text=_('پست مرتبط با این قانون. اگر خالی باشد، بر اساس min_level اعمال می‌شود.'))
     action_type = models.CharField(max_length=25, choices=ACTION_TYPES, verbose_name=_('نوع اقدام'))

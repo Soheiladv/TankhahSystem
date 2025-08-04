@@ -16,12 +16,14 @@ import logging
 logger = logging.getLogger('FactorItemApprovalForm')
 
 
-# ===
-
 class FactorItemApprovalForm(forms.ModelForm):
-    # این فیلدها بخشی از مدل FactorItem نیستند، بلکه داده‌های اضافی برای لاگ تایید هستند
+    """
+    این فرم برای هر ردیف فاکتور در صفحه تایید استفاده می‌شود.
+    فیلدهای comment و is_temporary داده‌های اضافی برای ثبت در ApprovalLog هستند.
+    """
     comment = forms.CharField(
-        widget=forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': 2}),
+        widget=forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': 2,
+                                     'placeholder': _('توضیحات (برای رد الزامی است)')}),
         required=False,
         label=_('توضیحات')
     )
@@ -30,61 +32,55 @@ class FactorItemApprovalForm(forms.ModelForm):
         required=False,
         label=_('موقت')
     )
+    # این فیلد برای تشخیص اقدامات گروهی در سمت بک‌اند استفاده می‌شود
     is_bulk_action = forms.BooleanField(required=False, widget=forms.HiddenInput())
 
     class Meta:
         model = FactorItem
-        # در اینجا فقط فیلدهایی را قرار می‌دهیم که واقعاً در مدل FactorItem وجود دارند
+        # فیلد status از مدل می‌آید، اما گزینه‌های آن به صورت دینامیک پر می‌شود.
         fields = ['status']
         widgets = {
             'status': forms.Select(attrs={'class': 'form-select form-select-sm'}),
         }
 
-    def __init__(self, *args, user=None, current_stage=None, allowed_actions=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.user = user
-        self.current_stage = current_stage
-        self.allowed_actions = allowed_actions or []
+    def __init__(self, *args, **kwargs):
+        # این آرگومان‌ها از ویو و از طریق form_kwargs فرم‌ست ارسال می‌شوند.
+        user = kwargs.pop('user', None)
+        allowed_actions = kwargs.pop('allowed_actions', [])
 
-        # ما این فیلد را برای بررسی در ویو و تمپلیت اضافه می‌کنیم
+        super().__init__(*args, **kwargs)
+
+        self.user = user
+        self.allowed_actions = allowed_actions
         self.has_allowed_actions = bool(self.allowed_actions)
 
         if self.has_allowed_actions:
-            # استفاده از لیست کامل ACTION_TYPES که در مدل تعریف شده است
             self.fields['status'].choices = [
                 ('', '---------'),
                 *[(code, label) for code, label in ACTION_TYPES if code in self.allowed_actions]
             ]
         else:
             self.fields['status'].choices = [('', '---------')]
-            # غیرفعال کردن فیلدها اگر هیچ اقدامی مجاز نباشد
+            # غیرفعال کردن تمام فیلدها اگر هیچ اقدامی مجاز نباشد
             self.fields['status'].disabled = True
             self.fields['comment'].disabled = True
             self.fields['is_temporary'].disabled = True
 
-        logger.debug(f"[FactorItemApprovalForm] Initialized for user {user.username if user else 'None'}, allowed actions: {self.allowed_actions}, has_actions: {self.has_allowed_actions}")
-
     def clean(self):
         cleaned_data = super().clean()
-        # اگر فرم غیرفعال باشد، اعتبارسنجی را رد می‌کنیم
         if not self.has_allowed_actions:
-            return cleaned_data
+            return cleaned_data  # اگر اقدامی مجاز نیست، اعتبارسنجی لازم نیست
 
         status = cleaned_data.get('status')
         comment = cleaned_data.get('comment', '').strip()
 
         if status and status not in self.allowed_actions:
-            logger.warning(f"[FactorItemApprovalForm] Unauthorized status {status} for user {self.user.username}")
-            raise forms.ValidationError(_('اقدام انتخاب‌شده غیرمجاز است.'))
+            raise forms.ValidationError(_('اقدام انتخاب‌شده برای شما غیرمجاز است.'))
 
-        # این شرط باید فقط زمانی بررسی شود که کاربر در حال رد کردن باشد
         if status == 'REJECT' and not comment:
-            logger.warning(f"[FactorItemApprovalForm] Missing comment for REJECT status, item {self.instance.id}")
-            self.add_error('comment', _('برای رد کردن، توضیحات الزامی است.'))
+            self.add_error('comment', _('برای رد کردن، نوشتن توضیحات الزامی است.'))
 
-        logger.debug(f"[FactorItemApprovalForm] Cleaned data for item {self.instance.id}: status={status}")
         return cleaned_data
-
 
 # class FactorItemApprovalFormSet(forms.inlineformset_factory(FactorItem, FactorItemApprovalForm, extra=0)):
 #     def __init__(self, *args, **kwargs):
@@ -204,8 +200,72 @@ class FactorItemApprovalForm__(forms.ModelForm):
 
         logger.debug(f"[FactorItemApprovalForm] Cleaned data: {cleaned_data}")
         return cleaned_data
+class FactorItemApprovalForm______________________________(forms.ModelForm):
+    # این فیلدها بخشی از مدل FactorItem نیستند، بلکه داده‌های اضافی برای لاگ تایید هستند
+    comment = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': 2}),
+        required=False,
+        label=_('توضیحات')
+    )
+    is_temporary = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        required=False,
+        label=_('موقت')
+    )
+    is_bulk_action = forms.BooleanField(required=False, widget=forms.HiddenInput())
 
+    class Meta:
+        model = FactorItem
+        # در اینجا فقط فیلدهایی را قرار می‌دهیم که واقعاً در مدل FactorItem وجود دارند
+        fields = ['status']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-select form-select-sm'}),
+        }
 
+    def __init__(self, *args, user=None, current_stage=None, allowed_actions=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.current_stage = current_stage
+        self.allowed_actions = allowed_actions or []
+
+        # ما این فیلد را برای بررسی در ویو و تمپلیت اضافه می‌کنیم
+        self.has_allowed_actions = bool(self.allowed_actions)
+
+        if self.has_allowed_actions:
+            # استفاده از لیست کامل ACTION_TYPES که در مدل تعریف شده است
+            self.fields['status'].choices = [
+                ('', '---------'),
+                *[(code, label) for code, label in ACTION_TYPES if code in self.allowed_actions]
+            ]
+        else:
+            self.fields['status'].choices = [('', '---------')]
+            # غیرفعال کردن فیلدها اگر هیچ اقدامی مجاز نباشد
+            self.fields['status'].disabled = True
+            self.fields['comment'].disabled = True
+            self.fields['is_temporary'].disabled = True
+
+        logger.debug(f"[FactorItemApprovalForm] Initialized for user {user.username if user else 'None'}, allowed actions: {self.allowed_actions}, has_actions: {self.has_allowed_actions}")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        # اگر فرم غیرفعال باشد، اعتبارسنجی را رد می‌کنیم
+        if not self.has_allowed_actions:
+            return cleaned_data
+
+        status = cleaned_data.get('status')
+        comment = cleaned_data.get('comment', '').strip()
+
+        if status and status not in self.allowed_actions:
+            logger.warning(f"[FactorItemApprovalForm] Unauthorized status {status} for user {self.user.username}")
+            raise forms.ValidationError(_('اقدام انتخاب‌شده غیرمجاز است.'))
+
+        # این شرط باید فقط زمانی بررسی شود که کاربر در حال رد کردن باشد
+        if status == 'REJECT' and not comment:
+            logger.warning(f"[FactorItemApprovalForm] Missing comment for REJECT status, item {self.instance.id}")
+            self.add_error('comment', _('برای رد کردن، توضیحات الزامی است.'))
+
+        logger.debug(f"[FactorItemApprovalForm] Cleaned data for item {self.instance.id}: status={status}")
+        return cleaned_data
 #----------------------------
 class FactorForm(forms.ModelForm):
     class Meta:

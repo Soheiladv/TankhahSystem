@@ -20,6 +20,15 @@ from core.models import   Project, SubProject, AccessRule, Organization, Post  #
 # Assuming budget functions exist
 from tankhah.models import ItemCategory, Tankhah, Factor, FactorItem
 from tankhah.utils import restrict_to_user_organization, get_factor_current_stage
+from django import forms
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from django.db.models import Q
+from decimal import Decimal
+import jdatetime
+
+from tankhah.models import Factor, Tankhah, ItemCategory
+from budgets.budget_calculations import get_tankhah_remaining_budget
 
 logger = logging.getLogger(__name__)
 
@@ -121,21 +130,10 @@ class TankhahDocumentForm(forms.Form):
         return files
 #-----------------------------------------------------------------------------------------------------------
 class FactorForm(forms.ModelForm):
+    # استفاده از CharField برای ورودی تاریخ شمسی
     date = forms.CharField(
         label=_('تاریخ فاکتور'),
-        required=True,
-        widget=forms.TextInput(attrs={
-            'data-jdp': '',
-            'class': 'form-control form-control-sm',
-            'placeholder': _('مثال: 1403/01/17')
-        })
-    )
-    category = forms.ModelChoiceField(
-        queryset=ItemCategory.objects.all(),
-        label=_("دسته‌بندی هزینه"),
-        required=True,
-        widget=forms.Select(attrs={'class': 'form-select form-select-sm'}),
-        empty_label=None
+        widget=forms.TextInput(attrs={'class': 'form-control form-control-sm', 'placeholder': _('مثال: 1403/05/15')})
     )
 
     class Meta:
@@ -143,127 +141,80 @@ class FactorForm(forms.ModelForm):
         fields = ['tankhah', 'category', 'date', 'amount', 'description']
         widgets = {
             'tankhah': forms.Select(attrs={'class': 'form-select form-select-sm'}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control form-control-sm ltr-input'}),
+            'category': forms.Select(attrs={'class': 'form-select form-select-sm'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control form-control-sm text-end'}),
             'description': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': 2}),
-        }
-        labels = {
-            'tankhah': _('تنخواه مرتبط'),
-            'date': _('تاریخ فاکتور'),
-            'amount': _('مبلغ کل فاکتور (ریال)'),
-            'description': _('شرح کلی فاکتور'),
         }
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
-        self.tankhah_instance = kwargs.pop('tankhah', None)
         super().__init__(*args, **kwargs)
 
-        # فیلتر کردن تنخواه‌ها بر اساس دسترسی کاربر
+        # --- فیلتر کردن هوشمند تنخواه‌ها ---
+        # فقط تنخواه‌هایی که منقضی نشده و در وضعیت مناسب هستند
         tankhah_queryset = Tankhah.objects.filter(
             is_archived=False,
             status__in=['DRAFT', 'PENDING'],
-            due_date__gte=timezone.now()
-        ).order_by('-due_date')
+            due_date__gte=timezone.now().date()
+        ).select_related('organization', 'project').order_by('-created_at')
 
+        # محدود کردن به سازمان‌های مجاز کاربر (با در نظر گرفتن سلسله مراتب)
         if self.user and not self.user.is_superuser:
-            user_orgs = restrict_to_user_organization(self.user)
-            if user_orgs:
-                tankhah_queryset = tankhah_queryset.filter(
-                    Q(organization__id__in=user_orgs) |
-                    Q(project__organizations__id__in=user_orgs) |
-                    Q(subproject__project__organizations__id__in=user_orgs)
-                ).distinct()
+            user_posts = self.user.userpost_set.filter(is_active=True).select_related('post__organization')
+            user_orgs_with_parents = set()
+            for up in user_posts:
+                org = up.post.organization
+                while org:
+                    user_orgs_with_parents.add(org)
+                    org = org.parent_organization
 
-        self.fields['tankhah'].queryset = tankhah_queryset.select_related('organization', 'project', 'project_budget_allocation')
+            if user_orgs_with_parents:
+                tankhah_queryset = tankhah_queryset.filter(organization__in=user_orgs_with_parents)
 
-        if self.tankhah_instance and tankhah_queryset.filter(pk=self.tankhah_instance.pk).exists():
-            self.initial['tankhah'] = self.tankhah_instance
+        self.fields['tankhah'].queryset = tankhah_queryset
+
+        # ست کردن مقدار اولیه تنخواه اگر از URL آمده باشد
+        if 'tankhah' in self.initial:
             self.fields['tankhah'].disabled = True
 
+        # ست کردن تاریخ امروز به عنوان پیش‌فرض
         if not self.initial.get('date'):
             self.initial['date'] = jdatetime.date.today().strftime('%Y/%m/%d')
-
-        if self.instance and self.instance.pk and self.instance.date:
-            try:
-                self.initial['date'] = jdatetime.date.fromgregorian(date=self.instance.date).strftime('%Y/%m/%d')
-            except Exception as e:
-                logger.error(f"Error setting initial Jalali date for Factor {self.instance.pk}: {e}")
+        elif self.instance and self.instance.pk and self.instance.date:
+            self.initial['date'] = jdatetime.date.fromgregorian(date=self.instance.date).strftime('%Y/%m/%d')
 
     def clean_date(self):
+        """تبدیل و اعتبارسنجی تاریخ شمسی ورودی."""
         date_str = self.cleaned_data.get('date')
-        if not date_str:
-            raise forms.ValidationError(_('وارد کردن تاریخ الزامی است.'))
         try:
-            parsed_date = parse_jalali_date(date_str)
-            return parsed_date
-        except ValueError as e:
-            logger.error(f"Error parsing date {date_str}: {e}")
-            raise forms.ValidationError(_('فرمت تاریخ نامعتبر است. (مثال: 1403/01/17)'))
-
-    def clean_amount(self):
-        amount = self.cleaned_data.get('amount')
-        if amount is None:
-            raise forms.ValidationError(_('وارد کردن مبلغ کل فاکتور الزامی است.'))
-        if amount <= Decimal('0'):
-            raise forms.ValidationError(_('مبلغ کل فاکتور باید بزرگتر از صفر باشد.'))
-        return amount
+            return parse_jalali_date(date_str)
+        except ValueError:
+            raise forms.ValidationError(_('فرمت تاریخ نامعتبر است. لطفاً از فرمت YYYY/MM/DD استفاده کنید.'))
 
     def clean(self):
+        """اعتبارسنجی نهایی فرم."""
         cleaned_data = super().clean()
         tankhah = cleaned_data.get('tankhah')
         amount = cleaned_data.get('amount')
 
-        if not tankhah or not amount:
+        if not all([tankhah, amount]):
+            # اگر فیلدهای اصلی وجود ندارند، اعتبارسنجی‌های وابسته را انجام نده
             return cleaned_data
 
-        user = self.user
-        if not user or not user.is_authenticated:
-            raise forms.ValidationError(_('کاربر معتبر یافت نشد.'))
-
-        # بررسی دسترسی کاربر با استفاده از تابع عمومی
-        current_stage_order = get_factor_current_stage(self.instance if self.instance.pk else None) if self.instance.pk else 1
-        access_info = check_user_factor_access(
-            user.username,
-            tankhah=tankhah,
-            action_type='EDIT',
-            entity_type='FACTOR',
-            default_stage_order=current_stage_order
-        )
-        if not access_info['has_access']:
-            logger.warning(
-                f"کاربر {user.username} اجازه ثبت فاکتور برای تنخواه {tankhah.number} را ندارد. دلیل: {access_info.get('error', 'بدون دسترسی')}"
-            )
-            raise forms.ValidationError(_('شما اجازه ثبت فاکتور برای این تنخواه را ندارید.'))
-
-        # اعتبارسنجی وضعیت تنخواه
-        if tankhah.status not in ['DRAFT', 'PENDING']:
+        # --- بررسی بودجه ---
+        remaining_budget = get_tankhah_remaining_budget(tankhah)
+        if amount > remaining_budget:
             raise forms.ValidationError(
-                _('فقط برای تنخواه‌های در وضعیت پیش‌نویس یا در انتظار می‌توانید فاکتور ثبت کنید.'))
+                _('مبلغ فاکتور ({:,.0f} ریال) از بودجه باقی‌مانده تنخواه ({:,.0f} ریال) بیشتر است.').format(amount,
+                                                                                                            remaining_budget)
+            )
 
-        # اعتبارسنجی انقضای تنخواه
-        if tankhah.due_date and tankhah.due_date < timezone.now():
-            raise forms.ValidationError(_('تنخواه منقضی شده است. لطفاً فاکتور را در تنخواه جدید ثبت کنید.'))
-
-        # اعتبارسنجی بودجه
-        try:
-            budget_allocation = tankhah.project_budget_allocation
-            if not budget_allocation or not budget_allocation.is_active:
-                raise forms.ValidationError(_('تخصیص بودجه معتبر یا فعال برای این تنخواه یافت نشد.'))
-            is_locked, lock_reason = budget_allocation.budget_period.is_locked  # استفاده از پراپرتی is_locked
+        # --- بررسی قفل بودن دوره بودجه ---
+        if tankhah.project_budget_allocation:
+            budget_period = tankhah.project_budget_allocation.budget_period
+            is_locked, lock_reason = budget_period.is_locked
             if is_locked:
                 raise forms.ValidationError(lock_reason)
-            remaining_budget = get_tankhah_remaining_budget(tankhah)
-            if amount > remaining_budget:
-                raise forms.ValidationError(
-                    _('مبلغ فاکتور ({:,.0f} ریال) از بودجه باقی‌مانده تنخواه ({:,.0f} ریال) بیشتر است.').format(
-                        amount, remaining_budget
-                    ))
-        except Exception as e:
-            logger.error(f"Error validating budget for tankhah {tankhah.number}: {e}")
-            raise forms.ValidationError(_('خطا در بررسی بودجه تنخواه: {}').format(str(e)))
-
-        if not cleaned_data.get('category'):
-            raise forms.ValidationError(_('دسته‌بندی الزامی است.'))
 
         return cleaned_data
 #--------------------------------------------------------------

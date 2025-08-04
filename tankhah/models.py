@@ -16,7 +16,7 @@ from core.models import   PostAction
 from django.contrib.contenttypes.models import ContentType
 import logging
 logger = logging.getLogger('Tankhah_Models')
-from tankhah.constants import ACTION_TYPES
+from tankhah.constants import ACTION_TYPES, FACTOR_STATUSES
 
 NUMBER_SEPARATOR = getattr(settings, 'NUMBER_SEPARATOR', '-')
 #-----------------------------------------------
@@ -769,7 +769,7 @@ class Factor(models.Model):
     date = models.DateField(default=timezone.now, verbose_name=_("تاریخ"))
     amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name=_('مبلغ فاکتور'), default=0)
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
-    status = models.CharField(max_length=40, choices=ACTION_TYPES, default='PENDING_APPROVAL', verbose_name=_("وضعیت"))
+    status = models.CharField(max_length=40, choices=FACTOR_STATUSES, default='PENDING_APPROVAL', verbose_name=_("وضعیت"))
     approved_by = models.ManyToManyField(CustomUser, blank=True, verbose_name=_("تأییدکنندگان"))
     is_finalized = models.BooleanField(default=False, verbose_name=_("نهایی شده"))
     locked = models.BooleanField(default=False, verbose_name="قفل شده")
@@ -1104,17 +1104,10 @@ class FactorHistory(models.Model):
 #-----------------------------------------------
 class FactorItem(models.Model):
     """  اقلام فاکتور """
-    # STATUS_CHOICES = (
-    #     ('PENDING', _('در حال بررسی')),
-    #     ('APPROVED', _('تأیید شده')),
-    #     ('REJECTED', _('رد شده')),
-    #     ('PAID', 'پرداخت شده'),
-    # )
-
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE, related_name='items', verbose_name=_("فاکتور"))
     description = models.CharField(max_length=255, verbose_name=_("شرح ردیف"))
     amount = models.DecimalField(max_digits=25, default=0, decimal_places=2, verbose_name=_("مبلغ"))
-    status = models.CharField(max_length=40, choices=ACTION_TYPES, default='PENDING', verbose_name=_("وضعیت"))
+    status = models.CharField(max_length=40, choices=FACTOR_STATUSES, default='PENDING_APPROVAL', verbose_name=_("وضعیت"))
     quantity = models.DecimalField(max_digits=25, default=1, decimal_places=2, verbose_name=_("تعداد"))
     unit_price = models.DecimalField(max_digits=25, decimal_places=2, blank=True, null=True,verbose_name=_("قیمت واحد"))
     min_stage_order = models.IntegerField(default=1, verbose_name=_("حداقل ترتیب مرحله"),help_text=_("این نوع تراکنش فقط در این مرحله یا بالاتر مجاز است")  , editable=False)

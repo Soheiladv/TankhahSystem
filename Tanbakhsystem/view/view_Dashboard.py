@@ -996,13 +996,22 @@ class DashboardView(LoginRequiredMixin, View):
         if context['can_view_project_status']:
             try:
                 projects_status = []
+                # active_projects = Project.objects.filter(
+                #     is_active=True
+                # ).annotate(
+                #     total_budget=Coalesce(Sum('budget_allocations__allocated_amount'), Decimal('0'))
+                # ).filter(
+                #     total_budget__gt=0
+                # ).order_by('-start_date')[:5]
+
                 active_projects = Project.objects.filter(
                     is_active=True
                 ).annotate(
-                    total_budget=Coalesce(Sum('budget_allocations__allocated_amount'), Decimal('0'))
+                    total_budget=Coalesce(Sum('allocations__allocated_amount'), Decimal('0'))
                 ).filter(
                     total_budget__gt=0
                 ).order_by('-start_date')[:5]
+
                 for project in active_projects:
                     allocated = self.get_project_total_budget(project)
                     consumed = self.get_project_used_budget(project)
