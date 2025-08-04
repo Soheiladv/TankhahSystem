@@ -2,6 +2,7 @@ import jdatetime
 
 from accounts.AccessRule.check_user_access import check_user_factor_access
 from core.models import PostAction
+from tankhah.constants import ACTION_TYPES
 from tankhah.utils import get_factor_current_stage
 from django.views.generic import ListView
 from django.contrib import messages
@@ -313,65 +314,49 @@ class FactorListView(PermissionBaseView, ListView):
             'PENDING_APPROVAL': 'pending_approval',
             'PARTIAL': 'partial',
             'APPROVE': 'approve',
-            'REJECTE': 'rejected',
-            'PAID': 'paid'
+            'REJECT': 'rejected',
+            'PAID': 'paid',
+            'APPROVED_INTERMEDIATE': 'approve',
+            'APPROVED_FINAL': 'approve',
+            'TEMP_APPROVED': 'approve'
         }
         return status_mapping.get(status, 'others')
 
     def _process_factor_approvers(self, factor):
         """پردازش تأییدکنندگان فاکتور"""
-        # try:
-        #     raw_logs = getattr(factor, 'approvers_raw', [])
-        #     approver_names = []
-        #
-        #     for log in raw_logs:
-        #         if log.user:
-        #             name = log.user.get_full_name() or log.user.username
-        #             if name not in approver_names:  # جلوگیری از تکرار
-        #                 approver_names.append(name)
-        #
-        #     factor.approvers_display = ', '.join(approver_names) if approver_names else _('بدون تأییدکننده')
-        #     factor.last_approver = approver_names[0] if approver_names else None
-        #
-        #     logger.debug(
-        #         f"[FACTOR_APPROVERS] فاکتور {getattr(factor, 'number', 'نامشخص')}: {len(approver_names)} تأییدکننده")
-        #
-        # except Exception as e:
-        #     logger.error(
-        #         f"[FACTOR_APPROVERS] خطا در پردازش تأییدکنندگان فاکتور {getattr(factor, 'number', 'نامشخص')}: {e}")
-        #     factor.approvers_display = _('خطا در بارگذاری')
-        #     factor.last_approver = None
         try:
-            # Note: We now use 'all_logs' which is prefetched in get_queryset
             all_logs = getattr(factor, 'all_logs', [])
-
-            # Find the very last log entry (the most recent action)
             last_log = all_logs[0] if all_logs else None
+
+            # دستیابی به label فارسی از ACTION_TYPES
+            action_label_map = dict(ACTION_TYPES)  # تبدیل به دیکشنری: {'DRAFT': 'پیش‌نویس', 'CREATE': 'ایجاد', ...}
 
             if last_log and last_log.user:
                 factor.last_actor_name = last_log.user.get_full_name() or last_log.user.username
-                factor.last_action_verb = last_log.get_action_display()
+                factor.last_action_verb = action_label_map.get(last_log.action, 'نامشخص')
             else:
-                factor.last_actor_name = _('بدون اقدام')
-                factor.last_action_verb = ''
+                factor.last_actor_name = 'بدون اقدام'
+                factor.last_action_verb = 'بدون اقدام'
 
-            # You can still create a list of all approvers if needed for a tooltip
             approver_names = []
             seen_users = set()
             for log in all_logs:
-                if log.user and log.user.id not in seen_users:
+                if log.action in ['APPROVE', 'APPROVED_INTERMEDIATE', 'APPROVED_FINAL',
+                                  'TEMP_APPROVED'] and log.user and log.user.id not in seen_users:
                     name = log.user.get_full_name() or log.user.username
                     approver_names.append(name)
                     seen_users.add(log.user.id)
 
-            factor.approvers_display_list = ', '.join(approver_names)
-
+            factor.approvers_display_list = '، '.join(approver_names) if approver_names else 'بدون تأییدکننده'
+            logger.debug(
+                f"[FACTOR_APPROVERS] فاکتور {getattr(factor, 'number', 'نامشخص')}: {len(approver_names)} تأییدکننده")
         except Exception as e:
             logger.error(
-                f"[FACTOR_APPROVERS] Error processing approvers for factor {getattr(factor, 'number', 'N/A')}: {e}")
-            factor.last_actor_name = _('خطا')
-            factor.last_action_verb = ''
-            factor.approvers_display_list = _('خطا در بارگذاری')
+                f"[FACTOR_APPROVERS] خطا در پردازش تأییدکنندگان فاکتور {getattr(factor, 'number', 'نامشخص')}: {e}",
+                exc_info=True)
+            factor.last_actor_name = 'خطا'
+            factor.last_action_verb = 'خطا'
+            factor.approvers_display_list = 'خطا در بارگذاری'
 
     def _check_factor_permissions(self, factor, user, tankhah):
         """بررسی دسترسی‌های فاکتور"""

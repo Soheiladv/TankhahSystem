@@ -1308,11 +1308,11 @@ class ApprovalLog(models.Model):
         logger.info(f"[ApprovalLog] ApprovalLog saved successfully for user {self.user.username}")
 
     def __str__(self):
-        return f"{self.user.username} - {self.action} ({self.date})"
-
+        return f"{self.factor.number} - {self.get_action_display()}" #self.user.username} - {self.action} ({self.date}
     class Meta:
-        verbose_name = _("تأیید")
-        verbose_name_plural = _("تأییدات👍")
+        verbose_name = _("لاگ‌های تأیید👍/رد👎")
+        verbose_name_plural = _("لاگ‌های تأیید👍/رد👎")
+        ordering = ['-timestamp']
         default_permissions = ()
         permissions = [
             ('Approval_add', 'افزودن تأیید برای ثبت اقدامات تأیید یا رد'),
@@ -1331,7 +1331,7 @@ class ApprovalLog(models.Model):
 فیلد entity_type مشابه PostAction اضافه شده تا نوع موجودیت مشخص شود.
 """
 class StageApprover(models.Model):
-    stage = models.ForeignKey('core.WorkflowStage', on_delete=models.CASCADE, verbose_name=_('مرحله'))
+    stage = models.ForeignKey('core.AccessRule', on_delete=models.CASCADE, verbose_name=_('مرحله'))
     post = models.ForeignKey( 'core.Post', on_delete=models.CASCADE, verbose_name=_('پست مجاز'))  # فرض بر وجود مدل Post
     is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
     entity_type = models.CharField(

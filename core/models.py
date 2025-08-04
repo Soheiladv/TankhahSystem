@@ -14,6 +14,7 @@ from budgets.budget_calculations import get_project_total_budget, get_project_re
 from core import AccessRule
 from tankhah.constants import ENTITY_TYPES, ACTION_TYPES
 from tankhah.constants import ACTION_TYPES, ENTITY_TYPES
+from django.contrib.postgres.fields import ArrayField
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +102,28 @@ class Organization(models.Model):
         indexes = [
             models.Index(fields=['code', 'org_type']),
         ]
+
+class Branch(models.Model):
+    code = models.CharField(max_length=10, unique=True, verbose_name=_("کد شاخه"))
+    name = models.CharField(max_length=250, verbose_name=_("نام شاخه"))
+    is_active = models.BooleanField(default=True, verbose_name=_("وضعیت فعال"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان ایجاد"))
+
+    def __str__(self):
+        return f'{self.name} - {self.name} - {self.is_active}'
+
+    class Meta:
+        verbose_name = _("شاخه سازمانی")
+        verbose_name_plural = _("شاخه‌های سازمانی")
+        default_permissions = ()
+        permissions = [
+            ('Branch_add', 'افزودن شاخه سازمانی'),
+            ('Branch_edit', 'ویرایش شاخه سازمانی'),
+            ('Branch_view', 'نمایش شاخه سازمانی'),
+            ('Branch_delete', 'حــذف شاخه سازمانی'),
+        ]
+
+
 class Project(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("نام پروژه"))
     code = models.CharField(max_length=80, unique=True, verbose_name=_("کد پروژه"))
@@ -192,25 +215,6 @@ class SubProject(models.Model):
             ('SubProject_delete', 'حــذف زیر مجموعه پروژه'),
             ('SubProject_Head_Office', 'تخصیص زیر مجموعه پروژه(دفتر مرکزی)🏠'),
             ('SubProject_Branch', 'تخصیص  زیر مجموعه پروژه(شعبه)🏠'),
-        ]
-class Branch(models.Model):
-    code = models.CharField(max_length=10, unique=True, verbose_name=_("کد شاخه"))
-    name = models.CharField(max_length=250, verbose_name=_("نام شاخه"))
-    is_active = models.BooleanField(default=True, verbose_name=_("وضعیت فعال"))
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان ایجاد"))
-
-    def __str__(self):
-        return f'{self.name} - {self.name} - {self.is_active}'
-
-    class Meta:
-        verbose_name = _("شاخه سازمانی")
-        verbose_name_plural = _("شاخه‌های سازمانی")
-        default_permissions = ()
-        permissions = [
-            ('Branch_add','افزودن شاخه سازمانی'),
-            ('Branch_edit','ویرایش شاخه سازمانی'),
-            ('Branch_view','نمایش شاخه سازمانی'),
-            ('Branch_delete','حــذف شاخه سازمانی'),
         ]
 
 class Post(models.Model):
@@ -402,97 +406,8 @@ class PostHistory(models.Model):
             models.Index(fields=['post', 'changed_at']),
         ]
 # --
-class WorkflowStage(models.Model):
-    ENTITY_TYPE_CHOICES = (
-        ('TANKHAH', _('تنخواه')),
-        ('FACTOR', _('فاکتور')),
-        ('PAYMENTORDER', _('دستور پرداخت')),
-    )
-
-    name = models.CharField(max_length=100, verbose_name=_('نام مرحله'))
-    order = models.PositiveIntegerField(verbose_name=_('ترتیب'), unique=True)
-    description = models.TextField(blank=True, verbose_name=_('توضیحات'))
-    entity_type = models.CharField(
-        max_length=20,
-        choices=ENTITY_TYPE_CHOICES,
-        verbose_name=_('نوع موجودیت'),
-        db_index=True  # اضافه کردن ایندکس
-    )
-    is_active = models.BooleanField(default=True, verbose_name=_('فعال'))
-    min_signatures = models.PositiveIntegerField(default=1, verbose_name=_('حداقل امضاها'))
-    is_final_stage = models.BooleanField(
-        default=False,
-        help_text=_("آیا این مرحله نهایی برای تکمیل تنخواه است؟"),
-        verbose_name=_("مرحله نهایی")
-    )
-    auto_advance = models.BooleanField(
-        default=True,
-        verbose_name=_("پیش‌رفت خودکار"),
-        help_text=_("اگر فعال باشد، پس از تأیید یک مرحله، فاکتور به مرحله بعدی می‌رود.")
-    )
-    triggers_payment_order = models.BooleanField(
-        default=False,
-        verbose_name=_("فعال‌سازی دستور پرداخت"),
-        help_text=_("آیا این مرحله باعث ایجاد خودکار دستور پرداخت می‌شود؟ (برای تنخواه/فاکتور)")
-    )
-
-    # def get_next_stage(self):
-    #     """
-    #     مرحله بعدی را بر اساس ترتیب (order) پیدا می‌کند.
-    #     اگر مرحله بعدی وجود نداشته باشد، None برمی‌گرداند.
-    #     """
-    #     try:
-    #         # مرحله با order بزرگتر از order فعلی را پیدا می‌کند
-    #         # و مطمئن می‌شود که ترتیب (order) آن حداقل یک واحد بیشتر باشد
-    #         return WorkflowStage.objects.get(order=self.order + 1)
-    #     except WorkflowStage.DoesNotExist:
-    #         return None
-    #
-    # def save(self, *args, **kwargs):
-    #     if not self.pk and WorkflowStage.objects.filter(order=self.order).exists():
-    #         raise ValueError(_("ترتیب مرحله نمی‌تواند تکراری باشد"))
-    #     super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.name} ({self.get_entity_type_display()}, ترتیب: {self.order})"
-
-    class Meta:
-        verbose_name = _('مرحله گردش کار')
-        verbose_name_plural = _('مراحل گردش کار')
-        ordering = ['order']
-        indexes = [
-            models.Index(fields=['entity_type', 'is_active']),
-        ]
-        default_permissions = ()
-        permissions = [
-            ('WorkflowStage_view', 'نمایش مرحله گردش کار'),
-            ('WorkflowStage_add', 'افزودن مرحله گردش کار'),
-            ('WorkflowStage_update', 'بروزرسانی مرحله گردش کار'),
-            ('WorkflowStage_delete', 'حذف مرحله گردش کار'),
-            ('WorkflowStage_triggers_payment_order', 'فعال‌سازی دستور پرداخت - مرحله گردش کار'),
-        ]
-from django.contrib.postgres.fields import ArrayField
-# ---
 class AccessRule(models.Model):
     """این مدل مشخص می‌کنه که پست‌های یک سازمان، با branch و min_level خاص، چه اقداماتی می‌تونن توی چه مراحلی برای چه موجودیت‌هایی انجام بدن."""
-    # ENTITY_TYPES = (
-    #     ('FACTOR', _('فاکتور')),
-    #     ('TANKHAH', _('تنخواه')),
-    #     ('BUDGET', _('بودجه')),
-    #     ('PAYMENTORDER', _('دستور پرداخت')),
-    #     ('REPORTS', _('گزارشات')),
-    #     ('GENERAL', _('عمومی')),
-    # )
-    # ACTION_TYPES = [
-    #     ('APPROVE', _('تأیید')),
-    #     ('REJECT', _('رد')),
-    #     ('SIGN_PAYMENT', _('امضای دستور پرداخت')),
-    #     ('EDIT', _('ویرایش')),
-    #     ('VIEW', _('مشاهده')),
-    #     ('STATUS_CHANGE', _('تغییر وضعیت')),
-    #     ('CREATE', _('ایجاد')),  # اضافه شده
-    #     ('DELETE', _('حذف'))  # اضافه شده
-    # ]
 
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("سازمان"))
     # stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_('مرحله'))
@@ -707,4 +622,74 @@ class OrganizationChartView(models.Model):
         permissions = [
             ('OrganizationChartView_view', '   دسترسی به گرافیک داشبورد چارت سازمانی 💻'),
 
+        ]
+
+class WorkflowStage(models.Model):
+    ENTITY_TYPE_CHOICES = (
+        ('TANKHAH', _('تنخواه')),
+        ('FACTOR', _('فاکتور')),
+        ('PAYMENTORDER', _('دستور پرداخت')),
+    )
+
+    name = models.CharField(max_length=100, verbose_name=_('نام مرحله'))
+    order = models.PositiveIntegerField(verbose_name=_('ترتیب'), unique=True)
+    description = models.TextField(blank=True, verbose_name=_('توضیحات'))
+    entity_type = models.CharField(
+        max_length=20,
+        choices=ENTITY_TYPE_CHOICES,
+        verbose_name=_('نوع موجودیت'),
+        db_index=True  # اضافه کردن ایندکس
+    )
+    is_active = models.BooleanField(default=True, verbose_name=_('فعال'))
+    min_signatures = models.PositiveIntegerField(default=1, verbose_name=_('حداقل امضاها'))
+    is_final_stage = models.BooleanField(
+        default=False,
+        help_text=_("آیا این مرحله نهایی برای تکمیل تنخواه است؟"),
+        verbose_name=_("مرحله نهایی")
+    )
+    auto_advance = models.BooleanField(
+        default=True,
+        verbose_name=_("پیش‌رفت خودکار"),
+        help_text=_("اگر فعال باشد، پس از تأیید یک مرحله، فاکتور به مرحله بعدی می‌رود.")
+    )
+    triggers_payment_order = models.BooleanField(
+        default=False,
+        verbose_name=_("فعال‌سازی دستور پرداخت"),
+        help_text=_("آیا این مرحله باعث ایجاد خودکار دستور پرداخت می‌شود؟ (برای تنخواه/فاکتور)")
+    )
+
+    # def get_next_stage(self):
+    #     """
+    #     مرحله بعدی را بر اساس ترتیب (order) پیدا می‌کند.
+    #     اگر مرحله بعدی وجود نداشته باشد، None برمی‌گرداند.
+    #     """
+    #     try:
+    #         # مرحله با order بزرگتر از order فعلی را پیدا می‌کند
+    #         # و مطمئن می‌شود که ترتیب (order) آن حداقل یک واحد بیشتر باشد
+    #         return WorkflowStage.objects.get(order=self.order + 1)
+    #     except WorkflowStage.DoesNotExist:
+    #         return None
+    #
+    # def save(self, *args, **kwargs):
+    #     if not self.pk and WorkflowStage.objects.filter(order=self.order).exists():
+    #         raise ValueError(_("ترتیب مرحله نمی‌تواند تکراری باشد"))
+    #     super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} ({self.get_entity_type_display()}, ترتیب: {self.order})"
+
+    class Meta:
+        verbose_name = _('مرحله گردش کار')
+        verbose_name_plural = _('مراحل گردش کار')
+        ordering = ['order']
+        indexes = [
+            models.Index(fields=['entity_type', 'is_active']),
+        ]
+        default_permissions = ()
+        permissions = [
+            ('WorkflowStage_view', 'نمایش مرحله گردش کار'),
+            ('WorkflowStage_add', 'افزودن مرحله گردش کار'),
+            ('WorkflowStage_update', 'بروزرسانی مرحله گردش کار'),
+            ('WorkflowStage_delete', 'حذف مرحله گردش کار'),
+            ('WorkflowStage_triggers_payment_order', 'فعال‌سازی دستور پرداخت - مرحله گردش کار'),
         ]

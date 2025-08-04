@@ -117,8 +117,21 @@ def format_jalali_date(date_obj):
         return ''
 
 
+import jdatetime
 
 def jalali_to_gregorian(year, month, day):
+    try:
+        jalali_date = jdatetime.date(year, month, day)
+        gregorian_date = jalali_date.togregorian()  # اینجا معمولاً باید یک شیء datetime.date برگردونه
+        if isinstance(gregorian_date, jdatetime.date):  # بررسی نوع تاریخ
+            return gregorian_date.to_datetime().date()  # تبدیل به datetime و سپس به date
+        else:
+            return gregorian_date
+    except Exception as e:
+        logger.error(f"Error converting Jalali to Gregorian: {year}/{month}/{day} - {e}")
+        return None
+
+def jalali_to_gregorian_OK(year, month, day):
     try:
         jalali_date = jdatetime.date(year, month, day)
         gregorian_date = jalali_date.togregorian()

@@ -897,7 +897,7 @@ class DashboardView(LoginRequiredMixin, View):
         current_jalali_month = j_now.month
 
         # اطلاعات پایه
-        context['title'] = _("داشبورد جامع سیستم تنخواه و بودجه")
+        context['title'] = _("داشبورد سیستم جامع نظارتی بر تنخواه و بودجه")
         context['version'] = self.final_version
 
         # دسترسی‌ها

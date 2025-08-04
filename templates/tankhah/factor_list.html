@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static i18n jformat humanize rcms_custom_filters %}
+{% load static i18n jformat humanize rcms_custom_filters  %}
 
 {% block title %}{% trans "مدیریت فاکتورها" %}{% endblock %}
 
@@ -321,7 +321,7 @@
                                                 {% for status_key, factors in tankhah_data.factors.items %}
                                                     {% for factor in factors %}
                                                         <tr>
-                                                            <td> {{ forloop.counter  |to_persian_number}} </td>
+                                                            <td> {{ forloop.counter  |to_persian_number }} </td>
                                                             <td data-label="{% trans 'شماره / تاریخ' %}">
                                                                 <div class="fw-bold">{{ factor.number|to_persian_number }}</div>
                                                                 <small class="text-muted">{{ factor.jalali_date  |to_persian_number }}</small>
@@ -342,13 +342,16 @@
                                                                        data-bs-toggle="tooltip"
                                                                        title="{% trans 'قفل شده' %}"></i>{% endif %}
                                                             </td>
+
                                                             <td data-label="{% trans 'آخرین اقدام' %}"
                                                                 class="actor-cell">
-                                                                <div class="actor-name" data-bs-toggle="tooltip"
-                                                                     title="{{ factor.approvers_display_list }}">
-                                                                    {{ factor.last_actor_name }}
+                                                                <div class="actor-name" data-bs-toggle="tooltip" title=" 
+                                                                        {% if factor.approvers_display_list %}{{ factor.approvers_display_list }}{% else %}بدون تأییدکننده{% endif %}">
+                                                                    {{ factor.last_actor_name|default:"بدون اقدام" }}
                                                                 </div>
-                                                                <span class="badge bg-light text-dark actor-action">{{ factor.last_action_verb }}</span>
+                                                                <span class="badge bg-info text-white actor-action">
+                                                                            {{ factor.last_action_verb|default:"بدون اقدام" }}
+                                                                        </span>
                                                             </td>
                                                             <td data-label="{% trans 'عملیات' %}">
                                                                 <div class="btn-group">
@@ -356,7 +359,8 @@
                                                                        class="btn btn-sm btn-outline-primary"
                                                                        data-bs-toggle="tooltip"
                                                                        title="{% trans 'بررسی ردیف‌ها' %}"><i
-                                                                            class="fas fa-tasks"></i></a>
+                                                                            class="fas fa-tasks"></i>
+                                                                    </a>
                                                                     <!-- 💡 NEW: Approval Path Link -->
                                                                     <a href="{% url 'factor_approval_path' factor.pk %}"
                                                                        class="btn btn-sm btn-outline-info"
@@ -407,6 +411,8 @@
                         <ul class="pagination">
                             {% if page_obj.has_previous %}
                                 <li class="page-item"><a class="page-link" href="?page=
+                                        
+                                        
                                         {{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">‹</a>
                                 </li>{% endif %}
                             {% for i in page_obj.paginator.get_elided_page_range %}{% if page_obj.number == i %}
@@ -414,10 +420,14 @@
                                 </li>{% else %}{% if i == page_obj.paginator.ELLIPSIS %}
                                     <li class="page-item disabled"><span class="page-link">{{ i }}</span></li>{% else %}
                                     <li class="page-item"><a class="page-link" href="?page=
+                                            
+                                            
                                             {{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ i|to_persian_number }}</a>
                                     </li>{% endif %}{% endif %}{% endfor %}
                             {% if page_obj.has_next %}
                                 <li class="page-item"><a class="page-link" href="?page=
+                                        
+                                        
                                         {{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">›</a>
                                 </li>{% endif %}
                         </ul>
