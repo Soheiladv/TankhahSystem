@@ -36,7 +36,6 @@ MANAGED_ENTITIES = [
 ]
 
 ACTIONS_REQUIRING_STAGE_SELECTION = ['APPROVE', 'REJECT']
-ACTIONS_WITHOUT_STAGE = ['EDIT', 'VIEW', 'STATUS_CHANGE', 'CREATE', 'DELETE', 'SIGN_PAYMENT']
 
 # اقدامات نیازمند انتخاب مرحله
 class PostAccessRuleForm(forms.Form):
@@ -559,8 +558,9 @@ class PostAccessRuleForm_new(forms.Form):
                     ).update(is_final_stage=True)
                     logger.info(f"Updated final stage for Org:{org_id}, Entity:{entity_type} to order {max_order}")
 
-
+# این فرم برای این ویو است PostAccessRuleAssignView که قوانین را ویزاردی مینویسد
 class PostAccessRuleHybridForm(forms.Form):
+# این فرم برای این ویو است PostAccessRuleAssignView که قوانین را ویزاردی مینویسد
     def __init__(self, *args, **kwargs):
         self.posts_query = kwargs.pop('posts_query')
         self.user = kwargs.pop('user', None)  # اضافه کردن این خط
@@ -629,3 +629,337 @@ class PostAccessRuleHybridForm(forms.Form):
         except Exception as e:
             logger.error(f"Critical error in save method: {str(e)}")
             raise
+
+# new Form - Edit Accept Post With Level
+from collections import defaultdict
+class PostAccessRuleAssignForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        self.organization = kwargs.pop('organization')
+        self.entity_type = kwargs.pop('entity_type')
+        self.user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+
+        WORKFLOW_ACTIONS = [a for a in ACTION_TYPES if a[0] not in ACTIONS_WITHOUT_STAGE]
+        STATIC_ACTIONS = [a for a in ACTION_TYPES if a[0] in ACTIONS_WITHOUT_STAGE]
+
+        posts = Post.objects.filter(organization=self.organization, is_active=True).order_by('level', 'name')
+        existing_rules = AccessRule.objects.filter(organization=self.organization, entity_type=self.entity_type)
+        rules_map = {(rule.post_id, rule.action_type): rule for rule in existing_rules}
+        stage_names_map = {rule.stage_order: rule.stage for rule in existing_rules if rule.stage_order}
+
+        # --- بخش ۱: گردش کار (بر اساس level) ---
+        self.levels_data = defaultdict(lambda: {'posts_data': [], 'stage_name_field': None})
+
+        for post in posts:
+            # یک دیکشنری برای هر پست ایجاد می‌کنیم
+            post_data = {'post_obj': post, 'workflow_actions': []}
+
+            for action_code, action_label in WORKFLOW_ACTIONS:
+                field_name = f'w_rule__{post.level}__{post.id}__{action_code}'
+                self.fields[field_name] = forms.BooleanField(
+                    required=False, label=action_label, initial=bool(rules_map.get((post.id, action_code)))
+                )
+                post_data['workflow_actions'].append(self[field_name])
+
+            self.levels_data[post.level]['posts_data'].append(post_data)
+
+        for level, data in self.levels_data.items():
+            stage_name_field_name = f'stage_name__{level}'
+            self.fields[stage_name_field_name] = forms.CharField(
+                label=f"نام مرحله برای سطح {level}", required=False, initial=stage_names_map.get(level, ''),
+                widget=forms.TextInput(attrs={'class': 'form-control form-control-sm'})
+            )
+            data['stage_name_field'] = self[stage_name_field_name]
+
+        # --- بخش ۲: دسترسی‌های عمومی ---
+        self.static_access_data = []
+        for post in posts:
+            post_data = {'post_obj': post, 'static_actions': []}
+            for action_code, action_label in STATIC_ACTIONS:
+                field_name = f's_rule__{post.id}__{action_code}'
+                self.fields[field_name] = forms.BooleanField(
+                    required=False, label=action_label, initial=bool(rules_map.get((post.id, action_code)))
+                )
+                post_data['static_actions'].append(self[field_name])
+            self.static_access_data.append(post_data)
+
+    def save(self):
+        try:
+            with transaction.atomic():
+                # حذف تمام قوانین قبلی برای این سازمان و موجودیت
+                AccessRule.objects.filter(
+                    organization=self.organization,
+                    entity_type=self.entity_type
+                ).delete()
+
+                # ایجاد قوانین جدید بر اساس داده‌های فرم
+                for level, data in self.levels_data.items():
+                    stage_name = self.cleaned_data.get(f'stage_name__{level}') or f"مرحله سطح {level}"
+
+                    for post in data['posts']:
+                        for action_code, _ in ACTION_TYPES:
+                            field_name = f'rule__{level}__{post.id}__{action_code}'
+                            if self.cleaned_data.get(field_name):
+                                AccessRule.objects.create(
+                                    organization=self.organization,
+                                    post=post,
+                                    entity_type=self.entity_type,
+                                    stage_order=level,  # <-- نکته کلیدی: stage_order همان level است
+                                    stage=stage_name,  # نام مرحله تعریف شده برای آن سطح
+                                    action_type=action_code,
+                                    min_level=post.level,
+                                    branch=post.branch,
+                                    created_by=self.user,
+                                    is_active=True
+                                )
+        except Exception as e:
+            logger.error(f"Critical error in PostAccessRuleAssignForm save: {e}", exc_info=True)
+            raise
+
+#--------------------------------------------------------------
+'''
+دسترسی‌های گردش کار (Workflow Permissions):
+ماهیت: ترتیبی، مرحله‌ای، بر اساس سطح (level).
+اقدامات: APPROVE, REJECT, FINAL_APPROVE, SUBMIT.
+پیاده‌سازی: دقیقاً همان راه حلی که در پاسخ قبلی ارائه شد (گروه‌بندی بر اساس Post.level و تعریف نام مرحله برای هر سطح).
+دسترسی‌های عمومی/ثابت (Static Permissions):
+ماهیت: غیرترتیبی، باینری (دارد یا ندارد)، مستقل از سطح و مرحله.
+اقدامات: VIEW, EDIT, CREATE, DELETE, SIGN_PAYMENT.
+پیاده‌سازی: برای هر پست، یک سری چک‌باکس ساده برای این اقدامات وجود خواهد داشت، بدون نیاز به تعریف مرحله یا ترتیب.
+دسترسی سلسله مراتبی (Hierarchical Access):
+این یک منطق در بک‌اند است. هر زمان که سیستم در حال بررسی یک مجوز است (مثلاً user.has_perm('tankhah.factor_edit', factor_object)), تابع بررسی‌کننده باید نه تنها قوانین سازمان خود فاکتور، بلکه قوانین سازمان‌های والد آن را نیز در نظر بگیرد.
+بازطراحی نهایی: فرم و ویو یکپارچه (Unified View)
+ما یک ویو و فرم واحد ایجاد می‌کنیم که با استفاده از تب (Tabs) این دو نوع دسترسی را از هم جدا می‌کند.
+مرحله ۱: بازنویسی فرم (UnifiedAccessForm)
+'''
+
+ACTIONS_WITHOUT_STAGE = [ 'VIEW', 'EDIT', 'CREATE', 'DELETE', 'SIGN_PAYMENT' ]
+
+# این import ها بسیار مهم هستند.
+from core.models import AccessRule, Post, Organization, ENTITY_TYPES, ACTION_TYPES
+
+# تنظیم یک لاگر مشخص برای این فرم
+logger = logging.getLogger('UnifiedAccessFormLogger')
+logger.setLevel(logging.DEBUG)
+class UnifiedAccessForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        self.organization = kwargs.pop('organization')
+        self.entity_type = kwargs.pop('entity_type')
+        self.user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+
+        logger.debug("\n" + "=" * 60)
+        logger.debug("= START: UnifiedAccessForm Initialization")
+        logger.debug(f"= Organization: '{self.organization.name}' (PK: {self.organization.pk})")
+        logger.debug(f"= Entity Type: {self.entity_type}")
+        logger.debug("=" * 60 + "\n")
+
+        # مرحله ۱: بررسی ثابت‌ها
+        logger.debug("--- Step 1: Checking Constants ---")
+        if not ACTION_TYPES:
+            logger.error("FATAL: ACTION_TYPES is empty or not imported correctly!")
+        else:
+            logger.debug(f"ACTION_TYPES loaded successfully ({len(ACTION_TYPES)} items).")
+
+        if not ACTIONS_WITHOUT_STAGE:
+            logger.error("FATAL: ACTIONS_WITHOUT_STAGE is empty or not defined!")
+        else:
+            logger.debug(f"ACTIONS_WITHOUT_STAGE loaded successfully ({len(ACTIONS_WITHOUT_STAGE)} items).")
+
+        # مرحله ۲: تقسیم‌بندی اقدامات
+        logger.debug("\n--- Step 2: Categorizing Actions ---")
+        WORKFLOW_ACTIONS = [a for a in ACTION_TYPES if a[0] not in ACTIONS_WITHOUT_STAGE]
+        STATIC_ACTIONS = [a for a in ACTION_TYPES if a[0] in ACTIONS_WITHOUT_STAGE]
+        logger.debug(f"WORKFLOW_ACTIONS calculated: {WORKFLOW_ACTIONS}")
+        logger.debug(f"STATIC_ACTIONS calculated: {STATIC_ACTIONS}")
+
+        # مرحله ۳: واکشی پست‌ها
+        logger.debug("\n--- Step 3: Fetching Posts ---")
+        posts = Post.objects.filter(organization=self.organization, is_active=True).order_by('level', 'name')
+        logger.debug(f"Found {posts.count()} active posts for this organization.")
+
+        if not posts.exists():
+            logger.warning("No active posts found. Aborting form field creation.")
+            self.levels_data = {}
+            self.static_access_data = []
+            return
+
+        # مرحله ۴: واکشی قوانین موجود
+        logger.debug("\n--- Step 4: Fetching Existing Rules ---")
+        existing_rules = AccessRule.objects.filter(organization=self.organization, entity_type=self.entity_type)
+        logger.debug(f"Found {existing_rules.count()} existing rules for this org/entity.")
+        rules_map = {(rule.post_id, rule.action_type): rule for rule in existing_rules}
+        stage_names_map = {rule.stage_order: rule.stage for rule in existing_rules if rule.stage_order}
+        logger.debug(
+            f"Created rules_map with {len(rules_map)} items and stage_names_map with {len(stage_names_map)} items.")
+
+        # مرحله ۵: ساخت فیلدهای فرم
+        logger.debug("\n--- Step 5: Building Form Fields ---")
+        self.levels_data = defaultdict(lambda: {'posts_data': [], 'stage_name_field': None})
+        self.static_access_data = []
+        total_fields_created = 0
+
+        # بخش گردش کار
+        logger.debug("--- Building WORKFLOW fields ---")
+        if WORKFLOW_ACTIONS:
+            for post in posts:
+                post_data_dict = {'post_obj': post, 'workflow_actions': []}
+                for action_code, action_label in WORKFLOW_ACTIONS:
+                    field_name = f'w_rule__{post.level}__{post.id}__{action_code}'
+                    self.fields[field_name] = forms.BooleanField(required=False, label=action_label,
+                                                                 initial=bool(rules_map.get((post.id, action_code))))
+                    post_data_dict['workflow_actions'].append(self[field_name])
+                    total_fields_created += 1
+                self.levels_data[post.level]['posts_data'].append(post_data_dict)
+
+            for level, data in self.levels_data.items():
+                stage_name_field_name = f'stage_name__{level}'
+                self.fields[stage_name_field_name] = forms.CharField(label=f"نام مرحله برای سطح {level}",
+                                                                     required=False,
+                                                                     initial=stage_names_map.get(level, ''),
+                                                                     widget=forms.TextInput(attrs={
+                                                                         'class': 'form-control form-control-sm'}))
+                data['stage_name_field'] = self[stage_name_field_name]
+                total_fields_created += 1
+        else:
+            logger.warning("WORKFLOW_ACTIONS list is empty. Skipping workflow field creation.")
+
+        # بخش دسترسی‌های عمومی
+        logger.debug("--- Building STATIC ACCESS fields ---")
+        if STATIC_ACTIONS:
+            for post in posts:
+                post_data_dict = {'post_obj': post, 'static_actions': []}
+                for action_code, action_label in STATIC_ACTIONS:
+                    field_name = f's_rule__{post.id}__{action_code}'
+                    self.fields[field_name] = forms.BooleanField(required=False, label=action_label,
+                                                                 initial=bool(rules_map.get((post.id, action_code))))
+                    post_data_dict['static_actions'].append(self[field_name])
+                    total_fields_created += 1
+                self.static_access_data.append(post_data_dict)
+        else:
+            logger.warning("STATIC_ACTIONS list is empty. Skipping static access field creation.")
+
+        logger.debug("\n" + "=" * 60)
+        logger.debug(f"= FINISHED: UnifiedAccessForm Initialization")
+        logger.debug(f"= Total fields created in form: {len(self.fields)} (calculated: {total_fields_created})")
+        logger.debug(f"= Final levels_data keys: {list(self.levels_data.keys())}")
+        logger.debug(f"= Final static_access_data length: {len(self.static_access_data)}")
+        logger.debug("=" * 60 + "\n")
+
+    def save(self):
+        with transaction.atomic():
+            AccessRule.objects.filter(organization=self.organization, entity_type=self.entity_type).delete()
+            # ۱. ذخیره قوانین گردش کار
+            if self.cleaned_data:
+                for level, data in self.levels_data.items():
+                    stage_name = self.cleaned_data.get(f'stage_name__{level}') or f"مرحله سطح {level}"
+                    for post_data in data['posts_data']:
+                        post = post_data['post_obj']
+                        for action_field in post_data['workflow_actions']:
+                            if self.cleaned_data.get(action_field.name):
+                                action_code = action_field.name.split('__')[-1]
+                                AccessRule.objects.create(organization=self.organization, post=post,
+                                                          entity_type=self.entity_type, stage_order=level,
+                                                          stage=stage_name, action_type=action_code,
+                                                          min_level=post.level, branch=post.branch,
+                                                          created_by=self.user, is_active=True)
+                # ۲. ذخیره قوانین عمومی
+                for post_data in self.static_access_data:
+                    post = post_data['post_obj']
+                    for action_field in post_data['static_actions']:
+                        if self.cleaned_data.get(action_field.name):
+                            action_code = action_field.name.split('__')[-1]
+                            AccessRule.objects.create(organization=self.organization, post=post,
+                                                      entity_type=self.entity_type, action_type=action_code,
+                                                      stage_order=None, stage=None, min_level=post.level,
+                                                      branch=post.branch, created_by=self.user, is_active=True)
+
+
+class WorkflowForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        self.organization = kwargs.pop('organization')
+        self.entity_type = kwargs.pop('entity_type')
+        self.user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+
+        # فقط اقدامات مربوط به گردش کار را در نظر می‌گیریم
+        WORKFLOW_ACTIONS = [a for a in ACTION_TYPES if a[0] not in ACTIONS_WITHOUT_STAGE]
+
+        # --- حل باگ لود نشدن تمام سطوح ---
+        # مرحله ۱: پیدا کردن سازمان و تمام زیرمجموعه‌های آن به صورت بازگشتی
+        orgs_to_include = [self.organization]
+        org_queue = [self.organization]
+        while org_queue:
+            current_org = org_queue.pop(0)
+            sub_orgs = list(current_org.sub_organizations.all())  # فرض بر related_name='sub_organizations'
+            orgs_to_include.extend(sub_orgs)
+            org_queue.extend(sub_orgs)
+
+        org_ids_to_include = [org.pk for org in orgs_to_include]
+        logger.debug(f"Querying for posts in organization IDs: {org_ids_to_include}")
+
+        # مرحله ۲: اجرای کوئری برای تمام سازمان‌های پیدا شده
+        self.posts = Post.objects.filter(
+            organization_id__in=org_ids_to_include,
+            is_active=True
+        ).select_related('organization', 'branch').order_by('level', 'name')
+
+        logger.debug(f"Found {self.posts.count()} active posts across all related organizations.")
+
+        if not self.posts.exists():
+            self.levels_data = {}
+            return
+
+        existing_rules = AccessRule.objects.filter(
+            organization=self.organization,  # قوانین همچنان برای سازمان اصلی تعریف می‌شوند
+            entity_type=self.entity_type,
+            action_type__in=[code for code, label in WORKFLOW_ACTIONS]
+        )
+        rules_map = {(rule.post_id, rule.action_type): rule for rule in existing_rules}
+        stage_names_map = {rule.stage_order: rule.stage for rule in existing_rules if rule.stage_order}
+
+        self.levels_data = defaultdict(lambda: {'posts_data': [], 'stage_name_field': None})
+        for post in self.posts:
+            post_data_dict = {'post_obj': post, 'workflow_actions': []}
+            for action_code, action_label in WORKFLOW_ACTIONS:
+                field_name = f'w_rule__{post.level}__{post.id}__{action_code}'
+                self.fields[field_name] = forms.BooleanField(required=False, label=action_label,
+                                                             initial=bool(rules_map.get((post.id, action_code))))
+                post_data_dict['workflow_actions'].append(self[field_name])
+            self.levels_data[post.level]['posts_data'].append(post_data_dict)
+
+        for level, data in self.levels_data.items():
+            stage_name_field_name = f'stage_name__{level}'
+            self.fields[stage_name_field_name] = forms.CharField(label=f"نام مرحله برای سطح {level}", required=False,
+                                                                 initial=stage_names_map.get(level, ''),
+                                                                 widget=forms.TextInput(
+                                                                     attrs={'class': 'form-control form-control-sm'}))
+            data['stage_name_field'] = self[stage_name_field_name]
+
+    def save(self):
+        WORKFLOW_ACTION_CODES = [a[0] for a in ACTION_TYPES if a[0] not in ACTIONS_WITHOUT_STAGE]
+
+        with transaction.atomic():
+            # فقط قوانین گردش کار قبلی برای سازمان اصلی را حذف می‌کنیم
+            AccessRule.objects.filter(
+                organization=self.organization,
+                entity_type=self.entity_type,
+                action_type__in=WORKFLOW_ACTION_CODES
+            ).delete()
+
+            # قوانین گردش کار جدید را بر اساس فرم ایجاد می‌کنیم
+            if self.cleaned_data:
+                for level, data in self.levels_data.items():
+                    stage_name = self.cleaned_data.get(f'stage_name__{level}') or f"مرحله سطح {level}"
+                    for post_data in data['posts_data']:
+                        post = post_data['post_obj']
+                        # قانون فقط برای پستی ایجاد می‌شود که متعلق به سازمان اصلی باشد
+                        if post.organization == self.organization:
+                            for action_field in post_data['workflow_actions']:
+                                if self.cleaned_data.get(action_field.name):
+                                    action_code = action_field.name.split('__')[-1]
+                                    AccessRule.objects.create(
+                                        organization=self.organization, post=post, entity_type=self.entity_type,
+                                        stage_order=level, stage=stage_name, action_type=action_code,
+                                        min_level=post.level, branch=post.branch, created_by=self.user, is_active=True
+                                    )

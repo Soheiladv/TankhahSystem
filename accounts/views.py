@@ -302,7 +302,7 @@ class RoleListView1(PermissionBaseView, View):
 # لیست اپ‌هایی که نمی‌خوای نشون داده بشن
 EXCLUDED_APPS = [
     'admin_interface',
-    'notifications',
+    # 'notificationsApp',
     'contenttypes',
     'sessions',
     # هر اپ دیگه‌ای که نمی‌خوای رو اضافه کن

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
 from core.models import Organization, OrganizationType, Project, Post, UserPost, PostHistory, \
-    SystemSettings, AccessRule, Branch  # ,StageTransitionPermission
+    SystemSettings, AccessRule, Branch, WorkflowStage  # ,StageTransitionPermission
 
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
@@ -355,7 +355,7 @@ class BranchAdmin(admin.ModelAdmin):
     #     self.message_user(request, _("شاخه(های) انتخابی غیرفعال شدند."))
     # make_inactive.short_description = _("غیرفعال کردن شاخه‌های انتخابی")
 
-# admin.site.register(Branch)
+# admin.site.register(WorkflowStage)
 admin.site.register(SystemSettings)
 
 

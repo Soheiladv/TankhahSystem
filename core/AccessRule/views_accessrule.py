@@ -1,16 +1,19 @@
 # core/views.py
 import logging
+from collections import defaultdict
 
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q
-from django.shortcuts import render
-from django.urls import reverse_lazy
+from django.http import Http404
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse_lazy, reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.views.generic import FormView
 from django.views.generic import ListView
-from core.AccessRule.forms_accessrule import PostAccessRuleForm_new, PostAccessRuleHybridForm
+from core.AccessRule.forms_accessrule import PostAccessRuleForm_new, PostAccessRuleHybridForm, PostAccessRuleAssignForm, \
+    UnifiedAccessForm, WorkflowForm
 from core.models import AccessRule, Post, Organization
 from core.views import PermissionBaseView
 logger = logging.getLogger(__name__)
@@ -154,7 +157,7 @@ class PostRuleReportView(PermissionBaseView, ListView):
             'organization__name', 'level')
     # template_name = 'core/accessrule/post_access_rule_assign_a.html'
 
-class PostAccessRuleAssignView(PermissionBaseView, FormView):
+class PostAccessRuleAssignView_old(PermissionBaseView, FormView):
     template_name = 'core/accessrule/post_access_rule_assign_hybrid.html'
     form_class = PostAccessRuleHybridForm
     success_url = reverse_lazy('accessrule_list')
@@ -199,3 +202,186 @@ class PostAccessRuleAssignView(PermissionBaseView, FormView):
         messages.error(self.request,
                      _('لطفاً خطاهای فرم را برطرف کنید. به یاد داشته باشید که برای تأیید/رد، تعیین سطح الزامی است.'))
         return super().form_invalid(form)
+
+class PostAccessRuleAssignView(PermissionBaseView, FormView):
+    template_name = 'core/accessrule/post_access_rule_assign.html' # یک تمپلیت جدید و تمیز
+    form_class = PostAccessRuleAssignForm
+    permission_codenames = ['core.AccessRule_add', 'core.AccessRule_update']
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        # این ویو باید بداند برای کدام سازمان و کدام نوع موجودیت کار می‌کند
+        self.organization = get_object_or_404(Organization, pk=self.kwargs['org_pk'])
+        self.entity_type = self.kwargs['entity_type']
+        self.success_url = reverse('post_access_rule_assign', args=[self.organization.pk, self.entity_type])
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            'organization': self.organization,
+            'entity_type': self.entity_type,
+            'user': self.request.user
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _(f"مدیریت گردش کار برای '{self.entity_type}' در سازمان '{self.organization.name}'")
+        context['organization'] = self.organization
+        context['entity_type'] = self.entity_type
+        return context
+
+    def form_valid(self, form):
+        try:
+            form.save()
+            messages.success(self.request, _('قوانین گردش کار با موفقیت به‌روزرسانی شدند.'))
+        except Exception as e:
+            logger.exception(f"Error while saving Access Rule Form: {e}")
+            messages.error(self.request, _('خطایی در هنگام ذخیره‌سازی رخ داد.'))
+            return self.form_invalid(form)
+
+        return super().form_valid(form)
+
+#-------------------------------------------------------------------------------------------
+class SelectWorkflowView(PermissionBaseView, TemplateView):
+    template_name = 'core/accessrule/workflow_select.html'
+    permission_codenames = ['core.AccessRule_add']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _("انتخاب گردش کار برای مدیریت")
+        if self.request.user.is_superuser:
+            context['organizations'] = Organization.objects.filter(is_active=True)
+        else:
+            user_org_ids = self.request.user.userpost_set.filter(
+                is_active=True
+            ).values_list('post__organization_id', flat=True).distinct()
+            context['organizations'] = Organization.objects.filter(id__in=user_org_ids, is_active=True)
+        context['entity_types'] = ENTITY_TYPES
+        return context
+
+
+class WorkflowBuilderView(PermissionBaseView, FormView):
+    template_name = 'core/accessrule/unified_access_assign.html'
+    form_class = UnifiedAccessForm
+    permission_codenames = ['core.AccessRule_add', 'core.AccessRule_update']
+    check_organization  = True
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        try:
+            self.organization = get_object_or_404(Organization, pk=self.kwargs['org_pk'])
+            self.entity_type = self.kwargs['entity_type']
+            if self.entity_type not in [e[0] for e in ENTITY_TYPES]:
+                raise Http404("Entity type not valid")
+        except KeyError:
+            raise Http404("Organization or Entity Type not specified in URL.")
+        self.success_url = reverse('workflow_builder', args=[self.organization.pk, self.entity_type])
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            'organization': self.organization,
+            'entity_type': self.entity_type,
+            'user': self.request.user
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = context['form']
+        entity_label = dict(ENTITY_TYPES).get(self.entity_type, self.entity_type)
+        context['title'] = _(f"طراحی گردش کار برای '{entity_label}' در سازمان '{self.organization.name}'")
+        context['organization'] = self.organization
+        context['entity_type'] = self.entity_type
+
+        workflow_data = sorted(form.levels_data.items())
+
+        has_data_to_display = bool(workflow_data)
+        if not has_data_to_display and self.request.method == 'GET':
+            messages.warning(self.request, _(f"هیچ پست فعالی برای سازمان '{self.organization.name}' یافت نشد."))
+
+        context['workflow_data'] = workflow_data
+        context['has_data_to_display'] = has_data_to_display
+        return context
+
+    def form_valid(self, form):
+        try:
+            form.save()
+            messages.success(self.request, _('قوانین دسترسی با موفقیت به‌روزرسانی شدند.'))
+        except Exception as e:
+            logger.exception(f"Error while saving Unified Access Form: {e}")
+            messages.error(self.request, _('خطایی در هنگام ذخیره‌سازی رخ داد.'))
+            return self.form_invalid(form)
+        return super().form_valid(form)
+
+
+class WorkflowBuilderView(PermissionBaseView, FormView):
+    template_name = 'core/accessrule/workflow_builder.html'
+    form_class = WorkflowForm
+    permission_codenames = ['core.AccessRule_add', 'core.AccessRule_update']
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        try:
+            self.organization = get_object_or_404(Organization, pk=self.kwargs['org_pk'])
+            self.entity_type = self.kwargs['entity_type']
+            if self.entity_type not in [e[0] for e in ENTITY_TYPES]:
+                raise Http404("Entity type not valid")
+        except KeyError:
+            raise Http404("Organization or Entity Type not specified in URL.")
+        self.success_url = reverse('workflow_builder', args=[self.organization.pk, self.entity_type])
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            'organization': self.organization,
+            'entity_type': self.entity_type,
+            'user': self.request.user
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = context['form']
+        entity_label = dict(ENTITY_TYPES).get(self.entity_type, self.entity_type)
+        context['title'] = _(f"طراحی گردش کار برای '{entity_label}' در '{self.organization.name}' و زیرمجموعه‌ها")
+        context['organization'] = self.organization
+        context['entity_type'] = self.entity_type
+
+        workflow_data = sorted(form.levels_data.items())
+        context['workflow_data'] = workflow_data
+        context['has_data_to_display'] = bool(workflow_data)
+
+        # --- بخش جدید: آماده‌سازی داده برای تب گزارش ---
+        report_data = defaultdict(list)
+        if hasattr(form, 'cleaned_data'):  # اگر فرم ارسال شده باشد، از داده‌های تمیز شده استفاده کن
+            for level, data in form.levels_data.items():
+                stage_name = form.cleaned_data.get(f'stage_name__{level}') or _(f"مرحله سطح {level}")
+                for post_data in data['posts_data']:
+                    post = post_data['post_obj']
+                    for action_field in post_data['workflow_actions']:
+                        if form.cleaned_data.get(action_field.name):
+                            report_data[post].append({'stage_name': stage_name, 'action_label': action_field.label})
+        else:  # در غیر این صورت (درخواست GET)، از داده‌های اولیه استفاده کن
+            for level, data in workflow_data:
+                stage_name = form.fields[f'stage_name__{level}'].initial or _(f"مرحله سطح {level}")
+                for post_data in data['posts_data']:
+                    post = post_data['post_obj']
+                    for action_field in post_data['workflow_actions']:
+                        if action_field.field.initial:
+                            report_data[post].append({'stage_name': stage_name, 'action_label': action_field.label})
+
+        # مرتب‌سازی گزارش برای نمایش بهتر
+        context['report_data'] = sorted(report_data.items(), key=lambda item: (item[0].level, item[0].name))
+
+        return context
+
+    def form_valid(self, form):
+        try:
+            form.save()
+            messages.success(self.request, _('گردش کار با موفقیت ذخیره شد.'))
+        except Exception as e:
+            logger.exception(f"Error while saving Workflow Form: {e}")
+            messages.error(self.request, _('خطایی در هنگام ذخیره‌سازی رخ داد.'))
+            return self.form_invalid(form)
+        return super().form_valid(form)

@@ -225,7 +225,8 @@ dashboard_links = {
          'icon': 'fas fa-history'},  # تاریخچه
     ],
     'قوانین سیستم (رول‌های دسترسی)': [
-        {'name': _('قوانین سیستم (رول‌های دسترسی)'), 'url': 'post_access_rule_assign', 'icon': 'fas fa-gavel'},
+        {'name': _('قوانین سیستم (رول‌های دسترسی)'), 'url': 'post_access_rule_assign_old', 'icon': 'fas fa-gavel'},
+        {'name': _('قوانین سیستم (هیبریدی)'), 'url': 'workflow_select', 'icon': 'fas fa-gavel'},
         # چکش (نماد قانون)
     ],
     'دیگر لینک‌ها': [

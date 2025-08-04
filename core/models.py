@@ -102,7 +102,6 @@ class Organization(models.Model):
         indexes = [
             models.Index(fields=['code', 'org_type']),
         ]
-
 class Branch(models.Model):
     code = models.CharField(max_length=10, unique=True, verbose_name=_("کد شاخه"))
     name = models.CharField(max_length=250, verbose_name=_("نام شاخه"))

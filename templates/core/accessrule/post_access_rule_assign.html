@@ -1,130 +1,90 @@
+<!-- core/templates/core/accessrule/unified_access_assign.html (نسخه نهایی و قطعی) -->
+{% extends 'base.html' %}
+{% load i18n %}
 
- {% extends "base.html" %}
-{% load i18n  rcms_custom_filters %}
+{% block title %}{{ title }}{% endblock %}
+
 {% block content %}
-    <div class="container mt-4">
-        <h1 class="mb-4 text-right">{% trans "مدیریت پست‌ها و قوانین دسترسی" %}</h1>
+<div class="container mt-4">
+    <form method="post">
+        {% csrf_token %}
         <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white text-right">
-                {% trans "تنظیم سطح و قوانین برای پست‌ها" %}
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">{{ title }}</h4>
+                <a href="{% url 'workflow_select' %}" class="btn btn-sm btn-secondary">{% trans "بازگشت به انتخاب" %}</a>
             </div>
+
             <div class="card-body">
-                <!-- دیباگ -->
-                <div class="alert alert-info text-right">
-                    {% trans "پست‌های لودشده:" %} {{ form.posts|length }}
-                    <br>
-                    {% trans "مراحل لودشده:" %} {{ form.stages|length }}
-                </div>
-                <!-- راهنما -->
-                <div class="alert alert-info text-right">
-                    <p>{% trans "سطح هر پست (مثل 1 برای کارشناس) را وارد کنید و قوانین دسترسی (مثل تأیید فاکتور) را تیک بزنید. برای قوانین، مرحله را انتخاب کنید." %}</p>
-                </div>
-                <!-- پیغام خالی -->
-                {% if not form.posts %}
-                    <div class="alert alert-warning text-right">
-                        {% trans "هیچ پستی یافت نشد. لطفاً پست ایجاد کنید." %}
+                <ul class="nav nav-tabs" id="accessTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="workflow-tab" data-bs-toggle="tab" data-bs-target="#workflow" type="button" role="tab">{% trans "گردش کار تاییدات" %}</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="static-tab" data-bs-toggle="tab" data-bs-target="#static" type="button" role="tab">{% trans "دسترسی‌های عمومی" %}</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content pt-3">
+                    <!-- تب گردش کار -->
+                    <div class="tab-pane fade show active" id="workflow" role="tabpanel">
+                        <div class="accordion" id="levelsAccordion">
+
+                            <!-- **تغییر کلیدی که خطا را حل می‌کند:** حلقه روی workflow_data -->
+                            {% for level, data in workflow_data %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ level }}">{% trans "سطح" %} {{ level }}</button></h2>
+                                <div id="collapse-{{ level }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}">
+                                    <div class="accordion-body">
+                                        <div class="mb-3">{{ data.stage_name_field.label_tag }} {{ data.stage_name_field }}</div>
+                                        <table class="table table-striped table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>{% trans "پست" %}</th>
+                                                    {% if data.posts_data %}{% for action in data.posts_data.0.workflow_actions %}<th class="text-center">{{ action.label }}</th>{% endfor %}{% endif %}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            {% for post_data in data.posts_data %}
+                                                <tr>
+                                                    <td>{{ post_data.post_obj.name }}</td>
+                                                    {% for action_field in post_data.workflow_actions %}<td class="text-center"><div class="form-check form-switch d-inline-block">{{ action_field }}</div></td>{% endfor %}
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
-                {% else %}
-                    <!-- فرم -->
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover text-right">
-                                <thead>
+                    <!-- تب دسترسی‌های عمومی -->
+                    <div class="tab-pane fade" id="static" role="tabpanel">
+                        <table class="table table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "پست" %}</th>
+                                    {% if static_data %}{% for action in static_data.0.static_actions %}<th class="text-center">{{ action.label }}</th>{% endfor %}{% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- **تغییر کلیدی:** حلقه روی static_data -->
+                                {% for post_data in static_data %}
                                     <tr>
-                                        <th>{% trans "ردیف" %}</th>
-                                        <th>{% trans "پست" %}</th>
-                                        <th>{% trans "سازمان" %}</th>
-                                        <th>{% trans "شاخه" %}</th>
-                                        <th>{% trans "سطح" %}</th>
-                                        {% for entity_type, entity_label in entity_types %}
-                                            {% for action_type, action_label in action_types %}
-                                                <th>{{ entity_label }} - {{ action_label }}</th>
-                                            {% endfor %}
-                                        {% endfor %}
+                                        <td>{{ post_data.post_obj.name }}</td>
+                                        {% for action_field in post_data.static_actions %}<td class="text-center"><div class="form-check form-switch d-inline-block">{{ action_field }}</div></td>{% endfor %}
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {% for post_data in form.post_fields %}
-                                        <tr>
-                                            <td>{{ forloop.counter }}</td>
-                                            <td>{{ post_data.post.name }}</td>
-                                            <td>{{ post_data.post.organization.name|default:_("بدون سازمان") }}</td>
-                                            <td>{{ post_data.post.get_branch_display|default:_("بدون شاخه") }}</td>
-                                            <td>
-                                                <!-- سطح -->
-                                                <input type="number"
-                                                       name="{{ post_data.level_field.name }}"
-                                                       id="id_{{ post_data.level_field.name }}"
-                                                       value="{{ post_data.level_field.value }}"
-                                                       min="1"
-                                                       class="form-control"
-                                                       style="width: 100px;">
-                                                {% if form.errors|lookup:post_data.level_field.name %}
-                                                    <div class="text-danger">{{ form.errors|lookup:post_data.level_field.name }}</div>
-                                                {% endif %}
-                                            </td>
-                                            {% for rule_data in post_data.rule_fields %}
-                                                <td>
-                                                    <!-- قانون -->
-                                                    <div class="form-check">
-                                                        <input type="checkbox"
-                                                               name="{{ rule_data.rule_field_name }}"
-                                                               id="id_{{ rule_data.rule_field_name }}"
-                                                               {% if rule_data.rule_value %}checked{% endif %}
-                                                               class="form-check-input">
-                                                        <!-- مرحله -->
-                                                        <select name="{{ rule_data.stage_field_name }}"
-                                                                id="id_{{ rule_data.stage_field_name }}"
-                                                                class="form-control"
-                                                                style="width: 200px; display: inline-block;"
-                                                                {% if not rule_data.rule_value %}disabled{% endif %}>
-                                                            <option value="">{% trans "انتخاب مرحله" %}</option>
-                                                            {% for stage in form.stages %}
-                                                                <option value="{{ stage.id }}"
-                                                                        {% if rule_data.stage_value == stage.id %}selected{% endif %}>
-                                                                    {{ stage.name }}
-                                                                </option>
-                                                            {% endfor %}
-                                                        </select>
-                                                        {% if form.errors|lookup:rule_data.stage_field_name %}
-                                                            <div class="text-danger">{{ form.errors|lookup:rule_data.stage_field_name }}</div>
-                                                        {% endif %}
-                                                    </div>
-                                                </td>
-                                            {% endfor %}
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="text-right">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> {% trans "ذخیره" %}
-                            </button>
-                            <a href="{% url 'accessrule_list' %}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-right"></i> {% trans "لغو" %}
-                            </a>
-                        </div>
-                    </form>
-                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer text-end">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> {% trans "ذخیره قوانین" %}</button>
             </div>
         </div>
-    </div>
-{% endblock %}
-{% block extra_js %}
-    <script>
-        $(document).ready(function () {
-            $('input[type="checkbox"]').each(function () {
-                var stageSelect = $(this).closest('.form-check').find('select');
-                stageSelect.prop('disabled', !this.checked);
-                if (!this.checked) stageSelect.val('');
-            });
-            $('input[type="checkbox"]').change(function () {
-                var stageSelect = $(this).closest('.form-check').find('select');
-                stageSelect.prop('disabled', !this.checked);
-                if (!this.checked) stageSelect.val('');
-            });
-        });
-    </script>
+    </form>
+</div>
 {% endblock %}

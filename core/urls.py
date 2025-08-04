@@ -99,7 +99,7 @@ from django.urls import path
 from core.AccessRule.views_accessrule import (
     AccessRuleListView, AccessRuleDetailView, AccessRuleCreateView,
     AccessRuleUpdateView, AccessRuleDeleteView, userGiud_AccessRule, PostAccessRuleAssignView, PostRuleReportView,
-    UserGuideView
+    UserGuideView, SelectWorkflowView, PostAccessRuleAssignView_old
 )
 
 urlpatterns += [
@@ -109,7 +109,11 @@ urlpatterns += [
     path('access-rules/<int:pk>/edit/', AccessRuleUpdateView.as_view(), name='accessrule_update'),
     path('access-rules/<int:pk>/delete/', AccessRuleDeleteView.as_view(), name='accessrule_delete'),
 
-    path('access-rules/assign/', PostAccessRuleAssignView.as_view(), name='post_access_rule_assign'),
+    path('workflow/select/', SelectWorkflowView.as_view(), name='workflow_select'),
+    path('access-rules/assign/', PostAccessRuleAssignView_old.as_view(), name='post_access_rule_assign_old'),
+    path('workflow/assign/<int:org_pk>/<str:entity_type>/', PostAccessRuleAssignView.as_view(),
+         name='post_access_rule_assign'),
+
     path('access-rules/report/', PostRuleReportView.as_view(), name='post_rule_report'),
 
  ] # قوانین سیستم
@@ -145,4 +149,12 @@ urlpatterns += [
 path ('simple-chart/', SimpleChartView.as_view(), name='simple_chart'),
 ]#راهنما
 
+from core.AccessRule.views_accessrule import SelectWorkflowView, WorkflowBuilderView
+urlpatterns += [
+    path('access-management/select/', SelectWorkflowView.as_view(), name='workflow_select'),
+
+    # URL نهایی برای ویوی یکپارچه ما
+    path('access-management/builder/<int:org_pk>/<str:entity_type>/', WorkflowBuilderView.as_view(),
+         name='workflow_builder'),
+] #قسمت قانون گذاری جدید
 

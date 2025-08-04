@@ -371,7 +371,6 @@ class PostForm(forms.ModelForm):
         self._user = user  # Store user for use in save
         super().__init__(*args, **kwargs)
 
-
 class UserPostForm(forms.ModelForm):
     class Meta:
         model = UserPost
