@@ -8,6 +8,8 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from Tanbakhsystem.utils import parse_jalali_date
+
+
 logger = logging.getLogger('BudgetsCalculations')
 """
 توضیحات فایل budget_calculations.py:
@@ -138,34 +140,34 @@ def calculate_threshold_amount(base_amount, percentage):
         logger.error(f"خطا در محاسبه آستانه: base_amount={base_amount}, percentage={percentage}, خطا={str(e)}")
         return Decimal('0')
 # === تابع ارسال نوت ===
-def send_notification(target, status, message, recipients_queryset):
-    """
-    ارسال اعلان به کاربران.
-    Args:
-        target: نمونه مدل (مانند BudgetPeriod یا BudgetAllocation)
-        status: وضعیت اعلان
-        message: پیام اعلان
-        recipients_queryset: کوئری‌ست گیرندگان
-    """
-    try:
-        if not recipients_queryset.exists():
-            logger.warning(f"No recipients found for notification: {message}")
-            return
-        for recipient in recipients_queryset:
-            from notifications.models import Notification
-            Notification.objects.bulk_create([
-                Notification(
-                    recipient=recipient,
-                    actor=target.created_by or recipient,
-                    verb=status,
-                    description=message,
-                    target=target,
-                    level=status.lower()
-                ) for recipient in recipients_queryset
-            ])
-        logger.info(f"Notification sent to {recipients_queryset.count()} users: {message}")
-    except Exception as e:
-        logger.error(f"Error sending notification: {str(e)}", exc_info=True)
+# def send_notification(target, status, message, recipients_queryset):
+#     """
+#     ارسال اعلان به کاربران.
+#     Args:
+#         target: نمونه مدل (مانند BudgetPeriod یا BudgetAllocation)
+#         status: وضعیت اعلان
+#         message: پیام اعلان
+#         recipients_queryset: کوئری‌ست گیرندگان
+#     """
+#     try:
+#         if not recipients_queryset.exists():
+#             logger.warning(f"No recipients found for notification: {message}")
+#             return
+#         for recipient in recipients_queryset:
+#
+#             Notification.objects.bulk_create([
+#                 Notification(
+#                     recipient=recipient,
+#                     actor=target.created_by or recipient,
+#                     verb=status,
+#                     description=message,
+#                     target=target,
+#                     level=status.lower()
+#                 ) for recipient in recipients_queryset
+#             ])
+#         logger.info(f"Notification sent to {recipients_queryset.count()} users: {message}")
+#     except Exception as e:
+#         logger.error(f"Error sending notification: {str(e)}", exc_info=True)
 # === توابع عمومی ===
 def apply_filters(queryset, filters=None):
     """
@@ -305,6 +307,7 @@ def ok_old_get_tankhah_remaining_budget(tankhah, filters=None):
     cache.set(cache_key, remaining, timeout=300)
     logger.debug(f"get_tankhah_remaining_budget: tankhah={tankhah.number}, remaining={remaining}")
     return remaining
+
 def get_tankhah_remaining_budget(tankhah, filters=None):
     """
     محاسبه بودجه باقی‌مانده تنخواه با استفاده از فاکتورهای پرداخت‌شده.
@@ -340,6 +343,49 @@ def get_tankhah_remaining_budget(tankhah, filters=None):
     except Exception as e:
         logger.error(f"Error calculating tankhah_remaining_budget for {tankhah.number}: {str(e)}", exc_info=True)
         return Decimal('0')
+
+from tankhah.models import Factor, Tankhah
+
+def get_tankhah_remaining_budget(tankhah: Tankhah) -> Decimal:
+    """
+    موجودی قابل خرج واقعی باقی‌مانده برای یک تنخواه را محاسبه می‌کند.
+    این تابع، مهم‌ترین تابع برای اعتبارسنجی در هنگام ایجاد فاکتور جدید است.
+
+    فرمول:
+    (مبلغ اولیه تنخواه) - (مجموع فاکتورهای پرداخت شده) - (مجموع فاکتورهای در جریان)
+    """
+    if not tankhah:
+        return Decimal('0')
+
+    logger.debug(f"--- Calculating Remaining Budget for Tankhah: '{tankhah.number}' ---")
+
+    # 1. دریافت مبلغ اولیه تنخواه
+    initial_amount = tankhah.amount or Decimal('0')
+    logger.debug(f"Initial Amount: {initial_amount:,.2f}")
+
+    # 2. محاسبه مجموع مبالغی که به صورت قطعی خرج شده‌اند (پرداخت شده)
+    paid_factors_sum = tankhah.factors.filter(status='PAID').aggregate(
+        total=Coalesce(Sum('amount'), Decimal('0'))
+    )['total']
+    logger.debug(f"Sum of PAID factors: {paid_factors_sum:,.2f}")
+
+    # 3. محاسبه مجموع مبالغی که در حال حاضر در جریان تأیید هستند (رزرو شده)
+    # این‌ها فاکتورهایی هستند که هنوز پرداخت نشده‌اند اما رد هم نشده‌اند.
+    pending_statuses = ['PENDING_APPROVAL', 'APPROVED_INTERMEDIATE', 'APPROVED_FINAL', 'PARTIAL', 'DRAFT']
+    pending_factors_sum = tankhah.factors.filter(status__in=pending_statuses).aggregate(
+        total=Coalesce(Sum('amount'), Decimal('0'))
+    )['total']
+    logger.debug(f"Sum of PENDING factors (reserved amount): {pending_factors_sum:,.2f}")
+
+    # 4. محاسبه موجودی نهایی
+    remaining_budget = initial_amount - paid_factors_sum - pending_factors_sum
+
+    logger.info(f"Final Remaining Budget for '{tankhah.number}': {remaining_budget:,.2f}")
+    logger.debug("--- Finished Calculating Remaining Budget ---")
+
+    # موجودی نمی‌تواند منفی باشد
+    return max(remaining_budget, Decimal('0'))
+
 # === توابع بودجه پروژه ===
 def old__get_project_total_budget(project, force_refresh=False, filters=None):
     """

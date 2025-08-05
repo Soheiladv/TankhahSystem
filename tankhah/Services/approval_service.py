@@ -4,8 +4,7 @@ from django.db import transaction
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext_lazy as _
-
-from ..models import Factor, ApprovalLog, UserPost  # Assuming these models are in ..models
+from tankhah.models import   ApprovalLog  # Assuming these models are in ..models
 from .workflow_service import WorkflowService  # Import WorkflowService
 from accounts.models import CustomUser  # Import CustomUser
 

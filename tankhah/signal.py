@@ -100,32 +100,32 @@ def handle_factor_item_budget_transaction(sender, instance, created, **kwargs):
     except Exception as e:
         logger.error(f"خطا در سیگنال handle_factor_item_budget_transaction: {e}", exc_info=True)
 
-# سیگنال برای به‌روزرسانی مبلغ فاکتور و بودجه تنخواه
-@receiver([post_save, post_delete], sender=FactorItem)
-def update_factor_and_tankhah(sender, instance, **kwargs):
-    """
-    به‌روزرسانی مبلغ فاکتور و بودجه باقی‌مانده تنخواه
-    """
-    try:
-        factor = instance.factor
-        tankhah = factor.tankhah
-
-        # محاسبه مجموع مبلغ آیتم‌های تأییدشده
-        new_spent = sum(
-            item.amount for item in FactorItem.objects.filter(factor__tankhah=tankhah, status='APPROVED')
-            if item.amount is not None
-        )
-
-        # به‌روزرسانی مبلغ فاکتور
-        factor.amount = factor.items.aggregate(total=Sum('amount'))['total'] or Decimal('0')
-        factor.save(update_fields=['amount'])
-
-        # به‌روزرسانی بودجه باقی‌مانده تنخواه
-        tankhah.remaining_budget = get_tankhah_total_budget(tankhah) - new_spent
-        tankhah.save(update_fields=['remaining_budget'])
-        logger.info(f"[Signal] بودجه باقی‌مانده تنخواه {tankhah.number} به {tankhah.remaining_budget} به‌روزرسانی شد")
-    except Exception as e:
-        logger.error(f"خطا در به‌روزرسانی فاکتور/تنخواه برای FactorItem {instance.pk}: {e}", exc_info=True)
+# # سیگنال برای به‌روزرسانی مبلغ فاکتور و بودجه تنخواه
+# @receiver([post_save, post_delete], sender=FactorItem)
+# def update_factor_and_tankhah(sender, instance, **kwargs):
+#     """
+#     به‌روزرسانی مبلغ فاکتور و بودجه باقی‌مانده تنخواه
+#     """
+#     try:
+#         factor = instance.factor
+#         tankhah = factor.tankhah
+#
+#         # محاسبه مجموع مبلغ آیتم‌های تأییدشده
+#         new_spent = sum(
+#             item.amount for item in FactorItem.objects.filter(factor__tankhah=tankhah, status='APPROVED')
+#             if item.amount is not None
+#         )
+#
+#         # به‌روزرسانی مبلغ فاکتور
+#         factor.amount = factor.items.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+#         factor.save(update_fields=['amount'])
+#
+#         # به‌روزرسانی بودجه باقی‌مانده تنخواه
+#         tankhah.remaining_budget = get_tankhah_total_budget(tankhah) - new_spent
+#         tankhah.save(update_fields=['remaining_budget'])
+#         logger.info(f"[Signal] بودجه باقی‌مانده تنخواه {tankhah.number} به {tankhah.remaining_budget} به‌روزرسانی شد")
+#     except Exception as e:
+#         logger.error(f"خطا در به‌روزرسانی فاکتور/تنخواه برای FactorItem {instance.pk}: {e}", exc_info=True)
 
 # سیگنال برای ثبت تغییرات فاکتور در تاریخچه
 @receiver(post_save, sender=Factor)

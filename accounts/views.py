@@ -120,17 +120,7 @@ def dashboard_view(request):
                 {"label": "وضعیت قفل ", "url": "accounts:lock_status", "icon": "fas fa-history", "color": "warning"},
                 {"label": "فهرست کاربران فعال سیستم ", "url": "accounts:active_user_list", "icon": "fas fa-history",
                  "color": "warning"},
-                # {"label": " مدیریت دیتابیس ", "url": "accounts:database_manage", "icon": "fas fa-history",
-                #  "color": "warning"}      ,
-                #
-                # {"label": "2 مدیریت دیتابیس ", "url": "accounts:databasebackuprestore", "icon": "fas fa-history",
-                #  "color": "warning"},
-                #
-                # {"label": "4 مدیریت دیتابیس ", "url": "accounts:databasebackup", "icon": "fas fa-history",
-                #  "color": "warning"},
-                # {"label": "جدید مدیریت دیتابیس ", "url": "accounts:new_databasebackup", "icon": "fas fa-database",
-                #  "color": "warning"},
-            ],
+                    ],
         },
         {
             "title": "مدیریت دیتابیس",
@@ -146,6 +136,17 @@ def dashboard_view(request):
             "icon": "fas fa-user-tag",
             "items": [
                 {"label": "نمودار مدل ها ", "url": "accounts:model_graph", "icon": "fas fa-chart", "color": "danger"},
+            ],
+        },
+        {
+            "title": "مدیریت گردش کار ",
+            "icon": "fas fa-user-tag",
+            "items": [
+                {"label": " داشبورد گردش کار", "url": "workflow_dashboard", "icon": "fas fa-chart", "color": "danger"},
+                {"label": " وضعیت گردش کار گردش کار  (A)", "url": "status_list", "icon": "fas fa-chart", "color": "danger"},
+                {"label": " اقدام گردش کار (B)", "url": "action_list", "icon": "fas fa-chart", "color": "danger"},
+                {"label": " گذار گردش کار (C)", "url": "transition_list", "icon": "fas fa-chart", "color": "danger"},
+                {"label": " مجوز گردش کار (D)", "url": "permission_list", "icon": "fas fa-chart", "color": "danger"},
             ],
         },
     ]

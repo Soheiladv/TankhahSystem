@@ -129,7 +129,7 @@ class TankhahDocumentForm(forms.Form):
                 raise ValidationError(error_msg)
         return files
 #-----------------------------------------------------------------------------------------------------------
-class FactorForm(forms.ModelForm):
+class FactorForm__(forms.ModelForm):
     # استفاده از CharField برای ورودی تاریخ شمسی
     date = forms.CharField(
         label=_('تاریخ فاکتور'),
@@ -217,6 +217,124 @@ class FactorForm(forms.ModelForm):
                 raise forms.ValidationError(lock_reason)
 
         return cleaned_data
+
+
+class FactorForm(forms.ModelForm):
+    """
+    فرم اصلی برای ایجاد یا ویرایش یک فاکتور.
+    مسئولیت اصلی: گرفتن داده‌های اولیه و اعتبارسنجی بودجه.
+    """
+    # استفاده از CharField برای ورودی تاریخ شمسی جهت سازگاری با DatePicker
+    date = forms.CharField(
+        label=_('تاریخ فاکتور'),
+        widget=forms.TextInput(attrs={'class': 'form-control form-control-sm', 'placeholder': _('مثال: 1403/05/15')})
+    )
+
+    class Meta:
+        model = Factor
+        fields = ['tankhah', 'category', 'date', 'amount', 'description']
+        widgets = {
+            'tankhah': forms.Select(attrs={'class': 'form-select form-select-sm'}),
+            'category': forms.Select(attrs={'class': 'form-select form-select-sm'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control form-control-sm text-end'}),
+            'description': forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        # کاربر را از ویو دریافت می‌کنیم تا برای فیلتر کردن تنخواه‌ها استفاده شود
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        logger.debug(
+            f"[FactorForm.__init__] Form initialized for user '{self.user.username if self.user else 'Anonymous'}'.")
+
+        # --- مرحله ۱: فیلتر کردن هوشمند تنخواه‌ها ---
+        # کوئری پایه: فقط تنخواه‌های فعال، منقضی نشده و در وضعیت مناسب
+        tankhah_queryset = Tankhah.objects.filter(
+            is_archived=False,
+            status__in=['DRAFT', 'PENDING'],
+            due_date__gte=timezone.now().date()
+        ).select_related('organization', 'project').order_by('-created_at')
+        logger.debug(f"[FactorForm.__init__] Initial tankhah queryset count: {tankhah_queryset.count()}")
+
+        # اگر کاربر سوپریوزر نیست، تنخواه‌ها را بر اساس سازمان‌های مجاز او فیلتر کن
+        if self.user and not self.user.is_superuser:
+            user_posts = self.user.userpost_set.filter(is_active=True).select_related('post__organization')
+            user_orgs_with_parents = set()
+            for up in user_posts:
+                org = up.post.organization
+                while org:
+                    user_orgs_with_parents.add(org)
+                    org = org.parent_organization
+
+            if user_orgs_with_parents:
+                tankhah_queryset = tankhah_queryset.filter(organization__in=user_orgs_with_parents)
+                logger.debug(
+                    f"[FactorForm.__init__] Tankhahs filtered for user organizations. New count: {tankhah_queryset.count()}")
+
+        self.fields['tankhah'].queryset = tankhah_queryset
+
+        # --- مرحله ۲: تنظیم مقادیر اولیه ---
+        # اگر تنخواه از URL آمده باشد، آن را انتخاب و غیرفعال کن
+        if 'tankhah' in self.initial:
+            self.fields['tankhah'].disabled = True
+            logger.debug(f"[FactorForm.__init__] Tankhah field disabled with initial value: {self.initial['tankhah']}")
+
+        # تنظیم تاریخ امروز به عنوان پیش‌فرض (اگر خالی باشد)
+        if not self.initial.get('date'):
+            self.initial['date'] = jdatetime.date.today().strftime('%Y/%m/%d')
+        # اگر در حالت ویرایش هستیم، تاریخ موجود را به شمسی تبدیل کن
+        elif self.instance and self.instance.pk and self.instance.date:
+            self.initial['date'] = jdatetime.date.fromgregorian(date=self.instance.date).strftime('%Y/%m/%d')
+        logger.debug(f"[FactorForm.__init__] Date field initial value set to: {self.initial.get('date')}")
+
+    def clean_date(self):
+        """تبدیل و اعتبارسنجی تاریخ شمسی ورودی به تاریخ میلادی."""
+        date_str = self.cleaned_data.get('date')
+        logger.debug(f"[FactorForm.clean_date] Cleaning date: '{date_str}'")
+        try:
+            # این تابع کمکی باید تاریخ شمسی 'YYYY/MM/DD' را به شیء date میلادی تبدیل کند
+            return parse_jalali_date(date_str)
+        except (ValueError, TypeError):
+            logger.warning(f"[FactorForm.clean_date] Invalid Jalali date format: '{date_str}'")
+            raise forms.ValidationError(_('فرمت تاریخ نامعتبر است. لطفاً از فرمت YYYY/MM/DD استفاده کنید.'))
+
+    def clean(self):
+        """
+        اعتبارسنجی نهایی فرم، مخصوصاً بررسی بودجه.
+        این متد پس از clean شدن تمام فیلدهای تکی اجرا می‌شود.
+        """
+        cleaned_data = super().clean()
+        tankhah = cleaned_data.get('tankhah')
+        amount = cleaned_data.get('amount')
+        logger.debug(f"[FactorForm.clean] Starting final validation. Tankhah: {tankhah}, Amount: {amount}")
+
+        # اگر فیلدهای اصلی (که برای اعتبارسنجی بودجه لازمند) وجود ندارند، ادامه نده
+        if not all([tankhah, amount]):
+            logger.warning("[FactorForm.clean] Tankhah or Amount is missing. Skipping budget validation.")
+            return cleaned_data
+
+        # --- اعتبارسنجی بودجه تنخواه ---
+        logger.debug(f"[FactorForm.clean] Validating budget for Tankhah '{tankhah.number}'.")
+        remaining_budget = get_tankhah_remaining_budget(tankhah)
+        logger.info(f"[FactorForm.clean] Factor Amount: {amount}, Tankhah Remaining Budget: {remaining_budget}")
+        if amount > remaining_budget:
+            error_msg = _('مبلغ فاکتور ({:,.0f} ریال) از بودجه باقی‌مانده تنخواه ({:,.0f} ریال) بیشتر است.').format(
+                amount, remaining_budget)
+            logger.warning(f"[FactorForm.clean] Validation Error: {error_msg}")
+            raise forms.ValidationError(error_msg)
+
+        # --- اعتبارسنجی قفل بودن دوره بودجه ---
+        if tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_period:
+            budget_period = tankhah.project_budget_allocation.budget_period
+            is_locked, lock_reason = budget_period.is_locked
+            if is_locked:
+                logger.warning(f"[FactorForm.clean] Validation Error: Budget period is locked. Reason: {lock_reason}")
+                raise forms.ValidationError(lock_reason)
+
+        logger.debug("[FactorForm.clean] Form validation successful.")
+        return cleaned_data
+
+
 #--------------------------------------------------------------
 # ====
 class Update_FactorForm(forms.ModelForm):

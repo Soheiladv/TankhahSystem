@@ -1,34 +1,42 @@
-<!-- core/templates/core/accessrule/unified_access_assign.html (نسخه نهایی) -->
+<!-- core/templates/core/accessrule/workflow_builder.html (نسخه نهایی با راهنمای کامل) -->
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{{ title }}{% endblock %} 
+{% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <form method="post">
         {% csrf_token %}
-        <div class="card shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">{{ title }}</h4>
-                <a href="{% url 'workflow_select' %}" class="btn btn-sm btn-secondary">
-                    <i class="fas fa-arrow-left me-1"></i> {% trans "بازگشت به انتخاب" %}
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center p-3">
+                <div>
+                    <h4 class="mb-0">{{ title }}</h4>
+                    <small class="text-muted">{% trans "در این صفحه، مراحل تأیید را بر اساس سطح پست‌های سازمانی تعریف می‌کنید." %}</small>
+                </div>
+                <a href="{% url 'workflow_select' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> {% trans "بازگشت به انتخاب سازمان" %}
                 </a>
             </div>
 
-            <div class="card-body">
+            <div class="card-body p-4">
                 {% if not has_data_to_display %}
-                    <div class="alert alert-warning" role="alert">
-                        <h4 class="alert-heading">{% trans "هیچ پستی یافت نشد!" %}</h4>
-                        <p>{% blocktrans %}برای سازمان <strong>{{ organization.name }}</strong> هیچ پست سازمانی فعالی تعریف نشده است.{% endblocktrans %}</p>
+                    <div class="alert alert-warning text-center">
+                        <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                        <h4 class="alert-heading">{% trans "هیچ پست سازمانی فعالی یافت نشد!" %}</h4>
+                        <p>{% blocktrans %}برای سازمان <strong>{{ organization.name }}</strong> و زیرمجموعه‌های آن، هیچ پست سازمانی فعالی تعریف نشده است.{% endblocktrans %}</p>
                         <hr>
-                        <p class="mb-0">{% trans "لطفاً ابتدا از بخش مدیریت پست‌های سازمانی، برای این سازمان پست ایجاد کرده و آنها را فعال نمایید." %}</p>
+                        <p class="mb-0">{% trans "لطفاً ابتدا از بخش مدیریت، برای این سازمان پست ایجاد کرده و آنها را فعال نمایید." %}</p>
                     </div>
                 {% else %}
-                    <!-- راهنمای کلی -->
-                    <div class="alert alert-info small">
-                        <i class="fas fa-info-circle me-2"></i>
-                        {% blocktrans %}در این پنل، مراحل ترتیبی تأیید را بر اساس **سطح پست‌ها** تعریف کنید. فرآیند از سطح پایین‌تر شروع شده و به سطوح بالاتر می‌رود. برای هر سطح، یک نام مرحله (مانند "تأیید فنی") مشخص کرده و سپس برای هر پست در آن سطح، اقدامات مجاز (تأیید/رد) را با تیک زدن فعال کنید.{% endblocktrans %}
+                    <!-- راهنمای اصلی و مفهومی -->
+                    <div class="alert alert-info" role="alert">
+                        <h5 class="alert-heading"><i class="fas fa-lightbulb me-2"></i>{% trans "راهنمای طراحی گردش کار" %}</h5>
+                        <p class="mb-1">{% trans "گردش کار در این سیستم بر اساس **سطح (Level)** پست‌ها عمل می‌کند. فرآیند از **پایین‌ترین سطح (بزرگترین عدد)** شروع شده و به سمت **بالاترین سطح (کوچکترین عدد)** حرکت می‌کند." %}</p>
+                        <hr>
+                        <p class="mb-0 small">
+                            <strong>{% trans "مثال:" %}</strong> {% trans "یک کارشناس (سطح ۷) فاکتور را **ارسال (Submit)** می‌کند. سپس یک مدیر (سطح ۶) آن را **تأیید (Approve)** می‌کند." %}
+                        </p>
                     </div>
 
                     <div class="accordion" id="levelsAccordion">
@@ -36,18 +44,30 @@
                         <div class="accordion-item">
                             <h2 class="accordion-header">
                                 <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ level }}">
-                                    <strong>{% trans "سطح" %} {{ level }}</strong>
+                                    <span class="badge bg-primary me-2 fs-6">{% trans "سطح" %} {{ level }}</span>
+                                    <span class="fw-normal text-muted">
+                                        {% if data.posts_data.0.post_obj.branch %} - {{ data.posts_data.0.post_obj.branch.name }}{% endif %}
+                                    </span>
                                 </button>
                             </h2>
                             <div id="collapse-{{ level }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}">
-                                <div class="accordion-body">
-                                    <div class="mb-3 p-3 bg-light border rounded">
+                                <div class="accordion-body {% if forloop.first %}bg-light-blue{% endif %}">
+
+                                    {% if forloop.first %}
+                                        <div class="alert alert-primary border-primary small">
+                                            <i class="fas fa-play-circle me-2"></i>
+                                            <strong>{% trans "این اولین مرحله است!" %}</strong> {% trans "این مرحله (که معمولاً DRAFT یا ثبت اولیه است) نقطه‌ی شروع گردش کار می‌باشد. معمولاً در این مرحله فقط به پست‌های ایجادکننده، دسترسی **ارسال برای تایید (Submit)** داده می‌شود." %}
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="mb-3 p-3 bg-white border rounded">
                                         <label for="{{ data.stage_name_field.id_for_label }}" class="form-label fw-bold">
-                                            <i class="fas fa-tag me-2"></i>{% trans "نام این مرحله (برای همه پست‌های سطح" %} {{ level }}):
+                                            <i class="fas fa-tag me-2 text-primary"></i>{% trans "نام این مرحله (برای همه پست‌های سطح" %} {{ level }}):
                                         </label>
                                         {{ data.stage_name_field }}
-                                        <small class="form-text text-muted d-block mt-1">{% trans "این نام در تاریخچه اقدامات نمایش داده می‌شود (مثال: تأیید مدیر واحد)." %}</small>
+                                        <small class="form-text text-muted d-block mt-1">{% trans "این نام در تاریخچه و اعلان‌ها نمایش داده می‌شود (مثال: تأیید مدیر واحد)." %}</small>
                                     </div>
+
                                     <div class="table-responsive">
                                         <table class="table table-striped table-hover table-sm">
                                             <thead class="table-light">
@@ -63,9 +83,13 @@
                                             <tbody>
                                             {% for post_data in data.posts_data %}
                                                 <tr>
-                                                    <td>{{ post_data.post_obj.name }}</td>
+                                                    <td class="w-50">
+                                                        <strong>{{ post_data.post_obj.name }}</strong>
+                                                        <br>
+                                                        <small class="text-muted">{{ post_data.post_obj.organization.name }}</small>
+                                                    </td>
                                                     {% for action_field in post_data.workflow_actions %}
-                                                        <td class="text-center">
+                                                        <td class="text-center align-middle">
                                                             <div class="form-check form-switch d-flex justify-content-center">
                                                                 {{ action_field }}
                                                             </div>
@@ -73,9 +97,7 @@
                                                     {% endfor %}
                                                 </tr>
                                             {% empty %}
-                                                <tr>
-                                                    <td colspan="100%" class="text-center text-muted">{% trans "هیچ پستی در این سطح یافت نشد." %}</td>
-                                                </tr>
+                                                <tr><td colspan="100%" class="text-center text-muted">{% trans "هیچ پستی در این سطح یافت نشد." %}</td></tr>
                                             {% endfor %}
                                             </tbody>
                                         </table>
@@ -89,13 +111,23 @@
             </div>
 
             {% if has_data_to_display %}
-            <div class="card-footer text-end">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save me-1"></i> {% trans "ذخیره گردش کار" %}
+            <div class="card-footer text-end bg-light p-3">
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="fas fa-save me-2"></i> {% trans "ذخیره گردش کار" %}
                 </button>
             </div>
             {% endif %}
-        >
+        </div>
     </form>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* یک رنگ پس‌زمینه ملایم برای برجسته کردن اولین مرحله */
+    .bg-light-blue {
+        background-color: #f0f8ff !important;
+    }
+</style>
 {% endblock %}

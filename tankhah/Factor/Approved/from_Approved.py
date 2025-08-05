@@ -15,12 +15,7 @@ import logging
 
 logger = logging.getLogger('FactorItemApprovalForm')
 
-
 class FactorItemApprovalForm(forms.ModelForm):
-    """
-    این فرم برای هر ردیف فاکتور در صفحه تایید استفاده می‌شود.
-    فیلدهای comment و is_temporary داده‌های اضافی برای ثبت در ApprovalLog هستند.
-    """
     comment = forms.CharField(
         widget=forms.Textarea(attrs={'class': 'form-control form-control-sm', 'rows': 2,
                                      'placeholder': _('توضیحات (برای رد الزامی است)')}),
@@ -32,19 +27,16 @@ class FactorItemApprovalForm(forms.ModelForm):
         required=False,
         label=_('موقت')
     )
-    # این فیلد برای تشخیص اقدامات گروهی در سمت بک‌اند استفاده می‌شود
     is_bulk_action = forms.BooleanField(required=False, widget=forms.HiddenInput())
 
     class Meta:
         model = FactorItem
-        # فیلد status از مدل می‌آید، اما گزینه‌های آن به صورت دینامیک پر می‌شود.
         fields = ['status']
         widgets = {
             'status': forms.Select(attrs={'class': 'form-select form-select-sm'}),
         }
 
     def __init__(self, *args, **kwargs):
-        # این آرگومان‌ها از ویو و از طریق form_kwargs فرم‌ست ارسال می‌شوند.
         user = kwargs.pop('user', None)
         allowed_actions = kwargs.pop('allowed_actions', [])
 
@@ -61,7 +53,6 @@ class FactorItemApprovalForm(forms.ModelForm):
             ]
         else:
             self.fields['status'].choices = [('', '---------')]
-            # غیرفعال کردن تمام فیلدها اگر هیچ اقدامی مجاز نباشد
             self.fields['status'].disabled = True
             self.fields['comment'].disabled = True
             self.fields['is_temporary'].disabled = True
@@ -69,7 +60,7 @@ class FactorItemApprovalForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         if not self.has_allowed_actions:
-            return cleaned_data  # اگر اقدامی مجاز نیست، اعتبارسنجی لازم نیست
+            return cleaned_data
 
         status = cleaned_data.get('status')
         comment = cleaned_data.get('comment', '').strip()
@@ -81,11 +72,6 @@ class FactorItemApprovalForm(forms.ModelForm):
             self.add_error('comment', _('برای رد کردن، نوشتن توضیحات الزامی است.'))
 
         return cleaned_data
-
-# class FactorItemApprovalFormSet(forms.inlineformset_factory(FactorItem, FactorItemApprovalForm, extra=0)):
-#     def __init__(self, *args, **kwargs):
-#         logger.debug(f"[FactorItemApprovalFormSet] Initializing formset with kwargs: {kwargs}")
-#         super().__init__(*args, **kwargs)
 
 class FactorItemApprovalForm__(forms.ModelForm):
     status = forms.ChoiceField(

@@ -1,5 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
+from django.db.models import Q
 from django.utils import timezone
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -16,19 +17,19 @@ def get_users_for_post(post):
     from core.models import UserPost
     from datetime import date
     today = date.today()
-    user_posts = (UserPost.objects.filter(
+    active_user_posts = UserPost.objects.filter(
         post=post,
         is_active=True,
-        start_date__lte=today,
-        end_date__gte=today,
-    ) | UserPost.objects.filter(
-        post=post,
-        is_active=True,
-        start_date__lte=today,
-        end_date__isnull=True,
-    )).select_related('user').distinct('user')
+        start_date__lte=date.today()
+    ).filter(
+        Q(end_date__gte=date.today()) | Q(end_date__isnull=True)
+    ).select_related('user')
 
-    return [user_post.user for user_post in user_posts]
+    # 2. **اصلاح کلیدی:** به جای .distinct('user')، ما شناسه‌های کاربران را
+    # استخراج کرده و آنها را منحصر به فرد می‌کنیم.
+    user_ids = active_user_posts.values_list('user_id', flat=True).distinct()
+
+    return list(CustomUser.objects.filter(id__in=user_ids))
 
 def send_notification(sender, users=None, posts=None, verb=None, description=None, target=None, entity_type=None, priority='MEDIUM'):
     """

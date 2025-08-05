@@ -10,9 +10,8 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 from accounts.models import CustomUser
-import logging
-from core.models import   Post, SystemSettings, AccessRule, UserPost, PostAction, Organization
-from core.models import   PostAction
+# from core.models import   Post, SystemSettings, AccessRule, UserPost, PostAction, Organization
+# from core.models import PostAction, SystemSettings, AccessRule, Organization
 from django.contrib.contenttypes.models import ContentType
 import logging
 logger = logging.getLogger('Tankhah_Models')
@@ -341,6 +340,15 @@ class Tankhah(models.Model):
     payment_ceiling = models.DecimalField(max_digits=25, decimal_places=2, null=True, blank=True, verbose_name=_("سقف پرداخت"))
     is_payment_ceiling_enabled = models.BooleanField(default=False, verbose_name=_("فعال بودن سقف پرداخت"))
 
+    current_stage = models.ForeignKey('core.AccessRule',on_delete=models.SET_NULL,null=True,blank=True,  # اجازه می‌دهیم در ابتدا خالی باشد
+        verbose_name=_("مرحله فعلی گردش کار")    )
+    # @property
+    # def current_stage(self):
+    #     # مثلاً از AccessRule یا منطقی دیگر برای تعیین مرحله فعلی
+    #     return AccessRule.objects.filter(
+    #         entity_type='TANKHAH',
+    #         stage_order=1  # فرض: مرحله اول
+    #     ).first()
 
     class Meta:
         verbose_name = _("تنخواه")
@@ -381,13 +389,6 @@ class Tankhah(models.Model):
             ('Dashboard_Stats_view', 'دسترسی به آمار کلی داشبورد💲'),
         ]
 
-    @property
-    def current_stage(self):
-        # مثلاً از AccessRule یا منطقی دیگر برای تعیین مرحله فعلی
-        return AccessRule.objects.filter(
-            entity_type='TANKHAH',
-            stage_order=1  # فرض: مرحله اول
-        ).first()
 
     def __str__(self):
         project_str = self.project.name if self.project else 'بدون پروژه'
@@ -408,6 +409,7 @@ class Tankhah(models.Model):
             return remaining
 
         # اعمال سقف پرداخت
+        from core.models import SystemSettings
         settings = SystemSettings.objects.first()
         if self.is_payment_ceiling_enabled and self.payment_ceiling is not None:
             remaining = min(remaining, self.payment_ceiling)
@@ -499,6 +501,7 @@ class Tankhah(models.Model):
                     self.is_locked = True
 
             if self.status == 'REJECTED':
+                from core.models import AccessRule
                 initial_stage = AccessRule.objects.order_by('order').first()
                 if self.current_stage == initial_stage:
                     factors = Factor.objects.filter(tankhah=self, is_finalized=True)
@@ -584,6 +587,7 @@ class Tankhah(models.Model):
                 )
 
                 user_post = user.userpost_set.filter(is_active=True).first()
+                from core.models import PostAction,AccessRule
                 if user_post and PostAction.objects.filter(
                     post=user_post.post,
                     stage=current_stage,
@@ -650,6 +654,7 @@ class Tankhah(models.Model):
                 )
 
                 if current_stage.auto_advance:
+                    from core.models import  AccessRule
                     next_stage = AccessRule.objects.filter(order__gt=current_stage.order, is_active=True).order_by('order').first()
                     if next_stage:
                         self.current_stage = next_stage
@@ -687,8 +692,8 @@ class TankhahAction(models.Model): #صدور دستور پرداخت
     tankhah = models.ForeignKey(Tankhah, on_delete=models.CASCADE, related_name='actions', verbose_name=_("تنخواه"))
     # action_type = models.CharField(max_length=50, choices=TankhActionType, verbose_name=_("نوع اقدام"))
     amount = models.DecimalField(max_digits=25, decimal_places=2, null=True, blank=True, verbose_name=_("مبلغ (برای پرداخت)"))
-    stage = models.ForeignKey( AccessRule , on_delete=models.PROTECT, verbose_name=_("مرحله"))
-    post = models.ForeignKey(  Post , on_delete=models.SET_NULL, null=True, verbose_name=_("پست انجام‌دهنده"))
+    stage = models.ForeignKey( 'core.AccessRule' , on_delete=models.PROTECT, verbose_name=_("مرحله"))
+    post = models.ForeignKey(  'core.Post' , on_delete=models.SET_NULL, null=True, verbose_name=_("پست انجام‌دهنده"))
     user = models.ForeignKey( CustomUser , on_delete=models.SET_NULL, null=True, verbose_name=_("کاربر"))
     # created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
@@ -751,7 +756,6 @@ class FactorDocument(models.Model):
             ('FactorDocument_view','نمایش سند فاکتور'),
             ('FactorDocument_delete','حــذف سند فاکتور'),
         ]
-
 class Factor(models.Model):
     STATUS_CHOICES  = (
         ('DRAFT', _('پیش‌نویس')),
@@ -773,7 +777,7 @@ class Factor(models.Model):
     approved_by = models.ManyToManyField(CustomUser, blank=True, verbose_name=_("تأییدکنندگان"))
     is_finalized = models.BooleanField(default=False, verbose_name=_("نهایی شده"))
     locked = models.BooleanField(default=False, verbose_name="قفل شده")
-    locked_by_stage = models.ForeignKey(AccessRule, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("قفل شده توسط مرحله"))
+    locked_by_stage = models.ForeignKey('core.AccessRule', null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("قفل شده توسط مرحله"))
     budget = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name=_("بودجه تخصیصی"))
     remaining_budget = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name=_("بودجه باقیمانده"))
     created_by = models.ForeignKey('accounts.CustomUser',related_name='CustomUser_related', on_delete=models.SET_NULL, null=True, verbose_name=_("ایجادکننده"))
@@ -943,6 +947,7 @@ class Factor(models.Model):
                 if current_stage and current_stage.triggers_payment_order:
                     try:
                         user_post = current_user.userpost_set.filter(is_active=True).first() if current_user else None
+                        from core.models import PostAction
                         if user_post and PostAction.objects.filter(
                                 post=user_post.post,
                                 stage=current_stage,
@@ -984,6 +989,7 @@ class Factor(models.Model):
                             )
                             # انتقال به مرحله بعدی اگر auto_advance فعال باشد
                             if current_stage.auto_advance:
+                                from core.models import AccessRule
                                 next_stage = AccessRule.objects.filter(order__gt=current_stage.order,
                                                                           is_active=True).order_by('order').first()
                                 if next_stage:
@@ -1078,7 +1084,6 @@ class Factor(models.Model):
             ('factor_unlock', _('باز کردن فاکتور قفل‌شده')),
             ('factor_approval_path', _('بررسی مسیر تایید/رد فاکتور⛓️‍💥')),
         ]
-
 class FactorHistory(models.Model):
     class ChangeType(models.TextChoices):
         CREATION = 'CREATION', _('ایجاد')
@@ -1202,103 +1207,234 @@ class FactorItem(models.Model):
             ('FactorItem_reject', _('رد ردیف فاکتور')),
         ]
 #--------------
-
 class ApprovalLog(models.Model):
+    # --- فیلدهای ارتباطی ---
+    # این فیلدها به صراحت مشخص می‌کنند که لاگ ممکن است به کدام اشیاء مرتبط باشد
     tankhah = models.ForeignKey(Tankhah, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_logs', verbose_name=_("تنخواه"))
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_logs', verbose_name=_("فاکتور"))
     factor_item = models.ForeignKey(FactorItem, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_logs', verbose_name=_("ردیف فاکتور"))
-    action = models.CharField(max_length=45, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
-    # stage = models.ForeignKey('core.AccessRule', on_delete=models.SET_NULL, null=False, blank=True,default=None, related_name='approval_logs_access', verbose_name=_("مرحله"))
-    stage = models.ForeignKey('core.AccessRule', on_delete=models.SET_NULL, null= True , default=None,related_name='approval_logs_access', verbose_name=_("مرحله"))
-    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, verbose_name=_("کاربر"))
-    comment = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
-    timestamp = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان"))
-    date = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
-    post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True, verbose_name=_("پست تأییدکننده"))
-    changed_field = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("فیلد تغییر یافته"))
-    seen_by_higher = models.BooleanField(default=False, verbose_name=_("دیده‌شده توسط رده بالاتر"))
-    seen_at = models.DateTimeField(null=True, blank=True, verbose_name=_("زمان دیده شدن"))
-    action_type = models.CharField(max_length=50, blank=True, verbose_name=_("نوع اقدام"))
+
+    # --- فیلدهای GenericForeignKey برای اتصال عمومی ---
+    # اینها منبع اصلی حقیقت برای "هدف" لاگ هستند
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, verbose_name=_("نوع موجودیت"))
     object_id = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("شناسه موجودیت"))
     content_object = GenericForeignKey('content_type', 'object_id')
+
+    # --- فیلدهای اصلی لاگ ---
+    action = models.CharField(max_length=45, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, verbose_name=_("کاربر"))
+    post = models.ForeignKey('core.Post', on_delete=models.SET_NULL, null=True, verbose_name=_("پست تأییدکننده"))
+    comment = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان"))
+
+
+    # --- فیلدهای تکمیلی و اطلاعاتی (که شما داشتید و مهم هستند) ---
     is_final_approval = models.BooleanField(default=False, verbose_name=_("نهایی شده"))
+    changed_field = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("فیلد تغییر یافته"))
+    seen_by_higher = models.BooleanField(default=False, verbose_name=_("دیده‌شده توسط رده بالاتر"))
+    seen_at = models.DateTimeField(null=True, blank=True, verbose_name=_("زمان دیده شدن"))
+
+    # --- فیلدهای مربوط به گردش کار ---
     is_temporary = models.BooleanField(default=False, verbose_name="موقت")  # اضافه شده
+    stage = models.ForeignKey('core.AccessRule', on_delete=models.SET_NULL, null= True , default=None,related_name='approval_logs_access', verbose_name=_("مرحله"))
+    stage_rule = models.ForeignKey('core.AccessRule', on_delete=models.SET_NULL, null=True, related_name='approval_logs',
+                               verbose_name=_("قانون/مرحله مرتبط"))
 
+    date = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    action_type = models.CharField(max_length=50, blank=True, verbose_name=_("نوع اقدام"))
+    # stage = models.ForeignKey('core.AccessRule', on_delete=models.SET_NULL, null=False, blank=True,default=None, related_name='approval_logs_access', verbose_name=_("مرحله"))
+
+
+# --- پراپرتی‌های کمکی برای دسترسی آسان ---
+    @property
+    def stage_name(self):
+        """نام مرحله را از قانون مرتبط برمی‌گرداند."""
+        return self.stage_rule.stage if self.stage_rule else _("مرحله نامشخص")
+
+    @property
+    def stage_order(self):
+        """ترتیب مرحله را از قانون مرتبط برمی‌گرداند."""
+        return self.stage_rule.stage_order if self.stage_rule else None
+
+    # def save(self, *args, **kwargs):
+    #     from core.models import Organization
+    #     # if self.pk is None:
+    #     #     logger.info(
+    #     #         f"[ApprovalLog] Attempting to save new ApprovalLog for user {self.user.username}, action {self.action}")
+    #     #     # سناریو ۱: ویو، فیلد جدید (stage_rule) را پاس داده است (روش ترجیحی).
+    #     #     if self.stage_rule and not self.stage:
+    #     #         # فیلد قدیمی (stage) را با فیلد جدید همگام می‌کنیم.
+    #     #         self.stage = self.stage_rule
+    #     #         logger.debug(
+    #     #             f"[ApprovalLog SAVE] 'stage' field populated from 'stage_rule' (PK: {self.stage_rule.pk}).")
+    #     #
+    #     #     # سناریو ۲: کد قدیمی هنوز از فیلد stage استفاده می‌کند.
+    #     #     elif self.stage and not self.stage_rule:
+    #     #         # فیلد جدید (stage_rule) را با فیلد قدیمی همگام می‌کنیم.
+    #     #         self.stage_rule = self.stage
+    #     #         logger.debug(f"[ApprovalLog SAVE] 'stage_rule' field populated from 'stage' (PK: {self.stage.pk}).")
+    #     #
+    #     #     # سناریو ۳: هیچکدام پاس داده نشده‌اند. باید آن را استنتاج کنیم.
+    #     #     elif not self.stage and not self.stage_rule:
+    #     #         inferred_stage = None
+    #     #         source_object = self.factor or self.tankhah
+    #     #         if source_object and hasattr(source_object,
+    #     #                                      'tankhah') and source_object.tankhah and source_object.tankhah.current_stage:
+    #     #             inferred_stage = source_object.tankhah.current_stage
+    #     #
+    #     #         if inferred_stage:
+    #     #             self.stage = inferred_stage
+    #     #             self.stage_rule = inferred_stage
+    #     #             logger.debug(
+    #     #                 f"[ApprovalLog SAVE] Both 'stage' and 'stage_rule' were inferred from tankhah.current_stage: {inferred_stage.pk}")
+    #     #         else:
+    #     #             logger.error(
+    #     #                 "[ApprovalLog SAVE] FATAL: Cannot save log. No stage information was provided or could be inferred.")
+    #     #             raise ValueError("ApprovalLog requires a valid stage to be saved.")
+    #     #
+    #     #     # --- مرحله ۲: اطمینان از وجود پست (اختیاری اما مهم) ---
+    #     #     if self.user and not self.post:
+    #     #         user_post_instance = self.user.userpost_set.filter(is_active=True).first()
+    #     #         if user_post_instance:
+    #     #             self.post = user_post_instance.post
+    #     #
+    #     #     user_post = self.user.userpost_set.filter(is_active=True, end_date__isnull=True).first()
+    #     #     if not user_post:
+    #     #         logger.error(f"[ApprovalLog] No active UserPost found for user {self.user.username}")
+    #     #         raise ValueError(f"کاربر {self.user.username} هیچ پست فعالی ندارد")
+    #     #
+    #     #     user_org_ids = set()
+    #     #     for up in self.user.userpost_set.filter(is_active=True):
+    #     #         org = up.post.organization
+    #     #         user_org_ids.add(org.id)
+    #     #         current_org = org
+    #     #         while current_org.parent_organization:
+    #     #             current_org = current_org.parent_organization
+    #     #             user_org_ids.add(current_org.id)
+    #     #     is_hq_user = any(Organization.objects.filter(id=org_id, is_core=True).exists() for org_id in user_org_ids)
+    #     #     logger.info(f"[ApprovalLog] User {self.user.username} is_hq_user: {is_hq_user}")
+    #     #
+    #     #     # تنظیم stage اگر وجود نداشته باشد
+    #     #     if not self.stage and self.factor:
+    #     #         logger.info(f"[ApprovalLog] Setting stage from factor.current_stage for user {self.user.username}")
+    #     #         self.stage = self.factor.current_stage
+    #     #     if not self.stage:
+    #     #         logger.error(f"[ApprovalLog] Stage is required for ApprovalLog, but none provided")
+    #     #         raise ValueError("Stage is required for ApprovalLog")
+    #     #
+    #     #     if self.user.is_superuser or is_hq_user or self.user.has_perm('tankhah.Tankhah_view_all'):
+    #     #         logger.info(f"[ApprovalLog] User {self.user.username} has full access, saving directly")
+    #     #         super().save(*args, **kwargs)
+    #     #         return
+    #     #
+    #     #     if self.factor_item:
+    #     #         entity_type = 'FACTORITEM'
+    #     #     elif self.factor:
+    #     #         entity_type = 'FACTOR'
+    #     #     elif self.content_type:
+    #     #         entity_type = self.content_type.model.upper()
+    #     #     else:
+    #     #         entity_type = 'GENERAL'
+    #     #
+    #     #     logger.info(f"[ApprovalLog] Entity type: {entity_type}")
+    #     #     branch_filter = Q(branch=user_post.post.branch) if user_post.post.branch else Q(branch__isnull=True)  # 💡 تغییر
+    #     #     from core.models import AccessRule
+    #     #     access_rule = AccessRule.objects.filter(
+    #     #         organization=user_post.post.organization,
+    #     #         stage=self.stage.stage,  # این خط ممکن است مشکل داشته باشد
+    #     #         action_type=self.action,
+    #     #         entity_type=entity_type,
+    #     #         min_level__lte=user_post.post.level,
+    #     #         branch=    branch_filter, # استفاده از Q object
+    #     #         is_active=True
+    #     #     ).first()
+    #     #
+    #     #     if not access_rule:
+    #     #         general_rule = AccessRule.objects.filter(
+    #     #             organization=user_post.post.organization,
+    #     #             stage=self.stage.stage,
+    #     #             action_type=self.action,
+    #     #             entity_type__in=['FACTOR', 'FACTORITEM'],
+    #     #             branch=branch_filter,  # استفاده از Q object
+    #     #             is_active=True
+    #     #         ).first()
+    #     #         if not general_rule:
+    #     #             logger.error(
+    #     #                 f"[ApprovalLog] No access rule found for user {self.user.username}, "
+    #     #                 f"action {self.action}, stage {self.stage.stage}, entity {entity_type}"
+    #     #             )
+    #     #             raise ValueError(
+    #     #                 f"پست {user_post.post} مجاز به {self.action} در مرحله {self.stage.stage} "
+    #     #                 f"برای {entity_type} نیست - قانون دسترسی یافت نشد"
+    #     #             )
+    #
+    #     if self.pk is None:
+    #         # **مرحله ۱: تنظیم خودکار GenericForeignKey (حل مشکل اصلی)**
+    #         # اولویت با factor_item، سپس factor، سپس tankhah است.
+    #         target_object = self.factor_item or self.factor or self.tankhah or self.content_object
+    #         if target_object and not (self.content_type and self.object_id):
+    #             self.content_type = ContentType.objects.get_for_model(target_object)
+    #             self.object_id = target_object.pk
+    #
+    #         # **مرحله ۲: اطمینان از وجود مرحله (Stage)**
+    #         if not self.stage_rule:
+    #             # تلاش برای استنتاج مرحله از تنخواه
+    #             source_tankhah = getattr(target_object, 'tankhah', self.tankhah)
+    #             if source_tankhah and source_tankhah.current_stage:
+    #                 self.stage_rule = source_tankhah.current_stage
+    #             else:
+    #
+    #                 logger.warning("ApprovalLog is being saved without a stage_rule.")
+    #
+    #         # **مرحله ۳: اطمینان از وجود پست کاربر**
+    #         if self.user and not self.post:
+    #             user_post_instance = self.user.userpost_set.filter(is_active=True).first()
+    #             if user_post_instance:
+    #                 self.post = user_post_instance.post
+    #
+    #     super().save(*args, **kwargs)
+    #     logger.info(f"[ApprovalLog] ApprovalLog saved successfully for user {self.user.username}")
     def save(self, *args, **kwargs):
+        """
+        این متد وظیفه دارد قبل از ذخیره، از صحت داده‌های کلیدی اطمینان حاصل کند.
+        این نسخه فقط بر روی منطق صحیح و نهایی تمرکز دارد.
+        """
+        # --- منطق فقط برای رکوردهای جدید (قبل از اولین ذخیره) اجرا می‌شود ---
         if self.pk is None:
-            logger.info(
-                f"[ApprovalLog] Attempting to save new ApprovalLog for user {self.user.username}, action {self.action}")
-            user_post = self.user.userpost_set.filter(is_active=True, end_date__isnull=True).first()
-            if not user_post:
-                logger.error(f"[ApprovalLog] No active UserPost found for user {self.user.username}")
-                raise ValueError(f"کاربر {self.user.username} هیچ پست فعالی ندارد")
+            # **مرحله ۱: تنظیم خودکار GenericForeignKey (حل خطای object_id)**
+            target_object = self.factor_item or self.factor or self.tankhah or self.content_object
+            if target_object:
+                if not self.content_type:
+                    self.content_type = ContentType.objects.get_for_model(target_object)
+                if not self.object_id:
+                    self.object_id = target_object.pk
 
-            user_org_ids = set()
-            for up in self.user.userpost_set.filter(is_active=True):
-                org = up.post.organization
-                user_org_ids.add(org.id)
-                current_org = org
-                while current_org.parent_organization:
-                    current_org = current_org.parent_organization
-                    user_org_ids.add(current_org.id)
-            is_hq_user = any(Organization.objects.filter(id=org_id, is_core=True).exists() for org_id in user_org_ids)
-            logger.info(f"[ApprovalLog] User {self.user.username} is_hq_user: {is_hq_user}")
+            # **مرحله ۲: اطمینان از وجود مرحله (Stage)**
+            if not self.stage_rule:
+                # تلاش برای استنتاج مرحله از تنخواه مرتبط
+                source_tankhah = None
+                if self.factor:
+                    source_tankhah = self.factor.tankhah
+                elif self.factor_item:
+                    source_tankhah = self.factor_item.factor.tankhah
+                elif self.tankhah:
+                    source_tankhah = self.tankhah
 
-            # تنظیم stage اگر وجود نداشته باشد
-            if not self.stage and self.factor:
-                logger.info(f"[ApprovalLog] Setting stage from factor.current_stage for user {self.user.username}")
-                self.stage = self.factor.current_stage
-            if not self.stage:
-                logger.error(f"[ApprovalLog] Stage is required for ApprovalLog, but none provided")
-                raise ValueError("Stage is required for ApprovalLog")
+                if source_tankhah and source_tankhah.current_stage:
+                    self.stage_rule = source_tankhah.current_stage
+                else:
+                    logger.warning("ApprovalLog is being saved without a stage_rule and it could not be inferred.")
 
-            if self.user.is_superuser or is_hq_user or self.user.has_perm('tankhah.Tankhah_view_all'):
-                logger.info(f"[ApprovalLog] User {self.user.username} has full access, saving directly")
-                super().save(*args, **kwargs)
-                return
+            # **مرحله ۳: اطمینان از وجود پست کاربر**
+            if self.user and not self.post:
+                user_post_instance = self.user.userpost_set.filter(is_active=True).first()
+                if user_post_instance:
+                    self.post = user_post_instance.post
 
-            if self.factor_item:
-                entity_type = 'FACTORITEM'
-            elif self.factor:
-                entity_type = 'FACTOR'
-            elif self.content_type:
-                entity_type = self.content_type.model.upper()
-            else:
-                entity_type = 'GENERAL'
-            logger.info(f"[ApprovalLog] Entity type: {entity_type}")
-            branch_filter = Q(branch=user_post.post.branch) if user_post.post.branch else Q(branch__isnull=True)  # 💡 تغییر
-            access_rule = AccessRule.objects.filter(
-                organization=user_post.post.organization,
-                stage=self.stage.stage,  # این خط ممکن است مشکل داشته باشد
-                action_type=self.action,
-                entity_type=entity_type,
-                min_level__lte=user_post.post.level,
-                branch=    branch_filter, # استفاده از Q object
-                is_active=True
-            ).first()
-
-            if not access_rule:
-                general_rule = AccessRule.objects.filter(
-                    organization=user_post.post.organization,
-                    stage=self.stage.stage,
-                    action_type=self.action,
-                    entity_type__in=['FACTOR', 'FACTORITEM'],
-                    branch=branch_filter,  # استفاده از Q object
-                    is_active=True
-                ).first()
-                if not general_rule:
-                    logger.error(
-                        f"[ApprovalLog] No access rule found for user {self.user.username}, "
-                        f"action {self.action}, stage {self.stage.stage}, entity {entity_type}"
-                    )
-                    raise ValueError(
-                        f"پست {user_post.post} مجاز به {self.action} در مرحله {self.stage.stage} "
-                        f"برای {entity_type} نیست - قانون دسترسی یافت نشد"
-                    )
-
+        # **مرحله نهایی: فراخوانی متد save اصلی برای ذخیره در دیتابیس**
         super().save(*args, **kwargs)
-        logger.info(f"[ApprovalLog] ApprovalLog saved successfully for user {self.user.username}")
+        logger.info(
+            f"ApprovalLog PK {self.pk} saved. Target: {self.content_type} ({self.object_id}), Stage: {self.stage_name}")
 
     def __str__(self):
         return f"{self.factor.number} - {self.get_action_display()}" #self.user.username} - {self.action} ({self.date}

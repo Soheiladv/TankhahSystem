@@ -1,0 +1,133 @@
+<!-- core/templates/core/workflow/status_form.html (نسخه نهایی زیبا - بدون Crispy) -->
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center p-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-flag me-2"></i>{{ title }}
+                    </h4>
+                    <a href="{% url 'status_list' %}" class="btn btn-light btn-sm" title="{% trans 'بازگشت به لیست وضعیت‌ها' %}">
+                        <i class="fas fa-list"></i>
+                    </a>
+                </div>
+                
+                <form method="post" novalidate class="needs-validation">
+                    {% csrf_token %}
+                    <div class="card-body p-4">
+                        
+                        {% if is_update_mode %}
+                            <div class="alert alert-warning border-warning d-flex align-items-center">
+                                <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+                                <div>
+                                    <h5 class="alert-heading">{% trans "حالت ایجاد نسخه جدید" %}</h5>
+                                    <p class="mb-0 small">{% blocktrans %}شما در حال ایجاد یک **نسخه جدید** از یک وضعیت موجود هستید. پس از ذخیره، نسخه قدیمی به صورت خودکار بازنشسته خواهد شد.{% endblocktrans %}</p>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info border-info small">
+                                <i class="fas fa-info-circle me-2"></i>
+                                {% trans "در این بخش، یک 'حالت' یا 'مرحله' جدید برای موجودیت‌ها تعریف کنید. این وضعیت‌ها پایه‌ی طراحی گردش کار شما هستند." %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- نمایش خطاهای کلی فرم -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <!-- فیلدهای اصلی -->
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    {{ form.name }}
+                                    <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                                </div>
+                                    <small class="form-text text-muted">{{ form.name.help_text }}</small>
+                                    {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    {{ form.code }}
+                                    <label for="{{ form.code.id_for_label }}">{{ form.code.label }}</label>
+                                </div>
+                                <small class="form-text text-muted">{{ form.code.help_text }}</small>
+                                {% if form.code.errors %}<div class="text-danger small mt-1">{{ form.code.errors }}</div>{% endif %}
+                            </div>
+                            <div class="col-12">
+                                <div class="form-floating mb-3">
+                                    {{ form.description }}
+                                    <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                                </div>
+                                {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors }}</div>{% endif %}
+                            </div>
+                        </div>
+
+                        <!-- گروه‌بندی چک‌باکس‌ها -->
+                        <div class="card mt-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">{% trans "ویژگی‌های خاص وضعیت" %}</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check form-switch mb-3">
+                                    {{ form.is_initial }}
+                                    <label class="form-check-label" for="{{ form.is_initial.id_for_label }}">
+                                        <i class="fas fa-play-circle text-success me-2"></i>
+                                        <strong>{{ form.is_initial.label }}</strong>
+                                    </label>
+                                    <small class="form-text text-muted d-block ps-4">{% trans "اگر فعال باشد، تمام موجودیت‌های جدید با این وضعیت ایجاد خواهند شد (مانند 'پیش‌نویس')." %}</small>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    {{ form.is_final_approve }}
+                                    <label class="form-check-label" for="{{ form.is_final_approve.id_for_label }}">
+                                        <i class="fas fa-check-circle text-primary me-2"></i>
+                                        <strong>{{ form.is_final_approve.label }}</strong>
+                                    </label>
+                                     <small class="form-text text-muted d-block ps-4">{% trans "اگر فعال باشد، رسیدن به این وضعیت به معنای اتمام موفقیت‌آمیز گردش کار است." %}</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    {{ form.is_final_reject }}
+                                    <label class="form-check-label" for="{{ form.is_final_reject.id_for_label }}">
+                                        <i class="fas fa-times-circle text-danger me-2"></i>
+                                        <strong>{{ form.is_final_reject.label }}</strong>
+                                    </label>
+                                    <small class="form-text text-muted d-block ps-4">{% trans "اگر فعال باشد، رسیدن به این وضعیت به معنای رد شدن و اتمام ناموفق گردش کار است." %}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="card-footer text-end bg-light p-3">
+                        <a href="{% url 'status_list' %}" class="btn btn-secondary">{% trans "انصراف" %}</a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-save me-1"></i> {% trans "ذخیره" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const codeInput = document.getElementById('id_code');
+        if (codeInput) {
+            codeInput.addEventListener('input', function() {
+                // تبدیل به حروف بزرگ و حذف کاراکترهای غیرمجاز
+                this.value = this.value.toUpperCase().replace(/[^A-Z0-9_]/g, '');
+            });
+        }
+    });
+</script>
+{% endblock %}

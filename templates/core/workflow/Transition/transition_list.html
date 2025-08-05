@@ -1,0 +1,61 @@
+<!-- core/te mplates/core/workflow/transition_list.html -->
+{% extends 'base.html' %}
+{% load i18n rcms_custom_filters %}
+
+{% block title %}{% trans "مدیریت گذارهای گردش کار" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-random me-2"></i>{% trans "لیست گذارها (نقشه راه)" %}</h4>
+            <a href="{% url 'transition_create' %}" class="btn btn-primary"><i class="fas fa-plus me-1"></i>{% trans "ایجاد گذار جدید" %}</a>
+            <a href="{% url 'workflow_dashboard' %}" class="btn btn-animate"><i class="fas fa-list-1-2 me-1"></i>{% trans  "داشبورد" %}</a>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info small">
+                <i class="fas fa-info-circle me-2"></i>
+                {% trans "در این بخش، 'نقشه راه' گردش کار خود را طراحی می‌کنید. هر ردیف یک قانون است که می‌گوید: اگر موجودیت در 'وضعیت X' بود و کاربر 'اقدام Y' را انجام داد، به 'وضعیت Z' منتقل شود." %}
+            </div>
+            <!-- فرم جستجو -->
+            <form method="get" class="mb-3">
+                <div class="input-group"><input type="text" name="q" class="form-control" placeholder="{% trans 'جستجو در نام گذار...' %}" value="{{ request.GET.q }}"><button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button></div>
+            </form>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "ردیف" %}</th>
+                            <th>{% trans "نام/شرح گذار" %}</th>
+                            <th>{% trans "نوع موجودیت" %}</th>
+                            <th>{% trans "از وضعیت" %}</th>
+                            <th>{% trans "با اقدام" %}</th>
+                            <th>{% trans "به وضعیت" %}</th>
+                            <th>{% trans "عملیات" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transition in transitions %}
+                        <tr>
+                            <td><strong>{{ forloop.counter|to_persian_number }}</strong></td>
+                            <td><strong>{{ transition.name }}</strong></td>
+                            <td>{{ transition.get_entity_type_display }}</td>
+                            <td><span class="badge bg-secondary">{{ transition.from_status.name }}</span></td>
+                            <td><span class="badge bg-warning text-dark">{{ transition.action.name }}</span></td>
+                            <td><span class="badge bg-success">{{ transition.to_status.name }}</span></td>
+                            <td>
+                                <a href="{% url 'transition_update' transition.pk %}" class="btn btn-sm btn-warning" title="{% trans 'ایجاد نسخه جدید' %}"><i class="fas fa-copy"></i></a>
+                                <a href="{% url 'transition_delete' transition.pk %}" class="btn btn-sm btn-outline-danger" title="{% trans 'بازنشسته کردن' %}"><i class="fas fa-trash-alt"></i></a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center">{% trans "هیچ گذاری یافت نشد." %}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% include "core/pagination.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}

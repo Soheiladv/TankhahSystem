@@ -1,6 +1,7 @@
 from django import forms
 from django.forms import inlineformset_factory
-from tankhah.models import Factor, FactorItem, AccessRule, Tankhah
+from tankhah.models import Factor, FactorItem
+from core.models import AccessRule
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 

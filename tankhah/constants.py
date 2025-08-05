@@ -45,6 +45,11 @@ ENTITY_TYPES = (
     ('REPORTS', _('گزارشات')),
     ('GENERAL', _('عمومی')),
 )
+
+# این لیست کدهای رشته‌ای است
+ACTIONS_WITHOUT_STAGE = ('VIEW', 'EDIT', 'CREATE', 'DELETE', 'SIGN_PAYMENT')
+
+
 ACTION_TYPES_ = (
     ('DRAFT', _('پیش‌نویس')),
     ('APPROVE', _('تأیید')),
@@ -63,11 +68,6 @@ ACTION_TYPES_ = (
     ('PAID', _('پرداخت شده')),
     ('PARTIAL', _('تأیید جزئی')),
 )
-
-# این لیست کدهای رشته‌ای است
-ACTIONS_WITHOUT_STAGE = ('VIEW', 'EDIT', 'CREATE', 'DELETE', 'SIGN_PAYMENT')
-
-
 
 #
 # ACTIONS_WITHOUT_STAGE = ( ['VIEW', 'EDIT', 'CREATE', 'DELETE', 'SIGN_PAYMENT'] )

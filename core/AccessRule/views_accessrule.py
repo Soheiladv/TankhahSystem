@@ -315,7 +315,7 @@ class WorkflowBuilderView(PermissionBaseView, FormView):
         return super().form_valid(form)
 
 
-class WorkflowBuilderView(PermissionBaseView, FormView):
+class WorkflowBuilderView____(PermissionBaseView, FormView):
     template_name = 'core/accessrule/workflow_builder.html'
     form_class = WorkflowForm
     permission_codenames = ['core.AccessRule_add', 'core.AccessRule_update']

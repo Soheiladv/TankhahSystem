@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">{{ page_title }}</h3>
+    </div>
+    <div class="card-body">
+        <form method="post" id="permission-form">
+            {% csrf_token %}
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">{{ form.organization.label }}</label>
+                    {{ form.organization }}
+                    {% if form.organization.errors %}
+                        <div class="text-danger">{{ form.organization.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">{{ form.transition.label }}</label>
+                    {{ form.transition }}
+                    {% if form.transition.errors %}
+                        <div class="text-danger">{{ form.transition.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">{{ form.on_status.label }}</label>
+                    {{ form.on_status }}
+                    {% if form.on_status.errors %}
+                        <div class="text-danger">{{ form.on_status.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label class="form-label">{{ form.allowed_posts.label }}</label>
+                    <div class="border p-3" style="max-height: 300px; overflow-y: auto;">
+                        {{ form.allowed_posts }}
+                    </div>
+                    {% if form.allowed_posts.errors %}
+                        <div class="text-danger">{{ form.allowed_posts.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label class="form-label">{{ form.allowed_actions.label }}</label>
+                    <div class="border p-3" style="max-height: 300px; overflow-y: auto;">
+                        {{ form.allowed_actions }}
+                    </div>
+                    {% if form.allowed_actions.errors %}
+                        <div class="text-danger">{{ form.allowed_actions.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-footer">
+                <button type="submit" class="btn btn-primary">{% trans "ذخیره" %}</button>
+                <a href="{% url 'workflow:permission_list' %}" class="btn btn-secondary">{% trans "انصراف" %}</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // آپدیت وضعیت‌ها بر اساس گذار انتخاب شده
+    $('#id_transition').change(function() {
+        const transitionId = $(this).val();
+        if (transitionId) {
+            $.ajax({
+                url: '{% url "workflow:get_transition_details" %}',
+                data: {
+                    'transition_id': transitionId
+                },
+                dataType: 'json',
+                success: function(data) {
+                    // آپدیت entity_type (فقط نمایشی)
+                    $('#entity-type-display').text(data.entity_type_name);
+                    
+                    // آپدیت لیست وضعیت‌ها
+                    const $statusField = $('#id_on_status');
+                    $statusField.empty();
+                    $.each(data.statuses, function(key, value) {
+                        $statusField.append($('<option></option>').attr('value', key).text(value));
+                    });
+                }
+            });
+        }
+    });
+    
+    // آپدیت پست‌ها بر اساس سازمان انتخاب شده
+    $('#id_organization').change(function() {
+        const orgId = $(this).val();
+        if (orgId) {
+            $.ajax({
+                url: '{% url "workflow:get_organization_posts" %}',
+                data: {
+                    'organization_id': orgId
+                },
+                dataType: 'json',
+                success: function(data) {
+                    const $postsField = $('#id_allowed_posts');
+                    $postsField.empty();
+                    $.each(data.posts, function(key, value) {
+                        $postsField.append($('<option></option>').attr('value', key).text(value));
+                    });
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

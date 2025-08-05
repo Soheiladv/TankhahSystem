@@ -1,33 +1,20 @@
-from django.views.generic import ListView, DetailView, UpdateView, View
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.shortcuts import get_object_or_404, redirect, render
-from django.http import JsonResponse, HttpResponseRedirect
-from django.urls import reverse_lazy, reverse
-from django.contrib import messages
-from django.db import transaction
-from django.core.exceptions import PermissionDenied, ValidationError
-from django.contrib.contenttypes.models import ContentType
 
 from core.PermissionBase import PermissionBaseView
 from notificationApp.models import NotificationRule
 from notificationApp.views import send_notification
-from tankhah.models import Factor, FactorItem, ApprovalLog, AccessRule, Post, ItemCategory
+from tankhah.models import   ItemCategory,Factor,ApprovalLog
+from core.models import  AccessRule
+
 from tankhah.Services.forms_approved_2 import FactorForm, FactorItemFormSet, FactorRejectForm, FactorTempApproveForm, \
     FactorChangeStageForm, FactorBatchApproveForm
-from django.utils import timezone
-from django.contrib.auth.decorators import permission_required
-from django.utils.translation import gettext_lazy as _
-import logging
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, View
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
-from django.http import JsonResponse, HttpResponseRedirect
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse_lazy
 from django.contrib import messages
 from django.db import transaction
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.contrib.contenttypes.models import ContentType
-from tankhah.models import Factor, FactorItem, ApprovalLog, AccessRule, Post, Tankhah
 from budgets.models import  PaymentOrder
 
 from django.utils import timezone
@@ -36,8 +23,7 @@ from budgets.models import BudgetTransaction
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import logging
-from django.db.models import Q, Sum
-from django.contrib.auth.decorators import permission_required
+from django.db.models import   Sum
 
 logger = logging.getLogger(__name__)
 

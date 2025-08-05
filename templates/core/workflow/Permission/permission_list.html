@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+<div class="card shadow-lg border-0 rounded-lg mt-5">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h3 class="mb-0">{% trans "لیست مجوزهای گردش کار" %}</h3>
+        <div>
+            <a href="{% url 'permission_create' %}" class="btn btn-light btn-sm">
+                <i class="fas fa-plus-circle me-1"></i> {% trans "مجوز جدید" %}
+            </a>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <!-- Search -->
+        <div class="mb-4">
+            <form method="get" class="row g-2">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <input type="text" name="q" value="{{ search_query }}" class="form-control" 
+                               placeholder="{% trans 'جستجو بر اساس سازمان، وضعیت یا نوع موجودیت...' %}">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <a href="{% url 'permission_list' %}" class="btn btn-outline-danger w-100">
+                        <i class="fas fa-times"></i> {% trans "حذف فیلتر" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead class="table-light">
+                    <tr>
+                        <th>{% trans "سازمان" %}</th>
+                        <th>{% trans "نوع موجودیت" %}</th>
+                        <th>{% trans "وضعیت" %}</th>
+                        <th>{% trans "پست‌های مجاز" %}</th>
+                        <th>{% trans "اقدامات مجاز" %}</th>
+                        <th>{% trans "عملیات" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for permission in permissions %}
+                    <tr>
+                        <td>{{ permission.organization.name }}</td>
+                        <td>{{ permission.get_entity_type_display }}</td>
+                        <td>{{ permission.on_status.name }}</td>
+                        <td>
+                            {% for post in permission.allowed_posts.all %}
+                            <span class="badge bg-secondary">{{ post.name }}</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% for action in permission.allowed_actions.all %}
+                            <span class="badge bg-info">{{ action.name }}</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'permission_update' permission.pk %}" class="btn btn-outline-primary" 
+                                   title="{% trans 'ویرایش' %}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'permission_delete' permission.pk %}" class="btn btn-outline-danger" 
+                                   title="{% trans 'حذف' %}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="fas fa-info-circle me-2"></i> {% trans "هیچ مجوزی یافت نشد" %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mt-4">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                        &laquo; {% trans "قبلی" %}
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}">{{ num }}</a>
+                </li>
+                {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                        {% trans "بعدی" %} &raquo;
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'vendor/select2/css/select2.min.css' %}" rel="stylesheet">
+<link href="{% static 'vendor/select2/css/select2-bootstrap-5-theme.min.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/select2/js/select2.min.js' %}"></script>
+<script src="{% static 'vendor/select2/js/i18n/fa.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('.select2').select2({
+        theme: 'bootstrap-5',
+        language: 'fa',
+        width: '100%'
+    });
+});
+</script>
+{% endblock %}

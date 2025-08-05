@@ -1,18 +1,17 @@
 # Create your models here.
 import logging
 from decimal import Decimal
-from django.utils.translation import gettext as _immediate  # اضافه کردن تابع ترجمه فوری
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.db import models
+
+import accounts.models
 from accounts.models import CustomUser
 from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, \
     get_subproject_remaining_budget
-from core import AccessRule
-from tankhah.constants import ENTITY_TYPES, ACTION_TYPES
 from tankhah.constants import ACTION_TYPES, ENTITY_TYPES
 from django.contrib.postgres.fields import ArrayField
 
@@ -554,6 +553,124 @@ class PostAction(models.Model):
 #     def __str__(self):
 #         return f"{self.post} can transition from {self.from_stage} to {self.to_stage}"
 # ---
+
+
+###################### NEW Config Status For ACTIONS TYPE ENTITY TYPES #######################################
+
+# یک کلاس پایه برای فیلدهای مشترک (ایجادکننده، تاریخ، وضعیت فعالیت)
+# مدل‌ها برای پشتیبانی از تاریخچه و بازنشستگی
+
+class Status(models.Model):
+    """
+    تعریف وضعیت‌های ممکن برای موجودیت‌های مختلف در سیستم.
+    مثال: پیش‌نویس، در انتظار تایید، تایید نهایی، رد شده.
+    """
+    name = models.CharField(max_length=100, verbose_name=_("نام وضعیت"))
+    code = models.CharField(max_length=50, unique=True, help_text=_("کد منحصر به فرد انگلیسی، مانند DRAFT"))
+    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+    is_initial = models.BooleanField(default=False, verbose_name=_("آیا این وضعیت اولیه (شروع) است؟"))
+    is_final_approve = models.BooleanField(default=False, verbose_name=_("وضعیت تأیید نهایی؟"))
+    is_final_reject = models.BooleanField(default=False, verbose_name=_("وضعیت رد نهایی؟"))
+
+    # فیلدهای مشترک به صورت مستقیم اضافه شده‌اند
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, verbose_name=_("ایجادکننده"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    is_active = models.BooleanField(default=True, db_index=True, verbose_name=_("فعال"))
+    def __str__(self):
+            return self.name
+
+    class Meta:
+        verbose_name = _("وضعیت گردش کار")
+        verbose_name_plural = _("۱. وضعیت‌های گردش کار")
+        default_permissions = ()
+        permissions = [
+            ('Status_add','افزودن وضعیت'),
+            ('Status_update ','ویرایش وضعیت'),
+            ('Status_view ','نمایش وضعیت'),
+            ('Status_delete ','حــذف وضعیت'),
+        ]
+
+class Action(models.Model):
+    name = models.CharField(max_length=100, verbose_name=_("نام اقدام"))
+    code = models.CharField(max_length=50, unique=True, help_text=_("کد منحصر به فرد انگلیسی، مانند SUBMIT"))
+    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, verbose_name=_("ایجادکننده"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    is_active = models.BooleanField(default=True, db_index=True, verbose_name=_("فعال"))
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _("اقدام گردش کار")
+        verbose_name_plural = _("۲. اقدامات گردش کار")
+        default_permissions = ()
+        permissions = [
+            ('Action_add','افزودن اقدام گردش کار '),
+            ('Action_update','ویرایش اقدام گردش کار '),
+            ('Action_view','نمایش اقدام گردش کار '),
+            ('Action_delete','حــذف اقدام گردش کار '),
+        ]
+
+class Transition(models.Model):
+    name = models.CharField(max_length=255, verbose_name=_("نام/شرح گذار"))
+    entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, verbose_name=_("برای نوع موجودیت"))
+    from_status = models.ForeignKey(Status, on_delete=models.PROTECT, related_name='transitions_from',
+                                    verbose_name=_("از وضعیت"))
+    action = models.ForeignKey(Action, on_delete=models.PROTECT, verbose_name=_("با اقدام"))
+    to_status = models.ForeignKey(Status, on_delete=models.PROTECT, related_name='transitions_to',
+                                  verbose_name=_("به وضعیت"))
+
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, verbose_name=_("ایجادکننده"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    is_active = models.BooleanField(default=True, db_index=True, verbose_name=_("فعال"))
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _("گذار گردش کار")
+        verbose_name_plural = _("۳. گذارهای گردش کار")
+        unique_together = ('entity_type', 'from_status', 'action')
+        default_permissions = ()
+        permissions = [
+            ('Transition_add','افزودن گذار گردش کار '),
+            ('Transition_update','ویرایش گذار گردش کار '),
+            ('Transition_view','نمایش گذار گردش کار '),
+            ('Transition_delete','حــذف گذار گردش کار '),
+        ]
+
+class Permission(models.Model):
+    organization = models.ForeignKey(Organization, on_delete=models.PROTECT, verbose_name=_("سازمان"))
+    transition = models.ForeignKey(Transition, on_delete=models.PROTECT, verbose_name=_("برای گذار"))
+    allowed_posts = models.ManyToManyField(Post, verbose_name=_("پست‌های مجاز"))
+
+    entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, verbose_name=_("برای نوع موجودیت"))
+    on_status = models.ForeignKey(Status, on_delete=models.CASCADE, verbose_name=_("در وضعیت"))
+    allowed_actions = models.ManyToManyField(Action, verbose_name=_("اقدامات مجاز"))
+
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, verbose_name=_("ایجادکننده"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    is_active = models.BooleanField(default=True, db_index=True, verbose_name=_("فعال"))
+
+    def __str__(self):
+        return f"مجوز برای {self.entity_type} در وضعیت {self.on_status.name} برای سازمان {self.organization.name}"
+
+    class Meta:
+        verbose_name = _("مجوز گردش کار")
+        verbose_name_plural = _("۴. مجوزهای گردش کار")
+        unique_together = ('organization', 'entity_type', 'on_status')
+        default_permissions = ()
+        permissions = [
+            ('Permission_add',' افزودن مجوز گردش کار '),
+            ('Permission_update','  ویرایش مجوز گردش کار '),
+            ('Permission_view','  نمایش مجوز گردش کار '),
+            ('Permission_delete','  حــذف مجوز گردش کار '),
+        ]
+
+##############################################################################################################
+
 class SystemSettings(models.Model):
     budget_locked_percentage_default = models.DecimalField(
         max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده پیش‌فرض بودجه"))

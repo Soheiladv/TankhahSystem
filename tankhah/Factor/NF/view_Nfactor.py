@@ -1,203 +1,474 @@
+# import logging
+# from decimal import Decimal
+# from django.db import models, transaction
+# from django.urls import reverse_lazy
+# from django.shortcuts import redirect
+# from django.contrib import messages
+# from django.utils import timezone
+# from django.utils.translation import gettext_lazy as _
+# from django.views.generic import CreateView
+# from django.forms import inlineformset_factory
+#
+# from accounts.AccessRule.check_user_access import check_user_factor_access
+# from core.views import PermissionBaseView  # Your permission checking base view
+# from notificationApp.utils import send_notification
+# from tankhah.Factor.NF.form_Nfactor import FactorItemForm, FactorForm, FactorDocumentForm, TankhahDocumentForm
+# from tankhah.models import ItemCategory, Tankhah, Factor, FactorItem, FactorDocument, TankhahDocument, \
+#     create_budget_transaction, FactorHistory, ApprovalLog
+# from core.models import   AccessRule, Post
+#
+# # --- End Assumptions ---
+# logger = logging.getLogger('New_FactorCreateView')
+# # Define the inline formset factory (can be defined globally or inside the view methods)
+#
+#
+# # FactorItemFormSet = inlineformset_factory(
+# #     Factor,           # مدل والد
+# #     FactorItem,       # مدل فرزند (ردیف‌ها)
+# #     form=FactorItemForm, # فرمی که برای هر ردیف استفاده می‌شود
+# #     extra=1,          # همیشه یک فرم خالی اضافی برای ورود ردیف جدید نمایش بده
+# #     can_delete=True,  # اجازه حذف ردیف‌های موجود را بده
+# #     # min_num=1,        # حداقل یک ردیف باید وجود داشته باشد
+# #     validate_min=True # این حداقل را در سمت سرور اعتبارسنجی کن
+# # )
+#
+#
+# ##############################################################################################
+#
+# FactorItemFormSet = inlineformset_factory(
+#     Factor, FactorItem, form=FactorItemForm,
+#     extra=1, can_delete=True,  validate_min=True
+# )
+#
+#
+# ##############################################################################################
+# class New_FactorCreateView(PermissionBaseView, CreateView):
+#     model = Factor
+#     form_class = FactorForm
+#     template_name = 'tankhah/Factors/NF/new_factor_form.html'
+#     permission_codenames = ['tankhah.factor_add']
+#     permission_denied_message = _('متاسفانه دسترسی لازم برای افزودن فاکتور را ندارید.')
+#
+#     def get_success_url(self):
+#         return reverse_lazy('factor_list')
+#
+#     def get_form_kwargs(self):
+#         kwargs = super().get_form_kwargs()
+#         kwargs['user'] = self.request.user
+#         tankhah_id = self.kwargs.get('tankhah_id') or self.request.GET.get('tankhah_id')
+#         if tankhah_id:
+#             try:
+#                 kwargs['tankhah'] = Tankhah.objects.select_related(
+#                     'project', 'organization', 'project_budget_allocation__budget_period'
+#                 ).get(id=tankhah_id)
+#                 if kwargs['tankhah'].due_date and kwargs['tankhah'].due_date < timezone.now():
+#                     messages.error(self.request, _('تنخواه منقضی شده است. لطفاً تنخواه جدیدی انتخاب کنید.'))
+#                     kwargs['tankhah'] = None
+#             except (Tankhah.DoesNotExist, ValueError):
+#                 messages.error(self.request, _("تنخواه انتخاب شده معتبر نیست."))
+#         return kwargs
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         if self.object and self.object.pk:
+#             can_delete = False
+#             user = self.request.user
+#             factor = self.object
+#             tankhah = factor.tankhah
+#
+#             # بررسی دسترسی حذف
+#             access_info = check_user_factor_access(user.username, tankhah=tankhah, action_type='DELETE', entity_type='FACTOR')
+#             can_delete = access_info['has_access'] and factor.status in ['DRAFT', 'PENDING', 'PENDING_APPROVAL'] and not factor.is_locked and not tankhah.is_locked and not tankhah.is_archived
+#
+#             context['can_delete'] = can_delete
+#
+#         if self.request.POST:
+#             context['formset'] = FactorItemFormSet(self.request.POST, self.request.FILES)
+#             context['document_form'] = FactorDocumentForm(self.request.POST, self.request.FILES)
+#             context['tankhah_document_form'] = TankhahDocumentForm(self.request.POST, self.request.FILES)
+#         else:
+#             context['formset'] = FactorItemFormSet()
+#             context['document_form'] = FactorDocumentForm()
+#             context['tankhah_document_form'] = TankhahDocumentForm()
+#
+#         form_kwargs = self.get_form_kwargs()
+#         if 'tankhah' in form_kwargs:
+#             context['tankhah'] = form_kwargs['tankhah']
+#
+#         return context
+#
+#     def form_valid(self, form):
+#         context = self.get_context_data()
+#         item_formset = context['formset']
+#         document_form = context['document_form']
+#         tankhah_document_form = context['tankhah_document_form']
+#
+#         if not item_formset.is_valid():
+#             messages.error(self.request, _('لطفاً خطاهای ردیف‌های فاکتور را اصلاح کنید.'))
+#             return self.form_invalid(form)
+#
+#         valid_item_forms = [f for f in item_formset.forms if f.cleaned_data and not f.cleaned_data.get('DELETE')]
+#         if not valid_item_forms:
+#             logger.warning("No valid items submitted in the formset.")
+#             messages.error(self.request, _('حداقل یک ردیف معتبر باید برای فاکتور وارد شود.'))
+#             return self.render_to_response(
+#                 self.get_context_data(
+#                     form=form,
+#                     formset=item_formset,
+#                     document_form=document_form,
+#                     tankhah_document_form=tankhah_document_form
+#                 )
+#             )
+#
+#         total_items_amount = sum(
+#             (f.cleaned_data.get('unit_price', Decimal('0')) * f.cleaned_data.get('quantity', Decimal('0'))).quantize(
+#                 Decimal('0.01'))
+#             for f in valid_item_forms
+#         )
+#
+#         if abs(total_items_amount - form.cleaned_data['amount']) > Decimal('0.01'):
+#             msg = _('مبلغ کل فاکتور ({}) با مجموع مبلغ ردیف‌ها ({}) همخوانی ندارد.').format(
+#                 form.cleaned_data['amount'], total_items_amount
+#             )
+#             form.add_error('amount', msg)
+#             return self.form_invalid(form)
+#
+#         try:
+#             with transaction.atomic():
+#                 self.object = form.save(commit=False)
+#                 self.object.created_by = self.request.user
+#                 self.object.status = 'PENDING_APPROVAL'
+#                 self.object._request_user = self.request.user  # اضافه کردن کاربر برای سیگنال
+#                 self.object.current_stage = AccessRule.objects.filter(
+#                     entity_type='FACTOR',
+#                     stage_order=1,
+#                     is_active=True
+#                 ).first()  # تنظیم مرحله اولیه فاکتور
+#                 self.object.save()
+#                 logger.info(f"Factor saved: PK={self.object.pk}, Number={self.object.number}")
+#
+#                 item_formset.instance = self.object
+#                 item_formset.save()
+#
+#                 if document_form.is_valid():
+#                     for file in document_form.cleaned_data.get('files', []):
+#                         FactorDocument.objects.create(factor=self.object, file=file, uploaded_by=self.request.user)
+#
+#                 if tankhah_document_form.is_valid():
+#                     for file in tankhah_document_form.cleaned_data.get('documents', []):
+#                         TankhahDocument.objects.create(tankhah=self.object.tankhah, document=file,
+#                                                        uploaded_by=self.request.user)
+#
+#                 create_budget_transaction(
+#                     allocation=self.object.tankhah.project_budget_allocation,
+#                     transaction_type='CONSUMPTION',
+#                     amount=self.object.amount,
+#                     related_obj=self.object,
+#                     created_by=self.request.user,
+#                     description=f"ایجاد فاکتور به شماره {self.object.number}",
+#                     transaction_id=f"TX-FACTOR-NEW-{self.object.id}-{timezone.now().timestamp()}"
+#                 )
+#
+#                 FactorHistory.objects.create(
+#                     factor=self.object,
+#                     change_type=FactorHistory.ChangeType.CREATION,
+#                     changed_by=self.request.user,
+#                     description=f"فاکتور به شماره {self.object.number} توسط {self.request.user.username} ایجاد شد."
+#                 )
+#
+#         except Exception as e:
+#             logger.error(f"Error during atomic transaction for Factor creation: {e}", exc_info=True)
+#             messages.error(self.request,
+#                            _('یک خطای پیش‌بینی نشده در هنگام ذخیره اطلاعات رخ داد. لطفاً دوباره تلاش کنید.'))
+#             return self.form_invalid(form)
+#
+#         messages.success(self.request, _('فاکتور با موفقیت ثبت و برای تایید ارسال شد.'))
+#         return super().form_valid(form)
+#
+#     def form_invalid(self, form):
+#         messages.error(self.request, _('ثبت فاکتور با خطا مواجه شد. لطفاً موارد مشخص شده را بررسی کنید.'))
+#         return super().form_invalid(form)
+
+##############################################################################################
+#
+# فایل نهایی: views/factor_views.py (یا هر فایلی که ویو در آن قرار دارد)
+#
 import logging
 from decimal import Decimal
-
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
-from django.db import models, transaction
+from django.db import transaction, models
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.shortcuts import redirect, render  # Import render
-from django.contrib import messages
 from django.utils import timezone
+from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView
 from django.forms import inlineformset_factory
-from django.db.models import Sum, Max
 
-from accounts.AccessRule.check_user_access import check_user_factor_access
-# Assuming these base classes, models, forms, and functions exist
-from core.views import PermissionBaseView  # Your permission checking base view
+# --- Import های لازم ---
+# مطمئن شوید تمام این مدل‌ها و فرم‌ها به درستی import شده‌اند
+from core.PermissionBase import PermissionBaseView
+from core.models import AccessRule, Post
 from notificationApp.utils import send_notification
-from tankhah.Factor.NF.form_Nfactor import FactorItemForm, FactorForm, FactorDocumentForm, TankhahDocumentForm
-from tankhah.models import ItemCategory, Tankhah, Factor, FactorItem, FactorDocument, TankhahDocument, \
-    create_budget_transaction, FactorHistory, ApprovalLog
-from accounts.models import CustomUser  # Your user model
-from core.models import WorkflowStage, Organization, AccessRule, Post  # Your workflow stage model
-from budgets.models import BudgetTransaction, BudgetAllocation
-from budgets.budget_calculations import (
-    get_project_total_budget, get_project_used_budget, get_project_remaining_budget,
-    get_tankhah_total_budget, get_tankhah_remaining_budget, get_tankhah_used_budget,
-    # Your budget transaction helper
-)
+from tankhah.Factor.NF.form_Nfactor import FactorItemForm, FactorForm
+from tankhah.models import Factor, Tankhah, FactorItem, FactorDocument, ApprovalLog, FactorHistory
+# مسیر فرم‌های خود را بر اساس ساختار پروژه تنظیم کنید
+from tankhah.forms import  FactorDocumentForm
 
-# --- End Assumptions ---
-logger = logging.getLogger('New_FactorCreateView')
-# Define the inline formset factory (can be defined globally or inside the view methods)
+# --- تنظیمات اولیه ---
+logger = logging.getLogger('FactorCreateLogger')
 
-
-# FactorItemFormSet = inlineformset_factory(
-#     Factor,           # مدل والد
-#     FactorItem,       # مدل فرزند (ردیف‌ها)
-#     form=FactorItemForm, # فرمی که برای هر ردیف استفاده می‌شود
-#     extra=1,          # همیشه یک فرم خالی اضافی برای ورود ردیف جدید نمایش بده
-#     can_delete=True,  # اجازه حذف ردیف‌های موجود را بده
-#     # min_num=1,        # حداقل یک ردیف باید وجود داشته باشد
-#     validate_min=True # این حداقل را در سمت سرور اعتبارسنجی کن
-# )
-
-
-##############################################################################################
-
+# تعریف نهایی و صحیح FactorItemFormSet در سطح ماژول
 FactorItemFormSet = inlineformset_factory(
-    Factor, FactorItem, form=FactorItemForm,
-    extra=1, can_delete=True,  validate_min=True
+    Factor,  # مدل والد
+    FactorItem,  # مدل فرزند (ردیف‌ها)
+    form=FactorItemForm,  # فرمی که برای هر ردیف استفاده می‌شود
+    extra=1,  # همیشه یک فرم خالی اضافی برای ورود ردیف جدید نمایش بده
+    can_delete=True,  # اجازه حذف ردیف‌های موجود را بده (برای حالت ویرایش مفید است)
+    # min_num=1,  # حداقل یک ردیف باید در فرم وجود داشته باشد
+    validate_min=True  # این حداقل را در سمت سرور اعتبارسنجی کن
 )
 
 
-##############################################################################################
 class New_FactorCreateView(PermissionBaseView, CreateView):
+    """
+    ویوی نهایی، کامل و بهینه برای ایجاد فاکتور جدید به همراه ردیف‌ها و اسناد.
+    این ویو تمام منطق‌های دسترسی، اعتبارسنجی، ذخیره‌سازی و شروع گردش کار را مدیریت می‌کند.
+    """
     model = Factor
     form_class = FactorForm
     template_name = 'tankhah/Factors/NF/new_factor_form.html'
     permission_codenames = ['tankhah.factor_add']
-    permission_denied_message = _('متاسفانه دسترسی لازم برای افزودن فاکتور را ندارید.')
+    check_organization = False  # بررسی دسترسی سازمان به صورت دستی و شفاف در داخل ویو انجام می‌شود
 
     def get_success_url(self):
+        """پس از ایجاد موفق فاکتور، کاربر به لیست فاکتورها هدایت می‌شود."""
         return reverse_lazy('factor_list')
 
     def get_form_kwargs(self):
+        """
+        پارامترهای لازم مانند کاربر و تنخواه را به فرم اصلی (FactorForm) پاس می‌دهد.
+        """
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
+
+        # تلاش برای خواندن تنخواه از URL یا پارامترهای GET
         tankhah_id = self.kwargs.get('tankhah_id') or self.request.GET.get('tankhah_id')
         if tankhah_id:
             try:
-                kwargs['tankhah'] = Tankhah.objects.select_related(
-                    'project', 'organization', 'project_budget_allocation__budget_period'
-                ).get(id=tankhah_id)
-                if kwargs['tankhah'].due_date and kwargs['tankhah'].due_date < timezone.now():
-                    messages.error(self.request, _('تنخواه منقضی شده است. لطفاً تنخواه جدیدی انتخاب کنید.'))
-                    kwargs['tankhah'] = None
-            except (Tankhah.DoesNotExist, ValueError):
+                # مقدار اولیه تنخواه را برای فرم ست می‌کنیم
+                kwargs['initial'] = kwargs.get('initial', {})
+                kwargs['initial']['tankhah'] = Tankhah.objects.get(id=tankhah_id)
+            except Tankhah.DoesNotExist:
                 messages.error(self.request, _("تنخواه انتخاب شده معتبر نیست."))
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        تمام فرم‌های لازم (فرم اصلی، فرم‌ست ردیف‌ها، فرم اسناد) را آماده کرده و به تمپلیت ارسال می‌کند.
+        این متد هم برای درخواست GET (نمایش فرم خالی) و هم برای POST (نمایش مجدد فرم با خطاها) کار می‌کند.
+        """
         context = super().get_context_data(**kwargs)
-        if self.object and self.object.pk:
-            can_delete = False
-            user = self.request.user
-            factor = self.object
-            tankhah = factor.tankhah
 
-            # بررسی دسترسی حذف
-            access_info = check_user_factor_access(user.username, tankhah=tankhah, action_type='DELETE', entity_type='FACTOR')
-            can_delete = access_info['has_access'] and factor.status in ['DRAFT', 'PENDING', 'PENDING_APPROVAL'] and not factor.is_locked and not tankhah.is_locked and not tankhah.is_archived
-
-            context['can_delete'] = can_delete
-
+        # ساخت فرم‌ست‌ها
         if self.request.POST:
-            context['formset'] = FactorItemFormSet(self.request.POST, self.request.FILES)
-            context['document_form'] = FactorDocumentForm(self.request.POST, self.request.FILES)
-            context['tankhah_document_form'] = TankhahDocumentForm(self.request.POST, self.request.FILES)
+            # اگر درخواست POST باشد، فرم‌ها را با داده‌های ارسالی پر می‌کنیم تا خطاها نمایش داده شوند
+            context['formset'] = FactorItemFormSet(self.request.POST, prefix='items')
+            context['document_form'] = FactorDocumentForm(self.request.POST, self.request.FILES, prefix='docs')
         else:
-            context['formset'] = FactorItemFormSet()
-            context['document_form'] = FactorDocumentForm()
-            context['tankhah_document_form'] = TankhahDocumentForm()
-
-        form_kwargs = self.get_form_kwargs()
-        if 'tankhah' in form_kwargs:
-            context['tankhah'] = form_kwargs['tankhah']
+            # اگر درخواست GET باشد، فرم‌های خالی را ایجاد می‌کنیم
+            # FactorItemFormSet به خاطر extra=1 به صورت خودکار یک ردیف خالی خواهد داشت
+            context['formset'] = FactorItemFormSet(prefix='items')
+            context['document_form'] = FactorDocumentForm(prefix='docs')
 
         return context
 
     def form_valid(self, form):
+        """
+        این متد قلب تپنده ویو است. تنها زمانی اجرا می‌شود که فرم اصلی (FactorForm) معتبر باشد.
+        تمام منطق‌های پیچیده در این متد مدیریت می‌شوند.
+        """
+        user = self.request.user
+        tankhah = form.cleaned_data.get('tankhah')
         context = self.get_context_data()
         item_formset = context['formset']
         document_form = context['document_form']
-        tankhah_document_form = context['tankhah_document_form']
 
+        logger.info(
+            f"--- [START form_valid] User '{user.username}' is creating a factor for Tankhah '{tankhah.number}' ---")
+
+        # --- مرحله ۱: بررسی جامع دسترسی‌ها ---
+        if not self._has_permission_to_create(user, tankhah):
+            # پیغام خطا در خود تابع کمکی به messages اضافه می‌شود
+            return self.form_invalid(form)
+
+        # --- مرحله ۲: اعتبارسنجی فرم‌ست ردیف‌ها ---
         if not item_formset.is_valid():
+            logger.warning(f"Item formset is invalid. Errors: {item_formset.errors}")
             messages.error(self.request, _('لطفاً خطاهای ردیف‌های فاکتور را اصلاح کنید.'))
             return self.form_invalid(form)
 
-        valid_item_forms = [f for f in item_formset.forms if f.cleaned_data and not f.cleaned_data.get('DELETE')]
-        if not valid_item_forms:
-            logger.warning("No valid items submitted in the formset.")
-            messages.error(self.request, _('حداقل یک ردیف معتبر باید برای فاکتور وارد شود.'))
-            return self.render_to_response(
-                self.get_context_data(
-                    form=form,
-                    formset=item_formset,
-                    document_form=document_form,
-                    tankhah_document_form=tankhah_document_form
-                )
-            )
-
-        total_items_amount = sum(
-            (f.cleaned_data.get('unit_price', Decimal('0')) * f.cleaned_data.get('quantity', Decimal('0'))).quantize(
-                Decimal('0.01'))
-            for f in valid_item_forms
-        )
-
-        if abs(total_items_amount - form.cleaned_data['amount']) > Decimal('0.01'):
-            msg = _('مبلغ کل فاکتور ({}) با مجموع مبلغ ردیف‌ها ({}) همخوانی ندارد.').format(
-                form.cleaned_data['amount'], total_items_amount
-            )
-            form.add_error('amount', msg)
-            return self.form_invalid(form)
-
         try:
+            # --- مرحله ۳: شروع تراکنش اتمیک برای تضمین یکپارچگی داده‌ها ---
             with transaction.atomic():
-                self.object = form.save(commit=False)
-                self.object.created_by = self.request.user
-                self.object.status = 'PENDING_APPROVAL'
-                self.object._request_user = self.request.user  # اضافه کردن کاربر برای سیگنال
-                self.object.current_stage = AccessRule.objects.filter(
-                    entity_type='FACTOR',
-                    stage_order=1,
-                    is_active=True
-                ).first()  # تنظیم مرحله اولیه فاکتور
-                self.object.save()
-                logger.info(f"Factor saved: PK={self.object.pk}, Number={self.object.number}")
+                logger.debug("--- [TRANSACTION START] ---")
 
+                # پیدا کردن مرحله اولیه گردش کار قبل از هرگونه ذخیره‌سازی
+                initial_stage = AccessRule.objects.filter(
+                    organization=tankhah.organization, entity_type='FACTORITEM'
+                ).order_by('-stage_order').first()  # <-- مرتب‌سازی نزولی برای پیدا کردن بزرگترین عدد
+
+                # ).order_by('stage_order').first()
+
+                if not initial_stage:
+                    messages.error(self.request, _('هیچ گردش کاری برای فاکتور در این سازمان تعریف نشده است.'))
+                    raise transaction.TransactionManagementError('No initial workflow stage found for FACTORITEM.')
+
+                # ذخیره فاکتور اصلی برای گرفتن ID
+                self.object = form.save(commit=False)
+                self.object.created_by = user
+                self.object.status = 'PENDING_APPROVAL'  # وضعیت اولیه
+                self.object.save()
+                logger.info(f"Factor object PK {self.object.pk} created and saved.")
+
+                # اتصال ردیف‌ها به فاکتور و ذخیره آن‌ها
                 item_formset.instance = self.object
                 item_formset.save()
+                logger.info(f"{item_formset.total_form_count()} item(s) saved for factor PK {self.object.pk}.")
 
-                if document_form.is_valid():
-                    for file in document_form.cleaned_data.get('files', []):
-                        FactorDocument.objects.create(factor=self.object, file=file, uploaded_by=self.request.user)
+                # محاسبه مجدد و آپدیت مبلغ کل فاکتور برای اطمینان از صحت داده‌ها
+                total_amount = self.object.items.aggregate(total=models.Sum('amount'))['total'] or Decimal('0')
+                if abs(self.object.amount - total_amount) > Decimal('0.01'):
+                    messages.warning(self.request, _('مبلغ کل فاکتور بر اساس مجموع ردیف‌ها اصلاح شد.'))
+                    self.object.amount = total_amount
+                    self.object.save(update_fields=['amount'])
 
-                if tankhah_document_form.is_valid():
-                    for file in tankhah_document_form.cleaned_data.get('documents', []):
-                        TankhahDocument.objects.create(tankhah=self.object.tankhah, document=file,
-                                                       uploaded_by=self.request.user)
+                # آپدیت مرحله فعلی تنخواه به اولین مرحله گردش کار
+                tankhah.current_stage = initial_stage
+                tankhah.save(update_fields=['current_stage'])
+                logger.info(f"Tankhah {tankhah.pk} current_stage updated to: '{initial_stage.stage}'.")
 
-                create_budget_transaction(
-                    allocation=self.object.tankhah.project_budget_allocation,
-                    transaction_type='CONSUMPTION',
-                    amount=self.object.amount,
-                    related_obj=self.object,
-                    created_by=self.request.user,
-                    description=f"ایجاد فاکتور به شماره {self.object.number}",
-                    transaction_id=f"TX-FACTOR-NEW-{self.object.id}-{timezone.now().timestamp()}"
-                )
-
-                FactorHistory.objects.create(
-                    factor=self.object,
-                    change_type=FactorHistory.ChangeType.CREATION,
-                    changed_by=self.request.user,
-                    description=f"فاکتور به شماره {self.object.number} توسط {self.request.user.username} ایجاد شد."
-                )
+                # ذخیره اسناد، ایجاد لاگ و ارسال نوتیفیکیشن
+                self._create_related_objects_and_notify(self.object, user, tankhah, initial_stage, document_form)
 
         except Exception as e:
-            logger.error(f"Error during atomic transaction for Factor creation: {e}", exc_info=True)
-            messages.error(self.request,
-                           _('یک خطای پیش‌بینی نشده در هنگام ذخیره اطلاعات رخ داد. لطفاً دوباره تلاش کنید.'))
+            logger.error(f"FATAL: Exception during atomic transaction: {e}", exc_info=True)
+            messages.error(self.request, _('یک خطای پیش‌بینی نشده در هنگام ذخیره اطلاعات رخ داد.'))
             return self.form_invalid(form)
 
-        messages.success(self.request, _('فاکتور با موفقیت ثبت و برای تایید ارسال شد.'))
-        return super().form_valid(form)
+        messages.success(self.request, _('فاکتور با موفقیت ثبت و برای تأیید ارسال شد.'))
+        return redirect(self.get_success_url())
 
     def form_invalid(self, form):
+        """
+        این متد در صورت نامعتبر بودن فرم اصلی یا بروز هر خطای دیگر فراخوانی می‌شود.
+        """
+        context = self.get_context_data(form=form)
+        # لاگ کردن خطاهای فرم اصلی و فرم‌ست
+        logger.warning(
+            f"Form invalid for user '{self.request.user.username}'. Form Errors: {form.errors}. ItemFormset Errors: {context['formset'].errors}")
         messages.error(self.request, _('ثبت فاکتور با خطا مواجه شد. لطفاً موارد مشخص شده را بررسی کنید.'))
-        return super().form_invalid(form)
+        # صفحه را با فرم‌های پر شده و خطاهایشان دوباره نمایش می‌دهد
+        return self.render_to_response(context)
 
+    # --------------------------------------------------------------------------
+    # بخش توابع کمکی (Helper Methods)
+    # --------------------------------------------------------------------------
+
+    def _has_permission_to_create(self, user, tankhah):
+        """
+        تابع کمکی برای تجمیع تمام بررسی‌های دسترسی لازم برای ایجاد فاکتور.
+        """
+        logger.debug(f"--- Checking create permissions for user '{user.username}' on Tankhah '{tankhah.number}' ---")
+
+        # 1. پرمیشن پایه جنگو
+        if not user.has_perm('tankhah.factor_add'):
+            logger.warning("Permission check FAILED: User lacks 'tankhah.factor_add' permission.")
+            messages.error(self.request, _('شما مجوز اولیه برای افزودن فاکتور را ندارید.'))
+            return False
+
+        # 2. داشتن پست فعال
+        user_post_qs = user.userpost_set.filter(is_active=True)
+        if not user_post_qs.exists():
+            logger.warning("Permission check FAILED: User has no active post.")
+            messages.error(self.request, _("شما برای ثبت فاکتور باید یک پست سازمانی فعال داشته باشید."))
+            return False
+
+        # 3. دسترسی به سازمان تنخواه (با در نظر گرفتن سلسله مراتب)
+        if user.is_superuser:
+            logger.debug("Permission check PASSED: User is a superuser.")
+            return True
+
+        target_org = tankhah.organization
+        user_orgs_with_parents = {up.post.organization for up in user_post_qs.select_related('post__organization')}
+        for org in list(user_orgs_with_parents):
+            parent = org.parent_organization
+            while parent:
+                user_orgs_with_parents.add(parent)
+                parent = parent.parent_organization
+
+        if target_org not in user_orgs_with_parents:
+            logger.warning(
+                f"Permission check FAILED: User's organizations do not include target org '{target_org.name}'.")
+            messages.error(self.request, _('شما به سازمان این تنخواه دسترسی ندارید.'))
+            return False
+
+        logger.debug("Permission check PASSED.")
+        return True
+
+    def _create_related_objects_and_notify(self, factor, user, tankhah, initial_stage, document_form):
+        """
+        لاگ‌ها، تاریخچه، اسناد و نوتیفیکیشن‌های مربوطه را ایجاد می‌کند.
+        """
+        logger.debug("--- Creating related objects and sending notifications ---")
+
+        # ذخیره اسناد
+        if document_form.is_valid():
+            files = document_form.cleaned_data.get('files', [])
+            for file in files:
+                FactorDocument.objects.create(factor=factor, file=file, uploaded_by=user)
+            logger.info(f"Saved {len(files)} document(s) for factor {factor.pk}.")
+
+        # ثبت لاگ و تاریخچه
+        logger.debug(f"--- Creating Log for factor {factor.pk} in stage '{initial_stage.stage}' ---")
+        user_post = user.userpost_set.filter(is_active=True).first()
+        ApprovalLog.objects.create(
+            factor=factor,
+            user=user,
+            post=user_post.post if user_post else None,
+            action="CREATED",
+            stage_rule=initial_stage,  # <--- **اصلاح اصلی و حیاتی**
+            comment=f"فاکتور {factor.number} توسط {user.username} ایجاد شد."
+        )
+
+        # ApprovalLog.objects.create(
+        #     factor=factor, user=user, post=user_post.post if user_post else None,
+        #     action="CREATED",
+        #     stage_rule=initial_stage,
+        #     comment=f"فاکتور {factor.number} توسط {user.username} ایجاد شد."
+        # )
+        FactorHistory.objects.create(
+            factor=factor, change_type=FactorHistory.ChangeType.CREATION,
+            changed_by=user, description=f"فاکتور ایجاد شد."
+        )
+        logger.info(f"ApprovalLog and FactorHistory created for factor {factor.pk}.")
+
+        # ارسال نوتیفیکیشن به تأییدکنندگان مرحله اول
+        approver_posts_ids = AccessRule.objects.filter(
+            organization=tankhah.organization,
+            entity_type='FACTORITEM',
+            stage_order=initial_stage.stage_order
+        ).values_list('post_id', flat=True).distinct()
+
+        if approver_posts_ids:
+            send_notification(
+                sender=user,
+                posts=Post.objects.filter(id__in=approver_posts_ids),
+                verb=_("برای تأیید ارسال شد"),
+                target=factor,
+                description=_(f"فاکتور جدید #{factor.number} برای تأیید ارسال شد."),
+                entity_type='FACTOR'
+            )
+            logger.info(
+                f"Notification sent to {len(approver_posts_ids)} post(s) for initial approval of factor {factor.pk}.")
+        else:
+            logger.warning(f"No approver posts found for stage order {initial_stage.stage_order} to send notification.")

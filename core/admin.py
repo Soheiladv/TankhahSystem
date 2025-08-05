@@ -359,3 +359,30 @@ class BranchAdmin(admin.ModelAdmin):
 admin.site.register(SystemSettings)
 
 
+
+from core.models import Status, Action, Transition, Permission
+
+@admin.register(Status)
+class StatusAdmin(admin.ModelAdmin):
+    list_display = ('name', 'code', 'is_initial', 'is_final_approve', 'is_final_reject')
+    list_filter = ('is_initial', 'is_final_approve', 'is_final_reject')
+    search_fields = ('name', 'code')
+
+@admin.register(Action)
+class ActionAdmin(admin.ModelAdmin):
+    list_display = ('name', 'code')
+    search_fields = ('name', 'code')
+
+@admin.register(Transition)
+class TransitionAdmin(admin.ModelAdmin):
+    list_display = ('name', 'entity_type', 'from_status', 'action', 'to_status')
+    list_filter = ('entity_type',)
+    autocomplete_fields = ('from_status', 'action', 'to_status') # برای جستجوی آسان
+
+@admin.register(Permission)
+class PermissionAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'entity_type', 'on_status')
+    list_filter = ('organization', 'entity_type', 'on_status')
+    filter_horizontal = ('allowed_posts', 'allowed_actions') # رابط کاربری زیبا برای ManyToMany
+    autocomplete_fields = ('organization', 'on_status')
+

@@ -22,6 +22,10 @@ from core.views import (
 
 )
 from reports.views import FinancialDashboardView
+from .workflow.views_Permission import PermissionDeleteView, PermissionUpdateView, PermissionCreateView, \
+    PermissionListView
+from .workflow.views_Transition import TransitionListView, TransitionCreateView, TransitionUpdateView, \
+    TransitionDeleteView
 
 # app_name = 'core'
 
@@ -158,3 +162,51 @@ urlpatterns += [
          name='workflow_builder'),
 ] #قسمت قانون گذاری جدید
 
+from core.workflow.views_workflow import (
+    WorkflowDashboardView,
+    StatusListView, StatusCreateView, StatusUpdateView , StatusDeleteView,
+)
+from core.workflow.views_Action import (
+    ActionListView, ActionUpdateView, ActionDeleteView, ActionCreteView,
+    # ویوهای Transition و Permission در مراحل بعدی اضافه خواهند شد
+)
+
+# ActionCreateView,
+urlpatterns += [
+    # --- داشبورد اصلی ---
+    path('workflow/', WorkflowDashboardView.as_view(), name='workflow_dashboard'),
+
+    path('workflow/statuses/', StatusListView.as_view(), name='status_list'),
+    path('workflow/statuses/create/', StatusCreateView.as_view(), name='status_create'),
+    path('workflow/statuses/<int:pk>/update/', StatusUpdateView.as_view(), name='status_update'),
+    path('workflow/statuses/<int:pk>/delete/', StatusDeleteView.as_view(), name='status_delete'),
+
+    # --- URL های CRUD برای Action ---
+    path('workflow/actions/', ActionListView.as_view(), name='action_list'),
+    path('workflow/actions/create/', ActionCreteView.as_view(), name='action_create'),
+    path('workflow/actions/<int:pk>/update/', ActionUpdateView.as_view(), name='action_update'),
+    path('workflow/actions/<int:pk>/delete/', ActionDeleteView.as_view(), name='action_delete'),
+
+    # --- URL های CRUD برای Transition ---
+    path('workflow/transition/', TransitionListView.as_view(), name='transition_list'),
+    path('workflow/transition/create/', TransitionCreateView.as_view(), name='transition_create'),
+    path('workflow/transition/<int:pk>/update/', TransitionUpdateView.as_view(), name='transition_update'),
+    path('workflow/transition/<int:pk>/delete/', TransitionDeleteView.as_view(), name='transition_delete'),
+
+    # --- URL های CRUD برای Permission ---
+    path('workflow/permission/', PermissionListView.as_view(), name='permission_list'),
+    path('workflow/permission/create/', PermissionCreateView.as_view(), name='permission_create'),
+    path('workflow/permission/<int:pk>/update/', PermissionUpdateView.as_view(), name='permission_update'),
+    path('workflow/permission/<int:pk>/delete/', PermissionDeleteView.as_view(), name='permission_delete'),
+
+]
+from core.workflow.view_ajax import get_posts_for_organization,GetTransitionDetailsView,GetOrganizationPostsView
+urlpatterns += [
+    # URL برای API واکشی پست‌ها
+    path('api/get-posts/', get_posts_for_organization, name='api_get_posts'),
+
+    path('ajax/get-transition-details/', GetTransitionDetailsView.as_view(), name='get_transition_details'),
+    path('ajax/get-organization-posts/', GetOrganizationPostsView.as_view(), name='get_organization_posts'),
+
+
+]

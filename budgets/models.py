@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 from django.contrib.contenttypes.models import ContentType
 
 from budgets.budget_calculations import check_budget_status, get_project_remaining_budget, calculate_remaining_amount, \
-    calculate_threshold_amount, send_notification
+    calculate_threshold_amount
 
 from django.utils import timezone
 from datetime import date, datetime as dt  # اصلاح وارد کردن datetime

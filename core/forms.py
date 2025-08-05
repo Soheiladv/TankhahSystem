@@ -306,7 +306,7 @@ class OrganizationForm(forms.ModelForm):
 # -- new
 from django import forms
 from .models import Post, Branch, Organization
-from tankhah.models import AccessRule, PostAction
+from core.models import AccessRule, PostAction
 
 class PostForm(forms.ModelForm):
     class Meta:
