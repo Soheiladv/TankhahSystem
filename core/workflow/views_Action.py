@@ -8,12 +8,6 @@ from django.utils.translation import gettext_lazy as _
 from core.models import Action
 from core.workflow.forms_workflow import ActionForm
 from core.workflow.views_workflow import WorkflowAdminRequiredMixin
-
-
-# ... (ویوهای Status) ...
-
-# --- ویوهای CRUD برای Action ---
-
 class ActionListView(WorkflowAdminRequiredMixin, ListView):
     model = Action
     template_name = 'core/workflow/Action/action_list.html'
@@ -42,7 +36,6 @@ class ActionCreteView(WorkflowAdminRequiredMixin, CreateView):
         form.instance.created_by = self.request.user
         messages.success(self.request, _("اقدام جدید با موفقیت ایجاد شد."))
         return super().form_valid(form)
-
 class ActionUpdateView(WorkflowAdminRequiredMixin, DetailView):
     model = Action
     template_name = 'core/workflow/Action/action_form.html'
@@ -67,7 +60,6 @@ class ActionUpdateView(WorkflowAdminRequiredMixin, DetailView):
             return redirect('action_list')
         context = self.get_context_data(); context['form'] = form
         return self.render_to_response(context)
-
 class ActionDeleteView(WorkflowAdminRequiredMixin, DeleteView):
     model = Action
     template_name = 'core/workflow/Action/confirm_retire.html' # استفاده از تمپلیت عمومی

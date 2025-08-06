@@ -1,123 +1,220 @@
+<!-- workflow/templates/workflow/permission_form.html -->
 {% extends 'base.html' %}
 {% load i18n %}
 
+{% block title %}
+    {% if form.instance.pk %}
+        {% trans "ویرایش مجوز گردش کار" %}
+    {% else %}
+        {% trans "ایجاد مجوز گردش کار" %}
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in-element {
+        animation: fadeIn 0.3s ease-in-out forwards;
+    }
+    .select2-container .select2-selection--single,
+    .select2-container .select2-selection--multiple {
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        min-height: 38px;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        background-color: #007bff;
+        color: white;
+        border-radius: 0.25rem;
+    }
+    .select2-container--default .select2-selection--multiple {
+        min-height: 100px;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+    .loader-container {
+        display: none;
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(255, 255, 255, 0.8);
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .spinner-border {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+    .card-header {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    .form-label i {
+        font-size: 0.9rem;
+    }
+    .alert-info {
+        background-color: #e7f1ff;
+        border-color: #b8daff;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">{{ page_title }}</h3>
-    </div>
-    <div class="card-body">
-        <form method="post" id="permission-form">
-            {% csrf_token %}
-            
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label">{{ form.organization.label }}</label>
-                    {{ form.organization }}
-                    {% if form.organization.errors %}
-                        <div class="text-danger">{{ form.organization.errors }}</div>
+<div class="container my-4">
+    <form method="post" id="permissionForm" novalidate>
+        {% csrf_token %}
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0 d-flex align-items-center">
+                    <i class="fas fa-user-shield me-2"></i>
+                    {% if form.instance.pk %}
+                        {% trans "ویرایش مجوز" %}
+                    {% else %}
+                        {% trans "ایجاد مجوز جدید" %}
                     {% endif %}
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                <div class="alert alert-info small border-info fade-in-element">
+                    <p><strong>{% trans "راهنما:" %}</strong></p>
+                    <ol class="mb-0">
+                        <li>{% trans "ابتدا گذار مورد نظر را انتخاب کنید." %}</li>
+                        <li>{% trans "لیست پست‌های مربوط به سازمان آن گذار به‌صورت خودکار نمایش داده می‌شود." %}</li>
+                        <li>{% trans "پست‌های مجاز را انتخاب کنید." %}</li>
+                    </ol>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">{{ form.transition.label }}</label>
+
+                <div class="mb-3">
+                    <label for="id_transition" class="form-label fw-bold">
+                        <i class="fas fa-random me-2 text-muted"></i>{{ form.transition.label }}
+                    </label>
                     {{ form.transition }}
                     {% if form.transition.errors %}
-                        <div class="text-danger">{{ form.transition.errors }}</div>
+                        <div class="text-danger small mt-1">{{ form.transition.errors|striptags }}</div>
+                    {% endif %}
+                    {% if form.instance.pk %}
+                        <div class="small text-muted mt-2">
+                            <strong>{% trans "سازمان:" %}</strong> {{ form.instance.transition.organization.name }}<br>
+                            <strong>{% trans "نوع موجودیت:" %}</strong> {{ form.instance.transition.entity_type.name }}<br>
+                            <strong>{% trans "وضعیت:" %}</strong> {{ form.instance.transition.from_status.name }}<br>
+                            <strong>{% trans "اقدام:" %}</strong> {{ form.instance.transition.action.name }}
+                        </div>
                     {% endif %}
                 </div>
-            </div>
-            
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label">{{ form.on_status.label }}</label>
-                    {{ form.on_status }}
-                    {% if form.on_status.errors %}
-                        <div class="text-danger">{{ form.on_status.errors }}</div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <div class="row mb-3">
-                <div class="col-md-12">
-                    <label class="form-label">{{ form.allowed_posts.label }}</label>
-                    <div class="border p-3" style="max-height: 300px; overflow-y: auto;">
+                <div class="mb-3 position-relative">
+                    <label for="id_allowed_posts" class="form-label fw-bold">
+                        <i class="fas fa-users-cog me-2 text-muted"></i>{{ form.allowed_posts.label }}
+                    </label>
+                    <div class="position-relative">
+                        <div class="loader-container">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">{% trans "در حال بارگذاری..." %}</span>
+                            </div>
+                        </div>
                         {{ form.allowed_posts }}
                     </div>
+                    <small class="form-text text-muted">{{ form.allowed_posts.help_text }}</small>
                     {% if form.allowed_posts.errors %}
-                        <div class="text-danger">{{ form.allowed_posts.errors }}</div>
+                        <div class="text-danger small mt-1">{{ form.allowed_posts.errors|striptags }}</div>
                     {% endif %}
                 </div>
-            </div>
-            
-            <div class="row mb-3">
-                <div class="col-md-12">
-                    <label class="form-label">{{ form.allowed_actions.label }}</label>
-                    <div class="border p-3" style="max-height: 300px; overflow-y: auto;">
-                        {{ form.allowed_actions }}
-                    </div>
-                    {% if form.allowed_actions.errors %}
-                        <div class="text-danger">{{ form.allowed_actions.errors }}</div>
-                    {% endif %}
+                <div class="mb-3 form-check">
+                    {{ form.is_active }}
+                    <label for="{{ form.is_active.id_for_label }}" class="form-check-label">
+                        <i class="fas fa-toggle-on me-2 text-muted"></i>{{ form.is_active.label }}
+                    </label>
                 </div>
             </div>
-            
-            <div class="form-footer">
-                <button type="submit" class="btn btn-primary">{% trans "ذخیره" %}</button>
-                <a href="{% url 'workflow:permission_list' %}" class="btn btn-secondary">{% trans "انصراف" %}</a>
+            <div class="card-footer text-end bg-light p-3">
+                <a href="{% url 'workflow:permission_list' %}" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-times me-2"></i>{% trans "انصراف" %}
+                </a>
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="fas fa-save me-2"></i>
+                    {% if form.instance.pk %}
+                        {% trans "ویرایش" %}
+                    {% else %}
+                        {% trans "ایجاد" %}
+                    {% endif %}
+                </button>
             </div>
-        </form>
-    </div>
+        </div>
+    </form>
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block javascript %}
+{{ block.super }}
+{{ form.media }}
 <script>
-$(document).ready(function() {
-    // آپدیت وضعیت‌ها بر اساس گذار انتخاب شده
-    $('#id_transition').change(function() {
-        const transitionId = $(this).val();
+document.addEventListener("DOMContentLoaded", function () {
+    const transitionSelect = document.getElementById("id_transition");
+    const postsSelect = document.getElementById("id_allowed_posts");
+    const loaderContainer = postsSelect.parentElement.querySelector(".loader-container");
+    const ajaxUrl = "{% url 'workflow:load_posts' %}";
+
+    function showLoader(show) {
+        loaderContainer.style.display = show ? "flex" : "none";
+    }
+
+    transitionSelect.addEventListener("change", function () {
+        const transitionId = this.value;
+        showLoader(true);
+        postsSelect.innerHTML = '<option disabled>{% trans "در حال بارگذاری..." %}</option>';
+
         if (transitionId) {
-            $.ajax({
-                url: '{% url "workflow:get_transition_details" %}',
-                data: {
-                    'transition_id': transitionId
-                },
-                dataType: 'json',
-                success: function(data) {
-                    // آپدیت entity_type (فقط نمایشی)
-                    $('#entity-type-display').text(data.entity_type_name);
-                    
-                    // آپدیت لیست وضعیت‌ها
-                    const $statusField = $('#id_on_status');
-                    $statusField.empty();
-                    $.each(data.statuses, function(key, value) {
-                        $statusField.append($('<option></option>').attr('value', key).text(value));
-                    });
-                }
-            });
+            fetch(`${ajaxUrl}?transition_id=${transitionId}`)
+                .then(response => {
+                    if (!response.ok) throw new Error("Network response was not ok");
+                    return response.json();
+                })
+                .then(data => {
+                    postsSelect.innerHTML = "";
+                    if (data.posts.length === 0) {
+                        postsSelect.innerHTML = '<option disabled>{% trans "پستی برای سازمان این گذار یافت نشد." %}</option>';
+                    } else {
+                        data.posts.forEach(post => {
+                            const option = document.createElement("option");
+                            option.value = post.id;
+                            option.text = `${post.name} (${post.organization__code || "نامشخص"})`;
+                            {% if form.instance.pk %}
+                                if ({{ form.instance.allowed_posts.all|jsonify }}.includes(post.id.toString())) {
+                                    option.selected = true;
+                                }
+                            {% endif %}
+                            postsSelect.appendChild(option);
+                        });
+                    }
+                    postsSelect.classList.add("fade-in-element");
+                    setTimeout(() => postsSelect.classList.remove("fade-in-element"), 300);
+                    $(postsSelect).trigger('change.select2');
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    postsSelect.innerHTML = '<option disabled>{% trans "خطا در بارگذاری پست‌ها." %}</option>';
+                })
+                .finally(() => showLoader(false));
+        } else {
+            postsSelect.innerHTML = '<option disabled>{% trans "لطفاً یک گذار انتخاب کنید." %}</option>';
+            showLoader(false);
         }
     });
-    
-    // آپدیت پست‌ها بر اساس سازمان انتخاب شده
-    $('#id_organization').change(function() {
-        const orgId = $(this).val();
-        if (orgId) {
-            $.ajax({
-                url: '{% url "workflow:get_organization_posts" %}',
-                data: {
-                    'organization_id': orgId
-                },
-                dataType: 'json',
-                success: function(data) {
-                    const $postsField = $('#id_allowed_posts');
-                    $postsField.empty();
-                    $.each(data.posts, function(key, value) {
-                        $postsField.append($('<option></option>').attr('value', key).text(value));
-                    });
-                }
-            });
-        }
-    });
+
+    // لود اولیه در حالت ویرایش یا انتخاب گذار
+    if (transitionSelect.value) {
+        transitionSelect.dispatchEvent(new Event("change"));
+    }
 });
 </script>
 {% endblock %}

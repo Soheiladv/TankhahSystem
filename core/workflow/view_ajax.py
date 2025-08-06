@@ -2,11 +2,10 @@
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views import View
+from rest_framework.views import APIView
 
 from core.PermissionBase import PermissionBaseView
 from core.models import Post, Organization, Transition, Status
-
-
 # @login_required
 # def get_posts_for_organization(request):
 #     """
@@ -19,7 +18,6 @@ from core.models import Post, Organization, Transition, Status
 #     posts = Post.objects.filter(organization_id=organization_id, is_active=True).values('id', 'name', 'level')
 #
 #     return JsonResponse(list(posts), safe=False)
-
 @login_required
 def get_posts_for_organization(request):
     """
@@ -48,8 +46,6 @@ def get_posts_for_organization(request):
         return JsonResponse({'error': 'Organization not found.'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-
-
 class GetTransitionDetailsView(PermissionBaseView, View):
     def get(self, request, *args, **kwargs):
         transition_id = request.GET.get('transition_id')
@@ -67,8 +63,6 @@ class GetTransitionDetailsView(PermissionBaseView, View):
             })
         except Transition.DoesNotExist:
             return JsonResponse({'error': 'Transition not found'}, status=404)
-
-
 class GetOrganizationPostsView(PermissionBaseView, View):
     def get(self, request, *args, **kwargs):
         organization_id = request.GET.get('organization_id')
@@ -84,3 +78,28 @@ class GetOrganizationPostsView(PermissionBaseView, View):
         except Organization.DoesNotExist:
             return JsonResponse({'error': 'Organization not found'}, status=404)
 
+
+class TransitionDetailAPI(APIView):
+    def get(self, request, pk):
+        try:
+            transition = Transition.objects.get(pk=pk)
+            return JsonResponse({
+                'organization_id': transition.organization.id,
+                'organization_name': transition.organization.name
+            })
+        except Transition.DoesNotExist:
+            return JsonResponse({'error': 'Transition not found'}, status=404)
+
+
+class PostListAPI(APIView):
+    def get(self, request):
+        organization_id = request.GET.get('organization_id')
+        if not organization_id:
+            return JsonResponse({'error': 'organization_id parameter is required'}, status=400)
+
+        posts = Post.objects.filter(
+            organization_id=organization_id,
+            is_active=True
+        ).values('id', 'name')
+
+        return JsonResponse(list(posts), safe=False)

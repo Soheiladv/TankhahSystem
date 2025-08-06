@@ -1,0 +1,85 @@
+<!-- core/templates/core/workflow/permission_form.html -->
+{% extends 'base.html' %}
+{% load i18n %}
+{% load rcms_custom_filters %}
+
+{% block title %}{% trans "ایجاد/ویرایش مجوز گردش کار" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <form method="post">
+        {% csrf_token %}
+        <div class="card shadow-sm">
+            <div class="card-header"><h4 class="mb-0">{% trans "فرم مجوز گردش کار" %}</h4></div>
+            <div class="card-body">
+                <div class="alert alert-info small">
+                    {% trans "در این فرم، مشخص می‌کنید که برای یک **سازمان** و **نوع موجودیت** خاص، در یک **وضعیت** مشخص، کدام **پست‌ها** اجازه انجام کدام **اقدامات** را دارند." %}
+                </div>
+                
+                <!-- رندر کردن فیلدهای اصلی فرم -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">{{ form.organization}}</div>
+                    <div class="col-md-6 mb-3">{{ form.entity_type}}</div>
+                </div>
+                <div class="mb-3">{{ form.on_status}}</div>
+                <hr>
+                
+                <!-- بخش پست‌های مجاز که به صورت داینامیک لود می‌شود -->
+                <div class="mb-3">
+                    <label class="form-label">{% trans "پست‌های مجاز" %}</label>
+                    <div id="allowed-posts-container" class="border p-3 rounded" style="max-height: 300px; overflow-y: auto;">
+                        <!-- چک‌باکس‌ها در اینجا توسط AJAX قرار می‌گیرند -->
+                        {% if form.instance.pk %}
+                            <!-- در حالت ویرایش، چک‌باکس‌های اولیه را نمایش بده -->
+                            {{ form.allowed_posts}}
+                        {% else %}
+                            <small class="text-muted">{% trans "لطفاً ابتدا یک سازمان را انتخاب کنید تا لیست پست‌ها نمایش داده شود." %}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- بخش اقدامات مجاز -->
+                <div class="mb-3">{{ form.allowed_actions}}</div>
+                <div class="mb-3">{{ form.is_active}}</div>
+                
+            </div>
+            <div class="card-footer text-end">
+                <a href="..." class="btn btn-secondary">{% trans "انصراف" %}</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i> {% trans "ذخیره مجوز" %}
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block javascript %}
+{{ block.super }}
+{{ form.media.js }}
+<script>
+$(document).ready(function () {
+    var organizationSelect = $('#id_organization');
+    var postsContainer = $('#allowed-posts-container');
+    var ajaxUrl = '{% url "ajax_load_posts" %}';
+
+    organizationSelect.on('change', function () {
+        const organizationId = $(this).val();
+        
+        if (organizationId) {
+            postsContainer.html('<small class="text-muted">{% trans "در حال بارگذاری پست‌ها..." %}</small>');
+            $.ajax({
+                url: ajaxUrl,
+                data: { 'organization_id': organizationId },
+                success: function (data) {
+                    // جایگزین کردن محتوای کانتینر با HTML دریافت شده از سرور
+                    postsContainer.html(data.html);
+                }
+            });
+        } else {
+            postsContainer.html('<small class="text-muted">{% trans "لطفاً ابتدا یک سازمان را انتخاب کنید..." %}</small>');
+        }
+    });
+});
+</script>
+{% endblock %}

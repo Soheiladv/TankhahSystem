@@ -357,32 +357,133 @@ class BranchAdmin(admin.ModelAdmin):
 
 # admin.site.register(WorkflowStage)
 admin.site.register(SystemSettings)
+#------------------------------------------------------------------------
+#
+# فایل: core/admin.py (بخش مدیریت گردش کار)
+#
+from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
+from .models import EntityType, Status, Action, Transition, Permission, Organization  # مدل‌های خود را import کنید
+
+# --- تنظیمات کلی برای نمایش بهتر در ادمین ---
+admin.site.site_header = _("پنل مدیریت سیستم تنخواه")
+admin.site.site_title = _("پنل مدیریت")
+admin.site.index_title = _("خوش آمدید")
 
 
+@admin.register(EntityType)
+class EntityTypeAdmin(admin.ModelAdmin):
+    """
+    ادمین برای مدیریت انواع موجودیت‌هایی که می‌توانند گردش کار داشته باشند.
+    """
+    list_display = ('name', 'code', 'content_type')
+    search_fields = ('name', 'code')
+    list_per_page = 20
 
-from core.models import Status, Action, Transition, Permission
 
 @admin.register(Status)
 class StatusAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'is_initial', 'is_final_approve', 'is_final_reject')
-    list_filter = ('is_initial', 'is_final_approve', 'is_final_reject')
+    """
+    ادمین برای مدیریت وضعیت‌های ممکن در گردش کار.
+    """
+    list_display = ('name', 'code', 'is_initial', 'is_final_approve', 'is_final_reject', 'is_active')
+    list_filter = ('is_initial', 'is_final_approve', 'is_final_reject', 'is_active')
     search_fields = ('name', 'code')
+    list_editable = ('is_active',)  # اجازه ویرایش سریع وضعیت فعال/غیرفعال از لیست
+    list_per_page = 20
+
 
 @admin.register(Action)
 class ActionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code')
+    """
+    ادمین برای مدیریت اقدامات ممکن توسط کاربران.
+    """
+    list_display = ('name', 'code', 'is_active')
     search_fields = ('name', 'code')
+    list_editable = ('is_active',)
+    list_per_page = 20
+
 
 @admin.register(Transition)
 class TransitionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'entity_type', 'from_status', 'action', 'to_status')
-    list_filter = ('entity_type',)
-    autocomplete_fields = ('from_status', 'action', 'to_status') # برای جستجوی آسان
+    """
+    ادمین برای طراحی "نقشه راه" گردش کار.
+    اتصال وضعیت‌ها به یکدیگر از طریق اقدامات.
+    """
+    list_display = ('name', 'organization', 'entity_type', 'from_status', 'action', 'to_status', 'is_active')
+    list_filter = ('organization', 'entity_type', 'from_status', 'to_status', 'is_active')
+    search_fields = ('name', 'from_status__name', 'to_status__name', 'action__name')
+    list_editable = ('is_active',)
+
+    # استفاده از autocomplete_fields برای جستجوی آسان در ForeignKey ها
+    # این ویژگی تجربه کاربری را در هنگام کار با تعداد زیادی وضعیت یا اقدام، فوق‌العاده بهبود می‌بخشد.
+    autocomplete_fields = ['organization', 'entity_type', 'from_status', 'action', 'to_status']
+
+    # برای اینکه autocomplete_fields کار کند، باید search_fields در مدل ادمین مربوطه تعریف شده باشد.
+    # ما این کار را در EntityTypeAdmin, StatusAdmin و ActionAdmin انجام داده‌ایم.
+
+    list_per_page = 20
+
+    # فیلدها را برای خوانایی بهتر در فرم ویرایش/ایجاد گروه‌بندی می‌کنیم
+    fieldsets = (
+        (_("اطلاعات اصلی گذار"), {
+            'fields': ('name', 'organization', 'entity_type', 'is_active')
+        }),
+        (_("مسیر گردش کار"), {
+            'description': _("این بخش مسیر حرکت از یک وضعیت به وضعیت دیگر را مشخص می‌کند."),
+            'fields': ('from_status', 'action', 'to_status')
+        }),
+    )
+
 
 @admin.register(Permission)
 class PermissionAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'entity_type', 'on_status')
-    list_filter = ('organization', 'entity_type', 'on_status')
-    filter_horizontal = ('allowed_posts', 'allowed_actions') # رابط کاربری زیبا برای ManyToMany
-    autocomplete_fields = ('organization', 'on_status')
+    """
+    ادمین برای تخصیص مجوز اجرای گذارها (Transitions) به پست‌های سازمانی.
+    """
+    list_display = ('__str__', 'organization_name', 'entity_type_name', 'on_status_name', 'is_active')
+    list_filter = ('transition__organization', 'transition__entity_type', 'is_active')
 
+    # filter_horizontal یک رابط کاربری بسیار بهتر (با باکس جستجو) برای فیلدهای ManyToMany فراهم می‌کند.
+    filter_horizontal = ('allowed_posts',)
+
+    # استفاده از autocomplete_fields برای انتخاب آسان "گذار"
+    autocomplete_fields = ['transition']
+
+    list_per_page = 20
+
+    # نمایش فیلدها به صورت فقط خواندنی که از گذار به ارث می‌رسند
+    readonly_fields = ('organization_name', 'entity_type_name', 'on_status_name', 'action_name')
+
+    fieldsets = (
+        (None, {
+            'fields': ('transition',)
+        }),
+        (_("اطلاعات ارث‌بری شده (فقط خواندنی)"), {
+            'fields': ('organization_name', 'entity_type_name', 'on_status_name', 'action_name'),
+        }),
+        (_("تخصیص پست‌ها"), {
+            'description': _("پست‌هایی را که مجاز به اجرای این گذار هستند، انتخاب کنید."),
+            'fields': ('allowed_posts',)
+        }),
+        (_("وضعیت"), {
+            'fields': ('is_active',)
+        }),
+    )
+
+    # --- متدهای کمکی برای نمایش بهتر در لیست ---
+    @admin.display(description=_('سازمان'))
+    def organization_name(self, obj):
+        return obj.transition.organization.name
+
+    @admin.display(description=_('نوع موجودیت'))
+    def entity_type_name(self, obj):
+        return obj.transition.entity_type.name
+
+    @admin.display(description=_('در وضعیت'))
+    def on_status_name(self, obj):
+        return obj.transition.from_status.name
+
+    @admin.display(description=_('با اقدام'))
+    def action_name(self, obj):
+        return obj.transition.action.name

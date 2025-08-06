@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n static %}
+{% load jformat rcms_custom_filters i18n static %}
 
 {% block content %}
     <div class="card shadow-lg border-0 rounded-lg mt-5">
@@ -13,7 +13,7 @@
                 <a href="{% url 'workflow_dashboard' %}" class="btn btn-light btn-sm">
                     <i class="fas fa-list-1-2 me-1"></i> {% trans "داشبورد" %}
                 </a>
-            
+
             </div>
         </div>
 
@@ -43,8 +43,10 @@
                 <table class="table table-hover table-striped">
                     <thead class="table-light">
                     <tr>
+                        <th>{% trans "ردیف" %}</th>
                         <th>{% trans "نام" %}</th>
                         <th>{% trans "کد" %}</th>
+                        <th>{% trans "توضیحات" %}</th>
                         <th>{% trans "تاریخ ایجاد" %}</th>
                         <th>{% trans "عملیات" %}</th>
                     </tr>
@@ -52,9 +54,11 @@
                     <tbody>
                     {% for action in actions %}
                         <tr>
+                            <td>{{ forloop.counter|to_persian_number}}</td>
                             <td>{{ action.name }}</td>
                             <td><span class="badge bg-secondary">{{ action.code }}</span></td>
-                            <td>{{ action.created_at|date:"Y/m/d H:i" }}</td>
+                            <td>{{ action.description }}</td>
+                            <td>🗓️{{ action.created_at|jformat:"%Y/%m/%d"|to_persian_number}}⌚ {{ action.created_at | date:"H:i" |to_persian_number}}</td>
                             <td>
                                 <div class="btn-group btn-group-sm" role="group">
                                     <a href="{% url 'action_update' action.pk %}" class="btn btn-outline-primary"

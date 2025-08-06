@@ -121,101 +121,6 @@ class Branch(models.Model):
             ('Branch_view', 'نمایش شاخه سازمانی'),
             ('Branch_delete', 'حــذف شاخه سازمانی'),
         ]
-
-
-class Project(models.Model):
-    name = models.CharField(max_length=100, verbose_name=_("نام پروژه"))
-    code = models.CharField(max_length=80, unique=True, verbose_name=_("کد پروژه"))
-    # organizations = models.ManyToManyField(Organization, limit_choices_to={'org_type': 'COMPLEX'}, verbose_name=_("مجتمع‌های مرتبط"))
-    organizations = models.ManyToManyField(Organization, limit_choices_to={'org_type__is_budget_allocatable': True},
-                                           # سازمان‌هایی که می‌توانند بودجه دریافت کنند
-                                           verbose_name=_("سازمان‌های مرتبط"))
-    # allocations = models.ManyToManyField('budgets.BudgetAllocation', blank=True, verbose_name=_("تخصیص‌های بودجه مرتبط"))
-    start_date = models.DateField(verbose_name=_("تاریخ شروع"))
-    end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))
-    description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
-    is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
-    PRIORITY_CHOICES = (('LOW', _('کم')), ('MEDIUM', _('متوسط')), ('HIGH', _('زیاد')),)
-    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='MEDIUM', verbose_name=_("اولویت"))
-
-    # total_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("بودجه کل تخصیص‌یافته"))  # فیلد جدید
-
-    def get_total_budget(self):
-        """محاسبه کل بودجه تخصیص‌یافته به پروژه"""
-        return get_project_total_budget(self)
-
-    def get_remaining_budget(self):
-        return get_project_remaining_budget(self)
-
-    def __str__(self):
-        status = "فعال" if self.is_active else "غیرفعال"
-        return f"{self.code} - {self.name} ({status})"
-
-    class Meta:
-        verbose_name = _("پروژه")
-        verbose_name_plural = _("پروژه")
-        default_permissions = ()
-        permissions = [
-            ('Project_add', 'افزودن  مجموعه پروژه'),
-            ('Project_update', 'ویرایش مجموعه پروژه'),
-            ('Project_view', 'نمایش مجموعه پروژه'),
-            ('Project_delete', 'حــذف مجموعه پروژه'),
-            # ('Project_Budget_allocation_Head_Office', 'تخصیص بودجه مجموعه پروژه(دفتر مرکزی)'),
-            # ('Project_Budget_allocation_Branch', 'تخصیص بودجه مجموعه پروژه(شعبه)'),
-        ]
-class SubProject(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='subprojects',
-                                verbose_name=_("پروژه اصلی"))
-    name = models.CharField(max_length=200, verbose_name=_("نام ساب‌پروژه"))
-    description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
-    allocated_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0,
-                                           verbose_name=_("بودجه تخصیص‌یافته"))
-    # allocations = models.ManyToManyField('budgets.ProjectBudgetAllocation',
-    #                                     related_name='budget_allocations_set' ,blank=True, verbose_name=_("تخصیص‌های بودجه مرتبط"))
-    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
-
-    def get_remaining_budget(self):
-        return get_subproject_remaining_budget(self)
-
-    # def get_remaining_budget(self):
-    #     total_allocated = self.budget_allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
-    #     consumed = BudgetTransaction.objects.filter(
-    #         allocation__in=self.budget_allocations.all(),
-    #         transaction_type='CONSUMPTION'
-    #     ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
-    #     returned = BudgetTransaction.objects.filter(
-    #         allocation__in=self.budget_allocations.all(),
-    #         transaction_type='RETURN'
-    #     ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
-    #     return total_allocated - consumed + returned
-    #
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        # به‌روزرسانی بودجه تخصیص‌یافته
-        total_allocated = self.budget_allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
-        self.allocated_budget = total_allocated
-        super().save(update_fields=['allocated_budget'])
-        if not self.pk:
-            total_allocated = sum([alloc.amount for alloc in self.allocations.all()])
-            if total_allocated > self.project.get_remaining_budget():
-                raise ValueError("بودجه تخصیص‌یافته بیشتر از بودجه باقی‌مانده پروژه است.")
-
-    def __str__(self):
-        return f"{self.name} ({self.project.name})"
-
-    class Meta:
-        verbose_name = _("ساب‌پروژه")
-        verbose_name_plural = _("ساب‌پروژه‌ها")
-        default_permissions = ()
-        permissions = [
-            ('SubProject_add', 'افزودن زیر مجموعه پروژه'),
-            ('SubProject_update', 'ویرایش زیر مجموعه پروژه'),
-            ('SubProject_view', 'نمایش زیر مجموعه پروژه'),
-            ('SubProject_delete', 'حــذف زیر مجموعه پروژه'),
-            ('SubProject_Head_Office', 'تخصیص زیر مجموعه پروژه(دفتر مرکزی)🏠'),
-            ('SubProject_Branch', 'تخصیص  زیر مجموعه پروژه(شعبه)🏠'),
-        ]
-
 class Post(models.Model):
     """مدل پست سازمانی برای تعریف سلسله مراتب"""
     # BRANCH_CHOICES = (
@@ -299,6 +204,7 @@ class Post(models.Model):
             ('Post_view', 'نمایش  پست سازمانی برای تعریف سلسله مراتب'),
             ('Post_delete', 'حــذف  پست سازمانی برای تعریف سلسله مراتب'),
         ]
+
 class UserPost(models.Model):
     """مدل اتصال کاربر به پست"""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name=_("کاربر"))
@@ -404,6 +310,100 @@ class PostHistory(models.Model):
         indexes = [
             models.Index(fields=['post', 'changed_at']),
         ]
+#-----
+class Project(models.Model):
+    name = models.CharField(max_length=100, verbose_name=_("نام پروژه"))
+    code = models.CharField(max_length=80, unique=True, verbose_name=_("کد پروژه"))
+    # organizations = models.ManyToManyField(Organization, limit_choices_to={'org_type': 'COMPLEX'}, verbose_name=_("مجتمع‌های مرتبط"))
+    organizations = models.ManyToManyField(Organization, limit_choices_to={'org_type__is_budget_allocatable': True},
+                                           # سازمان‌هایی که می‌توانند بودجه دریافت کنند
+                                           verbose_name=_("سازمان‌های مرتبط"))
+    # allocations = models.ManyToManyField('budgets.BudgetAllocation', blank=True, verbose_name=_("تخصیص‌های بودجه مرتبط"))
+    start_date = models.DateField(verbose_name=_("تاریخ شروع"))
+    end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))
+    description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
+    is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
+    PRIORITY_CHOICES = (('LOW', _('کم')), ('MEDIUM', _('متوسط')), ('HIGH', _('زیاد')),)
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='MEDIUM', verbose_name=_("اولویت"))
+
+    # total_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("بودجه کل تخصیص‌یافته"))  # فیلد جدید
+
+    def get_total_budget(self):
+        """محاسبه کل بودجه تخصیص‌یافته به پروژه"""
+        return get_project_total_budget(self)
+
+    def get_remaining_budget(self):
+        return get_project_remaining_budget(self)
+
+    def __str__(self):
+        status = "فعال" if self.is_active else "غیرفعال"
+        return f"{self.code} - {self.name} ({status})"
+
+    class Meta:
+        verbose_name = _("پروژه")
+        verbose_name_plural = _("پروژه")
+        default_permissions = ()
+        permissions = [
+            ('Project_add', 'افزودن  مجموعه پروژه'),
+            ('Project_update', 'ویرایش مجموعه پروژه'),
+            ('Project_view', 'نمایش مجموعه پروژه'),
+            ('Project_delete', 'حــذف مجموعه پروژه'),
+            # ('Project_Budget_allocation_Head_Office', 'تخصیص بودجه مجموعه پروژه(دفتر مرکزی)'),
+            # ('Project_Budget_allocation_Branch', 'تخصیص بودجه مجموعه پروژه(شعبه)'),
+        ]
+class SubProject(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='subprojects',
+                                verbose_name=_("پروژه اصلی"))
+    name = models.CharField(max_length=200, verbose_name=_("نام ساب‌پروژه"))
+    description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
+    allocated_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0,
+                                           verbose_name=_("بودجه تخصیص‌یافته"))
+    # allocations = models.ManyToManyField('budgets.ProjectBudgetAllocation',
+    #                                     related_name='budget_allocations_set' ,blank=True, verbose_name=_("تخصیص‌های بودجه مرتبط"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+
+    def get_remaining_budget(self):
+        return get_subproject_remaining_budget(self)
+
+    # def get_remaining_budget(self):
+    #     total_allocated = self.budget_allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+    #     consumed = BudgetTransaction.objects.filter(
+    #         allocation__in=self.budget_allocations.all(),
+    #         transaction_type='CONSUMPTION'
+    #     ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    #     returned = BudgetTransaction.objects.filter(
+    #         allocation__in=self.budget_allocations.all(),
+    #         transaction_type='RETURN'
+    #     ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    #     return total_allocated - consumed + returned
+    #
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # به‌روزرسانی بودجه تخصیص‌یافته
+        total_allocated = self.budget_allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+        self.allocated_budget = total_allocated
+        super().save(update_fields=['allocated_budget'])
+        if not self.pk:
+            total_allocated = sum([alloc.amount for alloc in self.allocations.all()])
+            if total_allocated > self.project.get_remaining_budget():
+                raise ValueError("بودجه تخصیص‌یافته بیشتر از بودجه باقی‌مانده پروژه است.")
+
+    def __str__(self):
+        return f"{self.name} ({self.project.name})"
+
+    class Meta:
+        verbose_name = _("ساب‌پروژه")
+        verbose_name_plural = _("ساب‌پروژه‌ها")
+        default_permissions = ()
+        permissions = [
+            ('SubProject_add', 'افزودن زیر مجموعه پروژه'),
+            ('SubProject_update', 'ویرایش زیر مجموعه پروژه'),
+            ('SubProject_view', 'نمایش زیر مجموعه پروژه'),
+            ('SubProject_delete', 'حــذف زیر مجموعه پروژه'),
+            ('SubProject_Head_Office', 'تخصیص زیر مجموعه پروژه(دفتر مرکزی)🏠'),
+            ('SubProject_Branch', 'تخصیص  زیر مجموعه پروژه(شعبه)🏠'),
+        ]
+
 # --
 class AccessRule(models.Model):
     """این مدل مشخص می‌کنه که پست‌های یک سازمان، با branch و min_level خاص، چه اقداماتی می‌تونن توی چه مراحلی برای چه موجودیت‌هایی انجام بدن."""
@@ -530,36 +530,32 @@ class PostAction(models.Model):
             ('PostAction_delete', 'حذف اقدامات مجاز پست'),
         ]
 
-# ---
-# class StageTransitionPermission(models.Model):
-#     name = models.TextField(blank=True,null=True, verbose_name=_('شرح'))
-#     post = models.ForeignKey('core.Post', on_delete=models.CASCADE, verbose_name=_('پست'))
-#     from_stage = models.ForeignKey('core.WorkflowStage', related_name='from_transitions', on_delete=models.CASCADE, verbose_name=_('مرحله مبدا'))
-#     to_stage = models.ForeignKey('core.WorkflowStage', related_name='to_transitions', on_delete=models.CASCADE, verbose_name=_('مرحله مقصد'))
-#     is_active = models.BooleanField(default=True, verbose_name=_('فعال'))
-#
-#     class Meta:
-#         verbose_name = _('اجازه انتقال مرحله')
-#         verbose_name_plural = _('اجازه‌های انتقال مرحله')
-#         unique_together = [['post', 'from_stage', 'to_stage']]
-#         default_permissions = ()
-#         permissions = [
-#             ('StageTransitionPermission_add','افزودن اجازه انتقال مرحله'),
-#             ('StageTransitionPermission_update','ویرایش اجازه انتقال مرحله'),
-#             ('StageTransitionPermission_view','نمایش اجازه انتقال مرحله'),
-#             ('StageTransitionPermission_delete','حذف اجازه انتقال مرحله'),
-#         ]
-#
-#     def __str__(self):
-#         return f"{self.post} can transition from {self.from_stage} to {self.to_stage}"
-# ---
-
-
 ###################### NEW Config Status For ACTIONS TYPE ENTITY TYPES #######################################
-
 # یک کلاس پایه برای فیلدهای مشترک (ایجادکننده، تاریخ، وضعیت فعالیت)
 # مدل‌ها برای پشتیبانی از تاریخچه و بازنشستگی
-
+#
+class EntityType(models.Model):
+    """
+    تعریف انواع موجودیت‌های اصلی در سیستم که می‌توانند گردش کار داشته باشند.
+    مثال: فاکتور، تنخواه، دستور پرداخت.
+    """
+    name = models.CharField(max_length=100, verbose_name=_("نام موجودیت"))
+    code = models.CharField(max_length=50, unique=True, help_text=_("کد منحصر به فرد انگلیسی، مانند FACTORITEM"))
+    # این به ما اجازه می‌دهد تا این مدل را به مدل‌های واقعی جنگو متصل کنیم
+    content_type = models.OneToOneField('contenttypes.ContentType',on_delete=models.CASCADE,null=True, blank=True, # در ابتدا می‌تواند خالی باشد
+        verbose_name=_("نوع محتوای مرتبط")    )
+    def __str__(self):
+        return self.name
+    class Meta:
+        verbose_name = _("نوع موجودیت گردش کار")
+        verbose_name_plural = _("۰. انواع موجودیت‌های گردش کار")
+        default_permissions = ()
+        permissions = [
+            ('EntityType_add','افزودن نوع موجودیت گردش کار '),
+            ('EntityType_update','ویرایش نوع موجودیت گردش کار '),
+            ('EntityType_view','نمایش نوع موجودیت گردش کار '),
+            ('EntityType_delete','حــذف نوع موجودیت گردش کار '),
+        ]
 class Status(models.Model):
     """
     تعریف وضعیت‌های ممکن برای موجودیت‌های مختلف در سیستم.
@@ -567,15 +563,16 @@ class Status(models.Model):
     """
     name = models.CharField(max_length=100, verbose_name=_("نام وضعیت"))
     code = models.CharField(max_length=50, unique=True, help_text=_("کد منحصر به فرد انگلیسی، مانند DRAFT"))
-    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
     is_initial = models.BooleanField(default=False, verbose_name=_("آیا این وضعیت اولیه (شروع) است؟"))
     is_final_approve = models.BooleanField(default=False, verbose_name=_("وضعیت تأیید نهایی؟"))
     is_final_reject = models.BooleanField(default=False, verbose_name=_("وضعیت رد نهایی؟"))
+    is_active = models.BooleanField(default=True, db_index=True, verbose_name=_("فعال"))
 
     # فیلدهای مشترک به صورت مستقیم اضافه شده‌اند
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, verbose_name=_("ایجادکننده"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
-    is_active = models.BooleanField(default=True, db_index=True, verbose_name=_("فعال"))
+    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+
     def __str__(self):
             return self.name
 
@@ -589,7 +586,6 @@ class Status(models.Model):
             ('Status_view ','نمایش وضعیت'),
             ('Status_delete ','حــذف وضعیت'),
         ]
-
 class Action(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("نام اقدام"))
     code = models.CharField(max_length=50, unique=True, help_text=_("کد منحصر به فرد انگلیسی، مانند SUBMIT"))
@@ -612,15 +608,16 @@ class Action(models.Model):
             ('Action_view','نمایش اقدام گردش کار '),
             ('Action_delete','حــذف اقدام گردش کار '),
         ]
-
 class Transition(models.Model):
     name = models.CharField(max_length=255, verbose_name=_("نام/شرح گذار"))
-    entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, verbose_name=_("برای نوع موجودیت"))
+    entity_type = models.ForeignKey(EntityType, on_delete=models.PROTECT, verbose_name=_("برای نوع موجودیت"))
     from_status = models.ForeignKey(Status, on_delete=models.PROTECT, related_name='transitions_from',
                                     verbose_name=_("از وضعیت"))
     action = models.ForeignKey(Action, on_delete=models.PROTECT, verbose_name=_("با اقدام"))
     to_status = models.ForeignKey(Status, on_delete=models.PROTECT, related_name='transitions_to',
                                   verbose_name=_("به وضعیت"))
+    # فیلد سازمان به اینجا منتقل می‌شود تا هر گذار مختص یک سازمان باشد
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, verbose_name=_("سازمان"))
 
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, verbose_name=_("ایجادکننده"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
@@ -640,19 +637,48 @@ class Transition(models.Model):
             ('Transition_view','نمایش گذار گردش کار '),
             ('Transition_delete','حــذف گذار گردش کار '),
         ]
-
 class Permission(models.Model):
-    organization = models.ForeignKey(Organization, on_delete=models.PROTECT, verbose_name=_("سازمان"))
-    transition = models.ForeignKey(Transition, on_delete=models.PROTECT, verbose_name=_("برای گذار"))
+    # --- فیلدهای اصلی و منحصر به فرد مجوز ---
+
+    # 1. این مجوز به کدام گذار (فرآیند) اعمال می‌شود؟
+    # با اتصال به گذار، ما به صورت خودکار به سازمان، نوع موجودیت،
+    # وضعیت اولیه و اقدام آن نیز دسترسی خواهیم داشت.
+    transition = models.ForeignKey(Transition,on_delete=models.PROTECT,verbose_name=_("برای گذار (فرآیند)"))
+    # 2. چه پست‌هایی اجازه اجرای این گذار را دارند؟
     allowed_posts = models.ManyToManyField(Post, verbose_name=_("پست‌های مجاز"))
 
-    entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, verbose_name=_("برای نوع موجودیت"))
-    on_status = models.ForeignKey(Status, on_delete=models.CASCADE, verbose_name=_("در وضعیت"))
-    allowed_actions = models.ManyToManyField(Action, verbose_name=_("اقدامات مجاز"))
-
+    # --- فیلدهای مدیریتی ---
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, verbose_name=_("ایجادکننده"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
     is_active = models.BooleanField(default=True, db_index=True, verbose_name=_("فعال"))
+
+    # --- فیلدهای تکراری که حذف شده‌اند ---
+    # organization -> از self.transition.organization قابل دسترسی است
+    # entity_type -> از self.transition.entity_type قابل دسترسی است
+    # on_status -> از self.transition.from_status قابل دسترسی است
+    # allowed_actions -> در خود self.transition.action مشخص است
+
+    # --- پراپرتی‌های کمکی برای دسترسی آسان و سازگاری با کدهای قدیمی ---
+    # این پراپرتی‌ها به شما اجازه می‌دهند که در کد خود همچنان از perm.organization استفاده کنید،
+    # بدون اینکه نیاز به ذخیره تکراری آن در دیتابیس باشد.
+    @property
+    def organization(self):
+        return self.transition.organization
+
+    @property
+    def entity_type(self):
+        return self.transition.entity_type
+
+    @property
+    def on_status(self):
+        return self.transition.from_status
+
+    @property
+    def action(self):
+        return self.transition.action
+
+    def __str__(self):
+        return f"مجوز برای گذار: '{self.transition.name}'"
 
     def __str__(self):
         return f"مجوز برای {self.entity_type} در وضعیت {self.on_status.name} برای سازمان {self.organization.name}"
@@ -660,7 +686,8 @@ class Permission(models.Model):
     class Meta:
         verbose_name = _("مجوز گردش کار")
         verbose_name_plural = _("۴. مجوزهای گردش کار")
-        unique_together = ('organization', 'entity_type', 'on_status')
+        # هر گذار فقط یک رکورد مجوز می‌تواند داشته باشد تا از تعریف‌های متناقض جلوگیری شود.
+        unique_together = ('transition',)
         default_permissions = ()
         permissions = [
             ('Permission_add',' افزودن مجوز گردش کار '),
@@ -668,9 +695,7 @@ class Permission(models.Model):
             ('Permission_view','  نمایش مجوز گردش کار '),
             ('Permission_delete','  حــذف مجوز گردش کار '),
         ]
-
 ##############################################################################################################
-
 class SystemSettings(models.Model):
     budget_locked_percentage_default = models.DecimalField(
         max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده پیش‌فرض بودجه"))

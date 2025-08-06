@@ -52,6 +52,7 @@ class StatusListView(WorkflowAdminRequiredMixin, ListView):
             )
         return queryset
 
+
 class StatusCreateView(WorkflowAdminRequiredMixin, CreateView):
     model = Status
     form_class = StatusForm

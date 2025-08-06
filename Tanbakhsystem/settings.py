@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'storages',
     'usb_key_validator.apps.UsbKeyValidatorConfig',
     'notificationApp.apps.NotificationappConfig'  # اگر می‌خواهید بک‌آپ‌ها را در فضای ابری ذخیره کنید (مثلاً S3)
+    # 'django_select2',
+
 ]
 
 MIDDLEWARE = [
