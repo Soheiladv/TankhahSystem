@@ -363,7 +363,7 @@ admin.site.register(SystemSettings)
 #
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
-from .models import EntityType, Status, Action, Transition, Permission, Organization  # مدل‌های خود را import کنید
+from core.models import EntityType, Status, Action, Transition
 
 # --- تنظیمات کلی برای نمایش بهتر در ادمین ---
 admin.site.site_header = _("پنل مدیریت سیستم تنخواه")
@@ -435,55 +435,3 @@ class TransitionAdmin(admin.ModelAdmin):
         }),
     )
 
-
-@admin.register(Permission)
-class PermissionAdmin(admin.ModelAdmin):
-    """
-    ادمین برای تخصیص مجوز اجرای گذارها (Transitions) به پست‌های سازمانی.
-    """
-    list_display = ('__str__', 'organization_name', 'entity_type_name', 'on_status_name', 'is_active')
-    list_filter = ('transition__organization', 'transition__entity_type', 'is_active')
-
-    # filter_horizontal یک رابط کاربری بسیار بهتر (با باکس جستجو) برای فیلدهای ManyToMany فراهم می‌کند.
-    filter_horizontal = ('allowed_posts',)
-
-    # استفاده از autocomplete_fields برای انتخاب آسان "گذار"
-    autocomplete_fields = ['transition']
-
-    list_per_page = 20
-
-    # نمایش فیلدها به صورت فقط خواندنی که از گذار به ارث می‌رسند
-    readonly_fields = ('organization_name', 'entity_type_name', 'on_status_name', 'action_name')
-
-    fieldsets = (
-        (None, {
-            'fields': ('transition',)
-        }),
-        (_("اطلاعات ارث‌بری شده (فقط خواندنی)"), {
-            'fields': ('organization_name', 'entity_type_name', 'on_status_name', 'action_name'),
-        }),
-        (_("تخصیص پست‌ها"), {
-            'description': _("پست‌هایی را که مجاز به اجرای این گذار هستند، انتخاب کنید."),
-            'fields': ('allowed_posts',)
-        }),
-        (_("وضعیت"), {
-            'fields': ('is_active',)
-        }),
-    )
-
-    # --- متدهای کمکی برای نمایش بهتر در لیست ---
-    @admin.display(description=_('سازمان'))
-    def organization_name(self, obj):
-        return obj.transition.organization.name
-
-    @admin.display(description=_('نوع موجودیت'))
-    def entity_type_name(self, obj):
-        return obj.transition.entity_type.name
-
-    @admin.display(description=_('در وضعیت'))
-    def on_status_name(self, obj):
-        return obj.transition.from_status.name
-
-    @admin.display(description=_('با اقدام'))
-    def action_name(self, obj):
-        return obj.transition.action.name

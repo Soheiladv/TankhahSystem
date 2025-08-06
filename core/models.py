@@ -618,7 +618,11 @@ class Transition(models.Model):
                                   verbose_name=_("به وضعیت"))
     # فیلد سازمان به اینجا منتقل می‌شود تا هر گذار مختص یک سازمان باشد
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, verbose_name=_("سازمان"))
-
+    allowed_posts = models.ManyToManyField(
+        Post,
+        verbose_name=_("پست‌های مجاز"),
+        help_text=_("پست‌هایی که اجازه دارند این اقدام را در این وضعیت انجام دهند.")
+    )
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, verbose_name=_("ایجادکننده"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
     is_active = models.BooleanField(default=True, db_index=True, verbose_name=_("فعال"))
@@ -629,7 +633,7 @@ class Transition(models.Model):
     class Meta:
         verbose_name = _("گذار گردش کار")
         verbose_name_plural = _("۳. گذارهای گردش کار")
-        unique_together = ('entity_type', 'from_status', 'action')
+        unique_together = ('organization', 'entity_type', 'from_status', 'action')
         default_permissions = ()
         permissions = [
             ('Transition_add','افزودن گذار گردش کار '),
@@ -637,64 +641,7 @@ class Transition(models.Model):
             ('Transition_view','نمایش گذار گردش کار '),
             ('Transition_delete','حــذف گذار گردش کار '),
         ]
-class Permission(models.Model):
-    # --- فیلدهای اصلی و منحصر به فرد مجوز ---
 
-    # 1. این مجوز به کدام گذار (فرآیند) اعمال می‌شود؟
-    # با اتصال به گذار، ما به صورت خودکار به سازمان، نوع موجودیت،
-    # وضعیت اولیه و اقدام آن نیز دسترسی خواهیم داشت.
-    transition = models.ForeignKey(Transition,on_delete=models.PROTECT,verbose_name=_("برای گذار (فرآیند)"))
-    # 2. چه پست‌هایی اجازه اجرای این گذار را دارند؟
-    allowed_posts = models.ManyToManyField(Post, verbose_name=_("پست‌های مجاز"))
-
-    # --- فیلدهای مدیریتی ---
-    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, verbose_name=_("ایجادکننده"))
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
-    is_active = models.BooleanField(default=True, db_index=True, verbose_name=_("فعال"))
-
-    # --- فیلدهای تکراری که حذف شده‌اند ---
-    # organization -> از self.transition.organization قابل دسترسی است
-    # entity_type -> از self.transition.entity_type قابل دسترسی است
-    # on_status -> از self.transition.from_status قابل دسترسی است
-    # allowed_actions -> در خود self.transition.action مشخص است
-
-    # --- پراپرتی‌های کمکی برای دسترسی آسان و سازگاری با کدهای قدیمی ---
-    # این پراپرتی‌ها به شما اجازه می‌دهند که در کد خود همچنان از perm.organization استفاده کنید،
-    # بدون اینکه نیاز به ذخیره تکراری آن در دیتابیس باشد.
-    @property
-    def organization(self):
-        return self.transition.organization
-
-    @property
-    def entity_type(self):
-        return self.transition.entity_type
-
-    @property
-    def on_status(self):
-        return self.transition.from_status
-
-    @property
-    def action(self):
-        return self.transition.action
-
-    def __str__(self):
-        return f"مجوز برای گذار: '{self.transition.name}'"
-
-    def __str__(self):
-        return f"مجوز برای {self.entity_type} در وضعیت {self.on_status.name} برای سازمان {self.organization.name}"
-
-    class Meta:
-        verbose_name = _("مجوز گردش کار")
-        verbose_name_plural = _("۴. مجوزهای گردش کار")
-        # هر گذار فقط یک رکورد مجوز می‌تواند داشته باشد تا از تعریف‌های متناقض جلوگیری شود.
-        unique_together = ('transition',)
-        default_permissions = ()
-        permissions = [
-            ('Permission_add',' افزودن مجوز گردش کار '),
-            ('Permission_update','  ویرایش مجوز گردش کار '),
-            ('Permission_view','  نمایش مجوز گردش کار '),
-            ('Permission_delete','  حــذف مجوز گردش کار '),
-        ]
 ##############################################################################################################
 class SystemSettings(models.Model):
     budget_locked_percentage_default = models.DecimalField(

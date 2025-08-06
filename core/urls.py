@@ -22,9 +22,6 @@ from core.views import (
 
 )
 from reports.views import FinancialDashboardView
-from .workflow.views_Permission import PermissionDeleteView, PermissionUpdateView, permission_update, \
-    PermissionListView, permission_create, load_posts, PermissionCreateView, permission_create_update_view, \
-    load_posts_by_transition
 from .workflow.views_Transition import TransitionListView, TransitionCreateView, TransitionUpdateView, \
     TransitionDeleteView
 
@@ -193,40 +190,6 @@ urlpatterns += [
     path('workflow/transition/create/', TransitionCreateView.as_view(), name='transition_create'),
     path('workflow/transition/<int:pk>/update/', TransitionUpdateView.as_view(), name='transition_update'),
     path('workflow/transition/<int:pk>/delete/', TransitionDeleteView.as_view(), name='transition_delete'),
-
-    # --- URL های CRUD برای Permission ---
-    path('workflow/permission/', PermissionListView.as_view(), name='permission_list'),
-    path('workflow/permission/create/', PermissionCreateView.as_view(), name='permission_create'),
-    path('workflow/permission/<int:pk>/update/', PermissionUpdateView.as_view(), name='permission_update'),
-    path('workflow/permission/<int:pk>/delete/', PermissionDeleteView.as_view(), name='permission_delete'),
-
-]
-from core.workflow.view_ajax import get_posts_for_organization,PostListAPI,TransitionDetailAPI,GetTransitionDetailsView,GetOrganizationPostsView
-urlpatterns += [
-    # URL برای API واکشی پست‌ها
-    path('api/get-posts/', get_posts_for_organization, name='api_get_posts'),
-
-    path('ajax/get-transition-details/', GetTransitionDetailsView.as_view(), name='get_transition_details'),
-    path('ajax/get-organization-posts/', GetOrganizationPostsView.as_view(), name='get_organization_posts'),
-
-    path('workflow/permission/create/', permission_create, name='permission_create_'),
-    path('update/<int:pk>/', permission_update, name='permission_update_'),
-    path('load_posts/', load_posts, name='load_posts'),  # این URL برای بارگذاری پست‌ها است
-#------------------------------------
-    # URL برای ایجاد مجوز جدید
-    path('permissions/new/', permission_create_update_view, name='permission_create'),
-
-    # URL برای ویرایش یک مجوز موجود
-    path('permissions/<int:pk>/edit/',  permission_create_update_view, name='permission_update'),
-
-    # URL برای ویوی AJAX که پست‌ها را بارگذاری می‌کند
-    path('ajax/load-posts-by-transition/',  load_posts_by_transition, name='ajax_load_posts_by_transition'),
-
-    #------------------------------------
-    #  API
-    path('api/get-transition/<int:pk>/', TransitionDetailAPI.as_view(), name='transition_detail'),
-    path('api/get-posts/', PostListAPI.as_view(), name='post_list'),
-
 
 
 ]

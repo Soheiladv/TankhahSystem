@@ -191,19 +191,7 @@
                     </div>
                 </div>
 
-                <!-- مرحله ۴ -->
-                <div class="col-md">
-                    <div class="step-icon bg-danger mb-3">
-                        <i class="fas fa-user-shield"></i>
-                    </div>
-                    <h5 class="fw-bold mb-2">{% trans "۴. تخصیص مجوزها" %}</h5>
-                    <p class="small text-muted mb-0">
-                        {% trans "تعیین دسترسی‌های هر پست سازمانی" %}
-                    </p>
-                    <div class="progress mt-3" style="height: 4px;">
-                        <div class="progress-bar bg-danger" role="progressbar" style="width: 100%"></div>
-                    </div>
-                </div>
+                
             </div>
         </div>
     </div>
@@ -211,7 +199,7 @@
     <!-- کارت‌های دسترسی سریع -->
     <div class="row">
         <!-- مدیریت وضعیت‌ها -->
-        <div class="col-lg-3 col-md-6 mb-4 animated-card delay-1">
+        <div class="col-lg-4 col-md-6 mb-4 animated-card delay-1">
             <a href="{% url 'status_list' %}" class="text-decoration-none">
                 <div class="card h-100 nav-card step-card border-top-primary">
                     <div class="card-body">
@@ -235,7 +223,7 @@
         </div>
 
         <!-- مدیریت اقدامات -->
-        <div class="col-lg-3 col-md-6 mb-4 animated-card delay-2">
+        <div class="col-lg-4 col-md-6 mb-4 animated-card delay-2">
             <a href="{% url 'action_list' %}" class="text-decoration-none">
                 <div class="card h-100 nav-card step-card border-top-warning">
                     <div class="card-body">
@@ -259,7 +247,7 @@
         </div>
 
         <!-- طراحی گذارها -->
-        <div class="col-lg-3 col-md-6 mb-4 animated-card delay-3">
+        <div class="col-lg-4 col-md-6 mb-4 animated-card delay-3">
             <a href="{% url 'transition_list' %}" class="text-decoration-none">
                 <div class="card h-100 nav-card step-card border-top-success">
                     <div class="card-body">
@@ -283,28 +271,7 @@
         </div>
 
         <!-- مدیریت مجوزها -->
-        <div class="col-lg-3 col-md-6 mb-4 animated-card delay-4">
-            <a href="{% url 'permission_list' %}" class="text-decoration-none">
-                <div class="card h-100 nav-card step-card border-top-danger">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="bg-danger bg-opacity-10 p-3 rounded-circle">
-                                <i class="fas fa-user-shield text-danger nav-icon"></i>
-                            </div>
-                            <h5 class="card-title mb-0 ms-3 text-dark">{% trans "مجوزها" %}</h5>
-                        </div>
-                        <p class="card-text text-muted small">
-                            {% trans "تعیین دسترسی‌های پست‌های سازمانی" %}
-                        </p>
-                        <div class="text-end">
-                            <span class="badge bg-danger bg-opacity-10 text-danger">
-                                {% trans "ورود به بخش" %} <i class="fas fa-arrow-left ms-1"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
+
     </div>
 </div>
 {% endblock %}

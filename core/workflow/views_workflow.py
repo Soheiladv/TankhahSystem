@@ -1,5 +1,3 @@
-# core/views_workflow.py
-
 from django.views.generic import ListView, CreateView, DetailView
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
@@ -15,7 +13,6 @@ from core.models import Status
 from core.workflow.forms_workflow import StatusForm
 class WorkflowDashboardView(TemplateView):
     template_name = 'core/workflow/workFlow_dashboard.html'
-
 # ---------------------------------------------------------------------------------------
 
 # --- Mixin برای کنترل دسترسی ادمین/سوپروایزر ---
@@ -31,9 +28,7 @@ class WorkflowAdminRequiredMixin(UserPassesTestMixin):
     def handle_no_permission(self):
         messages.error(self.request, _("شما اجازه دسترسی به این بخش را ندارید."))
         return redirect('workflow_dashboard')
-
 # --- ویوهای CRUD برای Status ---
-
 class StatusListView(WorkflowAdminRequiredMixin, ListView):
     model = Status
     template_name = 'core/workflow/Status/status_list.html'
@@ -51,8 +46,6 @@ class StatusListView(WorkflowAdminRequiredMixin, ListView):
                 Q(name__icontains=search_query) | Q(code__icontains=search_query)
             )
         return queryset
-
-
 class StatusCreateView(WorkflowAdminRequiredMixin, CreateView):
     model = Status
     form_class = StatusForm
@@ -69,8 +62,6 @@ class StatusCreateView(WorkflowAdminRequiredMixin, CreateView):
         form.instance.created_by = self.request.user
         messages.success(self.request, _("وضعیت جدید با موفقیت ایجاد شد."))
         return super().form_valid(form)
-
-
 class StatusUpdateView(WorkflowAdminRequiredMixin, DetailView):
     """
     این ویو برای "ویرایش" استفاده می‌شود، اما در واقع یک فرم ایجاد جدید را
@@ -109,8 +100,6 @@ class StatusUpdateView(WorkflowAdminRequiredMixin, DetailView):
         context = self.get_context_data()
         context['form'] = form
         return self.render_to_response(context)
-
-
 class StatusDeleteView(WorkflowAdminRequiredMixin, DeleteView):
     model = Status
     template_name = 'core/workflow/Status/confirm_retire.html' # یک تمپلیت عمومی برای تایید بازنشستگی
@@ -128,8 +117,6 @@ class StatusDeleteView(WorkflowAdminRequiredMixin, DeleteView):
         self.object.save()
         messages.success(self.request, _(f"وضعیت '{self.object.name}' با موفقیت بازنشسته شد."))
         return redirect(self.get_success_url())
-
-
 # ---------------------------------------------------------------------------------------
 ### خلاصه نهایی
 #

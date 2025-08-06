@@ -20,7 +20,6 @@ class ActionListView(WorkflowAdminRequiredMixin, ListView):
         if search_query:
             queryset = queryset.filter(Q(name__icontains=search_query) | Q(code__icontains=search_query))
         return queryset
-
 class ActionCreteView(WorkflowAdminRequiredMixin, CreateView):
     model = Action
     form_class = ActionForm

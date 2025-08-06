@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ title }}
+                    </h4>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="card-body">
+                        <p class="fs-5">
+                            {% blocktrans %}آیا از حذف این قانون گردش کار اطمینان دارید؟{% endblocktrans %}
+                        </p>
+                        
+                        <!-- نمایش جزئیات آیتمی که در حال حذف است -->
+                        <div class="alert alert-secondary">
+                            <h5 class="alert-heading">{{ transition.name }}</h5>
+                            <hr>
+                            <p class="mb-1">
+                                <strong>{% trans "سازمان:" %}</strong> {{ transition.organization.name }}
+                            </p>
+                            <p class="mb-1">
+                                <strong>{% trans "نوع موجودیت:" %}</strong> {{ transition.entity_type.name }}
+                            </p>
+                            <p class="mb-0">
+                                <strong>{% trans "مسیر:" %}</strong>
+                                {% blocktrans with from_status=transition.from_status.name action=transition.action.name to_status=transition.to_status.name %}
+                                    از وضعیت <strong>{{ from_status }}</strong> با اقدام <strong>{{ action }}</strong> به وضعیت <strong>{{ to_status }}</strong>
+                                {% endblocktrans %}
+                            </p>
+                        </div>
+                        
+                        <p class="text-danger mt-3">
+                            <i class="fas fa-shield-alt me-1"></i>
+                            <strong>{% trans "توجه:" %}</strong> {% trans "این عمل غیرقابل بازگشت است." %}
+                        </p>
+                    </div>
+
+                    <div class="card-footer text-end bg-light p-3">
+                        <a href="{% url 'transition_list' %}" class="btn btn-secondary me-2">
+                            <i class="fas fa-times me-1"></i> {% trans "انصراف" %}
+                        </a>
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="fas fa-trash-alt me-1"></i> {% trans "بله، حذف کن" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
