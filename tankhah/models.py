@@ -317,18 +317,6 @@ class TankhahDocument(models.Model):
         ]
 
 class Tankhah(models.Model):
-    STATUS_CHOICES = (
-        ('DRAFT', _('پیش‌نویس')),
-        ('PENDING', _('در حال بررسی')),
-        ('APPROVED', _('تأییدشده')),
-        ('SENT_TO_HQ', _('ارسال‌شده به HQ')),
-        ('HQ_OPS_PENDING', _('در حال بررسی - بهره‌برداری')),
-        ('HQ_OPS_APPROVED', _('تأییدشده - بهره‌برداری')),
-        ('HQ_FIN_PENDING', _('در حال بررسی - مالی')),
-        ('PAID', _('پرداخت‌شده')),
-        ('REJECTED', _('ردشده')),
-    )
-
     number = models.CharField(max_length=150, unique=True, blank=True, verbose_name=_("شماره تنخواه"))
     amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ"))
     date = models.DateTimeField(default=timezone.now, verbose_name=_("تاریخ")) #start_date
@@ -349,7 +337,8 @@ class Tankhah(models.Model):
     # status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT', verbose_name=_("وضعیت"))
     status = models.ForeignKey('core.Status',on_delete=models.PROTECT,null=True,  # اجازه می‌دهیم در ابتدا خالی باشد
         blank=True,        verbose_name=_("وضعیت")    )
-    hq_status = models.CharField(max_length=20, choices=STATUS_CHOICES, null=True, blank=True,     verbose_name=_("وضعیت در HQ"))
+    # hq_status = models.ForeignKey('core.Status',on_delete=models.PROTECT,null=True,  # اجازه می‌دهیم در ابتدا خالی باشد
+    #     blank=True, verbose_name=_("وضعیت در HQ"))
     last_stopped_post = models.ForeignKey('core.Post', null=True, blank=True, on_delete=models.SET_NULL,   verbose_name=_("آخرین پست متوقف‌شده"))
     is_archived = models.BooleanField(default=False, verbose_name=_("آرشیو شده"))
     payment_number = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("شماره پرداخت"))

@@ -24,13 +24,13 @@ def register_permissions(apps, schema_editor):
 @admin.register(Tankhah)
 class TankhahAdmin(admin.ModelAdmin):
     list_display = (
-        'number', 'date', 'organization', 'project', 'status', 'hq_status',
+        'number', 'date', 'organization', 'project', 'status',
         'created_by_short', 'approved_by_short', 'view_factors_count'
     )
     list_filter = (
         ('date', JDateFieldListFilter),
         'status',
-        'hq_status',
+
         'organization',
         'project',
     )
@@ -42,10 +42,10 @@ class TankhahAdmin(admin.ModelAdmin):
     autocomplete_fields = ('organization', 'project', 'last_stopped_post', 'created_by', 'approved_by')
     ordering = ('-date', 'number')
     list_per_page = 50
-    readonly_fields = ('number', 'status', 'hq_status', 'last_stopped_post', 'created_by', 'approved_by')
+    readonly_fields = ('number', 'status',   'last_stopped_post', 'created_by', 'approved_by')
     fieldsets = (
         (None, {
-            'fields': ('number', 'date', 'organization', 'project', 'status', 'hq_status', 'last_stopped_post')
+            'fields': ('number', 'date', 'organization', 'project', 'status',   'last_stopped_post')
         }),
         (_('اطلاعات تأیید'), {
             'fields': ('letter_number', 'created_by', 'approved_by'),

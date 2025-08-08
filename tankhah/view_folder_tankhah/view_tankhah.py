@@ -1037,7 +1037,7 @@ class TankhahApproveView(PermissionBaseView, View):
                         messages.error(request, _('لطفاً شماره پرداخت را وارد کنید.'))
                         return redirect('dashboard_flows')
                     tankhah.status = 'PAID'
-                    tankhah.hq_status = 'PAID'
+
                     tankhah.payment_number = payment_number
                     tankhah.is_locked = True
                     tankhah.is_archived = True
@@ -1045,7 +1045,7 @@ class TankhahApproveView(PermissionBaseView, View):
                     messages.success(request, _('تنخواه پرداخت شد، قفل و آرشیو شد.'))
                 else:
                     tankhah.status = 'COMPLETED'
-                    tankhah.hq_status = 'COMPLETED'
+
                     tankhah.is_locked = True
                     tankhah.is_archived = True
                     tankhah.save()

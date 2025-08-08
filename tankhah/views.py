@@ -490,19 +490,19 @@ class FactorDeleteView_____________(PermissionRequiredMixin, DeleteView):
         tankhah.save(update_fields=['remaining_budget'])
 
     def send_notifications(self, entity, action, priority, description, recipients):
-        from notifications.models import Notification
-        for recipient in recipients:
-            Notification.objects.create(
-                recipient=recipient,
-                entity_type='FACTOR',
-                entity_id=entity.id,
-                action=action,
-                priority=priority,
-                description=description,
-                created_by=self.request.user,
-                created_at=timezone.now()
-            )
 
+        for recipient in recipients:
+            # Notification.objects.create(
+            #     recipient=recipient,
+            #     entity_type='FACTOR',
+            #     entity_id=entity.id,
+            #     action=action,
+            #     priority=priority,
+            #     description=description,
+            #     created_by=self.request.user,
+            #     created_at=timezone.now()
+            # )
+            pass
 class FactorDetailView(PermissionBaseView, DetailView):
     model = Factor
     template_name = 'tankhah/factor_detail.html'  # تمپلیت نمایشی جدید
@@ -703,13 +703,12 @@ class ApprovalCreateView(PermissionRequiredMixin, CreateView):
             if form.instance.action == 'APPROVE':
                 if branch == 'COMPLEX' and current_status == 'PENDING' and user_level <= 2:
                     tankhah.status = 'APPROVED'
-                    tankhah.hq_status = 'SENT_TO_HQ'
-                    tankhah.current_stage = WorkflowStage.objects.get(name='OPS')
+
+                    tankhah.current_stage = AccessRule.objects.get(name='OPS')
                 elif branch == 'OPS' and current_status == 'APPROVED' and user_level > 2:
-                    tankhah.hq_status = 'HQ_OPS_APPROVED'
-                    tankhah.current_stage = WorkflowStage.objects.get(name='FIN')
-                elif branch == 'FIN' and tankhah.hq_status == 'HQ_OPS_APPROVED' and user_level > 3:
-                    tankhah.hq_status = 'HQ_FIN_PENDING'
+                     tankhah.current_stage = WorkflowStage.objects.get(name='FIN')
+                elif branch == 'FIN' and  user_level > 3:
+
                     tankhah.status = 'PAID'
                 else:
                     messages.error(self.request, _('شما اجازه تأیید در این مرحله را ندارید یا وضعیت نادرست است.'))
@@ -819,19 +818,18 @@ class ApprovalUpdateView(PermissionBaseView, UpdateView):
             if form.instance.action == 'APPROVE':
                 if branch == 'COMPLEX' and current_status == 'PENDING' and user_level <= 2:
                     tankhah.status = 'APPROVED'
-                    tankhah.hq_status = 'SENT_TO_HQ'
+
                     next_stage = WorkflowStage.objects.filter(order__gt=tankhah.current_stage.order).order_by(
                         'order').first()
                     if next_stage:
                         tankhah.current_stage = next_stage
                 elif branch == 'OPS' and current_status == 'APPROVED' and user_level > 2:
-                    tankhah.hq_status = 'HQ_OPS_APPROVED'
+
                     next_stage = WorkflowStage.objects.filter(order__gt=tankhah.current_stage.order).order_by(
                         'order').first()
                     if next_stage:
                         tankhah.current_stage = next_stage
-                elif branch == 'FIN' and tankhah.hq_status == 'HQ_OPS_APPROVED' and user_level > 3:
-                    tankhah.hq_status = 'HQ_FIN_PENDING'
+                elif branch == 'FIN'   and user_level > 3:
                     tankhah.status = 'PAID'
                     next_stage = None  # مرحله آخر
                 else:
@@ -844,8 +842,7 @@ class ApprovalUpdateView(PermissionBaseView, UpdateView):
                     approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=next_stage,
                                                           userpost__end_date__isnull=True)
                     if approvers.exists():
-                        notify.send(self.request.user, recipient=approvers, verb='تنخواه در انتظار تأیید',
-                                    target=tankhah)
+                        pass
                     messages.info(self.request, f"تنخواه به مرحله {next_stage.name} منتقل شد.")
                 else:
                     tankhah.is_locked = True
@@ -1031,7 +1028,8 @@ class FactorStatusUpdateView(PermissionBaseView, View):
 
 @require_POST
 def mark_notification_as_read(request, notif_id):
-    from notifications.models import Notification
+
+    from notificationApp.models import Notification
     notif = Notification.get(id=notif_id, user=request.user)
     notif.is_read = True
     notif.save()
@@ -1040,7 +1038,8 @@ def mark_notification_as_read(request, notif_id):
 @login_required
 def get_unread_notifications(request):
     # دریافت اعلان‌های خوانده نشده کاربر
-    from notifications.views import Notification
+
+    from notificationApp.models import Notification
     unread_notifications = Notification.objects.filter(
         user=request.user,
         is_read=False
