@@ -51,14 +51,14 @@ class W_FactorForm(forms.ModelForm):
             user_orgs = self.user.organizations.all()
             if not user_orgs:
                 self.fields['tankhah'].queryset = Tankhah.objects.filter(
-                    status__in=['DRAFT', 'PENDING'],
+                    status__code=['DRAFT', 'PENDING'],
                     current_stage__order=initial_stage_order
                 )
             else:
                 projects = Project.objects.filter(organizations__in=user_orgs)
                 subprojects = SubProject.objects.filter(project__in=projects)
                 queryset = Tankhah.objects.filter(
-                    status__in=['DRAFT', 'PENDING'],
+                    status__code=['DRAFT', 'PENDING'],
                     current_stage__order=initial_stage_order
                 ).filter(
                     Q(organization__in=user_orgs) |
@@ -196,7 +196,7 @@ class FactorWizardStep1Form(forms.ModelForm): # Renamed for clarity
 
         initial_stage_order = initial_stage.order
         base_queryset = Tankhah.objects.filter(
-            status__in=['DRAFT', 'PENDING'],
+            status__code=['DRAFT', 'PENDING'],
             current_stage__order=initial_stage_order
         ).select_related('project', 'subproject', 'organization') # Optimize query
 
@@ -377,7 +377,7 @@ class FactorForm(forms.ModelForm):
             self.fields['tankhah'].initial = self.tankhah
             self.fields['tankhah'].queryset = Tankhah.objects.filter(id=self.tankhah.id)
         else:
-            self.fields['tankhah'].queryset = Tankhah.objects.filter(status__in=['DRAFT', 'PENDING'])
+            self.fields['tankhah'].queryset = Tankhah.objects.filter(status__code=['DRAFT', 'PENDING'])
         self.fields['category'].queryset = ItemCategory.objects.all()
 
     def clean(self):

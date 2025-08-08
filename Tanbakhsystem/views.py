@@ -41,8 +41,7 @@ def home_view(request, *args, **kwargs):
     latest_version = AppVersion.objects.order_by('-release_date').first()
     return render(request, 'index.html', {'latest_version': latest_version, 'final_version': final_version})
 
-
-
-
 def soft_Help(request):
     return render(request, template_name='help/soft_help.html')
+
+

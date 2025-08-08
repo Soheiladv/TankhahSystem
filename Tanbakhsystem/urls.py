@@ -8,10 +8,8 @@ from django.views.i18n import JavaScriptCatalog
 
 from Tanbakhsystem import views
 from Tanbakhsystem.Dashboard_Project.DashboardView_1 import TabbedFinancialDashboardView
-from Tanbakhsystem.Dashboard_Project.Dashboard_view import BudgetDashboardView
 from Tanbakhsystem.view.view_Dashboard import DashboardView
-# from Tanbakhsystem.view.views_notifications import   notifications_inbox, delete_notification, unread_notifications, get_notifications
-from Tanbakhsystem.views import TanbakhWorkflowView, GuideView, pdate, soft_Help
+from Tanbakhsystem.views import TanbakhWorkflowView, GuideView, soft_Help
 from accounts.views import SetTimeLockView, TimeLockListView, LockStatusView
 from accounts.RCMS_Lock.views import lock_status
 

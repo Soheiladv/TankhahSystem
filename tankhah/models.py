@@ -1,5 +1,7 @@
 import os
 from decimal import Decimal
+
+from Demos.win32ts_logoff_disconnected import username
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -15,7 +17,7 @@ from accounts.models import CustomUser
 from django.contrib.contenttypes.models import ContentType
 import logging
 logger = logging.getLogger('Tankhah_Models')
-from tankhah.constants import ACTION_TYPES, FACTOR_STATUSES
+# from tankhah.constants import ACTION_TYPES, FACTOR_STATUSES
 
 NUMBER_SEPARATOR = getattr(settings, 'NUMBER_SEPARATOR', '-')
 #-----------------------------------------------
@@ -273,6 +275,24 @@ def create_budget_transaction(allocation, transaction_type, amount, related_obj,
     except Exception as e:
         logger.error(f"Unexpected Error in create_budget_transaction: {str(e)} (Allocation: {allocation.pk}, Amount: {amount}, Type: {transaction_type})", exc_info=True)
         raise
+
+# --- تابع کمکی برای گرفتن وضعیت پیش‌فرض ---
+def get_default_factor_status():#(code='DRAFT', is_initial=True):
+    """
+    وضعیت اولیه (DRAFT) را از دیتابیس پیدا کرده و برمی‌گرداند.
+    این تابع تضمین می‌کند که هر فاکتور جدید با یک وضعیت معتبر ایجاد شود.
+    """
+    from core.models import Status
+    try:
+        # ما به دنبال وضعیتی می‌گردیم که به عنوان "اولیه" علامت خورده باشد.
+        # status, _ = Status.objects.get_or_create(code=code, defaults={'name': code, 'is_initial': is_initial})
+        status, _ = Status.objects.get_or_create(code='DRAFT', defaults={'name': 'پیش‌نویس', 'is_initial': True})
+        return status.pk
+    except (Status.DoesNotExist, Status.MultipleObjectsReturned):
+        # اگر هیچ وضعیت اولیه‌ای یا بیش از یکی تعریف نشده باشد،
+        # این یک خطای پیکربندی بحرانی است.
+        # برای جلوگیری از خطای 500، می‌توانیم None برگردانیم و در مدل مدیریت کنیم.
+        return None
 #-----------------------------------------------
 class TankhahDocument(models.Model):
     tankhah  = models.ForeignKey('Tankhah', on_delete=models.CASCADE,verbose_name=_("تنخواه"), related_name='documents')
@@ -326,7 +346,9 @@ class Tankhah(models.Model):
     # فیلد جدید برای جایگزینی current_stage
     # current_stage = models.IntegerField(default=1, verbose_name=_("ترتیب مرحله"))
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT', verbose_name=_("وضعیت"))
+    # status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT', verbose_name=_("وضعیت"))
+    status = models.ForeignKey('core.Status',on_delete=models.PROTECT,null=True,  # اجازه می‌دهیم در ابتدا خالی باشد
+        blank=True,        verbose_name=_("وضعیت")    )
     hq_status = models.CharField(max_length=20, choices=STATUS_CHOICES, null=True, blank=True,     verbose_name=_("وضعیت در HQ"))
     last_stopped_post = models.ForeignKey('core.Post', null=True, blank=True, on_delete=models.SET_NULL,   verbose_name=_("آخرین پست متوقف‌شده"))
     is_archived = models.BooleanField(default=False, verbose_name=_("آرشیو شده"))
@@ -393,7 +415,7 @@ class Tankhah(models.Model):
     def __str__(self):
         project_str = self.project.name if self.project else 'بدون پروژه'
         subproject_str = f" ({self.subproject.name})" if self.subproject else ''
-        return f"{self.number} - {project_str}{subproject_str} - {self.amount:,.0f} ({self.get_status_display()})"
+        return f"{self.number} - {project_str}{subproject_str} - {self.amount:,.0f} "
     def get_remaining_budget(self):
         """محاسبه بودجه باقی‌مانده با در نظر گرفتن سقف پرداخت"""
         remaining = Decimal('0')
@@ -756,112 +778,56 @@ class FactorDocument(models.Model):
             ('FactorDocument_view','نمایش سند فاکتور'),
             ('FactorDocument_delete','حــذف سند فاکتور'),
         ]
-class Factor(models.Model):
-    STATUS_CHOICES  = (
-        ('DRAFT', _('پیش‌نویس')),
-        ('PENDING_APPROVAL', _('در انتظار تأیید')),
-        ('APPROVE', _('تأیید شده')),
-        ('APPROVED_INTERMEDIATE', _('تأیید میانی')),
-        ('APPROVED_FINAL', _('تأیید نهایی')),
-        ('REJECTE', _('رد شده')),
-        ('PAID', _('پرداخت شده')),
-        ('PARTIAL', 'تأیید جزئی'),
-    )
 
+
+class Factor(models.Model):
+    # --- فیلدهای اصلی و تمیز شده ---
     number = models.CharField(max_length=100, blank=True, verbose_name=_("شماره فاکتور"))
     tankhah = models.ForeignKey('Tankhah', on_delete=models.PROTECT, related_name='factors', verbose_name=_("تنخواه"))
     date = models.DateField(default=timezone.now, verbose_name=_("تاریخ"))
-    amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name=_('مبلغ فاکتور'), default=0)
+    amount = models.DecimalField(max_digits=20, decimal_places=2, verbose_name=_('مبلغ کل فاکتور'), default=0)
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
-    status = models.CharField(max_length=40, choices=FACTOR_STATUSES, default='PENDING_APPROVAL', verbose_name=_("وضعیت"))
-    approved_by = models.ManyToManyField(CustomUser, blank=True, verbose_name=_("تأییدکنندگان"))
-    is_finalized = models.BooleanField(default=False, verbose_name=_("نهایی شده"))
-    locked = models.BooleanField(default=False, verbose_name="قفل شده")
+    category = models.ForeignKey('ItemCategory', on_delete=models.PROTECT, verbose_name=_("دسته‌بندی"))
+    created_by = models.ForeignKey('accounts.CustomUser', related_name='created_factors', on_delete=models.PROTECT,
+                                   verbose_name=_("ایجادکننده"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+
+    # **فیلد status نهایی و صحیح**
+    status = models.ForeignKey(
+        'core.Status',
+        on_delete=models.PROTECT,
+        verbose_name=_("وضعیت"),
+        default=get_default_factor_status,
+        null=True,  # null=True برای جلوگیری از خطا در صورتی که get_default_factor_status چیزی برنگرداند
+        blank=True
+    )
+
+    # --- فیلدهای مدیریتی ---
+    is_locked = models.BooleanField(default=False, verbose_name=_('قفل شده'))
+    rejected_reason = models.TextField(blank=True, null=True, verbose_name=_("دلیل رد"))
+    is_deleted = models.BooleanField(default=False, verbose_name=_("حذف شده"))
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    deleted_by = models.ForeignKey('accounts.CustomUser', null=True, blank=True, on_delete=models.SET_NULL,
+                                   related_name='deleted_factors')
+
     locked_by_stage = models.ForeignKey('core.AccessRule', null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("قفل شده توسط مرحله"))
     budget = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name=_("بودجه تخصیصی"))
     remaining_budget = models.DecimalField(max_digits=20, decimal_places=2, default=0, verbose_name=_("بودجه باقیمانده"))
-    created_by = models.ForeignKey('accounts.CustomUser',related_name='CustomUser_related', on_delete=models.SET_NULL, null=True, verbose_name=_("ایجادکننده"))
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
     is_emergency = models.BooleanField(default=False, verbose_name=_("اضطراری"))
-    category = models.ForeignKey('ItemCategory', on_delete=models.SET_NULL, null=True, blank=False, verbose_name=_("دسته‌بندی"))
-    is_locked = models.BooleanField(default=False,verbose_name=_('قفل شود'))
-
-    rejected_reason = models.TextField(blank=True, null=True, verbose_name=_("دلیل رد"))
     re_registered_in = models.ForeignKey('Tankhah', null=True, blank=True, on_delete=models.SET_NULL,related_name='re_registered_factors',verbose_name=_("تنخواه جدید"))
 
-    # فیلدهای جدید برای حذف نرم
-    is_deleted = models.BooleanField(default=False)
-    deleted_at = models.DateTimeField(null=True, blank=True)
-    deleted_by = models.ForeignKey('accounts.CustomUser', null=True, blank=True, on_delete=models.SET_NULL,related_name='deleted_factors')
-
-    def get_first_access_rule_stage(self):
-        from core.models import AccessRule
-        first_stage = AccessRule.objects.filter(
-            entity_type='FACTOR',
-            action_type='EDIT'
-        ).order_by('stage_order').first()
-        return first_stage if first_stage else None
-    def unlock(self, user):
-        """باز کردن قفل فاکتور توسط کاربر مجاز (مثل BOARD)"""
-        if not user.has_perm('tankhah.factor_unlock'):
-            raise PermissionError(_("کاربر مجوز باز کردن فاکتور را ندارد."))
-        if not self.is_locked:
-            return
-        self.is_locked = False
-        self.status = 'PENDING'  # بازگشت به وضعیت در انتظار تأیید
-        self.save()
-        ApprovalLog.objects.create(
-            factor=self,
-            action='APPROVE',
-            stage=self.tankhah.current_stage,
-            user=user,
-            post=user.userpost_set.filter(is_active=True).first().post,
-            content_type=ContentType.objects.get_for_model(self),
-            object_id=self.id,
-            comment=f"فاکتور {self.number} توسط {user.username} باز شد.",
-            changed_field='is_locked'
-        )
-        logger.info(f"Factor {self.number} unlocked by {user.username}")
-    def revert_to_pending(self, user):
-        """بازگرداندن فاکتور ردشده به وضعیت در انتظار تأیید"""
-        if self.status != 'REJECTED':
-            return
-        with transaction.atomic():
-            self.status = 'PENDING'
-            self.is_locked = False
-            self.save()
-            ApprovalLog.objects.create(
-                factor=self,
-                action='STAGE_CHANGE',
-                stage=self.tankhah.current_stage,
-                user=user,
-                post=user.userpost_set.filter(is_active=True).first().post,
-                content_type=ContentType.objects.get_for_model(self),
-                object_id=self.id,
-                comment=f"فاکتور {self.number} به وضعیت در انتظار تأیید بازگشت.",
-                changed_field='status'
-            )
-            FactorHistory.objects.create(
-                factor=self,
-                change_type=FactorHistory.ChangeType.STATUS_CHANGE,
-                changed_by=user,
-                old_data={'status': 'REJECTED'},
-                new_data={'status': 'PENDING'},
-                description=f"بازگشت فاکتور به وضعیت در انتظار تأیید"
-            )
-            logger.info(f"Factor {self.number} reverted to PENDING by {user.username}")
-    def get_remaining_budget(self):
-        from budgets.budget_calculations import get_factor_remaining_budget
-        return get_factor_remaining_budget(self)
-    def get_items_total(self):
-        if self.pk:
-            total = self.items.aggregate(total=Sum('amount'))['total'] or Decimal('0')
-            return total
-        return Decimal('0')
-    def total_amount(self):
-        if self.pk:
-            return self.get_items_total()
-        return Decimal('0')
+    #----------------------------------------
+    def update_total_amount(self):
+        """
+        مبلغ کل فاکتور را بر اساس مجموع ردیف‌های آن محاسبه و آپدیت می‌کند.
+        """
+        total = self.items.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        if self.amount != total:
+            self.amount = total
+            self.save(update_fields=['amount'])
+            logger.info(f"Factor {self.pk} amount updated to {total}.")
+        return total
+    #----------------------------------------
     def generate_number(self):
         """تولید شماره یکتا برای فاکتور با استفاده از تاریخ شمسی"""
         sep = '-'  # استفاده از جداکننده ثابت
@@ -889,183 +855,217 @@ class Factor(models.Model):
                 serial += 1
                 new_number = f"FAC{sep}{tankhah_number}{sep}{date_str}{sep}{org_code}{sep}{serial:04d}"
             return new_number
-    def can_approve(self, user):
+    #----------------------------------------
+    def clean(self):
         """
-        بررسی می‌کند که آیا کاربر می‌تواند این فاکتور را تأیید کند.
-        :param user: کاربر فعلی
-        :return: True اگر کاربر دسترسی دارد، False در غیر این صورت
+        نسخه نهایی و ایمن متد clean.
         """
-        # بررسی احراز هویت کاربر
-        if not user.is_authenticated:
-            return False
-        # بررسی قفل بودن فاکتور یا تنخواه
-        if self.is_locked or self.tankhah.is_locked or self.tankhah.is_archived:
-            return False
-        # استفاده از تابع can_edit_approval برای بررسی دسترسی
-        from tankhah.Factor.Approved.fun_can_edit_approval import can_edit_approval
-        return can_edit_approval(user, self.tankhah, self.tankhah.current_stage)
-    def save(self, *args, **kwargs):
+        super().clean()
+        if not self.category:
+            raise ValidationError(_("دسته‌بندی الزامی است."))
+        # اعتبارسنجی وضعیت تنخواه
+        if self.tankhah and self.tankhah.status:
+            # فقط به تنخواه‌هایی که هنوز در جریان هستند اجازه ایجاد فاکتور می‌دهیم.
+            if self.tankhah.status.is_final_approve or self.tankhah.status.is_final_reject:
+                raise ValidationError(_("تنخواه انتخاب‌شده در وضعیت نهایی قرار دارد و نمی‌توان برای آن فاکتور جدید ثبت کرد."))
 
-        current_user = kwargs.pop('current_user', None)
-        is_new = self._state.adding
+        if self.status:
+            # **اصلاح کلیدی:** مقایسه بر اساس status.code
+            if self.status.code == 'REJECT' and not self.rejected_reason:
+                raise ValidationError({"rejected_reason": _("برای رد کردن فاکتور، نوشتن دلیل الزامی است.")})
+
+        # اعتبارسنجی دلیل رد
+        if self.status and self.status.is_final_reject and not self.rejected_reason:
+            raise ValidationError({"rejected_reason": _("برای رد کردن فاکتور، نوشتن دلیل الزامی است.")})
+    #----------------------------------------
+    def save(self, *args, **kwargs):
+        """
+        متد save ساده شده. منطق‌های پیچیده به ویوها و سیگنال‌ها منتقل شده‌اند.
+        """
+        # اگر شیء جدید است و شماره ندارد، یک شماره برای آن تولید کن
+        if self.pk is None and not self.number:
+            self.number = self.generate_number()
+
+        # اگر در هنگام ایجاد، وضعیت اولیه ست نشده باشد (به دلیل خطای پیکربندی)، خطا بده
+        if self.pk is None and not self.status:
+            raise ValidationError("نمی‌توان فاکتور را بدون وضعیت اولیه معتبر ذخیره کرد. لطفاً یک وضعیت با فلگ 'is_initial' در پنل ادمین تعریف کنید.")
+
+        super().save(*args, **kwargs)
+    #----------------------------------------
+    def revert_to_pending(self, user):
+        """بازگرداندن فاکتور ردشده به وضعیت در انتظار تأیید"""
+        from core.models import Status
+        if not self.status or self.status.code != 'REJECT':
+            return
+        with transaction.atomic():
+            pending_status = Status.objects.get(code='PENDING_APPROVAL')
+            self.status = pending_status
+            self.is_locked = False
+            self.save(update_fields=['status', 'is_locked'])
+            ApprovalLog.objects.create(
+                factor=self,
+                action='STAGE_CHANGE',
+                stage=self.tankhah.current_stage,
+                user=user,
+                post=user.userpost_set.filter(is_active=True).first().post,
+                content_type=ContentType.objects.get_for_model(self),
+                object_id=self.id,
+                comment=f"فاکتور {self.number} به وضعیت در انتظار تأیید بازگشت.",
+                changed_field='status'
+            )
+            FactorHistory.objects.create(
+                factor=self,
+                change_type=FactorHistory.ChangeType.STATUS_CHANGE,
+                changed_by=user,
+                old_data={'status': 'REJECTED'},
+                new_data={'status': 'PENDING'},
+                description=f"بازگشت فاکتور به وضعیت در انتظار تأیید"
+            )
+            logger.info(f"Factor {self.number} reverted to PENDING by {user.username}")
+    #---------------------------------------
+    def unlock(self, user):
+        """باز کردن قفل فاکتور توسط کاربر مجاز (مثل BOARD)"""
+        if not user.has_perm('tankhah.factor_unlock'):
+            raise PermissionError(_("کاربر مجوز باز کردن فاکتور را ندارد."))
+        if not self.is_locked:
+            return
+        from core.models import Status
+        try:
+            pending_status = Status.objects.get(code='PENDING_APPROVAL')
+            self.is_locked = False
+            self.status = pending_status
+            self.save(update_fields=['is_locked', 'status'])
+            ApprovalLog.objects.create(
+                factor=self,
+                action='APPROVE',
+                stage=self.tankhah.current_stage,
+                user=user,
+                post=user.userpost_set.filter(is_active=True).first().post,
+                content_type=ContentType.objects.get_for_model(self),
+                object_id=self.id,
+                comment=f"فاکتور {self.number} توسط {user.username} باز شد.",
+                changed_field='is_locked'
+            )
+            logger.info(f"Factor {self.number} unlocked by {user.username}")
+        except Status.DoesNotExist:
+            logger.error("FATAL: Status with code 'PENDING_APPROVAL' not found in DB.")
+    #----------------------------------------
+    def get_items_total(self):
+        """مبلغ کل فاکتور را بر اساس مجموع ردیف‌ها آپدیت می‌کند."""
+        if self.pk:
+            total = self.items.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            if self.amount != total:
+                self.amount = total
+                self.save(update_fields=['amount'])
+        return Decimal('0')
+    #----------------------------------------
+    def get_first_access_rule_stage(self):
+        from core.models import AccessRule
+        first_stage = AccessRule.objects.filter(
+            entity_type='FACTOR',
+            action_type='EDIT'
+        ).order_by('stage_order').first()
+        return first_stage if first_stage else None
+    #----------------------------------------
+    def get_remaining_budget(self):
+        from budgets.budget_calculations import get_factor_remaining_budget
+        return get_factor_remaining_budget(self)
+    #----------------------------------------
+    def total_amount(self):
+        if self.pk:
+            return self.get_items_total()
+        return Decimal('0')
+    #----------------------------------------
+    def can_approve(self, user):
+        pass
+        # """
+        # بررسی می‌کند که آیا کاربر می‌تواند این فاکتور را تأیید کند.
+        # :param user: کاربر فعلی
+        # :return: True اگر کاربر دسترسی دارد، False در غیر این صورت
+        # """
+        # # بررسی احراز هویت کاربر
+        # if not user.is_authenticated:
+        #     return False
+        # # بررسی قفل بودن فاکتور یا تنخواه
+        # if self.is_locked or self.tankhah.is_locked or self.tankhah.is_archived:
+        #     return False
+        # # استفاده از تابع can_edit_approval برای بررسی دسترسی
+        # from tankhah.Factor.Approved.fun_can_edit_approval import can_edit_approval
+        # return can_edit_approval(user, self.tankhah, self.tankhah.current_stage)
+    #----------------------------------------
+    def save(self, *args, **kwargs):
+        """
+            متد save که منطق‌های کلیدی کسب و کار را در خود دارد.
+            """
+        user = kwargs.pop('current_user', None)
+        is_new = self.pk is None
+        # اگر شیء جدید است، شماره تولید کن و از full_clean رد شو
+        if is_new:
+            if not self.number:
+                self.number = self.generate_number()
+            if not self.status:
+                self.status = get_default_factor_status()
+
 
         with transaction.atomic():
             if is_new and not self.number:
                 self.number = self.generate_number()
                 logger.debug(f"شماره فاکتور جدید تولید شد: {self.number}")
 
+            # full_clean را اینجا فراخوانی می‌کنیم تا قبل از هر منطقی، داده‌ها معتبر باشند
             self.full_clean()
             original = None
             if self.pk:
-                original = Factor.objects.get(pk=self.pk)
+                original_status = Factor.objects.get(pk=self.pk).status
 
-            if self.tankhah and self.tankhah.project_budget_allocation:
-                budget_allocation = self.tankhah.project_budget_allocation
-                budget_period = budget_allocation.budget_period
-                is_locked, lock_message = budget_period.is_locked  # استفاده از is_locked
-                if self.status != 'PAID' and (budget_allocation.is_locked or is_locked):
-                    raise ValidationError(_("نمی‌توان فاکتور جدید ثبت کرد، تخصیص یا دوره قفل شده است."))
+            # if self.tankhah and self.tankhah.project_budget_allocation:
+            #     budget_allocation = self.tankhah.project_budget_allocation
+            #     budget_period = budget_allocation.budget_period
+            #     is_locked, lock_message = budget_period.is_locked  # استفاده از is_locked
+            #     if self.status != 'PAID' and (budget_allocation.is_locked or is_locked):
+            #         raise ValidationError(_("نمی‌توان فاکتور جدید ثبت کرد، تخصیص یا دوره قفل شده است."))
 
             super().save(*args, **kwargs)
 
-            if self.status == 'PAID' and (is_new or (original and original.status != 'PAID')):
+            if self.status and self.status.code == 'PAID' and self.status != original_status:
                 logger.info(
                     f"Factor {self.number} marked as PAID. Creating CONSUMPTION transaction and checking payment order.")
+                self.is_locked = True
                 create_budget_transaction(
                     allocation=self.tankhah.project_budget_allocation,
                     transaction_type='CONSUMPTION',
                     amount=self.amount,
                     related_obj=self,
-                    created_by=current_user or self.created_by,
+                    created_by=username or self.created_by,
                     description=f"مصرف بودجه توسط فاکتور پرداخت شده {self.number}",
                     transaction_id=f"TX-FAC-{self.number}"
                 )
                 self.is_locked = True
 
-                # چک کردن مرحله پرداخت
-                current_stage = self.tankhah.current_stage
-                if current_stage and current_stage.triggers_payment_order:
-                    try:
-                        user_post = current_user.userpost_set.filter(is_active=True).first() if current_user else None
-                        from core.models import PostAction
-                        if user_post and PostAction.objects.filter(
-                                post=user_post.post,
-                                stage=current_stage,
-                                action_type='ISSUE_PAYMENT_ORDER',
-                                entity_type='FACTOR',
-                                is_active=True
-                        ).exists():
-                            # چک کردن بودجه
-                            if self.amount > self.tankhah.get_remaining_budget():
-                                logger.warning(f"Insufficient budget for payment order: Factor {self.number}")
-                                raise ValidationError(_(f"بودجه کافی برای فاکتور {self.number} وجود ندارد."))
 
-                            # صدور دستور پرداخت
-                            from budgets.models import PaymentOrder
-                            PaymentOrder .objects.create(
-                                tankhah=self.tankhah,
-                                action_type='ISSUE_PAYMENT_ORDER',
-                                amount=self.amount,
-                                stage=current_stage,
-                                post=user_post.post,
-                                user=current_user,
-                                description=f"دستور پرداخت برای فاکتور {self.number}",
-                                reference_number=f"PAY-FAC-{self.number}"
-                            )
-                            logger.info(
-                                f"Payment order issued for Factor {self.number} in Tankhah {self.tankhah.number}")
-
-                            # ثبت در ApprovalLog
-                            ApprovalLog.objects.create(
-                                factor=self,
-                                action='SIGN_PAYMENT',
-                                stage=current_stage,
-                                user=current_user,
-                                post=user_post.post,
-                                content_type=ContentType.objects.get_for_model(self),
-                                object_id=self.id,
-                                comment=f"دستور پرداخت برای فاکتور {self.number} صادر شد.",
-                                changed_field='status'
-                            )
-                            # انتقال به مرحله بعدی اگر auto_advance فعال باشد
-                            if current_stage.auto_advance:
-                                from core.models import AccessRule
-                                next_stage = AccessRule.objects.filter(order__gt=current_stage.order,
-                                                                          is_active=True).order_by('order').first()
-                                if next_stage:
-                                    self.tankhah.current_stage = next_stage
-                                    self.tankhah.save()
-                                    logger.info(f"Tankhah {self.tankhah.number} advanced to stage {next_stage.name}")
-
-                    except AttributeError as e:
-                        logger.error(
-                            f"Error accessing userpost_set for user {current_user.username if current_user else 'None'}: {str(e)}")
-
-            if original and self.status != original.status and current_user:
-                user_post = current_user.userpost_set.filter(is_active=True).first() if current_user else None
+            if original and self.status != original.status and username:
+                user_post = username.userpost_set.filter(is_active=True).first() if username else None
                 if user_post:
                     action = 'APPROVE' if self.status in ['APPROVED', 'PAID'] else 'REJECT'
                     ApprovalLog.objects.create(
                         factor=self,
                         action=action,
                         stage=self.tankhah.current_stage,
-                        user=current_user,
+                        user=username,
                         post=user_post.post,
                         content_type=ContentType.objects.get_for_model(self),
                         object_id=self.id,
-                        comment=f"تغییر وضعیت فاکتور به {self.get_status_display()} توسط {current_user.get_full_name()}",
+                        comment=f"تغییر وضعیت فاکتور به {Factor.status.name} توسط {username.get_full_name()}",
                         changed_field='status'
                     )
 
             super().save(update_fields=['is_locked'])
-    def clean(self):
-        super().clean()
-        if self.amount < 0:
-            raise ValidationError(_("مبلغ فاکتور نمی‌تواند منفی باشد."))
-        if not self.category:
-            raise ValidationError(_("دسته‌بندی الزامی است."))
-        if self.tankhah and (
-                self.tankhah.status not in ['DRAFT', 'PENDING'] ): #or not self.tankhah.workflow_stage.is_initial
-            raise ValidationError(_("تنخواه انتخاب‌شده در وضعیت یا مرحله مجاز نیست."))
-
-        if self.tankhah and self.tankhah.due_date and self.tankhah.due_date.date() < timezone.now().date():
-            raise ValidationError(_('تنخواه منقضی شده است. لطفاً فاکتور را در تنخواه جدید ثبت کنید.'))
-        if self.amount and self.tankhah:
-            from budgets.budget_calculations import get_tankhah_remaining_budget
-            remaining_budget = get_tankhah_remaining_budget(self.tankhah)
-            if self.amount > remaining_budget:
-                raise ValidationError(_('مبلغ فاکتور از بودجه باقی‌مانده تنخواه بیشتر است.'))
-        #درصورت رد فاکتور
-        if self.status == 'REJECTED' and not self.rejected_reason:
-            raise ValidationError(_("دلیل رد فاکتور باید مشخص شود."))
-        if self.re_registered_in and self.status != 'PENDING':
-            raise ValidationError(_("فاکتور فقط در حالت PENDING می‌تواند به تنخواه جدید منتقل شود."))
-
-        #
-        # total = self.total_amount()
-        # errors = {}
-        # if self.pk and total <= 0:
-        #     raise ValidationError(_("مبلغ فاکتور باید مثبت باشد."))
-        #
-        # if abs(self.amount - total) > 0.01:
-        #     logger.warning(f"Factor {self.number}: amount ({self.amount}) != items total ({total})")
-        #     raise ValidationError(_("مبلغ فاکتور با مجموع آیتم‌ها همخوانی ندارد."))
-        #
-        # if self.tankhah:
-        #     tankhah_remaining = get_tankhah_remaining_budget(self.tankhah)
-        #     if total > tankhah_remaining:
-        #         raise ValidationError(
-        #             _(f"مبلغ فاکتور ({total:,.0f} ریال) نمی‌تواند بیشتر از بودجه باقی‌مانده تنخواه ({tankhah_remaining:,.0f} ریال) باشد.")
-        #         )
-        #
-        # if not self.category:
-        #     errors['category'] = ValidationError(_('دسته‌بندی الزامی است.'), code='category_required')
-        # if errors:
-        #     raise ValidationError(errors)
+    #----------------------------------------
     def __str__(self):
         # اصلاح متد __str__ برای مدیریت tankhah=None
         tankhah_number = self.tankhah.number if self.tankhah else "تنخواه ندارد"
         return f"{self.number} ({tankhah_number})"
+    #----------------------------------------
     class Meta:
         verbose_name = _("فاکتور")
         verbose_name_plural = _("فاکتورها")
@@ -1084,6 +1084,9 @@ class Factor(models.Model):
             ('factor_unlock', _('باز کردن فاکتور قفل‌شده')),
             ('factor_approval_path', _('بررسی مسیر تایید/رد فاکتور⛓️‍💥')),
         ]
+    #----------------------------------------
+
+
 class FactorHistory(models.Model):
     class ChangeType(models.TextChoices):
         CREATION = 'CREATION', _('ایجاد')
@@ -1112,7 +1115,15 @@ class FactorItem(models.Model):
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE, related_name='items', verbose_name=_("فاکتور"))
     description = models.CharField(max_length=255, verbose_name=_("شرح ردیف"))
     amount = models.DecimalField(max_digits=25, default=0, decimal_places=2, verbose_name=_("مبلغ"))
-    status = models.CharField(max_length=40, choices=FACTOR_STATUSES, default='PENDING_APPROVAL', verbose_name=_("وضعیت"))
+    # status = models.CharField(max_length=40, choices=FACTOR_STATUSES, default='PENDING_APPROVAL', verbose_name=_("وضعیت"))
+    status = models.ForeignKey(
+        'core.Status',
+        on_delete=models.PROTECT,
+        verbose_name=_("وضعیت"),
+        default=get_default_factor_status,
+        null=True,  # null=True برای جلوگیری از خطا در صورتی که get_default_factor_status چیزی برنگرداند
+        blank=True
+    )
     quantity = models.DecimalField(max_digits=25, default=1, decimal_places=2, verbose_name=_("تعداد"))
     unit_price = models.DecimalField(max_digits=25, decimal_places=2, blank=True, null=True,verbose_name=_("قیمت واحد"))
     min_stage_order = models.IntegerField(default=1, verbose_name=_("حداقل ترتیب مرحله"),help_text=_("این نوع تراکنش فقط در این مرحله یا بالاتر مجاز است")  , editable=False)
@@ -1221,7 +1232,12 @@ class ApprovalLog(models.Model):
     content_object = GenericForeignKey('content_type', 'object_id')
 
     # --- فیلدهای اصلی لاگ ---
-    action = models.CharField(max_length=45, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
+    # action = models.CharField(max_length=45, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
+
+    from_status = models.ForeignKey('core.Status', on_delete=models.PROTECT, related_name='+')
+    to_status = models.ForeignKey('core.Status', on_delete=models.PROTECT, related_name='+')
+    action = models.ForeignKey('core.Action', on_delete=models.PROTECT, verbose_name=_("نوع اقدام گردش کار"))
+
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, verbose_name=_("کاربر"))
     post = models.ForeignKey('core.Post', on_delete=models.SET_NULL, null=True, verbose_name=_("پست تأییدکننده"))
     comment = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))

@@ -107,7 +107,10 @@ DBBACKUP_GPG_ALWAYS_TRUST = True  # در صورت نیاز به اعتماد ب�
 
 # لیستی از اپلیکیشن‌هایی که مدل‌هایشان در بخش مدیریت دیتابیس نمایش داده می‌شوند.
 # این لیست را بر اساس نیاز خود تنظیم کنید.
-DATABASE_MANAGE_APP_LABELS = ['core', 'budgets', 'tankhah', 'accounts', 'reports']
+DATABASE_MANAGE_APP_LABELS = ['core', 'budgets', 'tankhah','Tanbakhsystem','notificationApp', 'accounts', 'reports']
+
+
+DATABASE_ROUTERS = ['accounts.routers.LogRouter']
 
 DATABASES = {
     'default': {
@@ -121,6 +124,14 @@ DATABASES = {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'use_unicode': True,
             'charset': 'utf8mb4',
+        },
+        'tankhah_logs_db': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'tankhah_logs_db',
+            'USER': 'root',
+            'PASSWORD': 'S@123456@1234',
+            'HOST': 'localhost',
+            'PORT': '3306',
         },
         'TEST': {
             'NAME': 'test_tankhasystem',

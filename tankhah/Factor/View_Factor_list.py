@@ -198,7 +198,7 @@ class FactorListView(PermissionBaseView, ListView):
             'query': self.request.GET.get('q', ''),
             'status_query': self.request.GET.get('status', ''),
             'date_query': self.request.GET.get('date', ''),
-            'status_choices': Factor.STATUS_CHOICES,
+            # 'status_choices': Factor.status.code,
             'user_level': user_level,
             'user_org_ids': user_org_ids,
         })

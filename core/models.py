@@ -10,8 +10,7 @@ from django.db import models
 
 import accounts.models
 from accounts.models import CustomUser
-from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, \
-    get_subproject_remaining_budget
+
 from tankhah.constants import ACTION_TYPES, ENTITY_TYPES
 from django.contrib.postgres.fields import ArrayField
 
@@ -329,10 +328,14 @@ class Project(models.Model):
     # total_budget = models.DecimalField(max_digits=25, decimal_places=2, default=0, verbose_name=_("بودجه کل تخصیص‌یافته"))  # فیلد جدید
 
     def get_total_budget(self):
+        from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, \
+    get_subproject_remaining_budget
         """محاسبه کل بودجه تخصیص‌یافته به پروژه"""
         return get_project_total_budget(self)
 
     def get_remaining_budget(self):
+        from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, \
+            get_subproject_remaining_budget
         return get_project_remaining_budget(self)
 
     def __str__(self):
@@ -363,6 +366,8 @@ class SubProject(models.Model):
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
 
     def get_remaining_budget(self):
+        from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, \
+            get_subproject_remaining_budget
         return get_subproject_remaining_budget(self)
 
     # def get_remaining_budget(self):

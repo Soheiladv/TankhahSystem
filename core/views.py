@@ -6,7 +6,6 @@ from time import timezone
 from django.db.models.functions import Coalesce
 from django.shortcuts import render, redirect
 from tankhah.models import Tankhah,  StageApprover
-logger = logging.getLogger(__name__)
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from core.PermissionBase import  PermissionBaseView
@@ -1135,54 +1134,6 @@ class OrganizationDeleteView(PermissionBaseView, DeleteView):
         return super().delete(request, *args, **kwargs)
 
 # پروژه‌هاچ
-class OLD__ProjectListView(PermissionBaseView, ListView):
-    model = Project
-    template_name = 'core/project_list.html'
-    context_object_name = 'projects'
-    paginate_by = 12
-    extra_context = {'title': _('لیست پروژه‌ها')}
-    permission_codename = 'core.Project_view'
-    check_organization = True
-
-    def get_queryset(self):
-        queryset = super().get_queryset().prefetch_related('budget_allocations', 'subprojects', 'tankhah_set')
-
-        # فقط سایر مقادیر را با annotate محاسبه می‌کنیم
-        queryset = queryset.annotate(
-            subproject_budget=Sum('subprojects__allocated_budget'),
-            tankhah_total=Sum('tankhah_set__amount', filter=Q(tankhah_set__status='PAID'))
-        )
-
-        query = self.request.GET.get('q')
-        status = self.request.GET.get('status')
-
-        if query:
-            queryset = queryset.filter(
-                Q(name__icontains=query) |
-                Q(code__icontains=query) |
-                Q(description__icontains=query) |
-                Q(subprojects__name__icontains=query)
-            ).distinct()
-
-        if status == 'active':
-            queryset = queryset.filter(is_active=True)
-        elif status == 'inactive':
-            queryset = queryset.filter(is_active=False)
-
-        return queryset.order_by('-start_date', 'name')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = _('مدیریت پروژه‌ها')
-        context['query'] = self.request.GET.get('q', '')
-        context['status'] = self.request.GET.get('status', '')
-
-        # محاسبه بودجه کل برای هر پروژه
-        projects = context['projects']
-        project_budgets = {project.id: get_project_total_budget(project) for project in projects}
-        context['project_budgets'] = project_budgets
-
-        return context
 class ProjectListView(PermissionBaseView, ListView):
     model = Project
     template_name = 'core/project_list.html'

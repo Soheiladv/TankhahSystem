@@ -2,149 +2,190 @@
 {% load i18n static jformat rcms_custom_filters %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="card shadow-lg animate__animated animate__fadeIn" style="border-radius: 15px;">
-        <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
-            <h4 class="card-title mb-0">{{ title }}</h4>
+    <div class="container mt-5">
+        <div class="card shadow-lg animate__animated animate__fadeIn" style="border-radius: 15px;">
+            <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
+                <h4 class="card-title mb-0">{{ title }}</h4>
 
-        </div>
-        <div class="card-body p-4">
-            <!-- اطلاعات اصلی فاکتور -->
-            <div class="mb-4">
-                <h4>{% trans "اطلاعات فاکتور" %}</h4>
-                <p><strong>{% trans "شماره فاکتور:" %}</strong> {{ factor.number|to_persian_number }}</p>
-                <p><strong>{% trans "تنخواه:" %}</strong> {{ factor.tanbakh.name }}</p>
-                <p><strong>{% trans "تاریخ:" %}</strong> {{ factor.date|jformat:"%Y/%m/%d" }}</p>
-                <p><strong>{% trans "مبلغ فاکتور:" %}</strong> {{ factor.amount|default:0|floatformat:0|to_persian_number }} {% trans "ریال" %}</p>
-                <p><strong>{% trans "توضیحات:" %}</strong> {{ factor.description|default:"-"|format_negative }}</p>
             </div>
-
-            <!-- اقلام فاکتور -->
-            <div class="card mb-4" style="border-radius: 10px;">
-                <div class="card-header bg-gradient-info text-white">
-                    <h3 class="card-title mb-0">{% trans "اقلام فاکتور" %}</h3>
+            <div class="card-body p-4">
+                <!-- اطلاعات اصلی فاکتور -->
+                <div class="mb-4">
+                    <h4>{% trans "اطلاعات فاکتور" %}</h4>
+                    <p><strong>{% trans "شماره فاکتور:" %}</strong> {{ factor.number|to_persian_number }}</p>
+                    <p><strong>{% trans "تنخواه:" %}</strong> {{ factor.tanbakh.name }}</p>
+                    <p><strong>{% trans "تاریخ:" %}</strong> {{ factor.date|jformat:"%Y/%m/%d" }}</p>
+                    <p>
+                        <strong>{% trans "مبلغ فاکتور:" %}</strong> {{ factor.amount|default:0|floatformat:0|to_persian_number }} {% trans "ریال" %}
+                    </p>
+                    <p><strong>{% trans "توضیحات:" %}</strong> {{ factor.description|default:"-"|format_negative }}</p>
                 </div>
-                <div class="card-body">
-                    {% if items_with_total %}
-                        <table class="table table-striped">
-                            <thead>
+
+                <!-- اقلام فاکتور -->
+                <div class="card mb-4" style="border-radius: 10px;">
+                    <div class="card-header bg-gradient-info text-white">
+                        <h3 class="card-title mb-0">{% trans "اقلام فاکتور" %}</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if items_with_total %}
+                            <table class="table table-striped">
+                                <thead>
                                 <tr>
                                     <th>{% trans "شرح" %}</th>
                                     <th>{% trans "مبلغ" %}</th>
                                     <th>{% trans "تعداد" %}</th>
                                     <th>{% trans "جمع" %}</th>
                                 </tr>
-                            </thead>
-                            <tbody>
+                                </thead>
+                                <tbody>
                                 {% for item_data in items_with_total %}
                                     <tr>
                                         <td>{{ item_data.item.description|format_negative }}</td>
                                         <td>{{ item_data.item.amount|format_negative }}</td>
                                         <td>{{ item_data.item.quantity|format_negative }}</td>
-                                        <td>{{ item_data.total |format_negative}} {% trans "ریال" %}</td>
+                                        <td>{{ item_data.total |format_negative }} {% trans "ریال" %}</td>
                                     </tr>
+
+                                    {% if factor.status == 'DRAFT' and request.user == factor.created_by %}
+                                        <div class="card my-4">
+                                            <div class="card-body text-center">
+                                                <h5 class="card-title">{% trans "اقدام بعدی" %}</h5>
+                                                <p class="card-text">{% trans "این فاکتور به صورت پیش‌نویس ذخیره شده است. پس از اطمینان از صحت اطلاعات، آن را برای شروع فرآیند تأیید ارسال کنید." %}</p>
+
+                                                <form method="post"
+                                                      action="{% url 'factor_submit_for_approval' factor.pk %}">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-success btn-lg">
+                                                        <i class="fas fa-paper-plane me-2"></i>
+                                                        {% trans "ارسال برای تأیید" %}
+                                                    </button>
+                                                </form>
+
+                                            </div>
+                                        </div>
+                                    {% endif %}
                                 {% endfor %}
-                            </tbody>
-                        </table>
-                    {% else %}
-                        <p class="text-muted">{% trans "هیچ قلم فاکتوری ثبت نشده است." %}</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- اسناد فاکتور -->
-            <div class="card mb-4" style="border-radius: 10px;">
-                <div class="card-header bg-gradient-warning text-white">
-                    <h3 class="card-title mb-0">{% trans "اسناد فاکتور" %}</h3>
-                </div>
-                <div class="card-body">
-                    {% if factor.documents.exists %}
-                        <ul class="list-group">
-                            {% for doc in factor.documents.all %}
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <a href="{{ doc.file.url }}" target="_blank" class="text-primary">
-                                        <i class="fas fa-file-pdf me-2"></i>{{ doc.file.name|truncatechars:30| to_persian_number }}
-                                    </a>
-                                    <span class="badge bg-secondary">{{ doc.uploaded_at|jformat:"%Y-%m-%d %H:%m" }}</span>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="text-muted">{% trans "هیچ سندی برای این فاکتور ثبت نشده است." %}</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- اسناد تنخواه -->
-            <div class="card mb-4" style="border-radius: 10px;">
-                <div class="card-header bg-gradient-success text-white">
-                    <h3 class="card-title mb-0">{% trans "اسناد تنخواه" %}</h3>
-                </div>
-                <div class="card-body">
-                    {% if tanbakh_documents %}
-                        <ul class="list-group">
-                            {% for doc in tanbakh_documents %}
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <a href="{{ doc.document.url }}" target="_blank" class="text-primary">
-                                        <i class="fas fa-file-pdf me-2"></i>{{ doc.document.name|truncatechars:30 }}
-                                    </a>
-                                    <span class="badge bg-secondary">{{ doc.uploaded_at|jformat:"%Y-%m-%d %H:%m"  }}</span>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="text-muted">{% trans "هیچ سندی برای تنخواه ثبت نشده است." %}</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- جمع کل -->
-            <div class="card mb-4" style="border-radius: 10px;">
-                <div class="card-header bg-gradient-success text-white">
-                    <h3 class="card-title mb-0">{% trans "جمع کل" %}</h3>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-6 mb-3">
-                            <strong>{% trans "جمع کل اقلام:" %}</strong>
-                            <span class="badge bg-info text-white fs-5">{{ total_amount|format_negative }}</span> {% trans "ریال" %}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <strong>{% trans "مبلغ فاکتور:" %}</strong>
-                            <span class="badge bg-primary text-white fs-5">{{ factor.amount|format_negative }}</span> {% trans "ریال" %}
-                        </div>
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <p class="text-muted">{% trans "هیچ قلم فاکتوری ثبت نشده است." %}</p>
+                        {% endif %}
                     </div>
-                    <div class="row text-center mt-3">
-                        <div class="col-md-12">
-                            <strong>{% trans "تفاوت:" %}</strong>
-                            <span class="badge fs-5 {{ difference|floatformat:0| yesno:'bg-success,bg-danger,bg-warning' }} text-white">
-                                {{ difference|format_negative}}
+                </div>
+
+                <!-- اسناد فاکتور -->
+                <div class="card mb-4" style="border-radius: 10px;">
+                    <div class="card-header bg-gradient-warning text-white">
+                        <h3 class="card-title mb-0">{% trans "اسناد فاکتور" %}</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if factor.documents.exists %}
+                            <ul class="list-group">
+                                {% for doc in factor.documents.all %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <a href="{{ doc.file.url }}" target="_blank" class="text-primary">
+                                            <i class="fas fa-file-pdf me-2"></i>{{ doc.file.name|truncatechars:30| to_persian_number }}
+                                        </a>
+                                        <span class="badge bg-secondary">{{ doc.uploaded_at|jformat:"%Y-%m-%d %H:%m" }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted">{% trans "هیچ سندی برای این فاکتور ثبت نشده است." %}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- اسناد تنخواه -->
+                <div class="card mb-4" style="border-radius: 10px;">
+                    <div class="card-header bg-gradient-success text-white">
+                        <h3 class="card-title mb-0">{% trans "اسناد تنخواه" %}</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if tanbakh_documents %}
+                            <ul class="list-group">
+                                {% for doc in tanbakh_documents %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <a href="{{ doc.document.url }}" target="_blank" class="text-primary">
+                                            <i class="fas fa-file-pdf me-2"></i>{{ doc.document.name|truncatechars:30 }}
+                                        </a>
+                                        <span class="badge bg-secondary">{{ doc.uploaded_at|jformat:"%Y-%m-%d %H:%m" }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted">{% trans "هیچ سندی برای تنخواه ثبت نشده است." %}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- جمع کل -->
+                <div class="card mb-4" style="border-radius: 10px;">
+                    <div class="card-header bg-gradient-success text-white">
+                        <h3 class="card-title mb-0">{% trans "جمع کل" %}</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-6 mb-3">
+                                <strong>{% trans "جمع کل اقلام:" %}</strong>
+                                <span class="badge bg-info text-white fs-5">{{ total_amount|format_negative }}</span> {% trans "ریال" %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <strong>{% trans "مبلغ فاکتور:" %}</strong>
+                                <span class="badge bg-primary text-white fs-5">{{ factor.amount|format_negative }}</span> {% trans "ریال" %}
+                            </div>
+                        </div>
+                        <div class="row text-center mt-3">
+                            <div class="col-md-12">
+                                <strong>{% trans "تفاوت:" %}</strong>
+                                <span class="badge fs-5 {{ difference|floatformat:0| yesno:'bg-success,bg-danger,bg-warning' }} text-white">
+                                {{ difference|format_negative }}
                             </span> {% trans "ریال" %}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- دکمه بازگشت -->
-            <div class="text-end">
-                <a href="{% url 'factor_list' %}" class="btn btn-secondary mt-3">
-                    <i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت به لیست" %}
-                </a>
+                <!-- دکمه بازگشت -->
+                <div class="text-end">
+                    <a href="{% url 'factor_list' %}" class="btn btn-secondary mt-3">
+                        <i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت به لیست" %}
+                    </a>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- استایل‌ها -->
-<style>
-    .bg-gradient-primary { background: linear-gradient(135deg, #007bff, #0056b3); }
-    .bg-gradient-info { background: linear-gradient(135deg, #17a2b8, #117a8b); }
-    .bg-gradient-warning { background: linear-gradient(135deg, #ffc107, #e0a800); }
-    .bg-gradient-success { background: linear-gradient(135deg, #28a745, #1e7e34); }
-    .card { transition: transform 0.3s ease; }
-    .card:hover { transform: translateY(-5px); }
-    .badge { padding: 0.5em 1em; }
-</style>
+    <!-- استایل‌ها -->
+    <style>
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+        }
+
+        .bg-gradient-info {
+            background: linear-gradient(135deg, #17a2b8, #117a8b);
+        }
+
+        .bg-gradient-warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+        }
+
+        .bg-gradient-success {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+        }
+
+        .card {
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .badge {
+            padding: 0.5em 1em;
+        }
+    </style>
 {% endblock %}
 
 {#{% extends 'base.html' %}#}

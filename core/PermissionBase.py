@@ -127,12 +127,21 @@ class PermissionBaseView(LoginRequiredMixin, View):
             logger.info("[PermissionBaseView] کاربر superuser یا دارای مجوز Tankhah_view_all است، دسترسی کامل")
             return super().dispatch(request, *args, **kwargs)
 
-        # بررسی مجوزهای تعریف‌شده
+        # 1. بررسی پرمیشن‌های کلی (مانند factor_add)
         if self.permission_codenames and not self._has_permissions(request.user):
-            logger.warning(f"[PermissionBaseView] کاربر {request.user} مجوزهای لازم را ندارد: {self.permission_codenames}")
+            logger.warning(
+                f"[PermissionBaseView] کاربر {request.user} مجوزهای لازم را ندارد: {self.permission_codenames}")
             return self.handle_no_permission()
+        logger.debug(f"[PermissionBaseView] کاربر {request.user} مجوزهای کلی را دارد.")
+
+        # # بررسی مجوزهای تعریف‌شده
+        # if self.permission_codenames and not self._has_permissions(request.user):
+        #     logger.warning(f"[PermissionBaseView] کاربر {request.user} مجوزهای لازم را ندارد: {self.permission_codenames}")
+        #     return self.handle_no_permission()
 
         # بررسی دسترسی سازمانی برای ویوهای غیر ListView
+        # 2. بررسی دسترسی سازمانی (فقط اگر check_organization=True باشد)
+        # **تغییر کلیدی:** این بخش فقط برای ویوهایی اجرا می‌شود که با یک شیء موجود سروکار دارند.
         if self.check_organization :
             if not isinstance(self, (CreateView, ListView)):
                 if not self._has_organization_access(request, **kwargs):
@@ -142,17 +151,17 @@ class PermissionBaseView(LoginRequiredMixin, View):
                     logger.debug(
                         "[PermissionBaseView] بررسی دسترسی سازمانی برای CreateView/ListView در dispatch نادیده گرفته شد (به صورت دستی در ویو انجام می‌شود).")
 
-                # 3. بررسی پست فعال برای درخواست‌های POST
-                if request.method == 'POST':
-                    if not request.user.userpost_set.filter(is_active=True).exists():
-                        logger.warning(
-                            f"User '{request.user.username}' attempted a POST action without an active post.")
-                        messages.error(request, _("شما برای انجام این عملیات باید یک پست سازمانی فعال داشته باشید."))
-                        return redirect(request.path_info)
+        # 3. بررسی پست فعال برای درخواست‌های POST
+        if request.method == 'POST':
+            if not request.user.userpost_set.filter(is_active=True).exists():
+                logger.warning(
+                    f"User '{request.user.username}' attempted a POST action without an active post.")
+                messages.error(request, _("شما برای انجام این عملیات باید یک پست سازمانی فعال داشته باشید."))
+                return redirect(request.path_info)
 
-                logger.info(
-                    f"[PermissionBaseView] تمام بررسی‌های دسترسی برای {self.__class__.__name__} موفقیت‌آمیز بود.")
-                return super().dispatch(request, *args, **kwargs)
+        logger.info(
+            f"[PermissionBaseView] تمام بررسی‌های دسترسی برای {self.__class__.__name__} موفقیت‌آمیز بود.")
+        return super().dispatch(request, *args, **kwargs)
 
         return super().dispatch(request, *args, **kwargs)
 

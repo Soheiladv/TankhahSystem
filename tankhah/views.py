@@ -34,6 +34,9 @@ from django.db.models import Max, Q
 from django.utils import timezone
 logger = logging.getLogger('TankhahViews')
 
+def RulesUserGuideView(request):
+    extra_context = {'title': _('راهنمای کاربر: تخصیص قوانین دسترسی')}
+    return render(request, template_name='help/ruls.new.html')
 ###########################################
 # ثبت و ویرایش تنخواه
 def get_subprojects(request):

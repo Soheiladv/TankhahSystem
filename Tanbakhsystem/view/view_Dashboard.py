@@ -227,6 +227,7 @@ dashboard_links = {
     'قوانین سیستم (رول‌های دسترسی)': [
         {'name': _('قوانین سیستم (رول‌های دسترسی)'), 'url': 'post_access_rule_assign_old', 'icon': 'fas fa-gavel'},
         {'name': _('قوانین سیستم (هیبریدی)'), 'url': 'workflow_select', 'icon': 'fas fa-gavel'},
+        {'name': _('قوانین سیستم گردش محور'), 'url': 'workflow_dashboard', 'icon': 'fas fa-gavel'},
         # چکش (نماد قانون)
     ],
     'دیگر لینک‌ها': [
@@ -308,20 +309,20 @@ class DashboardView___(LoginRequiredMixin, View):
             # آمار پایه
             stats.update({
                 'active_tankhah_count': Tankhah.objects.filter(
-                    status__in=['PENDING', 'APPROVED', 'SENT_TO_HQ', 'HQ_OPS_PENDING', 'HQ_OPS_APPROVED',
+                    status__code__in=['PENDING', 'APPROVED', 'SENT_TO_HQ', 'HQ_OPS_PENDING', 'HQ_OPS_APPROVED',
                                 'HQ_FIN_PENDING']
                 ).count(),
                 'pending_tankhah_count': Tankhah.objects.filter(
-                    status__in=['PENDING', 'SENT_TO_HQ', 'HQ_OPS_PENDING', 'HQ_FIN_PENDING']
+                    status__code__in=['PENDING', 'SENT_TO_HQ', 'HQ_OPS_PENDING', 'HQ_FIN_PENDING']
                 ).count(),
                 'rejected_factors_count': Factor.objects.filter(
-                    status='REJECTED',
+                    status__code__in='REJECTED',
                     date__gte=now - timedelta(days=90)
                 ).count(),
                 'total_allocated_tankhah': Tankhah.objects.aggregate(
                     total=Coalesce(Sum('amount'), Decimal('0'))
                 )['total'],
-                'total_spent_factors': Factor.objects.filter(status='PAID').aggregate(
+                'total_spent_factors': Factor.objects.filter(status__code__in='PAID').aggregate(
                     total=Coalesce(Sum('amount'), Decimal('0'))
                 )['total'],
             })
@@ -331,7 +332,7 @@ class DashboardView___(LoginRequiredMixin, View):
             month_end = (jdatetime.date(j_now.year, j_now.month,
                                         jdatetime.j_days_in_month[j_now.month - 1]).togregorian() + timedelta(days=1))
             stats['current_month_paid_factors'] = Factor.objects.filter(
-                status='PAID',
+                status__code='PAID',
                 date__range=(month_start, month_end)
             ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
 
@@ -350,7 +351,7 @@ class DashboardView___(LoginRequiredMixin, View):
                     monthly_factors.append({
                         'label': month_label,
                         'value': float(Factor.objects.filter(
-                            status='PAID',
+                            status__code='PAID',
                             date__range=(start_date, end_date)
                         ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'])
                     })
@@ -373,7 +374,7 @@ class DashboardView___(LoginRequiredMixin, View):
                 quarterly_factors.append({
                     'label': f"فصل {quarter} {year}",
                     'value': float(Factor.objects.filter(
-                        status='PAID',
+                        status__code='PAID',
                         date__range=(start_date, end_date)
                     ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'])
                 })
@@ -418,7 +419,7 @@ class DashboardView___(LoginRequiredMixin, View):
         context['total_allocated_tankhah'] = Tankhah.objects.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))[
                                                  'total'] or Decimal('0')
         context['total_spent_on_factors'] = \
-        Factor.objects.filter(status='PAID').aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'] or Decimal(
+        Factor.objects.filter(status__code='PAID').aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'] or Decimal(
             '0')
         context['total_unspent_tankhah'] = (context['total_allocated_tankhah'] - context[
             'total_spent_on_factors']) or Decimal('0')
@@ -447,7 +448,7 @@ class DashboardView___(LoginRequiredMixin, View):
                 # )
 
                 # مصرف بودجه بر اساس دسته
-                category_consumption = Factor.objects.filter(status='PAID').values('category__name').annotate(
+                category_consumption = Factor.objects.filter(status__code='PAID').values('category__name').annotate(
                     total_spent=Sum('amount')
                 ).order_by('-total_spent')[:7]
                 if not category_consumption:
@@ -531,7 +532,7 @@ class DashboardView___(LoginRequiredMixin, View):
                 end_gregorian = current_jalali_month_end.togregorian()
 
                 current_month_total_amount = Factor.objects.filter(
-                    status='PAID',
+                    status__code='PAID',
                     date__range=(start_gregorian, end_gregorian)
                 ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'] or Decimal('5000000')
                 context['current_month_total_amount'] = current_month_total_amount
@@ -541,7 +542,7 @@ class DashboardView___(LoginRequiredMixin, View):
                 # )
 
                 monthly_paid_factors = Factor.objects.filter(
-                    status='PAID',
+                    status__code='PAID',
                     date__gte=(now - timedelta(days=180))
                 ).annotate(month=TruncMonth('date')).values('month').annotate(
                     total_amount=Sum('amount')
@@ -575,7 +576,7 @@ class DashboardView___(LoginRequiredMixin, View):
                 # logger.info(f"Monthly report: labels={monthly_labels}, values={monthly_values}")
 
                 quarterly_paid_factors = Factor.objects.filter(
-                    status='PAID',
+                    status__code='PAID',
                     date__gte=(now - timedelta(days=365))
                 ).annotate(quarter_date=TruncQuarter('date')).values('quarter_date').annotate(
                     total_amount=Sum('amount')
@@ -807,7 +808,21 @@ class DashboardView(LoginRequiredMixin, View):
             'monthly_factors_data': {'labels': [], 'values': []},
             'quarterly_factors_data': {'labels': [], 'values': []}
         }
-
+        # **اصلاح کلیدی:** تعریف لیست کدهای وضعیت برای استفاده در کوئری‌ها
+        active_tankhah_status_codes = ['PENDING', 'APPROVED', 'SENT_TO_HQ', 'HQ_OPS_PENDING', 'HQ_OPS_APPROVED',
+                                       'HQ_FIN_PENDING']
+        pending_tankhah_status_codes = ['PENDING', 'SENT_TO_HQ', 'HQ_OPS_PENDING', 'HQ_FIN_PENDING']
+        stats = {
+            # فیلتر بر اساس status__code__in
+            'active_tankhah_count': Tankhah.objects.filter(status__code__in=active_tankhah_status_codes).count(),
+            'pending_tankhah_count': Tankhah.objects.filter(status__code__in=pending_tankhah_status_codes).count(),
+            # فیلتر بر اساس status__code
+            'rejected_factors_count': Factor.objects.filter(status__code='REJECT').count(),
+            'total_allocated_tankhah': Tankhah.objects.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'],
+            'total_spent_factors':
+                Factor.objects.filter(status__code='PAID').aggregate(total=Coalesce(Sum('amount'), Decimal('0')))[
+                    'total'],
+        }
         try:
             # آمار پایه
             stats.update({
@@ -824,7 +839,7 @@ class DashboardView(LoginRequiredMixin, View):
                 'total_allocated_tankhah': Tankhah.objects.aggregate(
                     total=Coalesce(Sum('amount'), Decimal('0'))
                 )['total'],
-                'total_spent_factors': Factor.objects.filter(status='PAID').aggregate(
+                'total_spent_factors': Factor.objects.filter(status__code='PAID').aggregate(
                     total=Coalesce(Sum('amount'), Decimal('0'))
                 )['total'],
             })
@@ -834,7 +849,7 @@ class DashboardView(LoginRequiredMixin, View):
             month_end = (jdatetime.date(j_now.year, j_now.month,
                                         jdatetime.j_days_in_month[j_now.month - 1]).togregorian() + timedelta(days=1))
             stats['current_month_paid_factors'] = Factor.objects.filter(
-                status='PAID',
+                status__code='PAID',
                 date__range=(month_start, month_end)
             ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
 
@@ -852,7 +867,7 @@ class DashboardView(LoginRequiredMixin, View):
                     monthly_factors.append({
                         'label': month_label,
                         'value': float(Factor.objects.filter(
-                            status='PAID',
+                            status__code='PAID',
                             date__range=(start_date, end_date)
                         ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'])
                     })
@@ -875,7 +890,7 @@ class DashboardView(LoginRequiredMixin, View):
                 quarterly_factors.append({
                     'label': f"فصل {quarter} {year}",
                     'value': float(Factor.objects.filter(
-                        status='PAID',
+                        status__code='PAID',
                         date__range=(start_date, end_date)
                     ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'])
                 })
@@ -915,7 +930,7 @@ class DashboardView(LoginRequiredMixin, View):
         context['active_budget_allocations_count'] = BudgetAllocation.objects.filter(is_active=True).count() or 0
         context['active_cost_centers_count'] = Project.objects.filter(is_active=True).count() or 0
         context['total_allocated_tankhah'] = Tankhah.objects.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'] or Decimal('0')
-        context['total_spent_on_factors'] = Factor.objects.filter(status='PAID').aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'] or Decimal('0')
+        context['total_spent_on_factors'] = Factor.objects.filter(status__code='PAID').aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total'] or Decimal('0')
         context['total_unspent_tankhah'] = (context['total_allocated_tankhah'] - context['total_spent_on_factors']) or Decimal('0')
 
         # آمار بودجه
@@ -936,7 +951,7 @@ class DashboardView(LoginRequiredMixin, View):
                 )
 
                 # مصرف بودجه بر اساس دسته
-                category_consumption = Factor.objects.filter(status='PAID').values('category__name').annotate(
+                category_consumption = Factor.objects.filter(status__code='PAID').values('category__name').annotate(
                     total_spent=Sum('amount')
                 ).order_by('-total_spent')[:7]
                 if not category_consumption:
@@ -995,34 +1010,33 @@ class DashboardView(LoginRequiredMixin, View):
         # وضعیت پروژه‌ها
         if context['can_view_project_status']:
             try:
+
+
+
                 projects_status = []
+                active_projects = Project.objects.filter(is_active=True).annotate(
+                    total_budget=Coalesce(Sum('allocations__allocated_amount'), Decimal('0'))
+                ).filter(total_budget__gt=0).order_by('-start_date')[:5]
+                #
                 # active_projects = Project.objects.filter(
                 #     is_active=True
                 # ).annotate(
-                #     total_budget=Coalesce(Sum('budget_allocations__allocated_amount'), Decimal('0'))
+                #     total_budget=Coalesce(Sum('allocations__allocated_amount'), Decimal('0'))
                 # ).filter(
                 #     total_budget__gt=0
                 # ).order_by('-start_date')[:5]
-
-                active_projects = Project.objects.filter(
-                    is_active=True
-                ).annotate(
-                    total_budget=Coalesce(Sum('allocations__allocated_amount'), Decimal('0'))
-                ).filter(
-                    total_budget__gt=0
-                ).order_by('-start_date')[:5]
-
+                projects_status = []
                 for project in active_projects:
                     allocated = self.get_project_total_budget(project)
                     consumed = self.get_project_used_budget(project)
                     remaining = self.get_project_remaining_budget(project)
-                    percentage_consumed = (consumed / allocated * 100) if allocated > 0 else 0
                     projects_status.append({
-                        'name': project.name or "پروژه بدون نام",
-                        'allocated': allocated,
-                        'consumed': consumed,
-                        'remaining': remaining,
-                        'percentage_consumed': percentage_consumed
+                        'name': project.name,
+                        'allocated': get_project_total_budget(project),
+                        'consumed': get_project_used_budget(project),
+                        'remaining': get_project_remaining_budget(project),
+                        'percentage_consumed': ((get_project_used_budget(project) / get_project_total_budget(
+                            project)) * 100 if get_project_total_budget(project) > 0 else 0)
                     })
 
                     # ارسال اعلان برای بودجه کم

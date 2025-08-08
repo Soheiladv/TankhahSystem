@@ -204,10 +204,11 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView
 from django.forms import inlineformset_factory
 
+from budgets.budget_calculations import get_tankhah_remaining_budget
 # --- Import های لازم ---
 # مطمئن شوید تمام این مدل‌ها و فرم‌ها به درستی import شده‌اند
 from core.PermissionBase import PermissionBaseView
-from core.models import AccessRule, Post
+from core.models import AccessRule, Post, Status
 from notificationApp.utils import send_notification
 from tankhah.Factor.NF.form_Nfactor import FactorItemForm, FactorForm
 from tankhah.models import Factor, Tankhah, FactorItem, FactorDocument, ApprovalLog, FactorHistory
@@ -307,26 +308,56 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
             messages.error(self.request, _('لطفاً خطاهای ردیف‌های فاکتور را اصلاح کنید.'))
             return self.form_invalid(form)
 
+        # --- ۳. محاسبه مبلغ کل و بررسی بودجه ---
+        total_items_amount = Decimal('0')
+        for item_form in item_formset:
+            if item_form.is_valid() and item_form.has_changed() and not item_form.cleaned_data.get('DELETE'):
+                quantity = item_form.cleaned_data.get('quantity', 0)
+                unit_price = item_form.cleaned_data.get('unit_price', 0)
+                total_items_amount += (quantity * unit_price)
+
+        factor_total_amount  = form.cleaned_data.get('amount', Decimal('0'))
+        total_amount= factor_total_amount
+        tankhah = form.cleaned_data.get('tankhah')
+        remaining_budget = get_tankhah_remaining_budget(tankhah)
+        if factor_total_amount > remaining_budget:
+            form.add_error(None, _('مجموع مبلغ ردیف‌ها از بودجه باقی‌مانده تنخواه بیشتر است.'))
+            return self.form_invalid(form)
+
+        # یک تلورانس کوچک برای جلوگیری از خطاهای اعشاری در نظر می‌گیریم
+        if abs(total_items_amount - factor_total_amount) > Decimal('0.01'):
+            error_msg = _('مبلغ کل فاکتور ({:,.0f}) با مجموع ردیف‌ها ({:,.0f}) همخوانی ندارد.').format(
+                factor_total_amount, total_items_amount)
+            messages.error(self.request, error_msg)
+            # می‌توانیم خطا را به فیلد amount اضافه کنیم تا در فرم نمایش داده شود
+            form.add_error('amount', error_msg)
+            return self.form_invalid(form)
+        # ----  ذخیره سازی
         try:
             # --- مرحله ۳: شروع تراکنش اتمیک برای تضمین یکپارچگی داده‌ها ---
             with transaction.atomic():
                 logger.debug("--- [TRANSACTION START] ---")
-
-                # پیدا کردن مرحله اولیه گردش کار قبل از هرگونه ذخیره‌سازی
-                initial_stage = AccessRule.objects.filter(
-                    organization=tankhah.organization, entity_type='FACTORITEM'
-                ).order_by('-stage_order').first()  # <-- مرتب‌سازی نزولی برای پیدا کردن بزرگترین عدد
-
-                # ).order_by('stage_order').first()
-
-                if not initial_stage:
-                    messages.error(self.request, _('هیچ گردش کاری برای فاکتور در این سازمان تعریف نشده است.'))
-                    raise transaction.TransactionManagementError('No initial workflow stage found for FACTORITEM.')
-
                 # ذخیره فاکتور اصلی برای گرفتن ID
+                try:
+                    initial_factor_status = Status.objects.get(code='DRAFT', is_initial=True)
+                    logger.info(f'initial_factor_status: {initial_factor_status}')
+                except Status.DoesNotExist:
+                    messages.error(self.request, _("وضعیت اولیه 'DRAFT' در سیستم تعریف نشده است!"))
+                    messages.error(self.request,
+                                   _("هیچ وضعیت اولیه‌ای در سیستم تعریف نشده است! لطفاً با مدیر سیستم تماس بگیرید."))
+                    raise transaction.TransactionManagementError('Initial DRAFT status not found.')
+                except Status.MultipleObjectsReturned:
+                    messages.error(self.request,
+                                   _("بیش از یک وضعیت اولیه در سیستم تعریف شده است! لطفاً با مدیر سیستم تماس بگیرید."))
+                    raise transaction.TransactionManagementError('Multiple initial statuses found.')
+
+                # --- ذخیره فاکتور با وضعیت صحیح ---
                 self.object = form.save(commit=False)
-                self.object.created_by = user
-                self.object.status = 'PENDING_APPROVAL'  # وضعیت اولیه
+                self.object.created_by = self.request.user
+                self.object.status = initial_factor_status   # <-- **اصلاح کلیدی**
+                # self.object.amount = total_amount # <-- مبلغ محاسبه شده
+
+                logger.warning(f'After Save Method :self.object.amount: {self.object.amount} - self.object.created_by: {self.object.created_by} - self.object.status: {initial_factor_status}')
                 self.object.save()
                 logger.info(f"Factor object PK {self.object.pk} created and saved.")
 
@@ -334,21 +365,15 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
                 item_formset.instance = self.object
                 item_formset.save()
                 logger.info(f"{item_formset.total_form_count()} item(s) saved for factor PK {self.object.pk}.")
+                self.object.update_total_amount() # از متد مدل استفاده می‌کنیم
 
-                # محاسبه مجدد و آپدیت مبلغ کل فاکتور برای اطمینان از صحت داده‌ها
-                total_amount = self.object.items.aggregate(total=models.Sum('amount'))['total'] or Decimal('0')
-                if abs(self.object.amount - total_amount) > Decimal('0.01'):
-                    messages.warning(self.request, _('مبلغ کل فاکتور بر اساس مجموع ردیف‌ها اصلاح شد.'))
-                    self.object.amount = total_amount
-                    self.object.save(update_fields=['amount'])
+                # -----
+                # --- ذخیره اسناد ---
+                if document_form.is_valid():
+                    for file in document_form.cleaned_data.get('files', []):
+                        FactorDocument.objects.create(factor=self.object, file=file, uploaded_by=self.request.user)
 
-                # آپدیت مرحله فعلی تنخواه به اولین مرحله گردش کار
-                tankhah.current_stage = initial_stage
-                tankhah.save(update_fields=['current_stage'])
-                logger.info(f"Tankhah {tankhah.pk} current_stage updated to: '{initial_stage.stage}'.")
-
-                # ذخیره اسناد، ایجاد لاگ و ارسال نوتیفیکیشن
-                self._create_related_objects_and_notify(self.object, user, tankhah, initial_stage, document_form)
+                logger.info(f"Factor PK {self.object.pk} and its items created successfully.")
 
         except Exception as e:
             logger.error(f"FATAL: Exception during atomic transaction: {e}", exc_info=True)

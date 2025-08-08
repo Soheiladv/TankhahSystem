@@ -4,6 +4,7 @@ from django.urls import path
 from budgets.PaymentOrder.view_PaymentOrder import TankhahUpdateStatusView
 from budgets.budget_calculations import get_budget_info, get_tankhah_budget_info
 from tankhah.Factor import FactorItemsDetailView
+from tankhah.Factor.Approved.SubmitFactor import SubmitFactorForApprovalView
 from tankhah.Factor.FactorStatusReviewView import FactorStatusReviewView, AdvancedFactorStatusReviewView, \
     ComprehensiveFactorDetailView, UltimateFactorDetailView
 from tankhah.Factor.NF.view_Nfactor import New_FactorCreateView
@@ -15,8 +16,6 @@ from tankhah.FactorStatusDashboard.FactorStatusDashboardView import FactorStatus
 from tankhah.Services.views_FactorApproval import FactorApprovalView
 from tankhah.TankhahTrackingView import TankhahTrackingViewOLDer, TankhahStatusView, TankhahApprovalTimelineView
 from tankhah.view_folder_tankhah.EnhancedTankhahUpdateStatus import EnhancedTankhahUpdateStatusView
-# from tankhah.view.view_Notification import NotificationListView, NotificationCreateView, NotificationUpdateView, \
-#     NotificationDeleteView
 from tankhah.view_folder_tankhah.view_tankhah import (
     TankhahDetailView, TankhahCreateView, TankhahDeleteView,
     TankhahListView, TankhahApproveView, TankhahUpdateView, TankhahRejectView, get_projects
@@ -26,7 +25,7 @@ from tankhah.views import (
     FactorItemRejectView,
     upload_tankhah_documents, ApprovalLogListView, FactorStatusUpdateView, mark_notification_as_read,
     get_subprojects, FactorDetailView, FactorDeleteView, get_unread_notifications,
-     ItemCategoryListView, ItemCategoryCreateView, ItemCategoryUpdateView, ItemCategoryDeleteView
+    ItemCategoryListView, ItemCategoryCreateView, ItemCategoryUpdateView, ItemCategoryDeleteView, RulesUserGuideView
 )
 from tankhah.Factor.view_Factor import (FactorCreateView,
                                         TankhahBudgetInfoAjaxView,  BudgetCheckView)
@@ -259,8 +258,12 @@ urlpatterns += [
 
     path('dashboard/', DashboardView___.as_view(), name='dashboard__'),
 
+    # -- ADD submite
+    path('factor/<int:pk>/submit/', SubmitFactorForApprovalView.as_view(), name='factor_submit_for_approval'),
 
-
+]
+urlpatterns += [
+path('rules_user-guide/', RulesUserGuideView , name='RulesUserGuideView'),
 ]
 
 

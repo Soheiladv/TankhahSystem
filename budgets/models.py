@@ -210,15 +210,15 @@ class BudgetPeriod(models.Model):
         except Exception as e:
             logger.error(f"Error applying warning action for BudgetPeriod {self.pk}: {str(e)}")
 
-    def send_notification(self, status, message):
-        """ارسال اعلان"""
-        try:
-            from accounts.models import CustomUser
-            recipients = CustomUser.objects.filter(is_active=True)
-            send_notification(self, status, message, recipients)
-            logger.info(f"Notification sent for BudgetPeriod {self.pk}: {status} - {message}")
-        except Exception as e:
-            logger.error(f"Error sending notification for BudgetPeriod {self.pk}: {str(e)}")
+    # def send_notification(self, status, message):
+    #     """ارسال اعلان"""
+    #     try:
+    #         from accounts.models import CustomUser
+    #         recipients = CustomUser.objects.filter(is_active=True)
+    #         send_notification(self, status, message, recipients)
+    #         logger.info(f"Notification sent for BudgetPeriod {self.pk}: {status} - {message}")
+    #     except Exception as e:
+    #         logger.error(f"Error sending notification for BudgetPeriod {self.pk}: {str(e)}")
 """ BudgetAllocation (تخصیص بودجه):"""
 class BudgetAllocation(models.Model):
     """
@@ -344,11 +344,11 @@ class BudgetAllocation(models.Model):
         allocated = self.allocated_amount
         spent_amount = Tankhah.objects.filter(
             project_budget_allocation=self,  # تأیید شده
-            status__in=['APPROVED', 'PAID']
+            status__code=['APPROVED', 'PAID']
         ).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
         pending_amount = Tankhah.objects.filter(
             project_budget_allocation=self,  # تأیید شده
-            status__in=['DRAFT', 'PENDING']
+            status__code=['DRAFT', 'PENDING']
         ).exclude(pk=self.pk).aggregate(Sum('amount'))['amount__sum'] or Decimal('0')
         return allocated - (spent_amount + pending_amount)
 
@@ -433,21 +433,21 @@ class BudgetAllocation(models.Model):
             logger.error(f"Error saving BudgetAllocation: {str(e)}", exc_info=True)
             raise
 
-    def send_notification(self, status, message):
-        """ارسال اعلان به کاربران مرتبط"""
-        from accounts.models import CustomUser
-        from django.db.models import Q
-        try:
-            # فقط کاربران فعال مرتبط با سازمان تخصیص
-            recipients = CustomUser.objects.filter(
-                userpost__post__organization=self.organization,
-                is_active=True
-            ).distinct()
-            # فرض می‌کنیم تابع send_notification در core.utils تعریف شده است
-            send_notification(self, status, message, recipients)
-            logger.info(f"Notification sent for BudgetAllocation {self.pk}: {status} - {message}")
-        except Exception as e:
-            logger.error(f"Error sending notification for BudgetAllocation {self.pk}: {str(e)}")
+    # def send_notification(self, status, message):
+    #     """ارسال اعلان به کاربران مرتبط"""
+    #     from accounts.models import CustomUser
+    #     from django.db.models import Q
+    #     try:
+    #         # فقط کاربران فعال مرتبط با سازمان تخصیص
+    #         recipients = CustomUser.objects.filter(
+    #             userpost__post__organization=self.organization,
+    #             is_active=True
+    #         ).distinct()
+    #         # فرض می‌کنیم تابع send_notification در core.utils تعریف شده است
+    #         send_notification(self, status, message, recipients)
+    #         logger.info(f"Notification sent for BudgetAllocation {self.pk}: {status} - {message}")
+    #     except Exception as e:
+    #         logger.error(f"Error sending notification for BudgetAllocation {self.pk}: {str(e)}")
 """ BudgetItem (نوع ردیف بودجه):"""
 class BudgetItem(models.Model):
     budget_period = models.ForeignKey('BudgetPeriod', on_delete=models.CASCADE, related_name='budget_items',

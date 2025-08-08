@@ -141,8 +141,8 @@ class TabbedFinancialDashboardView(LoginRequiredMixin, View):
 
         data['tankhah_kpis'] = {
             'total_tankhah_requested': Tankhah.objects.filter(tankhah_q).aggregate(total=Sum('amount'))['total'] or Decimal('0'),
-            'paid_tankhah_amount': Tankhah.objects.filter(tankhah_q, status='PAID').aggregate(total=Sum('amount'))['total'] or Decimal('0'),
-            'open_tankhah_count': Tankhah.objects.filter(tankhah_q, status__in=['DRAFT', 'PENDING']).count(),
+            'paid_tankhah_amount': Tankhah.objects.filter(tankhah_q, status__code='PAID').aggregate(total=Sum('amount'))['total'] or Decimal('0'),
+            'open_tankhah_count': Tankhah.objects.filter(tankhah_q, status__code=['DRAFT', 'PENDING']).count(),
             # ...
         }
         # داده نمونه
