@@ -55,7 +55,7 @@ def factor_document_upload_path(instance, filename):
         # یک مسیر پیش‌فرض در صورتی که فاکتور یا تنخواه هنوز ذخیره نشده باشند (که نباید اتفاق بیفتد)
         # یا فاکتور به تنخواه لینک نباشد
         return f'factors/orphaned/{filename}'
-  
+
 # --- تابع کمکی برای گرفتن وضعیت پیش‌فرض ---
 def get_default_factor_status():
     from core.models import Status
@@ -237,6 +237,7 @@ class Tankhah(models.Model):
                 )
 
     def save(self, *args, **kwargs):
+        from budgets.budget_calculations import create_budget_transaction
         from budgets.models import BudgetAllocation
         with transaction.atomic():
             if not self.number:
@@ -371,6 +372,7 @@ class Tankhah(models.Model):
                 factor.status = Status.objects.get(code='PAID')
                 factor.save(current_user=user)
 
+                from budgets.budget_calculations import create_budget_transaction
                 create_budget_transaction(
                     allocation=self.project_budget_allocation,
                     transaction_type='CONSUMPTION',
@@ -691,6 +693,7 @@ class Factor(models.Model):
                 logger.info(
                     f"Factor {self.number} marked as PAID. Creating CONSUMPTION transaction and checking payment order.")
                 self.is_locked = True
+                from budgets.budget_calculations import create_budget_transaction
                 create_budget_transaction(
                     allocation=self.tankhah.project_budget_allocation,
                     transaction_type='CONSUMPTION',
