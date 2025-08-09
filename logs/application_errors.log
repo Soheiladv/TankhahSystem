@@ -2364,3 +2364,193 @@ Traceback (most recent call last):
     return True,  ("خطا در بررسی وضعیت قفل تنخواه.")
                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 TypeError: '__proxy__' object is not callable
+ERROR 2025-08-09 16:30:42 view_Dashboard _get_tankhah_stats خطا در محاسبه آمار تنخواه: Field 'id' expected a number but got 'REJECTED'.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 2123, in get_prep_value
+    return int(value)
+ValueError: invalid literal for int() with base 10: 'REJECTED'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\Tanbakhsystem\view\view_Dashboard.py", line 835, in _get_tankhah_stats
+    'rejected_factors_count': Factor.objects.filter(
+                              ~~~~~~~~~~~~~~~~~~~~~^
+        status='REJECTED',
+        ^^^^^^^^^^^^^^^^^^
+        date__gte=now - timedelta(days=90)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ).count(),
+    ^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1555, in build_filter
+    condition = self.build_lookup(lookups, col, value)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1385, in build_lookup
+    lookup = lookup_class(lhs, rhs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\lookups.py", line 30, in __init__
+    self.rhs = self.get_prep_lookup()
+               ~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\fields\related_lookups.py", line 156, in get_prep_lookup
+    self.rhs = target_field.get_prep_value(self.rhs)
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 2125, in get_prep_value
+    raise e.__class__(
+        "Field '%s' expected a number but got %r." % (self.name, value),
+    ) from e
+ValueError: Field 'id' expected a number but got 'REJECTED'.
+ERROR 2025-08-09 16:35:39 view_Dashboard _get_tankhah_stats خطا در محاسبه آمار تنخواه: Field 'id' expected a number but got 'REJECTED'.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 2123, in get_prep_value
+    return int(value)
+ValueError: invalid literal for int() with base 10: 'REJECTED'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\Tanbakhsystem\view\view_Dashboard.py", line 835, in _get_tankhah_stats
+    'rejected_factors_count': Factor.objects.filter(
+                              ~~~~~~~~~~~~~~~~~~~~~^
+        status='REJECTED',
+        ^^^^^^^^^^^^^^^^^^
+        date__gte=now - timedelta(days=90)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ).count(),
+    ^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1555, in build_filter
+    condition = self.build_lookup(lookups, col, value)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1385, in build_lookup
+    lookup = lookup_class(lhs, rhs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\lookups.py", line 30, in __init__
+    self.rhs = self.get_prep_lookup()
+               ~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\fields\related_lookups.py", line 156, in get_prep_lookup
+    self.rhs = target_field.get_prep_value(self.rhs)
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 2125, in get_prep_value
+    raise e.__class__(
+        "Field '%s' expected a number but got %r." % (self.name, value),
+    ) from e
+ValueError: Field 'id' expected a number but got 'REJECTED'.
+ERROR 2025-08-09 16:36:05 view_Nfactor form_valid FATAL: Exception during atomic transaction: cannot import name 'create_budget_transaction' from 'tankhah.models' (D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\models.py)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\NF\view_Nfactor.py", line 450, in form_valid
+    from tankhah.models import create_budget_transaction
+ImportError: cannot import name 'create_budget_transaction' from 'tankhah.models' (D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\models.py)
+ERROR 2025-08-09 16:40:40 view_Nfactor form_valid FATAL: Exception during atomic transaction: cannot import name 'create_budget_transaction' from 'tankhah.models' (D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\models.py)
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\NF\view_Nfactor.py", line 450, in form_valid
+    from tankhah.models import create_budget_transaction
+ImportError: cannot import name 'create_budget_transaction' from 'tankhah.models' (D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\models.py)
+ERROR 2025-08-09 17:09:06 view_Nfactor form_valid FATAL: Exception during atomic transaction: 'FactorItemFormFormSet' object has no attribute 'saved_forms'
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\tankhah\Factor\NF\view_Nfactor.py", line 377, in form_valid
+    logger.info(f"{len(item_formset.saved_forms)} item(s) saved for factor PK {self.object.pk}.")
+                       ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'FactorItemFormFormSet' object has no attribute 'saved_forms'
+ERROR 2025-08-09 17:11:47 view_Dashboard _get_tankhah_stats خطا در محاسبه آمار تنخواه: Field 'id' expected a number but got 'REJECTED'.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 2123, in get_prep_value
+    return int(value)
+ValueError: invalid literal for int() with base 10: 'REJECTED'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\Tanbakhsystem\view\view_Dashboard.py", line 835, in _get_tankhah_stats
+    'rejected_factors_count': Factor.objects.filter(
+                              ~~~~~~~~~~~~~~~~~~~~~^
+        status='REJECTED',
+        ^^^^^^^^^^^^^^^^^^
+        date__gte=now - timedelta(days=90)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ).count(),
+    ^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1555, in build_filter
+    condition = self.build_lookup(lookups, col, value)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1385, in build_lookup
+    lookup = lookup_class(lhs, rhs)
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\lookups.py", line 30, in __init__
+    self.rhs = self.get_prep_lookup()
+               ~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\fields\related_lookups.py", line 156, in get_prep_lookup
+    self.rhs = target_field.get_prep_value(self.rhs)
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\django\db\models\fields\__init__.py", line 2125, in get_prep_value
+    raise e.__class__(
+        "Field '%s' expected a number but got %r." % (self.name, value),
+    ) from e
+ValueError: Field 'id' expected a number but got 'REJECTED'.
