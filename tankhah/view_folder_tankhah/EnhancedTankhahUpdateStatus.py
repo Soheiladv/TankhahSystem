@@ -109,11 +109,13 @@ class EnhancedTankhahUpdateStatusView(PermissionBaseView, UpdateView):
             return self.form_invalid(form)
 
     def create_payment_order(self, tankhah, payee, user):
-        initial_po_stage = AccessRule.objects.filter(
-            entity_type='PAYMENTORDER',
-            order=1,
-            is_active=True
-        ).first()
+        # initial_po_stage = AccessRule.objects.filter(
+        #     entity_type='PAYMENTORDER',
+        #     order=1,
+        #     is_active=True
+        # ).first()
+        from core.models import Status
+        initial_po_stage = Status.objects.filter(code='PAYMENTORDER', is_initial=True).first()
         if not initial_po_stage:
             logger.error("No initial workflow stage for PAYMENTORDER")
             messages.error(self.request, _("مرحله اولیه گردش کار برای دستور پرداخت تعریف نشده است."))

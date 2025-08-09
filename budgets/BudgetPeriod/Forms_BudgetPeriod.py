@@ -107,33 +107,17 @@ class BudgetPeriodForm(forms.ModelForm):
 
     def clean_start_date(self):
         date_str = self.cleaned_data.get('start_date')
-        logger.debug(f"Cleaning start_date: input={date_str}")
-        if not date_str:
-            logger.error("start_date is empty")
-            raise forms.ValidationError(_('تاریخ شروع اجباری است.'))
         try:
-            date_str = to_english_digits(date_str)
-            parsed_date = parse_jalali_date(date_str, field_name=_('تاریخ شروع'))
-            logger.debug(f"Parsed start_date: {parsed_date}")
-            return parsed_date
-        except Exception as e:
-            logger.error(f"Error parsing start_date: {str(e)}")
-            raise forms.ValidationError(_('فرمت تاریخ شروع نامعتبر است.'))
+            return parse_jalali_date(date_str)
+        except (ValueError, TypeError):
+            raise forms.ValidationError(_('فرمت تاریخ نامعتبر است.'))
 
     def clean_end_date(self):
         date_str = self.cleaned_data.get('end_date')
-        logger.debug(f"Cleaning end_date: input={date_str}")
-        if not date_str:
-            logger.error("end_date is empty")
-            raise forms.ValidationError(_('تاریخ پایان اجباری است.'))
         try:
-            date_str = to_english_digits(date_str)
-            parsed_date = parse_jalali_date(date_str, field_name=_('تاریخ پایان'))
-            logger.debug(f"Parsed end_date: {parsed_date}")
-            return parsed_date
-        except Exception as e:
-            logger.error(f"Error parsing end_date: {str(e)}")
-            raise forms.ValidationError(_('فرمت تاریخ پایان نامعتبر است.'))
+            return parse_jalali_date(date_str)
+        except (ValueError, TypeError):
+            raise forms.ValidationError(_('فرمت تاریخ نامعتبر است.'))
 
     def clean_total_amount(self):
         amount = self.cleaned_data.get('total_amount')

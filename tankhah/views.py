@@ -15,7 +15,9 @@ from django.views.decorators.http import require_POST
 from accounts.models import CustomUser
 from core.models import UserPost, WorkflowStage, SubProject, Project
 from tankhah.models import ApprovalLog, Tankhah, StageApprover, Factor, FactorItem, FactorDocument, TankhahDocument, \
-    FactorHistory, create_budget_transaction
+    FactorHistory
+from budgets.budget_calculations import create_budget_transaction
+
 from .utils import restrict_to_user_organization, get_factor_current_stage
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import PermissionDenied

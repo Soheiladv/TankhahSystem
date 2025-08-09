@@ -3,7 +3,6 @@ from django.db.models import Sum
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
-from notifications.signals import notify
 
 from accounts.models import CustomUser
 from budgets.models import BudgetAllocation, BudgetTransaction, PaymentOrder, Payee
@@ -184,12 +183,15 @@ def create_payment_order_on_approval(sender, instance, created, **kwargs):
                 logger.warning(f"[create_payment_order_on_approval] No active user post found for user {instance.user.username}")
                 return
 
-            initial_po_stage = AccessRule.objects.filter(
-                entity_type='PAYMENTORDER',
-                stage_order=1,
-                is_active=True,
-                organization=tankhah.organization
-            ).first()
+            # initial_po_stage = AccessRule.objects.filter(
+            #     entity_type='PAYMENTORDER',
+            #     stage_order=1,
+            #     is_active=True,
+            #     organization=tankhah.organization
+            # ).first()
+            from core.models import Status
+            initial_po_stage = Status.objects.filter(code='PAYMENTORDER', is_initial=True).first()
+
             if not initial_po_stage:
                 logger.error(f"[create_payment_order_on_approval] No initial stage found for PAYMENTORDER")
                 return

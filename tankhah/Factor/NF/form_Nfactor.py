@@ -284,8 +284,8 @@ class FactorForm(forms.ModelForm):
         # --- فیلتر کردن هوشمند تنخواه‌ها ---
         tankhah_queryset = Tankhah.objects.filter(
             is_archived=False,
-            status__code__in=['DRAFT', 'PENDING'], # <--- **اصلاح اصلی**
-            due_date__gte=timezone.now().date()
+            status__code__in=['DRAFT', 'PENDING'],  # <--- **اصلاح اصلی**
+            due_date__gte=timezone.now()  # استفاده از timezone.now() به‌جای date()
         ).select_related('organization', 'project').order_by('-created_at')
 
         if self.user and not self.user.is_superuser:

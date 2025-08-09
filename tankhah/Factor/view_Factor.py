@@ -15,7 +15,9 @@ from django.views.generic import CreateView, View
 from core.PermissionBase import PermissionBaseView
 from django.contrib import messages
 from tankhah.Factor.forms_Factor import FactorForm, FactorItemForm, FactorItemFormSet
-from tankhah.models import Factor, TankhahDocument, FactorDocument, FactorItem, create_budget_transaction
+from tankhah.models import Factor, TankhahDocument, FactorDocument, FactorItem
+from budgets.budget_calculations import create_budget_transaction
+
 from tankhah.models import Tankhah
 from tankhah.forms import FactorDocumentForm
 logger = logging.getLogger('tankhah_older')

@@ -827,10 +827,10 @@ class DashboardView(LoginRequiredMixin, View):
             # آمار پایه
             stats.update({
                 'active_tankhah_count': Tankhah.objects.filter(
-                    status__in=['PENDING', 'APPROVED', 'SENT_TO_HQ', 'HQ_OPS_PENDING', 'HQ_OPS_APPROVED', 'HQ_FIN_PENDING']
+                    status__code=['DRAFT','PENDING_APPROVAL' 'APPROVED_INTERMEDIATE', 'SENT_TO_HQ', 'HQ_OPS_PENDING', 'HQ_OPS_APPROVED', 'HQ_FIN_PENDING']
                 ).count(),
                 'pending_tankhah_count': Tankhah.objects.filter(
-                    status__in=['PENDING', 'SENT_TO_HQ', 'HQ_OPS_PENDING', 'HQ_FIN_PENDING']
+                    status__code=['PENDING_APPROVAL', 'SENT_TO_HQ', 'HQ_OPS_PENDING', 'HQ_FIN_PENDING']
                 ).count(),
                 'rejected_factors_count': Factor.objects.filter(
                     status='REJECTED',

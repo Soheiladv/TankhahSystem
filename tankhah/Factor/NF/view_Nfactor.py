@@ -283,11 +283,105 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
 
         return context
 
+    # def form_valid(self, form):
+    #     """
+    #     این متد قلب تپنده ویو است. تنها زمانی اجرا می‌شود که فرم اصلی (FactorForm) معتبر باشد.
+    #     تمام منطق‌های پیچیده در این متد مدیریت می‌شوند.
+    #     """
+    #     user = self.request.user
+    #     tankhah = form.cleaned_data.get('tankhah')
+    #     context = self.get_context_data()
+    #     item_formset = context['formset']
+    #     document_form = context['document_form']
+    #
+    #     logger.info(
+    #         f"--- [START form_valid] User '{user.username}' is creating a factor for Tankhah '{tankhah.number}' ---")
+    #
+    #     # --- مرحله ۱: بررسی جامع دسترسی‌ها ---
+    #     if not self._has_permission_to_create(user, tankhah):
+    #         # پیغام خطا در خود تابع کمکی به messages اضافه می‌شود
+    #         return self.form_invalid(form)
+    #
+    #     # --- مرحله ۲: اعتبارسنجی فرم‌ست ردیف‌ها ---
+    #     if not item_formset.is_valid():
+    #         logger.warning(f"Item formset is invalid. Errors: {item_formset.errors}")
+    #         messages.error(self.request, _('لطفاً خطاهای ردیف‌های فاکتور را اصلاح کنید.'))
+    #         return self.form_invalid(form)
+    #
+    #     # --- ۳. محاسبه مبلغ کل و بررسی بودجه ---
+    #     total_items_amount = Decimal('0')
+    #     for item_form in item_formset:
+    #         if item_form.is_valid() and item_form.has_changed() and not item_form.cleaned_data.get('DELETE'):
+    #             quantity = item_form.cleaned_data.get('quantity', 0)
+    #             unit_price = item_form.cleaned_data.get('unit_price', 0)
+    #             total_items_amount += (quantity * unit_price)
+    #
+    #     factor_total_amount  = form.cleaned_data.get('amount', Decimal('0'))
+    #     total_amount= factor_total_amount
+    #     tankhah = form.cleaned_data.get('tankhah')
+    #     remaining_budget = get_tankhah_remaining_budget(tankhah)
+    #     if factor_total_amount > remaining_budget:
+    #         form.add_error(None, _('مجموع مبلغ ردیف‌ها از بودجه باقی‌مانده تنخواه بیشتر است.'))
+    #         return self.form_invalid(form)
+    #
+    #     # یک تلورانس کوچک برای جلوگیری از خطاهای اعشاری در نظر می‌گیریم
+    #     if abs(total_items_amount - factor_total_amount) > Decimal('0.01'):
+    #         error_msg = _('مبلغ کل فاکتور ({:,.0f}) با مجموع ردیف‌ها ({:,.0f}) همخوانی ندارد.').format(
+    #             factor_total_amount, total_items_amount)
+    #         messages.error(self.request, error_msg)
+    #         # می‌توانیم خطا را به فیلد amount اضافه کنیم تا در فرم نمایش داده شود
+    #         form.add_error('amount', error_msg)
+    #         return self.form_invalid(form)
+    #     # ----  ذخیره سازی
+    #     try:
+    #         # --- مرحله ۳: شروع تراکنش اتمیک برای تضمین یکپارچگی داده‌ها ---
+    #         with transaction.atomic():
+    #             logger.debug("--- [TRANSACTION START] ---")
+    #             # ذخیره فاکتور اصلی برای گرفتن ID
+    #             try:
+    #                 initial_factor_status = Status.objects.get(code='DRAFT', is_initial=True)
+    #                 logger.info(f'initial_factor_status: {initial_factor_status}')
+    #             except Status.DoesNotExist:
+    #                 messages.error(self.request, _("وضعیت اولیه 'DRAFT' در سیستم تعریف نشده است!"))
+    #                 messages.error(self.request,
+    #                                _("هیچ وضعیت اولیه‌ای در سیستم تعریف نشده است! لطفاً با مدیر سیستم تماس بگیرید."))
+    #                 raise transaction.TransactionManagementError('Initial DRAFT status not found.')
+    #             except Status.MultipleObjectsReturned:
+    #                 messages.error(self.request,
+    #                                _("بیش از یک وضعیت اولیه در سیستم تعریف شده است! لطفاً با مدیر سیستم تماس بگیرید."))
+    #                 raise transaction.TransactionManagementError('Multiple initial statuses found.')
+    #
+    #             # --- ذخیره فاکتور با وضعیت صحیح ---
+    #             self.object = form.save(commit=False)
+    #             self.object.created_by = self.request.user
+    #             self.object.status = initial_factor_status   # <-- **اصلاح کلیدی**
+    #             # self.object.amount = total_amount # <-- مبلغ محاسبه شده
+    #             logger.warning(f'After Save Method :self.object.amount: {self.object.amount} - self.object.created_by: {self.object.created_by} - self.object.status: {initial_factor_status}')
+    #             self.object.save()
+    #             logger.info(f"Factor object PK {self.object.pk} created and saved.")
+    #
+    #             # اتصال ردیف‌ها به فاکتور و ذخیره آن‌ها
+    #             item_formset.instance = self.object
+    #             item_formset.save()
+    #             logger.info(f"{item_formset.total_form_count()} item(s) saved for factor PK {self.object.pk}.")
+    #             self.object.update_total_amount() # از متد مدل استفاده می‌کنیم
+    #
+    #             # -----
+    #             # --- ذخیره اسناد ---
+    #             if document_form.is_valid():
+    #                 for file in document_form.cleaned_data.get('files', []):
+    #                     FactorDocument.objects.create(factor=self.object, file=file, uploaded_by=self.request.user)
+    #
+    #             logger.info(f"Factor PK {self.object.pk} and its items created successfully.")
+    #
+    #     except Exception as e:
+    #         logger.error(f"FATAL: Exception during atomic transaction: {e}", exc_info=True)
+    #         messages.error(self.request, _('یک خطای پیش‌بینی نشده در هنگام ذخیره اطلاعات رخ داد.'))
+    #         return self.form_invalid(form)
+    #
+    #     messages.success(self.request, _('فاکتور با موفقیت ثبت و برای تأیید ارسال شد.'))
+    #     return redirect(self.get_success_url())
     def form_valid(self, form):
-        """
-        این متد قلب تپنده ویو است. تنها زمانی اجرا می‌شود که فرم اصلی (FactorForm) معتبر باشد.
-        تمام منطق‌های پیچیده در این متد مدیریت می‌شوند.
-        """
         user = self.request.user
         tankhah = form.cleaned_data.get('tankhah')
         context = self.get_context_data()
@@ -297,18 +391,14 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
         logger.info(
             f"--- [START form_valid] User '{user.username}' is creating a factor for Tankhah '{tankhah.number}' ---")
 
-        # --- مرحله ۱: بررسی جامع دسترسی‌ها ---
         if not self._has_permission_to_create(user, tankhah):
-            # پیغام خطا در خود تابع کمکی به messages اضافه می‌شود
             return self.form_invalid(form)
 
-        # --- مرحله ۲: اعتبارسنجی فرم‌ست ردیف‌ها ---
         if not item_formset.is_valid():
             logger.warning(f"Item formset is invalid. Errors: {item_formset.errors}")
             messages.error(self.request, _('لطفاً خطاهای ردیف‌های فاکتور را اصلاح کنید.'))
             return self.form_invalid(form)
 
-        # --- ۳. محاسبه مبلغ کل و بررسی بودجه ---
         total_items_amount = Decimal('0')
         for item_form in item_formset:
             if item_form.is_valid() and item_form.has_changed() and not item_form.cleaned_data.get('DELETE'):
@@ -316,65 +406,64 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
                 unit_price = item_form.cleaned_data.get('unit_price', 0)
                 total_items_amount += (quantity * unit_price)
 
-        factor_total_amount  = form.cleaned_data.get('amount', Decimal('0'))
-        total_amount= factor_total_amount
-        tankhah = form.cleaned_data.get('tankhah')
+        factor_total_amount = form.cleaned_data.get('amount', Decimal('0'))
         remaining_budget = get_tankhah_remaining_budget(tankhah)
         if factor_total_amount > remaining_budget:
             form.add_error(None, _('مجموع مبلغ ردیف‌ها از بودجه باقی‌مانده تنخواه بیشتر است.'))
             return self.form_invalid(form)
 
-        # یک تلورانس کوچک برای جلوگیری از خطاهای اعشاری در نظر می‌گیریم
         if abs(total_items_amount - factor_total_amount) > Decimal('0.01'):
             error_msg = _('مبلغ کل فاکتور ({:,.0f}) با مجموع ردیف‌ها ({:,.0f}) همخوانی ندارد.').format(
                 factor_total_amount, total_items_amount)
             messages.error(self.request, error_msg)
-            # می‌توانیم خطا را به فیلد amount اضافه کنیم تا در فرم نمایش داده شود
             form.add_error('amount', error_msg)
             return self.form_invalid(form)
-        # ----  ذخیره سازی
+
         try:
-            # --- مرحله ۳: شروع تراکنش اتمیک برای تضمین یکپارچگی داده‌ها ---
             with transaction.atomic():
-                logger.debug("--- [TRANSACTION START] ---")
-                # ذخیره فاکتور اصلی برای گرفتن ID
                 try:
-                    initial_factor_status = Status.objects.get(code='DRAFT', is_initial=True)
-                    logger.info(f'initial_factor_status: {initial_factor_status}')
+                    draft_status = Status.objects.get(code='DRAFT', is_initial=True)
                 except Status.DoesNotExist:
                     messages.error(self.request, _("وضعیت اولیه 'DRAFT' در سیستم تعریف نشده است!"))
-                    messages.error(self.request,
-                                   _("هیچ وضعیت اولیه‌ای در سیستم تعریف نشده است! لطفاً با مدیر سیستم تماس بگیرید."))
-                    raise transaction.TransactionManagementError('Initial DRAFT status not found.')
+                    return self.form_invalid(form)
                 except Status.MultipleObjectsReturned:
-                    messages.error(self.request,
-                                   _("بیش از یک وضعیت اولیه در سیستم تعریف شده است! لطفاً با مدیر سیستم تماس بگیرید."))
-                    raise transaction.TransactionManagementError('Multiple initial statuses found.')
+                    messages.error(self.request, _("بیش از یک وضعیت اولیه در سیستم تعریف شده است!"))
+                    return self.form_invalid(form)
 
-                # --- ذخیره فاکتور با وضعیت صحیح ---
                 self.object = form.save(commit=False)
                 self.object.created_by = self.request.user
-                self.object.status = initial_factor_status   # <-- **اصلاح کلیدی**
-                # self.object.amount = total_amount # <-- مبلغ محاسبه شده
-
-                logger.warning(f'After Save Method :self.object.amount: {self.object.amount} - self.object.created_by: {self.object.created_by} - self.object.status: {initial_factor_status}')
+                self.object.status = draft_status  # اطمینان از مقداردهی
+                logger.debug(f"Before save: Factor status set to {draft_status}")
                 self.object.save()
                 logger.info(f"Factor object PK {self.object.pk} created and saved.")
 
-                # اتصال ردیف‌ها به فاکتور و ذخیره آن‌ها
                 item_formset.instance = self.object
                 item_formset.save()
                 logger.info(f"{item_formset.total_form_count()} item(s) saved for factor PK {self.object.pk}.")
-                self.object.update_total_amount() # از متد مدل استفاده می‌کنیم
+                self.object.update_total_amount()
 
-                # -----
-                # --- ذخیره اسناد ---
                 if document_form.is_valid():
                     for file in document_form.cleaned_data.get('files', []):
                         FactorDocument.objects.create(factor=self.object, file=file, uploaded_by=self.request.user)
 
                 logger.info(f"Factor PK {self.object.pk} and its items created successfully.")
+                from tankhah.models import create_budget_transaction
+                create_budget_transaction(
+                    allocation=self.object.tankhah.project_budget_allocation,
+                    transaction_type='CONSUMPTION',
+                    amount=self.object.amount,
+                    related_obj=self.object,
+                    created_by=self.request.user,
+                    description=f"ایجاد فاکتور به شماره {self.object.number}",
+                    transaction_id=f"TX-FACTOR-NEW-{self.object.id}-{timezone.now().timestamp()}"
+                )
 
+                FactorHistory.objects.create(
+                    factor=self.object,
+                    change_type=FactorHistory.ChangeType.CREATION,
+                    changed_by=self.request.user,
+                    description=f"فاکتور به شماره {self.object.number} توسط {self.request.user.username} ایجاد شد."
+                )
         except Exception as e:
             logger.error(f"FATAL: Exception during atomic transaction: {e}", exc_info=True)
             messages.error(self.request, _('یک خطای پیش‌بینی نشده در هنگام ذخیره اطلاعات رخ داد.'))
@@ -382,7 +471,6 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
 
         messages.success(self.request, _('فاکتور با موفقیت ثبت و برای تأیید ارسال شد.'))
         return redirect(self.get_success_url())
-
     def form_invalid(self, form):
         """
         این متد در صورت نامعتبر بودن فرم اصلی یا بروز هر خطای دیگر فراخوانی می‌شود.

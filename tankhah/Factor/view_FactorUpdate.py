@@ -3,7 +3,8 @@ from django.forms import inlineformset_factory
 
 # فرض می‌کنیم این‌ها از قبل تعریف شده‌اند
 from tankhah.Factor.NF.form_Nfactor import FactorItemForm, Update_FactorForm
-from tankhah.models import Factor, FactorItem, create_budget_transaction
+from tankhah.models import Factor, FactorItem
+from budgets.budget_calculations import create_budget_transaction
 
 # تنظیم لاگر برای ثبت رویدادها
 logger = logging.getLogger(__name__)

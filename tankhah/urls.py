@@ -14,10 +14,11 @@ from tankhah.Factor.view_FactorUpdate import FactorUpdateView
 from tankhah.Factor.views_approval_path import FactorApprovalPathView
 from tankhah.FactorStatusDashboard.FactorStatusDashboardView import FactorStatusDashboardView
 from tankhah.Services.views_FactorApproval import FactorApprovalView
+from tankhah.Tankhah.views_tankhah_create import TankhahCreateView
 from tankhah.TankhahTrackingView import TankhahTrackingViewOLDer, TankhahStatusView, TankhahApprovalTimelineView
 from tankhah.view_folder_tankhah.EnhancedTankhahUpdateStatus import EnhancedTankhahUpdateStatusView
 from tankhah.view_folder_tankhah.view_tankhah import (
-    TankhahDetailView, TankhahCreateView, TankhahDeleteView,
+    TankhahDetailView, TankhahDeleteView,
     TankhahListView, TankhahApproveView, TankhahUpdateView, TankhahRejectView, get_projects
 )
 from tankhah.views import (

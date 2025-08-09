@@ -1,6 +1,10 @@
+from django.utils.translation import gettext_lazy as _
 # budget_calculations.py
 import logging
 from decimal import Decimal
+
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db.models import Sum, Q, Value
 from django.core.cache import cache
 from django.db.models.functions import Coalesce
@@ -8,7 +12,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from Tanbakhsystem.utils import parse_jalali_date
-
+from tankhah.models import Factor, Tankhah
 
 logger = logging.getLogger('BudgetsCalculations')
 """
@@ -197,6 +201,10 @@ def apply_filters(queryset, filters=None):
     if not filters:
         return queryset
     try:
+        for key, value in filters.items():
+            if key == 'status':
+                queryset = queryset.filter(status__code=value)
+
         if 'date_from' in filters:
             date_from = parse_jalali_date(filters['date_from']) if isinstance(filters['date_from'], str) else filters[
                 'date_from']
@@ -209,6 +217,7 @@ def apply_filters(queryset, filters=None):
             queryset = queryset.filter(is_active=filters['is_active'])
         if 'budget_period' in filters:
             queryset = queryset.filter(budget_period=filters['budget_period'])
+
         logger.debug(f"فیلترهای اعمال‌شده: {filters}, تعداد نتایج: {queryset.count()}")
         return queryset
     except Exception as e:
@@ -344,9 +353,6 @@ def faild______get_tankhah_remaining_budget(tankhah, filters=None):
         logger.error(f"Error calculating tankhah_remaining_budget for {tankhah.number}: {str(e)}", exc_info=True)
         return Decimal('0')
 
-from tankhah.models import Factor, Tankhah
-
-
 def get_tankhah_remaining_budget(tankhah: Tankhah) -> Decimal:
     """
     **تابع نهایی و صحیح برای محاسبه موجودی واقعی تنخواه.**
@@ -354,63 +360,68 @@ def get_tankhah_remaining_budget(tankhah: Tankhah) -> Decimal:
     """
     if not tankhah: return Decimal('0')
 
-    initial_amount = tankhah.amount or Decimal('0')
+    # محاسبه بودجه کل تنخواه
+    total_budget = get_tankhah_total_budget(tankhah)
+    used_budget = get_tankhah_used_budget(tankhah)
 
-    # **اصلاح کلیدی:** فیلتر بر اساس status__code
-    paid_sum = tankhah.factors.filter(status__code__in='PAID').aggregate(
-        total=Coalesce(Sum('amount'), Decimal('0'))
-    )['total']
-
-    pending_status_codes = ['PENDING_APPROVAL', 'APPROVED_INTERMEDIATE', 'APPROVED_FINAL', 'PARTIAL', 'DRAFT']
-    pending_sum = tankhah.factors.filter(status__code__in=pending_status_codes).aggregate(
-        total=Coalesce(Sum('amount'), Decimal('0'))
-    )['total']
-
-    remaining_budget = initial_amount - paid_sum - pending_sum
-
-    logger.info(f"Final Remaining Budget for '{tankhah.number}': {remaining_budget:,.2f}")
+    # محاسبه بودجه باقی‌مانده
+    remaining_budget = total_budget - used_budget
+    logger.info(f"Final Remaining Budget for '{tankhah.number}': {remaining_budget}")
 
     return max(remaining_budget, Decimal('0'))
 
-def aaaaaaaaaaaaaget_tankhah_remaining_budget(tankhah: Tankhah) -> Decimal:
+def get_tankhah_committed_budget(tankhah):
     """
-    موجودی قابل خرج واقعی باقی‌مانده برای یک تنخواه را محاسبه می‌کند.
-    این تابع، مهم‌ترین تابع برای اعتبارسنجی در هنگام ایجاد فاکتور جدید است.
+    محاسبه بودجه **در تعهد (رزرو شده)** تنخواه.
+    این تابع شامل فاکتورهای "در انتظار تایید" و "تایید شده" است که هنوز پرداخت نشده‌اند.
+    این مبالغ برای جلوگیری از خرج کردن بودجه‌ای که منتظر پرداخت است، حیاتی هستند.
+    """
+    cache_key = f"tankhah_committed_budget_{tankhah.pk}"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
 
-    فرمول:
-    (مبلغ اولیه تنخواه) - (مجموع فاکتورهای پرداخت شده) - (مجموع فاکتورهای در جریان)
-    """
-    if not tankhah:
+    try:
+        # **منطق صحیح:** فاکتورهایی که تعهد ایجاد کرده‌اند اما هنوز پرداخت نشده‌اند.
+        # کدهای وضعیت را بر اساس سیستم خودتان تنظیم کنید.
+        committed_statuses = ['PENDING_APPROVAL', 'APPROVED']
+
+        total = Factor.objects.filter(
+            tankhah=tankhah,
+            status__code__in=committed_statuses
+        ).aggregate(
+            total=Coalesce(Sum('amount'), Value(Decimal('0')))
+        )['total']
+
+        cache.set(cache_key, total, timeout=300)
+        logger.info(f"Calculated COMMITTED budget for Tankhah '{tankhah.number}': {total}")
+        return total
+    except Exception as e:
+        logger.error(f"Error calculating committed budget for Tankhah {tankhah.number}: {e}", exc_info=True)
         return Decimal('0')
+def old___get_tankhah_available_budget(tankhah):
+    """
+    محاسبه بودجه **واقعی در دسترس** برای خرج کردن جدید.
+    این تابعی است که باید در فرم‌ها برای اعتبارسنجی استفاده شود.
+    فرمول: بودجه کل تنخواه - (بودجه مصرف‌شده + بودجه در تعهد)
+    """
+    total_budget = tankhah.amount  # فرض بر اینکه مبلغ کل تنخواه در این فیلد است
 
-    logger.debug(f"--- Calculating Remaining Budget for Tankhah: '{tankhah.number}' ---")
+    used_budget = get_tankhah_used_budget(tankhah)
+    committed_budget = get_tankhah_committed_budget(tankhah)
 
-    # 1. دریافت مبلغ اولیه تنخواه
-    initial_amount = tankhah.amount or Decimal('0')
-    logger.debug(f"Initial Amount: {initial_amount:,.2f}")
+    available_budget = total_budget - (used_budget + committed_budget)
 
-    # 2. محاسبه مجموع مبالغی که به صورت قطعی خرج شده‌اند (پرداخت شده)
-    paid_factors_sum = tankhah.factors.filter(status__in='PAID').aggregate(
-        total=Coalesce(Sum('amount'), Decimal('0'))
-    )['total']
-    logger.debug(f"Sum of PAID factors: {paid_factors_sum:,.2f}")
+    logger.info(
+        f"Available budget for '{tankhah.number}': "
+        f"Total({total_budget}) - Used({used_budget}) - Committed({committed_budget}) = {available_budget}"
+    )
+    return available_budget
 
-    # 3. محاسبه مجموع مبالغی که در حال حاضر در جریان تأیید هستند (رزرو شده)
-    # این‌ها فاکتورهایی هستند که هنوز پرداخت نشده‌اند اما رد هم نشده‌اند.
-    pending_statuses = ['PENDING_APPROVAL', 'APPROVED_INTERMEDIATE', 'APPROVED_FINAL', 'PARTIAL', 'DRAFT']
-    pending_factors_sum = tankhah.factors.filter(status__in=pending_statuses).aggregate(
-        total=Coalesce(Sum('amount'), Decimal('0'))
-    )['total']
-    logger.debug(f"Sum of PENDING factors (reserved amount): {pending_factors_sum:,.2f}")
+def get_tankhah_available_budget(tankhah):
+    """رابط خوانا برای گرفتن بودجه در دسترس تنخواه."""
+    return get_available_budget(tankhah)
 
-    # 4. محاسبه موجودی نهایی
-    remaining_budget = initial_amount - paid_factors_sum - pending_factors_sum
-
-    logger.info(f"Final Remaining Budget for '{tankhah.number}': {remaining_budget:,.2f}")
-    logger.debug("--- Finished Calculating Remaining Budget ---")
-
-    # موجودی نمی‌تواند منفی باشد
-    return max(remaining_budget, Decimal('0'))
 
 # === توابع بودجه پروژه ===
 def old__get_project_total_budget(project, force_refresh=False, filters=None):
@@ -901,8 +912,6 @@ def get_tankhah_used_budget(tankhah, filters=None):
         filters: دیکشنری فیلترهای اختیاری
     Returns:
         Decimal: بودجه مصرف‌شده
-    محاسبه بودجه کل تخصیص‌یافته به تنخواه
-    محاسبه بودجه مصرف‌شده تنخواه (بر اساس فاکتورهای پرداخت‌شده)
     """
     from tankhah.models import Factor
     cache_key = f"tankhah_used_budget_{tankhah.pk}_{hash(str(filters)) if filters else 'no_filters'}"
@@ -911,42 +920,55 @@ def get_tankhah_used_budget(tankhah, filters=None):
         logger.debug(f"Returning cached tankhah_used_budget for {cache_key}: {cached_result}")
         return cached_result
 
-    # **تغییر:** در نظر گرفتن وضعیت‌های بیشتر برای مصرف موقت
     try:
         statuses_considered_as_used = ['PAID', 'APPROVED', 'PENDING', 'DRAFT']
-        # factors = Factor.objects.filter(tankhah=tankhah, status__in=statuses_considered_as_used)
-        factors = Factor.objects.filter(tankhah=tankhah, status__code=statuses_considered_as_used).exclude(status__code='REJECTED')
-        # factors = Factor.objects.filter(tankhah=tankhah, status='PAID')
+        logger.info(f'💵statuses_considered_as_used={statuses_considered_as_used}')
+        factors = Factor.objects.filter(
+            tankhah=tankhah,
+            status__code__in='PAID'
+        ).exclude(status__code='REJECTED')
+        logger.info(f'factors={factors}')
+        logger.debug(f"Generated SQL Query: {factors.query}")
         if filters:
             factors = apply_filters(factors, filters)
-        total = factors.aggregate(total=Coalesce(Sum('amount'), Value(Decimal('0'))))['total'] or Decimal('0')
+        total = factors.aggregate(
+            total=Coalesce(Sum('amount'), Value(Decimal('0')))
+        )['total'] or Decimal('0')
         cache.set(cache_key, total, timeout=300)
         logger.debug(f"get_tankhah_used_budget: tankhah={tankhah.number}, total={total}")
         return total if total is not None else Decimal('0')
     except Exception as e:
-            logger.error(f"خطا در محاسبه بودجه مصرف‌شده تنخواه {tankhah.number}: {str(e)}")
-            return Decimal('0')
+        logger.error(f"خطا در محاسبه بودجه مصرف‌شده تنخواه {tankhah.number}: {str(e)}")
+        return Decimal('0')
 #----
 def check_tankhah_lock_status(tankhah):
     """
-    بررسی و به‌روزرسانی وضعیت قفل تنخواه.
-    Args:
-        tankhah: نمونه مدل Tankhah
-    Returns:
-        tuple: (bool, str) - وضعیت قفل و پیام
+    نسخه نهایی و اصلاح‌شده:
+    - از نام فیلد صحیح 'project_budget_allocation' استفاده می‌کند.
+    - برای لاگ‌نویسی از 'number' به جای 'code' استفاده می‌کند.
     """
     try:
-        if not tankhah.budget_allocation:
-            logger.error(f"هیچ تخصیص بودجه‌ای برای تنخواه {tankhah.code} وجود ندارد")
-            return True, _("تنخواه به دلیل عدم وجود تخصیص بودجه غیرفعال است.")
-        if tankhah.budget_allocation.budget_period.is_locked or tankhah.budget_allocation.is_locked:
-            tankhah.is_active = False
-            tankhah.save(update_fields=['is_active'])
-            return True, _("تنخواه به دلیل قفل شدن تخصیص یا دوره غیرفعال شد.")
+        # **اصلاح اول:** استفاده از نام فیلد صحیح
+        allocation = tankhah.project_budget_allocation
+
+        if not allocation:
+            logger.error(f"هیچ تخصیص بودجه‌ای برای تنخواه {tankhah.number} وجود ندارد")
+            return True,  ("تنخواه به دلیل عدم وجود تخصیص بودجه غیرفعال است.")
+
+        # is_locked یک property است، بنابراین باید آن را فراخوانی کنیم
+        is_period_locked, _ = allocation.budget_period.is_locked
+
+        if is_period_locked or allocation.is_locked:
+            # این بخش نیازی به ذخیره مجدد ندارد، فقط وضعیت را برمی‌گرداند.
+            # اگر نیاز به تغییر وضعیت is_active تنخواه دارید، باید در جای دیگری مدیریت شود.
+            return True, _("تنخواه به دلیل قفل شدن تخصیص یا دوره بودجه، قفل در نظر گرفته می‌شود.")
+
         return False, _("تنخواه فعال است.")
+
     except Exception as e:
-        logger.error(f"خطا در بررسی وضعیت قفل تنخواه {tankhah.code}: {str(e)}")
-        return True, _("خطا در بررسی وضعیت قفل تنخواه.")
+        # **اصلاح دوم:** استفاده از 'number' برای لاگ‌نویسی
+        logger.error(f"خطا در بررسی وضعیت قفل تنخواه {tankhah.number}: {str(e)}", exc_info=True)
+        return True,  ("خطا در بررسی وضعیت قفل تنخواه.")
 
 def old__check_tankhah_lock_status(self):
     """
@@ -1301,6 +1323,164 @@ def get_returned_budgets(budget_period, entity_type='all'):
     except Exception as e:
         logger.error(f"خطا در دریافت بودجه‌های برگشتی برای {budget_period}: {str(e)}")
         return BudgetHistory.objects.none()
+
+# ----------------------------------------------------
+#  تابع برای محاسبه مانده حساب هر شیء (چه BudgetAllocation و چه Tankhah)
+# ----------------------------------------------------
+
+
+def calculate_balance_from_transactions(allocation):
+    """محاسبه بالانس تخصیص بودجه با استفاده از تراکنش‌ها."""
+    cache_key = f"budget_allocation_balance_{allocation.pk}"
+    cached_balance = cache.get(cache_key)
+    if cached_balance is not None:
+        logger.debug(f"Returning cached balance for BudgetAllocation PK {allocation.pk}: {cached_balance}")
+        return cached_balance
+    from budgets.models import BudgetTransaction
+    transactions = BudgetTransaction.objects.filter(allocation=allocation).aggregate(
+        credits=Coalesce(Sum('amount', filter=Q(transaction_type__in=['ALLOCATION', 'ADJUSTMENT_INCREASE', 'RETURN'])),
+                         Decimal('0')),
+        debits=Coalesce(Sum('amount', filter=Q(transaction_type__in=['CONSUMPTION', 'ADJUSTMENT_DECREASE'])),
+                        Decimal('0'))
+    )
+    balance = transactions['credits'] - transactions['debits']
+    logger.info(f"Calculated balance for BudgetAllocation PK {allocation.pk}: {balance}")
+
+    # لاگ جزئیات تراکنش‌ها برای دیباگ
+    for t in BudgetTransaction.objects.filter(allocation=allocation):
+        logger.debug(f"Transaction {t.transaction_id}: type={t.transaction_type}, amount={t.amount}")
+
+    cache.set(cache_key, balance, timeout=300)
+    return balance
+
+def __calculate_balance_from_transactions(budget_source_obj):
+    """
+    **تابع هسته‌ای:** مانده نهایی بودجه برای هر شیء را با جمع تراکنش‌ها محاسبه می‌کند.
+    این تنها تابع برای محاسبه موجودی قطعی است.
+    """
+    from budgets.models import BudgetAllocation, BudgetTransaction
+    if not budget_source_obj or not budget_source_obj.pk:
+        return Decimal('0')
+
+    # بر اساس نوع آبجکت، فیلتر مناسب را در مدل BudgetTransaction انتخاب می‌کنیم.
+    filter_query = Q()
+    if isinstance(budget_source_obj, BudgetAllocation):
+        filter_query = Q(allocation=budget_source_obj)
+    elif isinstance(budget_source_obj, Tankhah):
+        # مطمئن شوید فیلد در مدل BudgetTransaction شما 'related_tankhah' است
+        filter_query = Q(related_tankhah=budget_source_obj)
+    else:
+        logger.error(f"Unsupported budget source type for balance calculation: {type(budget_source_obj)}")
+        return Decimal('0')
+
+    balance = BudgetTransaction.objects.filter(filter_query).aggregate(
+        balance=Coalesce(Sum('amount'), Value(Decimal('0')))
+    )['balance']
+
+    logger.info(f"Calculated balance for {budget_source_obj.__class__.__name__} PK {budget_source_obj.pk}: {balance}")
+    return balance
+
+def create_budget_transaction(budget_source_obj, transaction_type, amount, created_by, description, trigger_obj=None):
+    if amount <= 0:
+        raise ValidationError(_("مبلغ تراکنش باید مثبت باشد."))
+
+    import uuid
+    transaction_id = f"TX-{transaction_type}-{budget_source_obj.pk}-{uuid.uuid4().hex[:12]}"
+    from budgets.models import BudgetTransaction,BudgetAllocation
+    transaction = BudgetTransaction(
+        allocation=budget_source_obj if isinstance(budget_source_obj, BudgetAllocation) else None,
+        transaction_type=transaction_type,
+        amount=amount,
+        created_by=created_by,
+        description=description,
+        transaction_id=transaction_id,
+        # trigger_obj=trigger_obj
+    )
+    transaction.save()
+    logger.info(f"Created BudgetTransaction {transaction_id} for {transaction_type} with amount {amount}")
+    return transaction
+#
+# def create_budget_transaction(*, budget_source_obj, transaction_type, amount, created_by, description, trigger_obj=None):
+#     """
+#     تابع ایجاد تراکنش، سازگار شده با مدل واقعی شما.
+#     """
+#     from budgets.models import  BudgetTransaction,BudgetAllocation
+#     if amount <= 0:
+#         logger.warning(f"Skipping budget transaction for zero/negative amount: {amount}")
+#         return None
+#
+#     # برای تراکنش‌های مصرفی، مبلغ باید منفی ذخیره شود
+#     if transaction_type in ['CONSUMPTION', 'DECREASE']: # فرض می‌کنیم مقادیر رشته‌ای هستند
+#         amount = -abs(amount)
+#
+#     # **اصلاح کلیدی:** به جای GenericForeignKey، فیلدهای مستقیم را پر می‌کنیم.
+#     transaction_kwargs = {
+#         'transaction_type': transaction_type,
+#         'amount': amount,
+#         'created_by': created_by,
+#         'description': description,
+#     }
+#
+#     if isinstance(budget_source_obj, BudgetAllocation):
+#         transaction_kwargs['allocation'] = budget_source_obj
+#     elif isinstance(budget_source_obj, Tankhah):
+#         transaction_kwargs['related_tankhah'] = budget_source_obj
+#
+#     # (این بخش برای trigger_obj نیاز به تحلیل بیشتر مدل BudgetTransaction شما دارد)
+#     # فعلا آن را ساده نگه می‌داریم.
+#
+#     transaction = BudgetTransaction.objects.create(**transaction_kwargs)
+#     logger.info(f"Budget transaction created for {budget_source_obj}: {transaction.transaction_type} of {transaction.amount}")
+#     return transaction
+
+
+def get_committed_budget(budget_source_obj):
+    """
+    بودجه "در تعهد" (فاکتورهای تایید شده/در انتظار) را برای یک منبع بودجه محاسبه می‌کند.
+    """
+    total_committed = Decimal('0')
+    committed_statuses = ['PENDING_APPROVAL', 'APPROVED']  # کدهای وضعیت خود را اینجا قرار دهید
+
+    from core.models import Project
+    if isinstance(budget_source_obj, Tankhah):
+        total_committed = Factor.objects.filter(
+            tankhah=budget_source_obj,
+            status__code__in=committed_statuses
+        ).aggregate(total=Coalesce(Sum('amount'), Value('0')))['total']
+
+    elif isinstance(budget_source_obj, Project):
+        total_committed = Factor.objects.filter(
+            tankhah__project=budget_source_obj,
+            status__code__in=committed_statuses
+        ).aggregate(total=Coalesce(Sum('amount'), Value('0')))['total']
+
+    # ... می‌توانید برای SubProject و BudgetAllocation هم منطق مشابهی اضافه کنید ...
+
+    logger.info(
+        f"Calculated COMMITTED budget for {budget_source_obj.__class__.__name__} PK {budget_source_obj.pk}: {total_committed}")
+    return total_committed
+
+
+def get_available_budget(budget_source_obj):
+    """
+    **تابع اصلی و عمومی:** بودجه واقعی در دسترس برای خرج کردن جدید را محاسبه می‌کند.
+    فرمول: موجودی قطعی (از تراکنش‌ها) - مبالغ در تعهد (از فاکتورها)
+    این تابع باید در تمام فرم‌ها و اعتبارسنجی‌ها استفاده شود.
+    """
+    # گام اول: موجودی واقعی را از تراکنش‌ها محاسبه کن
+    current_balance = calculate_balance_from_transactions(budget_source_obj)
+
+    # گام دوم: مبالغی که هنوز پرداخت نشده ولی تعهد ایجاد کرده‌اند را کم کن
+    committed_amount = get_committed_budget(budget_source_obj)
+
+    available_budget = current_balance - committed_amount
+
+    logger.info(
+        f"Available budget for {budget_source_obj.__class__.__name__} PK {budget_source_obj.pk}: "
+        f"Balance({current_balance}) - Committed({committed_amount}) = {available_budget}"
+    )
+    return max(available_budget, Decimal('0'))
+
 #------------------
 
 # #
@@ -2085,3 +2265,5 @@ def get_returned_budgets(budget_period, entity_type='all'):
 #         return Decimal('0')
 #
 # # --- END OF FILE budget_calculations.py ---
+
+

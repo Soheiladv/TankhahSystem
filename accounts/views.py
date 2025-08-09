@@ -146,7 +146,7 @@ def dashboard_view(request):
                 {"label": " وضعیت گردش کار گردش کار  (A)", "url": "status_list", "icon": "fas fa-chart", "color": "danger"},
                 {"label": " اقدام گردش کار (B)", "url": "action_list", "icon": "fas fa-chart", "color": "danger"},
                 {"label": " گذار گردش کار (C)", "url": "transition_list", "icon": "fas fa-chart", "color": "danger"},
-                {"label": " مجوز گردش کار (D)", "url": "permission_list", "icon": "fas fa-chart", "color": "danger"},
+                # {"label": " مجوز گردش کار (D)", "url": "permission_list", "icon": "fas fa-chart", "color": "danger"},
             ],
         },
     ]

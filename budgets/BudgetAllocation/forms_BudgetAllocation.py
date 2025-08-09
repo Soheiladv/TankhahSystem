@@ -530,18 +530,10 @@ class BudgetAllocationForm(forms.ModelForm):
 
     def clean_allocation_date(self):
         date_str = self.cleaned_data.get('allocation_date')
-        if not date_str:
-            raise ValidationError(_('تاریخ تخصیص اجباری است.'))
         try:
-            parsed_date = parse_jalali_date(str(date_str), field_name=_('تاریخ تخصیص'))
-            return parsed_date
-        except ValueError as e:
-            logger.warning(f"Could not parse allocation_date '{date_str}': {e}")
-            raise ValidationError(e)
-        except Exception as e:
-            logger.error(f"Unexpected error parsing allocation_date '{date_str}': {e}", exc_info=True)
-            raise ValidationError(_('فرمت تاریخ تخصیص نامعتبر است.'))
-
+            return parse_jalali_date(date_str)
+        except (ValueError, TypeError):
+            raise forms.ValidationError(_('فرمت تاریخ نامعتبر است.'))
     def clean_allocated_amount(self):
         amount_input = self.cleaned_data.get('allocated_amount')
         allocation_type = self.cleaned_data.get('allocation_type')
@@ -617,12 +609,12 @@ class BudgetAllocationForm(forms.ModelForm):
                     f"مبلغ تخصیص ({allocated_amount:,.0f} ریال) بیشتر از بودجه باقی‌مانده ({remaining_budget:,.0f} ریال) است."
                 ))
 
-        # اعتبارسنجی تاریخ تخصیص
-        if allocation_date and budget_period:
-            if not (budget_period.start_date <= allocation_date <= budget_period.end_date):
-                self.add_error('allocation_date', _(
-                    f"تاریخ تخصیص باید در بازه {budget_period.start_date} تا {budget_period.end_date} باشد."
-                ))
+        # # اعتبارسنجی تاریخ تخصیص
+        # if allocation_date and budget_period:
+        #     if not (budget_period.start_date <= allocation_date <= budget_period.end_date):
+        #         self.add_error('allocation_date', _(
+        #             f"تاریخ تخصیص باید در بازه {budget_period.start_date} تا {budget_period.end_date} باشد."
+        #         ))
 
         # اعتبارسنجی warning_threshold
         if warning_threshold is not None and not (0 <= warning_threshold <= 100):

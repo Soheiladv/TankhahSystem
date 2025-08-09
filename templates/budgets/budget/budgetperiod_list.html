@@ -208,7 +208,11 @@
                     {% trans "ثبت بودجه کلان جدید" %} <i class="fas fa-dollar me-1"></i>
                 </a>
             </div>
-
+                  <div class="no-print">
+                                <a href="{% url 'budgets_dashboard' %}" class="btn btn-light btn-sm">
+                                    <i class="fas fa-dashboard me-1"></i> {% trans "داشبورد بودجه" %}
+                                </a>
+                            </div>
                 <div class="no-print">
                     <a href="{% url 'budget_Help' %}" class="btn btn-light btn-sm">
                         <i class="fas fa-user-graduate me-1"></i> {% trans "راهنمای کار بودجه کلان" %}

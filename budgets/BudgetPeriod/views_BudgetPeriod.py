@@ -106,8 +106,6 @@ class BudgetPeriodListView(PermissionBaseView, ListView):
     template_name = 'budgets/budget/budgetperiod_list.html'
     context_object_name = 'budget_periods'
     paginate_by = 10
-    from Tanbakhsystem.utils import parse_jalali_date
-
     def get_queryset(self):
         queryset = super().get_queryset()
         q = self.request.GET.get('q', '')
@@ -212,78 +210,8 @@ class BudgetPeriodListView(PermissionBaseView, ListView):
         # --- محاسبه مقادیر برای آیتم‌های صفحه فعلی ---
         # (این بخش کد شما برای محاسبه remaining و status برای آیتم‌های صفحه فعلی است)
         # --- محاسبه وضعیت و remaining برای آیتم‌های صفحه فعلی ---
-        budget_periods_page = context['budget_periods']
         from django.utils import timezone
         today = timezone.now().date()  # تاریخ امروز
-        #
-        # for period in context['budget_periods']:
-        #     # محاسبه remaining برای هر آیتم صفحه فعلی
-        #     # توجه: این با total_remaining که مجموع کل است فرق دارد
-        #     period.remaining_amount = max(period.total_amount - (period.total_allocated or Decimal('0')), Decimal('0'))
-        #     # محاسبه وضعیت برای هر آیتم
-        #     period.status, period.status_message = check_budget_status(period)
-        #     if period.status in ('warning', 'locked', 'completed'):
-        #         # messages.warning(self.request, f"{period.name}: {period.status_message}")
-        #         from django.contrib.contenttypes.models import ContentType
-        #         BudgetHistory.objects.create(
-        #             content_type=ContentType.objects.get_for_model(BudgetPeriod),
-        #             object_id=period.pk,
-        #             action='STATUS_CHECK',
-        #             details=f"وضعیت: {period.status} - {period.status_message}",
-        #             created_by=self.request.user
-        #         )
-        for period in budget_periods_page:
-            # محاسبه remaining_amount_display
-            period.remaining_amount_display = max(period.total_amount - (period.total_allocated or Decimal('0')), Decimal('0'))
-            #     # توجه: این با total_remaining که مجموع کل است فرق دارد
-            period.remaining_amount = max(period.total_amount - (period.total_allocated or Decimal('0')), Decimal('0'))
-            # محاسبه وضعیت برای هر آیتم
-            period.status, period.status_message = check_budget_status(period)
-            if period.status in ('warning', 'locked', 'completed'):
-                # messages.warning(self.request, f"{period.name}: {period.status_message}")
-                from django.contrib.contenttypes.models import ContentType
-                BudgetHistory.objects.create(
-                    content_type=ContentType.objects.get_for_model(BudgetPeriod),
-                    object_id=period.pk,
-                    action='STATUS_CHECK',
-                    details=f"وضعیت: {period.status} - {period.status_message}",
-                    created_by=self.request.user)
-
-            # --- محاسبه وضعیت نمایشی (display_status) ---
-            period.display_status = 'unknown' # مقدار پیش‌فرض
-            period.status_css_class = 'secondary' # کلاس CSS پیش‌فرض
-
-            if period.is_archived:
-                period.display_status = 'archived'
-                period.status_css_class = 'archived' # باید استایل archived را تعریف کنید
-            elif period.is_completed:
-                period.display_status = 'completed'
-                period.status_css_class = 'completed'
-            elif period.lock_condition == 'MANUAL': # فرض: قفل دستی یعنی وضعیت قفل شده
-                period.display_status = 'locked'
-                period.status_css_class = 'locked'
-            # بررسی شرایط دیگر قفل شدن (مثلا بعد از تاریخ یا باقی مانده صفر)
-            elif period.lock_condition == 'AFTER_DATE' and today > period.end_date:
-                 period.display_status = 'locked' # یا 'expired_locked'
-                 period.status_css_class = 'locked'
-            elif period.lock_condition == 'ZERO_REMAINING' and period.remaining_amount_display <= 0:
-                 period.display_status = 'locked' # یا 'zero_locked'
-                 period.status_css_class = 'locked'
-            # اگر قفل نیست، وضعیت فعال/غیرفعال/آینده/منقضی را تعیین کن
-            elif period.is_active:
-                if today < period.start_date:
-                     period.display_status = 'upcoming' # آینده
-                     period.status_css_class = 'info' # استایل info یا مشابه
-                elif today > period.end_date:
-                     period.display_status = 'expired' # منقضی
-                     period.status_css_class = 'warning' # استایل warning یا مشابه
-                else: # در بازه تاریخ و فعال
-                     period.display_status = 'active'
-                     period.status_css_class = 'active'
-            else: # is_active = False
-                period.display_status = 'inactive'
-                period.status_css_class = 'inactive'
-            # ----------------------------------------------------
 
         context['query'] = self.request.GET.get('q', '')
         context['status'] = self.request.GET.get('status', '')

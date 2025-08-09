@@ -28,31 +28,48 @@ def update_total_allocated(sender, instance, **kwargs):
 def update_remaining_amount(sender, instance, created, **kwargs):
     try:
         allocation = instance.allocation
-        logger.debug(f"BudgetTransaction {instance.transaction_id} created. Invalidating cache for allocation {allocation.id}")
-        cache.delete(f"allocation_remaining_{allocation.id}")
+        # --- بخش کلیدی اصلاح شده ---
+        # فقط اگر تراکنش به یک allocation لینک شده باشد، این بخش را اجرا کن.
+        if allocation:
+            logger.debug(
+                f"BudgetTransaction {instance.transaction_id} created. Invalidating cache for allocation {allocation.pk}")
+            cache.delete(f"allocation_remaining_{allocation.pk}")
+        # --- پایان بخش اصلاح شده ---
+
         if instance.related_tankhah:
+            # این بخش صحیح است و باقی می‌ماند.
             instance.related_tankhah.remaining_budget = instance.related_tankhah.get_remaining_budget()
             instance.related_tankhah.save(update_fields=['remaining_budget'])
-            cache.delete(f"tankhah_remaining_{instance.related_tankhah.id}")
-            logger.debug(f"Updated remaining_budget for Tankhah {instance.related_tankhah.id}")
+            cache.delete(f"tankhah_remaining_{instance.related_tankhah.pk}")
+            logger.debug(f"Updated remaining_budget for Tankhah {instance.related_tankhah.pk}")
+
     except Exception as e:
         logger.error(f"Error updating caches for BudgetTransaction {instance.id}: {str(e)}", exc_info=True)
+
 
 @receiver([post_save, post_delete], sender=BudgetTransaction)
 def invalidate_transaction_cache(sender, instance, **kwargs):
     cache_keys = set()
     try:
         allocation = instance.allocation
-        cache_keys.add(f"free_budget_{allocation.pk}")
-        if allocation.project:
-            cache_keys.add(f"project_remaining_budget_{allocation.project.pk}")
-        if allocation.subproject:
-            cache_keys.add(f"subproject_remaining_budget_{allocation.subproject.pk}")
-        cache_keys.add(f"budget_transfers_{allocation.budget_period.pk}_no_filters")
-        cache_keys.add(f"returned_budgets_{allocation.budget_period.pk}_all_no_filters")
+
+        # --- بخش کلیدی اصلاح شده ---
+        # فقط اگر تراکنش به یک allocation لینک شده باشد، کش‌های مربوط به آن را پاک کن.
+        if allocation:
+            cache_keys.add(f"free_budget_{allocation.pk}")
+            if allocation.project:
+                cache_keys.add(f"project_remaining_budget_{allocation.project.pk}")
+            if allocation.subproject:
+                cache_keys.add(f"subproject_remaining_budget_{allocation.subproject.pk}")
+            if allocation.budget_period:
+                cache_keys.add(f"budget_transfers_{allocation.budget_period.pk}_no_filters")
+                cache_keys.add(f"returned_budgets_{allocation.budget_period.pk}_all_no_filters")
         for key in cache_keys:
-            cache.delete(key)
-        logger.debug(f"Invalidated cache keys after BudgetTransaction change: {cache_keys}")
+            if key:  # اطمینان از اینکه کلید خالی نیست
+                cache.delete(key)
+
+        if cache_keys:
+            logger.debug(f"Invalidated cache keys after BudgetTransaction change: {cache_keys}")
     except Exception as e:
         logger.error(f"Error invalidating cache for BudgetTransaction {instance.pk}: {str(e)}", exc_info=True)
 
@@ -141,6 +158,8 @@ def create_post_actions_for_payment_order(sender, instance, created, **kwargs):
                 is_active=True
             )
             logger.debug(f"Created PostActions for Post {instance.pk} and stage {stage.pk}")
+
+
 
 # from django.contrib.contenttypes.models import ContentType
 # from django.db.models import Sum
@@ -348,3 +367,7 @@ def create_post_actions_for_payment_order(sender, instance, created, **kwargs):
 #                 is_active=True
 #             )
 #             logger.debug(f"Created PostActions for Post {instance.pk} and stage {stage.pk}")
+
+
+
+

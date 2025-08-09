@@ -5,10 +5,9 @@ from django.http import JsonResponse
 from budgets.models import BudgetAllocation, BudgetTransaction
 from core.models import Organization, Project, WorkflowStage, UserPost, SubProject
 from notificationApp.utils import send_notification
-from tankhah.forms import TankhahForm
+from tankhah.Tankhah.forms_tankhah import  TankhahForm
 from tankhah.models import Factor
 
-logger = logging.getLogger(__name__)
 from django.db.models import Sum, Prefetch
 from django.db import transaction
 from django.urls import reverse_lazy
@@ -16,18 +15,10 @@ from django.views.generic import CreateView, UpdateView, DeleteView, View
 from django.views.generic.list import ListView
 
 from accounts.models import CustomUser
-from budgets.budget_calculations import get_project_total_budget, get_project_remaining_budget, \
-    get_subproject_total_budget, get_subproject_remaining_budget
-
-from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import DetailView
-from django.contrib import messages
+from budgets.budget_calculations import      get_subproject_total_budget
 from django.db.models import Q
-from django.core.exceptions import PermissionDenied
 from jalali_date import date2jalali
-from tankhah.models import Tankhah, ApprovalLog
-from tankhah.forms import TankhahStatusForm
-from django.contrib.contenttypes.models import ContentType
+from tankhah.models import Tankhah
 import jdatetime
 from decimal import Decimal
 # tankhah/views.py
@@ -61,165 +52,6 @@ def get_projects(request):
         logger.error(f"Error fetching projects for org_id {org_id}: {str(e)}")
         return JsonResponse({'projects': []}, status=500)
 
-# -------
-class old__TankhahCreateView(PermissionBaseView, CreateView):
-    model = Tankhah
-    form_class = TankhahForm
-    template_name = 'tankhah/Tankhah_form.html'
-    success_url = reverse_lazy('tankhah_list')
-    context_object_name = 'Tankhah'
-    permission_codenames = ['tankhah.Tankhah_add']
-    permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
-    check_organization = True
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
-
-    def form_invalid(self, form):
-        logger.info(f"فرم نامعتبر است. خطاها: {form.errors}")
-        messages.error(self.request, _('لطفاً خطاهای فرم را بررسی کنید.'))
-        return super().form_invalid(form)
-
-    def generate_tankhah_number(self, tankhah):
-        date_str = tankhah.date.strftime('%Y%m%d')
-        org_code = tankhah.organization.code[:6]
-        proj_code = tankhah.project.code[:6]
-        count = Tankhah.objects.filter(date=tankhah.date).count() + 1
-        return f"تنخواه-{date_str}-{org_code}-{proj_code}-{count:03d}"
-
-    def form_valid(self, form):
-        logger.info(f"فرم معتبر است. داده‌ها: {form.cleaned_data}")
-        with transaction.atomic():
-            self.object = form.save(commit=False)
-            # ثبت تنخواه
-            tankhah = form.save(commit=False)
-            tankhah.created_by = self.request.user
-            tankhah.number = self.generate_tankhah_number(tankhah)
-            # پیدا کردن تخصیص بودجه
-            project = form.cleaned_data['project']
-            subproject = form.cleaned_data.get('subproject')
-            organization = form.cleaned_data['organization']
-            from budgets.models import BudgetAllocation
-            try:
-                project_allocation = BudgetAllocation.objects.filter(
-                    project=project,
-                    subproject=subproject if subproject else None,
-                    budget_allocation__is_active=True,
-                    budget_allocation__organization=organization
-                ).select_related('budget_allocation').first()
-
-                if not project_allocation:
-                    logger.error(
-                        f"No active budget allocation found for project {project.id}, org {form.cleaned_data['organization'].id}")
-                    form.add_error(None, _("تخصیص بودجه فعالی برای این پروژه/زیرپروژه یافت نشد."))
-                    return self.form_invalid(form)
-
-                # بررسی بودجه باقی‌مانده
-                remaining_budget = project_allocation.get_remaining_amount()
-                if tankhah.amount > remaining_budget:
-                    logger.error(
-                        f"Insufficient remaining budget: {remaining_budget} for tankhah amount: {tankhah.amount}")
-                    form.add_error('amount', _("مبلغ تنخواه بیشتر از بودجه باقی‌مانده است."))
-                    return self.form_invalid(form)
-
-                tankhah.budget_allocation = project_allocation.budget_allocation
-
-                # تنظیم مرحله اولیه جریان کاری
-                from core.models import WorkflowStage
-                initial_stage = WorkflowStage.objects.order_by('order').first()
-                if not initial_stage:
-                    logger.error("No initial workflow stage defined")
-                    form.add_error(None, _("مرحله اولیه جریان کاری تعریف نشده است."))
-                    return self.form_invalid(form)
-                tankhah.current_stage = initial_stage
-                tankhah.status = 'DRAFT'  # ابتدا DRAFT، بعداً در جریان کاری PAID شود
-                tankhah.save()
-
-            except Exception as e:
-                logger.error(f"Error creating tankhah {tankhah.number}: {str(e)}")
-                form.add_error(None, f"خطا در ثبت تنخواه: {str(e)}")
-                return self.form_invalid(form)
-
-            approvers = CustomUser.objects.filter(userpost__post__stageapprover__stage=initial_stage)
-            if approvers.exists():
-                send_notification(self.request.user, users=None, posts=None,  verb='تنخواه برای تأیید آماده است',  description=approvers, target=self.object,
-                                  entity_type=None, priority='MEDIUM'  )
-                logger.info(f"Notification sent to {approvers.count()} approvers for stage {initial_stage.name}")
-
-        messages.success(self.request, _('تنخواه با موفقیت ثبت شد.'))
-        return super().form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = _('ایجاد تنخواه جدید')
-
-        # مدیریت بودجه‌ها برای درخواست‌های GET و POST
-        project = None
-        subproject = None
-
-        # بررسی درخواست POST
-        if self.request.method == 'POST' and 'project' in self.request.POST:
-            from core.models import SubProject,Project
-            try:
-                project_id = int(self.request.POST.get('project'))
-                project = Project.objects.get(id=project_id)
-                if 'subproject' in self.request.POST and self.request.POST.get('subproject'):
-                    subproject_id = int(self.request.POST.get('subproject'))
-                    subproject = SubProject.objects.get(id=subproject_id)
-            except (ValueError, Project.DoesNotExist, SubProject.DoesNotExist) as e:
-                logger.error(f"Error fetching project/subproject: {str(e)}")
-                project = None
-                subproject = None
-
-        # برای حالت ویرایش یا بارگذاری اولیه با داده‌های فرم
-        elif self.request.method == 'GET' and self.form_class and hasattr(self, 'object') and self.object:
-            project = self.object.project
-            subproject = self.object.subproject
-
-        # تنظیم سازمان‌های مجاز در context
-        context['organizations'] = Organization.objects.filter(
-            org_type__is_budget_allocatable=True,
-            is_active=True
-        ).order_by('name')
-
-        # تنظیم مقادیر بودجه
-        if project:
-            total_budget = get_project_total_budget(project)
-            remaining_budget = get_project_remaining_budget(project)
-            context['total_budget'] = total_budget
-            context['remaining_budget'] = remaining_budget
-            context['project_budget_percentage'] = (
-                (remaining_budget / total_budget * 100) if total_budget > 0 else Decimal('0')
-            )
-            logger.debug(f"Project {project.id} budget: total={total_budget}, remaining={remaining_budget}")
-        else:
-            context['total_budget'] = Decimal('0')
-            context['remaining_budget'] = Decimal('0')
-            context['project_budget_percentage'] = Decimal('0')
-
-        if subproject:
-            subproject_total = get_subproject_total_budget(subproject)
-            subproject_remaining = get_subproject_remaining_budget(subproject)
-            context['subproject_total_budget'] = subproject_total
-            context['subproject_remaining_budget'] = subproject_remaining
-            context['subproject_budget_percentage'] = (
-                (subproject_remaining / subproject_total * 100) if subproject_total > 0 else Decimal('0')
-            )
-            logger.debug(
-                f"Subproject {subproject.id} budget: total={subproject_total}, remaining={subproject_remaining}")
-        else:
-            context['subproject_total_budget'] = Decimal('0')
-            context['subproject_remaining_budget'] = Decimal('0')
-            context['subproject_budget_percentage'] = Decimal('0')
-
-        return context
-
-    def handle_no_permission(self):
-        messages.error(self.request, self.permission_denied_message)
-        return super().handle_no_permission()
-
 
 # tankhah/view_folder_tankhah/view_tankhah.py (یا هرجایی که این ویو قرار دارد)
 
@@ -233,7 +65,7 @@ from django.core.exceptions import ValidationError  # برای مدیریت خط
 
 from core.PermissionBase import PermissionBaseView  # یا LoginRequiredMixin
 from tankhah.models import Tankhah
-from tankhah.forms import TankhahForm  # فرمی که در بالا تعریف کردیم
+from tankhah.Tankhah.forms_tankhah import TankhahForm  # فرمی که در بالا تعریف کردیم
 from core.models import WorkflowStage, Organization, Project, SubProject
 from budgets.models import BudgetAllocation
 # from accounts.models import CustomUser # اگر برای notify لازم است
@@ -264,160 +96,6 @@ from budgets.budget_calculations import (
 )
 
 logger = logging.getLogger("tankhah_views")
-
-class TankhahCreateView(PermissionBaseView, CreateView):
-    model = Tankhah
-    form_class = TankhahForm
-    template_name = 'tankhah/Tankhah_form.html'  # مسیر صحیح تمپلیت شما
-    context_object_name = 'form'  # استفاده از 'form' برای سازگاری با CreateView
-    permission_codenames = ['tankhah.Tankhah_add']  # پرمیشن صحیح
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        # پاس دادن initial_project_budget_allocation_pk اگر از URL GET آمده
-        if 'budget_allocation_id' in self.request.GET:  # نام پارامتر URL
-            kwargs['initial_project_budget_allocation_pk'] = self.request.GET.get('budget_allocation_id')
-        return kwargs
-
-    def get_initial(self):
-        """
-        مقادیر اولیه برای فیلدهای فرم از کوئری پارامترهای URL (GET).
-        این توسط __init__ فرم هم استفاده می‌شود.
-        """
-        initial = super().get_initial()
-        budget_allocation_id_from_get = self.request.GET.get('budget_allocation_id')
-        project_id_from_get = self.request.GET.get('project_id')
-        organization_id_from_get = self.request.GET.get('organization_id')
-        # ... سایر پارامترهای اولیه مورد نیاز ...
-
-        logger.debug(
-            f"TankhahCreateView get_initial - GET params: ba_id={budget_allocation_id_from_get}, proj_id={project_id_from_get}, org_id={organization_id_from_get}")
-
-        if budget_allocation_id_from_get:
-            try:
-                ba = BudgetAllocation.objects.select_related(
-                    'organization', 'project', 'subproject'
-                ).get(pk=int(budget_allocation_id_from_get))
-                initial['project_budget_allocation'] = ba.pk
-                if ba.organization: initial['organization'] = ba.organization.pk
-                if ba.project: initial['project'] = ba.project.pk
-                if ba.subproject: initial['subproject'] = ba.subproject.pk
-                logger.info(
-                    f"Initial data for form set from BudgetAllocation (PK from GET: {budget_allocation_id_from_get})")
-            except (ValueError, BudgetAllocation.DoesNotExist):
-                logger.warning(f"BudgetAllocation with ID '{budget_allocation_id_from_get}' from GET params not found.")
-            except Exception as e:
-                logger.error(f"Error in get_initial processing budget_allocation_id: {e}", exc_info=True)
-
-        # اگر فقط project_id از GET آمده (مثلاً از صفحه لیست پروژه‌ها)
-        elif project_id_from_get and not initial.get('project'):
-            try:
-                project_instance = Project.objects.get(pk=int(project_id_from_get))
-                initial['project'] = project_instance.pk
-                # سعی کن سازمان را هم از پروژه بگیری (اولین سازمان مرتبط یا یک سازمان پیش‌فرض)
-                if project_instance.organizations.exists():
-                    initial['organization'] = project_instance.organizations.first().pk
-                logger.info(f"Initial data for form set from Project ID {project_id_from_get}")
-            except (ValueError, Project.DoesNotExist):
-                logger.warning(f"Project with ID '{project_id_from_get}' from GET params not found.")
-
-        # اگر فقط organization_id از GET آمده
-        elif organization_id_from_get and not initial.get('organization'):
-            initial['organization'] = organization_id_from_get
-            logger.info(f"Initial data for form set with Organization ID {organization_id_from_get}")
-
-        return initial
-
-    def form_valid(self, form):
-        logger.info(
-            f"TankhahCreateView form_valid. User: {self.request.user.username}. Cleaned data: {form.cleaned_data}")
-        try:
-            with transaction.atomic():
-                self.object = form.save(commit=False)  # ذخیره موقت فرم
-
-                # تنظیم created_by
-                if not self.object.created_by and self.request.user.is_authenticated:
-                    self.object.created_by = self.request.user
-
-                # تنظیم project_budget_allocation از cleaned_data
-                project_budget_allocation = form.cleaned_data.get('project_budget_allocation')
-                if not project_budget_allocation:
-                    logger.error(
-                        "CRITICAL: project_budget_allocation is None in form_valid after form.save(commit=False).")
-                    form.add_error(None, _("خطای داخلی: منبع بودجه به درستی به تنخواه متصل نشده است."))
-                    return self.form_invalid(form)
-
-                self.object.project_budget_allocation = project_budget_allocation
-
-                # تنظیم مرحله اولیه گردش کار
-                initial_stage_qs = WorkflowStage.objects.filter(is_active=True)
-                if hasattr(WorkflowStage, 'entity_type'):
-                    initial_stage_qs = initial_stage_qs.filter(entity_type='TANKHAH')
-                    logger.info(f'initial_stage_qs Create Tankhah : {initial_stage_qs}')
-                initial_stage = initial_stage_qs.order_by('order').first()
-
-                if not initial_stage:
-                    logger.error("No initial/active workflow stage defined for Tankhahs.")
-                    form.add_error(None, _("خطای سیستمی: مرحله اولیه گردش کاری برای تنخواه تعریف نشده است."))
-                    return self.form_invalid(form)
-
-                self.object.current_stage = initial_stage
-                self.object.status = 'DRAFT'
-                logger.debug(f"Tankhah initial stage: {initial_stage.name}, Status: {self.object.status}")
-
-                # ذخیره مدل
-                self.object.save()
-                logger.info(f"Tankhah {self.object.number} (PK: {self.object.pk}) created successfully.")
-                messages.success(self.request,
-                                 _('تنخواه "{num}" با موفقیت ایجاد شد. لطفاً فاکتورهای مربوطه را از طریق صفحه جزئیات اضافه نمایید.').format(
-                                     num=self.object.number))
-
-                return redirect(self.get_success_url())
-
-        except ValidationError as e:
-            logger.warning(
-                f"ValidationError during Tankhah save in form_valid: {e.message_dict if hasattr(e, 'message_dict') else e}")
-            if hasattr(e, 'message_dict'):
-                for field, errors_list in e.message_dict.items():
-                    form.add_error(field if field != '__all__' else None, errors_list)
-            else:
-                form.add_error(None, e.messages if hasattr(e, 'messages') else str(e))
-            return self.form_invalid(form)
-        except Exception as e:
-            logger.error(f"Unexpected error in TankhahCreateView form_valid: {e}", exc_info=True)
-            messages.error(self.request, _("خطای پیش‌بینی نشده‌ای هنگام ایجاد تنخواه رخ داد."))
-            return self.form_invalid(form)
-
-    def form_invalid(self, form):
-        logger.warning(
-            f"TankhahCreateView form_invalid. User: {self.request.user.username}. Errors: {form.errors.as_json()}")
-        messages.error(self.request, _('فرم ارسال شده دارای خطا است. لطفاً موارد مشخص شده را اصلاح نمایید.'))
-        return super().form_invalid(form)
-
-    def get_success_url(self):
-        if self.object:
-            return reverse('tankhah_detail', kwargs={'pk': self.object.pk})
-        return reverse_lazy('tankhah_list')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = _('ایجاد تنخواه جدید')
-
-        # URL ها برای AJAX در تمپلیت (باید در urls.py تعریف شوند)
-        context['load_projects_url'] = reverse_lazy('ajax_load_projects')  # نام URL برای API پروژه‌ها
-        context['load_subprojects_url'] = reverse_lazy('ajax_load_subprojects')  # نام URL برای API زیرپروژه‌ها
-        context['load_budget_allocations_url'] = reverse_lazy(
-            'ajax_load_allocations_for_tankhah')  # نام URL برای API تخصیص‌ها
-
-        # نمایش اطلاعات بودجه اولیه اگر فرم با initial data پر شده
-        form = context.get('form')
-        if form and form.initial:
-            # ... (منطق نمایش اطلاعات بودجه پروژه/زیرپروژه مانند قبل، اگر لازم است) ...
-            pass
-
-        logger.debug(f"TankhahCreateView get_context_data prepared. Title: {context['title']}")
-        return context
 
 # تأیید و ویرایش تنخواه
 class TankhahUpdateView(PermissionBaseView, UpdateView):
@@ -629,7 +307,7 @@ class TankhahListView(PermissionBaseView, ListView):
         ).prefetch_related(
             Prefetch(
                 'factors',
-                queryset=Factor.objects.filter(status__in=['APPROVED', 'PAID']),
+                queryset=Factor.objects.filter(status__code=['APPROVED', 'PAID']),
                 to_attr='paid_and_approved_factors'
             )
         ).order_by('organization__name', 'project__name', '-date')
@@ -768,90 +446,6 @@ class TankhahListView(PermissionBaseView, ListView):
         context['grouped_by_org'] = grouped_by_org
         context['errors'] = []
         logger.debug(f"[TankhahListView] تعداد شعبه‌ها: {len(grouped_by_org)}")
-        return context
-class LD__TankhahDetailView( PermissionBaseView,DetailView): #PermissionBaseView,
-    model = Tankhah
-    template_name = 'tankhah/tankhah_detail.html'
-    context_object_name = 'Tankhah'
-    permission_codenames = ['tankhah.Tankhah_detail']
-    permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
-    check_organization = True
-
-    # def has_permission(self):
-    #     return any(self.request.user.has_perm(perm) for perm in self.get_permission_required())
-
-    # def get_object(self, queryset=None):
-    #     tankhah = get_object_or_404(Tankhah, pk=self.kwargs['pk'])
-    #     user_orgs = [up.post.organization for up in self.request.user.userpost_set.all()]
-    #     is_hq_user = any(org.org_type == 'HQ' for org in user_orgs)
-    #     if not is_hq_user and tankhah.organization not in user_orgs:
-    #         logger.warning(f"User {self.request.user.username} attempted to access unauthorized Tankhah {tankhah.pk}")
-    #         raise PermissionDenied(_('شما اجازه دسترسی به این تنخواه را ندارید.'))
-    #     return tankhah
-
-    def get_queryset(self):
-        return Tankhah.objects.select_related(
-            'organization', 'project', 'project_budget_allocation', 'subproject'
-        ).prefetch_related('factors', 'approval_logs')
-
-    def post(self, request, *args, **kwargs):
-        tankhah = self.get_object()
-        form = TankhahStatusForm(request.POST, instance=tankhah)
-        if form.is_valid():
-            try:
-                form.save()
-                messages.success(request, _('وضعیت تنخواه با موفقیت به‌روزرسانی شد.'))
-                logger.info(f"Tankhah {tankhah.pk} status updated by user {request.user.username}")
-                return redirect('tankhah_detail', pk=tankhah.pk)
-            except Exception as e:
-                logger.error(f"Error updating Tankhah {tankhah.pk} status: {str(e)}", exc_info=True)
-                messages.error(request, _('خطایی در به‌روزرسانی وضعیت رخ داد.'))
-        else:
-            messages.error(request, _('فرم نامعتبر است. لطفاً ورودی‌ها را بررسی کنید.'))
-        return self.get(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        tankhah = self.object
-        context['factors'] = tankhah.factors.all()
-        context['title'] = _('جزئیات تنخواه') + f" - {tankhah.number}"
-        context['approval_logs'] = ApprovalLog.objects.filter(
-            content_type=ContentType.objects.get_for_model(Tankhah),
-            object_id=tankhah.pk
-        ).order_by('timestamp')
-        context['current_date'] = jdatetime.datetime.now().strftime('%Y/%m/%d %H:%M')
-        context['status_form'] = TankhahStatusForm(instance=tankhah)
-
-        # لاگ مقادیر
-        remaining_budget = tankhah.get_remaining_budget()
-        logger.debug(f"Tankhah {tankhah.pk}: amount={tankhah.amount}, remaining_budget={remaining_budget}")
-
-        # تنظیم مقادیر برای context
-        context['amount'] = tankhah.amount if tankhah.amount is not None else Decimal('0')
-        context['remaining_budget'] = remaining_budget if remaining_budget is not None else Decimal('0')
-
-        # تبدیل تاریخ‌ها به شمسی
-        if tankhah.date:
-            context['jalali_date'] = date2jalali(tankhah.date).strftime('%Y/%m/%d')
-        for factor in context['factors']:
-            factor.jalali_date = date2jalali(factor.date).strftime('%Y/%m/%d')
-        for approval in context['approval_logs']:
-            approval.jalali_date = jdatetime.datetime.fromgregorian(datetime=approval.timestamp).strftime('%Y/%m/%d %H:%M')
-
-        # دسته‌بندی برای دفتر مرکزی و دسترسی‌ها
-        user_orgs = [up.post.organization for up in self.request.user.userpost_set.all()]
-        context['is_hq'] = any(org.org_type == 'HQ' for org in user_orgs)
-        context['can_approve'] = (
-            tankhah.status in ['DRAFT', 'PENDING'] and
-            any(
-                p.post.stageapprover_set.filter(stage=tankhah.current_stage).exists()
-                for p in self.request.user.userpost_set.all()
-            ) and (
-                self.request.user.has_perm('tankhah.Tankhah_approve') or
-                self.request.user.has_perm('tankhah.Tankhah_part_approve') or
-                self.request.user.has_perm('tankhah.FactorItem_approve')
-            )
-        )
         return context
 
 class TankhahDetailView(PermissionBaseView, DetailView):
