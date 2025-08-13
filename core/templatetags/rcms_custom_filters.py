@@ -548,3 +548,16 @@ def get_status_color(status_key):
         'paid': 'info',
     }
     return colors.get(status_key, 'primary')
+
+
+
+
+@register.filter(name='filename')
+def filename(value):
+    """
+    یک فیلد فایل (FileField) را می‌گیرد و فقط نام فایل را برمی‌گرداند.
+    مثال: 'documents/invoice.pdf' -> 'invoice.pdf'
+    """
+    if hasattr(value, 'name'):
+        return os.path.basename(value.name)
+    return value

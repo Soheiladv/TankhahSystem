@@ -72,7 +72,7 @@ class OrganizationChartAPIView(PermissionBaseView, APIView):
                         'id': f'post_{post.id}',
                         'label': post.name,
                         'group': 'post',
-                        'title': f"<b>{_('پست')}:</b> {post.name}<br><b>{_('سازمان')}:</b> {org.name}<br><b>{_('شاخه')}:</b> {post.get_branch_display() or '-'}",
+                        'title': f"<b>{_('پست')}:</b> {post.name}<br><b>{_('سازمان')}:</b> {org.name}<br><b>{_('شاخه')}:</b>   ",
                         'shape': 'ellipse',
                         'color': '#FBDBA8',
                         'font': {'size': 11}

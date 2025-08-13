@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load i18n static humanize jformat %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- ستون اصلی - فرم‌ها و جزئیات -->
+        <div class="col-lg-8">
+            <!-- کارت اطلاعات کلی فاکتور -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="bi bi-receipt me-2"></i>{{ title }}</h4>
+                    <span class="badge bg-light text-dark fs-6">{{ factor.status.name }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6"><p><strong>{% trans "تنخواه" %}:</strong> <a href="{{ factor.tankhah.get_absolute_url }}">{{ factor.tankhah }}</a></p></div>
+                        <div class="col-md-6"><p><strong>{% trans "ایجادکننده" %}:</strong> {{ factor.created_by.get_full_name|default:factor.created_by.username }}</p></div>
+                        <div class="col-md-6"><p><strong>{% trans "پروژه" %}:</strong> {{ factor.tankhah.project.name }}</p></div>
+                        <div class="col-md-6"><p><strong>{% trans "مبلغ کل" %}:</strong> {{ factor.amount|intcomma:False }} {% trans "ریال" %}</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- فرم اصلی اقدامات -->
+            <form method="post" id="approval-form">
+                {% csrf_token %}
+                {{ formset.management_form }}
+
+                <!-- بخش اقدام گروهی -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-lightning-charge-fill me-2"></i>{% trans "اقدام گروهی" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-end g-2">
+                            <div class="col-md-4">
+                                <label for="bulk_action" class="form-label small">{% trans "نوع اقدام" %}</label>
+                                <select id="bulk_action" class="form-select form-select-sm">
+                                    <option value="">---------</option>
+                                    <!-- گزینه‌ها توسط جاوااسکریپت پر می‌شوند -->
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="bulk_comment" class="form-label small">{% trans "توضیحات گروهی" %}</label>
+                                <input type="text" id="bulk_comment" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" id="apply-bulk-action" class="btn btn-sm btn-outline-primary w-100">{% trans "اعمال کن" %}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- جدول ردیف‌های فاکتور -->
+                <div class="card shadow-sm">
+                    <div class="card-header"><h5 class="mb-0">{% trans "ردیف‌های فاکتور" %}</h5></div>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-bordered mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>{% trans "شرح" %}</th>
+                                    <th class="text-end">{% trans "مبلغ" %}</th>
+                                    <th>{% trans "وضعیت فعلی" %}</th>
+                                    <th style="width: 20%;">{% trans "اقدام جدید" %}</th>
+                                    <th style="width: 30%;">{% trans "توضیحات" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for form in formset %}
+                                    <tr>
+                                        {{ form.instance.id }} {# ID مخفی ردیف #}
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ form.instance.description }}</td>
+                                        <td class="text-end">{{ form.instance.amount|intcomma }}</td>
+                                        <td><span class="badge bg-secondary">{{ form.instance.status.name }}</span></td>
+                                        <td>{{ form.action }}</td>
+                                        <td>{{ form.comment }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer text-end">
+                        <a href="{{ factor.get_absolute_url }}" class="btn btn-secondary">{% trans "بازگشت" %}</a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-save me-1"></i> {% trans "ثبت نهایی اقدامات" %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- ستون کناری - اطلاعات گردش کار -->
+        <div class="col-lg-4">
+            <!-- وضعیت مرحله فعلی -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white"><h5 class="mb-0"><i class="bi bi-diagram-3-fill me-2"></i>{% trans "وضعیت مرحله فعلی" %}</h5></div>
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item">
+                        <h6 class="mb-1">{{ current_stage_name|default:"نامشخص" }}</h6>
+                        <p class="mb-1 small text-muted">{% trans "کاربران در انتظار اقدام:" %}</p>
+                        {% if pending_users %}
+                            <ul class="list-unstyled mb-0 small">
+                            {% for user in pending_users %}
+                                <li><i class="bi bi-hourglass-split text-warning me-2"></i>{{ user.get_full_name|default:user.username }}</li>
+                            {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-success small mb-0"><i class="bi bi-check-circle-fill me-2"></i>{% trans "اقدام تمام کاربران لازم انجام شده یا مرحله تعریف نشده است." %}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- تاریخچه اقدامات -->
+            <div class="card shadow-sm">
+                <div class="card-header"><h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>{% trans "تاریخچه اقدامات" %}</h5></div>
+                <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                    {% for log in approval_history %}
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ log.action.name }}</h6>
+                            <small class="text-muted">{{ log.timestamp|timesince }} {% trans "پیش" %}</small>
+                        </div>
+                        <p class="mb-1 small">{{ log.comment|default:"-" }}</p>
+                        <small class="text-muted">{% trans "توسط" %} {{ log.user.get_full_name|default:log.user.username }} ({{ log.post.name }})</small>
+                    </a>
+                    {% empty %}
+                    <div class="list-group-item"><p class="text-muted mb-0">{% trans "هیچ اقدامی تاکنون ثبت نشده است." %}</p></div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // === بخش ۱: منطق اقدام گروهی ===
+    const applyBulkBtn = document.getElementById('apply-bulk-action');
+    const bulkActionSelect = document.getElementById('bulk_action');
+    const allActionSelects = document.querySelectorAll('select[name$="-action"]');
+
+    // پر کردن لیست اقدام گروهی بر اساس گزینه‌های موجود در ردیف‌ها
+    const availableActions = new Map();
+    allActionSelects.forEach(select => {
+        Array.from(select.options).forEach(option => {
+            if (option.value && !availableActions.has(option.value)) {
+                availableActions.set(option.value, option.text);
+            }
+        });
+    });
+    availableActions.forEach((text, value) => {
+        bulkActionSelect.add(new Option(text, value));
+    });
+
+    if (applyBulkBtn) {
+        applyBulkBtn.addEventListener('click', function() {
+            const bulkActionValue = bulkActionSelect.value;
+            const bulkComment = document.getElementById('bulk_comment').value;
+
+            if (!bulkActionValue) {
+                alert('{% trans "لطفاً یک اقدام گروهی انتخاب کنید." %}');
+                return;
+            }
+
+            allActionSelects.forEach(select => {
+                // فقط روی ردیف‌هایی اعمال کن که این اقدام برایشان مجاز است
+                if (Array.from(select.options).some(o => o.value === bulkActionValue)) {
+                    select.value = bulkActionValue;
+                    const commentInput = select.closest('tr').querySelector('textarea[name$="-comment"]');
+                    if (commentInput && bulkComment) {
+                        commentInput.value = bulkComment;
+                    }
+                }
+            });
+        });
+    }
+
+    // === بخش ۲: منطق الزامی کردن کامنت برای رد کردن ===
+    const form = document.getElementById('approval-form');
+    form.addEventListener('submit', function(event) {
+        let hasError = false;
+        allActionSelects.forEach(select => {
+            const selectedOptionText = select.options[select.selectedIndex].text;
+            const commentInput = select.closest('tr').querySelector('textarea[name$="-comment"]');
+
+            // اگر گزینه انتخاب شده شامل کلمه "رد" بود و کامنت خالی بود
+            if (select.value && selectedOptionText.includes('{% trans "رد" %}') && !commentInput.value.trim()) {
+                commentInput.classList.add('is-invalid');
+                hasError = true;
+            } else if (commentInput) {
+                commentInput.classList.remove('is-invalid');
+            }
+        });
+
+        if (hasError) {
+            event.preventDefault(); // جلوگیری از ارسال فرم
+            alert('{% trans "برای ردیف‌هایی که رد می‌شوند، نوشتن توضیحات الزامی است." %}');
+        }
+    });
+});
+</script>
+{% endblock %}

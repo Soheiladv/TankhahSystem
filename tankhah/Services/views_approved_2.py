@@ -147,25 +147,6 @@ class FactorCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
             else:
                 return self.form_invalid(form)
 
-# جزئیات فاکتور
-class FactorDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
-    model = Factor
-    template_name = 'tankhah/factor_detail.html'
-    context_object_name = 'factor'
-    permission_required = 'tankhah.factor_view'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['items'] = self.object.items.select_related('factor').all()
-        context['approval_logs'] = self.object.approval_logs.select_related('user', 'stage', 'post').order_by(
-            '-timestamp')
-        context['can_approve'] = self.object.can_approve(self.request.user)
-        context['can_reject'] = self.request.user.has_perm('tankhah.factor_reject')
-        context['can_unlock'] = self.request.user.has_perm('tankhah.factor_unlock')
-        context['can_change_stage'] = self.request.user.has_perm('tankhah.Stepchange')
-        context[
-            'can_issue_payment'] = self.object.status == 'APPROVED' and self.object.tankhah.current_stage.triggers_payment_order
-        return context
 
 
 # ویرایش فاکتور

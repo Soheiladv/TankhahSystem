@@ -362,11 +362,31 @@
                                                                             class="fas fa-tasks"></i>
                                                                     </a>
                                                                     <!-- 💡 NEW: Approval Path Link -->
-                                                                    <a href="{% url 'factor_approval_path' factor.pk %}"
+{#                                                                    <a href="{% url 'factor_approval_path' factor.pk %}"#}
+{#                                                                       class="btn btn-sm btn-outline-info"#}
+{#                                                                       data-bs-toggle="tooltip"#}
+{#                                                                       title="{% trans 'مسیر تایید' %}"><i#}
+{#                                                                            class="fas fa-route"></i></a>    #}
+
+                                                                    <a href="{% url 'detail_factor' factor.pk %}"
                                                                        class="btn btn-sm btn-outline-info"
                                                                        data-bs-toggle="tooltip"
-                                                                       title="{% trans 'مسیر تایید' %}"><i
+                                                                       title="{% trans 'مشخصات' %}"><i
                                                                             class="fas fa-route"></i></a>
+
+                                                                    <a href="{% url 'perform_factor_action_new' factor.pk %}"
+                                                                       class="btn btn-sm btn-outline-info"
+                                                                       data-bs-toggle="tooltip"
+                                                                       title="{% trans 'ملاحضات' %}"><i
+                                                                            class="fas fa-route"></i></a>
+
+                                                                    <a href="{% url 'factor_approval' factor.pk %}"
+                                                                       class="btn btn-sm btn-outline-info"
+                                                                       data-bs-toggle="tooltip"
+                                                                       title="{% trans 'حدید' %}"><i
+                                                                            class="fas fa-route"></i></a>
+
+
                                                                     {% if not factor.is_locked %}
                                                                         <a href="{% url 'factor_edit' factor.pk %}"
                                                                            class="btn btn-sm btn-outline-secondary"

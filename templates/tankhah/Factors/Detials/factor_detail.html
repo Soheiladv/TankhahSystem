@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% load i18n static jformat rcms_custom_filters %}
+
+{% block content %}
+    <div class="container mt-4">
+        <div class="row">
+            <!-- ستون اصلی: اطلاعات فاکتور و اقلام -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="bi bi-receipt-cutoff me-2"></i>{{ title }}</h4>
+                        <span class="badge fs-6 rounded-pill bg-{{ factor_impact.class }} {% if factor_impact.class == 'light' %}text-dark{% endif %}">
+                        <i class="bi bi-flag-fill me-1"></i> {{ factor.status.name }}
+                    </span>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- اطلاعات اصلی -->
+                        <div class="row mb-4">
+                            <div class="col-md-6"><p><strong>شماره تنخواه:</strong> <a
+                                    href="{% url 'tankhah_detail' factor.tankhah.pk %}">{{ factor.tankhah.number |to_persian_number }}</a>
+                            </p></div>
+                            <div class="col-md-6"><p><strong>تاریخ
+                                فاکتور:</strong> {{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</p></div>
+                            <div class="col-md-6"><p><strong>ایجاد
+                                کننده:</strong> {{ factor.created_by.get_full_name|default:factor.created_by.username }}
+                            </p></div>
+                            <div class="col-md-6"><p><strong>دسته‌بندی:</strong> {{ factor.category.name }}</p></div>
+                            <div class="col-12"><p>
+                                <strong>توضیحات:</strong> {{ factor.description|default:"-" |to_persian_number }}</p>
+                            </div>
+                        </div>
+
+                        <!-- بخش اقلام فاکتور -->
+                        <h5 class="mb-3">{% trans "اقلام فاکتور" %}</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                <tr>
+                                    <th style="width: 50%;">{% trans "ردیف" %}</th>
+                                    <th style="width: 50%;">{% trans "شرح" %}</th>
+                                    <th class="text-center">{% trans "تعداد" %}</th>
+                                    <th class="text-end">{% trans "قیمت واحد (ریال)" %}</th>
+                                    <th class="text-end">{% trans "جمع کل (ریال)" %}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+
+                                {% for item in factor.items.all %}
+                                    <tr>
+                                        <td style="width: 5%;">{{ forloop.counter| format_negative  }}</td>
+                                        <td>{{ item.description }}</td>
+                                        <td class="text-center">{{ item.quantity|floatformat:0|format_negative }}</td>
+                                        <td class="text-end">{{ item.unit_price|floatformat:0|format_negative }}</td>
+                                        <td class="text-end">{{ item.amount|floatformat:0|format_negative }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="4"
+                                            class="text-center text-muted">{% trans "هیچ قلمی برای این فاکتور ثبت نشده است." %}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                                <tfoot class="fw-bold bg-light">
+                                <tr>
+                                    <td colspan="4" class="text-end fs-5">{% trans "مبلغ کل فاکتور:" %}</td>
+                                    <!-- **اصلاح کلیدی:** استفاده از factor.amount که منبع حقیقت است -->
+                                    <td class="text-end fs-5">{{ factor.amount|format_negative }}</td>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+
+                        <!-- بخش اسناد فاکتور -->
+                        <h5 class="mb-3 mt-4">{% trans "اسناد ضمیمه" %}</h5>
+                        {% if factor.documents.exists %}
+                            <ul class="list-group list-group-flush">
+                                {% for doc in factor.documents.all %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <!-- **اصلاح کلیدی:** استفاده از فیلتر filename -->
+                                        <a href="{{ doc.file.url }}" target="_blank"><i
+                                                class="bi bi-paperclip me-2"></i>{{ doc.file|filename }}</a>
+                                        <span class="text-muted small">{{ doc.uploaded_at|jformat:"%Y/%m/%d" }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted">{% trans "هیچ سندی برای این فاکتور ثبت نشده است." %}</p>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+                <!-- بخش تاریخچه اقدامات -->
+                <div class="card shadow-sm">
+                    <div class="card-header"><h5 class="mb-0"><i class="bi bi-person-check-fill me-2"></i>تاریخچه
+                        تاییدات</h5></div>
+                    <div class="card-body">
+                        {% if approval_logs %}
+                            <ul class="timeline">
+                                {% for log in approval_logs %}
+                                    <li>
+                                        <span class="timeline-icon bg-{% if log.action.code == 'REJECT' %}danger{% else %}success{% endif %}"><i
+                                                class="bi bi-{% if log.action.code == 'REJECT' %}x{% else %}check{% endif %}"></i></span>
+                                        <div class="timeline-content">
+                                            <p class="mb-0 fw-bold">{{ log.action.name }}
+                                                توسط {{ log.user.get_full_name }}</p>
+                                            <span class="small text-muted">{{ log.timestamp|jformat:"%Y/%m/%d ساعت %H:%M" }}</span>
+                                            {% if log.comment %}
+                                                <p class="mt-1 fst-italic">"{{ log.comment }}"</p>{% endif %}
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted">هنوز اقدامی روی این فاکتور ثبت نشده است.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ستون کناری: اطلاعات بودجه و اقدامات -->
+            <div class="col-lg-4">
+                <!-- کارت اقدامات -->
+                    {% if allowed_transitions %}
+                <div class="card mt-4 bg-light border-warning">
+                    <div class="card-header bg-warning-soft">
+                        <h5 class="card-title mb-0"><i class="bi bi-joystick me-2"></i>اقدامات ممکن</h5>
+                    </div>
+                    <div class="card-body d-flex justify-content-center flex-wrap gap-2">
+                        {% for transition in allowed_transitions %}
+                            <form action="{% url 'detail_factor' pk=factor.pk %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action_id" value="{{ transition.action.id|format_negative }}">
+
+                                {% if transition.action.code == 'REJECT' %}
+                                    <button type="button" class="btn btn-lg btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                                        <i class="bi bi-x-octagon-fill me-1"></i> {{ transition.action.name }}
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-lg btn-outline-success">
+                                        <i class="bi bi-check-circle-fill me-1"></i> {{ transition.action.name }}
+                                    </button>
+                                {% endif %}
+                            </form>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- مودال برای دلیل رد (فقط یک مودال لازم است) -->
+                <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <!-- فرم مودال باید به همان URL اکشن‌ها پست شود -->
+                            <form action="{% url 'perform_factor_action' pk=factor.pk %}" method="post">
+                                {% csrf_token %}
+                                <!-- پیدا کردن اکشن رد از لیست گذارها و ارسال ID آن -->
+                                {% for t in allowed_transitions %}{% if t.action.code == 'REJECT' %}<input type="hidden" name="action_id" value="{{ t.action.id }}">{% endif %}{% endfor %}
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="rejectModalLabel">دلیل رد فاکتور</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="comment" class="form-label">لطفاً دلیل رد کردن فاکتور را به طور کامل شرح دهید:</label>
+                                        <textarea name="comment" class="form-control" id="comment" rows="4" required></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                                    <button type="submit" class="btn btn-danger">ثبت و رد کردن فاکتور</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+     
+                <!-- کارت خلاصه بودجه تنخواه -->
+                {% if tankhah_budget_summary %}
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header"><h5 class="mb-0"><i class="bi bi-wallet2 me-2"></i>خلاصه بودجه تنخواه
+                        </h5></div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between"><span>مبلغ اولیه:</span>
+                                <strong>{{ tankhah_budget_summary.initial|floatformat:0|format_negative }}</strong></li>
+                            <li class="list-group-item d-flex justify-content-between"><span>هزینه قطعی:</span> <span
+                                    class="text-danger">({{ tankhah_budget_summary.paid|floatformat:0|format_negative }})</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between"><span>موجودی واقعی:</span>
+                                <strong>{{ tankhah_budget_summary.balance|floatformat:0|format_negative }}</strong></li>
+                            <hr class="my-0">
+                            <li class="list-group-item d-flex justify-content-between"><span>مبلغ در تعهد:</span> <span
+                                    class="text-warning">({{ tankhah_budget_summary.committed|floatformat:0|format_negative }})</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between bg-light">
+                                <span class="fw-bold text-success">موجودی در دسترس:</span>
+                                <strong class="text-success fs-5">{{ tankhah_budget_summary.available|floatformat:0|format_negative }}</strong>
+                            </li>
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <!-- کارت تاثیر این فاکتور -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header"><h5 class="mb-0"><i class="bi bi-graph-up-arrow me-2"></i>تاثیر این فاکتور
+                    </h5></div>
+                    <div class="card-body text-center">
+                        <h3 class="display-6">{{ factor.amount|floatformat:0|format_negative }}</h3>
+                        <span class="badge fs-6 rounded-pill bg-{{ factor_impact.class }} {% if factor_impact.class == 'light' %}text-dark{% endif %}">{{ factor_impact.label }}</span>
+                    </div>
+                </div>
+
+                <!-- کارت ردیابی بودجه -->
+                <div class="card shadow-sm">
+                    <div class="card-header"><h5 class="mb-0"><i class="bi bi-diagram-3-fill me-2"></i>مسیر بودجه</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            {% for trace in budget_trace %}
+                                <li>
+                                    <i class="bi bi-chevron-down text-muted"></i>
+                                    <strong>{{ trace.level }}:</strong> {{ trace.object|to_persian_number }}
+                                </li>
+                            {% endfor %}
+                            <li>
+                                <i class="bi bi-chevron-down text-muted"></i>
+                                <strong>تنخواه:</strong> {{ factor.tankhah  |to_persian_number }}
+                            </li>
+                            <li class="fw-bold text-primary">
+                                <i class="bi bi-arrow-return-right"></i>
+                                <strong>فاکتور فعلی:</strong> {{ factor.number |format_negative}}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- استایل‌های لازم برای Timeline (به فایل CSS اصلی خود اضافه کنید) -->
+    <style>
+        .timeline {
+            list-style: none;
+            padding: 0;
+            position: relative;
+        }
+
+        .timeline:before {
+            top: 0;
+            bottom: 0;
+            position: absolute;
+            content: " ";
+            width: 2px;
+            background-color: #e9ecef;
+            left: 20px;
+            margin-right: -1.5px;
+        }
+
+        .timeline > li {
+            margin-bottom: 20px;
+            position: relative;
+            padding-right: 45px;
+        }
+
+        .timeline > li .timeline-icon {
+            position: absolute;
+            top: 5px;
+            right: -10px;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            color: white;
+            border-radius: 50%;
+        }
+
+        .timeline > li .timeline-content {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+{% endblock %}

@@ -5,6 +5,7 @@ from budgets.PaymentOrder.view_PaymentOrder import TankhahUpdateStatusView
 from budgets.budget_calculations import get_budget_info, get_tankhah_budget_info
 from tankhah.Factor import FactorItemsDetailView
 from tankhah.Factor.Approved.SubmitFactor import SubmitFactorForApprovalView
+# from tankhah.Factor.Approved.views_PerformFactorAction import FactorApprovalView_new
 from tankhah.Factor.FactorStatusReviewView import FactorStatusReviewView, AdvancedFactorStatusReviewView, \
     ComprehensiveFactorDetailView, UltimateFactorDetailView
 from tankhah.Factor.NF.view_Nfactor import New_FactorCreateView
@@ -23,13 +24,14 @@ from tankhah.view_folder_tankhah.view_tankhah import (
 )
 from tankhah.views import (
     ApprovalListView, ApprovalCreateView, ApprovalDetailView, ApprovalUpdateView, ApprovalDeleteView,
-    FactorItemRejectView,
-    upload_tankhah_documents, ApprovalLogListView, FactorStatusUpdateView, mark_notification_as_read,
-    get_subprojects, FactorDetailView, FactorDeleteView, get_unread_notifications,
-    ItemCategoryListView, ItemCategoryCreateView, ItemCategoryUpdateView, ItemCategoryDeleteView, RulesUserGuideView
+    FactorItemRejectView, ApprovalLogListView,
+    get_subprojects, FactorDeleteView,
+    ItemCategoryListView, ItemCategoryCreateView, ItemCategoryUpdateView, ItemCategoryDeleteView, RulesUserGuideView,
+    FactorStatusUpdateView, upload_tankhah_documents
 )
-from tankhah.Factor.view_Factor import (FactorCreateView,
-                                        TankhahBudgetInfoAjaxView,  BudgetCheckView)
+from tankhah.Factor.FactorDetail.views_FactorDetail import  FactorDetailView
+#FactorStatusUpdateView, mark_notification_as_read,, get_unread_notifications, FactorDetailView,    upload_tankhah_documents,
+from tankhah.Factor.view_Factor import (TankhahBudgetInfoAjaxView,  BudgetCheckView)
 from tankhah.views import (itemcategory_list,itemcategory_create,itemcategory_update,itemcategory_delete
 )
 # app_name = 'tankhah'
@@ -56,16 +58,12 @@ urlpatterns = [
     path('factor/list3/', OptimizedFactorListView.as_view(), name='factor_list3'),  # Example success URL
 
 
-    path('factor/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'),
-    path('factor/create/', FactorCreateView.as_view(), name='factor_create'),
     path('factor/create/new/', New_FactorCreateView.as_view(), name='Nfactor_create'),
     path('get-tankhah-budget-info/',  get_tankhah_budget_info, name='get_tankhah_budget_info'),
 
-    # path('factor/create/', FactorCreateWizard.as_view(), name='w_factor_create'),
-    # path('factor/<int:pk>/update/', oldd__FactorUpdateView.as_view(), name='factor_update'),
-
     path('factors/<int:pk>/edit/', FactorUpdateView.as_view(), name='factor_edit'),
     path('factor/<int:pk>/status-update/', FactorStatusUpdateView.as_view(), name='factor_status_update'),
+    # path('factor/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'),
 
     path('factor/<int:pk>/delete/', FactorDeleteView.as_view(), name='factor_delete'),
 
@@ -232,14 +230,16 @@ urlpatterns += [
 #
 # ]
 
-from tankhah.Services.views_approved_2 import FactorRejectView,FactorEditView,FactorListView__,FactorDetailView,FactorApproveView__,\
+from tankhah.Services.views_approved_2 import FactorRejectView,FactorEditView,FactorListView__ ,FactorApproveView__,\
 FactorTempApproveView,FactorChangeStageView,FactorBatchApproveView,FactorIssuePaymentView,FactorUnlockView,DashboardView___
 
 urlpatterns += [
     # لیست فاکتورها
     path('factors/lis___/', FactorListView__.as_view(), name='factor_list___'),
     # جزئیات فاکتور
-    path('factors/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'),
+    # path('factors/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'),
+    path('factor/<int:pk>/perform-action/', FactorDetailView.as_view(), name='detail_factor'),
+
     # ویرایش فاکتور
     path('factors/<int:pk>/edit/', FactorEditView.as_view(), name='factor_edit'),
     # تأیید سریع فاکتور
@@ -261,6 +261,16 @@ urlpatterns += [
 
     # -- ADD submite
     path('factor/<int:pk>/submit/', SubmitFactorForApprovalView.as_view(), name='factor_submit_for_approval'),
+
+]
+from tankhah.Factor.Approved.views_PerformFactorAction   import FactorApprovalView,FactorApprovalView_new
+
+
+urlpatterns += [
+    path('factor/<int:pk>/perform-action/', FactorApprovalView_new.as_view(), name='perform_factor_action'),
+    path('factor/<int:pk>/perform-actionnew/', FactorApprovalView.as_view(), name='perform_factor_action_new'),
+    # new
+    path('factor/<int:pk>/approve/', FactorApprovalView.as_view(), name='factor_approval'),
 
 ]
 urlpatterns += [

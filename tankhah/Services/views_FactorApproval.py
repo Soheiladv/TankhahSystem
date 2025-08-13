@@ -17,12 +17,14 @@ from tankhah.workflow_service import WorkflowService
 
 logger = logging.getLogger('ApprovalService')
 
-
+# --   New View Version
 class FactorApprovalView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    pass
     template_name = 'factor_approval_modern.html'
     permission_required = 'tankhah.view_factor'  # Basic permission to view
 
-    # Override get_permission_required to handle dynamic permissions based on action
+    # Override get_permission_required to handle dyna\
+    # ic permissions based on action
     def get_permission_required(self):
         if self.request.method == 'POST':
             if 'change_stage' in self.request.POST:
