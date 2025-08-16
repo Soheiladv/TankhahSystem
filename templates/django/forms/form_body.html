@@ -1,0 +1,15 @@
+{% csrf_token %}
+
+{# نمایش خطاهای غیر فیلدی (non_field_errors) #}
+{% if form.non_field_errors %}
+    <div class="alert alert-danger" role="alert">
+        {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{# حلقه روی تمام فیلدها و رندر کردن هر کدام با field.html #}
+{% for field in form %}
+    {% include "django/forms/field.html" with field=field %}
+{% endfor %}

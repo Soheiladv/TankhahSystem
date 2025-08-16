@@ -1,0 +1,187 @@
+{% comment %}
+این نسخه نهایی و پایدار است.
+برای حل قطعی خطا، از رندر دستی تگ‌های HTML به جای as_widget استفاده شده است.
+این روش هیچ نیازی به فیلترهای سفارشی (templatetags) ندارد.
+{% endcomment %}
+
+{% load i18n %}
+
+{# --- استایل‌های سفارشی برای انیمیشن‌ها --- #}
+<style>
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+  .field-error-shake { animation: shake 0.5s ease-in-out; }
+  .form-control:focus, .form-select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+  }
+</style>
+
+<div class="mb-4 position-relative">
+  {# --- لیبل فیلد --- #}
+  {% if field.widget_type != 'checkbox' %}
+    <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+      {% if 'email' in field.name %}<i class="fas fa-envelope fa-fw me-2 text-primary"></i>
+      {% elif 'password' in field.name %}<i class="fas fa-lock fa-fw me-2 text-primary"></i>
+      {% elif 'user' in field.name %}<i class="fas fa-user fa-fw me-2 text-primary"></i>
+      {% else %}<i class="fas fa-pen-to-square fa-fw me-2 text-primary"></i>{% endif %}
+      {{ field.label }}
+      {% if field.field.required %}<span class="text-danger ms-1">*</span>{% endif %}
+    </label>
+  {% endif %}
+
+  {# --- ویجت اصلی (رندر دستی برای جلوگیری از خطا) --- #}
+
+  {# حالت خاص برای Checkbox #}
+  {% if field.widget_type == 'checkbox' %}
+    <div class="form-check">
+      <input
+        type="checkbox"
+        name="{{ field.html_name }}"
+        id="{{ field.id_for_label }}"
+        class="form-check-input {% if field.errors %}is-invalid{% endif %}"
+        {% if field.value %}checked{% endif %}
+      >
+      <label class="form-check-label fw-bold" for="{{ field.id_for_label }}">
+        {{ field.label }}
+        {% if field.field.required %}<span class="text-danger ms-1">*</span>{% endif %}
+      </label>
+    </div>
+
+  {# حالت خاص برای RadioSelect #}
+  {% elif field.widget_type == 'radioselect' %}
+    {% for choice in field %}
+      <div class="form-check">
+        {{ choice.tag }} {# رندر choice.tag معمولا امن است #}
+        <label class="form-check-label" for="{{ choice.id_for_label }}">
+          {{ choice.choice_label }}
+        </label>
+      </div>
+    {% endfor %}
+
+  {# حالت خاص برای Textarea #}
+  {% elif field.widget_type == 'textarea' %}
+    <textarea
+      name="{{ field.html_name }}"
+      id="{{ field.id_for_label }}"
+      class="form-control {% if field.errors %}is-invalid{% endif %}"
+      placeholder="{{ field.label }}"
+      rows="4"
+      {% if field.field.required %}required{% endif %}
+    >{{ field.value|default_if_none:'' }}</textarea>
+
+  {# حالت خاص برای Select #}
+  {% elif field.widget_type == 'select' %}
+    <select
+      name="{{ field.html_name }}"
+      id="{{ field.id_for_label }}"
+      class="form-select {% if field.errors %}is-invalid{% endif %}"
+      {% if field.field.required %}required{% endif %}
+    >
+      {% for value, text in field.field.choices %}
+        <option value="{{ value }}" {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+          {{ text }}
+        </option>
+      {% endfor %}
+    </select>
+
+  {# حالت پیش‌فرض برای سایر فیلدها (text, email, password, etc.) #}
+  {% else %}
+    <input
+      type="{{ field.widget_type }}"
+      name="{{ field.html_name }}"
+      id="{{ field.id_for_label }}"
+      value="{{ field.value|default_if_none:'' }}"
+      class="form-control {% if field.errors %}is-invalid{% endif %}"
+      placeholder="{{ field.label }}"
+      {% if field.field.required %}required{% endif %}
+    >
+  {% endif %}
+
+  {# --- نمایش خطاها با انیمیشن و آیکون --- #}
+  {% if field.errors %}
+    <div class="invalid-feedback d-block field-error-shake">
+      <i class="fas fa-exclamation-triangle me-1"></i>
+      {% for error in field.errors %}{{ error }}{% endfor %}
+    </div>
+  {% endif %}
+
+  {# --- نمایش متن راهنما با آیکون --- #}
+  {% if field.help_text %}
+    <div class="form-text text-muted mt-2">
+      <i class="fas fa-info-circle me-1"></i>
+      {{ field.help_text|safe }}
+    </div>
+  {% endif %}
+</div>
+
+{#{% comment %}#}
+{#این تمپلیت برای رندر کردن یک فیلد فرم به همراه لیبل، ویجت، خطاها و متن راهنما طراحی شده است.#}
+{#این فایل از کلاس‌های بوت‌استرپ ۵ برای استایل‌دهی استفاده می‌کند.#}
+{#{% endcomment %}#}
+{##}
+{#{% load i18n rcms_custom_filters jformat %}#}
+{##}
+{#<div class="mb-3">#}
+  {# برای فیلدهای checkbox لیبل اصلی بعد از اینپوت نمایش داده می‌شود #}
+{#  {% if field.widget_type != 'checkbox' %}#}
+{#    <label for="{{ field.id_for_label }}" class="form-label">#}
+{#      {{ field.label }}#}
+      {# اگر فیلد ضروری بود، یک ستاره قرمز نمایش بده #}
+{#      {% if field.field.required %}#}
+{#        <span class="text-danger">*</span>#}
+{#      {% endif %}#}
+{#    </label>#}
+{#  {% endif %}#}
+{##}
+  {# --- رندر کردن ویجت اصلی (input, select, textarea, etc.) --- #}
+{#  #}
+  {# حالت خاص برای Checkbox #}
+{#  {% if field.widget_type == 'checkbox' %}#}
+{#    <div class="form-check">#}
+      {# افزودن کلاس is-invalid در صورت وجود خطا #}
+{#      {{ field.as_widget(attrs={'class': 'form-check-input'|add_class:'is-invalid' if field.errors else ''}) }}#}
+{#      <label class="form-check-label" for="{{ field.id_for_label }}">#}
+{#        {{ field.label }}#}
+{#        {% if field.field.required %}#}
+{#          <span class="text-danger">*</span>#}
+{#        {% endif %}#}
+{#      </label>#}
+{#    </div>#}
+{#  #}
+  {# حالت خاص برای RadioSelect #}
+{#  {% elif field.widget_type == 'radioselect' %}#}
+{#    {% for choice in field %}#}
+{#      <div class="form-check">#}
+{#        {{ choice.tag|add_class:'form-check-input'|add_class:'is-invalid' if field.errors else '' }}#}
+{#        <label class="form-check-label" for="{{ choice.id_for_label }}">#}
+{#          {{ choice.choice_label }}#}
+{#        </label>#}
+{#      </div>#}
+{#    {% endfor %}#}
+{##}
+  {# حالت پیش‌فرض برای سایر فیلدها مثل text, email, password, select و ... #}
+{#  {% else %}#}
+{#    {{ field.as_widget(attrs={'class': 'form-control'|add_class:'is-invalid' if field.errors else '', 'placeholder': field.label }) }}#}
+{#  {% endif %}#}
+{##}
+  {# نمایش خطاهای مربوط به همین فیلد #}
+{#  {% if field.errors %}#}
+{#    <div class="invalid-feedback d-block">#}
+{#      {% for error in field.errors %}#}
+{#        {{ error }}#}
+{#      {% endfor %}#}
+{#    </div>#}
+{#  {% endif %}#}
+{##}
+  {# نمایش متن راهنما (Help Text) #}
+{#  {% if field.help_text %}#}
+{#    <div id="{{ field.id_for_label }}_help" class="form-text text-muted">#}
+{#      {{ field.help_text|safe }}#}
+{#    </div>#}
+{#  {% endif %}#}
+{#</div>#}

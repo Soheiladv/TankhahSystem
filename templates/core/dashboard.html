@@ -2,9 +2,9 @@
 {% load i18n static jformat rcms_custom_filters jalali_tags %}
 
 {% block extra_head %}
- <style>
+    <style>
         body {
-               background-color: #f0f2f5; /* [cite: 2] */
+            background-color: #f0f2f5; /* [cite: 2] */
             color: #333; /* [cite: 2] */
             direction: rtl;
         }
@@ -50,12 +50,15 @@
             cursor: pointer; /* [cite: 2] */
             transition: all 0.3s ease; /* [cite: 2] */
         }
+
         .accordion-item .accordion-header:hover { /* [cite: 2] */
             opacity: 0.9; /* [cite: 2] */
         }
+
         .accordion-item .accordion-header.collapsed { /* [cite: 2] */
-             /* حفظ border-radius کامل وقتی بسته است */
+            /* حفظ border-radius کامل وقتی بسته است */
         }
+
         .accordion-item .accordion-button { /* [cite: 2] */
             background-color: transparent; /* [cite: 2] */
             color: inherit; /* [cite: 2] */
@@ -69,11 +72,13 @@
             display: flex; /* [cite: 2] */
             justify-content: space-between; /* [cite: 2] */
         }
+
         .accordion-item .accordion-button:not(.collapsed) { /* [cite: 2] */
             background-color: transparent; /* [cite: 2] */
             color: inherit; /* [cite: 2] */
             box-shadow: none; /* [cite: 2] */
         }
+
         .accordion-item .accordion-button::after { /* [cite: 2] */
             content: '\f078'; /* FontAwesome Angle Down */
             font-family: 'Font Awesome 5 Free';
@@ -82,6 +87,7 @@
             transition: transform 0.2s ease-in-out; /* [cite: 2] */
             transform: rotate(0deg); /* [cite: 2] */
         }
+
         .accordion-item .accordion-button.collapsed::after { /* [cite: 2] */
             transform: rotate(-90deg); /* [cite: 2] */
         }
@@ -95,11 +101,13 @@
             margin-top: -1px; /* [cite: 2] */
             position: relative; /* [cite: 2] */
             z-index: 0; /* [cite: 2] */
-            border-top: 1px solid rgba(0,0,0,0.05);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
         }
+
         .accordion-item .accordion-header.collapsed + .accordion-collapse .accordion-body {
             margin-top: -20px; /* [cite: 2] */
         }
+
         .accordion-item .accordion-header:not(.collapsed) {
             border-bottom-left-radius: 0;
             border-bottom-right-radius: 0;
@@ -111,6 +119,7 @@
             margin-bottom: 15px; /* [cite: 2] */
             font-weight: 700; /* [cite: 2] */
         }
+
         .dashboard-card .card-value { /* [cite: 2] */
             font-size: 2.5em; /* [cite: 2] */
             font-weight: bold; /* [cite: 2] */
@@ -118,11 +127,13 @@
             line-height: 1.2; /* [cite: 2] */
             animation: fadeInDown 0.8s ease-out; /* [cite: 2] */
         }
+
         .dashboard-card .card-text { /* [cite: 2] */
             color: #777; /* [cite: 2] */
             font-size: 1em; /* [cite: 2] */
             margin-top: 5px; /* [cite: 2] */
         }
+
         .metric-box { /* [cite: 2] */
             background-color: #f7f7f7; /* [cite: 2] */
             border-radius: 10px; /* [cite: 2] */
@@ -132,15 +143,18 @@
             border: 1px solid #eee; /* [cite: 2] */
             height: 100%;
         }
+
         .metric-box:hover { /* [cite: 2] */
             background-color: #e9ecef; /* [cite: 2] */
             transform: scale(1.02); /* [cite: 2] */
         }
+
         .metric-box .icon { /* [cite: 2] */
             font-size: 2.2em; /* [cite: 2] */
             margin-bottom: 10px; /* [cite: 2] */
             color: var(--primary-color); /* [cite: 2] */
         }
+
         .chart-container { /* [cite: 2] */
             position: relative; /* [cite: 2] */
             height: 350px; /* [cite: 2] */
@@ -148,6 +162,7 @@
             padding: 10px; /* [cite: 2] */
             box-sizing: border-box; /* [cite: 2] */
         }
+
         .list-group-item { /* [cite: 2] */
             display: flex; /* [cite: 2] */
             justify-content: space-between; /* [cite: 2] */
@@ -156,48 +171,63 @@
             border-bottom: 1px solid #e9ecef; /* [cite: 2] */
             transition: background-color 0.3s ease; /* [cite: 2] */
         }
+
         .list-group-item:hover { /* [cite: 2] */
             background-color: #f8f9fa; /* [cite: 2] */
         }
+
         .list-group-item:last-child { /* [cite: 2] */
             border-bottom: none; /* [cite: 2] */
         }
+
         .list-group-item strong { /* [cite: 2] */
             color: var(--dark-text); /* [cite: 2] */
         }
+
         .list-group-item small { /* [cite: 2] */
             color: #888; /* [cite: 2] */
         }
+
         .badge { /* [cite: 2] */
             font-size: 0.85em; /* [cite: 2] */
             padding: 0.5em 0.8em; /* [cite: 2] */
             border-radius: 50px; /* [cite: 2] */
             font-weight: 600; /* [cite: 2] */
         }
+
         .progress { /* [cite: 2] */
             height: 10px; /* [cite: 2] */
             border-radius: 5px; /* [cite: 2] */
             background-color: #e9ecef; /* [cite: 2] */
             margin-top: 8px; /* [cite: 2] */
         }
+
         .progress-bar { /* [cite: 2] */
             border-radius: 5px; /* [cite: 2] */
             transition: width 0.6s ease-in-out; /* [cite: 2] */
         }
+
         .btn-outline-primary { /* [cite: 2] */
             color: var(--primary-color); /* [cite: 2] */
             border-color: var(--primary-color); /* [cite: 2] */
             transition: all 0.3s ease; /* [cite: 2] */
             width: 100%; /* [cite: 2] */
         }
+
         .btn-outline-primary:hover { /* [cite: 2] */
             background-color: var(--primary-color); /* [cite: 2] */
             color: white; /* [cite: 2] */
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* [cite: 2] */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* [cite: 2] */
             transform: translateY(-2px); /* [cite: 2] */
         }
-        .mr-2 { margin-right: 0.5rem !important; }
-        .ml-2 { margin-left: 0.5rem !important; }
+
+        .mr-2 {
+            margin-right: 0.5rem !important;
+        }
+
+        .ml-2 {
+            margin-left: 0.5rem !important;
+        }
 
         /* Chart.js Tooltip */
         #chartjs-tooltip { /* [cite: 2] */
@@ -214,20 +244,24 @@
             z-index: 10000;
             transform: translate(-50%, calc(-100% - 10px)); /* Position above cursor */
         }
+
         #chartjs-tooltip h3 { /* [cite: 2] */
             margin: 0 0 8px; /* [cite: 2] */
             font-size: 1rem; /* [cite: 2] */
             font-weight: bold;
         }
+
         #chartjs-tooltip p { /* [cite: 2] */
             margin: 0 0 4px; /* [cite: 2] */
             display: flex; /* [cite: 2] */
             align-items: center; /* [cite: 2] */
             font-size: 0.85rem; /* [cite: 2] */
         }
+
         #chartjs-tooltip p:last-child {
             margin-bottom: 0;
         }
+
         .chartjs-tooltip-key { /* [cite: 2] */
             display: inline-block; /* [cite: 2] */
             width: 10px; /* [cite: 2] */
@@ -239,284 +273,455 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
+    <div class="container-fluid mt-4">
     <h2 class="mb-4 text-center animate__animated animate__fadeInDown">
-        <i class="fas fa-tachometer-alt text-primary mr-2"></i>{% translate "داشبورد مدیریت تنخواه و بودجه" %}
-         </h2>
-          <h2>  <small class="text-muted ml-2" style="font-size: 0.6em;">نسخه: {{ version |to_persian_number }}</small></h2>
+        <i class="fas fa-tachometer-alt text-primary mr-2"></i>{{ title }}
+        <small class="text-muted ml-2" style="font-size: 0.6em;">نسخه: {{ version|to_persian_number }}</small>
+    </h2>
 
     {% if messages %}
         <div class="row">
             <div class="col-12">
                 {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show animate__animated animate__fadeIn" role="alert"> {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> </div>
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show animate__animated animate__fadeIn"
+                         role="alert"> {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 {% endfor %}
             </div>
         </div>
     {% endif %}
 
-    <div class="accordion mb-4 animate__animated animate__fadeInUp" id="accordionQuickLinks"> <div class="accordion-item dashboard-card"> <h2 class="accordion-header" id="headingQuickLinks"> <button class="accordion-button" type="button" data-bs-toggle="collapse"
+    <div class="accordion mb-4 animate__animated animate__fadeInUp" id="accordionQuickLinks">
+        <div class="accordion-item dashboard-card">
+            <h2 class="accordion-header" id="headingQuickLinks">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse"
                         data-bs-target="#collapseQuickLinks" aria-expanded="true"
-                        aria-controls="collapseQuickLinks"> <i class="fas fa-link mr-2"></i>{% translate "دسترسی‌های سریع" %} </button>
+                        aria-controls="collapseQuickLinks"><i
+                        class="fas fa-link mr-2"></i>{% translate "دسترسی‌های سریع" %} </button>
             </h2>
             <div id="collapseQuickLinks" class="accordion-collapse collapse show"
                  aria-labelledby="headingQuickLinks"
-                 data-bs-parent="#accordionQuickLinks"> <div class="accordion-body"> {% for category, links_list in dashboard_links.items %}
-                        <h6 class="mt-3 mb-2 text-secondary"> <i class="fas fa-folder-open mr-2"></i>{{ category }} </h6>
-                        <div class="row">
-                            {% for link_item in links_list %}
-                                <div class="col-lg-3 col-md-4 col-sm-6 mb-3"> <a href="{% if link_item.url %}{% url link_item.url %}{% else %}#{% endif %}"
-                                       class="btn btn-outline-primary btn-block d-flex align-items-center justify-content-start py-2 text-truncate"> <i class="{{ link_item.icon|default:'fas fa-caret-left' }} mr-2"></i> <span>{{ link_item.name }}</span> </a>
-                                </div>
-                            {% endfor %}
-                        </div>
-                        {% if not forloop.last %}
-                            <hr class="my-3"> {% endif %}
-                    {% endfor %}
+                 data-bs-parent="#accordionQuickLinks">
+                <div class="accordion-body"> {% for category, links_list in dashboard_links.items %}
+                    <h6 class="mt-3 mb-2 text-secondary"><i class="fas fa-folder-open mr-2"></i>{{ category }} </h6>
+                    <div class="row">
+                        {% for link_item in links_list %}
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-3"><a
+                                    href="{% if link_item.url %}{% url link_item.url %}{% else %}#{% endif %}"
+                                    class="btn btn-outline-primary btn-block d-flex align-items-center justify-content-start py-2 text-truncate">
+                                <i class="{{ link_item.icon|default:'fas fa-caret-left' }} mr-2"></i>
+                                <span>{{ link_item.name }}</span> </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% if not forloop.last %}
+                        <hr class="my-3"> {% endif %}
+                {% endfor %}
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="accordion mb-4 animate__animated animate__fadeInUp animate__delay-0.1s" id="accordionBudgetOverview"> <div class="accordion-item dashboard-card"> <h2 class="accordion-header" id="headingBudgetOverview" style="background: linear-gradient(45deg, var(--info-color), #5dade2);"> <button class="accordion-button" type="button" data-bs-toggle="collapse"
+    <div class="accordion mb-4 animate__animated animate__fadeInUp animate__delay-0.1s" id="accordionBudgetOverview">
+        <div class="accordion-item dashboard-card">
+            <h2 class="accordion-header" id="headingBudgetOverview"
+                style="background: linear-gradient(45deg, var(--info-color), #5dade2);">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse"
                         data-bs-target="#collapseBudgetOverview" aria-expanded="true"
-                        aria-controls="collapseBudgetOverview"> <i class="fas fa-chart-pie mr-2"></i>{% translate "خلاصه وضعیت بودجه (ریال)" %} </button>
+                        aria-controls="collapseBudgetOverview"><i
+                        class="fas fa-chart-pie mr-2"></i>{% translate "خلاصه وضعیت بودجه (ریال)" %} </button>
             </h2>
             <div id="collapseBudgetOverview" class="accordion-collapse collapse show"
                  aria-labelledby="headingBudgetOverview"
-                 data-bs-parent="#accordionBudgetOverview"> <div class="accordion-body"> {% if budget_stats_permission_denied %} <div class="alert alert-warning"> <i class="fas fa-exclamation-triangle mr-2"></i>{% translate "شما اجازه دسترسی به آمار بودجه را ندارید." %} </div>
-                    {% elif budget_stats_error %}
-                         <div class="alert alert-danger">
-                            <i class="fas fa-times-circle mr-2"></i>{% translate "خطا در بارگذاری آمار بودجه." %}
+                 data-bs-parent="#accordionBudgetOverview">
+                <div class="accordion-body"> {% if budget_stats_permission_denied %}
+                    <div class="alert alert-warning"><i
+                            class="fas fa-exclamation-triangle mr-2"></i>{% translate "شما اجازه دسترسی به آمار بودجه را ندارید." %}
+                    </div>
+                {% elif budget_stats_error %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle mr-2"></i>{% translate "خطا در بارگذاری آمار بودجه." %}
+                    </div>
+                {% else %}
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <div class="metric-box animate__animated animate__fadeInDown"><i class="fas fa-coins icon"
+                                                                                             style="color: var(--info-color);"></i>
+                                <div class="card-value" style="color: var(--info-color);"><span
+                                        class="num-format">{{ total_allocated_budget|default:0|floatformat:0|format_negative }}</span>
+                                </div>
+                                <p class="card-text">{% translate "کل بودجه تخصیص یافته" %}</p></div>
                         </div>
-                    {% else %}
-                        <div class="row text-center">
-                            <div class="col-md-3 mb-3"> <div class="metric-box animate__animated animate__fadeInDown"> <i class="fas fa-coins icon" style="color: var(--info-color);"></i> <div class="card-value" style="color: var(--info-color);"> <span class="num-format">{{ total_allocated_budget|default:0|floatformat:0|format_negative }}</span> </div>
-                                    <p class="card-text">{% translate "کل بودجه تخصیص یافته" %}</p> </div>
-                            </div>
-                            <div class="col-md-3 mb-3"> <div class="metric-box animate__animated animate__fadeInDown animate__delay-0.1s"> <i class="fas fa-money-bill-wave icon" style="color: var(--success-color);"></i> <div class="card-value" style="color: var(--success-color);"> <span class="num-format">{{ total_consumed_budget|default:0|floatformat:0|format_negative }}</span> </div>
-                                    <p class="card-text">{% translate "کل بودجه مصرف شده" %}</p> </div>
-                            </div>
-                            <div class="col-md-3 mb-3"> <div class="metric-box animate__animated animate__fadeInDown animate__delay-0.2s"> <i class="fas fa-wallet icon" style="color: var(--danger-color);"></i> <div class="card-value" style="color: var(--danger-color);"> <span class="num-format">{{ remaining_total_budget|default:0|floatformat:0|format_negative }}</span> </div>
-                                    <p class="card-text">{% translate "بودجه باقی‌مانده کل" %}</p> </div>
-                            </div>
-                            <div class="col-md-3 mb-3"> <div class="metric-box animate__animated animate__fadeInDown animate__delay-0.3s"> <i class="fas fa-percent icon" style="color: var(--warning-color);"></i> <div class="card-value" style="color: var(--warning-color);"> {{ percentage_consumed_budget|default:0|floatformat:2|format_negative }}%
-                                    </div>
-                                    <p class="card-text">{% translate "درصد مصرف بودجه" %}</p> </div>
-                            </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="metric-box animate__animated animate__fadeInDown animate__delay-0.1s"><i
+                                    class="fas fa-money-bill-wave icon" style="color: var(--success-color);"></i>
+                                <div class="card-value" style="color: var(--success-color);"><span
+                                        class="num-format">{{ total_consumed_budget|default:0|floatformat:0|format_negative }}</span>
+                                </div>
+                                <p class="card-text">{% translate "کل بودجه مصرف شده" %}</p></div>
                         </div>
-                        <div class="row text-center mt-4"> <div class="col-md-4 mb-3"> <div class="metric-box animate__animated animate__fadeInUp"> <i class="fas fa-calendar-check icon"></i> <div class="card-value" style="font-size: 2em; color: var(--dark-text);"> {{ active_budget_periods_count|default:0|format_negative }}
-                                    </div>
-                                    <p class="card-text">{% translate "دوره‌های بودجه فعال" %}</p> </div>
-                            </div>
-                            <div class="col-md-4 mb-3"> <div class="metric-box animate__animated animate__fadeInUp animate__delay-0.1s"> <i class="fas fa-sitemap icon"></i> <div class="card-value" style="font-size: 2em; color: var(--dark-text);"> {{ active_budget_allocations_count|default:0|format_negative }}
-                                    </div>
-                                    <p class="card-text">{% translate "تخصیص‌های بودجه فعال" %}</p> </div>
-                            </div>
-                            <div class="col-md-4 mb-3"> <div class="metric-box animate__animated animate__fadeInUp animate__delay-0.2s"> <i class="fas fa-project-diagram icon"></i> <div class="card-value" style="font-size: 2em; color: var(--dark-text);"> {{ active_cost_centers_count|default:0|format_negative }} {# یا active_projects_with_budget_count #} </div>
-                                    <p class="card-text">{% translate "مراکز هزینه/پروژه فعال با بودجه" %}</p> </div>
-                            </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="metric-box animate__animated animate__fadeInDown animate__delay-0.2s"><i
+                                    class="fas fa-wallet icon" style="color: var(--danger-color);"></i>
+                                <div class="card-value" style="color: var(--danger-color);"><span
+                                        class="num-format">{{ remaining_total_budget|default:0|floatformat:0|format_negative }}</span>
+                                </div>
+                                <p class="card-text">{% translate "بودجه باقی‌مانده کل" %}</p></div>
                         </div>
-                    {% endif %}
+                        <div class="col-md-3 mb-3">
+                            <div class="metric-box animate__animated animate__fadeInDown animate__delay-0.3s"><i
+                                    class="fas fa-percent icon" style="color: var(--warning-color);"></i>
+                                <div class="card-value"
+                                     style="color: var(--warning-color);"> {{ percentage_consumed_budget|default:0|floatformat:2|format_negative }}%
+                                </div>
+                                <p class="card-text">{% translate "درصد مصرف بودجه" %}</p></div>
+                        </div>
+                    </div>
+                    <div class="row text-center mt-4">
+                    <div class="col-md-4 mb-3">
+                        <div class="metric-box animate__animated animate__fadeInUp"><i
+                                class="fas fa-calendar-check icon"></i>
+                            <div class="card-value"
+                                 style="font-size: 2em; color: var(--dark-text);"> {{ active_budget_periods_count|default:0|format_negative }}
+                            </div>
+                            <p class="card-text">{% translate "دوره‌های بودجه فعال" %}</p></div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="metric-box animate__animated animate__fadeInUp animate__delay-0.1s"><i
+                                class="fas fa-sitemap icon"></i>
+                            <div class="card-value"
+                                 style="font-size: 2em; color: var(--dark-text);"> {{ active_budget_allocations_count|default:0|format_negative }}
+                            </div>
+                            <p class="card-text">{% translate "تخصیص‌های بودجه فعال" %}</p></div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="metric-box animate__animated animate__fadeInUp animate__delay-0.2s"><i
+                                class="fas fa-project-diagram icon"></i>
+                            <div class="card-value"
+                                 style="font-size: 2em; color: var(--dark-text);"> {{ active_cost_centers_count|default:0|format_negative }}
+                                {# یا active_projects_with_budget_count  </div>#}
+                                <p class="card-text">{% translate "مراکز هزینه/پروژه فعال با بودجه" %}</p></div>
+                        </div>
+                    </div>
+                {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="accordion mb-4 animate__animated animate__fadeInUp animate__delay-0.2s" id="accordionTankhahOverview"> <div class="accordion-item dashboard-card"> <h2 class="accordion-header" id="headingTankhahOverview" style="background: linear-gradient(45deg, var(--success-color), #27ae60);"> <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#collapseTankhahOverview" aria-expanded="false"
-                        aria-controls="collapseTankhahOverview"> <i class="fas fa-file-invoice-dollar mr-2"></i>{% translate "خلاصه وضعیت تنخواه (ریال)" %} </button>
-            </h2>
-            <div id="collapseTankhahOverview" class="accordion-collapse collapse"
-                 aria-labelledby="headingTankhahOverview"
-                 data-bs-parent="#accordionTankhahOverview"> <div class="accordion-body"> {% if tankhah_stats_permission_denied %} <div class="alert alert-warning"> <i class="fas fa-exclamation-triangle mr-2"></i>{% translate "شما اجازه دسترسی به آمار تنخواه را ندارید." %} </div>
+        <div class="accordion mb-4 animate__animated animate__fadeInUp animate__delay-0.2s"
+             id="accordionTankhahOverview">
+            <div class="accordion-item dashboard-card">
+                <h2 class="accordion-header" id="headingTankhahOverview"
+                    style="background: linear-gradient(45deg, var(--success-color), #27ae60);">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseTankhahOverview" aria-expanded="false"
+                            aria-controls="collapseTankhahOverview"><i
+                            class="fas fa-file-invoice-dollar mr-2"></i>{% translate "خلاصه وضعیت تنخواه (ریال)" %}
+                    </button>
+                </h2>
+                <div id="collapseTankhahOverview" class="accordion-collapse collapse"
+                     aria-labelledby="headingTankhahOverview"
+                     data-bs-parent="#accordionTankhahOverview">
+                    <div class="accordion-body"> {% if tankhah_stats_permission_denied %}
+                        <div class="alert alert-warning"><i
+                                class="fas fa-exclamation-triangle mr-2"></i>{% translate "شما اجازه دسترسی به آمار تنخواه را ندارید." %}
+                        </div>
                     {% elif tankhah_stats_error %}
-                         <div class="alert alert-danger">
+                        <div class="alert alert-danger">
                             <i class="fas fa-times-circle mr-2"></i>{% translate "خطا در بارگذاری آمار تنخواه." %}
                         </div>
                     {% else %}
                         <div class="row text-center">
-                            <div class="col-md-3 col-6 mb-3"> <div class="metric-box animate__animated animate__fadeInLeft"> <i class="fas fa-tasks icon" style="color: var(--success-color);"></i> <div class="card-value" style="color: var(--success-color);"> {{ active_tankhah_count|default:0|format_negative }}
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="metric-box animate__animated animate__fadeInLeft"><i
+                                        class="fas fa-tasks icon" style="color: var(--success-color);"></i>
+                                    <div class="card-value"
+                                         style="color: var(--success-color);"> {{ active_tankhah_count|default:0|format_negative }}
                                     </div>
-                                    <p class="card-text">{% translate "تنخواه‌های در جریان" %}</p> </div>
+                                    <p class="card-text">{% translate "تنخواه‌های در جریان" %}</p></div>
                             </div>
-                            <div class="col-md-3 col-6 mb-3"> <div class="metric-box animate__animated animate__fadeInLeft animate__delay-0.1s"> <i class="fas fa-calendar-day icon" style="color: var(--info-color);"></i> <div class="card-value" style="color: var(--info-color);"> <span class="num-format">{{ current_month_total_amount|default:0|floatformat:0|format_negative }}</span> </div>
-                                    <p class="card-text">{% translate "مبلغ فاکتورهای پرداخت شده ماه جاری" %}</p> </div>
-                            </div>
-                            <div class="col-md-3 col-6 mb-3"> <div class="metric-box animate__animated animate__fadeInLeft animate__delay-0.2s"> <i class="fas fa-hourglass-half icon" style="color: var(--warning-color);"></i> <div class="card-value" style="color: var(--warning-color);"> {{ pending_approval_count|default:0|format_negative }}
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="metric-box animate__animated animate__fadeInLeft animate__delay-0.1s"><i
+                                        class="fas fa-calendar-day icon" style="color: var(--info-color);"></i>
+                                    <div class="card-value" style="color: var(--info-color);"><span
+                                            class="num-format">{{ current_month_total_amount|default:0|floatformat:0|format_negative }}</span>
                                     </div>
-                                    <p class="card-text">{% translate "تنخواه‌های در انتظار تایید" %}</p> </div>
+                                    <p class="card-text">{% translate "مبلغ فاکتورهای پرداخت شده ماه جاری" %}</p></div>
                             </div>
-                            <div class="col-md-3 col-6 mb-3"> <div class="metric-box animate__animated animate__fadeInLeft animate__delay-0.3s"> <i class="fas fa-ban icon" style="color: var(--danger-color);"></i> <div class="card-value" style="color: var(--danger-color);"> {{ recent_rejected_factors|default:0|format_negative }}
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="metric-box animate__animated animate__fadeInLeft animate__delay-0.2s"><i
+                                        class="fas fa-hourglass-half icon" style="color: var(--warning-color);"></i>
+                                    <div class="card-value"
+                                         style="color: var(--warning-color);"> {{ pending_approval_count|default:0|format_negative }}
                                     </div>
-                                    <p class="card-text">{% translate "فاکتورهای رد شده (۹۰ روز اخیر)" %}</p> </div>
+                                    <p class="card-text">{% translate "تنخواه‌های در انتظار تایید" %}</p></div>
+                            </div>
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="metric-box animate__animated animate__fadeInLeft animate__delay-0.3s"><i
+                                        class="fas fa-ban icon" style="color: var(--danger-color);"></i>
+                                    <div class="card-value"
+                                         style="color: var(--danger-color);"> {{ recent_rejected_factors|default:0|format_negative }}
+                                    </div>
+                                    <p class="card-text">{% translate "فاکتورهای رد شده (۹۰ روز اخیر)" %}</p></div>
                             </div>
                         </div>
-                         <div class="row text-center mt-4"> <div class="col-md-4 mb-3"> <div class="metric-box animate__animated animate__fadeInRight"> <i class="fas fa-hand-holding-usd icon"></i> <div class="card-value" style="font-size: 2em; color: var(--dark-text);"> <span class="num-format">{{ total_allocated_tankhah|default:0|floatformat:0|format_negative }}</span> </div>
-                                    <p class="card-text">{% translate "کل تنخواه تخصیص یافته" %}</p> </div>
+                        <div class="row text-center mt-4">
+                            <div class="col-md-4 mb-3">
+                                <div class="metric-box animate__animated animate__fadeInRight"><i
+                                        class="fas fa-hand-holding-usd icon"></i>
+                                    <div class="card-value" style="font-size: 2em; color: var(--dark-text);"><span
+                                            class="num-format">{{ total_allocated_tankhah|default:0|floatformat:0|format_negative }}</span>
+                                    </div>
+                                    <p class="card-text">{% translate "کل تنخواه تخصیص یافته" %}</p></div>
                             </div>
-                            <div class="col-md-4 mb-3"> <div class="metric-box animate__animated animate__fadeInRight animate__delay-0.1s"> <i class="fas fa-receipt icon"></i> <div class="card-value" style="font-size: 2em; color: var(--dark-text);"> <span class="num-format">{{ total_spent_on_factors|default:0|floatformat:0|format_negative }}</span> </div>
-                                    <p class="card-text">{% translate "کل مبلغ مصرف شده در فاکتورها" %}</p> </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="metric-box animate__animated animate__fadeInRight animate__delay-0.1s"><i
+                                        class="fas fa-receipt icon"></i>
+                                    <div class="card-value" style="font-size: 2em; color: var(--dark-text);"><span
+                                            class="num-format">{{ total_spent_on_factors|default:0|floatformat:0|format_negative }}</span>
+                                    </div>
+                                    <p class="card-text">{% translate "کل مبلغ مصرف شده در فاکتورها" %}</p></div>
                             </div>
-                            <div class="col-md-4 mb-3"> <div class="metric-box animate__animated animate__fadeInRight animate__delay-0.2s"> <i class="fas fa-funnel-dollar icon"></i> <div class="card-value" style="font-size: 2em; color: var(--dark-text);"> <span class="num-format">{{ total_unspent_tankhah|default:0|floatformat:0|format_negative }}</span> </div>
-                                    <p class="card-text">{% translate "کل تنخواه مصرف نشده" %}</p> </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="metric-box animate__animated animate__fadeInRight animate__delay-0.2s"><i
+                                        class="fas fa-funnel-dollar icon"></i>
+                                    <div class="card-value" style="font-size: 2em; color: var(--dark-text);"><span
+                                            class="num-format">{{ total_unspent_tankhah|default:0|floatformat:0|format_negative }}</span>
+                                    </div>
+                                    <p class="card-text">{% translate "کل تنخواه مصرف نشده" %}</p></div>
                             </div>
                         </div>
                     {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="accordion mb-4 animate__animated animate__fadeInUp animate__delay-0.3s" id="accordionCharts"> <div class="accordion-item dashboard-card"> <h2 class="accordion-header" id="headingCharts" style="background: linear-gradient(45deg, #FF6F61, #DE4B4B);"> <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#collapseCharts" aria-expanded="false" aria-controls="collapseCharts"> <i class="fas fa-chart-area mr-2"></i>{% translate "نمودارهای تحلیلی" %} </button>
-            </h2>
-            <div id="collapseCharts" class="accordion-collapse collapse" aria-labelledby="headingCharts"
-                 data-bs-parent="#accordionCharts"> <div class="accordion-body"> <div class="row">
-                        <div class="col-lg-6 mb-4"> <div class="dashboard-card p-3"> <h5 class="text-center">{% translate "مصرف بودجه بر اساس دسته" %}</h5>
-                                {% if budget_stats_permission_denied %} <div class="alert alert-warning">{% translate "شما اجازه دسترسی به این نمودار را ندارید." %}</div> {% else %}
-                                    <div class="chart-container"> <canvas id="budgetCategoryChart"></canvas> </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="col-lg-6 mb-4"> <div class="dashboard-card p-3"> <h5 class="text-center">{% translate "بودجه تخصیص‌یافته در مقابل مصرف‌شده (۶ ماه گذشته)" %}</h5>
-                                {% if budget_stats_permission_denied %} <div class="alert alert-warning">{% translate "شما اجازه دسترسی به این نمودار را ندارید." %}</div> {% else %}
-                                    <div class="chart-container"> <canvas id="budgetVsActualChart"></canvas> </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-lg-6 mb-4"> <div class="dashboard-card p-3"> <h5 class="text-center">{% translate "روند تنخواه ماهانه (فاکتورهای پرداخت شده)" %}</h5>
-                                {% if tankhah_stats_permission_denied %} <div class="alert alert-warning">{% translate "شما اجازه دسترسی به این نمودار را ندارید." %}</div> {% else %}
-                                    <div class="chart-container"> <canvas id="monthlyTankhahChart"></canvas> </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="col-lg-6 mb-4"> <div class="dashboard-card p-3"> <h5 class="text-center">{% translate "روند تنخواه فصلی (فاکتورهای پرداخت شده)" %}</h5>
-                                {% if tankhah_stats_permission_denied %} <div class="alert alert-warning">{% translate "شما اجازه دسترسی به این نمودار را ندارید." %}</div> {% else %}
-                                    <div class="chart-container"> <canvas id="quarterlyTankhahChart"></canvas> </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                     <div class="row">
-                        <div class="col-lg-12 mb-4">
-                            <div class="dashboard-card p-3">
-                                <h5 class="text-center">{% translate "وضعیت بودجه پروژه‌ها" %}</h5>
-                                {% if project_status_permission_denied %}
-                                    <div class="alert alert-warning">{% translate "شما اجازه دسترسی به این نمودار را ندارید." %}</div>
-                                {% else %}
-                                    <div class="chart-container">
-                                        <canvas id="projectBudgetChart"></canvas> </div>
-                                {% endif %}
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="accordion mb-4 animate__animated animate__fadeInUp animate__delay-0.4s" id="accordionProjectStatus"> <div class="accordion-item dashboard-card"> <h2 class="accordion-header" id="headingProjectStatus" style="background: linear-gradient(45deg, #FFA07A, #FA8072);"> <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#collapseProjectStatus" aria-expanded="false"
-                        aria-controls="collapseProjectStatus"> <i class="fas fa-tasks mr-2"></i>{% translate "وضعیت بودجه پروژه‌ها (ریال)" %} </button>
-            </h2>
-            <div id="collapseProjectStatus" class="accordion-collapse collapse"
-                 aria-labelledby="headingProjectStatus"
-                 data-bs-parent="#accordionProjectStatus"> <div class="accordion-body"> {% if project_status_permission_denied %} <div class="alert alert-warning">{% translate "شما اجازه دسترسی به وضعیت پروژه‌ها را ندارید." %}</div> {% else %}
+        <div class="accordion mb-4 animate__animated animate__fadeInUp animate__delay-0.3s" id="accordionCharts">
+            <div class="accordion-item dashboard-card">
+                <h2 class="accordion-header" id="headingCharts"
+                    style="background: linear-gradient(45deg, #FF6F61, #DE4B4B);">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseCharts" aria-expanded="false" aria-controls="collapseCharts"><i
+                            class="fas fa-chart-area mr-2"></i>{% translate "نمودارهای تحلیلی" %} </button>
+                </h2>
+                <div id="collapseCharts" class="accordion-collapse collapse" aria-labelledby="headingCharts"
+                     data-bs-parent="#accordionCharts">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-lg-6 mb-4">
+                                <div class="dashboard-card p-3"><h5
+                                        class="text-center">{% translate "مصرف بودجه بر اساس دسته" %}</h5>
+                                    {% if budget_stats_permission_denied %}
+                                        <div class="alert alert-warning">{% translate "شما اجازه دسترسی به این نمودار را ندارید." %}</div> {% else %}
+                                        <div class="chart-container">
+                                            <canvas id="budgetCategoryChart"></canvas>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-lg-6 mb-4">
+                                <div class="dashboard-card p-3"><h5
+                                        class="text-center">{% translate "بودجه تخصیص‌یافته در مقابل مصرف‌شده (۶ ماه گذشته)" %}</h5>
+                                    {% if budget_stats_permission_denied %}
+                                        <div class="alert alert-warning">{% translate "شما اجازه دسترسی به این نمودار را ندارید." %}</div> {% else %}
+                                        <div class="chart-container">
+                                            <canvas id="budgetVsActualChart"></canvas>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-6 mb-4">
+                                <div class="dashboard-card p-3"><h5
+                                        class="text-center">{% translate "روند تنخواه ماهانه (فاکتورهای پرداخت شده)" %}</h5>
+                                    {% if tankhah_stats_permission_denied %}
+                                        <div class="alert alert-warning">{% translate "شما اجازه دسترسی به این نمودار را ندارید." %}</div> {% else %}
+                                        <div class="chart-container">
+                                            <canvas id="monthlyTankhahChart"></canvas>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-lg-6 mb-4">
+                                <div class="dashboard-card p-3"><h5
+                                        class="text-center">{% translate "روند تنخواه فصلی (فاکتورهای پرداخت شده)" %}</h5>
+                                    {% if tankhah_stats_permission_denied %}
+                                        <div class="alert alert-warning">{% translate "شما اجازه دسترسی به این نمودار را ندارید." %}</div> {% else %}
+                                        <div class="chart-container">
+                                            <canvas id="quarterlyTankhahChart"></canvas>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-12 mb-4">
+                                <div class="dashboard-card p-3">
+                                    <h5 class="text-center">{% translate "وضعیت بودجه پروژه‌ها" %}</h5>
+                                    {% if project_status_permission_denied %}
+                                        <div class="alert alert-warning">{% translate "شما اجازه دسترسی به این نمودار را ندارید." %}</div>
+                                    {% else %}
+                                        <div class="chart-container">
+                                            <canvas id="projectBudgetChart"></canvas>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion mb-4 animate__animated animate__fadeInUp animate__delay-0.4s" id="accordionProjectStatus">
+            <div class="accordion-item dashboard-card">
+                <h2 class="accordion-header" id="headingProjectStatus"
+                    style="background: linear-gradient(45deg, #FFA07A, #FA8072);">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseProjectStatus" aria-expanded="false"
+                            aria-controls="collapseProjectStatus"><i
+                            class="fas fa-tasks mr-2"></i>{% translate "وضعیت بودجه پروژه‌ها (ریال)" %} </button>
+                </h2>
+                <div id="collapseProjectStatus" class="accordion-collapse collapse"
+                     aria-labelledby="headingProjectStatus"
+                     data-bs-parent="#accordionProjectStatus">
+                    <div class="accordion-body"> {% if project_status_permission_denied %}
+                        <div class="alert alert-warning">{% translate "شما اجازه دسترسی به وضعیت پروژه‌ها را ندارید." %}</div> {% else %}
                         <ul class="list-group list-group-flush"> {% for project_item in project_budget_status %}
-                                <li class="list-group-item animate__animated animate__fadeInUp"> <div class="flex-grow-1 mr-3"> <strong>{{ project_item.name }}</strong> <small class="text-muted d-block"> {% translate "مصرف:" %} <span class="num-format">{{ project_item.consumed|default:0|floatformat:0|format_negative }}</span> / {% translate "تخصیص:" %} <span class="num-format">{{ project_item.allocated|default:0|floatformat:0|format_negative }}</span> </small>
-                                        <div class="progress mt-2"> {% with percentage=project_item.percentage_consumed|default:0|floatformat:2 %}
+                            <li class="list-group-item animate__animated animate__fadeInUp">
+                                <div class="flex-grow-1 mr-3"><strong>{{ project_item.name }}</strong> <small
+                                        class="text-muted d-block"> {% translate "مصرف:" %} <span
+                                        class="num-format">{{ project_item.consumed|default:0|floatformat:0|format_negative }}</span>
+                                    / {% translate "تخصیص:" %} <span
+                                            class="num-format">{{ project_item.allocated|default:0|floatformat:0|format_negative }}</span>
+                                </small>
+                                    <div class="progress mt-2">
+                                        {% with percentage=project_item.percentage_consumed|default:0|floatformat:2 %}
                                             <div class="progress-bar" role="progressbar"
                                                  style="width: {{ percentage }}%; background-color: {% if percentage > 85 %}var(--danger-color){% elif percentage > 60 %}var(--warning-color){% else %}var(--success-color){% endif %};"
                                                  aria-valuenow="{{ percentage }}"
                                                  aria-valuemin="0" aria-valuemax="100"></div> {% endwith %}
-                                        </div>
                                     </div>
-                                    <div class="text-right"> {% with percentage=project_item.percentage_consumed|default:0|floatformat:2 %}
+                                </div>
+                                <div class="text-right">
+                                    {% with percentage=project_item.percentage_consumed|default:0|floatformat:2 %}
                                         <span class="badge badge-pill"
                                               style="background-color: {% if percentage > 85 %}var(--danger-color){% elif percentage > 60 %}var(--warning-color){% else %}var(--success-color){% endif %}; color: white;"> {{ percentage|format_negative }}%
                                         </span>
-                                        {% endwith %}
-                                        <small class="text-muted d-block">{% translate "باقی‌مانده:" %} <span class="num-format">{{ project_item.remaining|default:0|floatformat:0|format_negative }}</span></small> </div>
-                                </li>
-                            {% empty %}
-                                <li class="list-group-item text-center text-muted">{% translate "اطلاعاتی برای پروژه‌ها یافت نشد." %}</li> {% endfor %}
+                                    {% endwith %}
+                                    <small class="text-muted d-block">{% translate "باقی‌مانده:" %} <span
+                                            class="num-format">{{ project_item.remaining|default:0|floatformat:0|format_negative }}</span></small>
+                                </div>
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item text-center text-muted">{% translate "اطلاعاتی برای پروژه‌ها یافت نشد." %}</li> {% endfor %}
                         </ul>
                     {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="accordion mb-4 animate__animated animate__fadeInUp animate__delay-0.5s" id="accordionBudgetWarnings"> <div class="accordion-item dashboard-card"> <h2 class="accordion-header" id="headingBudgetWarnings" style="background: linear-gradient(45deg, #FF69B4, #EE82EE);"> <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#collapseBudgetWarnings" aria-expanded="false"
-                        aria-controls="collapseBudgetWarnings"> <i class="fas fa-bell-on mr-2"></i>{% translate "هشدارهای اخیر بودجه" %} </button>
-            </h2>
-            <div id="collapseBudgetWarnings" class="accordion-collapse collapse"
-                 aria-labelledby="headingBudgetWarnings"
-                 data-bs-parent="#accordionBudgetWarnings"> <div class="accordion-body"> {% if budget_alerts_permission_denied %} <div class="alert alert-warning">{% translate "شما اجازه دسترسی به هشدارهای بودجه را ندارید." %}</div> {% else %}
+        <div class="accordion mb-4 animate__animated animate__fadeInUp animate__delay-0.5s"
+             id="accordionBudgetWarnings">
+            <div class="accordion-item dashboard-card">
+                <h2 class="accordion-header" id="headingBudgetWarnings"
+                    style="background: linear-gradient(45deg, #FF69B4, #EE82EE);">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseBudgetWarnings" aria-expanded="false"
+                            aria-controls="collapseBudgetWarnings"><i
+                            class="fas fa-bell-on mr-2"></i>{% translate "هشدارهای اخیر بودجه" %} </button>
+                </h2>
+                <div id="collapseBudgetWarnings" class="accordion-collapse collapse"
+                     aria-labelledby="headingBudgetWarnings"
+                     data-bs-parent="#accordionBudgetWarnings">
+                    <div class="accordion-body"> {% if budget_alerts_permission_denied %}
+                        <div class="alert alert-warning">{% translate "شما اجازه دسترسی به هشدارهای بودجه را ندارید." %}</div> {% else %}
                         <ul class="list-group list-group-flush"> {% for warning_item in recent_budget_warnings %}
-                                <li class="list-group-item animate__animated animate__fadeInUp"> <div> <strong><i class="fas fa-exclamation-triangle text-danger mr-2"></i>{{ warning_item.details }}</strong> <small class="text-muted d-block"> {% translate "زمان:" %} {{ warning_item.timestamp|jformat:"%Y/%m/%d %H:%M" }} - {% translate "توسط:" %} {{ warning_item.created_by.username }} </small>
-                                    </div>
-                                    <span class="badge badge-pill" style="background-color: var(--danger-color); color:white;">{% translate "بودجه" %}</span> </li>
-                            {% empty %}
-                                <li class="list-group-item text-center text-muted">{% translate "هشداری یافت نشد." %}</li> {% endfor %}
+                            <li class="list-group-item animate__animated animate__fadeInUp">
+                                <div><strong><i
+                                        class="fas fa-exclamation-triangle text-danger mr-2"></i>{{ warning_item.details }}
+                                </strong> <small
+                                        class="text-muted d-block"> {% translate "زمان:" %} {{ warning_item.timestamp|jformat:"%Y/%m/%d %H:%M" }}
+                                    - {% translate "توسط:" %} {{ warning_item.created_by.username }} </small>
+                                </div>
+                                <span class="badge badge-pill"
+                                      style="background-color: var(--danger-color); color:white;">{% translate "بودجه" %}</span>
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item text-center text-muted">{% translate "هشداری یافت نشد." %}</li> {% endfor %}
                         </ul>
                     {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="accordion mb-4 animate__animated animate__fadeInUp animate__delay-0.6s" id="accordionRecentActivities"> <div class="accordion-item dashboard-card"> <h2 class="accordion-header" id="headingRecentActivities" style="background: linear-gradient(45deg, #A7D7C5, #7CC6B9);"> <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#collapseRecentActivities" aria-expanded="false"
-                        aria-controls="collapseRecentActivities"> <i class="fas fa-history mr-2"></i>{% translate "فعالیت‌های اخیر" %} </button>
-            </h2>
-            <div id="collapseRecentActivities" class="accordion-collapse collapse"
-                 aria-labelledby="headingRecentActivities"
-                 data-bs-parent="#accordionRecentActivities"> <div class="accordion-body"> {% if user_activity_permission_denied %}
+        <div class="accordion mb-4 animate__animated animate__fadeInUp animate__delay-0.6s"
+             id="accordionRecentActivities">
+            <div class="accordion-item dashboard-card">
+                <h2 class="accordion-header" id="headingRecentActivities"
+                    style="background: linear-gradient(45deg, #A7D7C5, #7CC6B9);">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseRecentActivities" aria-expanded="false"
+                            aria-controls="collapseRecentActivities"><i
+                            class="fas fa-history mr-2"></i>{% translate "فعالیت‌های اخیر" %} </button>
+                </h2>
+                <div id="collapseRecentActivities" class="accordion-collapse collapse"
+                     aria-labelledby="headingRecentActivities"
+                     data-bs-parent="#accordionRecentActivities">
+                    <div class="accordion-body"> {% if user_activity_permission_denied %}
                         <div class="alert alert-warning">
                             <i class="fas fa-exclamation-triangle mr-2"></i>
                             {% translate "شما اجازه دسترسی به فعالیت‌های اخیر را ندارید." %}
                         </div>
                     {% else %}
                         <ul class="list-group list-group-flush"> {% for activity in recent_activities %}
-                                <li class="list-group-item animate__animated animate__fadeInUp"> <div> <strong>
-                                            {% if activity.tankhah %} {% translate "تنخواه" %} #{{ activity.tankhah.number }} {% elif activity.factor %} {% translate "فاکتور" %} #{{ activity.factor.number }} {% else %}
-                                                {% translate "فعالیت نامشخص" %}
-                                            {% endif %}
-                                            - {{ activity.get_action_display }} </strong>
-                                        <small class="text-muted d-block"> {% translate "توسط:" %} {{ activity.user.username }} - {% translate "در تاریخ:" %} {{ activity.timestamp|jformat:"%Y/%m/%d %H:%M" }} {% if activity.comment and activity.comment != "" %}
-                                                <br>
-                                                {% translate "نظر:" %} {{ activity.comment }}
-                                            {% endif %}
-                                        </small>
-                                    </div>
-                                    <span class="badge badge-pill" style="background-color: #6c757d; color: white;"> {% if activity.tankhah %} {% translate "تنخواه" %}
-                                        {% elif activity.factor %} {% translate "فاکتور" %}
-                                        {% else %}
-                                            {% translate "عمومی" %}
+                            <li class="list-group-item animate__animated animate__fadeInUp">
+                                <div><strong>
+                                    {% if activity.tankhah %} {% translate "تنخواه" %} #
+                                        {{ activity.tankhah.number }} {% elif activity.factor %}{% translate "فاکتور" %}
+                                        #{{ activity.factor.number }} {% else %}
+                                        {% translate "فعالیت نامشخص" %}
+                                    {% endif %}
+                                    - {{ activity.get_action_display }} </strong>
+                                    <small class="text-muted d-block"> {% translate "توسط:" %} {{ activity.user.username }}
+                                        - {% translate "در تاریخ:" %} {{ activity.timestamp|jformat:"%Y/%m/%d %H:%M" }}
+                                        {% if activity.comment and activity.comment != "" %}
+                                            <br>
+                                            {% translate "نظر:" %} {{ activity.comment }}
                                         {% endif %}
+                                    </small>
+                                </div>
+                                <span class="badge badge-pill"
+                                      style="background-color: #6c757d; color: white;"> {% if activity.tankhah %}
+                                    {% translate "تنخواه" %}
+                                {% elif activity.factor %} {% translate "فاکتور" %}
+                                {% else %}
+                                    {% translate "عمومی" %}
+                                {% endif %}
                                     </span>
-                                </li>
-                            {% empty %}
-                                <li class="list-group-item text-center text-muted">{% translate "فعالیت اخیری یافت نشد." %}</li> {% endfor %}
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item text-center text-muted">{% translate "فعالیت اخیری یافت نشد." %}</li> {% endfor %}
                         </ul>
                     {% endif %}
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </div> 
 
-</div>
+    </div>
+    
 {% endblock %}
 
 {% block extra_js %}
+    <script src="{% static 'admin/js/chart.js' %}"></script>
     <script src="{% static 'admin/js/chart.min.js' %}"></script>
-{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.min.js" integrity="sha512-hag2Jur2C9PoB8Xw6O5Uq54O2j+tKkOVjSHx2gJCc0KUrjd53Y3F3jO2AH7V56qWNVbCuH5y3TzjdM5lJq2KY0g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>#}
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -531,19 +736,19 @@
                 const value = parseFloat(rawValue); // [cite: 2]
                 if (!isNaN(value)) { // [cite: 2]
                     element.textContent = formatNumberWithCommas(value); // [cite: 2]
-                } else if (element.textContent.trim() === '-' || rawValue === ''){ // Handle cases like '-' or empty
-                     element.textContent = '0';
+                } else if (element.textContent.trim() === '-' || rawValue === '') { // Handle cases like '-' or empty
+                    element.textContent = '0';
                 }
             });
 
             // تنظیمات عمومی Chart.js
-            {#Chart.defaults.font.family = "'Vazirmatn', 'Parastoo', sans-serif"; // [cite: 2]#}
+            Chart.defaults.font.family = "'Vazirmatn', 'Parastoo', sans-serif"; // [cite: 2]
             Chart.defaults.color = 'var(--dark-text)'; // [cite: 2]
             Chart.defaults.borderColor = '#e0e0e0'; // [cite: 2]
 
             const customTooltip = { // [cite: 2]
                 enabled: true,
-                external: function(context) { // [cite: 2]
+                external: function (context) { // [cite: 2]
                     let tooltipEl = document.getElementById('chartjs-tooltip'); // [cite: 2]
 
                     if (!tooltipEl) { // [cite: 2]
@@ -576,11 +781,11 @@
 
                         let innerHtml = '<div>'; // [cite: 2]
 
-                        titleLines.forEach(function(title) { // [cite: 2]
+                        titleLines.forEach(function (title) { // [cite: 2]
                             innerHtml += '<h3>' + title + '</h3>'; // [cite: 2]
                         });
 
-                        bodyLines.forEach(function(body, i) { // [cite: 2]
+                        bodyLines.forEach(function (body, i) { // [cite: 2]
                             const colors = tooltipModel.labelColors[i]; // [cite: 2]
                             let style = 'background:' + colors.backgroundColor; // [cite: 2]
                             style += '; border-color:' + colors.borderColor;
@@ -612,10 +817,10 @@
                 '#E63946', '#F1FAEE', '#A8DADC', '#457B9D', '#1D3557', '#F4A261'
             ];
             const vividColorsTransparent = vividColors.map(color => // [cite: 2]
-                color.startsWith('rgba') ? color.replace(/,\s*\d?\.?\d*\s*\)/, ', 0.7)') : color.replace('#', 'rgba(') + parseInt(color.substring(1,3),16) + ',' + parseInt(color.substring(3,5),16) + ',' + parseInt(color.substring(5,7),16) + ', 0.7)'
+                color.startsWith('rgba') ? color.replace(/,\s*\d?\.?\d*\s*\)/, ', 0.7)') : color.replace('#', 'rgba(') + parseInt(color.substring(1, 3), 16) + ',' + parseInt(color.substring(3, 5), 16) + ',' + parseInt(color.substring(5, 7), 16) + ', 0.7)'
             );
-             const vividColorsLight = vividColors.map(color => // [cite: 2]
-                color.startsWith('rgba') ? color.replace(/,\s*\d?\.?\d*\s*\)/, ', 0.2)') : color.replace('#', 'rgba(') + parseInt(color.substring(1,3),16) + ',' + parseInt(color.substring(3,5),16) + ',' + parseInt(color.substring(5,7),16) + ', 0.2)'
+            const vividColorsLight = vividColors.map(color => // [cite: 2]
+                color.startsWith('rgba') ? color.replace(/,\s*\d?\.?\d*\s*\)/, ', 0.2)') : color.replace('#', 'rgba(') + parseInt(color.substring(1, 3), 16) + ',' + parseInt(color.substring(3, 5), 16) + ',' + parseInt(color.substring(5, 7), 16) + ', 0.2)'
             );
 
 
@@ -651,19 +856,19 @@
                             plugins: { // [cite: 2]
                                 legend: { // [cite: 2]
                                     position: 'top', // [cite: 2]
-                                    labels: { font: { size: 12 } } // [cite: 2]
+                                    labels: {font: {size: 12}} // [cite: 2]
                                 },
                                 title: { // [cite: 2]
                                     display: !!options.titleText, // [cite: 2]
                                     text: options.titleText || '', // [cite: 2]
-                                    font: { size: 16, weight: 'bold' }, // [cite: 2]
+                                    font: {size: 16, weight: 'bold'}, // [cite: 2]
                                     color: 'var(--dark-text)' // [cite: 2]
                                 },
                                 tooltip: customTooltip, // [cite: 2]
                                 datalabels: { // [cite: 2]
-                                   display: options.datalabelsDisplay === undefined ? false : options.datalabelsDisplay, // [cite: 2]
+                                    display: options.datalabelsDisplay === undefined ? false : options.datalabelsDisplay, // [cite: 2]
                                     color: '#fff', // [cite: 2]
-                                    font: { weight: 'bold' }, // [cite: 2]
+                                    font: {weight: 'bold'}, // [cite: 2]
                                     formatter: (value, context) => { // [cite: 2]
                                         if (type === 'doughnut' || type === 'pie') {
                                             let sum = context.chart.data.datasets[0].data.reduce((a, b) => parseFloat(a) + parseFloat(b), 0); // [cite: 2]
@@ -684,13 +889,14 @@
                     return null;
                 }
             }
+
             // رندر دوباره چارت‌ها وقتی accordion باز/بسته می‌شود
             document.querySelectorAll('.accordion-collapse').forEach(function (collapseEl) { // [cite: 2]
                 collapseEl.addEventListener('shown.bs.collapse', function () { // [cite: 2]
                     if (this.id === 'collapseCharts') { // [cite: 2]
                         console.log("Charts accordion opened, attempting to resize charts."); // [cite: 2]
                         // دسترسی به همه نمونه‌های چارت و تغییر اندازه آنها
-                        for(var id in Chart.instances){
+                        for (var id in Chart.instances) {
                             Chart.instances[id].resize();
                         }
                     }
@@ -699,7 +905,8 @@
 
 
             // چارت وضعیت بودجه پروژه‌ها
-            {% if can_view_project_status and project_chart_data.labels and project_chart_data.allocated and project_chart_data.consumed %} try {
+            {% if can_view_project_status and project_chart_data.labels and project_chart_data.allocated and project_chart_data.consumed %}
+                try {
                     const projectChartLabels = JSON.parse('{{ project_chart_data.labels|escapejs }}'); // [cite: 2]
                     const projectChartAllocated = JSON.parse('{{ project_chart_data.allocated|escapejs }}'); // [cite: 2]
                     const projectChartConsumed = JSON.parse('{{ project_chart_data.consumed|escapejs }}'); // [cite: 2]
@@ -707,25 +914,44 @@
 
                     if (projectChartLabels.length > 0) { // [cite: 2]
                         createChart('projectBudgetChart', 'bar', projectChartLabels, [ // [cite: 2]
-                            { label: '{% translate "تخصیص‌یافته" %}', data: projectChartAllocated, backgroundColor: vividColorsTransparent[0], borderColor: vividColors[0] }, // [cite: 2]
-                            { label: '{% translate "مصرف‌شده" %}', data: projectChartConsumed, backgroundColor: vividColorsTransparent[1], borderColor: vividColors[1] }, // [cite: 2]
-                           // { label: '{% translate "باقی‌مانده" %}', data: projectChartRemaining, backgroundColor: vividColorsTransparent[2], borderColor: vividColors[2] } // [cite: 2]
+                            {
+                                label: '{% translate "تخصیص‌یافته" %}',
+                                data: projectChartAllocated,
+                                backgroundColor: vividColorsTransparent[0],
+                                borderColor: vividColors[0]
+                            }, // [cite: 2]
+                            {
+                                label: '{% translate "مصرف‌شده" %}',
+                                data: projectChartConsumed,
+                                backgroundColor: vividColorsTransparent[1],
+                                borderColor: vividColors[1]
+                            }, // [cite: 2]
+                            // { label: '{% translate "باقی‌مانده" %}', data: projectChartRemaining, backgroundColor: vividColorsTransparent[2], borderColor: vividColors[2] } // [cite: 2]
                         ], {
                             titleText: '{% translate "وضعیت بودجه پروژه‌ها" %}', // [cite: 2]
                             scales: { // [cite: 2]
-                                x: { title: { display: true, text: '{% translate "پروژه" %}' } }, // [cite: 2]
-                                y: { beginAtZero: true, title: { display: true, text: '{% translate "مبلغ (ریال)" %}' }, ticks: { callback: value => formatNumberWithCommas(value) } } // [cite: 2]
+                                x: {title: {display: true, text: '{% translate "پروژه" %}'}}, // [cite: 2]
+                                y: {
+                                    beginAtZero: true,
+                                    title: {display: true, text: '{% translate "مبلغ (ریال)" %}'},
+                                    ticks: {callback: value => formatNumberWithCommas(value)}
+                                } // [cite: 2]
                             }
                         });
-                    } else { console.warn("Project chart data is empty."); } // [cite: 2]
-                } catch (e) { console.error("Error parsing or rendering project chart:", e); }
+                    } else {
+                        console.warn("Project chart data is empty.");
+                    } // [cite: 2]
+                } catch (e) {
+                    console.error("Error parsing or rendering project chart:", e);
+                }
             {% else %}
                 console.warn("Project status permission denied or data missing for project chart."); // [cite: 2]
             {% endif %}
 
 
             // چارت مصرف بودجه بر اساس دسته
-            {% if can_view_budget_stats and budget_category_consumption.labels and budget_category_consumption.values %} try {
+            {% if can_view_budget_stats and budget_category_consumption.labels and budget_category_consumption.values %}
+                try {
                     const budgetCategoryLabels = JSON.parse('{{ budget_category_consumption.labels|escapejs }}'); // [cite: 2]
                     const budgetCategoryValues = JSON.parse('{{ budget_category_consumption.values|escapejs }}'); // [cite: 2]
                     if (budgetCategoryLabels.length > 0 && budgetCategoryValues.length > 0) { // [cite: 2]
@@ -738,81 +964,121 @@
                             titleText: '{% translate "مصرف بودجه بر اساس دسته" %}', // [cite: 2]
                             datalabelsDisplay: true // [cite: 2]
                         });
-                    } else { console.warn("Budget category chart data is empty.");} // [cite: 2]
-                } catch (e) { console.error("Error parsing or rendering budget category chart:", e); }
+                    } else {
+                        console.warn("Budget category chart data is empty.");
+                    } // [cite: 2]
+                } catch (e) {
+                    console.error("Error parsing or rendering budget category chart:", e);
+                }
             {% else %}
                 console.warn("Budget stats permission denied or data missing for budget category chart."); // [cite: 2]
             {% endif %}
 
             // چارت بودجه تخصیص‌یافته در مقابل مصرف‌شده
-            {% if can_view_budget_stats and budget_vs_actual_data.labels and budget_vs_actual_data.allocated and budget_vs_actual_data.consumed %} try {
+            {% if can_view_budget_stats and budget_vs_actual_data.labels and budget_vs_actual_data.allocated and budget_vs_actual_data.consumed %}
+                try {
                     const budgetVsActualLabels = JSON.parse('{{ budget_vs_actual_data.labels|escapejs }}'); // [cite: 2]
                     const budgetVsActualAllocated = JSON.parse('{{ budget_vs_actual_data.allocated|escapejs }}'); // [cite: 2]
                     const budgetVsActualConsumed = JSON.parse('{{ budget_vs_actual_data.consumed|escapejs }}'); // [cite: 2]
                     if (budgetVsActualLabels.length > 0) { // [cite: 2]
                         createChart('budgetVsActualChart', 'bar', budgetVsActualLabels, [ // [cite: 2]
-                            { label: '{% translate "تخصیص‌یافته" %}', data: budgetVsActualAllocated, backgroundColor: vividColorsTransparent[3], borderColor: vividColors[3] }, // [cite: 2]
-                            { label: '{% translate "مصرف‌شده" %}', data: budgetVsActualConsumed, backgroundColor: vividColorsTransparent[4], borderColor: vividColors[4] } // [cite: 2]
+                            {
+                                label: '{% translate "تخصیص‌یافته" %}',
+                                data: budgetVsActualAllocated,
+                                backgroundColor: vividColorsTransparent[3],
+                                borderColor: vividColors[3]
+                            }, // [cite: 2]
+                            {
+                                label: '{% translate "مصرف‌شده" %}',
+                                data: budgetVsActualConsumed,
+                                backgroundColor: vividColorsTransparent[4],
+                                borderColor: vividColors[4]
+                            } // [cite: 2]
                         ], {
                             titleText: '{% translate "بودجه تخصیص‌یافته در مقابل مصرف‌شده (۶ ماه گذشته)" %}', // [cite: 2]
                             scales: { // [cite: 2]
-                                x: { title: { display: true, text: '{% translate "ماه" %}' } }, // [cite: 2]
-                                y: { beginAtZero: true, title: { display: true, text: '{% translate "مبلغ (ریال)" %}' }, ticks: { callback: value => formatNumberWithCommas(value) } } // [cite: 2]
+                                x: {title: {display: true, text: '{% translate "ماه" %}'}}, // [cite: 2]
+                                y: {
+                                    beginAtZero: true,
+                                    title: {display: true, text: '{% translate "مبلغ (ریال)" %}'},
+                                    ticks: {callback: value => formatNumberWithCommas(value)}
+                                } // [cite: 2]
                             }
                         });
-                    } else { console.warn("Budget vs actual chart data is empty."); } // [cite: 2]
-                } catch (e) { console.error("Error parsing or rendering budget vs actual chart:", e); }
+                    } else {
+                        console.warn("Budget vs actual chart data is empty.");
+                    } // [cite: 2]
+                } catch (e) {
+                    console.error("Error parsing or rendering budget vs actual chart:", e);
+                }
             {% else %}
                 console.warn("Budget stats permission denied or data missing for budget vs actual chart."); // [cite: 2]
             {% endif %}
 
             // چارت تنخواه ماهانه
             {% if can_view_tankhah_stats and monthly_report_data.labels and monthly_report_data.values %} try {
-                    const monthlyTankhahLabels = JSON.parse('{{ monthly_report_data.labels|escapejs }}'); // [cite: 2]
-                    const monthlyTankhahValues = JSON.parse('{{ monthly_report_data.values|escapejs }}'); // [cite: 2]
-                    if (monthlyTankhahLabels.length > 0) { // [cite: 2]
-                        createChart('monthlyTankhahChart', 'line', monthlyTankhahLabels, [{ // [cite: 2]
-                            label: '{% translate "مبلغ فاکتورهای پرداخت‌شده" %}', // [cite: 2]
-                            data: monthlyTankhahValues, // [cite: 2]
-                            borderColor: vividColors[5], // [cite: 2]
-                            backgroundColor: vividColorsLight[5], // [cite: 2]
-                            fill: true, // [cite: 2]
-                            tension: 0.3 // [cite: 2]
-                        }], {
-                            titleText: '{% translate "روند تنخواه ماهانه" %}', // [cite: 2]
-                            scales: { // [cite: 2]
-                                x: { title: { display: true, text: '{% translate "ماه" %}' } }, // [cite: 2]
-                                y: { beginAtZero: true, title: { display: true, text: '{% translate "مبلغ (ریال)" %}' }, ticks: { callback: value => formatNumberWithCommas(value) } } // [cite: 2]
-                            }
-                        });
-                    } else { console.warn("Monthly tankhah chart data is empty."); } // [cite: 2]
-                } catch(e) { console.error("Error parsing or rendering monthly tankhah chart:", e); }
+                const monthlyTankhahLabels = JSON.parse('{{ monthly_report_data.labels|escapejs }}'); // [cite: 2]
+                const monthlyTankhahValues = JSON.parse('{{ monthly_report_data.values|escapejs }}'); // [cite: 2]
+                if (monthlyTankhahLabels.length > 0) { // [cite: 2]
+                    createChart('monthlyTankhahChart', 'line', monthlyTankhahLabels, [{ // [cite: 2]
+                        label: '{% translate "مبلغ فاکتورهای پرداخت‌شده" %}', // [cite: 2]
+                        data: monthlyTankhahValues, // [cite: 2]
+                        borderColor: vividColors[5], // [cite: 2]
+                        backgroundColor: vividColorsLight[5], // [cite: 2]
+                        fill: true, // [cite: 2]
+                        tension: 0.3 // [cite: 2]
+                    }], {
+                        titleText: '{% translate "روند تنخواه ماهانه" %}', // [cite: 2]
+                        scales: { // [cite: 2]
+                            x: {title: {display: true, text: '{% translate "ماه" %}'}}, // [cite: 2]
+                            y: {
+                                beginAtZero: true,
+                                title: {display: true, text: '{% translate "مبلغ (ریال)" %}'},
+                                ticks: {callback: value => formatNumberWithCommas(value)}
+                            } // [cite: 2]
+                        }
+                    });
+                } else {
+                    console.warn("Monthly tankhah chart data is empty.");
+                } // [cite: 2]
+            } catch (e) {
+                console.error("Error parsing or rendering monthly tankhah chart:", e);
+            }
             {% else %}
                 console.warn("Tankhah stats permission denied or data missing for monthly tankhah chart."); // [cite: 2]
             {% endif %}
 
             // چارت تنخواه فصلی
             {% if can_view_tankhah_stats and quarterly_report_data.labels and quarterly_report_data.values %} try {
-                    const quarterlyTankhahLabels = JSON.parse('{{ quarterly_report_data.labels|escapejs }}'); // [cite: 2]
-                    const quarterlyTankhahValues = JSON.parse('{{ quarterly_report_data.values|escapejs }}'); // [cite: 2]
-                    if (quarterlyTankhahLabels.length > 0 ) { // [cite: 2]
-                        createChart('quarterlyTankhahChart', 'bar', quarterlyTankhahLabels, [{ // [cite: 2]
-                            label: '{% translate "مبلغ فاکتورهای پرداخت‌شده" %}', // [cite: 2]
-                            data: quarterlyTankhahValues, // [cite: 2]
-                           // backgroundColor: vividColorsTransparent[6], // [cite: 2]
-                           // borderColor: vividColors[6], // [cite: 2]
-                           // borderWidth: 1 // [cite: 2]
-                        }], {
-                            titleText: '{% translate "روند تنخواه فصلی" %}', // [cite: 2]
-                            scales: { // [cite: 2]
-                                x: { title: { display: true, text: '{% translate "فصل" %}' } }, // [cite: 2]
-                                y: { beginAtZero: true, title: { display: true, text: '{% translate "مبلغ (ریال)" %}' }, ticks: { callback: value => formatNumberWithCommas(value) } } // [cite: 2]
-                            }
-                        });
-                    } else { console.warn("Quarterly tankhah chart data is empty."); } // [cite: 2]
-                } catch(e) { console.error("Error parsing or rendering quarterly tankhah chart:", e); }
+                const quarterlyTankhahLabels = JSON.parse('{{ quarterly_report_data.labels|escapejs }}'); // [cite: 2]
+                const quarterlyTankhahValues = JSON.parse('{{ quarterly_report_data.values|escapejs }}'); // [cite: 2]
+                if (quarterlyTankhahLabels.length > 0) { // [cite: 2]
+                    createChart('quarterlyTankhahChart', 'bar', quarterlyTankhahLabels, [{ // [cite: 2]
+                        label: '{% translate "مبلغ فاکتورهای پرداخت‌شده" %}', // [cite: 2]
+                        data: quarterlyTankhahValues, // [cite: 2]
+                        // backgroundColor: vividColorsTransparent[6], // [cite: 2]
+                        // borderColor: vividColors[6], // [cite: 2]
+                        // borderWidth: 1 // [cite: 2]
+                    }], {
+                        titleText: '{% translate "روند تنخواه فصلی" %}', // [cite: 2]
+                        scales: { // [cite: 2]
+                            x: {title: {display: true, text: '{% translate "فصل" %}'}}, // [cite: 2]
+                            y: {
+                                beginAtZero: true,
+                                title: {display: true, text: '{% translate "مبلغ (ریال)" %}'},
+                                ticks: {callback: value => formatNumberWithCommas(value)}
+                            } // [cite: 2]
+                        }
+                    });
+                } else {
+                    console.warn("Quarterly tankhah chart data is empty.");
+                } // [cite: 2]
+            } catch (e) {
+                console.error("Error parsing or rendering quarterly tankhah chart:", e);
+            }
             {% else %}
-                console.warn("Tankhah stats permission denied or data missing for quarterly tankhah chart."); // [cite: 2]
+                console.warn("Tankhah stats permission denied or data missing for quarterly tankhah chart.");
+                // [cite: 2]
             {% endif %}
         });
     </script>

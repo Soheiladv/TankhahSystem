@@ -27,7 +27,7 @@ from tankhah.views import (
     FactorItemRejectView, ApprovalLogListView,
     get_subprojects, FactorDeleteView,
     ItemCategoryListView, ItemCategoryCreateView, ItemCategoryUpdateView, ItemCategoryDeleteView, RulesUserGuideView,
-    FactorStatusUpdateView, upload_tankhah_documents
+    FactorStatusUpdateView, upload_tankhah_documents, ItemCategoryDetailView
 )
 from tankhah.Factor.FactorDetail.views_FactorDetail import  FactorDetailView
 #FactorStatusUpdateView, mark_notification_as_read,, get_unread_notifications, FactorDetailView,    upload_tankhah_documents,
@@ -93,16 +93,13 @@ urlpatterns += [
 ]
 
 urlpatterns += [
-    path('categories/',  itemcategory_list, name='itemcategory_list_old'),
-    path('categories/add/',  itemcategory_create, name='itemcategory_create_old'),
-    path('categories/<int:pk>/edit/', itemcategory_update, name='itemcategory_update_old'),
-    path('categories/<int:pk>/delete/', itemcategory_delete, name='itemcategory_delete_old'),
-] #categories
-urlpatterns += [
-    path('categories/', ItemCategoryListView.as_view(), name='itemcategory_list'),
+    path('categories/',  ItemCategoryListView.as_view(), name='itemcategory_list'),
     path('categories/add/', ItemCategoryCreateView.as_view(), name='itemcategory_create'),
-    path('categories/edit/<int:pk>/', ItemCategoryUpdateView.as_view(), name='itemcategory_update'),
-    path('categories/delete/<int:pk>/', ItemCategoryDeleteView.as_view(), name='itemcategory_delete'),
+    # نام را به create تغییر دادم تا استاندارد باشد
+    path('categories/update/<int:pk>/',  ItemCategoryUpdateView.as_view(), name='itemcategory_update'),
+    path('categories/delete/<int:pk>/',  ItemCategoryDeleteView.as_view(), name='itemcategory_delete'),
+    path('categories/details/<int:pk>/', ItemCategoryDetailView.as_view(), name='itemcategory_details'),
+
 ]#categories
 
 

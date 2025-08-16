@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% load i18n rcms_custom_filters jformat static %}
+
+
+{% block content %}
+<div class="container mt-5">
+    {# به همین سادگی! تمام منطق نمایش در کامپوننت قرار دارد #}
+    {% include "components/details_component.html" with page_title=page_title fields_to_display=fields_to_display action_buttons=action_buttons %}
+</div>
+{% endblock %}

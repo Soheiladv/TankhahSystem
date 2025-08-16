@@ -648,7 +648,7 @@ def itemcategory_create(request):
     if form.is_valid():
         form.save()
         return redirect('itemcategory_list')
-    return render(request, 'tankhah/itemcategory/form.html', {'form': form})
+    return render(request, 'tankhah/itemcategory/ItemCategoryCreateView_form.html', {'form': form})
 
 @permission_required('tankhah.ItemCategory_update')
 def itemcategory_update(request, pk):
@@ -657,7 +657,7 @@ def itemcategory_update(request, pk):
     if form.is_valid():
         form.save()
         return redirect('itemcategory_list')
-    return render(request, 'tankhah/itemcategory/form.html', {'form': form})
+    return render(request, 'tankhah/itemcategory/ItemCategoryCreateView_form.html', {'form': form})
 
 @permission_required('tankhah.ItemCategory_delete')
 def itemcategory_delete(request, pk):
@@ -666,33 +666,115 @@ def itemcategory_delete(request, pk):
         category.delete()
         return redirect('itemcategory_list')
     return render(request, 'tankhah/itemcategory/confirm_delete.html', {'category': category})
+
 # --- لیست دسته‌بندی‌ها ---
-class ItemCategoryListView(PermissionRequiredMixin, ListView):
+class ItemCategoryListView(PermissionBaseView, ListView):
     model = ItemCategory
     template_name = 'tankhah/itemcategory/list.html'
-    context_object_name = 'categories' # نامی که در template استفاده می‌شود
-    permission_required = 'tankhah.view_itemcategory' # مجوز مورد نیاز برای نمایش لیست
+    context_object_name = 'categories'
+    permission_required = 'tankhah.ItemCategory_view'
+    ordering = ['name']
 
-    # اگر نیاز به فیلتر یا مرتب سازی خاصی دارید:
-    # def get_queryset(self):
-    #     return ItemCategory.objects.filter(some_field=True)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'لیست دسته‌بندی انواع هزینه‌کرد'
+
+        context['headers'] = ["نام دسته‌بندی", "حداقل ترتیب مرحله"]
+        context['fields'] = ["name", "min_stage_order"]
+
+        # 1. تعریف فیلترهای مورد نیاز
+        # فرض کنید شما یک فیلتر به نام 'separate_by_comma' برای اعداد دارید
+        context['field_filters'] = {
+            'min_stage_order': 'to_persian_number'
+        }
+
+        # 2. تعریف لیست کامل دکمه‌های عملیات
+        context['action_buttons'] = [
+            {
+                'url_name': 'itemcategory_details',  # نام URL برای نمایش مشخصات
+                'icon': 'fa-eye',
+                'class': 'btn-outline-info',
+                'title': 'مشخصات'
+            },
+            {
+                'url_name': 'itemcategory_update',
+                'icon': 'fa-edit',
+                'class': 'btn-outline-warning',
+                'title': 'ویرایش'
+            },
+            {
+                'url_name': 'itemcategory_delete',
+                'icon': 'fa-trash-alt',
+                'class': 'btn-outline-danger',
+                'title': 'حذف'
+            }
+        ]
+
+        return context
+
+
+from django.views.generic import DetailView
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.urls import reverse
+from .models import ItemCategory
+
+
+class ItemCategoryDetailView(PermissionRequiredMixin, DetailView):
+    model = ItemCategory
+    template_name = 'tankhah/itemcategory/itemcategory_details.html'
+    context_object_name = 'category'
+    permission_required = 'tankhah.ItemCategory_view'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category = self.object
+
+        context['page_title'] = f"مشخصات: {category.name}"
+
+        # 1. تعریف فیلدهایی که باید نمایش داده شوند
+        context['fields_to_display'] = [
+            {'label': 'نام دسته‌بندی', 'value': category.name},
+            {'label': 'حداقل ترتیب مرحله', 'value': category.min_stage_order},
+            {'label': 'توضیحات', 'value': category.description},
+        ]
+
+        # 2. تعریف دکمه‌های عملیات
+        context['action_buttons'] = [
+            {
+                'url': reverse('itemcategory_list'),
+                'text': 'بازگشت به لیست',
+                'class': 'btn-secondary',
+                'icon': 'fa-arrow-left'
+            },
+            {
+                'url': reverse('itemcategory_update', args=[category.pk]),
+                'text': 'ویرایش',
+                'class': 'btn-warning',
+                'icon': 'fa-edit'
+            }
+        ]
+
+        return context
+
 # --- ایجاد دسته‌بندی جدید ---
-class ItemCategoryCreateView(PermissionRequiredMixin, CreateView):
+class ItemCategoryCreateView(PermissionBaseView, CreateView):
     model = ItemCategory
     form_class = ItemCategoryForm # استفاده از فرم سفارشی
-    template_name = 'tankhah/itemcategory/form.html'
+    template_name = 'tankhah/itemcategory/ItemCategoryCreateView_form.html'
     success_url = reverse_lazy('itemcategory_list') # به کجا بعد از موفقیت ریدایرکت شود
     permission_required = 'tankhah.add_itemcategory' # مجوز مورد نیاز برای ایجاد
+
 # --- به‌روزرسانی دسته‌بندی ---
-class ItemCategoryUpdateView(PermissionRequiredMixin, UpdateView):
+class ItemCategoryUpdateView(PermissionBaseView, UpdateView):
     model = ItemCategory
     form_class = ItemCategoryForm
-    template_name = 'tankhah/itemcategory/form.html'
+    template_name = 'tankhah/itemcategory/ItemCategoryCreateView_form.html'
     context_object_name = 'category' # نامی که در template برای آبجکت استفاده می‌شود (به جای object)
     success_url = reverse_lazy('itemcategory_list')
     permission_required = 'tankhah.change_itemcategory' # مجوز مورد نیاز برای ویرایش
 # --- حذف دسته‌بندی ---
-class ItemCategoryDeleteView(PermissionRequiredMixin, DeleteView):
+class ItemCategoryDeleteView(PermissionBaseView, DeleteView):
     model = ItemCategory
     template_name = 'tankhah/itemcategory/confirm_delete.html'
     context_object_name = 'category' # نامی که در template برای آبجکت استفاده می‌شود
@@ -704,8 +786,6 @@ class ItemCategoryDeleteView(PermissionRequiredMixin, DeleteView):
     #     context = super().get_context_data(**kwargs)
     #     context['category_name'] = self.object.name # اگر بخواهید نام خاصی را پاس دهید
     #     return context
-
-
 
 # -- وضعیت تنخواه
 @login_required

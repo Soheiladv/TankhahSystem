@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+    <div class="container mt-5">
+        <div class="card shadow-sm mx-auto" style="max-width: 500px;">
+            <div class="card-header bg-primary text-white text-center">
+                <h2> {% trans "ایجاد دسته‌بندی جدید" %} </h2>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% include "django/forms/form_body.html" with form=form %}
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">ذخیره</button>
+                        <a href="{% url 'itemcategory_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> {% trans "بازگشت" %}
+                        </a>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% comment %}
+{% extends "base.html" %}
+{% load i18n %}
+{% comment %}
+این تمپلیت هسته اصلی فرم را رندر می‌کند: توکن CSRF، خطاهای کلی و تمام فیلدها.
+این فایل باید همیشه داخل یک تگ <form> فراخوانی شود.
+ 
+{% block content %}
+<div class="container py-5">
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      <div class="card shadow-lg rounded-3 border-0">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-plus-circle me-2"></i>
+            {% trans "ایجاد دسته‌بندی جدید" %}
+          </h5>
+        </div>
+
+        <div class="card-body p-4">
+          <form method="post" novalidate>
+            {% csrf_token %}
+            
+            {# رندر خودکار فرم با استفاده از form.html و field.html #}
+            {{ form }}
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+              <a href="{% url 'itemcategory_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> {% trans "بازگشت" %}
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-1"></i> {% trans "ذخیره" %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% endcomment %}
+{% comment %}
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm mx-auto" style="max-width: 500px;">
+        <div class="card-header bg-primary text-white text-center">
+            <h2 class="mb-0">{% if form.instance.pk %}{% trans "ویرایش دسته‌بندی" %}{% else %}{% trans "افزودن دسته‌بندی جدید" %}{% endif %}</h2>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                 نمایش خطاهای فرم کلی (non_field_errors) 
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                 نمایش فیلدها به صورت دستی برای کنترل بیشتر بر ظاهر 
+                {% for field in form %}
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="form-text text-muted">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-save me-2"></i>{% trans "ذخیره" %}
+                    </button>
+                    <a href="{% url 'itemcategory_list' %}" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-arrow-left me-2"></i>{% trans "بازگشت به لیست" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% endcomment %}

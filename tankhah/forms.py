@@ -239,26 +239,15 @@ def get_factor_item_formset():
 class ItemCategoryForm(forms.ModelForm):
     class Meta:
         model = ItemCategory
-        fields = ['name', 'min_stage_order']
+        fields = ['name', 'min_stage_order','description']
         # اضافه کردن کلاس‌های Bootstrap برای فیلدها
-        widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام دسته‌بندی'}),
-            'min_stage_order': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'عدد ترتیب'}),
-        }
+        # widgets = {
+        #     'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام دسته‌بندی'}),
+        #     'min_stage_order': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'عدد ترتیب'}),
+        # }
         labels = {
             'name': 'نام دسته‌بندی',
             'min_stage_order': 'حداقل ترتیب مرحله',
             'description': 'توضیحات',
         }
-# class ItemCategoryForm(forms.ModelForm):
-#     class Meta:
-#         model = ItemCategory
-#         fields = ['name', 'min_stage_order', 'description']
-#         widgets = {
-#             'description': forms.Textarea(attrs={'rows': 3}),
-#         }
-#         labels = {
-#             'name': 'نام دسته‌بندی',
-#             'min_stage_order': 'حداقل ترتیب مرحله',
-#             'description': 'توضیحات',
-#         }
+

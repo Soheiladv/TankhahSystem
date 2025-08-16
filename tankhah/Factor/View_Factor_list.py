@@ -1111,12 +1111,21 @@ class OptimizedFactorListView(PermissionBaseView, ListView):
             queryset = queryset.filter(status=status_query)
 
         return queryset.select_related(
-            'tankhah__organization', 'tankhah__project', 'tankhah__current_stage', 'created_by', 'category'
+            'tankhah__organization',
+            'tankhah__project',
+            'tankhah__status',  # Using tankhah__status as current_stage is deprecated
+            'status',  # Also select the factor's own status
+            'created_by',
+            'category'
         ).prefetch_related(
             'items',
             Prefetch(
                 'approval_logs',
-                queryset=ApprovalLog.objects.filter(action='APPROVE').select_related('user', 'post').order_by('date'),
+                # ########## CRITICAL FIX ##########
+                # We filter by the `code` field within the `action` ForeignKey.
+                queryset=ApprovalLog.objects.filter(action__code='APPROVE').select_related('user', 'post').order_by(
+                    'timestamp'),
+                # ##################################
                 to_attr='approvers_list'
             )
         ).order_by('-date', '-pk')
@@ -1125,12 +1134,14 @@ class OptimizedFactorListView(PermissionBaseView, ListView):
         """آماده‌سازی داده‌ها برای تمپلیت با ساختار داده پایدار."""
         context = super().get_context_data(**kwargs)
         user = self.request.user
+        from core.models import Status  # Import Status for choices
 
+        status_choices_queryset = Status.objects.filter(is_active=True).values_list('pk', 'name')
         context.update({
             'is_hq': self._user_is_hq(user),
             'query': self.request.GET.get('q', ''),
             'status_query': self.request.GET.get('status', ''),
-            'status_choices': Factor.STATUS_CHOICES,
+            'status_choices': status_choices_queryset,  # Pass the corrected queryset of tuples
         })
 
         grouped_data = {}
@@ -1139,6 +1150,13 @@ class OptimizedFactorListView(PermissionBaseView, ListView):
 
         for factor in context['factors']:
             try:
+                # To prevent errors if a related object is missing
+                if not (hasattr(factor, 'tankhah') and factor.tankhah and
+                        hasattr(factor.tankhah, 'organization') and factor.tankhah.organization and
+                        hasattr(factor.tankhah, 'project') and factor.tankhah.project):
+                    logger.warning(f"Skipping factor {factor.pk} due to missing related tankhah/org/project.")
+                    continue
+
                 tankhah = factor.tankhah;
                 org = tankhah.organization;
                 project = tankhah.project

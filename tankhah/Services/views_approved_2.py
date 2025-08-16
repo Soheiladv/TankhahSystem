@@ -23,36 +23,75 @@ from budgets.models import BudgetTransaction
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import logging
-from django.db.models import   Sum
+from django.db.models import Sum, Count, Avg, F, ExpressionWrapper, fields, Count, Q
 
 logger = logging.getLogger(__name__)
 
 
 # داشبورد تحلیلی
-class DashboardView___(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class DashboardView___(PermissionBaseView, ListView):
+    # KNOWLEDGE_BIT: It's better to use a more specific model like Factor if that's the main data source.
+    # Using ListView without a 'model' or 'queryset' attribute is unusual but possible if you override get_queryset.
+    # For a dashboard, TemplateView is often more appropriate than ListView.
+    # However, I will stick to your original structure.
     template_name = 'tankhah/S/dashboard.html'
     permission_required = 'tankhah.factor_view'
+
+    # Since this is a dashboard and not a list of a specific model,
+    # we override get_queryset to return an empty list to satisfy ListView.
+    def get_queryset(self):
+        return Factor.objects.none()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        user_posts = user.userpost_set.filter(is_active=True)
-        org_ids = set(up.post.organization.id for up in user_posts)
 
-        # آمار فاکتورها
-        context['total_factors'] = Factor.objects.filter(
-            tankhah__organization__id__in=org_ids, is_deleted=False
-        ).count()
-        context['pending_factors'] = Factor.objects.filter(
-            tankhah__organization__id__in=org_ids, status='PENDING_APPROVAL', is_deleted=False
-        ).count()
-        context['rejected_factors'] = Factor.objects.filter(
-            tankhah__organization__id__in=org_ids, status='REJECTED', is_deleted=False
-        ).count()
-        from django.db.models import Avg
-        context['avg_approval_time'] = ApprovalLog.objects.filter(
-            factor__tankhah__organization__id__in=org_ids, action='APPROVE'
-        ).aggregate(avg_time=Avg('timestamp'))['avg_time']
+        # Get organization IDs the user belongs to
+        user_posts = user.userpost_set.filter(is_active=True)
+        org_ids = set(up.post.organization_id for up in user_posts)
+
+        # Base queryset for factors within the user's organizations
+        base_factor_queryset = Factor.objects.filter(
+            tankhah__organization_id__in=org_ids,
+            is_deleted=False
+        )
+
+        # --- Factor Statistics (with CORRECTED filters) ---
+
+        # Aggregate all counts in a single database query for performance.
+        stats = base_factor_queryset.aggregate(
+            total_factors=Count('id'),
+            # CRITICAL FIX: Filter on the 'code' field of the related 'Status' model.
+            pending_factors=Count('id', filter=Q(status__code='PENDING_APPROVAL')),
+            rejected_factors=Count('id', filter=Q(status__code='REJECTED'))
+        )
+
+        context['total_factors'] = stats['total_factors']
+        context['pending_factors'] = stats['pending_factors']
+        context['rejected_factors'] = stats['rejected_factors']
+
+        # --- Average Approval Time Calculation (with CORRECTED filter) ---
+
+        # CRITICAL FIX: Filter on the 'code' field of the related 'Action' model.
+        # Also, calculate the duration between two timestamps correctly.
+        # This calculates the time from factor creation to the approval log timestamp.
+        avg_time_data = ApprovalLog.objects.filter(
+            factor__in=base_factor_queryset,
+            action__code='APPROVE'
+        ).aggregate(
+            avg_duration=Avg(
+                ExpressionWrapper(F('timestamp') - F('factor__created_at'), output_field=fields.DurationField())
+            )
+        )
+
+        avg_time_delta = avg_time_data.get('avg_duration')
+        from datetime import timedelta
+        context['avg_approval_time'] = avg_time_delta if avg_time_delta else timedelta(0)
+
+        # KNOWLEDGE_BIT: You can format timedelta in the template for better display,
+        # e.g., showing days, hours. For simplicity, we pass the timedelta object.
+        # Example in template: {{ avg_approval_time.days }} روز و {{ avg_approval_time.seconds|div:3600|floatformat:0 }} ساعت
+
         return context
 
 
