@@ -1,5 +1,4 @@
 from django.test import TestCase
-<<<<<<< HEAD
 from django.utils import timezone
 from accounts.models import CustomUser, AuditLog, ActiveUser, Province, City
 
@@ -49,7 +48,3 @@ class AccountsModelTest(TestCase):
         )
         self.assertEqual(active_user.user, user)
         self.assertEqual(active_user.session_key, 'testsession123')
-=======
-
-# Create your tests here.
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

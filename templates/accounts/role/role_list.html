@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 {% extends 'base.html' %}
 {% load i18n static %}
 
@@ -104,65 +103,4 @@
 </div>
 
 
-=======
-{% extends "base.html" %}
-
-{% block content %}
-    <div class="container mt-5">
-        <h1><i class="fas fa-users-cog"></i> لیست نقش‌ها</h1>
-
-        <!-- دکمه ایجاد نقش جدید -->
-        <a href="{% url 'role_create' %}" class="btn btn-success mb-3"><i class="fas fa-plus"></i> ایجاد نقش جدید</a>
-            <a href="?show_inactive=true" class="btn btn-info mb-3">نمایش نقش‌های غیرفعال</a>
-            <a href="?show_inactive=false" class="btn btn-info mb-3">نمایش نقش‌های فعال</a>
-
-        <table class="table table-bordered">
-            <thead>
-            <tr>
-                <th>نام نقش</th>
-                <th>دسترسی‌ها</th>
-                <th>عملیات</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for role in roles %}
-                <tr>
-                    <td>{{ role.name }}</td>
-                    <td>
-                        {% for permission in role.permissions.all %}
-                            <span class="badge bg-secondary">{{ permission.name }}</span>
-                        {% empty %}
-                            <span class="text-muted">ندارد</span>
-                        {% endfor %}
-                    </td>
-                    <td>
-                        <form method="post" action="{% url 'accounts:deactivate_role' role.id %}">
-                            {% csrf_token %}
-                        <a href="{% url 'role_update' role.id %}" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
-{#                        <a href="{% url 'role_delete' role.id %}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>#}
-                        <a href="{% url 'assign_roles_ID_to_user' role.id %}" class="btn btn-warning btn-sm"><i class="fas fa-user-plus"></i></a> 
-                            <button type="submit" class="btn btn-danger btn-sm">غیرفعال کردن</button>
-                        </form>
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-
-        <!-- پاجینگ -->
-        <div class="pagination">
-            {% if roles.has_previous %}
-                <a href="?page=1" class="btn btn-outline-secondary">اولین</a>
-                <a href="?page={{ roles.previous_page_number }}" class="btn btn-outline-secondary">قبلی</a>
-            {% endif %}
-
-            <span class="current">صفحه {{ roles.number }} از {{ roles.paginator.num_pages }}</span>
-
-            {% if roles.has_next %}
-                <a href="?page={{ roles.next_page_number }}" class="btn btn-outline-secondary">بعدی</a>
-                <a href="?page={{ roles.paginator.num_pages }}" class="btn btn-outline-secondary">آخرین</a>
-            {% endif %}
-        </div>
-    </div>
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 {% endblock %}

@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-<<<<<<< HEAD
 {% load i18n static rcms_custom_filters jformat %}
 
 {% block title %}{{ title|default:'مدیریت پروژه‌ها' }}{% endblock %}
@@ -529,75 +528,3 @@
 {#    });#}
 {#</script>#}
 {#{% endblock %}#}
-=======
-{% load i18n static jformat rcms_custom_filters %}
-
-{% block content %}
-    <h1 class="mb-4"><i class="fas fa-project-diagram me-2"></i>{{ title }}</h1>
-
-    <!-- فرم جستجو -->
-    <div class="project-card mb-4">
-        <div class="card-body">
-            <form method="get">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'جستجو...' %}" class="form-control">
-                    <button type="submit" class="btn btn-primary btn-animate"><i class="fas fa-search me-2"></i>{% trans "جستجو" %}</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- لیست پروژه‌ها -->
-    <div class="row">
-        {% for project in projects %}
-            <div class="col-md-4">
-                <div class="project-card">
-                    <div class="card-header">
-                        <i class="fas fa-project-diagram me-2"></i>{{ project.name }}
-                    </div>
-                    <div class="card-body">
-                        <p><strong>{% trans "کد:" %}</strong> {{ project.code|to_persian_number }}</p>
-                        <p><strong>{% trans "تاریخ شروع:" %}</strong> {{ project.start_date|jformat:"%Y/%m/%d"|to_persian_number }}</p>
-                        <p><strong>{% trans "وضعیت:" %}</strong> {% if project.is_active %}{% trans "فعال" %}{% else %}{% trans "غیرفعال" %}{% endif %}</p>
-                        <div class="d-flex gap-2">
-                            <a href="{% url 'project_detail' project.pk %}" class="btn btn-info btn-sm btn-animate"><i class="fas fa-eye"></i></a>
-                            <a href="{% url 'project_update' project.pk %}" class="btn btn-warning btn-sm btn-animate"><i class="fas fa-edit"></i></a>
-                            <a href="{% url 'project_delete' project.pk %}" class="btn btn-danger btn-sm btn-animate"><i class="fas fa-trash"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% empty %}
-            <div class="col-12">
-                <div class="project-card">
-                    <div class="card-body text-center">
-                        {% trans "پروژه‌ای یافت نشد." %}
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-
-    <!-- صفحه‌بندی -->
-    {% if is_paginated %}
-        <nav class="mt-4">
-            <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}"><i class="fas fa-chevron-right"></i></a></li>
-                {% endif %}
-                <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ paginator.num_pages }}</span></li>
-                {% if page_obj.has_next %}
-                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}"><i class="fas fa-chevron-left"></i></a></li>
-                {% endif %}
-            </ul>
-        </nav>
-    {% endif %}
-
-    <a href="{% url 'project_create' %}" class="btn btn-success btn-animate mt-3"><i class="fas fa-plus me-2"></i>{% trans "ایجاد پروژه" %}</a>
-{% endblock %}
-
-{% block extra_js %}
-    <link rel="stylesheet" href="{% static 'css/project_style.css' %}">
-{% endblock %}
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

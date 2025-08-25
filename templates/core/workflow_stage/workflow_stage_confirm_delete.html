@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-<<<<<<< HEAD
 {% load i18n %}
 
 {% block title %}تایید حذف مرحله{% endblock %}
@@ -17,16 +16,3 @@
     </form>
 </div>
 {% endblock %}
-=======
-{% block content %}
-<div class="container mt-4">
-    <h2 class="mb-3">حذف مرحله</h2>
-    <p>آیا مطمئن هستید که می‌خواهید مرحله <strong>{{ stage.name }}</strong> را حذف کنید؟</p>
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">بله، حذف شود</button>
-        <a href="{% url 'workflow_stage_list' %}" class="btn btn-secondary">لغو</a>
-    </form>
-</div>
-{% endblock %}
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

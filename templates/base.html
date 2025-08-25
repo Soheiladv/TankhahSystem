@@ -1,26 +1,16 @@
-<<<<<<< HEAD
  {% load static i18n humanize jformat rcms_custom_filters jalali_tags   %}
-=======
-{% load static i18n humanize jformat rcms_custom_filters %}
-{% load jalali_tags %}
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< HEAD
     <title>{% block title %}{% trans "سیستم جامع نظارتی بودجه بندی سازمانی و تنخواه‌گردانی" %}{% endblock %}</title>
-=======
-    <title>{% block title %}{% trans "نرم‌افزار RCMS" %}{% endblock %}</title>
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
     <link rel="icon" href="{% static 'admin/img/favicon.ico' %}" type="image/x-icon">
     <!-- CSS های اصلی -->
     <link href="{% static 'admin/css/bootstrap.rtl.min.css' %}" rel="stylesheet">
     <link href="{% static 'admin/css/all.min.css' %}" rel="stylesheet">
     <link href="{% static 'admin/css/animate.min.css' %}" rel="stylesheet">
-<<<<<<< HEAD
     <!-- CSS فارسی دیتاپیکر -->
     <link href="{% static 'admin/css/jalalidatepicker.min.css' %}" rel="stylesheet">
     <link href="{% static 'admin/css/custom.css' %}" rel="stylesheet">
@@ -31,41 +21,16 @@
     <link rel="stylesheet" href="{% static 'admin/css/select2-bootstrap-5-theme.min.css' %}"/>
 
     <!-- استایل‌های سفارشی -->
-=======
-    <link href="{% static 'admin/css/custom.css' %}" rel="stylesheet">
-
-    <!-- CSS فارسی دیتاپیکر -->
-    <link href="{% static 'admin/css/jalalidatepicker.min.css' %}" rel="stylesheet">
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
     <style>
         @font-face {
             font-family: 'Parastoo';
             src: url('{% static "admin/fonts/Parastoo.ttf" %}') format('truetype');
-<<<<<<< HEAD
             font-weight: normal;
             font-style: normal;
-=======
-        }
-
-        .persian-datepicker {
-            direction: rtl;
-        }
-
-        :root {
-            --bg-color: #f8f9fa;
-            --text-color: #212529;
-            --navbar-bg: #343a40;
-            --sidebar-bg: #343a40;
-            --footer-bg: #2c3e50;
-            --footer-text-color: #ecf0f1;
-            --sidebar-hover-bg: #51a9ff;
-            --sidebar-active-bg: #5a6268;
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
         }
 
         body {
             font-family: 'Parastoo', 'Yekan', 'IRANSans', sans-serif;
-<<<<<<< HEAD
         }
 
         /* استایل برای اعلان‌ها */
@@ -110,241 +75,12 @@
         {% if messages %}
             {% for message in messages %}
                 <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show animate__animated animate__fadeIn"
-=======
-            direction: rtl;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* نوار ناوبری */
-        .navbar {
-            background-color: var(--navbar-bg);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .navbar-brand img {
-            width: 40px;
-            margin-left: 10px;
-        }
-
-        .navbar-nav {
-            justify-content: center;
-            width: 100%;
-        }
-
-        .navbar-date {
-            color: #fff;
-            display: flex;
-            align-items: center;
-        }
-
-        /* منوی کناری */
-        .sidebar {
-            position: fixed;
-            top: 56px;
-            right: -250px;
-            width: 250px;
-            height: calc(100vh - 56px);
-            background-color: var(--sidebar-bg);
-            color: #fff;
-            padding: 20px;
-            transition: right 0.3s ease;
-            z-index: 1000;
-        }
-
-        .sidebar.active {
-            right: 0;
-        }
-
-        .sidebar a {
-            color: #fff;
-            padding: 12px 15px;
-            display: block;
-            transition: background-color 0.3s ease;
-        }
-
-        .sidebar a:hover {
-            background-color: var(--sidebar-hover-bg);
-        }
-
-        /* محتوای اصلی */
-        .content {
-            flex: 1;
-            padding: 20px;
-            transition: margin-right 0.3s ease;
-        }
-
-        .content.shifted {
-            margin-right: 250px;
-        }
-
-        /* فوتر */
-        .footer {
-            background-color: var(--footer-bg);
-            color: var(--footer-text-color);
-            padding: 20px 0;
-            text-align: center;
-        }
-
-        /* انیمیشن‌ها */
-        .animate__fadeInUp {
-            animation: fadeInUp 1s ease-out;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        /* واکنش‌گرایی */
-        @media (max-width: 768px) {
-            .sidebar {
-                right: -250px;
-            }
-
-            .content.shifted {
-                margin-right: 0;
-            }
-
-            .navbar-nav {
-                flex-direction: column;
-                text-align: right;
-            }
-        }
-    </style>
-    <!-- DataPicker CSS -->
-    <link rel="stylesheet" href="{% static 'admin/css/custom_datepicker.css' %}">
-</head>
-<body>
-<!-- لودر -->
-<div class="loader" id="loader"></div>
-
-<!-- نوار ناوبری -->
-<nav class="navbar navbar-expand-md navbar-dark">
-    <div class="container-fluid">
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <i class="fas fa-bars"></i>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mx-auto align-items-center">
-                <li class="nav-item">
-                    <a class="nav-link text-light" href="{% url 'dashboard_flows' %}">
-                        <img src="{% static 'admin/img/RCMS2.svg' %}" alt="RCMS"> {% trans "خانه" %}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-light" href="sms:+989xxxxxx ?body=help ME!">
-                        <i class="fas fa-headset me-2"></i> {% trans "پشتیبانی" %}
-                    </a>
-                </li>
-                <li class="nav-item navbar-date animate__animated animate__fadeInUp">
-                    <i class="fas fa-calendar-day me-2"></i>
-                    <span class="text-danger">{% trans "امروز:" %}</span>
-                    <span id="datetime" class="text-warning fw-bold ms-2"></span>
-                </li>
-                <li class="nav-item">
-                    <select id="themeSelector" class="form-select">
-                        <option value="light">{% trans "روشن" %}</option>
-                        <option value="dark">{% trans "تاریک" %}</option>
-                        <option value="blue">{% trans "آبی" %}</option>
-                        <option value="green">{% trans "سبز" %}</option>
-                    </select>
-                </li>
-
-                <li class="nav-item navbar-date animate__animated animate__fadeInUp">
-                     <strong><i class="fas fa-user"></i> کاربر فعال: {{ user.username }}</strong>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
-
-<!-- دکمه باز کردن منو -->
-<button class="navbar-toggle" id="sidebarToggle">
-    <i class="fas fa-bars"></i>
-</button>
-
-<!-- منوی کناری -->
-<div class="sidebar" id="sidebar">
-    <ul class="nav flex-column">
-        <li class="nav-item">
-            <a href="{% url 'dashboard' %}" class="nav-link">
-                {#            <a href="{% url 'all_links' %}" class="nav-link">#}
-                <i class="fas fa-home me-2"></i> {% trans "خانه" %}
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'dashboard' %}" class="nav-link">
-                <i class="fas fa-tachometer-alt me-2"></i> {% trans "داشبورد" %}
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'all_links' %}" class="nav-link">
-                <i class="fas fa-link me-2"></i> {% trans "همه لینک‌ها" %}
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'organization_list' %}" class="nav-link">
-                <i class="fas fa-building me-2"></i> {% trans "سازمان‌ها" %}
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'project_list' %}" class="nav-link">
-                <i class="fas fa-project-diagram me-2"></i> {% trans "پروژه‌ها" %}
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{% url 'tanbakh_list' %}" class="nav-link">
-                <i class="fas fa-file-invoice me-2"></i> {% trans "تنخواه‌ها" %}
-            </a>
-        </li>
-        <li class="nav-item">
-
-            <form method="post" action="{% url 'accounts:logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-warning w-100 mb-2">
-                    <i class="fas fa-sign-out-alt"></i> خروج
-                </button>
-            </form>
-        </li>
-    </ul>
-</div>
-
-<!-- محتوای اصلی -->
-<main class="content" id="mainContent">
-    <div class="container-fluid mt-4">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show animate__animated animate__fadeIn"
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
                      role="alert">
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             {% endfor %}
         {% endif %}
-<<<<<<< HEAD
         <nav class="navbar navbar-expand-md navbar-dark fixed-top">
             <div class="container-fluid">
                 <a class="navbar-brand animate__animated animate__fadeInLeft" href="{% url 'index' %}">
@@ -843,105 +579,3 @@
 
 </body>
 </html>
-=======
-        {% block content %}{% endblock %}
-    </div>
-</main>
-
-<!-- فوتر -->
-<footer class="footer animate__animated animate__fadeInUp">
-    <div class="container">
-        <div class="row text-center">
-            <div class="col-md-4 mb-3">
-                <h5><i class="fas fa-map-marker-alt me-2"></i> {% trans "دفتر ما" %}</h5>
-                <p>{% trans "آدرس دفتر" %}</p>
-            </div>
-            <div class="col-md-4 mb-3">
-                <h5><i class="fas fa-envelope me-2"></i> {% trans "ایمیل" %}</h5>
-                <p><a href="mailto:info@rcms.com">info@rcms.com</a></p>
-            </div>
-            <div class="col-md-4 mb-3">
-                <h5><i class="fas fa-phone me-2"></i> {% trans "تلفن" %}</h5>
-                <p><a href="tel:123-456-7890">123-456-7890</a></p>
-            </div>
-        </div>
-        <p>© 2024 RCMS. {% trans "همه حقوق محفوظ است." %}</p>
-    </div>
-</footer>
-
-{###########################################}
-<!-- فایل‌های JS مورد نیاز برای Persian Datepicker -->
-<!-- فایل‌های JS -->
-<script src="{% static 'admin/js/jquery-3.6.0.min.js' %}"></script>
-<script src="{% static 'admin/js/jquery-ui.min.js' %}"></script>
-<script src="{% static 'admin/js/datepicker-fa.js' %}"></script>
-<script src="{% static 'admin/js/django_jalali.min.js' %}"></script>
-<script src="{% static 'admin/js/jalalidatepicker.min.js' %}"></script>
-<script src="{% static 'admin/js/bootstrap.bundle.min.js' %}"></script>
-<!-- تبدیل اعداد هنگام تابپ به هزارگان  -->
-<script src="{% static 'admin/js/numberFormatter.js' %}"></script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        jalaliDatepicker.startWatch();
-    });
-    jalaliDatepicker.startWatch();
-</script>
-
-<script>
-    $(document).ready(function () {
-        // تاریخ شمسی در نوار ناوبری
-        function updateDateTime() {
-            const now = new Date().toLocaleDateString('fa-IR', {
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-                hour: '2-digit', minute: '2-digit', second: '2-digit'
-            });
-            $('#datetime').text(now);
-        }
-
-        updateDateTime();
-        setInterval(updateDateTime, 1000);
-
-        // سایر اسکریپت‌ها (منو، تم، لودر)
-        const sidebar = $('#sidebar');
-        const toggleBtn = $('#sidebarToggle');
-        const content = $('.content');
-        const themeSelector = $('#themeSelector');
-        const loader = $('#loader');
-
-        toggleBtn.on('click', function () {
-            sidebar.toggleClass('active');
-            content.toggleClass('shifted');
-        });
-
-        themeSelector.on('change', function () {
-            document.body.className = 'theme-' + this.value;
-        });
-
-        loader.show();
-        setTimeout(() => loader.hide(), 2000);
-
-        sidebar.on('mouseover', () => sidebar.addClass('animate__pulse'));
-        sidebar.on('mouseout', () => sidebar.removeClass('animate__pulse'));
-    });
-</script>
-
-{% block extra_js %}{% endblock %}
-</body>
-</html>
-
-
-<!--
-{#<script src="{% static 'admin/js/persian-date.min.js' %}"></script>#}
-{#<script src="{% static 'admin/js/persian-datepicker.min.js' %}"></script>#}
-
-{#<link rel="stylesheet" href="{% static 'admin/jquery.ui.datepicker.jalali/themes/base/jquery-ui.min.css' %}">#}
-{#<script src="{% static 'admin/jquery.ui.datepicker.jalali/scripts/jquery-1.10.2.min.js' %}"></script>#}
-{#<script src="{% static 'admin/jquery.ui.datepicker.jalali/scripts/jquery.ui.core.js' %}"></script>#}
-{#<script src="{% static 'admin/jquery.ui.datepicker.jalali/scripts/jquery.ui.datepicker-cc.js' %}"></script>#}
-{#<script src="{% static 'admin/jquery.ui.datepicker.jalali/scripts/calendar.js' %}"></script>#}
-{#<script src="{% static 'admin/jquery.ui.datepicker.jalali/scripts/jquery.ui.datepicker-cc-fa.js' %}"></script>#}
-
-
--->
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

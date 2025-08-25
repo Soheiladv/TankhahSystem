@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.urls import reverse_lazy
@@ -6,12 +5,6 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.shortcuts import render, redirect
 
 from core.PermissionBase import PermissionBaseView
-=======
-from django.db.models import Q
-from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.shortcuts import render, redirect
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 from .models import AppVersion, FinalVersion, CodeChangeLog, FileHash
 from .forms import AppVersionForm
 import logging
@@ -232,14 +225,8 @@ class FileHashListView(ListView):
 #############
 MONITORED_APPS = {'RCMS', 'hse', 'Reservations', 'facility', 'core', 'accounts', 'version_tracker'}
 from django.apps import apps
-<<<<<<< HEAD
 @login_required(login_url='/accounts/login/')
 def update_versions_view1(request):
-=======
-
-def update_versions_view(request):
-    """به‌روزرسانی نسخه‌ها از طریق رابط کاربری"""
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
     if request.method == 'POST':
         updates = {}
         try:
@@ -247,10 +234,6 @@ def update_versions_view(request):
                 if app_config.name not in MONITORED_APPS:
                     logger.debug(f"Skipping app: {app_config.name} (not in monitored apps)")
                     continue
-<<<<<<< HEAD
-=======
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
                 app_name = app_config.name
                 app_path = app_config.path
                 logger.info(f"Checking {app_name} for changes...")
@@ -259,11 +242,7 @@ def update_versions_view(request):
                     updates[app_name] = new_version.version_number
 
             if updates:
-<<<<<<< HEAD
                 FinalVersion.calculate_final_version()
-=======
-                FinalVersion.calculate_final_version()  # به‌روزرسانی نسخه نهایی
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
                 messages.success(request, f"نسخه‌ها به‌روزرسانی شدند: {updates}")
                 logger.info(f"Versions updated: {updates}")
             else:
@@ -273,7 +252,6 @@ def update_versions_view(request):
             messages.error(request, f"خطا در به‌روزرسانی: {str(e)}")
             logger.error(f"Error updating versions: {str(e)}", exc_info=True)
 
-<<<<<<< HEAD
     try:
         final_version_obj = FinalVersion.objects.filter(is_active=True).latest('release_date')
         final_version = final_version_obj.version_number
@@ -329,15 +307,3 @@ def update_versions_view(request):
         'app_versions': app_versions,
     }
     return render(request, 'versions/lastVersion.html', context)
-=======
-    # نمایش صفحه Index با اطلاعات فعلی
-    final_version = FinalVersion.objects.filter(is_active=True).first()
-    app_versions = AppVersion.objects.all().order_by('-release_date')[:10]
-
-    context = {
-        'final_version': final_version.version_number if final_version else "نسخه نهایی تعریف نشده",
-        'release_date': final_version.release_date if final_version else None,
-        'app_versions': app_versions,
-    }
-    return render(request, 'versions/lastVersion.html', context)
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

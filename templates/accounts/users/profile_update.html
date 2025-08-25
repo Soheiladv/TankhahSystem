@@ -1,8 +1,5 @@
 {% extends "base.html" %}
-<<<<<<< HEAD
 {% load i18n static %}
-=======
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 {% block content %}
 <div class="container mt-5">
@@ -10,16 +7,11 @@
         <div class="col-md-6">
             <div class="card shadow-lg">
                 <div class="card-header text-center bg-primary text-white">
-<<<<<<< HEAD
                     <h3><i class="fas fa-user-edit"></i> {% trans "ویرایش پروفایل" %}</h3>
-=======
-                    <h3><i class="fas fa-user-edit"></i> ویرایش پروفایل</h3>
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
                 </div>
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
-<<<<<<< HEAD
                         {% if form.errors %}
                             <div class="alert alert-danger">
                                 {{ form.errors }}
@@ -38,32 +30,18 @@
                         </div>
                         <button type="submit" class="btn btn-success btn-block">
                             <i class="fas fa-save"></i> {% trans "ذخیره تغییرات" %}
-=======
-                        <!-- فرم -->
-                        <div class="form-group">
-                            {{ form.as_p }}
-                        </div>
-                        <button type="submit" class="btn btn-success btn-block">
-                            <i class="fas fa-save"></i> ذخیره تغییرات
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
                         </button>
                     </form>
                 </div>
                 <div class="card-footer text-center">
-<<<<<<< HEAD
                     <a href="{% url 'accounts:profile_update_success' %}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> {% trans "بازگشت" %}
-=======
-                    <a href="{% url 'profile_update_success' %}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> بازگشت
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
                     </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<<<<<<< HEAD
  <script>
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -86,6 +64,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
-=======
-{% endblock %}
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

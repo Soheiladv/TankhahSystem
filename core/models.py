@@ -1,5 +1,4 @@
 # Create your models here.
-<<<<<<< HEAD
 import logging
 from decimal import Decimal
 from django.core.exceptions import ValidationError
@@ -87,39 +86,10 @@ class Organization(models.Model):
         # that takes organization's pk or code
         from django.urls import reverse
         return reverse('organization_detail', kwargs={'pk': self.pk})
-=======
-import datetime
-import secrets
-
-from django.conf import settings
-from django.db import models
-from django.utils.translation import gettext_lazy as _
-
-
-from accounts.models import CustomUser
-
-class Organization(models.Model):
-    """مدل سازمان برای تعریف مجتمع‌ها و دفتر مرکزی"""
-    ORG_TYPES = (
-        ('COMPLEX', _('مجتمع')),
-        ('HOTEL', _('هتل')),
-        ('PROVINCE', _('دفاتر استانی')),
-        ('RENTAL', _('مجموعه‌های استیجاری')),
-        ('HQ', _('دفتر مرکزی')),
-    )
-    code = models.CharField(max_length=10, unique=True, verbose_name=_("کد سازمان"))
-    name = models.CharField(max_length=100, verbose_name=_("نام سازمان"))
-    org_type = models.CharField(max_length=25, choices=ORG_TYPES, verbose_name=_("نوع سازمان"))
-    description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
-
-    def __str__(self):
-        return f"{self.code} - {self.name}"
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
     class Meta:
         verbose_name = _("سازمان")
         verbose_name_plural = _("سازمان‌ها")
-<<<<<<< HEAD
         default_permissions = ()
         permissions = [
             ('Organization_add', 'افزودن سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
@@ -168,57 +138,10 @@ class Post(models.Model):
     #     ('STF', _('دیگر واحدهای ستادی')),
     #     (None, _('بدون شاخه')),
     # )
-=======
-
-        default_permissions =()
-        permissions = [
-            ('Organization_add','افزودن سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
-            ('Organization_update','بروزرسانی سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
-            ('Organization_delete','حــذف سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
-            ('Organization_view','نمایش سازمان برای تعریف مجتمع‌ها و دفتر مرکزی'),
-        ]
-
-class Project(models.Model):
-    """مدل پروژه برای مدیریت پروژه‌های چندمجتمعی"""
-    priority_CHOICES = (
-        ('LOW', _('کم')), ('MEDIUM', _('متوسط')), ('HIGH', _('زیاد')),
-    )
-    name = models.CharField(max_length=100, verbose_name=_("نام پروژه"))
-    code = models.CharField(max_length=20, unique=True, verbose_name=_("کد پروژه"))
-    organizations = models.ManyToManyField(Organization, limit_choices_to={'org_type': 'COMPLEX'}, verbose_name=_("مجتمع‌های مرتبط"))
-    start_date = models.DateField(verbose_name=_("تاریخ شروع"))
-    end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))
-    description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
-    budget = models.IntegerField(blank=True, null=True, verbose_name= _("بودجه (ريال)"))
-    is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
-    priority = models.CharField(max_length=10, choices=priority_CHOICES, null=True, blank=True, verbose_name=_("اولویت"))
-    def __str__(self):
-        return f"{self.code} - {self.name}"
-
-    class Meta:
-        verbose_name = _("پروژه")
-        verbose_name_plural = _("پروژه‌ها")
-        default_permissions =()
-        permissions = [
-            ('Project_add','افزودن  پروژه برای مدیریت پروژه‌های چندمجتمعی'),
-            ('Project_update','بروزرسانی  پروژه برای مدیریت پروژه‌های چندمجتمعی'),
-            ('Project_view','نمایش  پروژه برای مدیریت پروژه‌های چندمجتمعی'),
-            ('Project_delete','حــذف  پروژه برای مدیریت پروژه‌های چندمجتمعی'),
-            ]
-
-class Post(models.Model):
-    """مدل پست سازمانی برای تعریف سلسله مراتب"""
-    BRANCH_CHOICES = (
-        ('OPS', _('بهره‌برداری')),
-        ('FIN', _('مالی و اداری')),
-        (None, _('بدون شاخه')),
-    )
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
     name = models.CharField(max_length=100, verbose_name=_("نام پست"))
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, verbose_name=_("سازمان"))
     parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("پست والد"))
     level = models.IntegerField(default=1, verbose_name=_("سطح"))
-<<<<<<< HEAD
     # branch = models.CharField(max_length=3, choices=BRANCH_CHOICES, null=True, blank=True, verbose_name=_("شاخه"))
     branch = models.ForeignKey(Branch, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("شاخه"))
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
@@ -269,18 +192,10 @@ class Post(models.Model):
             if child.max_change_level < child.level:
                 child.max_change_level = child.level
             child.save(changed_by=changed_by, update_fields=['level', 'max_change_level'])
-=======
-    branch = models.CharField(max_length=3, choices=BRANCH_CHOICES, null=True, blank=True, verbose_name=_("شاخه"))
-    description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
-
-    def __str__(self):
-        return f"{self.name} ({self.organization.code})"
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
     class Meta:
         verbose_name = _("پست سازمانی")
         verbose_name_plural = _("پست‌های سازمانی")
-<<<<<<< HEAD
         default_permissions = ()
         permissions = [
             ('Post_add', 'افزودن  پست سازمانی برای تعریف سلسله مراتب'),
@@ -288,27 +203,15 @@ class Post(models.Model):
             ('Post_view', 'نمایش  پست سازمانی برای تعریف سلسله مراتب'),
             ('Post_delete', 'حــذف  پست سازمانی برای تعریف سلسله مراتب'),
         ]
-=======
-        default_permissions =()
-        permissions = [
-            ('Post_add','افزودن  پست سازمانی برای تعریف سلسله مراتب'),
-            ('Post_update','بروزرسانی پست سازمانی برای تعریف سلسله مراتب'),
-            ('Post_view','نمایش  پست سازمانی برای تعریف سلسله مراتب'),
-            ('Post_delete','حــذف  پست سازمانی برای تعریف سلسله مراتب'),
-            ]
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 class UserPost(models.Model):
     """مدل اتصال کاربر به پست"""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name=_("کاربر"))
     post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name=_("پست"))
-<<<<<<< HEAD
     # ردیابی تاریخ
     start_date = models.DateField(default=timezone.now, verbose_name=_("تاریخ شروع"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ پایان"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
-=======
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
     class Meta:
         unique_together = ('user', 'post')
@@ -323,7 +226,6 @@ class UserPost(models.Model):
             ('UserPost_delete', 'حــذف  اتصال کاربر به پست'),
         ]
 
-<<<<<<< HEAD
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         from channels.layers import get_channel_layer
@@ -338,11 +240,6 @@ class UserPost(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.post.name} (از {self.start_date})"
-=======
-    def __str__(self):
-        return f"{self.user.username} - {self.post.name}"
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class PostHistory(models.Model):
     """
     مدل تاریخچه تغییرات پست‌های سازمانی
@@ -402,7 +299,6 @@ class PostHistory(models.Model):
         # مرتب‌سازی بر اساس زمان تغییر (جدیدترین اول)
         ordering = ['-changed_at']
         # ایندکس برای بهینه‌سازی جستجو
-<<<<<<< HEAD
         permissions = [
             ("posthistory_view", _("می‌تواند تاریخچه پست‌ها را مشاهده کند")),
             ("posthistory_add", _("می‌تواند تاریخچه پست‌ها را اضافه کند")),
@@ -877,27 +773,11 @@ class WorkflowStage(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.get_entity_type_display()}, ترتیب: {self.order})"
-=======
-        indexes = [
-            models.Index(fields=['post', 'changed_at']),
-        ]
-
-#--
-
-class WorkflowStage(models.Model):
-    name = models.CharField(max_length=100, verbose_name=_('نام مرحله'))
-    order = models.IntegerField(verbose_name=_('ترتیب'))
-    description = models.TextField(blank=True, verbose_name=_('توضیحات'))
-
-    def __str__(self):
-        return self.name
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
     class Meta:
         verbose_name = _('مرحله گردش کار')
         verbose_name_plural = _('مراحل گردش کار')
         ordering = ['order']
-<<<<<<< HEAD
         indexes = [
             models.Index(fields=['entity_type', 'is_active']),
         ]
@@ -908,124 +788,4 @@ class WorkflowStage(models.Model):
             ('WorkflowStage_update', 'بروزرسانی مرحله گردش کار'),
             ('WorkflowStage_delete', 'حذف مرحله گردش کار'),
             ('WorkflowStage_triggers_payment_order', 'فعال‌سازی دستور پرداخت - مرحله گردش کار'),
-=======
-        default_permissions = ()
-        permissions = [
-            ('WorkflowStage_view','نمایش مرحله گردش کار'),
-            ('WorkflowStage_add','افزودن مرحله گردش کار'),
-            ('WorkflowStage_update','بروزرسانی مرحله گردش کار'),
-            ('WorkflowStage_delete','حــذف مرحله گردش کار'),
-        ]
-
-# lock -------
-from cryptography.fernet import Fernet, InvalidToken
-cipher = Fernet(settings.RCMS_SECRET_KEY.encode())
-class TimeLockModel(models.Model):
-    lock_key = models.TextField(verbose_name="کلید قفل (رمزنگاری‌شده)")
-    hash_value = models.CharField(max_length=64, verbose_name="هش مقدار تنظیم‌شده", unique=True)
-    salt = models.CharField(max_length=32, verbose_name="مقدار تصادفی", unique=True)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="زمان ایجاد")
-    is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
-    organization_name = models.CharField(max_length=255, verbose_name="نام مجموعه", blank=True, null=True)
-
-    def save(self, *args, **kwargs):
-        if not self.salt:
-            self.salt = secrets.token_hex(16)
-        super().save(*args, **kwargs)
-
-    @staticmethod
-    def encrypt_value(value):
-        # print(f"Debug - Encrypting: {value}")
-        return cipher.encrypt(str(value).encode()).decode()
-
-    @staticmethod
-    def decrypt_value(encrypted_value):
-        try:
-            if isinstance(encrypted_value, str):
-                encrypted_value = encrypted_value.encode()
-            decrypted = cipher.decrypt(encrypted_value).decode()
-            # print(f"Debug - Decrypted: {decrypted}")
-            return decrypted
-        except InvalidToken:
-            # print(f"🔴 خطا: نمی‌تونم {encrypted_value} رو رمزگشایی کنم")
-            return None
-
-    @staticmethod
-    def create_lock_key(expiry_date: datetime.date, max_users: int, salt: str, organization_name: str = "") -> str:
-        combined = f"{expiry_date.isoformat()}-{max_users}-{salt}-{organization_name}"
-        return TimeLockModel.encrypt_value(combined)
-
-    def get_decrypted_data(self):
-        decrypted = self.decrypt_value(self.lock_key)
-        if decrypted:
-            try:
-                parts = decrypted.split("-")
-                # print(f"Debug - Split parts: {parts}")
-                if len(parts) < 4:
-                    raise ValueError("فرمت مقدار رمزگشایی‌شده نادرست است")
-                expiry_str = "-".join(parts[:3])  # YYYY-MM-DD
-                max_users_str = parts[3]
-                organization_name = "-".join(parts[4:]) if len(parts) > 4 else ""
-                expiry_date = datetime.date.fromisoformat(expiry_str)
-                max_users = int(max_users_str)
-                return expiry_date, max_users, organization_name
-            except (ValueError, TypeError) as e:
-                # print(f"🔴 خطا در رمزگشایی کلید ID {self.id}: {e}, Decrypted value: {decrypted}")
-                return None, None, None
-        return None, None, None
-
-    def get_decrypted_expiry_date(self):
-        expiry_date, _, _ = self.get_decrypted_data()
-        return expiry_date
-
-    def get_decrypted_max_users(self):
-        _, max_users, _ = self.get_decrypted_data()
-        return max_users
-
-    def get_decrypted_organization_name(self):
-        _, _, organization_name = self.get_decrypted_data()
-        return organization_name
-
-    @staticmethod
-    def get_latest_lock():
-        latest_instance = TimeLockModel.objects.filter(is_active=True).order_by('-created_at').first()
-        if not latest_instance:
-            # print("Debug - No active lock found")
-            return None, None, None, None
-        expiry_date, max_users, organization_name = latest_instance.get_decrypted_data()
-        # if expiry_date is None or max_users is None:
-        #     print(f"Debug - Invalid data for latest lock ID {latest_instance.id}")
-        # else:
-        #     print(f"Debug - Latest Lock: Expiry={expiry_date}, Max Users={max_users}, Org={organization_name}")
-        return expiry_date, max_users, latest_instance.hash_value, organization_name
-
-    class Meta:
-        verbose_name = "قفل سیستم"
-        verbose_name_plural = "قفل سیستم"
-        default_permissions = []
-        permissions = [
-            ("TimeLockModel_view", "نمایش قفل سیستم"),
-            ("TimeLockModel_add", "افزودن قفل سیستم"),
-        ]
-
-class Dashboard_Core(models.Model):
-    class Meta:
-        default_permissions = ()
-        permissions = [
-            ('Dashboard_Core_view','دسترسی به داشبورد Core پایه')
-        ]
-
-class DashboardView_flows(models.Model):
-    class Meta:
-        default_permissions = ()
-        permissions = [
-            ('DashboardView_flows_view','دسترسی به روند تنخواه گردانی ')
-        ]
-
-class DashboardView(models.Model):
-    class Meta:
-        default_permissions = ()
-        permissions = [
-            ('Dashboard__view','دسترسی به داشبورد اصلی 💻')
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
         ]

@@ -20,11 +20,7 @@ from django.core.cache import cache
 
 
 # لیست اپهای کنترل شده برای نسخه
-<<<<<<< HEAD
 monitored_apps = {'tankhah', 'core', 'reports', 'budgets',   'accounts', 'version_tracker'}
-=======
-monitored_apps = {'RCMS', 'hse', 'Reservations', 'facility', 'core', 'accounts', 'version_tracker'}
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 @dataclass
 class SystemInfo:

@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError # Import ValidationError
 from budgets.models import BudgetAllocation, BudgetPeriod, BudgetItem
 from core.models import Organization, OrganizationType, Project # Assuming core models
 # Assuming utils are imported correctly
-from Tanbakhsystem.utils import  parse_jalali_date
+from BudgetsSystem.utils import  parse_jalali_date
 
 logger = logging.getLogger(__name__)
 

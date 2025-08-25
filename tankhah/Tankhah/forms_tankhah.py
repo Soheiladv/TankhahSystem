@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from Tanbakhsystem.utils import parse_jalali_date
+from BudgetsSystem.utils import parse_jalali_date
 from budgets.models import BudgetAllocation
 from core.models import   Project, SubProject, AccessRule
 import jdatetime

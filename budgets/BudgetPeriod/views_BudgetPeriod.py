@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.db import transaction
 
-from Tanbakhsystem.utils import parse_jalali_date_jdate
+from BudgetsSystem.utils import parse_jalali_date_jdate
 from budgets.budget_calculations import check_budget_status
 from core.PermissionBase import PermissionBaseView
 from budgets.models import BudgetPeriod, BudgetTransaction, BudgetHistory, BudgetAllocation

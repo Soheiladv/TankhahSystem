@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.db.models import Sum, Q
 from django.db import transaction
 
-from Tanbakhsystem.utils import parse_jalali_date, to_english_digits
+from BudgetsSystem.utils import parse_jalali_date, to_english_digits
 from budgets.BudgetAllocation.forms_BudgetAllocation import BudgetAllocationForm
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView, CreateView, TemplateView
 

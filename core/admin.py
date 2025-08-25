@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
-<<<<<<< HEAD
 from core.models import Organization, OrganizationType, Project, Post, UserPost, PostHistory, \
     SystemSettings, AccessRule, Branch, WorkflowStage  # ,StageTransitionPermission
 
@@ -46,29 +45,18 @@ class AccessRuleAdmin(admin.ModelAdmin):
 
     class Meta:
         model = AccessRule
-=======
-from .RCMS_Lock.security import TimeLock
-from .models import Organization, Project, Post, UserPost, PostHistory, TimeLockModel
-from tanbakh.models import WorkflowStage
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 # تابع کمکی برای کوتاه کردن متن
 def truncate_text(text, max_length=50):
     return text[:max_length] + '...' if text and len(text) > max_length else text
 
-<<<<<<< HEAD
 # admin.site.register(OrganizationType)
-=======
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 # ادمین پایه با تنظیمات مشترک
 class BaseAdmin(admin.ModelAdmin):
     list_per_page = 20  # تعداد آیتم‌ها در هر صفحه
     ordering = ('-id',)  # ترتیب پیش‌فرض
     search_fields = ('name',)  # فیلد جستجوی پیش‌فرض
 
-<<<<<<< HEAD
 @admin.register(OrganizationType)
 class OrganizationTypeAdmin(admin.ModelAdmin):
     list_display = ('get_primary_name', 'get_secondary_name', 'is_budget_allocatable')
@@ -154,44 +142,17 @@ class OrganizationAdmin(admin.ModelAdmin):
 #     def description_short(self, obj):
 #         return truncate_text(obj.description)
 #     description_short.short_description = _('توضیحات کوتاه')
-=======
-
-# ادمین سازمان
-@admin.register(Organization)
-class OrganizationAdmin(BaseAdmin):
-    list_display = ('code', 'name', 'org_type', 'description_short')
-    list_filter = ('org_type',)
-    search_fields = ('code', 'name', 'description')
-    ordering = ('code',)
-    fieldsets = (
-        (None, {'fields': ('code', 'name', 'org_type')}),
-        (_('توضیحات'), {'fields': ('description',), 'classes': ('collapse',)}),
-    )
-
-    def description_short(self, obj):
-        return truncate_text(obj.description)
-    description_short.short_description = _('توضیحات کوتاه')
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 # ادمین پروژه
 @admin.register(Project)
 class ProjectAdmin(BaseAdmin):
-<<<<<<< HEAD
     list_display = ('code', 'name', 'start_date', 'end_date',  'org_count')
-=======
-    list_display = ('code', 'name', 'start_date', 'end_date', 'org_count')
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
     list_filter = (('start_date', JDateFieldListFilter), ('end_date', JDateFieldListFilter))
     search_fields = ('code', 'name', 'description')
     filter_horizontal = ('organizations',)
     ordering = ('-start_date',)
     fieldsets = (
-<<<<<<< HEAD
         (None, {'fields': ('code',  'name', 'organizations', 'start_date', 'end_date')}),
-=======
-        (None, {'fields': ('code', 'name', 'organizations', 'start_date', 'end_date')}),
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
         (_('توضیحات'), {'fields': ('description',), 'classes': ('collapse',)}),
     )
 
@@ -199,7 +160,6 @@ class ProjectAdmin(BaseAdmin):
         return obj.organizations.count()
     org_count.short_description = _('تعداد مجتمع‌ها')
 
-<<<<<<< HEAD
 # ادمین پست سازمانی
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
@@ -275,23 +235,6 @@ class PostAdmin(admin.ModelAdmin):
     #     ]
     #     return ", ".join([str(p) for p in permissions])
     # display_post_permissions.short_description = _("مجوزها")
-=======
-
-# ادمین پست سازمانی
-@admin.register(Post)
-class PostAdmin(BaseAdmin):
-    list_display = ('name', 'organization', 'parent', 'level', 'branch')
-    list_filter = ('organization', 'branch', 'level')
-    search_fields = ('name', 'description')
-    list_select_related = ('organization', 'parent')
-    autocomplete_fields = ('parent',)
-    ordering = ('organization', 'level', 'name')
-    fieldsets = (
-        (None, {'fields': ('name', 'organization', 'parent', 'level', 'branch')}),
-        (_('توضیحات'), {'fields': ('description',), 'classes': ('collapse',)}),
-    )
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 # ادمین اتصال کاربر به پست
 @admin.register(UserPost)
@@ -325,7 +268,6 @@ class PostHistoryAdmin(BaseAdmin):
         return truncate_text(obj.new_value)
     new_value_short.short_description = _('مقدار جدید (کوتاه)')
 
-<<<<<<< HEAD
 #
 # # ادمین مراحل گردش کار
 # from core.models import WorkflowStage
@@ -493,42 +435,3 @@ class TransitionAdmin(admin.ModelAdmin):
         }),
     )
 
-=======
-
-# ادمین قفل سیستم
-@admin.register(TimeLockModel)
-class TimeLockModelAdmin(BaseAdmin):
-    list_display = ('hash_value', 'created_at', 'is_active', 'decrypted_expiry', 'decrypted_max_users', 'decrypted_org')
-    list_filter = (('created_at', JDateFieldListFilter), 'is_active')
-    search_fields = ('hash_value', 'organization_name')
-    ordering = ('-created_at',)
-    readonly_fields = ('created_at', 'lock_key', 'hash_value', 'salt', 'decrypted_expiry', 'decrypted_max_users', 'decrypted_org')
-    fieldsets = (
-        (None, {'fields': ('lock_key', 'hash_value', 'salt', 'is_active', 'organization_name')}),
-        (_('اطلاعات رمزگشایی‌شده'), {'fields': ('decrypted_expiry', 'decrypted_max_users', 'decrypted_org'), 'classes': ('collapse',)}),
-    )
-
-    def decrypted_expiry(self, obj):
-        return obj.get_decrypted_expiry_date()
-    decrypted_expiry.short_description = _('تاریخ انقضا')
-
-    def decrypted_max_users(self, obj):
-        return obj.get_decrypted_max_users()
-    decrypted_max_users.short_description = _('حداکثر کاربران')
-
-    def decrypted_org(self, obj):
-        return obj.get_decrypted_organization_name()
-    decrypted_org.short_description = _('نام سازمان')
-
-
-# ادمین مراحل گردش کار
-@admin.register(WorkflowStage)
-class WorkflowStageAdmin(BaseAdmin):
-    list_display = ('name', 'order', 'description_short')
-    search_fields = ('name', 'description')
-    ordering = ('order',)
-
-    def description_short(self, obj):
-        return truncate_text(obj.description)
-    description_short.short_description = _('توضیحات کوتاه')
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

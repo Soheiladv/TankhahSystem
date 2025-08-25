@@ -8,7 +8,7 @@ from django.core.cache import cache
 from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from Tanbakhsystem.utils import parse_jalali_date
+from BudgetsSystem.utils import parse_jalali_date
 from tankhah.models import Factor, Tankhah
 DEFAULT_DECIMAL_FIELD = DecimalField(max_digits=35, decimal_places=2)
 

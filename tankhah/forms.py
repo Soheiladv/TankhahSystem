@@ -13,8 +13,8 @@ from core.models import Organization, Project, SubProject, AccessRule
 from .utils import restrict_to_user_organization
 import jdatetime
 from django.utils import timezone
-from Tanbakhsystem.utils import convert_to_farsi_numbers, to_english_digits
-from Tanbakhsystem.base import JalaliDateForm
+from BudgetsSystem.utils import convert_to_farsi_numbers, to_english_digits
+from BudgetsSystem.base import JalaliDateForm
 from tankhah.models import Factor, FactorItem, Tankhah  # وارد کردن مدل‌ها
 from .models import ItemCategory
 from datetime import datetime

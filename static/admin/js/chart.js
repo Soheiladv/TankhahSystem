@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 V/**
-=======
-/**
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
  * Skipped minification because the original files appears to be already minified.
  * Original file: /npm/chart.js@4.4.8/dist/chart.umd.js
  *

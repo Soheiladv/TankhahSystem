@@ -2,12 +2,7 @@
 import datetime
 import secrets
 
-<<<<<<< HEAD
 from accounts.models import ActiveUser, TimeLockModel
-=======
-from accounts.models import ActiveUser
-from core.models import TimeLockModel
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 import hashlib
 from cryptography.fernet import Fernet
 from django.conf import settings

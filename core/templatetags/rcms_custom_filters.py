@@ -1,12 +1,9 @@
 from django import template
 from django.utils import numberformat
-<<<<<<< HEAD
 from decimal import Decimal, InvalidOperation
 
 from django.contrib.humanize.templatetags.humanize import intcomma
 import re
-=======
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 register = template.Library()
 
@@ -36,13 +33,10 @@ def absolute(value):
         return value
 
 
-<<<<<<< HEAD
 @register.filter
 def lookup(dictionary, key):
     return dictionary.get(key)
 
-=======
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 #
 # @register.filter
 # def get_current_tenant(unit):
@@ -52,14 +46,6 @@ def lookup(dictionary, key):
 #     return '---'
 
 
-<<<<<<< HEAD
-=======
-from django import template
-
-register = template.Library()
-
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 @register.filter
 def exclude(form, field_name):
     return [bound_field for bound_field in form if bound_field.name != field_name]
@@ -77,10 +63,6 @@ def get_item(dictionary, key):
 
 
 #####  اعداد فارسی
-<<<<<<< HEAD
-=======
-register = template.Library()
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 
 @register.filter
@@ -103,12 +85,6 @@ def to_persian_number(value):
     return value
 
 
-<<<<<<< HEAD
-=======
-from django.contrib.humanize.templatetags.humanize import intcomma
-import re
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 @register.filter
 def to_persian_number_with_comma1(value):
@@ -203,10 +179,7 @@ def abs_value_float(value):
 import logging
 logger = logging.getLogger(__name__)
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 @register.filter(name='format_negative')
 def format_negative(value):
     """نمایش عدد با جداکننده هزارگان و تبدیل به فارسی. اعداد منفی درون پرانتز قرار می‌گیرند."""
@@ -218,11 +191,7 @@ def format_negative(value):
         # جداسازی سه‌رقمی دستی
         abs_value = abs(int(value))
         formatted_number = "{:,}".format(abs_value)  # استفاده از format داخلی پایتون
-<<<<<<< HEAD
         # logger.debug(f"Manually formatted number: {formatted_number}")
-=======
-        logger.debug(f"Manually formatted number: {formatted_number}")
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
         # تبدیل به فارسی
         persian_numbers = str.maketrans("0123456789,", "۰۱۲۳۴۵۶۷۸۹،")
@@ -237,7 +206,6 @@ def format_negative(value):
         return "۰"
 
 
-<<<<<<< HEAD
 @register.filter
 def dict_get(dictionary, key):
     return dictionary.get(key)
@@ -717,7 +685,3 @@ def apply_filter(value, filter_string):
 
 
 #-----------------------------------------------------
-=======
-
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

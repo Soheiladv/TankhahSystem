@@ -1,12 +1,6 @@
 import datetime
 import logging
-<<<<<<< HEAD
 from django.utils.timezone import now
-=======
-
-from django.utils.timezone import now
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 logger = logging.getLogger(__name__)
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -19,17 +13,13 @@ import hashlib
 
 class Province(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name=_("نام استان"))
-<<<<<<< HEAD
     code = models.CharField(max_length=2, unique=True, verbose_name=_("کد استان"), help_text=_("کد دو رقمی استان"))
-=======
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
     class Meta:
         verbose_name = _("استان")
         verbose_name_plural = _("استان‌ها")
         default_permissions = []  # جلوگیری از ایجاد permissions پیش‌فرض
         permissions = [
-<<<<<<< HEAD
             ("view_province", _("می‌تواند استان را مشاهده کند")),
             ("add_province", _("می‌تواند استان جدید اضافه کند")),
             ("change_province", _("می‌تواند استان را تغییر دهد")),
@@ -43,25 +33,10 @@ class City(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("نام شهر"))
     province = models.ForeignKey(Province, on_delete=models.CASCADE, related_name="cities", verbose_name=_("استان"))
     is_capital = models.BooleanField(default=False, verbose_name=_("مرکز استان است؟"))
-=======
-            ("Province_view_customuser", _("می‌تواند استان را مشاهده کند")),
-            ("Province_add_customuser", _("می‌تواند استان  جدید اضافه کند")),
-            ("Province_change_customuser", _("می‌تواند استان را تغییر دهد")),
-            ("Province_delete_customuser", _("می‌تواند استان را حذف کند")),
-        ]
-
-    def __str__(self):
-        return self.name
-
-class City(models.Model):
-    name = models.CharField(max_length=100, verbose_name=_("نام شهر"))
-    province = models.ForeignKey(Province, on_delete=models.CASCADE, related_name="cities", verbose_name=_("استان"))
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
     class Meta:
         verbose_name = _("شهر")
         verbose_name_plural = _("شهرها")
-<<<<<<< HEAD
         unique_together = ('name', 'province')  # هر شهر توی هر استان باید یکتا باشه
         default_permissions = []  # جلوگیری از ایجاد permissions پیش‌فرض
         permissions = [
@@ -71,16 +46,6 @@ class City(models.Model):
             ("delete_city", _("می‌تواند شهر را حذف کند")),
         ]
         ordering = ['name']
-=======
-        # unique_together = ('name', 'province')  # تعریف unique_together
-        default_permissions = []  # جلوگیری از ایجاد permissions پیش‌فرض
-        permissions = [
-            ("City_view_customuser", _(" شهــر را مشاهده کند")),
-            ("City_add_customuser", _(" شهــر  جدید اضافه کند")),
-            ("City_change_customuser", _(" شهــر را تغییر دهد")),
-            ("City_delete_customuser", _(" شهــر را حذف کند")),
-        ]
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
     def __str__(self):
         return f"{self.name} - {self.province.name}"
@@ -105,10 +70,6 @@ class CustomUserManager(BaseUserManager):
             raise ValueError(_('سوپرکاربر باید is_superuser=True باشد.'))
 
         return self.create_user(username, email, password, **extra_fields)
-<<<<<<< HEAD
-=======
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     roles = models.ManyToManyField('Role', related_name="custom_users", verbose_name=_("نقش‌ها"), blank=True)
     groups = models.ManyToManyField('MyGroup', through='CustomUserGroup', related_name='accounts_groups_set',
@@ -123,11 +84,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=150, blank=True, verbose_name=_('فامیلی'))
     is_active = models.BooleanField(default=True, verbose_name=_('فعالیت'))
     is_staff = models.BooleanField(default=False, verbose_name=_('کارمندی؟'))
-<<<<<<< HEAD
     # is_superuser = models.BooleanField(default=False)  # بعلت سیاست مدیر پروژه غیرفعال باشد 
 
-=======
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
     user_permissions = models.ManyToManyField(
         Permission,
@@ -138,15 +96,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         related_query_name='user',
     )
 
-<<<<<<< HEAD
     # در مدل CustomUser
     def get_active_branch(self):
         '''خروجی نام برنچ سازمانی کاربر'''
         active_post = self.userpost_set.filter(is_active=True).first()
         return active_post.post.branch if active_post else None
 
-=======
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']
 
@@ -176,7 +131,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def has_perm(self, perm, obj=None):
         if self.is_active and self.is_superuser:
             return True
-<<<<<<< HEAD
         # بررسی فرمت کامل مجوزها
         all_perms = self.get_all_permissions(obj)
         return perm in all_perms
@@ -229,21 +183,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         #     return Organization.objects.none()
 
     # --------
-=======
-
-        # بررسی مجوزها از طریق نقش‌های گروه‌های سفارشی
-        for group in self.groups.all():
-            for role in group.roles.all():
-                if perm in role.permissions.values_list('codename', flat=True):
-                    return True
-
-        # بررسی مجوزهای مستقیم کاربر
-        if perm in self.user_permissions.values_list('codename', flat=True):
-            return True
-
-        return False
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
     def get_all_permissions(self, obj=None):
         if not self.is_active or self.is_superuser:
             return set()
@@ -251,7 +190,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         perms = set()
         for group in self.groups.all():
             for role in group.roles.all():
-<<<<<<< HEAD
                 perms.update(f"{p.content_type.app_label}.{p.codename}" for p in role.permissions.all())
         perms.update(
             f"{p.content_type.app_label}.{p.codename}"
@@ -274,20 +212,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             post__organization__org_type__fname='HQ'
         ).exists()
 User = get_user_model()
-=======
-                perms.update(role.permissions.values_list('codename', flat=True))
-        perms.update(self.user_permissions.values_list('codename', flat=True))
-        return perms
-
-User = get_user_model()
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class CustomProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile",
                                 verbose_name=_("کاربر"))
     first_name = models.CharField(max_length=30, blank=True, verbose_name=_("نام"))
     last_name = models.CharField(max_length=30, blank=True, verbose_name=_("نام خانوادگی"))
-<<<<<<< HEAD
     province = models.ForeignKey('Province', on_delete=models.SET_NULL, null=True, blank=True, related_name="profiles",
                                  verbose_name=_("استان"))
     city = models.ForeignKey('City', on_delete=models.SET_NULL, null=True, blank=True, related_name="profiles",
@@ -295,19 +224,11 @@ class CustomProfile(models.Model):
     phone_number = models.CharField(max_length=15, blank=True, verbose_name=_("شماره تلفن"))
     # birth_date = jmodels.jDateField(null=True, blank=True, verbose_name=_("تاریخ تولد"))
     birth_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ تولد"))
-=======
-    city = models.ForeignKey(City, on_delete=models.SET_NULL, null=True, blank=True, related_name="profiles",
-                             verbose_name=_("شهر"))
-    phone_number = models.CharField(max_length=15, blank=True, verbose_name=_("شماره تلفن"))
-    # birth_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ تولد"))
-    birth_date = jmodels.jDateField(null=True, blank=True, verbose_name="تاریخ تولد")
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
     address = models.TextField(blank=True, verbose_name=_("آدرس"))
     location = models.TextField(blank=True, verbose_name=_("موقعیت"))
     bio = models.TextField(blank=True, verbose_name=_("بیوگرافی"))
     zip_code = models.CharField(max_length=10, blank=True, verbose_name=_("کد پستی"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
-<<<<<<< HEAD
     theme = models.CharField(max_length=20, default='light', choices=[
         ('light', 'روشن'),
         ('dark', 'تاریک'),
@@ -329,25 +250,6 @@ class CustomProfile(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.user.username}"
-=======
-
-    class Meta:
-        verbose_name = _("ساخت پروفایل سفارشی")
-        verbose_name_plural = _("ساخت پروفایل سفارشی")
-
-        default_permissions = []  # جلوگیری از ایجاد permissions پیش‌فرض
-        permissions = [
-            ("users_view_userprofile", _("می‌تواند پروفایل کاربران را مشاهده کند")),
-            ("users_add_userprofile", _("می‌تواند پروفایل کاربری اضافه دهد")),
-            ("users_update_userprofile", _("می‌تواند پروفایل کاربر را تغییر دهد")),
-            ("users_delete_userprofile", _("می‌تواند پروفایل کاربر را غیرفعال کرد")),
-            ("users_Search_userprofile", _("می‌تواند پروفایل کاربر را جستجو کند")),
-        ]
-
-    def __str__(self):
-        return f'{self.user.username} {_("پروفایل کاربری")}'
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class Role(models.Model):
     name = models.CharField(max_length=150, unique=True, verbose_name=_("عنوان نقش"))
     permissions = models.ManyToManyField(Permission, blank=True, verbose_name=_("مجوزها"), related_name='roles')
@@ -370,10 +272,6 @@ class Role(models.Model):
 
     def __str__(self):
         return self.name
-<<<<<<< HEAD
-=======
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class MyGroup(models.Model):  # استفاده از نام متفاوت به جای Group
     name = models.CharField(max_length=150, unique=True, verbose_name=_("نام گروه"))
     roles = models.ManyToManyField('Role', related_name='mygroups', blank=True, verbose_name=_("تعریف نقش"))
@@ -398,10 +296,6 @@ class MyGroup(models.Model):  # استفاده از نام متفاوت به ج�
 
     def __str__(self):
         return self.name
-<<<<<<< HEAD
-=======
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class CustomUserGroup(models.Model):
     customuser = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
     mygroup = models.ForeignKey('MyGroup', on_delete=models.CASCADE)
@@ -410,10 +304,6 @@ class CustomUserGroup(models.Model):
         db_table = 'accounts_customuser_groups'
         verbose_name = 'افزودن کاربری'
         verbose_name_plural = 'افزودن کاربری'
-<<<<<<< HEAD
-=======
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class AuditLog(models.Model):
     """لاگ گیری سیستمی"""
     ACTION_CHOICES = [
@@ -456,14 +346,7 @@ class AuditLog(models.Model):
         ]
 ####
 class ActiveUser(models.Model):
-<<<<<<< HEAD
     MAX_ACTIVE_USERS = None
-=======
-    """
-        مدل برای ردیابی کاربران فعال در سیستم
-        این مدل اطلاعات ورود، فعالیت و محدودیت‌های کاربران را مدیریت می‌کند.
-    """
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -479,11 +362,7 @@ class ActiveUser(models.Model):
         null=False,
         verbose_name=_("کلید سشن"),
         help_text=_("شناسه یکتا برای سشن کاربر"),
-<<<<<<< HEAD
         db_index=True,
-=======
-        db_index=True,  # ایندکس برای جستجوی سریع‌تر
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
     )
     login_time = models.DateTimeField(
         auto_now_add=True,
@@ -505,11 +384,7 @@ class ActiveUser(models.Model):
         db_index=True,
     )
     user_ip = models.GenericIPAddressField(
-<<<<<<< HEAD
         protocol='both',
-=======
-        protocol='both',  # پشتیبانی از IPv4 و IPv6
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
         unpack_ipv4=False,
         verbose_name=_("آی‌پی کاربر"),
         blank=True,
@@ -535,32 +410,18 @@ class ActiveUser(models.Model):
         help_text=_("زمان خروج کاربر از سیستم، در صورت ثبت"),
     )
 
-<<<<<<< HEAD
     # MAX_ACTIVE_USERS = getattr(settings, 'MAX_ACTIVE_USERS')#, 2)
 
     class Meta:
         verbose_name = _("کاربر فعال")
         verbose_name_plural = _("کاربران فعال")
         default_permissions = []
-=======
-    # ثابت‌های مدل (Constants)
-    # MAX_ACTIVE_USERS = 5  # حداکثر تعداد کاربران مجاز (قابل تنظیم)
-    MAX_ACTIVE_USERS = getattr(settings, 'MAX_ACTIVE_USERS', 2)  # از تنظیمات می‌خونه یا پیش‌فرض 5
-
-    class Meta:
-        # نام‌های نمایشی
-        verbose_name = _("کاربر فعال")
-        verbose_name_plural = _("کاربران فعال")
-        # مجوزها
-        default_permissions = []  # غیرفعال کردن مجوزهای پیش‌فرض
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
         permissions = [
             ('activeuser_view', _('نمایش تعداد کاربر دارای مجوز برای کار در سیستم')),
             ('activeuser_add', _('افزودن تعداد کاربر دارای مجوز برای کار در سیستم')),
             ('activeuser_update', _('آپدیت تعداد کاربر دارای مجوز برای کار در سیستم')),
             ('activeuser_delete', _('حذف تعداد کاربر دارای مجوز برای کار در سیستم')),
         ]
-<<<<<<< HEAD
         indexes = [
             # models.Index(fields=['session_key'], name='idx_user_session'),
             models.Index(fields=['user'], name='idx_user'),
@@ -578,46 +439,10 @@ class ActiveUser(models.Model):
         ]
         ordering = ['-last_activity', 'user']
         app_label = 'accounts'
-=======
-        # ایندکس‌ها
-        indexes = [
-            models.Index(fields=['user', 'session_key'], name='idx_user_session'),
-            models.Index(fields=['last_activity'], name='idx_last_activity'),
-        ]
-
-        # محدودیت‌ها (Constraints)
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'session_key'],
-                name='unique_user_session',
-                violation_error_message=_("هر کاربر تنها می‌تواند یک سشن با کلید مشخص داشته باشد.")
-            ),
-            models.CheckConstraint(
-                check=models.Q(login_time__lte=models.F('last_activity')),
-                name='check_login_before_activity',
-                violation_error_message=_("زمان ورود باید قبل از آخرین فعالیت باشد.")
-            ),
-        ]
-
-        # تنظیمات مرتب‌سازی
-        ordering = ['-last_activity', 'user']
-
-        # تنظیمات دیتابیس
-        # db_table = 'active_users'  # نام جدول در دیتابیس
-        # db_tablespace = 'active_users_space'  # فضای جدول (در صورت استفاده از دیتابیس خاص)
-        managed = True  # آیا جنگو جدول را مدیریت کند؟
-        app_label = 'accounts'  # نام اپلیکیشن (در صورت نیاز به تعیین دستی)
-
-        # سایر تنظیمات متا
-        get_latest_by = 'last_activity'  # برای متد latest()
-        abstract = False  # مدل انتزاعی نیست
-        swappable = False  # مدل قابل تعویض نیست
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
     @classmethod
     def remove_inactive_users(cls):
         """پاکسازی کاربران غیرفعال و حذف سشن‌های قدیمی"""
-<<<<<<< HEAD
         inactivity_threshold = now() - datetime.timedelta(minutes=30)
         inactive_users = cls.objects.filter(last_activity__lt=inactivity_threshold)
         if inactive_users.exists():
@@ -628,19 +453,6 @@ class ActiveUser(models.Model):
                 user.delete()
         else:
             logger.info("هیچ کاربر غیرفعالی برای حذف یافت نشد.")
-=======
-        inactivity_threshold = now() - datetime.timedelta(minutes=30)  # ۳۰ دقیقه
-        inactive_users = cls.objects.filter(last_activity__lt=inactivity_threshold)
-        if inactive_users.exists():
-            for user in inactive_users:
-                # logger.warning(f"حذف کاربر غیرفعال: {user.user.username} (آی‌پی: {user.user_ip})")
-                from django.contrib.sessions.models import Session
-                Session.objects.filter(session_key=user.session_key).delete()
-                user.delete()
-        # else:
-        #     logger.info("هیچ کاربر غیرفعالی برای حذف یافت نشد.")
-
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
     @classmethod
     def delete_expired_sessions(cls):
@@ -651,26 +463,16 @@ class ActiveUser(models.Model):
             cls.objects.filter(session_key=session.session_key).delete()
             session.delete()
 
-<<<<<<< HEAD
     def save(self, *args, **kwargs):
         """هش کردن تعداد کاربران فعال"""
         active_count = ActiveUser.objects.filter(last_activity__gte=now() - datetime.timedelta(minutes=30)).count()
         self.last_activity = now()
-=======
-
-
-    def save(self, *args, **kwargs):
-        """هش کردن تعداد کاربران فعال"""
-        active_count = ActiveUser.objects.count()
-        self.last_activity = now()  # همیشه آخرین فعالیت را به‌روزرسانی کن
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
         self.hashed_count = hashlib.sha256(str(active_count).encode()).hexdigest()
         super().save(*args, **kwargs)
 
     @classmethod
     def can_login(cls, session_key):
         """بررسی اینکه آیا کاربر جدید می‌تونه وارد بشه"""
-<<<<<<< HEAD
         active_count = cls.objects.filter(
             last_activity__gte=now() - datetime.timedelta(minutes=30)
         ).count()
@@ -791,11 +593,3 @@ class TimeLockModel(models.Model):
 
 
 
-=======
-        current_count = cls.objects.count()
-        return current_count < cls.MAX_ACTIVE_USERS
-
-    def __str__(self):
-        return f"{self.user.username} - {self.session_key} - {self.login_time}"
-############# Security Lock
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

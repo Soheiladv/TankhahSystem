@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-<<<<<<< HEAD
 {% load i18n static active_users_tags %}
 
 {% block content %}
@@ -169,81 +168,6 @@
         .dashboard-list-item a { flex-direction: column; text-align: center; padding: 1rem; }
         .list-item-icon { margin: 0 0 0.5rem 0; }
         .badge { margin-top: 0.5rem; }
-=======
-{% load i18n static %}
-
-{% block content %}
-<div class="container mt-4">
-    <h2 class="text-center mb-4 animate__animated animate__fadeInDown">
-        <i class="fas fa-tachometer-alt me-2"></i>{% trans "داشبورد مدیریت" %}
-    </h2>
-    <div class="row">
-        {% for card in cards %}
-        <div class="col-md-6 mb-4">
-            <div class="card custom-card shadow-sm border-{{ card.items.0.color }}">
-                <div class="card-header custom-header bg-{{ card.items.0.color }} text-white">
-                    <i class="{{ card.icon }} me-2"></i>{{ card.title }}
-                </div>
-                <div class="card-body">
-                    <ul class="list-group">
-                        {% for item in card.items %}
-                        <li class="list-group-item">
-                            <a href="{% url item.url %}" class="text-decoration-none">
-                                <i class="{{ item.icon }} text-{{ item.color }} me-2"></i>{{ item.label }}
-                            </a>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-        {% empty %}
-        <div class="col-12">
-            <div class="alert alert-warning text-center animate__animated animate__shakeX" role="alert">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                {% trans "شما به هیچ بخشی دسترسی ندارید." %}
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-
-<style>
-    .custom-card {
-        border-radius: 15px;
-        box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.12);
-        transition: all 0.3s ease-in-out;
-        background: linear-gradient(135deg, #ffffff, #f8f9fa);
-        border: none;
-        direction: rtl;
-    }
-    .custom-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.2);
-    }
-    .custom-header {
-        background: linear-gradient(to right, #007bff, #17a2b8);
-        color: white;
-        border-radius: 15px 15px 0 0;
-        padding: 15px;
-        font-size: 1.1rem;
-        font-weight: bold;
-    }
-    .list-group-item {
-        background-color: transparent;
-        transition: background 0.3s ease-in-out;
-        border: none;
-        padding: 12px 20px;
-    }
-    .list-group-item:hover {
-        background: rgba(0, 123, 255, 0.1);
-    }
-    .list-group-item a {
-        color: #333;
-    }
-    .list-group-item a:hover {
-        color: #007bff;
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
     }
 </style>
 {% endblock %}

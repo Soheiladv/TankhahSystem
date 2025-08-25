@@ -4,7 +4,7 @@ import jdatetime
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from Tanbakhsystem.utils import format_jalali_date, parse_jalali_date
+from BudgetsSystem.utils import format_jalali_date, parse_jalali_date
 from budgets.models import BudgetPeriod
 from core.templatetags.rcms_custom_filters import number_to_farsi_words
 

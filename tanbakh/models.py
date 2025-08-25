@@ -13,19 +13,10 @@ NUMBER_SEPARATOR = getattr(settings, 'NUMBER_SEPARATOR', '-')
 
 def get_default_workflow_stage():
     return WorkflowStage.objects.get(name='HQ_INITIAL').id  # نام را با 'HQ_ITDC' جایگزین کنید اگر متفاوت است
+
 class Tanbakh(models.Model):
     """مدل تنخواه برای ثبت و مدیریت درخواست‌های مالی"""
-    STATUS_CHOICES = (
-        ('DRAFT', _('پیش‌نویس')),
-        ('PENDING', _('در حال بررسی')),
-        ('APPROVED', _('تأییدشده')),
-        ('SENT_TO_HQ', _('ارسال‌شده به HQ')),
-        ('HQ_OPS_PENDING', _('در حال بررسی - بهره‌برداری')),
-        ('HQ_OPS_APPROVED', _('تأییدشده - بهره‌برداری')),
-        ('HQ_FIN_PENDING', _('در حال بررسی - مالی')),
-        ('PAID', _('پرداخت‌شده')),
-        ('REJECTED', _('ردشده')),
-    )
+
     number = models.CharField(max_length=50, unique=True, blank=True, verbose_name=_("شماره تنخواه"))
     amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ"))
     date = models.DateTimeField(default=timezone.now, verbose_name=_("تاریخ"))

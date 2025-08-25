@@ -12908,3 +12908,226 @@ INFO 2025-08-16 17:40:26 PermissionBase dispatch [PermissionBaseView] کاربر
 INFO 2025-08-16 17:40:26 PermissionBase get_queryset [PermissionBaseView] دریافت کوئری‌ست برای ItemCategoryListView
 INFO 2025-08-16 17:40:26 PermissionBase get_queryset [PermissionBaseView] بازگشت کوئری‌ست بدون فیلتر برای superuser یا Tankhah_view_all
 INFO 2025-08-16 17:40:26 middleware __call__ پاسخ برای /tankhah/categories/ - کد وضعیت: 200
+INFO 2025-08-25 11:08:00 signals update_versions 🚀 post_migrate triggered for django.contrib.admin 🚀
+INFO 2025-08-25 11:08:00 signals update_versions Calling update_versions command...
+INFO 2025-08-25 11:08:00 update_versions handle Starting version update process...
+INFO 2025-08-25 11:08:00 update_versions update_app_versions Checking core for changes...
+INFO 2025-08-25 11:08:00 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:00 models create_code_changes 32 code changes recorded for مدیریت ساختار نرم افزار تنخواه گردان v3.2.0.13
+INFO 2025-08-25 11:08:00 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:00 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-08-25 11:08:01 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:01 models create_code_changes 17 code changes recorded for مدیریت نسخه v1.1.0.1261
+INFO 2025-08-25 11:08:01 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:01 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-08-25 11:08:01 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:01 models create_code_changes 26 code changes recorded for مدیریت کاربران v1.4.0.550
+INFO 2025-08-25 11:08:01 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:01 update_versions handle Versions updated: {'core': '3.2.0.13', 'version_tracker': '1.1.0.1261', 'accounts': '1.4.0.550'}
+INFO 2025-08-25 11:08:01 update_versions handle Final version updated successfully!
+INFO 2025-08-25 11:08:01 signals update_versions 🚀 post_migrate triggered for django.contrib.auth 🚀
+INFO 2025-08-25 11:08:01 signals update_versions Calling update_versions command...
+INFO 2025-08-25 11:08:01 update_versions handle Starting version update process...
+INFO 2025-08-25 11:08:01 update_versions update_app_versions Checking core for changes...
+INFO 2025-08-25 11:08:01 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:01 models create_code_changes 32 code changes recorded for مدیریت ساختار نرم افزار تنخواه گردان v3.2.0.14
+INFO 2025-08-25 11:08:01 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:01 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-08-25 11:08:02 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:02 models create_code_changes 17 code changes recorded for مدیریت نسخه v1.1.0.1262
+INFO 2025-08-25 11:08:02 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:02 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-08-25 11:08:02 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:02 models create_code_changes 26 code changes recorded for مدیریت کاربران v1.4.0.551
+INFO 2025-08-25 11:08:02 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:02 update_versions handle Versions updated: {'core': '3.2.0.14', 'version_tracker': '1.1.0.1262', 'accounts': '1.4.0.551'}
+INFO 2025-08-25 11:08:02 update_versions handle Final version updated successfully!
+INFO 2025-08-25 11:08:02 signals update_versions 🚀 post_migrate triggered for django.contrib.contenttypes 🚀
+INFO 2025-08-25 11:08:02 signals update_versions Calling update_versions command...
+INFO 2025-08-25 11:08:02 update_versions handle Starting version update process...
+INFO 2025-08-25 11:08:02 update_versions update_app_versions Checking core for changes...
+INFO 2025-08-25 11:08:02 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:02 models create_code_changes 32 code changes recorded for مدیریت ساختار نرم افزار تنخواه گردان v3.2.0.15
+INFO 2025-08-25 11:08:02 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:02 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-08-25 11:08:03 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:03 models create_code_changes 17 code changes recorded for مدیریت نسخه v1.1.0.1263
+INFO 2025-08-25 11:08:03 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:03 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-08-25 11:08:03 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:03 models create_code_changes 26 code changes recorded for مدیریت کاربران v1.4.0.552
+INFO 2025-08-25 11:08:03 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:03 update_versions handle Versions updated: {'core': '3.2.0.15', 'version_tracker': '1.1.0.1263', 'accounts': '1.4.0.552'}
+INFO 2025-08-25 11:08:03 update_versions handle Final version updated successfully!
+INFO 2025-08-25 11:08:03 signals update_versions 🚀 post_migrate triggered for django.contrib.sessions 🚀
+INFO 2025-08-25 11:08:03 signals update_versions Calling update_versions command...
+INFO 2025-08-25 11:08:03 update_versions handle Starting version update process...
+INFO 2025-08-25 11:08:03 update_versions update_app_versions Checking core for changes...
+INFO 2025-08-25 11:08:03 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:03 models create_code_changes 32 code changes recorded for مدیریت ساختار نرم افزار تنخواه گردان v3.2.0.16
+INFO 2025-08-25 11:08:03 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:03 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-08-25 11:08:04 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:04 models create_code_changes 17 code changes recorded for مدیریت نسخه v1.1.0.1264
+INFO 2025-08-25 11:08:04 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:04 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-08-25 11:08:04 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:04 models create_code_changes 26 code changes recorded for مدیریت کاربران v1.4.0.553
+INFO 2025-08-25 11:08:04 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:04 update_versions handle Versions updated: {'core': '3.2.0.16', 'version_tracker': '1.1.0.1264', 'accounts': '1.4.0.553'}
+INFO 2025-08-25 11:08:04 update_versions handle Final version updated successfully!
+INFO 2025-08-25 11:08:04 signals update_versions 🚀 post_migrate triggered for core 🚀
+INFO 2025-08-25 11:08:04 signals update_versions Calling update_versions command...
+INFO 2025-08-25 11:08:04 update_versions handle Starting version update process...
+INFO 2025-08-25 11:08:04 update_versions update_app_versions Checking core for changes...
+INFO 2025-08-25 11:08:04 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:04 models create_code_changes 32 code changes recorded for مدیریت ساختار نرم افزار تنخواه گردان v3.2.0.17
+INFO 2025-08-25 11:08:04 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:04 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-08-25 11:08:05 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:05 models create_code_changes 17 code changes recorded for مدیریت نسخه v1.1.0.1265
+INFO 2025-08-25 11:08:05 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:05 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-08-25 11:08:05 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:05 models create_code_changes 26 code changes recorded for مدیریت کاربران v1.4.0.554
+INFO 2025-08-25 11:08:05 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:05 update_versions handle Versions updated: {'core': '3.2.0.17', 'version_tracker': '1.1.0.1265', 'accounts': '1.4.0.554'}
+INFO 2025-08-25 11:08:05 update_versions handle Final version updated successfully!
+INFO 2025-08-25 11:08:05 signals update_versions 🚀 post_migrate triggered for reports 🚀
+INFO 2025-08-25 11:08:05 signals update_versions Calling update_versions command...
+INFO 2025-08-25 11:08:05 update_versions handle Starting version update process...
+INFO 2025-08-25 11:08:05 update_versions update_app_versions Checking core for changes...
+INFO 2025-08-25 11:08:05 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:05 models create_code_changes 32 code changes recorded for مدیریت ساختار نرم افزار تنخواه گردان v3.2.0.18
+INFO 2025-08-25 11:08:05 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:05 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-08-25 11:08:05 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:05 models create_code_changes 17 code changes recorded for مدیریت نسخه v1.1.0.1266
+INFO 2025-08-25 11:08:05 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:05 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-08-25 11:08:06 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:06 models create_code_changes 26 code changes recorded for مدیریت کاربران v1.4.0.555
+INFO 2025-08-25 11:08:06 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:06 update_versions handle Versions updated: {'core': '3.2.0.18', 'version_tracker': '1.1.0.1266', 'accounts': '1.4.0.555'}
+INFO 2025-08-25 11:08:06 update_versions handle Final version updated successfully!
+INFO 2025-08-25 11:08:06 signals update_versions 🚀 post_migrate triggered for django_jalali 🚀
+INFO 2025-08-25 11:08:06 signals update_versions Calling update_versions command...
+INFO 2025-08-25 11:08:06 update_versions handle Starting version update process...
+INFO 2025-08-25 11:08:06 update_versions update_app_versions Checking core for changes...
+INFO 2025-08-25 11:08:06 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:06 models create_code_changes 32 code changes recorded for مدیریت ساختار نرم افزار تنخواه گردان v3.2.0.19
+INFO 2025-08-25 11:08:06 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:06 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-08-25 11:08:07 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:07 models create_code_changes 17 code changes recorded for مدیریت نسخه v1.1.0.1267
+INFO 2025-08-25 11:08:07 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:07 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-08-25 11:08:07 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:07 models create_code_changes 26 code changes recorded for مدیریت کاربران v1.4.0.556
+INFO 2025-08-25 11:08:07 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:07 update_versions handle Versions updated: {'core': '3.2.0.19', 'version_tracker': '1.1.0.1267', 'accounts': '1.4.0.556'}
+INFO 2025-08-25 11:08:07 update_versions handle Final version updated successfully!
+INFO 2025-08-25 11:08:07 signals update_versions 🚀 post_migrate triggered for version_tracker 🚀
+INFO 2025-08-25 11:08:07 signals update_versions 🚀 post_migrate triggered for version_tracker 🚀
+INFO 2025-08-25 11:08:07 signals update_versions 🚀 post_migrate triggered for tankhah 🚀
+INFO 2025-08-25 11:08:07 signals update_versions Calling update_versions command...
+INFO 2025-08-25 11:08:07 update_versions handle Starting version update process...
+INFO 2025-08-25 11:08:07 update_versions update_app_versions Checking core for changes...
+INFO 2025-08-25 11:08:07 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:07 models create_code_changes 32 code changes recorded for مدیریت ساختار نرم افزار تنخواه گردان v3.2.0.20
+INFO 2025-08-25 11:08:07 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:07 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-08-25 11:08:08 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:08 models create_code_changes 17 code changes recorded for مدیریت نسخه v1.1.0.1268
+INFO 2025-08-25 11:08:08 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:08 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-08-25 11:08:08 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:08 models create_code_changes 26 code changes recorded for مدیریت کاربران v1.4.0.557
+INFO 2025-08-25 11:08:08 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:08 update_versions handle Versions updated: {'core': '3.2.0.20', 'version_tracker': '1.1.0.1268', 'accounts': '1.4.0.557'}
+INFO 2025-08-25 11:08:08 update_versions handle Final version updated successfully!
+INFO 2025-08-25 11:08:08 signals update_versions 🚀 post_migrate triggered for accounts 🚀
+INFO 2025-08-25 11:08:08 signals update_versions Calling update_versions command...
+INFO 2025-08-25 11:08:08 update_versions handle Starting version update process...
+INFO 2025-08-25 11:08:08 update_versions update_app_versions Checking core for changes...
+INFO 2025-08-25 11:08:08 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:08 models create_code_changes 32 code changes recorded for مدیریت ساختار نرم افزار تنخواه گردان v3.2.0.21
+INFO 2025-08-25 11:08:08 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:08 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-08-25 11:08:08 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:08 models create_code_changes 17 code changes recorded for مدیریت نسخه v1.1.0.1269
+INFO 2025-08-25 11:08:08 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:08 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-08-25 11:08:09 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:09 models create_code_changes 26 code changes recorded for مدیریت کاربران v1.4.0.558
+INFO 2025-08-25 11:08:09 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:09 update_versions handle Versions updated: {'core': '3.2.0.21', 'version_tracker': '1.1.0.1269', 'accounts': '1.4.0.558'}
+INFO 2025-08-25 11:08:09 update_versions handle Final version updated successfully!
+INFO 2025-08-25 11:08:09 signals update_versions 🚀 post_migrate triggered for budgets 🚀
+INFO 2025-08-25 11:08:09 signals update_versions Calling update_versions command...
+INFO 2025-08-25 11:08:09 update_versions handle Starting version update process...
+INFO 2025-08-25 11:08:09 update_versions update_app_versions Checking core for changes...
+INFO 2025-08-25 11:08:09 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:09 models create_code_changes 32 code changes recorded for مدیریت ساختار نرم افزار تنخواه گردان v3.2.0.22
+INFO 2025-08-25 11:08:09 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:09 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-08-25 11:08:09 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:09 models create_code_changes 17 code changes recorded for مدیریت نسخه v1.1.0.1270
+INFO 2025-08-25 11:08:09 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:09 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-08-25 11:08:09 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:09 models create_code_changes 26 code changes recorded for مدیریت کاربران v1.4.0.559
+INFO 2025-08-25 11:08:10 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:10 update_versions handle Versions updated: {'core': '3.2.0.22', 'version_tracker': '1.1.0.1270', 'accounts': '1.4.0.559'}
+INFO 2025-08-25 11:08:10 update_versions handle Final version updated successfully!
+INFO 2025-08-25 11:08:10 signals update_versions 🚀 post_migrate triggered for formtools 🚀
+INFO 2025-08-25 11:08:10 signals update_versions Calling update_versions command...
+INFO 2025-08-25 11:08:10 update_versions handle Starting version update process...
+INFO 2025-08-25 11:08:10 update_versions update_app_versions Checking core for changes...
+INFO 2025-08-25 11:08:10 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:10 models create_code_changes 32 code changes recorded for مدیریت ساختار نرم افزار تنخواه گردان v3.2.0.23
+INFO 2025-08-25 11:08:10 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:10 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-08-25 11:08:10 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:10 models create_code_changes 17 code changes recorded for مدیریت نسخه v1.1.0.1271
+INFO 2025-08-25 11:08:10 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:10 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-08-25 11:08:10 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:10 models create_code_changes 26 code changes recorded for مدیریت کاربران v1.4.0.560
+INFO 2025-08-25 11:08:10 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:10 update_versions handle Versions updated: {'core': '3.2.0.23', 'version_tracker': '1.1.0.1271', 'accounts': '1.4.0.560'}
+INFO 2025-08-25 11:08:10 update_versions handle Final version updated successfully!
+INFO 2025-08-25 11:08:10 signals update_versions 🚀 post_migrate triggered for usb_key_validator 🚀
+INFO 2025-08-25 11:08:10 signals update_versions Calling update_versions command...
+INFO 2025-08-25 11:08:10 update_versions handle Starting version update process...
+INFO 2025-08-25 11:08:10 update_versions update_app_versions Checking core for changes...
+INFO 2025-08-25 11:08:10 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:10 models create_code_changes 32 code changes recorded for مدیریت ساختار نرم افزار تنخواه گردان v3.2.0.24
+INFO 2025-08-25 11:08:10 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:10 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-08-25 11:08:11 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:11 models create_code_changes 17 code changes recorded for مدیریت نسخه v1.1.0.1272
+INFO 2025-08-25 11:08:11 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:11 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-08-25 11:08:11 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:11 models create_code_changes 26 code changes recorded for مدیریت کاربران v1.4.0.561
+INFO 2025-08-25 11:08:11 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:11 update_versions handle Versions updated: {'core': '3.2.0.24', 'version_tracker': '1.1.0.1272', 'accounts': '1.4.0.561'}
+INFO 2025-08-25 11:08:11 update_versions handle Final version updated successfully!
+INFO 2025-08-25 11:08:11 signals update_versions 🚀 post_migrate triggered for notificationApp 🚀
+INFO 2025-08-25 11:08:11 signals update_versions Calling update_versions command...
+INFO 2025-08-25 11:08:11 update_versions handle Starting version update process...
+INFO 2025-08-25 11:08:11 update_versions update_app_versions Checking core for changes...
+INFO 2025-08-25 11:08:11 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:11 models create_code_changes 32 code changes recorded for مدیریت ساختار نرم افزار تنخواه گردان v3.2.0.25
+INFO 2025-08-25 11:08:11 models update_version_file Updated version.py for core
+INFO 2025-08-25 11:08:11 update_versions update_app_versions Checking version_tracker for changes...
+INFO 2025-08-25 11:08:12 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:12 models create_code_changes 17 code changes recorded for مدیریت نسخه v1.1.0.1273
+INFO 2025-08-25 11:08:12 models update_version_file Updated version.py for version_tracker
+INFO 2025-08-25 11:08:12 update_versions update_app_versions Checking accounts for changes...
+INFO 2025-08-25 11:08:12 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:12 models create_code_changes 26 code changes recorded for مدیریت کاربران v1.4.0.562
+INFO 2025-08-25 11:08:12 models update_version_file Updated version.py for accounts
+INFO 2025-08-25 11:08:12 update_versions handle Versions updated: {'core': '3.2.0.25', 'version_tracker': '1.1.0.1273', 'accounts': '1.4.0.562'}
+INFO 2025-08-25 11:08:12 update_versions handle Final version updated successfully!

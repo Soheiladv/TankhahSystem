@@ -1,5 +1,4 @@
 from django.test import TestCase
-<<<<<<< HEAD
 from .models import Post, Branch, Organization
 from .forms import PostForm
 
@@ -48,7 +47,3 @@ class PostFormTest(TestCase):
         self.assertTrue(form.is_valid())
         post = form.save()
         self.assertEqual(post.level, 2)
-=======
-
-# Create your tests here.
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
