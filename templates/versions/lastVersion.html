@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+<<<<<<< HEAD
 {% load i18n static rcms_custom_filters jformat version_tags %}
 
 {% block content %}
@@ -313,3 +314,155 @@
     }
 </style>
 {% endblock %}
+=======
+{% load static %}
+
+{% block content %}
+    <style>
+        body {
+            direction: rtl;
+            text-align: right;
+            background-color: #f8f9fa;
+        }
+
+        .version-info {
+            margin: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-container {
+            margin: 20px;
+        }
+
+        table {
+            width: 100%;
+            background-color: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        td, th {
+            padding: 12px;
+            text-align: right;
+        }
+
+        .final-tag {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .not-final-tag {
+            color: #dc3545;
+        }
+
+        h1 {
+            color: #343a40;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .update-btn {
+            background-color: #007bff;
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .update-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+
+    <div class="container">
+        <h1 class="my-4">
+            <i class="fas fa-code-branch me-2"></i> خوش آمدید به سیستم نسخه‌بندی
+        </h1>
+
+        <!-- پیام‌ها -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-info{% endif %}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- اطلاعات نسخه نهایی -->
+        <div class="version-info">
+            <h2 class="mb-3">
+                <i class="fas fa-star me-2"></i> نسخه نهایی
+            </h2>
+            <p class="lead">
+                <strong>شماره نسخه:</strong> <span class="badge bg-primary">{{ final_version }}</span>
+            </p>
+            {% if release_date %}
+                <p>
+                    <strong>تاریخ انتشار:</strong>
+                    <span class="badge bg-secondary">{{ release_date|date:"Y-m-d H:i" }}</span>
+                </p>
+            {% endif %}
+            
+            <!-- دکمه به‌روزرسانی -->
+            <form method="post" action="{% url 'update_versions' %}" class="mb-4 text-center">
+                {% csrf_token %}
+                <button type="submit" class="update-btn">
+                    <i class="fas fa-sync-alt me-2"></i> به‌روزرسانی نسخه‌ها
+                </button>
+            </form>
+        </div>
+
+        {% if app_versions %}
+            <div class="table-container">
+                <h2 class="mb-3">
+                    <i class="fas fa-list me-2"></i> آخرین نسخه‌ها
+                </h2>
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>نام اپلیکیشن</th>
+                        <th>شماره نسخه</th>
+                        <th>نویسنده</th>
+                        <th>تاریخ انتشار</th>
+                        <th>وضعیت</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for version in app_versions %}
+                        <tr>
+                            <td>{{ version.get_app_name_fa }}</td>
+                            <td>{{ version.version_number }}</td>
+                            <td>{{ version.author.username }}</td>
+                            <td>{{ version.release_date|date:"Y-m-d H:i" }}</td>
+                            <td>
+                                {% if final_version and version.version_number == final_version %}
+                                    <span class="final-tag">
+                                        <i class="fas fa-check-circle me-1"></i> نهایی
+                                    </span>
+                                {% else %}
+                                    <span class="not-final-tag">
+                                        <i class="fas fa-times-circle me-1"></i> 
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+
+{% endblock %}
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

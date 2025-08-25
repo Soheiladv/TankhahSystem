@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load i18n %}
+<<<<<<< HEAD
 {% load rcms_custom_filters static jalali_tags %}
+=======
+{% load static jalali_tags %}
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 {% block content %}
 <div class="container mt-4">
@@ -14,7 +18,10 @@
                 <table class="table table-hover table-sm">
                     <thead class="table-dark">
                         <tr>
+<<<<<<< HEAD
                             <th>{% trans "ردیف" %}</th>
+=======
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
                             <th>{% trans "کاربر" %}</th>
                             <th>{% trans "پست" %}</th>
                             <th>{% trans "اقدامات" %}</th>
@@ -23,7 +30,10 @@
                     <tbody>
                         {% for userpost in userposts %}
                             <tr>
+<<<<<<< HEAD
                                 <td>{{ forloop.counter  |to_persian_number }}</td>
+=======
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
                                 <td>{{ userpost.user.username }}</td>
                                 <td>{{ userpost.post.name }}</td>
                                 <td>

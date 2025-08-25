@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import json
 from datetime import timedelta
 from decimal import Decimal
@@ -1081,3 +1082,8 @@ class BudgetAllocationReportView(LoginRequiredMixin, DetailView):  # یا Permis
         logger.info(
             f"Report context for BudgetAllocation PK: {budget_allocation_instance.pk} prepared successfully. Found {len(context['linked_tankhahs'])} linked tankhahs and {len(context['linked_transactions'])} linked transactions.")
         return context
+=======
+from django.shortcuts import render
+
+# Create your views here.
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

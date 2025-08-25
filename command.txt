@@ -1,5 +1,6 @@
 D@d123
 
+<<<<<<< HEAD
 ######### Compile Output Project Create  ########################
 python -m compileall -b .
 ################################# Install Requirement
@@ -7,6 +8,9 @@ python -m pip install -r requirements.txt
 #################################
 
 from tankhah.models import Tankhah, Factor, ApprovalLog
+=======
+from tanbakh.models import Tanbakh, Factor, ApprovalLog
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 # پاک کردن تمام فاکتورها
 Factor.objects.all().delete()
@@ -17,6 +21,7 @@ ApprovalLog.objects.all().delete()
 print("All ApprovalLogs deleted.")
 
 # پاک کردن تمام تنخواه‌ها
+<<<<<<< HEAD
 Tankhah.objects.all().delete()
 print("All Tankhah deleted.")
 
@@ -124,6 +129,12 @@ admin = CustomUser.objects.get(username='jj')  # گیرنده اعلان
                             <span class="badge fs-5 {{ difference|floatformat:0| yesno:'bg-success,bg-danger,bg-warning' }} text-white">
                                 {{ difference|format_negative}}
                             </span> {% trans "ریال" %}
+=======
+Tanbakh.objects.all().delete()
+print("All Tanbakhs deleted.")
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 یک سناریو تعریف میکنم :
 سیستم برای بررسی و ارسال تنخواه یک مجموعه :
 که باید با توجه به سلسه مراتب بررسی و تایید بشه :سلسله مراتب را در سناریو تعریف کنیم یعنی درختواره یک سازمان : کارشناس ثبت رویس تایید کننده و یا ... این مراتب را باید در تایید و ارسال در نظر داشت.

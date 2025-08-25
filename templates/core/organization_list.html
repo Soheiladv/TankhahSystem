@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+<<<<<<< HEAD
 {% load i18n static rcms_custom_filters jalali_tags %}
 
 {% block title %}{% trans "لیست سازمان‌ها" %}{% endblock %}
@@ -674,3 +675,38 @@
 {#{% endblock %}#}
 {#{% endblock %}#}
 -->
+=======
+
+{% block content %}
+<h1>{{ title }}</h1>
+<div class="mb-3">
+    <a href="{% url 'organization_create' %}" class="btn btn-primary">{{ _('ایجاد سازمان جدید') }}</a>
+</div>
+<form method="get">
+    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="{{ _('جستجو') }}" />
+    <button type="submit" class="btn btn-primary mt-2">{{ _('جستجو') }}</button>
+</form>
+<table class="table mt-3">
+    <thead>
+        <tr>
+            <th>{{ _('کد') }}</th>
+            <th>{{ _('نام') }}</th>
+            <th>{{ _('عملیات') }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for organization in organizations %}
+        <tr>
+            <td>{{ organization.code }}</td>
+            <td>{{ organization.name }}</td>
+            <td>
+                <a href="{% url 'organization_detail' organization.pk %}" class="btn btn-info btn-sm">{{ _('جزئیات') }}</a>
+                <a href="{% url 'organization_update' organization.pk %}" class="btn btn-warning btn-sm">{{ _('ویرایش') }}</a>
+                <a href="{% url 'organization_delete' organization.pk %}" class="btn btn-danger btn-sm">{{ _('حذف') }}</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

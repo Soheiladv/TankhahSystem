@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
+<<<<<<< HEAD
 {% load static i18n rcms_custom_filters jformat %}
+=======
+{% load static %}
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 {% block content %}
 <div class="container mt-5">
@@ -34,11 +38,19 @@
             </div>
             <div class="col-md-1">
                 <label class="form-label">Patch:</label>
+<<<<<<< HEAD
                 <input type="number" name="patch" value="{{ patch_filter  }}" class="form-control">
             </div>
             <div class="col-md-1">
                 <label class="form-label">Build:</label>
                 <input type="number" name="build" value="{{ build_filter  }}" class="form-control">
+=======
+                <input type="number" name="patch" value="{{ patch_filter }}" class="form-control">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">Build:</label>
+                <input type="number" name="build" value="{{ build_filter }}" class="form-control">
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
             </div>
             <div class="col-md-1">
                 <button type="submit" class="btn btn-primary w-100">
@@ -66,16 +78,27 @@
                 {% for version in app_versions %}
                 <tr class="version-row">
                     <td>
+<<<<<<< HEAD
                         <span class="badge bg-primary p-2">{{ version.get_app_name_fa  }}</span>
+=======
+                        <span class="badge bg-primary p-2">{{ version.get_app_name_fa }}</span>
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
                     </td>
                     <td>
                         <span class="badge bg-success p-2">{{ version.get_version_type_display }}</span>
                     </td>
                     <td>
+<<<<<<< HEAD
                         <span class="text-muted">{{ version.major |format_negative }}.{{ version.minor  |format_negative}}.{{ version.patch |format_negative }}.{{ version.build |format_negative }}</span>
                     </td>
                     <td>
                         <span class="text-info">{{ version.release_date|jformat:"%Y/%m/%d %H:%m" |to_persian_number }}</span>
+=======
+                        <span class="text-muted">{{ version.major }}.{{ version.minor }}.{{ version.patch }}.{{ version.build }}</span>
+                    </td>
+                    <td>
+                        <span class="text-info">{{ version.release_date|date:"Y/m/d H:i" }}</span>
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
                     </td>
                     <td>
                         <button class="btn btn-outline-secondary btn-sm system-info-btn" data-bs-toggle="collapse"

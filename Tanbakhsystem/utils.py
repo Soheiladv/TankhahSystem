@@ -1,8 +1,13 @@
 import jdatetime
 from django.forms import forms
 from django.utils.translation import gettext_lazy as _
+<<<<<<< HEAD
 import logging
 logger = logging.getLogger(__name__)
+=======
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 def convert_jalali_to_gregorian(date_str):
     """تبدیل تاریخ شمسی (Jalali) به میلادی (Gregorian)"""
     try:
@@ -28,6 +33,7 @@ def convert_to_farsi_numbers(value):
     translation_table = str.maketrans(english_digits, farsi_digits)
     return str(value).translate(translation_table)
 
+<<<<<<< HEAD
 # Tanbakhsystem/tankhah/utils.py
 def to_english_digits(value):
     persian_digits = '۰۱۲۳۴۵۶۷۸۹'
@@ -139,3 +145,5 @@ def jalali_to_gregorian_OK(year, month, day):
     except Exception as e:
         logger.error(f"Error converting Jalali to Gregorian: {year}/{month}/{day} - {e}")
         return None
+=======
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

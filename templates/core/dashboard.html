@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "base_ld.html" %}
 {% load i18n static jformat rcms_custom_filters jalali_tags %}
 
@@ -1082,4 +1083,45 @@
             {% endif %}
         });
     </script>
+=======
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h1 class="card-title mb-0"><i class="fas fa-tachometer-alt me-2"></i>{{ title }}</h1>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for category, links in dashboard_links.items %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">{{ category }}</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    {% for link in links %}
+                                        <li class="list-group-item">
+                                            <a href="{% url link.url %}" class="text-decoration-none">
+                                                <i class="{{ link.icon }} me-2"></i>{{ link.name }}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <!-- نمایش اطلاعات کاربر (اختیاری) -->
+            <div class="mt-3 text-center">
+                <p class="text-muted">{% trans "خوش آمدید" %}, {{ user.username }}!</p>
+            </div>
+        </div>
+    </div>
+</div>
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 {% endblock %}

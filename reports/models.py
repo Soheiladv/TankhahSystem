@@ -1,4 +1,5 @@
 from django.db import models
+<<<<<<< HEAD
 from django.db.models import Sum
 
 from tankhah.models import Tankhah
@@ -75,3 +76,7 @@ class TankhahDetailView(models.Model):
         permissions = [
             ('TankhahDetailView_report_view',_('گزارش جزئیات تنخواه‌ها '))
         ]
+=======
+
+# Create your models here.
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

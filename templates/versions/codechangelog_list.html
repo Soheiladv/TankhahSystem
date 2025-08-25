@@ -1,5 +1,9 @@
 {% extends "base.html" %}
+<<<<<<< HEAD
 {% load static jformat rcms_custom_filters %}
+=======
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 {% block content %}
 <div class="container mt-5">
     <h1 class="text-center mb-5 fw-bold">لیست تغییرات کد</h1>
@@ -39,10 +43,17 @@
             <tbody>
                 {% for change in changes %}
                     <tr>
+<<<<<<< HEAD
                         <td>{{ change.version.get_app_name_fa |to_persian_number}}</td>
                         <td>{{ change.version.version_number|to_persian_number }}</td>
                         <td>{{ change.file_name }}</td>
                         <td>{{ change.change_date|jformat:"%Y-%m-%d %H:%m"|to_persian_number }}</td>
+=======
+                        <td>{{ change.version.get_app_name_fa }}</td>
+                        <td>{{ change.version.version_number }}</td>
+                        <td>{{ change.file_name }}</td>
+                        <td>{{ change.change_date|date:"Y/m/d H:i" }}</td>
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
                         <td>
                             <a href="{% url 'codechangelog_detail' change.pk %}" class="btn btn-sm btn-info">جزئیات</a>
                         </td>

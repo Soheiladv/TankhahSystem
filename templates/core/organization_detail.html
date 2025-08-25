@@ -11,6 +11,7 @@
                 <tr><th>{% trans "نام" %}</th><td>{{ organization.name }}</td></tr>
                 <tr><th>{% trans "نوع" %}</th><td>{{ organization.get_org_type_display }}</td></tr>
                 <tr><th>{% trans "توضیحات" %}</th><td>{{ organization.description|default:'-' }}</td></tr>
+<<<<<<< HEAD
                 <tr><th>{% trans "تخصیص بودجه به پروژه‌ها" %}</th><td>
 {#                    <a href="{% url 'project_budget_allocation' organization_id=organization.id %}"#}
                     <a href="{% url 'project_budget_allocation_list' organization_id=organization.id %}"
@@ -18,6 +19,8 @@
                     تخصیص بودجه به پروژه‌ها
                 </a></td></tr>
 
+=======
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
             </table>
             <a href="{% url 'organization_list' %}" class="btn btn-secondary"><i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت" %}</a>
         </div>

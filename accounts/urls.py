@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 from .DashboardReset import DatabaseResetView, DatabaseManageView, DatabaseBackupRestoreView, DatabaseBackupView, \
     new_DatabaseBackupRestoreView, DatabaseModelGraphView
+=======
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 from .Heartbeat import heartbeat_view
 app_name = 'accounts'  # این خط باید وجود داشته باشد
 from atexit import register
@@ -12,14 +15,22 @@ from django.urls import path
 from accounts import views
 from accounts.views import (AdvancedProfileSearchView, user_management_view, dashboard_view,
                             ActiveUserListView, TimeLockCreateView, TimeLockListView,
+<<<<<<< HEAD
                             SetTimeLockView, lock_status, set_theme, terminate_session,
                             ProfileUpdateView, active_users_view,  # AssignRoleToUserView,
+=======
+                            SetTimeLockView, lock_status,  # AssignRoleToUserView,
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
                             )
 from .views import (
     RoleListView, RoleCreateView, RoleUpdateView, RoleDeleteView,
     UserListView, UserCreateView, UserEditView, UserDeleteView,
     admin_dashboard, it_staff_dashboard, requester_dashboard, default_dashboard,
+<<<<<<< HEAD
     UserChangePasswordView, reset_password_to_default, profile_update_success, GroupListView,
+=======
+    UserChangePasswordView, reset_password_to_default, profile_update_view, profile_update_success, GroupListView,
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
     GroupCreateView
 )
 from .views import TransferRoleDependenciesView, DeactivateRoleView
@@ -35,7 +46,10 @@ urlpatterns = [
                   # path('logout/', auth_views.logoutView.as_view(next_page='accounts:login'), name='logout'),
 
                   path('login/', auth_views.LoginView.as_view(template_name='accounts/login.html'), name='login'),
+<<<<<<< HEAD
 
+=======
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
                   # path('Logout/', auth_views.LogoutView.as_view(), name='Logout'),
 
                   # path('signup/',   views.signup,   name='signup'),
@@ -119,11 +133,16 @@ urlpatterns = [
                        name='reset_password_to_default'),
 
                   # Profile URLs
+<<<<<<< HEAD
                   # path('profile/update/', profile_update_view, name='profile_update'),
                   path('profile/update/', ProfileUpdateView.as_view(), name='profile_update'),
                   path('profile/update/success/', profile_update_success, name='profile_update_success'),
                   # path('profile/update/success/', profile_update_success_view, name='profile_update_success'),
                   # مسیر جدید
+=======
+                  path('profile/update/', profile_update_view, name='profile_update'),
+                  path('profile/update/success/', profile_update_success, name='profile_update_success'),
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
                   # Password Reset URLs
                   path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
@@ -192,6 +211,7 @@ urlpatterns = [
 
                   # Heartbeat
                   path('heartbeat/', heartbeat_view, name='heartbeat'),
+<<<<<<< HEAD
 
                   path('set_theme/', set_theme, name='set_theme'),# User Color
 
@@ -220,3 +240,6 @@ urlpatterns += [
                    path('model_graph/', DatabaseModelGraphView.as_view(), name='model_graph'),
 
                ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)  # Models Graphe
+=======
+              ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

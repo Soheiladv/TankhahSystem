@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import re
 from django.db.models import Sum
 from decimal import Decimal
@@ -29,6 +30,20 @@ class SystemSettingsForm(forms.ModelForm):
     class Meta:
         model = SystemSettings
         fields = '__all__'
+=======
+from django import forms
+from django.core.exceptions import ValidationError
+
+from Tanbakhsystem.utils import convert_jalali_to_gregorian, convert_gregorian_to_jalali, convert_to_farsi_numbers
+from .models import Project, Organization, TimeLockModel, UserPost, Post, PostHistory, WorkflowStage
+from django.utils.translation import gettext_lazy as _
+
+from django import forms
+from .models import Project, Organization
+from django.utils.translation import gettext_lazy as _
+
+from django_jalali.forms import jDateField
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 class TimeLockModelForm(forms.ModelForm):
     class Meta:
@@ -49,6 +64,7 @@ class TimeLockModelForm(forms.ModelForm):
             'organization_name': _('نام مجموعه'),
         }
 
+<<<<<<< HEAD
 class ProjectForm(forms.ModelForm):
     has_subproject = forms.BooleanField(
         label=_("آیا ساب‌پروژه دارد؟"),
@@ -106,10 +122,77 @@ class ProjectForm(forms.ModelForm):
             'end_date': forms.TextInput(attrs={'data-jdp': '', 'class': 'form-control jalali-datepicker', 'placeholder': '1404/01/17'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'priority': forms.Select(attrs={'class': 'form-control'}),
+=======
+from django.core.exceptions import ValidationError
+from jdatetime import datetime as jdatetime
+
+class ProjectForm(forms.ModelForm):
+    budget = forms.IntegerField(  # تغییر به IntegerField برای هماهنگی با مدل
+        label=_("بودجه (ريال)"),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'مبلغ بودجه'}),
+        required=False
+    )
+    priority = forms.ChoiceField(
+        choices=[('LOW', _('کم')), ('MEDIUM', _('متوسط')), ('HIGH', _('زیاد'))],
+        label=_("اولویت"),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        initial='MEDIUM'
+    )
+    is_active = forms.BooleanField(
+        label=_("فعال"),
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        required=False,
+        initial=True
+    )
+
+    start_date = forms.CharField(
+        label=_('تاریخ شروع'),
+        widget=forms.TextInput(attrs={
+            'data-jdp': '',
+            'class': 'form-control',
+            'placeholder': convert_to_farsi_numbers(_('تاریخ را انتخاب کنید (1404/01/17)'))
+        })
+    )
+    end_date = forms.CharField(
+        label=_('تاریخ پایان'),
+        widget=forms.TextInput(attrs={
+            'data-jdp': '',
+            'class': 'form-control',
+            'placeholder': convert_to_farsi_numbers(_('تاریخ را انتخاب کنید (1404/01/17)'))
+        }),
+        required=False
+    )
+    workflow_stages = forms.ModelMultipleChoiceField(
+        queryset=WorkflowStage.objects.all(),
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        required=False,
+        label=_('مراحل گردش کار مرتبط')
+    )
+    class Meta:
+        model = Project
+        fields = ['name', 'code', 'organizations', 'start_date', 'end_date', 'description', 'budget', 'priority', 'is_active', 'workflow_stages']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام پروژه را وارد کنید'}),
+            'code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'کد پروژه'}),
+            'organizations': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+            'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'توضیحات پروژه'}),
+        }
+        labels = {
+            'name': _('نام پروژه'),
+            'code': _('کد پروژه'),
+            'organizations': _('مجتمع‌های مرتبط'),
+            'start_date': _('تاریخ شروع'),
+            'end_date': _('تاریخ پایان'),
+            'description': _('توضیحات'),
+            'budget': _('بودجه (ريال)'),
+            'priority': _('اولویت'),
+            'is_active': _('فعال'),
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+<<<<<<< HEAD
         # محدود کردن سازمان‌ها به شعب فعال و قابل تخصیص بودجه
         self.fields['organization'].queryset = Organization.objects.filter( org_type__is_budget_allocatable=True, is_active=True
         ).select_related('org_type').order_by('name')
@@ -186,11 +269,45 @@ class ProjectForm(forms.ModelForm):
         if Project.objects.exclude(pk=self.instance.pk).filter(code=code).exists():
             raise forms.ValidationError(_('این کد پروژه قبلاً استفاده شده است.'))
         return code
+=======
+        self.fields['organizations'].queryset = Organization.objects.filter(org_type='COMPLEX')
+        if self.instance.pk:
+            jalali_start = jdatetime.fromgregorian(date=self.instance.start_date).strftime('%Y/%m/%d')
+            jalali_end = (
+                jdatetime.fromgregorian(date=self.instance.end_date).strftime('%Y/%m/%d')
+                if self.instance.end_date else ''
+            )
+            print(f"Gregorian Start: {self.instance.start_date}, Jalali Start: {jalali_start}")
+            print(f"Gregorian End: {self.instance.end_date}, Jalali End: {jalali_end}")
+            self.fields['start_date'].initial = jalali_start
+            self.fields['end_date'].initial = jalali_end
+
+    def clean_start_date(self):
+        start_date_str = self.cleaned_data['start_date']
+        try:
+            j_date = jdatetime.strptime(start_date_str, '%Y/%m/%d')
+            g_date = j_date.togregorian()
+            return g_date.date()
+        except ValueError:
+            raise ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
+
+    def clean_end_date(self):
+        end_date_str = self.cleaned_data.get('end_date')
+        if not end_date_str:
+            return None
+        try:
+            j_date = jdatetime.strptime(end_date_str, '%Y/%m/%d')
+            g_date = j_date.togregorian()
+            return g_date.date()
+        except ValueError:
+            raise ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
     def clean(self):
         cleaned_data = super().clean()
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
+<<<<<<< HEAD
         has_subproject = cleaned_data.get('has_subproject')
         subproject_name = cleaned_data.get('subproject_name')
 
@@ -271,32 +388,44 @@ class SubProjectForm(forms.ModelForm):
                     'allocated_budget',
                     _('بودجه تخصیص‌یافته نمی‌تواند بیشتر از بودجه باقی‌مانده پروژه باشد: %s') % remaining_budget
                 )
+=======
+        if start_date and end_date and start_date > end_date:
+            raise ValidationError(_("تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد."))
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
         return cleaned_data
 
 class OrganizationForm(forms.ModelForm):
     class Meta:
         model = Organization
+<<<<<<< HEAD
         fields = ['code', 'name', 'org_type', 'description', 'parent_organization','is_core','is_holding' ,'is_independent']
         # budget = forms.DecimalField(
         #     widget=NumberToWordsWidget(attrs={'placeholder': '  ارقام بودجه سالانه را وارد کنید'}),
         #     label='بودجه سالانه'
         # )
 
+=======
+        fields = ['code', 'name', 'org_type', 'description']
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
         widgets = {
             'code': forms.TextInput(attrs={'class': 'form-control'}),
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'org_type': forms.Select(attrs={'class': 'form-control'}),
+<<<<<<< HEAD
             'is_core': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_holding': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_independent': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             # 'budget': forms.Select(attrs={'class': 'form-control'}),
             'parent_organization': forms.Select(attrs={'class': 'form-control'}),
+=======
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
             'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
         }
         labels = {
             'code': _('کد سازمان'),
             'name': _('نام سازمان'),
             'org_type': _('نوع سازمان'),
+<<<<<<< HEAD
             'is_core': _('شعبه اصلی سازمان(دفتر مرکزی)'),
             'is_independent': _('مستقل کار میکند؟'),
             'is_holding': _(' هلدینگ است ؟'),
@@ -307,27 +436,47 @@ class OrganizationForm(forms.ModelForm):
 from django import forms
 from .models import Post, Branch, Organization
 from core.models import AccessRule, PostAction
+=======
+            'description': _('توضیحات'),
+        }
+
+
+# -- new
+# tanbakh/forms.py
+from tanbakh.models import StageApprover
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
+<<<<<<< HEAD
         fields = [
             'name', 'organization', 'parent', 'branch', 'description',
             'is_active', 'max_change_level', 'is_payment_order_signer',
             'can_final_approve_factor', 'can_final_approve_tankhah', 'can_final_approve_budget'
         ]
+=======
+        fields = ['name', 'organization', 'parent', 'level', 'branch', 'description']
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام پست'}),
             'organization': forms.Select(attrs={'class': 'form-control'}),
             'parent': forms.Select(attrs={'class': 'form-control'}),
+<<<<<<< HEAD
             'branch': forms.Select(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'max_change_level': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'placeholder': 'حداکثر سطح تغییر'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+=======
+            'level': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'branch': forms.Select(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+<<<<<<< HEAD
         self.fields['branch'].queryset = Branch.objects.filter(is_active=True)
         self.fields['parent'].queryset = Post.objects.filter(is_active=True).exclude(pk=self.instance.pk if self.instance.pk else None)
         self.fields['access_rules'] = forms.ModelMultipleChoiceField(
@@ -370,6 +519,26 @@ class PostForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         self._user = user  # Store user for use in save
         super().__init__(*args, **kwargs)
+=======
+        if self.instance.pk:
+            self.fields['workflow_stages'] = forms.ModelMultipleChoiceField(
+                queryset=WorkflowStage.objects.all(),
+                widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+                required=False,
+                label=_('مراحل تأیید'),
+                initial=WorkflowStage.objects.filter(stageapprover__post=self.instance)
+            )
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            instance.save()
+            if 'workflow_stages' in self.fields:
+                StageApprover.objects.filter(post=instance).delete()
+                for stage in self.cleaned_data['workflow_stages']:
+                    StageApprover.objects.create(post=instance, stage=stage)
+        return instance
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 class UserPostForm(forms.ModelForm):
     class Meta:
@@ -397,6 +566,7 @@ class PostHistoryForm(forms.ModelForm):
             'changed_by': forms.Select(attrs={'class': 'form-control'}),
         }
 
+<<<<<<< HEAD
 class WorkflowStageForm(forms.ModelForm):
     class Meta:
         model = WorkflowStage
@@ -457,5 +627,19 @@ class OrganizationTypeForm(forms.ModelForm):
         help_texts = {
             'fname': _("مثلاً: مجتمع مسکونی، شعبه استانی، دفتر مرکزی."),
             'org_type': _("در صورت نیاز به یک نام یا کد دیگر برای این نوع سازمان استفاده شود."),
+=======
+
+from django import forms
+from core.models import WorkflowStage
+
+class WorkflowStageForm(forms.ModelForm):
+    class Meta:
+        model = WorkflowStage
+        fields = ['name', 'order', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'نام مرحله'}),
+            'order': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'ترتیب'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'توضیحات'}),
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
         }
 

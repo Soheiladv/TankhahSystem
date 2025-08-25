@@ -1,5 +1,9 @@
 {% extends "base.html" %}
+<<<<<<< HEAD
 {% load static jformat  rcms_custom_filters%}
+=======
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 {% block content %}
  <style>
         body {
@@ -78,7 +82,11 @@
                 </tr>
                 <tr>
                     <th><i class="fas fa-tag icon"></i> شماره نسخه:</th>
+<<<<<<< HEAD
                     <td>{{ object.version_number |to_persian_number }}</td>
+=======
+                    <td>{{ object.version_number }}</td>
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
                 </tr>
                 <tr>
                     <th><i class="fas fa-layer-group icon"></i> نوع نسخه:</th>
@@ -86,7 +94,11 @@
                 </tr>
                 <tr>
                     <th><i class="fas fa-calendar-alt icon"></i> تاریخ انتشار:</th>
+<<<<<<< HEAD
                     <td>{{ object.release_date|jformat:"%Y-%m-%d %H:%m"|to_persian_number }}</td>
+=======
+                    <td>{{ object.release_date|date:"Y-m-d H:i" }}</td>
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
                 </tr>
                 <tr>
                     <th><i class="fas fa-fingerprint icon"></i> هش کد:</th>
@@ -114,7 +126,11 @@
                     <a href="{% url 'codechangelog_detail' change.pk %}" class="change-link">
                         <i class="fas fa-file-code icon"></i> {{ change.file_name }}
                     </a> -
+<<<<<<< HEAD
                     <span>{{ change.change_date|jformat:"%Y-%m-%d %H:%m"|to_persian_number}}</span>
+=======
+                    <span>{{ change.change_date|date:"Y/m/d H:i" }}</span>
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
                 </li>
             {% empty %}
                 <li class="list-group-item text-muted">بدون تغییر کد</li>

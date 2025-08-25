@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from django.urls import path
 from reports.ComprehensiveBudgetReportView import (
     ComprehensiveBudgetReportView,
@@ -143,3 +144,12 @@ urlpatterns = [
 # ]
 #
 # # API
+=======
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    ]
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

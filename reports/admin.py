@@ -1,4 +1,5 @@
 from django.contrib import admin
+<<<<<<< HEAD
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
 from django.urls import reverse
@@ -149,3 +150,7 @@ class FinancialReportAdmin(admin.ModelAdmin):
         js = (
             # 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js',
         )
+=======
+
+# Register your models here.
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e

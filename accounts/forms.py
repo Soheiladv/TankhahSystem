@@ -1,17 +1,31 @@
+<<<<<<< HEAD
 import datetime
 import logging
 
+=======
+import hashlib
+import logging
+import secrets
+
+import jdatetime
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 from django import forms
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group, Permission
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+<<<<<<< HEAD
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.widgets import AdminjDateWidget
 
 from Tanbakhsystem.base import JalaliDateForm
+=======
+from django.utils.translation import gettext_lazy as _
+from django_jalali.admin.widgets import AdminjDateWidget
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 from Tanbakhsystem.utils import convert_to_farsi_numbers, convert_jalali_to_gregorian, convert_gregorian_to_jalali
 from accounts.models import CustomProfile, CustomUser, City, Province, CustomUserGroup
 from .models import MyGroup, Role
@@ -59,6 +73,11 @@ class CustomUserCreationForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class AssignRoleForm(forms.Form):
     user = forms.ModelChoiceField(
         queryset=CustomUser.objects.all(),
@@ -76,6 +95,11 @@ class AssignRoleForm(forms.Form):
         for field in self.fields.values():
             if not 'class' in field.widget.attrs:
                 field.widget.attrs['class'] = 'form-control mb-3'
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class UniqueGroupValidator:
     def __init__(self, exclude=None):
         self.exclude = exclude
@@ -86,6 +110,11 @@ class UniqueGroupValidator:
                 _("گروه با این نام قبلاً ثبت شده است."),
                 code='unique'
             )
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 # برای مدیریت گروه‌ها از این فرم جداگانه استفاده کنید
 class UserGroupForm(forms.Form):
     users = forms.ModelMultipleChoiceField(
@@ -109,6 +138,11 @@ class UserGroupForm(forms.Form):
         # اضافه کردن کاربران جدید
         for user in self.cleaned_data['users']:
             CustomUserGroup.objects.create(mygroup=group, customuser=user)
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class MyGroupForm(forms.ModelForm):
     class Meta:
         model = MyGroup
@@ -148,6 +182,11 @@ class MyGroupForm(forms.ModelForm):
             form.save()
         else:
             print(form.errors)
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 #################################
 class CustomUserForm(forms.ModelForm):
     # role = forms.ModelChoiceField(queryset=Role.objects.all(), required=False)
@@ -195,11 +234,21 @@ class CustomUserForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class CustomPasswordChangeForm(PasswordChangeForm):
     old_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}), label='پسورد فعلی')
     new_password1 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}), label='پسورد جدید')
     new_password2 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}),
                                     label='تأیید پسورد جدید')
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class CustomUserChangeForm(forms.ModelForm):
     class Meta:
         model = CustomUser
@@ -234,6 +283,11 @@ class CustomUserChangeForm(forms.ModelForm):
             # تنظیم فیلد ManyToMany با مقادیر انتخاب‌شده
             instance.groups.set(self.cleaned_data['groups'])
         return instance
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class RoleForm(forms.ModelForm):
     class Meta:
         model = Role
@@ -251,9 +305,19 @@ class RoleForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['permissions'].queryset = Permission.objects.select_related('content_type').all()
         self.fields['parent'].queryset = Role.objects.all()
+<<<<<<< HEAD
 ###############################################             #########################################
 '''برای انتقال وابستگی‌ها به نقش دیگر، یک فرم ایجاد کنید:
 '''
+=======
+
+
+###############################################             #########################################
+'''برای انتقال وابستگی‌ها به نقش دیگر، یک فرم ایجاد کنید:
+'''
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class TransferRoleDependenciesForm(forms.Form):
     new_role = forms.ModelChoiceField(queryset=Role.objects.none(), label="انتقال به نقش")
 
@@ -261,6 +325,11 @@ class TransferRoleDependenciesForm(forms.Form):
         role_id = kwargs.pop('role_id')
         super().__init__(*args, **kwargs)
         self.fields['new_role'].queryset = Role.objects.exclude(id=role_id)
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 #######################################################################################################
 class AssignRolesToUserForm(forms.Form):
     user = forms.ModelChoiceField(queryset=CustomUser.objects.all(), widget=forms.Select(attrs={
@@ -281,6 +350,11 @@ class AssignRolesToUserForm(forms.Form):
         self.fields['user'].widget.attrs['class'] = 'form-control'
         self.fields['roles'].widget.attrs['class'] = 'form-control'
         # self.fields['groups'].widget.attrs['class'] = 'form-control'
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class AssignRolesToGroupForm(forms.Form):
     group = forms.ModelChoiceField(queryset=MyGroup.objects.all(), widget=forms.Select(attrs={
         'class': 'form-control',
@@ -289,9 +363,20 @@ class AssignRolesToGroupForm(forms.Form):
     roles = forms.ModelMultipleChoiceField(queryset=Role.objects.all(), widget=forms.SelectMultiple(attrs={
         'class': 'form-control',
     }))
+<<<<<<< HEAD
 ###########################
 from django.contrib.auth import get_user_model
 User = get_user_model()
+=======
+
+
+############################
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = CustomProfile
@@ -327,6 +412,7 @@ class ProfileForm(forms.ModelForm):
             if not 'class' in field.widget.attrs:
                 field.widget.attrs['class'] = 'form-control mb-3'
 
+<<<<<<< HEAD
 import logging
 
 logger = logging.getLogger(__name__)
@@ -440,6 +526,42 @@ class ProfileUpdateForm1(forms.ModelForm):
                 raise forms.ValidationError("تاریخ را به فرمت درست وارد کنید (مثل 1404/01/17)")
         logger.info("No birth_date provided, returning None")
         return None
+=======
+
+class ProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = CustomProfile
+        fields = ['first_name', 'last_name', 'city', 'phone_number', 'birth_date', 'address', 'description', 'location',
+                  'bio', 'zip_code']
+        widgets = {
+            # 'birth_date': AdminjDateWidget(attrs={'class': 'form-control'}),
+            'birth_date': AdminjDateWidget(attrs={'class': 'jalali_date-date'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'location': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'zip_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'city': forms.Select(attrs={'class': 'form-control'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.get('user')  # دریافت user از kwargs
+        if not user:
+            raise ValueError("کاربر وارد نشده است")
+        super().__init__(*args, **kwargs)
+        # سایر کدهای فرم
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control mb-3'
+
+
+############################
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput, label="رمز عبور")
@@ -532,6 +654,11 @@ class UserRegistrationForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control mb-3'
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 # این فرم را برای اضافه کردن گروه‌ها بعد از ثبت نام استفاده کنید
 class PostRegistrationGroupForm(forms.Form):
     groups = forms.ModelMultipleChoiceField(queryset=MyGroup.objects.all(),
@@ -545,12 +672,22 @@ class PostRegistrationGroupForm(forms.Form):
         if self.user:
             for group in self.cleaned_data['groups']:
                 CustomUserGroup.objects.get_or_create(customuser=self.user, mygroup=group)
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField()
 
     class Meta:
         model = User
         fields = '__all__'  # ['username', 'email', 'password1', 'password2']
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class AdvancedProfileSearchForm(forms.Form):
     first_name = forms.CharField(required=False, label="نام")
     last_name = forms.CharField(required=False, label="نام خانوادگی")
@@ -569,33 +706,76 @@ class AdvancedProfileSearchForm(forms.Form):
                 self.fields['city'].queryset = City.objects.none()
         elif self.instance.pk:  # اگر فرم از یک شیء موجود باشد، شهرهای مرتبط با آن استان را بارگذاری کن
             self.fields['city'].queryset = self.instance.province.city_set.all()
+<<<<<<< HEAD
 yset = City.objects.none()
 #######################################################################
 class ResetPasswordForm(forms.Form):
     new_password = forms.CharField(
         widget=forms.PasswordInput, label="گذرواژه جدید")
+=======
+
+
+yset = City.objects.none()
+
+
+#######################################################################
+
+class ResetPasswordForm(forms.Form):
+    new_password = forms.CharField(
+        widget=forms.PasswordInput, label="گذرواژه جدید")
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = CustomUser
         fields = '__all__'  # ['bio', 'birth_date']
         # fields = ['username', 'email']
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class UserForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'is_active', 'is_staff', ]
+<<<<<<< HEAD
 '''
  برای انتخاب نقش جدید، یک فرم ایجاد کنید که لیست تمام نقش‌های موجود را نمایش دهد.
 '''
+=======
+
+
+'''
+ برای انتخاب نقش جدید، یک فرم ایجاد کنید که لیست تمام نقش‌های موجود را نمایش دهد.
+'''
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class RoleTransferForm(forms.Form):
     new_role = forms.ModelChoiceField(
         queryset=Role.objects.all(),
         label="انتقال وابستگی‌ها به نقش جدید",
         required=False,
     )
+<<<<<<< HEAD
 class GroupFilterForm(forms.Form):
     name = forms.CharField(max_length=150, required=False, label="جستجو بر اساس نام گروه")
 #######################################################################
 from .models import ActiveUser
+=======
+
+
+class GroupFilterForm(forms.Form):
+    name = forms.CharField(max_length=150, required=False, label="جستجو بر اساس نام گروه")
+
+
+#######################################################################
+from .models import ActiveUser
+
+
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 class ActiveUserForm(forms.ModelForm):
     class Meta:
         model = ActiveUser
@@ -610,9 +790,17 @@ class ActiveUserForm(forms.ModelForm):
         # غیرفعال کردن session_key اگه در حال ویرایش باشه
         if self.instance.pk:
             self.fields['session_key'].disabled = True
+<<<<<<< HEAD
 ##########################Security Lock#############################################
 from django import forms
 from accounts.models import TimeLockModel
+=======
+
+
+##########################Security Lock#############################################
+from django import forms
+from core.models import TimeLockModel
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
 # accounts/forms.py
 import jdatetime
 class TimeLockForm(forms.Form):
@@ -653,6 +841,7 @@ class TimeLockForm(forms.Form):
             self.fields['expiry_date'].initial = jalali_date.strftime('%Y/%m/%d')
 
 
+<<<<<<< HEAD
 # Forms For Backuping
 # core/forms.py
 from django import forms
@@ -708,3 +897,5 @@ class DatabaseBackupForm(forms.Form):
         if reset and not models:
             raise forms.ValidationError(_("لطفاً جدول‌هایی برای ریست مشخص کنید."))
         return models
+=======
+>>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
