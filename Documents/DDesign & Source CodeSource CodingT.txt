@@ -1,0 +1,29 @@
+D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Scripts\python.exe | D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\wfastcgi.py
+
+
+
+scriptProcessor="D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Scripts\python.exe | D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\wfastcgi.py"
+
+
+
+
+
+
+
+icacls "D:\Design & Source Code\Source Coding\BudgetsSystem" /grant "IIS_IUSRS:(F)"
+icacls "D:\Design & Source Code\Source Coding\BudgetsSystem\venv" /grant "IIS_IUSRS:(F)"
+icacls "D:\Design & Source Code\Source Coding\BudgetsSystem\static" /grant "IIS_IUSRS:(F)"
+
+
+mkdir "D:\Design & Source Code\Source Coding\BudgetsSystem\logs"
+icacls "D:\Design & Source Code\Source Coding\BudgetsSystem\logs" /grant "IIS_IUSRS:(F)"
+
+
+
+
+icacls "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Scripts\python.exe" /grant "IIS_IUSRS:(RX)"
+
+%windir%\system32\inetsrv\appcmd set config /section:system.webServer/fastCGI /+[fullPath='D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Scripts\python.exe'
+
+wfastcgi-enable 
+"D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Scripts\python.exe"|"D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\wfastcgi.py" 

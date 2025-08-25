@@ -1,0 +1,37 @@
+<!-- core/templates/core/workflow/confirm_retire.html -->
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm border-danger">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0">{{ title }}</h4>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% blocktrans %}آیا از بازنشسته کردن این {{ object_type }} اطمینان دارید؟{% endblocktrans %}
+                </div>
+                <p>{% trans "این عمل، رکورد را از لیست‌های فعال حذف می‌کند اما برای حفظ تاریخچه در سیستم باقی می‌ماند. این عمل غیرقابل بازگشت است." %}</p>
+                <dl class="row">
+                  <dt class="col-sm-3">{% trans "نام" %}</dt>
+                  <dd class="col-sm-9">{{ object.name }}</dd>
+                  <dt class="col-sm-3">{% trans "کد" %}</dt>
+                  <dd class="col-sm-9">{{ object.code }}</dd>
+                </dl>
+            </div>
+            <div class="card-footer text-end">
+                <a href="{{ request.META.HTTP_REFERER|default:'status_list' }}" class="btn btn-secondary">{% trans "انصراف" %}</a>
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash-alt me-1"></i> {% trans "بله، بازنشسته کن" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

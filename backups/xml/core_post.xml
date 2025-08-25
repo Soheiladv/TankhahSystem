@@ -1,0 +1,335 @@
+<?xml version="1.0" standalone="yes"?>
+<RECORDS>
+	<RECORD>
+		<id>1</id>
+		<name>معاونت مالی/اداری دفتر مرکزی</name>
+		<level>2</level>
+		<branch_id>1</branch_id>
+		<description/>
+		<is_active>1</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>18</parent_id>
+		<max_change_level>2</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>1</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>2</id>
+		<name>معاونت بهره برداری</name>
+		<level>2</level>
+		<branch_id>1</branch_id>
+		<description/>
+		<is_active>1</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>18</parent_id>
+		<max_change_level>4</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>3</id>
+		<name>مدیر بهره برداری - دفتر مرکزی</name>
+		<level>3</level>
+		<branch_id>1</branch_id>
+		<description>مدیر بهر برداری - دفتر مرکزی</description>
+		<is_active>1</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>2</parent_id>
+		<max_change_level>4</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>4</id>
+		<name>کارشناس بهره برداری - دفتر مرکزی</name>
+		<level>5</level>
+		<branch_id>1</branch_id>
+		<description>کارشناس بهر برداری - دفتر مرکزی</description>
+		<is_active>1</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>3</parent_id>
+		<max_change_level>9</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>5</id>
+		<name>مدیران کل هر شعبه</name>
+		<level>6</level>
+		<branch_id>2</branch_id>
+		<description>مدیران کل هر شعبه</description>
+		<is_active>1</is_active>
+		<organization_id>1</organization_id>
+		<parent_id>4</parent_id>
+		<max_change_level>9</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>6</id>
+		<name>کارشناس مالی تنخواه گردان شعبات</name>
+		<level>7</level>
+		<branch_id>2</branch_id>
+		<description>کارشناس مالی تنخواه گردان شعبات</description>
+		<is_active>1</is_active>
+		<organization_id>1</organization_id>
+		<parent_id>5</parent_id>
+		<max_change_level>9</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>7</id>
+		<name>مدیریت بودجه و تنخواه گردان سازمان ( دفتر مرکزی )</name>
+		<level>4</level>
+		<branch_id>3</branch_id>
+		<description>مدیریت بودجه و تنخواه گردان سازمان ( دفتر مرکزی )</description>
+		<is_active>1</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>8</parent_id>
+		<max_change_level>9</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>8</id>
+		<name>معاونت سرمایه گذاری مجامع و امور شرکت ها</name>
+		<level>2</level>
+		<branch_id>3</branch_id>
+		<description>معاونت سرمایه گذاری مجامع و امور شرکت ها بالاترین سطح این معاونت است</description>
+		<is_active>1</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>18</parent_id>
+		<max_change_level>9</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>9</id>
+		<name>مدیر سرمایه گذاری</name>
+		<level>4</level>
+		<branch_id>3</branch_id>
+		<description>مدیر سرمایه گذاری مجامع و امور شرکت ها  زیر نظر معاونت مدیر سرمایه گذاری مجامع و امور شرکت ها</description>
+		<is_active>1</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>8</parent_id>
+		<max_change_level>9</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>10</id>
+		<name>مدیر بودجه</name>
+		<level>4</level>
+		<branch_id>3</branch_id>
+		<description>مدیر سرمایه گذاری مجامع و امور شرکت ها</description>
+		<is_active>1</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>8</parent_id>
+		<max_change_level>9</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>11</id>
+		<name>مدیر مجامع و امور شرکت ها</name>
+		<level>4</level>
+		<branch_id>3</branch_id>
+		<description>مدیر سرمایه گذاری مجامع و امور شرکت ها زیر نظر معاونت</description>
+		<is_active>1</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>8</parent_id>
+		<max_change_level>9</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>12</id>
+		<name>مدیر توسعه و کسب و کار</name>
+		<level>4</level>
+		<branch_id>3</branch_id>
+		<description>مدیر توسعه و کسب و کار  زیر نظر معاونت 
+ا</description>
+		<is_active>1</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>8</parent_id>
+		<max_change_level>9</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>13</id>
+		<name>کارشناس سرمایه گذاری (معاونت سرمایه گذاری مجامع و امور شرکت ها)</name>
+		<level>5</level>
+		<branch_id>3</branch_id>
+		<description>کارشناس سرمایه گذاری (معاونت سرمایه گذاری مجامع و امور شرکت ها)</description>
+		<is_active>0</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>9</parent_id>
+		<max_change_level>4</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>14</id>
+		<name>کارشناس بودجه (معاونت سرمایه گذاری مجامع و امور شرکت ها)</name>
+		<level>5</level>
+		<branch_id>3</branch_id>
+		<description>کارشناس بودجه (معاونت سرمایه گذاری مجامع و امور شرکت ها)</description>
+		<is_active>0</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>10</parent_id>
+		<max_change_level>4</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>15</id>
+		<name>کارشناس  مجامع و امور شرکت ها (معاونت سرمایه گذاری مجامع و امور شرکت ها)</name>
+		<level>5</level>
+		<branch_id>3</branch_id>
+		<description>کارشناس  مجامع و امور شرکت ها (معاونت سرمایه گذاری مجامع و امور شرکت ها)</description>
+		<is_active>0</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>11</parent_id>
+		<max_change_level>4</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>16</id>
+		<name>مدیر توسعه و کسب و کار  (معاونت سرمایه گذاری مجامع و امور شرکت ها)</name>
+		<level>4</level>
+		<branch_id>3</branch_id>
+		<description>مدیر توسعه و کسب و کار  (معاونت سرمایه گذاری مجامع و امور شرکت ها)</description>
+		<is_active>0</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>8</parent_id>
+		<max_change_level>4</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>17</id>
+		<name>کارشناس توسعه و کسب و کار  (معاونت سرمایه گذاری مجامع و امور شرکت ها)</name>
+		<level>5</level>
+		<branch_id>3</branch_id>
+		<description>کارشناس توسعه و کسب و کار  (معاونت سرمایه گذاری مجامع و امور شرکت ها)</description>
+		<is_active>0</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>11</parent_id>
+		<max_change_level>4</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>18</id>
+		<name>مدیر عامل شرکت</name>
+		<level>1</level>
+		<branch_id>1</branch_id>
+		<description>مدیر عامل</description>
+		<is_active>1</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>18</parent_id>
+		<max_change_level>4</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>1</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>19</id>
+		<name>هیئت مدیره</name>
+		<level>1</level>
+		<branch_id>1</branch_id>
+		<description>هیئت مدیره</description>
+		<is_active>1</is_active>
+		<organization_id>7</organization_id>
+		<parent_id/>
+		<max_change_level>1</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>20</id>
+		<name>مدیر مجتمع آبدرمانی سبلان</name>
+		<level>6</level>
+		<branch_id>2</branch_id>
+		<description>مدیر مجتمع آبدرمانی سبلان</description>
+		<is_active>1</is_active>
+		<organization_id>6</organization_id>
+		<parent_id>4</parent_id>
+		<max_change_level>9</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>21</id>
+		<name>کارشناس مالی _ تنخواه گردان شعبات </name>
+		<level>7</level>
+		<branch_id>2</branch_id>
+		<description>کارشناس مالی _ تنخواه گردان شعبات</description>
+		<is_active>1</is_active>
+		<organization_id>6</organization_id>
+		<parent_id>20</parent_id>
+		<max_change_level>9</max_change_level>
+		<is_payment_order_signer>0</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>0</can_final_approve_factor>
+		<can_final_approve_tankhah>0</can_final_approve_tankhah>
+	</RECORD>
+	<RECORD>
+		<id>22</id>
+		<name>مدیر حسابداری (دفترمرکزی)</name>
+		<level>3</level>
+		<branch_id>1</branch_id>
+		<description>مدیر حسابداری (دفترمرکزی)</description>
+		<is_active>1</is_active>
+		<organization_id>7</organization_id>
+		<parent_id>1</parent_id>
+		<max_change_level>5</max_change_level>
+		<is_payment_order_signer>1</is_payment_order_signer>
+		<can_final_approve_budget>0</can_final_approve_budget>
+		<can_final_approve_factor>1</can_final_approve_factor>
+		<can_final_approve_tankhah>1</can_final_approve_tankhah>
+	</RECORD>
+</RECORDS>
+

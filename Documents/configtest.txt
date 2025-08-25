@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <system.webServer>
+    <handlers>
+      <add name="PythonHandler" path="*" verb="*" modules="httpPlatformHandler" resourceType="Unspecified"/>
+    </handlers>
+    <httpPlatform processPath="D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Scripts\python.exe"
+                  arguments="cD:\Design & Source Code\Source Coding\BudgetsSystem\manage.py runserver 0.0.0.0:%HTTP_PLATFORM_PORT%"
+                  stdoutLogEnabled="true"
+                  stdoutLogFile="D:\Design & Source Code\Source Coding\BudgetsSystem\python.log"
+                  startupTimeLimit="60"
+                  processesPerApplication="16">
+      <environmentVariables>
+        <environmentVariable name="SERVER_PORT" value="%HTTP_PLATFORM_PORT%" />
+      </environmentVariables>
+    </httpPlatform>
+  </system.webServer>
+</configuration>
+
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <system.webServer>
+    <handlers>
+      <add name="python"
+           path="*"
+           verb="*"
+           modules="FastCgiModule"
+            scriptProcessor="D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Scripts\python.exe"|"D:\Design & Source Code\Source Coding\Tanbakhsystem\venv\Lib\site-packages\wfastcgi.py"
+           resourceType="Unspecified"
+           requireAccess="Script" />
+    </handlers>
+  </system.webServer>
+
+  <appSettings>
+    <!-- Required settings -->
+    <add key="WSGI_HANDLER" value="Tanbakhsystem.wsgi.application" />
+    <add key="PYTHONPATH" value="D:\Design & Source Code\Source Coding\Tanbakhsystem" />
+    <add key="DJANGO_SETTINGS_MODULE" value="Tanbakhsystem.settings" />
+
+    <!-- Optional settings -->
+    <add key="WSGI_LOG" value="D:\Design &amp; Source Code\Source Coding\Tanbakhsystem\my_app.log" />
+    <add key="WSGI_RESTART_FILE_REGEX" value=".*((\.py)|(\.config))$" />
+    <add key="APPINSIGHTS_INSTRUMENTATIONKEY" value="__instrumentation_key__" />
+    <add key="WSGI_PTVSD_SECRET" value="__secret_code__" />
+    <add key="WSGI_PTVSD_ADDRESS" value="ipaddress:port" />
+  </appSettings>
+</configuration>
+
+
+
+
+
+
+
+
+
+
+
+    <configuration>
+      <system.webServer>
+        <handlers>
+          <add name="Django" path="*" verb="*" modules="FastCgiModule" scriptProcessor="C:\path\to\your\python.exe|C:\path\to\your\env\Lib\site-packages\wfastcgi.py" resourceType="Unspecified" requireAccess="Script" />
+        </handlers>
+        <fastCgi>
+          <application fullPath="C:\path\to\your\python.exe" arguments="C:\path\to\your\env\Lib\site-packages\wfastcgi.py">
+            <environmentVariables>
+              <environmentVariable name="DJANGO_SETTINGS_MODULE" value="BudgetsSystem.settings" />
+              <environmentVariable name="PYTHONPATH" value="C:\path\to\your\project_root" />
+            </environmentVariables>
+          </application>
+        </fastCgi>
+      </system.webServer>
+    </configuration>
+
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <system.webServer>
+    <handlers>
+      <add name="PythonHandler" path="*" verb="*" modules="httpPlatformHandler" resourceType="Unspecified"/>
+    </handlers>
+    <httpPlatform processPath="D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Scripts\python.exe"
+                  arguments="D:\Design & Source Code\Source Coding\BudgetsSystem\manage.py runserver 0.0.0.0:%HTTP_PLATFORM_PORT%"
+                  stdoutLogEnabled="true"
+                  stdoutLogFile="D:\Design & Source Code\Source Coding\BudgetsSystem\python.log"
+                  startupTimeLimit="60"
+                  processesPerApplication="16">
+      <environmentVariables>
+        <environmentVariable name="SERVER_PORT" value="%HTTP_PLATFORM_PORT%" />
+      </environmentVariables>
+    </httpPlatform>
+  </system.webServer>
+</configuration>

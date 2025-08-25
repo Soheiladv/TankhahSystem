@@ -1,0 +1,37 @@
+<?xml version="1.0" standalone="yes"?>
+<RECORDS>
+	<RECORD>
+		<id>1</id>
+		<action_type>STAGE_CHANGE</action_type>
+		<is_active>1</is_active>
+		<post_id>7</post_id>
+		<stage_id>2</stage_id>
+		<entity_type>FACOTR</entity_type>
+		<triggers_payment_order>0</triggers_payment_order>
+		<min_level/>
+		<allowed_actions/>
+	</RECORD>
+	<RECORD>
+		<id>2</id>
+		<action_type>STAGE_CHANGE</action_type>
+		<is_active>1</is_active>
+		<post_id>3</post_id>
+		<stage_id>4</stage_id>
+		<entity_type>FACTOR</entity_type>
+		<triggers_payment_order>0</triggers_payment_order>
+		<min_level/>
+		<allowed_actions/>
+	</RECORD>
+	<RECORD>
+		<id>4</id>
+		<action_type>APPROVE</action_type>
+		<is_active>1</is_active>
+		<post_id>6</post_id>
+		<stage_id>1</stage_id>
+		<entity_type>FACTORITEM</entity_type>
+		<triggers_payment_order>0</triggers_payment_order>
+		<min_level/>
+		<allowed_actions/>
+	</RECORD>
+</RECORDS>
+

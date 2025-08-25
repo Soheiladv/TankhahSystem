@@ -1,0 +1,100 @@
+<?xml version="1.0" standalone="yes"?>
+<RECORDS>
+	<RECORD>
+		<id>1</id>
+		<name>پیش‌نویس</name>
+		<code>DRAFT</code>
+		<description>پیش‌نویس</description>
+		<is_initial>1</is_initial>
+		<is_final_approve>0</is_final_approve>
+		<is_final_reject>0</is_final_reject>
+		<is_active>1</is_active>
+		<created_by_id>2</created_by_id>
+		<created_at>6/8/2025 19:20:11</created_at>
+	</RECORD>
+	<RECORD>
+		<id>2</id>
+		<name>در انتظار تأیید</name>
+		<code>PENDING_APPROVAL</code>
+		<description>تأیید میانی</description>
+		<is_initial>0</is_initial>
+		<is_final_approve>0</is_final_approve>
+		<is_final_reject>0</is_final_reject>
+		<is_active>1</is_active>
+		<created_by_id>2</created_by_id>
+		<created_at>6/8/2025 19:20:51</created_at>
+	</RECORD>
+	<RECORD>
+		<id>3</id>
+		<name>تأیید میانی</name>
+		<code>APPROVED_INTERMEDIATE</code>
+		<description>تأیید میانی</description>
+		<is_initial>0</is_initial>
+		<is_final_approve>0</is_final_approve>
+		<is_final_reject>0</is_final_reject>
+		<is_active>1</is_active>
+		<created_by_id>2</created_by_id>
+		<created_at>6/8/2025 19:21:23</created_at>
+	</RECORD>
+	<RECORD>
+		<id>11</id>
+		<name>تأیید نهایی</name>
+		<code>APPROVED_FINAL</code>
+		<description>APPROVED_FINAL</description>
+		<is_initial>0</is_initial>
+		<is_final_approve>1</is_final_approve>
+		<is_final_reject>0</is_final_reject>
+		<is_active>1</is_active>
+		<created_by_id>1</created_by_id>
+		<created_at>6/8/2025 23:12:29</created_at>
+	</RECORD>
+	<RECORD>
+		<id>12</id>
+		<name>رد شده</name>
+		<code>REJECTED</code>
+		<description>رد شده</description>
+		<is_initial>0</is_initial>
+		<is_final_approve>0</is_final_approve>
+		<is_final_reject>1</is_final_reject>
+		<is_active>1</is_active>
+		<created_by_id>1</created_by_id>
+		<created_at>6/8/2025 23:12:29</created_at>
+	</RECORD>
+	<RECORD>
+		<id>13</id>
+		<name>پرداخت شده</name>
+		<code>PAID</code>
+		<description>پرداخت شده</description>
+		<is_initial>0</is_initial>
+		<is_final_approve>1</is_final_approve>
+		<is_final_reject>0</is_final_reject>
+		<is_active>1</is_active>
+		<created_by_id>1</created_by_id>
+		<created_at>6/8/2025 23:12:29</created_at>
+	</RECORD>
+	<RECORD>
+		<id>14</id>
+		<name>تأیید جزئی</name>
+		<code>PARTIAL</code>
+		<description>تأیید جزئی</description>
+		<is_initial>0</is_initial>
+		<is_final_approve>0</is_final_approve>
+		<is_final_reject>0</is_final_reject>
+		<is_active>1</is_active>
+		<created_by_id>1</created_by_id>
+		<created_at>6/8/2025 23:12:29</created_at>
+	</RECORD>
+	<RECORD>
+		<id>15</id>
+		<name>test</name>
+		<code>TEST</code>
+		<description>tesxt</description>
+		<is_initial>0</is_initial>
+		<is_final_approve>0</is_final_approve>
+		<is_final_reject>1</is_final_reject>
+		<is_active>0</is_active>
+		<created_by_id>2</created_by_id>
+		<created_at>6/8/2025 20:03:49</created_at>
+	</RECORD>
+</RECORDS>
+

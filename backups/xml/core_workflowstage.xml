@@ -1,0 +1,148 @@
+<?xml version="1.0" standalone="yes"?>
+<RECORDS>
+	<RECORD>
+		<id>1</id>
+		<name>بررسی اولیه</name>
+		<order>1</order>
+		<description>بررسی اولیه</description>
+		<is_active>1</is_active>
+		<is_final_stage>0</is_final_stage>
+		<triggers_payment_order/>
+		<auto_advance>1</auto_advance>
+		<entity_type>TANKHAH</entity_type>
+		<min_signatures>1</min_signatures>
+	</RECORD>
+	<RECORD>
+		<id>2</id>
+		<name>تأیید میانی</name>
+		<order>2</order>
+		<description>تأیید میانی</description>
+		<is_active>1</is_active>
+		<is_final_stage>0</is_final_stage>
+		<triggers_payment_order>0</triggers_payment_order>
+		<auto_advance>1</auto_advance>
+		<entity_type>FACTOR</entity_type>
+		<min_signatures>1</min_signatures>
+	</RECORD>
+	<RECORD>
+		<id>3</id>
+		<name>تأیید نهایی</name>
+		<order>3</order>
+		<description>تأیید نهایی</description>
+		<is_active>1</is_active>
+		<is_final_stage>0</is_final_stage>
+		<triggers_payment_order>1</triggers_payment_order>
+		<auto_advance>1</auto_advance>
+		<entity_type>FACTOR</entity_type>
+		<min_signatures>1</min_signatures>
+	</RECORD>
+	<RECORD>
+		<id>4</id>
+		<name>بررسی کارشناس تنخواه گردان شعبات</name>
+		<order>4</order>
+		<description>بررسی کارشناس تنخواه گردان شعبات</description>
+		<is_active>1</is_active>
+		<is_final_stage>0</is_final_stage>
+		<triggers_payment_order>0</triggers_payment_order>
+		<auto_advance>1</auto_advance>
+		<entity_type>FACTOR</entity_type>
+		<min_signatures>1</min_signatures>
+	</RECORD>
+	<RECORD>
+		<id>5</id>
+		<name>بررسی مدیر شعبات</name>
+		<order>5</order>
+		<description>بررسی مدیر شعبات</description>
+		<is_active>1</is_active>
+		<is_final_stage>0</is_final_stage>
+		<triggers_payment_order/>
+		<auto_advance>1</auto_advance>
+		<entity_type>FACTOR</entity_type>
+		<min_signatures>1</min_signatures>
+	</RECORD>
+	<RECORD>
+		<id>6</id>
+		<name>بررسی دفتر مرکزی - کارشناس تنخواه گردان</name>
+		<order>6</order>
+		<description>بررسی دفتر مرکزی - کارشناس تنخواه گردان</description>
+		<is_active>1</is_active>
+		<is_final_stage>0</is_final_stage>
+		<triggers_payment_order/>
+		<auto_advance>1</auto_advance>
+		<entity_type>TANKHAH</entity_type>
+		<min_signatures>1</min_signatures>
+	</RECORD>
+	<RECORD>
+		<id>7</id>
+		<name>بررسی دفتر مرکزی - مدیر بهره برداری تنخواه گردان</name>
+		<order>7</order>
+		<description>بررسی دفتر مرکزی - مدیر بهره برداری تنخواه گردان</description>
+		<is_active>1</is_active>
+		<is_final_stage>0</is_final_stage>
+		<triggers_payment_order>0</triggers_payment_order>
+		<auto_advance>1</auto_advance>
+		<entity_type>FACTOR</entity_type>
+		<min_signatures>1</min_signatures>
+	</RECORD>
+	<RECORD>
+		<id>8</id>
+		<name>بررسی دفتر مرکزی - معاون بهره برداری تنخواه گردان</name>
+		<order>8</order>
+		<description>بررسی دفتر مرکزی - معاون بهره برداری تنخواه گردان</description>
+		<is_active>1</is_active>
+		<is_final_stage>0</is_final_stage>
+		<triggers_payment_order/>
+		<auto_advance>1</auto_advance>
+		<entity_type>FACTOR</entity_type>
+		<min_signatures>1</min_signatures>
+	</RECORD>
+	<RECORD>
+		<id>9</id>
+		<name>دفتر مرکزی - معاون اداری مالی</name>
+		<order>9</order>
+		<description>دفتر مرکزی - معاون اداری مالی  تنخواه گردان</description>
+		<is_active>1</is_active>
+		<is_final_stage>1</is_final_stage>
+		<triggers_payment_order>1</triggers_payment_order>
+		<auto_advance>1</auto_advance>
+		<entity_type>FACTOR</entity_type>
+		<min_signatures>1</min_signatures>
+	</RECORD>
+	<RECORD>
+		<id>10</id>
+		<name>مدیریت بودجه و تنخواه گردان سازمان ( دفتر مرکزی )مراحل گردش کار</name>
+		<order>10</order>
+		<description>مدیریت بودجه و تنخواه گردان سازمان ( دفتر مرکزی ) مراحل گردش کار</description>
+		<is_active>1</is_active>
+		<is_final_stage>0</is_final_stage>
+		<triggers_payment_order/>
+		<auto_advance>1</auto_advance>
+		<entity_type>FACTOR</entity_type>
+		<min_signatures>1</min_signatures>
+	</RECORD>
+	<RECORD>
+		<id>11</id>
+		<name>رئیس حسابداری دفتر مرکزی</name>
+		<order>7</order>
+		<description>رئیس حسابداری دفتر مرکزی</description>
+		<is_active>1</is_active>
+		<is_final_stage>0</is_final_stage>
+		<triggers_payment_order>1</triggers_payment_order>
+		<auto_advance>1</auto_advance>
+		<entity_type>TANKHAH</entity_type>
+		<min_signatures>1</min_signatures>
+	</RECORD>
+	<RECORD>
+		<id>12</id>
+		<name>تأیید میانی</name>
+		<order>2</order>
+		<description>تأیید میانی</description>
+		<is_active>1</is_active>
+		<is_final_stage>0</is_final_stage>
+		<triggers_payment_order>0</triggers_payment_order>
+		<auto_advance>1</auto_advance>
+		<entity_type>TANKHAH</entity_type>
+		<min_signatures>1</min_signatures>
+	</RECORD>
+</RECORDS>
+

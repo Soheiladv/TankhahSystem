@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load i18n static   %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-lg border-0 rounded-lg mt-4">
+            <!-- هدر کارت با طراحی مدرن -->
+            <div class="card-header bg-gradient-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-tags me-2"></i>
+                        {{ title }}
+                    </h3>
+                    <a href="{% url 'status_list' %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-list me-1"></i> {% trans "مشاهده همه وضعیت‌ها" %}
+                    </a>
+                </div>
+            </div>
+            
+            <!-- بدنه فرم -->
+            <div class="card-body">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if is_update_mode %}
+                    <div class="alert alert-warning alert-dismissible fade show">
+                        <div class="d-flex">
+                            <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                            <div>
+                                <h5 class="alert-heading">{% trans "توجه!" %}</h5>
+                                <p class="mb-0">
+                                    {% trans "با ایجاد نسخه جدید، وضعیت فعلی به صورت خودکار بازنشسته خواهد شد." %}
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endif %}
+
+                    <!-- فیلدهای فرم -->
+                    <div class="row g-3 mb-4">
+                        <!-- نام وضعیت -->
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                {{ form.name  }}
+                                <label for="{{ form.name.id_for_label }}" class="form-label">
+                                    <i class="fas fa-heading me-1 text-muted"></i>
+                                    {{ form.name.label }}
+                                </label>
+                                <div class="invalid-feedback">
+                                    {% trans "لطفاً نام وضعیت را وارد کنید" %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- کد وضعیت -->
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                {{ form.code  }}
+                                <label for="{{ form.code.id_for_label }}" class="form-label">
+                                    <i class="fas fa-code me-1 text-muted"></i>
+                                    {{ form.code.label }}
+                                </label>
+                                <small class="form-text text-muted">
+                                    {% trans "فقط حروف لاتین، اعداد و زیرخط مجاز است" %}
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- توضیحات -->
+                        <div class="col-12">
+                            <div class="form-floating">
+                                {{ form.description  }}
+                                <label for="{{ form.description.id_for_label }}" class="form-label">
+                                    <i class="fas fa-align-left me-1 text-muted"></i>
+                                    {{ form.description.label }}
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- وضعیت‌های خاص -->
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                {{ form.is_initial }}
+                                <label class="form-check-label" for="{{ form.is_initial.id_for_label }}">
+                                    <i class="fas fa-play-circle me-1 text-primary"></i>
+                                    {{ form.is_initial.label }}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                {{ form.is_final_approve }}
+                                <label class="form-check-label" for="{{ form.is_final_approve.id_for_label }}">
+                                    <i class="fas fa-check-circle me-1 text-success"></i>
+                                    {{ form.is_final_approve.label }}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                {{ form.is_final_reject }}
+                                <label class="form-check-label" for="{{ form.is_final_reject.id_for_label }}">
+                                    <i class="fas fa-times-circle me-1 text-danger"></i>
+                                    {{ form.is_final_reject.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- دکمه‌های فرم -->
+                    <div class="d-flex justify-content-between border-top pt-4">
+                        <a href="{% url 'status_list' %}" class="btn btn-outline-secondary px-4">
+                            <i class="fas fa-arrow-right me-1"></i>
+                            {% trans "انصراف" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-save me-1"></i>
+                            {% trans "ذخیره تغییرات" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- فوتر کارت -->
+            <div class="card-footer bg-light">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    {% trans "وضعیت‌ها تعیین‌کننده مراحل مختلف گردش کار در سیستم هستند." %}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    }
+    .form-floating label {
+        padding-right: 3rem;
+    }
+    .form-switch .form-check-input {
+        width: 2.5em;
+        margin-left: 0;
+        margin-right: -3em;
+    }
+    .form-switch .form-check-label {
+        padding-right: 3.5em;
+    }
+    .invalid-feedback {
+        display: none;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: .875em;
+        color: #dc3545;
+    }
+    .was-validated .form-control:invalid ~ .invalid-feedback {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // اعتبارسنجی کد به صورت حروف لاتین
+    $('#id_code').on('input', function() {
+        this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '').toUpperCase();
+    });
+    
+    // اعتبارسنجی فرم
+    $('.needs-validation').on('submit', function(e) {
+        if (!this.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        this.classList.add('was-validated');
+    });
+    
+    // راهنمای ابزاری
+    $('[data-bs-toggle="tooltip"]').tooltip({
+        placement: 'right'
+    });
+    
+    // تغییر رنگ سوییچ‌ها
+    $('.form-switch .form-check-input').change(function() {
+        const label = $(this).next('.form-check-label');
+        if ($(this).is(':checked')) {
+            label.find('i').css('color', '#4e73df');
+        } else {
+            label.find('i').css('color', '#6c757d');
+        }
+    });
+});
+</script>
+{% endblock %}

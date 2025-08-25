@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سیستم جامع بودجه بندی سازمانی و تنخواه‌گردانی</title>
+    
+    <!-- فونت‌ها -->
+{#    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/vazirmatn@5.0.1/css/vazirmatn.min.css">#}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- استایل‌های اصلی -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
+    
+    <!-- استایل‌های سفارشی -->
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --dark-color: #1a1a2e;
+            --light-color: #f8f9fa;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f5f7fa;
+            overflow-x: hidden;
+        }
+        
+        /* نوار بالایی */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 0.8rem 1rem;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .navbar-brand img {
+            height: 40px;
+            margin-left: 10px;
+        }
+        
+        .nav-link {
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* نوار کناری */
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            right: -280px;
+            background: linear-gradient(180deg, var(--dark-color), #16213e);
+            color: white;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+        
+        .sidebar.active {
+            right: 0;
+        }
+        
+        .sidebar-header {
+            padding: 1.5rem;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-header img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid var(--accent-color);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-header img:hover {
+            transform: scale(1.05) rotate(5deg);
+        }
+        
+        .sidebar-header h5 {
+            font-weight: 600;
+            margin-bottom: 0;
+        }
+        
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+        
+        .nav-link-sidebar {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            margin: 0 0.5rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-link-sidebar i {
+            width: 24px;
+            text-align: center;
+            margin-left: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .nav-link-sidebar:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(-5px);
+        }
+        
+        .nav-link-sidebar.active {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 500;
+        }
+        
+        /* محتوای اصلی */
+        .content {
+            margin-right: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: calc(100vh - 70px);
+            padding-top: 70px;
+        }
+        
+        .content.shifted {
+            margin-right: 280px;
+        }
+        
+        /* کارت‌ها */
+        .card {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        /* دکمه‌ها */
+        .btn {
+            border-radius: 0.5rem;
+            font-weight: 500;
+            padding: 0.5rem 1.25rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        /* اعلان‌ها */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.7rem;
+            padding: 3px 6px;
+            border-radius: 50%;
+            background-color: var(--danger-color);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .notification-list {
+            max-height: 400px;
+            overflow-y: auto;
+            min-width: 320px;
+            padding: 0;
+        }
+        
+        .notification-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .notification-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .notification-item.unread {
+            background-color: #e9f7ff;
+            border-right: 3px solid var(--primary-color);
+        }
+        
+        /* انیمیشن‌های سفارشی */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-in-right {
+            animation: slideInRight 0.5s ease-out;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* تاریخ و ساعت */
+        #datetime {
+            font-family: 'Vazirmatn', sans-serif;
+            direction: ltr;
+            display: inline-block;
+        }
+        
+        /* فوتر */
+        .footer {
+            background-color: white;
+            padding: 1.5rem;
+            text-align: center;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            margin-top: 2rem;
+        }
+        
+        /* دکمه باز/بست نوار کناری */
+        #sidebarToggle {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 999;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        #sidebarToggle:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.1);
+        }
+        
+        /* رسپانسیو */
+        @media (max-width: 992px) {
+            .sidebar {
+                right: -280px;
+            }
+            
+            .sidebar.active {
+                right: 0;
+            }
+            
+            .content.shifted {
+                margin-right: 0;
+            }
+        }
+        
+        /* اسکرول بار سفارشی */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- نوار بالایی -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand animate__animated animate__fadeInLeft" href="#">
+                <img src="https://via.placeholder.com/40x40" alt="لوگو">
+                <span class="ms-2 d-none d-md-inline">سیستم بودجه سازمانی</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link animate__animated animate__fadeInDown" href="#"><i class="fas fa-home me-1"></i> خانه</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link animate__animated animate__fadeInDown" href="#"><i class="fas fa-tachometer-alt me-1"></i> داشبورد</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link animate__animated animate__fadeInDown" href="#"><i class="fas fa-building me-1"></i> سازمان‌ها</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link animate__animated animate__fadeInDown" href="#"><i class="fas fa-project-diagram me-1"></i> بودجه‌بندی</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link animate__animated animate__fadeInDown" href="#"><i class="fas fa-file-invoice me-1"></i> تنخواه‌ها</a>
+                    </li>
+                    
+                    <li class="nav-item animate__animated animate__fadeInDown ms-3">
+                        <span class="nav-link">
+                            <i class="fas fa-calendar-day me-1"></i>
+                            <span id="datetime" class="fw-bold"></span>
+                        </span>
+                    </li>
+                    
+                    <li class="nav-item animate__animated animate__fadeInDown ms-3">
+                        <span class="nav-link">
+                            <i class="fas fa-user me-1"></i> مدیر سیستم
+                        </span>
+                    </li>
+                    
+                    <li class="nav-item dropdown animate__animated animate__fadeInDown">
+                        <a class="nav-link dropdown-toggle position-relative" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge">3</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end notification-list" aria-labelledby="notificationDropdown">
+                            <li class="dropdown-header">اعلان‌ها</li>
+                            <li class="notification-item unread">
+                                <a class="dropdown-item" href="#">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-bell me-2 text-primary"></i>
+                                        <div>
+                                            <p class="mb-0">درخواست بودجه جدید ثبت شد</p>
+                                            <small class="text-muted">2 ساعت پیش</small>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="notification-item">
+                                <a class="dropdown-item" href="#">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-check-circle me-2 text-success"></i>
+                                        <div>
+                                            <p class="mb-0">تنخواه شما تایید شد</p>
+                                            <small class="text-muted">دیروز</small>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="notification-item unread">
+                                <a class="dropdown-item" href="#">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+                                        <div>
+                                            <p class="mb-0">مهلت ارسال گزارش نزدیک است</p>
+                                            <small class="text-muted">1 روز پیش</small>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-center" href="#">مشاهده همه اعلان‌ها</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- دکمه باز کردن نوار کناری -->
+    <button class="btn btn-primary animate__animated animate__fadeInRight" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- نوار کناری -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header animate__animated animate__fadeInDown">
+            <img src="https://via.placeholder.com/150" alt="پروفایل" class="img-fluid rounded-circle mb-2">
+            <h5>سیستم بودجه سازمانی</h5>
+        </div>
+        
+        <ul class="nav flex-column p-3">
+            <li class="nav-item">
+                <a href="#" class="nav-link-sidebar animate__animated animate__fadeInRight active">
+                    <i class="fas fa-home"></i> خانه
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link-sidebar animate__animated animate__fadeInRight">
+                    <i class="fas fa-tachometer-alt"></i> داشبورد
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link-sidebar animate__animated animate__fadeInRight">
+                    <i class="fas fa-link"></i> همه لینک‌ها
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link-sidebar animate__animated animate__fadeInRight">
+                    <i class="fas fa-building"></i> سازمان‌ها
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link-sidebar animate__animated animate__fadeInRight">
+                    <i class="fas fa-project-diagram"></i> بودجه بندی
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link-sidebar animate__animated animate__fadeInRight">
+                    <i class="fas fa-project-diagram"></i> مرکز هزینه
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link-sidebar animate__animated animate__fadeInRight">
+                    <i class="fas fa-file-invoice"></i> تنخواه‌ها
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link-sidebar animate__animated animate__fadeInRight">
+                    <i class="fas fa-file-invoice"></i> فاکتور
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link-sidebar animate__animated animate__fadeInRight">
+                    <i class="fas fa-book-open"></i> راهنما
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link-sidebar animate__animated animate__fadeInRight">
+                    <i class="fas fa-cog"></i> تنظیمات
+                </a>
+            </li>
+        </ul>
+        
+        <div class="p-3 mt-auto">
+            <div class="d-flex align-items-center mb-3">
+                <img src="https://via.placeholder.com/40" alt="پروفایل" class="rounded-circle me-2" width="40" height="40">
+                <div>
+                    <p class="mb-0 text-white">مدیر سیستم</p>
+                    <small class="text-muted">سطح دسترسی: مدیرکل</small>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <select class="form-select bg-dark text-white border-0" onchange="changeTheme(this)">
+                    <option value="light">تم روشن</option>
+                    <option value="dark">تم تاریک</option>
+                    <option value="blue">تم آبی</option>
+                </select>
+            </div>
+            
+            <button class="btn btn-outline-light w-100 rounded-pill animate__animated animate__fadeInUp">
+                <i class="fas fa-sign-out-alt me-2"></i> خروج
+            </button>
+        </div>
+    </div>
+    
+    <!-- محتوای اصلی -->
+    <main class="content" id="mainContent">
+        <div class="container-fluid mt-5 pt-3">
+            <div class="row">
+                <div class="col-md-6 col-lg-3">
+                    <div class="card animate__animated animate__fadeInUp">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-primary">بودجه کل سازمان</h5>
+                            <h2 class="text-success">12,850,000,000 <small>ریال</small></h2>
+                            <p class="text-muted">سال مالی 1403</p>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <small class="text-muted">65% مصرف شده</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.1s">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-primary">درخواست‌های جدید</h5>
+                            <h2 class="text-warning">24 <small>مورد</small></h2>
+                            <p class="text-muted">در انتظار تایید</p>
+                            <a href="#" class="btn btn-sm btn-outline-primary">مشاهده همه</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.2s">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-primary">تنخواه‌های جاری</h5>
+                            <h2 class="text-info">8 <small>مورد</small></h2>
+                            <p class="text-muted">در حال پردازش</p>
+                            <a href="#" class="btn btn-sm btn-outline-primary">مشاهده همه</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.3s">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-primary">پروژه‌های فعال</h5>
+                            <h2 class="text-danger">15 <small>پروژه</small></h2>
+                            <p class="text-muted">در حال اجرا</p>
+                            <a href="#" class="btn btn-sm btn-outline-primary">مشاهده همه</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-lg-8">
+                    <div class="card animate__animated animate__fadeInLeft">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">وضعیت بودجه به تفکیک واحدها</h5>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    سال 1403
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">1402</a></li>
+                                    <li><a class="dropdown-item" href="#">1401</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="budgetChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card animate__animated animate__fadeInRight">
+                        <div class="card-header">
+                            <h5 class="mb-0">آخرین درخواست‌ها</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">درخواست خرید تجهیزات</h6>
+                                        <small class="text-muted">2 ساعت پیش</small>
+                                    </div>
+                                    <p class="mb-1">واحد فناوری اطلاعات</p>
+                                    <small class="text-success">تایید شده</small>
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">پروژه توسعه سیستم</h6>
+                                        <small class="text-muted">دیروز</small>
+                                    </div>
+                                    <p class="mb-1">واحد توسعه</p>
+                                    <small class="text-warning">در انتظار تایید</small>
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">خرید ملزومات اداری</h6>
+                                        <small class="text-muted">2 روز پیش</small>
+                                    </div>
+                                    <p class="mb-1">واحد اداری</p>
+                                    <small class="text-danger">رد شده</small>
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">پروژه بازاریابی</h6>
+                                        <small class="text-muted">3 روز پیش</small>
+                                    </div>
+                                    <p class="mb-1">واحد بازاریابی</p>
+                                    <small class="text-success">تایید شده</small>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- فوتر -->
+    <footer class="footer animate__animated animate__fadeInUp">
+        <div class="container">
+            <p class="mb-0">© 1403 سیستم جامع بودجه بندی سازمانی و تنخواه‌گردانی. همه حقوق محفوظ است.</p>
+        </div>
+    </footer>
+    
+    <!-- اسکریپت‌ها -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <script>
+        // تاریخ و ساعت
+        function updateDateTime() {
+            const now = new Date();
+            const options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            $('#datetime').text(now.toLocaleDateString('fa-IR', options));
+        }
+        
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+        
+        // نوار کناری
+        const sidebar = $('#sidebar');
+        const toggleBtn = $('#sidebarToggle');
+        const content = $('#mainContent');
+        
+        toggleBtn.on('click', function() {
+            sidebar.toggleClass('active');
+            content.toggleClass('shifted');
+            
+            if (sidebar.hasClass('active')) {
+                toggleBtn.html('<i class="fas fa-times"></i>');
+                toggleBtn.addClass('btn-danger').removeClass('btn-primary');
+            } else {
+                toggleBtn.html('<i class="fas fa-bars"></i>');
+                toggleBtn.addClass('btn-primary').removeClass('btn-danger');
+            }
+        });
+        
+        // تغییر تم
+        function changeTheme(select) {
+            const theme = select.value;
+            $('body').removeClass('theme-light theme-dark theme-blue').addClass('theme-' + theme);
+            
+            if (theme === 'dark') {
+                $('.card').addClass('bg-dark text-white');
+                $('.list-group-item').addClass('bg-dark text-white');
+            } else {
+                $('.card').removeClass('bg-dark text-white');
+                $('.list-group-item').removeClass('bg-dark text-white');
+            }
+        }
+        
+        // نمودار بودجه
+        const ctx = document.getElementById('budgetChart').getContext('2d');
+        const budgetChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['فناوری اطلاعات', 'توسعه', 'بازاریابی', 'اداری', 'مالی', 'پشتیبانی'],
+                datasets: [{
+                    label: 'بودجه تخصیص یافته',
+                    data: [1200000000, 850000000, 650000000, 450000000, 950000000, 550000000],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)',
+                        'rgba(199, 199, 199, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(199, 199, 199, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y.toLocaleString('fa-IR') + ' ریال';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('fa-IR');
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // انیمیشن اسکرول
+        $(window).scroll(function() {
+            $('.animate-on-scroll').each(function() {
+                const position = $(this).offset().top;
+                const scroll = $(window).scrollTop();
+                const windowHeight = $(window).height();
+                
+                if (scroll > position - windowHeight + 100) {
+                    $(this).addClass('animate__animated animate__fadeInUp');
+                }
+            });
+        });
+        
+        // انتخاب‌گرها
+        $('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
+    </script>
+</body>
+</html> {% load static i18n humanize jformat rcms_custom_filters jalali_tags   %}
