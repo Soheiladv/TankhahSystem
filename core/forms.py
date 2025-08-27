@@ -391,6 +391,14 @@ class UserPostForm(forms.ModelForm):
     فرم برای ایجاد یا به‌روزرسانی اتصال کاربر به پست.
     مسئولیت: اعتبارسنجی و فیلتر کردن کاربران و پست‌های مجاز.
     """
+    class Meta:
+        model = UserPost
+        fields = ['user', 'post', 'is_active']
+        widgets = {
+            'user': forms.Select(attrs={'class': 'form-control'}),
+            'post': forms.Select(attrs={'class': 'form-control'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+     }
     start_date = forms.CharField(
         label=_('تاریخ شروع فعالیت '),
         widget=forms.TextInput(attrs={
@@ -407,16 +415,6 @@ class UserPostForm(forms.ModelForm):
             'placeholder': _('1404/01/17'),
         })
     )
-    class Meta:
-        model = UserPost
-        fields = ['user', 'post', 'is_active']
-        widgets = {
-            'user': forms.Select(attrs={'class': 'form-control'}),
-            'post': forms.Select(attrs={'class': 'form-control'}),
-            # 'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            # 'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        }
     def clean_start_date(self):
         """اعتبارسنجی تاریخ جلالی"""
         date_str = self.cleaned_data.get('start_date')

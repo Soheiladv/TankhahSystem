@@ -4,6 +4,7 @@ from decimal import Decimal
 from time import timezone
 
 from django.db.models.functions import Coalesce
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from tankhah.models import Tankhah,  StageApprover
 from django.contrib import messages
@@ -1577,6 +1578,39 @@ class UserPostDeleteView(PermissionBaseView, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('اتصال کاربر به پست با موفقیت حذف شد.'))
         return super().delete(request, *args, **kwargs)
+#     ==================================================
+def search_posts_autocomplete(request):
+    """
+    ویو برای جستجوی خودکار پست‌ها بر اساس نام، به صورت AJAX.
+    """
+    # دریافت عبارت جستجو از درخواست
+    query = request.GET.get('q', '')
+
+    # دریافت سازمان‌های مجاز برای کاربر جاری
+    # این بخش برای اعمال محدودیت دسترسی به پست‌های سازمان‌های خاص است
+    user_orgs = set()
+    if not request.user.is_superuser:
+        user_orgs = {
+            up.post.organization for up in request.user.userpost_set.filter(is_active=True)
+            if up.post.organization and not up.post.organization.is_core and not up.post.organization.is_holding
+        }
+
+    # فیلتر کردن پست‌ها
+    posts = Post.objects.filter(
+        Q(name__icontains=query) | Q(code__icontains=query)
+    ).order_by('name')
+
+    # اعمال محدودیت سازمان برای کاربران غیرسوپریوزر
+    if user_orgs:
+        posts = posts.filter(organization__in=user_orgs)
+
+    # تبدیل نتایج به فرمت JSON
+    data = [
+        {'id': post.id, 'text': f"{post.name} ({post.code})"}
+        for post in posts[:10]  # محدود کردن نتایج به ۱۰ مورد
+    ]
+    return JsonResponse(data, safe=False)
+
 #     ==================================================
 # --- PostHistory Views ---
 class PostHistoryListView(PermissionBaseView, ListView):
