@@ -39,7 +39,7 @@ from tankhah.views import (itemcategory_list,itemcategory_create,itemcategory_up
 urlpatterns = [
     # path('', DashboardView.as_view(), name='dashboard'),
     path('tankhah/', TankhahListView.as_view(), name='tankhah_list'),
-    path('tankhah/<int:pk>/'       , TankhahDetailView.as_view(),        name='tankhah_detail'),
+    path('tankhah/<int:pk>/' , TankhahDetailView.as_view(),        name='tankhah_detail'),
 
     path('tankhah/create/', TankhahCreateView.as_view(), name='tankhah_create'),
     path('tankhah/update/<int:pk>/', TankhahUpdateView.as_view(), name='tankhah_update'),

@@ -147,7 +147,7 @@
                 <div class="card-header">
                     <i class="fas fa-file-invoice"></i>{% translate "فاکتورهای ثبت شده برای این تنخواه" %}
                     {% if not tankhah.is_locked and not tankhah.is_archived and perms.tankhah.add_factor %} {# یا هر شرطی برای قفل نبودن #}
-                        <a href="{% url 'factor_create'  %}" class="btn btn-sm btn-outline-success float-end no-print">
+                        <a href="{% url 'Nfactor_create'  %}" class="btn btn-sm btn-outline-success float-end no-print">
                             <i class="fas fa-plus-circle me-1"></i>{% translate "افزودن فاکتور جدید" %}
                         </a>
                     {% endif %}
@@ -172,16 +172,16 @@
                                 <tr>
                                     <td>{{ forloop.counter|to_persian_number }}</td>
                                     <td>
-                                        <a href="{% url 'factor_detail' pk=factor.pk %}">{{ factor.number|default_if_none:"-" }}</a>
+{#                                        <a href="{% url 'advance_factor_detailA' pk=factor.pk %}">{{ factor.number|default_if_none:"-" }}</a>#}
                                     </td>
                                     <td>{{ factor.jalali_date|to_persian_number|default:"-" }}</td>
                                     <td class="text-end fw-bold">{{ factor.amount|intcomma:False|to_persian_number }}</td>
                                     <td class="text-center"><span class="badge bg-{{ factor.status|lower }}_badge">{{ factor.get_status_display }}</span></td>
                                     <td>{{ factor.category.name|default:"-" }}</td>
                                     <td class="no-print">
-                                        <a href="{% url 'factor_detail' pk=factor.pk %}" class="btn btn-sm btn-outline-primary py-0 px-1" title="{% translate 'مشاهده جزئیات' %}">
-                                            <i class="fas fa-eye fa-xs"></i>
-                                        </a>
+{#                                        <a href="{% url 'factor_detail' pk=factor.pk %}" class="btn btn-sm btn-outline-primary py-0 px-1" title="{% translate 'مشاهده جزئیات' %}">#}
+{#                                            <i class="fas fa-eye fa-xs"></i>#}
+{#                                        </a>#}
                                         {% if not factor.is_locked and perms.tankhah.change_factor %} {# یا هر شرطی برای ویرایش #}
                                         <a href="{% url 'factor_edit' pk=factor.pk %}" class="btn btn-sm btn-outline-warning py-0 px-1 ms-1" title="{% translate 'ویرایش فاکتور' %}">
                                             <i class="fas fa-edit fa-xs"></i>

@@ -558,49 +558,58 @@ def get_budget_info(request):
         logger.error(f'خطا در get_budget_info: {str(e)}')
         return JsonResponse({'total_budget': 0, 'remaining_budget': 0}, status=500)
 
+
 def get_tankhah_budget_info(request):
-    from tankhah.models import Tankhah
+    logger.info('Start get_tankhah_budget_info')
     tankhah_id = request.GET.get('tankhah_id')
     if not tankhah_id:
         logger.error("No tankhah_id provided in get_tankhah_budget_info")
         return JsonResponse({'error': 'Tankhah ID is required'}, status=400)
+
     try:
-        # دریافت تنخواه با روابط مرتبط
+        logger.info('Step 1: Fetching Tankhah with related models')
         tankhah = Tankhah.objects.select_related(
             'project', 'project_budget_allocation', 'organization'
         ).get(id=tankhah_id)
+
         project = tankhah.project
         allocation = tankhah.project_budget_allocation
 
         if not allocation:
-            logger.error(f"No project_budget_allocation     for tankhah {tankhah.number}")
+            logger.error(f"No project_budget_allocation for tankhah {tankhah.number}")
             return JsonResponse({'error': 'No budget allocation for this tankhah'}, status=400)
 
-        # محاسبه اطلاعات بودجه
+        logger.info('Step 2: Calculating budget info')
         from budgets.models import BudgetTransaction
         budget_info = {
             'project_name': project.name if project else '-',
-            'project_budget': str(get_project_total_budget(project) or Decimal('0')),
-            'project_consumed': str(get_project_used_budget(project) or Decimal('0')),
-            'project_returned': str(
+            'project_budget': decimal_to_clean_str(get_project_total_budget(project) or Decimal('0')),
+            'project_consumed': decimal_to_clean_str(get_project_used_budget(project) or Decimal('0')),
+            'project_returned': decimal_to_clean_str(
                 BudgetTransaction.objects.filter(
-                    allocation__project=project,  # اصلاح شده
+                    allocation__project=project,
                     transaction_type='RETURN'
                 ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
             ),
-            'project_remaining': str(get_project_remaining_budget(project) or Decimal('0')),
-            'tankhah_budget': str(get_tankhah_total_budget(tankhah) or Decimal('0')),
-            'tankhah_consumed': str(get_tankhah_used_budget(tankhah) or Decimal('0')),
-            'tankhah_remaining': str(get_tankhah_remaining_budget(tankhah) or Decimal('0')),
+            'project_remaining': decimal_to_clean_str(get_project_remaining_budget(project) or Decimal('0')),
+            'tankhah_budget': decimal_to_clean_str(get_tankhah_total_budget(tankhah) or Decimal('0')),
+            'tankhah_consumed': decimal_to_clean_str(get_tankhah_used_budget(tankhah) or Decimal('0')),
+            'tankhah_remaining': decimal_to_clean_str(get_tankhah_remaining_budget(tankhah) or Decimal('0')),
         }
-        logger.info(f"Budget info retrieved for tankhah {tankhah.number}: {budget_info}")
+
+        logger.info(f'Step 3: Budget info retrieved for tankhah {tankhah.number}: {budget_info}')
         return JsonResponse(budget_info)
+
     except Tankhah.DoesNotExist:
         logger.error(f"Tankhah with ID {tankhah_id} not found")
         return JsonResponse({'error': 'Tankhah not found'}, status=404)
+
     except Exception as e:
         logger.error(f"Error in get_tankhah_budget_info: {str(e)}", exc_info=True)
         return JsonResponse({'error': str(e)}, status=500)
+
+def decimal_to_clean_str(value):
+    return str(value).replace(',', '')
 
 """ محاسبه بودجه *واقعی* باقی‌مانده پروژه."""
 def get_actual_project_remaining_budget(project, filters=None):

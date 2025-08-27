@@ -1,7 +1,8 @@
 from django.db.models import Max, Q
 import sys
-sys.stdout.reconfigure(encoding='utf-8')
-sys.stderr.reconfigure(encoding='utf-8')
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 import difflib
 import platform
 import getpass

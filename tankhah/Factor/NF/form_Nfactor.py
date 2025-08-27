@@ -1,28 +1,22 @@
 import logging
-from decimal import Decimal
-
 import jdatetime  # Assuming jdatetime is installed
-from django import forms
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Max
-from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
+from django.db.models import Q
 
 from BudgetsSystem.utils import format_jalali_date, to_english_digits, parse_jalali_date
-from core.models import   Project, SubProject, AccessRule
+from core.models import Project, SubProject, AccessRule, Organization
 from tankhah.models import   FactorItem
-from tankhah.utils import restrict_to_user_organization, get_factor_current_stage
+from tankhah.utils import restrict_to_user_organization
 from django import forms
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
-from django.db.models import Q
 from decimal import Decimal
 import jdatetime
 
 from tankhah.models import Factor, Tankhah, ItemCategory
 from budgets.budget_calculations import get_tankhah_remaining_budget
 from django.utils.translation import gettext_lazy as _
+# ===== CONFIGURATION & CONSTANTS =====
 logger = logging.getLogger('FactorFormsLogger')
 
 ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png']
@@ -248,20 +242,37 @@ class Update_FactorForm(forms.ModelForm):
         cleaned_data = super().clean()
         return cleaned_data
 # -----------------------------------------------------------------------------------------------------------
+
+# ===== UTILITY FUNCTIONS =====
+def parse_jalali_date(date_str):
+    """تبدیل تاریخ جلالی به تاریخ میلادی"""
+    try:
+        if not date_str:
+            raise ValueError("تاریخ ارائه نشده است")
+        year, month, day = map(int, date_str.split('/'))
+        jalali_date = jdatetime.date(year, month, day)
+        return jalali_date.togregorian()
+    except (ValueError, TypeError) as e:
+        logger.error(f"خطا در پردازش تاریخ جلالی: {str(e)}, ورودی: {date_str}")
+        raise forms.ValidationError(_('فرمت تاریخ نامعتبر است. لطفاً از فرمت YYYY/MM/DD استفاده کنید.'))
+# ===== CORE BUSINESS LOGIC =====
 class FactorForm(forms.ModelForm):
     """
     فرم اصلی برای ایجاد یک فاکتور.
     مسئولیت: گرفتن داده‌های کلی فاکتور و اعتبارسنجی اولیه.
     """
     date = forms.CharField(
-        label=_('تاریخ فاکتور'),
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('مثال: 1403/05/15')})
+        label=_('تاریخ ثبت فاکتور'),
+        widget=forms.TextInput(attrs={
+            'data-jdp': '',
+            'class': 'form-control',
+            'placeholder': _('1404/01/17'),
+        })
     )
 
     class Meta:
         model = Factor
         fields = ['tankhah', 'category', 'date', 'amount', 'description']
-        # **نکته:** فیلد 'amount' حذف شد. مبلغ کل باید از مجموع ردیف‌ها محاسبه شود.
         widgets = {
             'tankhah': forms.Select(attrs={'class': 'form-select'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
@@ -272,24 +283,62 @@ class FactorForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        logger.debug(f"[FactorForm] Initializing for user '{self.user.username if self.user else 'Anonymous'}'.")
+        logger.debug(f"[FactorForm] شروع مقداردهی اولیه برای کاربر '{self.user.username if self.user else 'Anonymous'}'.")
 
-        # --- فیلتر کردن هوشمند تنخواه‌ها ---
+        # فیلتر پایه برای تنخواه‌ها
         tankhah_queryset = Tankhah.objects.filter(
             is_archived=False,
-            status__code__in=['DRAFT', 'PENDING'],  # <--- **اصلاح اصلی**
-            due_date__gte=timezone.now()  # استفاده از timezone.now() به‌جای date()
+            status__code__in=['DRAFT', 'PENDING', 'APPROVED'],
+            due_date__gte=timezone.now(),
+            project__isnull=False
         ).select_related('organization', 'project').order_by('-created_at')
 
+        # اعتبارسنجی پروژه‌های معتبر
+        try:
+            tankhah_queryset = tankhah_queryset.filter(project__in=Project.objects.all())
+            logger.debug(f"[FactorForm] تعداد تنخواه‌های با پروژه معتبر: {tankhah_queryset.count()}")
+        except Exception as e:
+            logger.error(f"[FactorForm] خطا در فیلتر کردن تنخواه‌های با پروژه معتبر: {str(e)}", exc_info=True)
+            raise forms.ValidationError(_('خطا در بارگذاری تنخواه‌ها: مشکل در داده‌های پروژه. لطفاً با مدیر سیستم تماس بگیرید.'))
+
+        # فیلتر سطح دسترسی کاربر
         if self.user and not self.user.is_superuser:
-            # ... (منطق فیلتر کردن تنخواه بر اساس سازمان کاربر) ...
-            pass
+            user_posts = self.user.userpost_set.filter(is_active=True).select_related('post__organization')
+            if not user_posts.exists():
+                logger.warning(f"[FactorForm] کاربر '{self.user.username}' هیچ پست فعال سازمانی ندارد")
+                raise forms.ValidationError(_('شما هیچ پست سازمانی فعالی ندارید. لطفاً با مدیر سیستم تماس بگیرید.'))
+
+            # ساخت مجموعه سازمان‌های مستقیم (فقط شعبه‌ها)
+            user_orgs = set()
+            for up in user_posts:
+                org = getattr(up.post, 'organization', None)
+                if org and isinstance(org, Organization) and not org.is_core and not org.is_holding:
+                    user_orgs.add(org)
+                    logger.debug(f"[FactorForm] سازمان شعبه‌ای اضافه شد: {org.name} (کد: {org.code})")
+
+            if not user_orgs:
+                logger.warning(f"[FactorForm] هیچ سازمان شعبه‌ای برای کاربر '{self.user.username}' یافت نشد")
+                raise forms.ValidationError(_('شما به هیچ شعبه‌ای دسترسی ندارید. لطفاً با مدیر سیستم تماس بگیرید.'))
+
+            # فیلتر تنخواه‌ها بر اساس سازمان‌های شعبه‌ای
+            try:
+                # فقط تنخواه‌هایی که سازمان یا پروژه‌شان به سازمان‌های مجاز کاربر مرتبط باشن
+                tankhah_queryset = tankhah_queryset.filter(
+                    Q(organization__in=user_orgs) |
+                    (Q(project__in=Project.objects.filter(organizations__in=user_orgs)) &
+                     Q(project__organizations__is_core=False, project__organizations__is_holding=False))
+                ).distinct()
+                logger.debug(f"[FactorForm] تعداد تنخواه‌های فیلترشده برای شعبه‌ها: {tankhah_queryset.count()}")
+            except Exception as e:
+                logger.error(f"[FactorForm] خطا در فیلتر کردن تنخواه‌ها: {str(e)}", exc_info=True)
+                raise forms.ValidationError(_('خطا در بارگذاری تنخواه‌ها: مشکل در فیلتر سازمان‌ها. لطفاً با مدیر سیستم تماس بگیرید.'))
 
         self.fields['tankhah'].queryset = tankhah_queryset
+        logger.debug(f"[FactorForm] تعداد تنخواه‌های نهایی: {tankhah_queryset.count()}")
 
-        # --- تنظیم مقادیر اولیه ---
         if 'tankhah' in self.initial:
             self.fields['tankhah'].disabled = True
+            logger.debug(f"[FactorForm] تنخواه اولیه غیرفعال شد: {self.initial['tankhah']}")
 
         if not self.initial.get('date'):
             self.initial['date'] = jdatetime.date.today().strftime('%Y/%m/%d')
@@ -297,48 +346,79 @@ class FactorForm(forms.ModelForm):
             self.initial['date'] = jdatetime.date.fromgregorian(date=self.instance.date).strftime('%Y/%m/%d')
 
     def clean_date(self):
+        """اعتبارسنجی تاریخ جلالی"""
         date_str = self.cleaned_data.get('date')
         try:
             return parse_jalali_date(date_str)
         except (ValueError, TypeError):
+            logger.warning(f"[FactorForm.clean_date] فرمت تاریخ نامعتبر: {date_str}")
             raise forms.ValidationError(_('فرمت تاریخ نامعتبر است.'))
 
+    def clean_tankhah(self):
+        """اعتبارسنجی تنخواه"""
+        tankhah = self.cleaned_data.get('tankhah')
+        if not tankhah:
+            logger.warning("[FactorForm.clean_tankhah] تنخواه انتخاب نشده است")
+            raise forms.ValidationError(_('لطفاً یک تنخواه انتخاب کنید.'))
+
+        if tankhah.due_date < timezone.now():
+            logger.warning(f"[FactorForm.clean_tankhah] تنخواه {tankhah.number} منقضی شده است: {tankhah.due_date}")
+            raise forms.ValidationError(_('تنخواه انتخاب‌شده منقضی شده است.'))
+
+        if not isinstance(tankhah.project, Project):
+            logger.error(f"[FactorForm.clean_tankhah] پروژه نامعتبر برای تنخواه {tankhah.number}: {tankhah.project}")
+            raise forms.ValidationError(_('پروژه مرتبط با تنخواه نامعتبر است.'))
+
+        # بررسی دسترسی کاربر به سازمان تنخواه و پروژه
+        if self.user and not self.user.is_superuser:
+            user_posts = self.user.userpost_set.filter(is_active=True).select_related('post__organization')
+            user_orgs = {up.post.organization for up in user_posts
+                         if up.post.organization and not up.post.organization.is_core and not up.post.organization.is_holding}
+            if not user_orgs:
+                logger.warning(f"[FactorForm.clean_tankhah] هیچ سازمان شعبه‌ای برای کاربر '{self.user.username}' یافت نشد")
+                raise forms.ValidationError(_('شما به هیچ شعبه‌ای دسترسی ندارید.'))
+
+            # بررسی سازمان تنخواه
+            if tankhah.organization not in user_orgs:
+                logger.warning(f"[FactorForm.clean_tankhah] کاربر '{self.user.username}' به سازمان تنخواه {tankhah.organization.name} دسترسی ندارد")
+                raise forms.ValidationError(_('شما به سازمان این تنخواه دسترسی ندارید.'))
+
+            # بررسی سازمان‌های پروژه
+            project_orgs = set(tankhah.project.organizations.filter(is_core=False, is_holding=False))
+            if not project_orgs.issubset(user_orgs):
+                logger.warning(f"[FactorForm.clean_tankhah] کاربر '{self.user.username}' به برخی سازمان‌های پروژه {tankhah.project.name} دسترسی ندارد")
+                raise forms.ValidationError(_('شما به تمام سازمان‌های مرتبط با پروژه این تنخواه دسترسی ندارید.'))
+
+        return tankhah
+
     def clean(self):
-        """
-        اعتبارسنجی نهایی فرم، مخصوصاً بررسی بودجه.
-        این متد پس از clean شدن تمام فیلدهای تکی اجرا می‌شود.
-        """
+        """اعتبارسنجی نهایی فرم"""
         cleaned_data = super().clean()
         tankhah = cleaned_data.get('tankhah')
         amount = cleaned_data.get('amount')
-        logger.debug(f"[FactorForm.clean] Starting final validation. Tankhah: {tankhah}, Amount: {amount}")
+        logger.debug(f"[FactorForm.clean] شروع اعتبارسنجی نهایی. تنخواه: {tankhah}, مبلغ: {amount}")
 
-        # اگر فیلدهای اصلی (که برای اعتبارسنجی بودجه لازمند) وجود ندارند، ادامه نده
         if not all([tankhah, amount]):
-            logger.warning("[FactorForm.clean] Tankhah or Amount is missing. Skipping budget validation.")
+            logger.warning("[FactorForm.clean] تنخواه یا مبلغ وجود ندارد. بررسی بودجه متوقف شد.")
             return cleaned_data
 
-        # --- اعتبارسنجی بودجه تنخواه ---
-        logger.debug(f"[FactorForm.clean] Validating budget for Tankhah '{tankhah.number}'.")
         remaining_budget = get_tankhah_remaining_budget(tankhah)
-        logger.info(f"[FactorForm.clean] Factor Amount: {amount}, Tankhah Remaining Budget: {remaining_budget}")
         if amount > remaining_budget:
-            error_msg = _('مبلغ فاکتور ({:,.0f} ریال) از بودجه باقی‌مانده تنخواه ({:,.0f} ریال) بیشتر است.').format(
+            error_msg = _('مبلغ فاکتور ({:,.0f} ریال) از بودجه باقی‌مانده ({:,.0f} ریال) بیشتر است.').format(
                 amount, remaining_budget)
-            logger.warning(f"[FactorForm.clean] Validation Error: {error_msg}")
+            logger.warning(f"[FactorForm.clean] خطای اعتبارسنجی: {error_msg}")
             raise forms.ValidationError(error_msg)
 
-        # --- اعتبارسنجی قفل بودن دوره بودجه ---
         if tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_period:
             budget_period = tankhah.project_budget_allocation.budget_period
             is_locked, lock_reason = budget_period.is_locked
             if is_locked:
-                logger.warning(f"[FactorForm.clean] Validation Error: Budget period is locked. Reason: {lock_reason}")
+                logger.warning(f"[FactorForm.clean] خطای اعتبارسنجی: دوره بودجه قفل است. دلیل: {lock_reason}")
                 raise forms.ValidationError(lock_reason)
 
-        logger.debug("[FactorForm.clean] Form validation successful.")
+        logger.debug("[FactorForm.clean] اعتبارسنجی فرم با موفقیت انجام شد")
         return cleaned_data
-
+# -----------------------------------------------------------------------------------------------------------
 class FactorItemForm(forms.ModelForm):
     """فرم برای هر ردیف فاکتور."""
 

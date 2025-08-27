@@ -2,7 +2,7 @@
 import logging
 
 from django.core.exceptions import PermissionDenied
-from core.models import Organization
+from core.models import Organization, Transition
 from django.contrib.contenttypes.models import ContentType
 from tankhah.models import ApprovalLog
 from core.models import AccessRule
@@ -109,7 +109,7 @@ def get_factor_current_stage(factor):
             logger.debug(f"[get_factor_current_stage] Found stage_order {last_log.stage} from ApprovalLog")
             return last_log.stage
 
-        first_rule = AccessRule.objects.filter(
+        first_rule = Transition.objects.filter(
             entity_type='FACTOR',
             action_type='APPROVED',
             stage_order=1,

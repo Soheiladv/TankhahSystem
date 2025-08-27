@@ -623,65 +623,65 @@ def add_attr(field, attrs_str):
     return field.as_widget(attrs=attrs)
 #-----------------------------------------------------
 #- استفاده از قالب استاندارد کلی
-#-----------------------------------------------------
-from django import template
-from django.urls import reverse
-from django.utils.html import format_html
-register = template.Library()
-@register.filter(name='get_attribute')
-def get_attribute(obj, attr):
-    """
-    به اتریبیوت یک آبجکت با استفاده از نام رشته‌ای آن دسترسی پیدا می‌کند.
-    """
-    # پشتیبانی از دسترسی به روابط تو در تو (e.g., 'foreign_key.name')
-    for attribute in attr.split('.'):
-        obj = getattr(obj, attribute, '')
-    return obj
+# #-----------------------------------------------------
+# from django import template
+# from django.urls import reverse
+# from django.utils.html import format_html
+# register = template.Library()
+# @register.filter(name='get_attribute')
+# def get_attribute(obj, attr):
+#     """
+#     به اتریبیوت یک آبجکت با استفاده از نام رشته‌ای آن دسترسی پیدا می‌کند.
+#     """
+#     # پشتیبانی از دسترسی به روابط تو در تو (e.g., 'foreign_key.name')
+#     for attribute in attr.split('.'):
+#         obj = getattr(obj, attribute, '')
+#     return obj
 
-
-@register.simple_tag
-def action_buttons(item, actions):
-    """
-    دکمه‌های عملیات را بر اساس یک لیست از دیکشنری‌ها می‌سازد.
-    """
-    buttons_html = ""
-    for action in actions:
-        try:
-            url = reverse(action.get('url_name'), args=[item.pk])
-            buttons_html += f"""
-                <a href="{url}" class="btn btn-sm {action.get('class', 'btn-outline-secondary')}" title="{action.get('title', '')}">
-                    <i class="fas {action.get('icon', 'fa-question-circle')}"></i>
-                </a>
-            """
-        except:
-            pass
-    return format_html(buttons_html)
-
-from django.template import defaultfilters
-
-@register.filter(name='apply_filter')
-def apply_filter(value, filter_string):
-    """
-    یک فیلتر را با استفاده از نام رشته‌ای آن به صورت داینامیک اعمال می‌کند.
-    این تابع ابتدا فیلترهای سفارشی ثبت شده در این فایل و سپس فیلترهای داخلی جنگو را بررسی می‌کند.
-    """
-    parts = filter_string.split(':', 1)
-    filter_name = parts[0]
-    arg_str = parts[1] if len(parts) > 1 else ''
-
-    # 1. جستجو در فیلترهای سفارشی ثبت شده در همین فایل
-    if filter_name in register.filters:
-        filter_func = register.filters[filter_name]
-        return filter_func(value, arg_str) if arg_str else filter_func(value)
-
-    # 2. جستجو در فیلترهای داخلی و پیش‌فرض جنگو
-    if hasattr(defaultfilters, filter_name):
-        filter_func = getattr(defaultfilters, filter_name)
-        return filter_func(value, arg_str) if arg_str else filter_func(value)
-
-    # اگر فیلتر پیدا نشد، مقدار اصلی را بدون تغییر بازگردان
-    return value
-
+#
+# @register.simple_tag
+# def action_buttons(item, actions):
+#     """
+#     دکمه‌های عملیات را بر اساس یک لیست از دیکشنری‌ها می‌سازد.
+#     """
+#     buttons_html = ""
+#     for action in actions:
+#         try:
+#             url = reverse(action.get('url_name'), args=[item.pk])
+#             buttons_html += f"""
+#                 <a href="{url}" class="btn btn-sm {action.get('class', 'btn-outline-secondary')}" title="{action.get('title', '')}">
+#                     <i class="fas {action.get('icon', 'fa-question-circle')}"></i>
+#                 </a>
+#             """
+#         except:
+#             pass
+#     return format_html(buttons_html)
+#
+# from django.template import defaultfilters
+#
+# @register.filter(name='apply_filter')
+# def apply_filter(value, filter_string):
+#     """
+#     یک فیلتر را با استفاده از نام رشته‌ای آن به صورت داینامیک اعمال می‌کند.
+#     این تابع ابتدا فیلترهای سفارشی ثبت شده در این فایل و سپس فیلترهای داخلی جنگو را بررسی می‌کند.
+#     """
+#     parts = filter_string.split(':', 1)
+#     filter_name = parts[0]
+#     arg_str = parts[1] if len(parts) > 1 else ''
+#
+#     # 1. جستجو در فیلترهای سفارشی ثبت شده در همین فایل
+#     if filter_name in register.filters:
+#         filter_func = register.filters[filter_name]
+#         return filter_func(value, arg_str) if arg_str else filter_func(value)
+#
+#     # 2. جستجو در فیلترهای داخلی و پیش‌فرض جنگو
+#     if hasattr(defaultfilters, filter_name):
+#         filter_func = getattr(defaultfilters, filter_name)
+#         return filter_func(value, arg_str) if arg_str else filter_func(value)
+#
+#     # اگر فیلتر پیدا نشد، مقدار اصلی را بدون تغییر بازگردان
+#     return value
+#
 
 
 #-----------------------------------------------------

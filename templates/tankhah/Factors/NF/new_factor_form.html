@@ -2,7 +2,7 @@
 {% load i18n static rcms_custom_filters file_tags %}
 
 {% block extra_head %}
-    {# --- استایل‌های بهینه‌شده --- #}
+
     <style>
         /* بازنشانی استایل‌های پیش‌فرض */
         * {
@@ -193,30 +193,58 @@
 
         /* انیمیشن‌ها */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @keyframes fadeOut {
-            from { opacity: 1; transform: scale(1); }
-            to { opacity: 0; transform: scale(0.9); }
+            from {
+                opacity: 1;
+                transform: scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: scale(0.9);
+            }
         }
 
         @keyframes slideOutRight {
-            from { transform: translateX(0); }
-            to { transform: translateX(100%); }
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(100%);
+            }
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-5px); }
-            40%, 80% { transform: translateX(5px); }
+            0%, 100% {
+                transform: translateX(0);
+            }
+            20%, 60% {
+                transform: translateX(-5px);
+            }
+            40%, 80% {
+                transform: translateX(5px);
+            }
         }
 
         @keyframes pulse-glow {
-            0% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(25, 135, 84, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(25, 135, 84, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(25, 135, 84, 0);
+            }
         }
 
         /* استایل تاریخچه */
@@ -246,16 +274,16 @@
 {% block content %}
     <div class="container my-4">
 
-    {% if messages %}
-    <div class="alert alert-dismissible fade show my-3" role="alert">
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        {% if messages %}
+            <div class="alert alert-dismissible fade show my-3" role="alert">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
             </div>
-        {% endfor %}
-    </div>
-{% endif %}
+        {% endif %}
 
         <div class="card shadow-sm border-0">
             {# --- هدر کارت --- #}
@@ -280,14 +308,17 @@
                             <div id="tankhah-budget-info-display" data-initial-budget="0">
                                 <div class="summary-item mb-2">
                                     <strong>{% trans "باقیمانده اولیه تنخواه" %}</strong>
-                                    <span class="summary-value" id="display-initial-budget">۰</span> <small class="text-muted">{% trans "ریال" %}</small>
+                                    <span class="summary-value" id="display-initial-budget">۰</span> <small
+                                        class="text-muted">{% trans "ریال" %}</small>
                                 </div>
                                 <div class="summary-item" style="color: red">
                                     <strong>{% trans "باقیمانده پس از این فاکتور" %}</strong>
-                                    <span class="summary-value" id="display-remaining-budget">۰</span> <small class="text-muted">{% trans "ریال" %}</small>
+                                    <span class="summary-value" id="display-remaining-budget">۰</span> <small
+                                        class="text-muted">{% trans "ریال" %}</small>
                                 </div>
                                 <div class="progress mt-2">
-                                    <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                    <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0"
+                                         aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                                 <div id="tankhah-budget-warning" class="text-danger small mt-2 d-none">
                                     <i class="fas fa-exclamation-circle me-1"></i>{% trans "هشدار: اعتبار تنخواه کافی نیست!" %}
@@ -304,15 +335,18 @@
                             <div class="row gy-3">
                                 <div class="col-sm-4 summary-item">
                                     <strong>{% trans "جمع ردیف‌ها" %}</strong>
-                                    <span class="summary-value" id="display-items-total">۰</span> <small class="text-muted">{% trans "ریال" %}</small>
+                                    <span class="summary-value" id="display-items-total">۰</span> <small
+                                        class="text-muted">{% trans "ریال" %}</small>
                                 </div>
                                 <div class="col-sm-4 summary-item">
                                     <strong>{% trans "مبلغ فاکتور" %}</strong>
-                                    <span class="summary-value" id="display-factor-total">۰</span> <small class="text-muted">{% trans "ریال" %}</small>
+                                    <span class="summary-value" id="display-factor-total">۰</span> <small
+                                        class="text-muted">{% trans "ریال" %}</small>
                                 </div>
                                 <div class="col-sm-4 summary-item">
                                     <strong>{% trans "اختلاف" %}</strong>
-                                    <span class="summary-value" id="display-difference">۰</span> <small class="text-muted">{% trans "ریال" %}</small>
+                                    <span class="summary-value" id="display-difference">۰</span> <small
+                                        class="text-muted">{% trans "ریال" %}</small>
                                     <div id="amount-comparison-result" class="small mt-1"></div>
                                 </div>
                             </div>
@@ -326,22 +360,31 @@
 
                     <ul class="nav nav-tabs factor-tabs mb-4" id="factorTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="main-tab" data-bs-toggle="tab" data-bs-target="#main-tab-pane" type="button" role="tab" aria-controls="main-tab-pane" aria-selected="true">
+                            <button class="nav-link active" id="main-tab" data-bs-toggle="tab"
+                                    data-bs-target="#main-tab-pane" type="button" role="tab"
+                                    aria-controls="main-tab-pane" aria-selected="true">
                                 <i class="fas fa-info-circle me-1"></i>{% trans "اطلاعات اصلی" %}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="items-tab" data-bs-toggle="tab" data-bs-target="#items-tab-pane" type="button" role="tab" aria-controls="items-tab-pane" aria-selected="false">
-                                <i class="fas fa-list me-1"></i>{% trans "اقلام فاکتور" %} <span class="badge bg-primary rounded-pill ms-2" id="item-count-badge">0</span>
+                            <button class="nav-link" id="items-tab" data-bs-toggle="tab"
+                                    data-bs-target="#items-tab-pane" type="button" role="tab"
+                                    aria-controls="items-tab-pane" aria-selected="false">
+                                <i class="fas fa-list me-1"></i>{% trans "اقلام فاکتور" %} <span
+                                    class="badge bg-primary rounded-pill ms-2" id="item-count-badge">0</span>
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents-tab-pane" type="button" role="tab" aria-controls="documents-tab-pane" aria-selected="false">
+                            <button class="nav-link" id="documents-tab" data-bs-toggle="tab"
+                                    data-bs-target="#documents-tab-pane" type="button" role="tab"
+                                    aria-controls="documents-tab-pane" aria-selected="false">
                                 <i class="fas fa-paperclip me-1"></i>{% trans "اسناد پیوست" %}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-tab-pane" type="button" role="tab" aria-controls="history-tab-pane" aria-selected="false">
+                            <button class="nav-link" id="history-tab" data-bs-toggle="tab"
+                                    data-bs-target="#history-tab-pane" type="button" role="tab"
+                                    aria-controls="history-tab-pane" aria-selected="false">
                                 <i class="fas fa-history me-1"></i>{% trans "تاریخچه تغییرات" %}
                             </button>
                         </li>
@@ -349,12 +392,14 @@
 
                     <div class="tab-content" id="factorTabsContent">
                         {# --- تب اطلاعات اصلی --- #}
-                        <div class="tab-pane fade show active" id="main-tab-pane" role="tabpanel" aria-labelledby="main-tab" tabindex="0">
+                        <div class="tab-pane fade show active" id="main-tab-pane" role="tabpanel"
+                             aria-labelledby="main-tab" tabindex="0">
                             <div class="row g-3">
                                 {% for field in form %}
                                     <div class="{% if field.name == 'description' %}col-12{% else %}col-md-6{% endif %} mb-3">
                                         <label for="{{ field.id_for_label }}" class="form-label">
-                                            {{ field.label }}{% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                            {{ field.label }}{% if field.field.required %}
+                                                <span class="text-danger">*</span>{% endif %}
                                         </label>
                                         {{ field }}
                                         {% if field.help_text %}
@@ -377,7 +422,8 @@
                         </div>
 
                         {# --- تب اقلام فاکتور --- #}
-                        <div class="tab-pane fade" id="items-tab-pane" role="tabpanel" aria-labelledby="items-tab" tabindex="0">
+                        <div class="tab-pane fade" id="items-tab-pane" role="tabpanel" aria-labelledby="items-tab"
+                             tabindex="0">
                             {{ formset.management_form }}
                             <div id="items-formset-container">
                                 <div class="d-none d-md-flex row g-2 mb-2 small text-muted fw-bold text-uppercase border-bottom pb-1">
@@ -389,19 +435,22 @@
                                     <div class="col-md-1 text-center">{% trans "حذف" %}</div>
                                 </div>
                                 {% for item_form in formset %}
-                                    <div id="{{ item_form.prefix }}-row" class="item-row {% if item_form.DELETE.value %}is-deleting d-none{% endif %}">
+                                    <div id="{{ item_form.prefix }}-row"
+                                         class="item-row {% if item_form.DELETE.value %}is-deleting d-none{% endif %}">
                                         {{ item_form.id }}
                                         <div class="row g-2 align-items-center">
                                             <div class="col-12 col-md-1 text-center mb-2 mb-md-0">
                                                 <span class="row-number badge bg-secondary rounded-pill fs-6"></span>
                                             </div>
                                             <div class="col-12 col-md-5 mb-2 mb-md-0">
-                                                <label for="{{ item_form.description.id_for_label }}" class="form-label d-md-none">{% trans "شرح" %}</label>
+                                                <label for="{{ item_form.description.id_for_label }}"
+                                                       class="form-label d-md-none">{% trans "شرح" %}</label>
                                                 {{ item_form.description }}
                                                 <div class="invalid-feedback">{{ item_form.description.errors|first }}</div>
                                             </div>
                                             <div class="col-6 col-md-2 mb-2 mb-md-0">
-                                                <label for="{{ item_form.unit_price.id_for_label }}" class="form-label d-md-none">{% trans "قیمت واحد" %}</label>
+                                                <label for="{{ item_form.unit_price.id_for_label }}"
+                                                       class="form-label d-md-none">{% trans "قیمت واحد" %}</label>
                                                 <div class="input-group input-group-sm">
                                                     <span class="input-group-text"><i class="fas fa-coins"></i></span>
                                                     {{ item_form.unit_price }}
@@ -409,7 +458,8 @@
                                                 <div class="invalid-feedback">{{ item_form.unit_price.errors|first }}</div>
                                             </div>
                                             <div class="col-6 col-md-1 mb-2 mb-md-0">
-                                                <label for="{{ item_form.quantity.id_for_label }}" class="form-label d-md-none">{% trans "تعداد" %}</label>
+                                                <label for="{{ item_form.quantity.id_for_label }}"
+                                                       class="form-label d-md-none">{% trans "تعداد" %}</label>
                                                 {{ item_form.quantity }}
                                                 <div class="invalid-feedback">{{ item_form.quantity.errors|first }}</div>
                                             </div>
@@ -419,7 +469,9 @@
                                             </div>
                                             <div class="col-6 col-md-1 text-center">
                                                 {% if formset.can_delete %}
-                                                    <button type="button" class="btn btn-sm btn-outline-danger delete-item-btn" title="{% trans 'حذف ردیف' %}">
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-danger delete-item-btn"
+                                                            title="{% trans 'حذف ردیف' %}">
                                                         <i class="fas fa-trash-alt fa-sm"></i>
                                                     </button>
                                                     {{ item_form.DELETE }}
@@ -438,102 +490,143 @@
                         </div>
 
                         {# --- تب اسناد --- #}
-                        <div class="tab-pane fade" id="documents-tab-pane" role="tabpanel" aria-labelledby="documents-tab" tabindex="0">
+                        <div class="tab-pane fade" id="documents-tab-pane" role="tabpanel"
+                             aria-labelledby="documents-tab" tabindex="0">
                             <div class="row g-3">
                                 {# اسناد فاکتور #}
-<div class="col-md-6">
-    <div class="card h-100 border-light shadow-sm">
-        <div class="card-header bg-light">
-            <h6 class="mb-0"><i class="fas fa-file-invoice text-primary me-2"></i>{% trans "پیوست‌های فاکتور" %}</h6>
-        </div>
-        <div class="card-body">
-            <div class="mb-3">
-                <label for="{{ document_form.files.id_for_label }}" class="form-label">{{ document_form.files.label }}</label>
-                {{ document_form.files }}
-                <div class="form-text small">{% trans "فرمت‌های مجاز: PDF, Word, Excel, JPG, PNG" %}</div>
-                <div class="invalid-feedback" id="error-{{ document_form.files.id_for_label }}">
-                    {% if document_form.files.errors %}{{ document_form.files.errors|first }}{% endif %}
-                </div>
-            </div>
-            <div id="factor-doc-previews" class="mt-3 border-top pt-2">
-                <h6 class="mb-2 small text-muted {% if not document_form.files.value and not object %}d-none{% endif %}" id="factor-preview-title">{% trans "فایل‌های انتخاب/موجود:" %}</h6>
-                <div id="new-factor-previews"></div>
-                {% if object and object.pk %}
-                    {% with factor_documents=object.documents.all %}
-                        {% if factor_documents.exists %}
-                            <ul class="list-unstyled existing-documents small mt-2">
-                                {% for doc in factor_documents %}
-                                    <li class="file-preview-item" data-existing="true" data-file-id="{{ doc.pk }}">
-                                        <div class="file-preview-content">
-                                            <div class="file-icon-container">
-                                                {% if doc.file.name|is_image_file %}
-                                                    <img src="{{ doc.file.url }}" alt="{{ doc.file.name }}" class="file-image-preview existing image-loaded">
-                                                    <i class="fas {{ doc.file.name|get_file_icon }} text-secondary fa-lg file-icon d-none"></i>
-                                                {% else %}
-                                                    <img src="" alt="" class="file-image-preview existing">
-                                                    <i class="fas {{ doc.file.name|get_file_icon }} text-secondary fa-lg file-icon"></i>
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-light shadow-sm">
+                                        <div class="card-header bg-light">
+                                            <h6 class="mb-0"><i
+                                                    class="fas fa-file-invoice text-primary me-2"></i>{% trans "پیوست‌های فاکتور" %}
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label for="{{ document_form.files.id_for_label }}"
+                                                       class="form-label">{{ document_form.files.label }}</label>
+                                                {{ document_form.files }}
+                                                <div class="form-text small">{% trans "فرمت‌های مجاز: PDF, Word, Excel, JPG, PNG" %}</div>
+                                                <div class="invalid-feedback"
+                                                     id="error-{{ document_form.files.id_for_label }}">
+                                                    {% if document_form.files.errors %}
+                                                        {{ document_form.files.errors|first }}{% endif %}
+                                                </div>
+                                            </div>
+                                            <div id="factor-doc-previews" class="mt-3 border-top pt-2">
+                                                <h6 class="mb-2 small text-muted {% if not document_form.files.value and not object %}d-none{% endif %}"
+                                                    id="factor-preview-title">{% trans "فایل‌های انتخاب/موجود:" %}</h6>
+                                                <div id="new-factor-previews"></div>
+                                                {% if object and object.pk %}
+                                                    {% with factor_documents=object.documents.all %}
+                                                        {% if factor_documents.exists %}
+                                                            <ul class="list-unstyled existing-documents small mt-2">
+                                                                {% for doc in factor_documents %}
+                                                                    <li class="file-preview-item" data-existing="true"
+                                                                        data-file-id="{{ doc.pk }}">
+                                                                        <div class="file-preview-content">
+                                                                            <div class="file-icon-container">
+                                                                                {% if doc.file.name|is_image_file %}
+                                                                                    <img src="{{ doc.file.url }}"
+                                                                                         alt="{{ doc.file.name }}"
+                                                                                         class="file-image-preview existing image-loaded">
+                                                                                    <i class="fas {{ doc.file.name|get_file_icon }} text-secondary fa-lg file-icon d-none"></i>
+                                                                                {% else %}
+                                                                                    <img src="" alt=""
+                                                                                         class="file-image-preview existing">
+                                                                                    <i class="fas {{ doc.file.name|get_file_icon }} text-secondary fa-lg file-icon"></i>
+                                                                                {% endif %}
+                                                                            </div>
+                                                                            <div class="file-info">
+                                                                                <a href="{{ doc.file.url }}"
+                                                                                   target="_blank"
+                                                                                   class="file-name text-dark text-decoration-none"
+                                                                                   title="{{ doc.file.name }}">{{ doc.file.name|truncatechars:35 }}</a>
+                                                                                <span class="badge bg-light text-dark rounded-pill file-size">{{ doc.file_size|default:doc.file.size|filesizeformat }}</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <button type="button"
+                                                                                class="delete-existing-file"
+                                                                                data-doc-id="{{ doc.pk }}"
+                                                                                data-doc-type="factor"
+                                                                                title="{% trans 'حذف این فایل' %}">
+                                                                            <i class="fas fa-trash-alt fa-sm"></i>
+                                                                        </button>
+                                                                        <input type="checkbox"
+                                                                               name="delete_factor_doc_{{ doc.pk }}"
+                                                                               id="delete_factor_doc_{{ doc.pk }}"
+                                                                               class="d-none delete-doc-checkbox"
+                                                                               value="{{ doc.pk }}">
+                                                                    </li>
+                                                                {% endfor %}
+                                                            </ul>
+                                                        {% endif %}
+                                                    {% endwith %}
                                                 {% endif %}
                                             </div>
-                                            <div class="file-info">
-                                                <a href="{{ doc.file.url }}" target="_blank" class="file-name text-dark text-decoration-none" title="{{ doc.file.name }}">{{ doc.file.name|truncatechars:35 }}</a>
-                                                <span class="badge bg-light text-dark rounded-pill file-size">{{ doc.file_size|default:doc.file.size|filesizeformat }}</span>
-                                            </div>
                                         </div>
-                                        <button type="button" class="delete-existing-file" data-doc-id="{{ doc.pk }}" data-doc-type="factor" title="{% trans 'حذف این فایل' %}">
-                                            <i class="fas fa-trash-alt fa-sm"></i>
-                                        </button>
-                                        <input type="checkbox" name="delete_factor_doc_{{ doc.pk }}" id="delete_factor_doc_{{ doc.pk }}" class="d-none delete-doc-checkbox" value="{{ doc.pk }}">
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                    {% endwith %}
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
+                                    </div>
+                                </div>
                                 {# اسناد تنخواه #}
                                 <div class="col-md-6">
                                     <div class="card h-100 border-light shadow-sm">
                                         <div class="card-header bg-light">
-                                            <h6 class="mb-0"><i class="fas fa-folder-open text-warning me-2"></i>{% trans "پیوست‌های تنخواه" %}</h6>
+                                            <h6 class="mb-0"><i
+                                                    class="fas fa-folder-open text-warning me-2"></i>{% trans "پیوست‌های تنخواه" %}
+                                            </h6>
                                         </div>
                                         <div class="card-body">
                                             <div class="mb-3">
-                                                <label for="{{ tankhah_document_form.documents.id_for_label }}" class="form-label">{{ tankhah_document_form.documents.label }}</label>
+                                                <label for="{{ tankhah_document_form.documents.id_for_label }}"
+                                                       class="form-label">{{ tankhah_document_form.documents.label }}</label>
                                                 {{ tankhah_document_form.documents }}
                                                 <div class="form-text small">{% trans "فرمت‌های مجاز: PDF, Word, Excel, JPG, PNG" %}</div>
-                                                <div class="invalid-feedback" id="error-{{ tankhah_document_form.documents.id_for_label }}">
-                                                    {% if tankhah_document_form.documents.errors %}{{ tankhah_document_form.documents.errors|first }}{% endif %}
+                                                <div class="invalid-feedback"
+                                                     id="error-{{ tankhah_document_form.documents.id_for_label }}">
+                                                    {% if tankhah_document_form.documents.errors %}
+                                                        {{ tankhah_document_form.documents.errors|first }}{% endif %}
                                                 </div>
                                             </div>
                                             <div id="tankhah-doc-previews" class="mt-3 border-top pt-2">
-                                                <h6 class="mb-2 small text-muted {% if not tankhah_document_form.documents.value and not tankhah_documents %}d-none{% endif %}" id="tankhah-preview-title">{% trans "فایل‌های انتخاب/موجود:" %}</h6>
+                                                <h6 class="mb-2 small text-muted {% if not tankhah_document_form.documents.value and not tankhah_documents %}d-none{% endif %}"
+                                                    id="tankhah-preview-title">{% trans "فایل‌های انتخاب/موجود:" %}</h6>
                                                 <div id="new-tankhah-previews"></div>
                                                 {% if tankhah_documents.exists %}
                                                     <ul class="list-unstyled existing-documents small mt-2">
                                                         {% for doc in tankhah_documents %}
-                                                            <li class="file-preview-item" data-existing="true" data-file-id="{{ doc.pk }}">
+                                                            <li class="file-preview-item" data-existing="true"
+                                                                data-file-id="{{ doc.pk }}">
                                                                 <div class="file-preview-content">
                                                                     <div class="file-icon-container">
                                                                         {% if doc.document.name|is_image_file %}
-                                                                            <img src="{{ doc.document.url }}" alt="{{ doc.document.name }}" class="file-image-preview existing image-loaded">
+                                                                            <img src="{{ doc.document.url }}"
+                                                                                 alt="{{ doc.document.name }}"
+                                                                                 class="file-image-preview existing image-loaded">
                                                                             <i class="fas {{ doc.document.name|get_file_icon }} text-secondary fa-lg file-icon d-none"></i>
                                                                         {% else %}
-                                                                            <img src="" alt="" class="file-image-preview existing">
+                                                                            <img src="" alt=""
+                                                                                 class="file-image-preview existing">
                                                                             <i class="fas {{ doc.document.name|get_file_icon }} text-secondary fa-lg file-icon"></i>
                                                                         {% endif %}
                                                                     </div>
                                                                     <div class="file-info">
-                                                                        <a href="{{ doc.document.url }}" target="_blank" class="file-name text-dark text-decoration-none" title="{{ doc.document.name }}">{{ doc.document.name|truncatechars:35 }}</a>
+                                                                        <a href="{{ doc.document.url }}" target="_blank"
+                                                                           class="file-name text-dark text-decoration-none"
+                                                                           title="{{ doc.document.name }}">{{ doc.document.name|truncatechars:35 }}</a>
                                                                         <span class="badge bg-light text-dark rounded-pill file-size">{{ doc.file_size|default:doc.document.size|filesizeformat }}</span>
                                                                     </div>
                                                                 </div>
-                                                                <button type="button" class="delete-existing-file" data-doc-id="{{ doc.pk }}" data-doc-type="tankhah" title="{% trans 'حذف این فایل' %}">
+                                                                <button type="button" class="delete-existing-file"
+                                                                        data-doc-id="{{ doc.pk }}"
+                                                                        data-doc-type="tankhah"
+                                                                        title="{% trans 'حذف این فایل' %}">
                                                                     <i class="fas fa-trash-alt fa-sm"></i>
                                                                 </button>
-                                                                <input type="checkbox" name="delete_tankhah_doc_{{ doc.pk }}" id="delete_tankhah_doc_{{ doc.pk }}" class="d-none delete-doc-checkbox" value="{{ doc.pk }}">
+                                                                <input type="checkbox"
+                                                                       name="delete_tankhah_doc_{{ doc.pk }}"
+                                                                       id="delete_tankhah_doc_{{ doc.pk }}"
+                                                                       class="d-none delete-doc-checkbox"
+                                                                       value="{{ doc.pk }}">
                                                             </li>
                                                         {% endfor %}
                                                     </ul>
@@ -547,71 +640,74 @@
                             </div>
                         </div>
 
-{# --- تب تاریخچه تغییرات --- #}
-<div class="tab-pane fade" id="history-tab-pane" role="tabpanel" aria-labelledby="history-tab" tabindex="0">
-    <h6 class="mb-3">{% trans "تاریخچه تغییرات فاکتور" %}</h6>
-    {% if object and object.pk %}
-        {% if object.history.exists %}
-            {% for history in object.history.all %}
-                <div class="history-item">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                            <strong>{{ history.get_change_type_display }}</strong>
-                            <span class="text-muted small ms-2">{% trans "توسط" %} {{ history.changed_by.username }} - {{ history.change_timestamp|to_persian_number }}</span>
+                        {# --- تب تاریخچه تغییرات --- #}
+                        <div class="tab-pane fade" id="history-tab-pane" role="tabpanel" aria-labelledby="history-tab"
+                             tabindex="0">
+                            <h6 class="mb-3">{% trans "تاریخچه تغییرات فاکتور" %}</h6>
+                            {% if object and object.pk %}
+                                {% if object.history.exists %}
+                                    {% for history in object.history.all %}
+                                        <div class="history-item">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <strong>{{ history.get_change_type_display }}</strong>
+                                                    <span class="text-muted small ms-2">{% trans "توسط" %} {{ history.changed_by.username }} - {{ history.change_timestamp|to_persian_number }}</span>
+                                                </div>
+                                            </div>
+                                            <p class="mb-1">{{ history.description }}</p>
+                                            <details class="history-details">
+                                                <summary
+                                                        class="small text-primary">{% trans "نمایش جزئیات تغییرات" %}</summary>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <h6 class="small text-muted">{% trans "داده‌های قبلی" %}</h6>
+                                                        <pre class="small">{{ history.old_data|json_script:"old_data"|safe }}</pre>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h6 class="small text-muted">{% trans "داده‌های جدید" %}</h6>
+                                                        <pre class="small">{{ history.new_data|json_script:"new_data"|safe }}</pre>
+                                                    </div>
+                                                </div>
+                                            </details>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted">{% trans "هیچ تاریخچه‌ای برای این فاکتور ثبت نشده است." %}</p>
+                                {% endif %}
+                            {% else %}
+                                <p class="text-muted">{% trans "هیچ تاریخچه‌ای برای این فاکتور ثبت نشده است، زیرا فاکتور هنوز ایجاد نشده است." %}</p>
+                            {% endif %}
                         </div>
-                    </div>
-                    <p class="mb-1">{{ history.description }}</p>
-                    <details class="history-details">
-                        <summary class="small text-primary">{% trans "نمایش جزئیات تغییرات" %}</summary>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6 class="small text-muted">{% trans "داده‌های قبلی" %}</h6>
-                                <pre class="small">{{ history.old_data|json_script:"old_data"|safe }}</pre>
-                            </div>
-                            <div class="col-md-6">
-                                <h6 class="small text-muted">{% trans "داده‌های جدید" %}</h6>
-                                <pre class="small">{{ history.new_data|json_script:"new_data"|safe }}</pre>
-                            </div>
-                        </div>
-                    </details>
-                </div>
-            {% endfor %}
-        {% else %}
-            <p class="text-muted">{% trans "هیچ تاریخچه‌ای برای این فاکتور ثبت نشده است." %}</p>
-        {% endif %}
-    {% else %}
-        <p class="text-muted">{% trans "هیچ تاریخچه‌ای برای این فاکتور ثبت نشده است، زیرا فاکتور هنوز ایجاد نشده است." %}</p>
-    {% endif %}
-</div>
 
                     </div>
 
                     {# --- دکمه‌های فرم --- #}
 
-<div class="d-flex justify-content-end mt-4 pt-4 border-top gap-2">
-    <a href="{% url 'factor_list' %}" class="btn btn-outline-secondary px-4">
-        <i class="fas fa-times me-2"></i>{% trans "انصراف" %}
-    </a>
-    <button type="submit" name="save_draft_incomplete" class="btn btn-outline-secondary px-4">
-        <i class="fas fa-clock me-2"></i>{% trans "ذخیره موقت" %}
-    </button>
-    <button type="submit" name="save_final_draft" class="btn btn-primary px-5" id="submit-button">
-        <i class="fas fa-save me-2"></i>{% trans "ذخیره نهایی" %}
-    </button>
-    {% if object and object.pk and not object.is_deleted %}
-        {% with can_delete=can_delete %}
-            <button type="button"
-                    class="btn btn-danger px-4 {% if not can_delete %}disabled{% endif %}"
-                    {% if not can_delete %}
-                    data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'حذف فقط در مرحله مجاز یا برای کاربران با دسترسی کامل امکان‌پذیر است.' %}"
-                    {% endif %}
-                    id="delete-factor-btn"
-                    data-delete-url="{% url 'factor_delete' pk=object.pk %}">
-                <i class="fas fa-trash-alt me-2"></i>{% trans "حذف فاکتور" %}
-            </button>
-        {% endwith %}
-    {% endif %}
-</div>
+                    <div class="d-flex justify-content-end mt-4 pt-4 border-top gap-2">
+                        <a href="{% url 'factor_list' %}" class="btn btn-outline-secondary px-4">
+                            <i class="fas fa-times me-2"></i>{% trans "انصراف" %}
+                        </a>
+                        <button type="submit" name="save_draft_incomplete" class="btn btn-outline-secondary px-4">
+                            <i class="fas fa-clock me-2"></i>{% trans "ذخیره موقت" %}
+                        </button>
+                        <button type="submit" name="save_final_draft" class="btn btn-primary px-5" id="submit-button">
+                            <i class="fas fa-save me-2"></i>{% trans "ذخیره نهایی" %}
+                        </button>
+                        {% if object and object.pk and not object.is_deleted %}
+                            {% with can_delete=can_delete %}
+                                <button type="button"
+                                        class="btn btn-danger px-4 {% if not can_delete %}disabled{% endif %}"
+                                        {% if not can_delete %}
+                                        data-bs-toggle="tooltip" data-bs-placement="top"
+                                        title="{% trans 'حذف فقط در مرحله مجاز یا برای کاربران با دسترسی کامل امکان‌پذیر است.' %}"
+                                        {% endif %}
+                                        id="delete-factor-btn"
+                                        data-delete-url="{% url 'factor_delete' pk=object.pk %}">
+                                    <i class="fas fa-trash-alt me-2"></i>{% trans "حذف فاکتور" %}
+                                </button>
+                            {% endwith %}
+                        {% endif %}
+                    </div>
 
                 </form>
             </div>
@@ -627,21 +723,33 @@
                     <span class="row-number badge bg-secondary rounded-pill fs-6">__row_num__</span>
                 </div>
                 <div class="col-12 col-md-5 mb-2 mb-md-0">
-                    <label for="id_{{ formset.prefix }}-__prefix__-description" class="form-label d-md-none">{% trans "شرح" %}</label>
-                    <input type="text" name="{{ formset.prefix }}-__prefix__-description" class="form-control form-control-sm" maxlength="255" id="id_{{ formset.prefix }}-__prefix__-description" required placeholder="{% trans 'شرح...' %}">
+                    <label for="id_{{ formset.prefix }}-__prefix__-description"
+                           class="form-label d-md-none">{% trans "شرح" %}</label>
+                    <input type="text" name="{{ formset.prefix }}-__prefix__-description"
+                           class="form-control form-control-sm" maxlength="255"
+                           id="id_{{ formset.prefix }}-__prefix__-description" required
+                           placeholder="{% trans 'شرح...' %}">
                     <div class="invalid-feedback"></div>
                 </div>
                 <div class="col-6 col-md-2 mb-2 mb-md-0">
-                    <label for="id_{{ formset.prefix }}-__prefix__-unit_price" class="form-label d-md-none">{% trans "قیمت واحد" %}</label>
+                    <label for="id_{{ formset.prefix }}-__prefix__-unit_price"
+                           class="form-label d-md-none">{% trans "قیمت واحد" %}</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="fas fa-coins"></i></span>
-                        <input type="number" name="{{ formset.prefix }}-__prefix__-unit_price" class="form-control form-control-sm ltr-input unit-price-field" step="any" min="0" id="id_{{ formset.prefix }}-__prefix__-unit_price" required placeholder="{% trans 'قیمت...' %}">
+                        <input type="number" name="{{ formset.prefix }}-__prefix__-unit_price"
+                               class="form-control form-control-sm ltr-input unit-price-field" step="any" min="0"
+                               id="id_{{ formset.prefix }}-__prefix__-unit_price" required
+                               placeholder="{% trans 'قیمت...' %}">
                     </div>
                     <div class="invalid-feedback"></div>
                 </div>
                 <div class="col-6 col-md-1 mb-2 mb-md-0">
-                    <label for="id_{{ formset.prefix }}-__prefix__-quantity" class="form-label d-md-none">{% trans "تعداد" %}</label>
-                    <input type="number" name="{{ formset.prefix }}-__prefix__-quantity" value="1" class="form-control form-control-sm ltr-input quantity-field" step="any" min="0.01" id="id_{{ formset.prefix }}-__prefix__-quantity" required placeholder="{% trans 'تعداد...' %}">
+                    <label for="id_{{ formset.prefix }}-__prefix__-quantity"
+                           class="form-label d-md-none">{% trans "تعداد" %}</label>
+                    <input type="number" name="{{ formset.prefix }}-__prefix__-quantity" value="1"
+                           class="form-control form-control-sm ltr-input quantity-field" step="any" min="0.01"
+                           id="id_{{ formset.prefix }}-__prefix__-quantity" required
+                           placeholder="{% trans 'تعداد...' %}">
                     <div class="invalid-feedback"></div>
                 </div>
                 <div class="col-6 col-md-2 text-center mb-2 mb-md-0">
@@ -649,10 +757,12 @@
                     <span class="item-total">۰ {% trans "ریال" %}</span>
                 </div>
                 <div class="col-6 col-md-1 text-center">
-                    <button type="button" class="btn btn-sm btn-outline-danger delete-item-btn" title="{% trans 'حذف ردیف' %}">
+                    <button type="button" class="btn btn-sm btn-outline-danger delete-item-btn"
+                            title="{% trans 'حذف ردیف' %}">
                         <i class="fas fa-trash-alt fa-sm"></i>
                     </button>
-                    <input type="checkbox" name="{{ formset.prefix }}-__prefix__-DELETE" class="d-none delete-item-checkbox" id="id_{{ formset.prefix }}-__prefix__-DELETE">
+                    <input type="checkbox" name="{{ formset.prefix }}-__prefix__-DELETE"
+                           class="d-none delete-item-checkbox" id="id_{{ formset.prefix }}-__prefix__-DELETE">
                 </div>
             </div>
         </div>
@@ -677,6 +787,7 @@
         </div>
     </template>
 {% endblock %}
+
 
 {% block extra_js %}
     <!-- اسکریپت SweetAlert2 -->
@@ -849,6 +960,12 @@
             function fetchTankhahBudgetInfo(tankhahId) {
                 if (!tankhahId) {
                     resetBudgetDisplay();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'تنخواهی انتخاب نشده',
+                        text: 'هیچ تنخواه فعالی برای این تاریخ یا وضعیت پیدا نشد.',
+                        confirmButtonText: 'باشه'
+                    });
                     return;
                 }
                 budgetLoadingEl.classList.remove('d-none');
@@ -859,10 +976,12 @@
                 $.ajax({
                     url: '{% url "get_tankhah_budget_info" %}',
                     method: 'GET',
-                    data: { tankhah_id: tankhahId },
+                    data: {tankhah_id: tankhahId},
                     dataType: 'json',
                     success: function (data) {
                         budgetLoadingEl.classList.add('d-none');
+                        console.log("Budget info response:", data);
+
                         if (data.error) {
                             budgetErrorEl.classList.remove('d-none');
                             resetBudgetDisplay();
@@ -885,6 +1004,7 @@
                     }
                 });
             }
+
 
             function resetBudgetDisplay() {
                 ajaxInitialRemainingBudget = 0;
@@ -1258,7 +1378,7 @@
                             buttonsStyling: false
                         });
                         form.querySelector('.is-invalid')?.focus();
-                        form.querySelector('.is-invalid')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        form.querySelector('.is-invalid')?.scrollIntoView({behavior: 'smooth', block: 'center'});
                     } else {
                         const submitButton = document.getElementById('submit-button');
                         if (submitButton) {
@@ -1270,7 +1390,7 @@
             }
         });
 
-                // مدیریت دکمه حذف فاکتور
+        // مدیریت دکمه حذف فاکتور
         const deleteFactorBtn = document.getElementById('delete-factor-btn');
         if (deleteFactorBtn) {
             deleteFactorBtn.addEventListener('click', function (e) {
@@ -1299,7 +1419,7 @@
                         $.ajax({
                             url: deleteUrl,
                             method: 'POST',
-                            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                            headers: {'X-CSRFToken': '{{ csrf_token }}'},
                             dataType: 'json',
                             success: function (response) {
                                 if (response.success) {
@@ -1356,3 +1476,5 @@
 
     </script>
 {% endblock %}
+{% comment %} 
+{% endcomment %}

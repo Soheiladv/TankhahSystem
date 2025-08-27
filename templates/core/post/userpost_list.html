@@ -3,37 +3,99 @@
 {% load rcms_custom_filters static jalali_tags %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card shadow-sm">
+<div class="container mt-5">
+    <div class="card shadow-sm border-0">
+        <!-- سربرگ -->
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h1 class="card-title mb-0"><i class="fas fa-list me-2"></i>{{ title }}</h1>
+            <h1 class="h4 mb-0"><i class="fas fa-list me-2"></i>{% trans "لیست اتصالات کاربر به پست" %}</h1>
             <a href="{% url 'userpost_create' %}" class="btn btn-light btn-sm"><i class="fas fa-plus me-1"></i>{% trans "ایجاد اتصال" %}</a>
         </div>
+
+        <!-- فرم جستجو -->
+        <div class="card-body border-bottom">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="username" class="form-label">{% trans "نام کاربر" %}</label>
+                    <input type="text" name="username" id="username" value="{{ request.GET.username }}" class="form-control" placeholder="{% trans 'نام کاربری...' %}">
+                </div>
+                <div class="col-md-3">
+                    <label for="post_name" class="form-label">{% trans "نام پست" %}</label>
+                    <input type="text" name="post_name" id="post_name" value="{{ request.GET.post_name }}" class="form-control" placeholder="{% trans 'نام پست...' %}">
+                </div>
+                <div class="col-md-3">
+                    <label for="organization" class="form-label">{% trans "سازمان" %}</label>
+                    <select name="organization" id="organization" class="form-select">
+                        <option value="">{% trans "همه سازمان‌ها" %}</option>
+                        {% for org in organizations %}
+                            <option value="{{ org.id }}" {% if request.GET.organization == org.id|stringformat:"s" %}selected{% endif %}>{{ org.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i>{% trans "جستجو" %}</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- جدول -->
         <div class="card-body">
+            <div class="mb-3 text-muted">
+                {% trans "تعداد کل اتصالات:" %} <span class="fw-bold">{{ userposts.count|to_persian_number }}</span>
+            </div>
             <div class="table-responsive">
-                <table class="table table-hover table-sm">
+                <table class="table table-hover table-bordered">
                     <thead class="table-dark">
                         <tr>
-                            <th>{% trans "ردیف" %}</th>
-                            <th>{% trans "کاربر" %}</th>
-                            <th>{% trans "پست" %}</th>
-                            <th>{% trans "اقدامات" %}</th>
+                            <th scope="col">{% trans "ردیف" %}</th>
+                            <th scope="col">{% trans "کاربر" %}</th>
+                            <th scope="col">{% trans "پست" %}</th>
+                            <th scope="col">{% trans "سازمان" %}</th>
+                            <th scope="col">{% trans "وضعیت" %}</th>
+                            <th scope="col">{% trans "اقدامات" %}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for userpost in userposts %}
                             <tr>
-                                <td>{{ forloop.counter  |to_persian_number }}</td>
+                                <td>{{ forloop.counter|to_persian_number }}</td>
                                 <td>{{ userpost.user.username }}</td>
                                 <td>{{ userpost.post.name }}</td>
+                                <td>{{ userpost.post.organization.name }}</td>
                                 <td>
-                                    <a href="{% url 'userpost_update' userpost.pk %}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
-                                    <a href="{% url 'userpost_delete' userpost.pk %}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
+                                    <span class="badge {% if userpost.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                        {% if userpost.is_active %}{% trans "فعال" %}{% else %}{% trans "غیرفعال" %}{% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'userpost_update' userpost.pk %}" class="btn btn-warning btn-sm" title="{% trans 'ویرایش' %}">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ userpost.pk }}" title="{% trans 'حذف' %}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <!-- Modal حذف -->
+                                    <div class="modal fade" id="deleteModal{{ userpost.pk }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ userpost.pk }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteModalLabel{{ userpost.pk }}">{% trans "تأیید حذف" %}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    {% trans "آیا مطمئن هستید که می‌خواهید اتصال" %} <strong>{{ userpost.user.username }}</strong> {% trans "به پست" %} <strong>{{ userpost.post.name }}</strong> {% trans "را حذف کنید؟" %}
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "انصراف" %}</button>
+                                                    <a href="{% url 'userpost_delete' userpost.pk %}" class="btn btn-danger">{% trans "حذف" %}</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="3" class="text-center">{% trans "اتصالی یافت نشد." %}</td>
+                                <td colspan="6" class="text-center text-muted">{% trans "اتصالی یافت نشد." %}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

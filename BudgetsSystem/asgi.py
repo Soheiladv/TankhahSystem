@@ -1,5 +1,5 @@
 """
-ASGI config for Tanbakhsystem project.
+ASGI config for BudgetsSystem project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 

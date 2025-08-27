@@ -6299,3 +6299,2329 @@ ERROR 2025-08-16 15:18:41 views get_context_data خطای غیرمنتظره ب�
 ERROR 2025-08-16 15:23:48 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
 ERROR 2025-08-16 15:25:25 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
 ERROR 2025-08-16 15:33:34 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-08-25 13:41:37 rcms_custom_filters format_negative Error formatting number FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040519-HSarein-0001: could not convert string to float: 'FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040519-HSarein-0001'
+ERROR 2025-08-25 13:51:13 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-08-25 13:51:27 rcms_custom_filters format_negative Error formatting number : could not convert string to float: ''
+ERROR 2025-08-26 09:28:15 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040519-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-26 09:28:15 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040518-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-26 14:58:55 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040519-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-26 14:58:55 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040518-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 17:59:35 rcms_custom_filters format_negative Error formatting number FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040519-HSarein-0001: could not convert string to float: 'FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040519-HSarein-0001'
+ERROR 2025-08-27 18:17:05 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040518-HSarein-HSAR-Flor3-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 963, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-08-27 18:20:06 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040518-HSarein-HSAR-Flor3-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 963, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-08-27 18:20:57 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040518-HSarein-HSAR-Flor3-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 963, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-08-27 18:21:12 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040518-HSarein-HSAR-Flor3-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 963, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-08-27 18:21:42 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040518-HSarein-HSAR-Flor3-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 963, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-08-27 18:21:50 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040518-HSarein-HSAR-Flor3-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 963, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-08-27 18:22:03 budget_calculations check_tankhah_lock_status خطا در بررسی وضعیت قفل تنخواه TNKH-14040518-HSarein-HSAR-Flor3-001: '__proxy__' object is not callable
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\budgets\budget_calculations.py", line 963, in check_tankhah_lock_status
+    return False, _("تنخواه فعال است.")
+                  ~^^^^^^^^^^^^^^^^^^^^
+TypeError: '__proxy__' object is not callable
+ERROR 2025-08-27 18:36:11 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040519-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 18:36:11 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040518-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:00:03 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040519-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:00:03 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040518-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:16:00 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040519-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:16:01 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040518-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:25:26 form_Nfactor __init__ [FactorForm] خطا در فیلتر کردن تنخواه‌ها: Cannot query "HSarein - هتل لاله سرعین (هتل)": Must be "Project" instance.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\NF\form_Nfactor.py", line 449, in __init__
+    tankhah_queryset = tankhah_queryset.filter(
+        Q(organization__in=user_orgs_with_parents) |
+        Q(project__organization__in=user_orgs_with_parents)
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1468, in build_filter
+    return self._add_q(
+           ~~~~~~~~~~~^
+        filter_expr,
+        ^^^^^^^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1528, in build_filter
+    self.check_related_objects(join_info.final_field, value, join_info.opts)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1345, in check_related_objects
+    self.check_query_object_type(v, opts, field)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1319, in check_query_object_type
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: Cannot query "HSarein - هتل لاله سرعین (هتل)": Must be "Project" instance.
+ERROR 2025-08-27 19:25:29 form_Nfactor __init__ [FactorForm] خطا در فیلتر کردن تنخواه‌ها: Cannot query "HSarein - هتل لاله سرعین (هتل)": Must be "Project" instance.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\NF\form_Nfactor.py", line 449, in __init__
+    tankhah_queryset = tankhah_queryset.filter(
+        Q(organization__in=user_orgs_with_parents) |
+        Q(project__organization__in=user_orgs_with_parents)
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1468, in build_filter
+    return self._add_q(
+           ~~~~~~~~~~~^
+        filter_expr,
+        ^^^^^^^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1528, in build_filter
+    self.check_related_objects(join_info.final_field, value, join_info.opts)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1345, in check_related_objects
+    self.check_query_object_type(v, opts, field)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1319, in check_query_object_type
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: Cannot query "HSarein - هتل لاله سرعین (هتل)": Must be "Project" instance.
+ERROR 2025-08-27 19:27:12 form_Nfactor __init__ [FactorForm] خطا در فیلتر کردن تنخواه‌ها: Cannot query "HSarein - هتل لاله سرعین (هتل)": Must be "Project" instance.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\NF\form_Nfactor.py", line 449, in __init__
+    tankhah_queryset = tankhah_queryset.filter(
+        Q(organization__in=user_orgs_with_parents) |
+        Q(project__organization__in=user_orgs_with_parents)
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1468, in build_filter
+    return self._add_q(
+           ~~~~~~~~~~~^
+        filter_expr,
+        ^^^^^^^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1528, in build_filter
+    self.check_related_objects(join_info.final_field, value, join_info.opts)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1345, in check_related_objects
+    self.check_query_object_type(v, opts, field)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1319, in check_query_object_type
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: Cannot query "HSarein - هتل لاله سرعین (هتل)": Must be "Project" instance.
+ERROR 2025-08-27 19:27:12 form_Nfactor __init__ [FactorForm] خطا در فیلتر کردن تنخواه‌ها: Cannot query "HSarein - هتل لاله سرعین (هتل)": Must be "Project" instance.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\NF\form_Nfactor.py", line 449, in __init__
+    tankhah_queryset = tankhah_queryset.filter(
+        Q(organization__in=user_orgs_with_parents) |
+        Q(project__organization__in=user_orgs_with_parents)
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1468, in build_filter
+    return self._add_q(
+           ~~~~~~~~~~~^
+        filter_expr,
+        ^^^^^^^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1528, in build_filter
+    self.check_related_objects(join_info.final_field, value, join_info.opts)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1345, in check_related_objects
+    self.check_query_object_type(v, opts, field)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1319, in check_query_object_type
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: Cannot query "HSarein - هتل لاله سرعین (هتل)": Must be "Project" instance.
+ERROR 2025-08-27 19:28:11 form_Nfactor __init__ [FactorForm] خطا در فیلتر کردن تنخواه‌ها: Cannot query "HSarein - هتل لاله سرعین (هتل)": Must be "Project" instance.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\NF\form_Nfactor.py", line 449, in __init__
+    tankhah_queryset = tankhah_queryset.filter(
+        Q(organization__in=user_orgs_with_parents) |
+        Q(project__organization__in=user_orgs_with_parents)
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1468, in build_filter
+    return self._add_q(
+           ~~~~~~~~~~~^
+        filter_expr,
+        ^^^^^^^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1528, in build_filter
+    self.check_related_objects(join_info.final_field, value, join_info.opts)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1345, in check_related_objects
+    self.check_query_object_type(v, opts, field)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1319, in check_query_object_type
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: Cannot query "HSarein - هتل لاله سرعین (هتل)": Must be "Project" instance.
+ERROR 2025-08-27 19:28:19 form_Nfactor __init__ [FactorForm] خطا در فیلتر کردن تنخواه‌ها: Cannot query "HSarein - هتل لاله سرعین (هتل)": Must be "Project" instance.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\NF\form_Nfactor.py", line 449, in __init__
+    tankhah_queryset = tankhah_queryset.filter(
+        Q(organization__in=user_orgs_with_parents) |
+        Q(project__organization__in=user_orgs_with_parents)
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1468, in build_filter
+    return self._add_q(
+           ~~~~~~~~~~~^
+        filter_expr,
+        ^^^^^^^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1528, in build_filter
+    self.check_related_objects(join_info.final_field, value, join_info.opts)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1345, in check_related_objects
+    self.check_query_object_type(v, opts, field)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1319, in check_query_object_type
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: Cannot query "HSarein - هتل لاله سرعین (هتل)": Must be "Project" instance.
+ERROR 2025-08-27 19:28:19 form_Nfactor __init__ [FactorForm] خطا در فیلتر کردن تنخواه‌ها: Cannot query "HSarein - هتل لاله سرعین (هتل)": Must be "Project" instance.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\NF\form_Nfactor.py", line 449, in __init__
+    tankhah_queryset = tankhah_queryset.filter(
+        Q(organization__in=user_orgs_with_parents) |
+        Q(project__organization__in=user_orgs_with_parents)
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1468, in build_filter
+    return self._add_q(
+           ~~~~~~~~~~~^
+        filter_expr,
+        ^^^^^^^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1528, in build_filter
+    self.check_related_objects(join_info.final_field, value, join_info.opts)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1345, in check_related_objects
+    self.check_query_object_type(v, opts, field)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1319, in check_query_object_type
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: Cannot query "HSarein - هتل لاله سرعین (هتل)": Must be "Project" instance.
+ERROR 2025-08-27 19:37:28 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:37:28 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040519-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:37:28 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040518-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:37:36 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:37:36 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:37:41 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:37:41 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040519-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:37:41 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040518-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:38:00 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:38:01 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:38:01 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040519-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:38:01 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040518-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:43:32 form_Nfactor __init__ [FactorForm] خطا در فیلتر کردن تنخواه‌ها: Cannot query "ComplexSHC - مجتمع آبدرمانی سبلان (هتل)": Must be "Project" instance.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\NF\form_Nfactor.py", line 376, in __init__
+    tankhah_queryset = tankhah_queryset.filter(
+        Q(organization__in=user_orgs_with_parents) |
+        Q(project__organization__in=user_orgs_with_parents)
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1468, in build_filter
+    return self._add_q(
+           ~~~~~~~~~~~^
+        filter_expr,
+        ^^^^^^^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1528, in build_filter
+    self.check_related_objects(join_info.final_field, value, join_info.opts)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1345, in check_related_objects
+    self.check_query_object_type(v, opts, field)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1319, in check_query_object_type
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: Cannot query "ComplexSHC - مجتمع آبدرمانی سبلان (هتل)": Must be "Project" instance.
+ERROR 2025-08-27 19:44:07 form_Nfactor __init__ [FactorForm] خطا در فیلتر کردن تنخواه‌ها: Cannot query "ComplexSHC - مجتمع آبدرمانی سبلان (هتل)": Must be "Project" instance.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\NF\form_Nfactor.py", line 376, in __init__
+    tankhah_queryset = tankhah_queryset.filter(
+        Q(organization__in=user_orgs_with_parents) |
+        Q(project__organization__in=user_orgs_with_parents)
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1468, in build_filter
+    return self._add_q(
+           ~~~~~~~~~~~^
+        filter_expr,
+        ^^^^^^^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1528, in build_filter
+    self.check_related_objects(join_info.final_field, value, join_info.opts)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1345, in check_related_objects
+    self.check_query_object_type(v, opts, field)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1319, in check_query_object_type
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: Cannot query "ComplexSHC - مجتمع آبدرمانی سبلان (هتل)": Must be "Project" instance.
+ERROR 2025-08-27 19:44:08 form_Nfactor __init__ [FactorForm] خطا در فیلتر کردن تنخواه‌ها: Cannot query "ComplexSHC - مجتمع آبدرمانی سبلان (هتل)": Must be "Project" instance.
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\Factor\NF\form_Nfactor.py", line 376, in __init__
+    tankhah_queryset = tankhah_queryset.filter(
+        Q(organization__in=user_orgs_with_parents) |
+        Q(project__organization__in=user_orgs_with_parents)
+    )
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1468, in build_filter
+    return self._add_q(
+           ~~~~~~~~~~~^
+        filter_expr,
+        ^^^^^^^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1528, in build_filter
+    self.check_related_objects(join_info.final_field, value, join_info.opts)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1345, in check_related_objects
+    self.check_query_object_type(v, opts, field)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1319, in check_query_object_type
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: Cannot query "ComplexSHC - مجتمع آبدرمانی سبلان (هتل)": Must be "Project" instance.
+ERROR 2025-08-27 19:54:54 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:54:54 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:54:54 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040519-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:54:54 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040518-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:55:02 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:55:02 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:55:02 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040519-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 19:55:02 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040518-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 20:01:15 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040606-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 20:01:15 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040605-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 20:01:15 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040604-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 20:01:15 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040519-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+ERROR 2025-08-27 20:01:15 utils get_factor_current_stage [get_factor_current_stage] Error for factor FAC-TNKH-14040518-HSarein-HSAR-Flor3-001-14040518-HSarein-0001: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id
+Traceback (most recent call last):
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\tankhah\utils.py", line 112, in get_factor_current_stage
+    first_rule = Transition.objects.filter(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        entity_type='FACTOR',
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        is_active=True
+        ^^^^^^^^^^^^^^
+    ).first()
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1476, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1494, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\query.py", line 1501, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1609, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1641, in _add_q
+    child_clause, needed_inner = self.build_filter(
+                                 ~~~~~~~~~~~~~~~~~^
+        child,
+        ^^^^^^
+    ...<7 lines>...
+        update_join_types=update_join_types,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1491, in build_filter
+    lookups, parts, reffed_expression = self.solve_lookup_type(arg, summarize)
+                                        ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1303, in solve_lookup_type
+    _, field, _, lookup_parts = self.names_to_path(lookup_splitted, self.get_meta())
+                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Design & Source Code\Source Coding\BudgetsSystem\venv\Lib\site-packages\django\db\models\sql\query.py", line 1768, in names_to_path
+    raise FieldError(
+    ...<2 lines>...
+    )
+django.core.exceptions.FieldError: Cannot resolve keyword 'action_type' into field. Choices are: action, action_id, allowed_posts, created_at, created_by, created_by_id, entity_type, entity_type_id, from_status, from_status_id, id, is_active, name, organization, organization_id, to_status, to_status_id

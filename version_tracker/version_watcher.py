@@ -5,7 +5,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 # تنظیم مسیر پروژه و بارگذاری جنگو
-project_path = "D:\\Design & Source Code\\Source Coding\\apartmant"
+project_path = "D:\\Design & Source Code\\Source Coding\\BudgetsSystem"
 sys.path.append(project_path)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
 

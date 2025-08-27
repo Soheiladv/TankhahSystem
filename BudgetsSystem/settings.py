@@ -1,16 +1,26 @@
 # settings.py
 import logging.config
 import os
+import sys
 from pathlib import Path
 
 logger = logging.getLogger('SettingError')
 
 # --- Start of your existing settings.py ---
 
+# محاسبه مسیر اصلی پروژه
 BASE_DIR = Path(__file__).resolve().parent.parent
+# اضافه کردن مسیر پروژه به Python path
+sys.path.insert(0, str(BASE_DIR))
+
+# تنظیمات تمپلیت و استاتیک
+TEMPLATE_DIRS = [
+    os.path.join(BASE_DIR, 'templates'),
+]
 
 SECRET_KEY = 'django-insecure-*zron+$_y8zn14z7a7r(wgllx%8n0vii^(6uar=_r)94(v!khc'
 DEBUG = True  # در محیط توسعه، DEBUG = True باشد
+# DEBUG = False  # در محیط توسعه، DEBUG = True باشد
 # ALLOWED_HOSTS = ['*']  # برای لوکال هاست، '127.0.0.1', 'localhost' یا '*'
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
 INSTALLED_APPS = [
@@ -31,7 +41,7 @@ INSTALLED_APPS = [
     'version_tracker.apps.VersionTrackerConfig',
     'tankhah.apps.TankhahConfig',
     'accounts.apps.AccountsConfig',
-    'core.templatetags.file_tags',
+    # 'core.templatetags.file_tags',
     'budgets.apps.BudgetsConfig',
     'formtools',
     'dbbackup',  # افزودن django-db-backup به Installed Apps
@@ -135,6 +145,14 @@ DATABASES = {
             'CHARSET': 'utf8mb4',
             'COLLATION': 'utf8mb4_unicode_ci',
         }
+    },
+    'tankhah_logs_db': {  # ✅ تعریف جداگانه برای دیتابیس دوم
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'tankhah_logs_db',
+        'USER': 'root',
+        'PASSWORD': 'S@123456@1234',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
@@ -153,10 +171,8 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-# STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'staticfiles'), ]
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -381,14 +397,24 @@ LOGGING = {
 # --- End of Logging Configuration ---
 # -----------------------------------------------------------------
 #  تنظیمات WebSocket در settings.py:
-ASGI_APPLICATION = 'tankhah.asgi.application'
+ASGI_APPLICATION = 'BudgetsSystem.asgi.application'
 
+#====================== Run as Redis
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             'hosts': [('127.0.0.1', 6379)],
+#         },
+#     },
+# }
+#====================== Run as Redis in Memory
+# اینجوری نیازی به Redis نداری و خطا رفع میشه.
+# توی settings.py می‌تونی کانال‌لایه رو بیاری روی حافظه (InMemory):
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [('127.0.0.1', 6379)],
-        },
-    },
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
 }
+
 # -----------------------------------------------------------------

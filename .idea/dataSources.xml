@@ -1,24 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-<<<<<<< HEAD
-    <data-source source="LOCAL" name="Django default" uuid="2012765c-6b05-4bbc-8050-fb9fc4e79963">
-=======
-    <data-source source="LOCAL" name="tankhasystem@localhost" uuid="1319a7a0-a6da-43d6-9512-ae32f88074c4">
-      <driver-ref>mysql.8</driver-ref>
-      <synchronize>true</synchronize>
-      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://localhost:3306/tankhasystem</jdbc-url>
-      <working-dir>$ProjectFileDir$</working-dir>
-    </data-source>
-    <data-source source="LOCAL" name="Django default" uuid="9854e0b6-837d-4aca-9da4-baf1053a676f">
->>>>>>> 171b55a74efe3adb976919af53d3bd582bb2266e
+    <data-source source="LOCAL" name="Django default" uuid="8b706653-e4be-498c-bedf-1bebfae36595">
       <driver-ref>mysql.8</driver-ref>
       <synchronize>true</synchronize>
       <imported>true</imported>
-      <remarks>$PROJECT_DIR$/Tanbakhsystem/settings.py</remarks>
+      <remarks>$PROJECT_DIR$/BudgetsSystem/settings.py</remarks>
       <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
       <jdbc-url>jdbc:mysql://127.0.0.1:3306/tankhasystem</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="Django tankhah_logs_db" uuid="3735540e-2002-403d-a073-1174b4d2afe6">
+      <driver-ref>mysql.8</driver-ref>
+      <synchronize>true</synchronize>
+      <imported>true</imported>
+      <remarks>$PROJECT_DIR$/BudgetsSystem/settings.py</remarks>
+      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://127.0.0.1:3306/tankhah_logs_db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

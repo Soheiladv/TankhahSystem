@@ -3,7 +3,7 @@ from django.db.models import Sum
 from decimal import Decimal
 from BudgetsSystem.utils import convert_jalali_to_gregorian, convert_gregorian_to_jalali, convert_to_farsi_numbers
 from BudgetsSystem.widgets import NumberToWordsWidget
-from accounts.models import TimeLockModel
+from accounts.models import TimeLockModel, CustomUser
 from budgets.models import BudgetAllocation
 from core.models import Project, Organization, UserPost, Post, PostHistory, WorkflowStage, SubProject, OrganizationType, \
     SystemSettings, AccessRule, Branch, PostAction
@@ -146,7 +146,7 @@ class ProjectForm(forms.ModelForm):
             raise ValidationError(_('تاریخ تخصیص اجباری است.'))
         try:
             # Use the utility function to parse
-            from Tanbakhsystem.utils import parse_jalali_date
+            from BudgetsSystem.utils import parse_jalali_date
             parsed_date = parse_jalali_date(str(start_date), field_name=_('تاریخ شروع'))
             logger.debug(f"Parsed start_date: {parsed_date}")
             return parsed_date  # Return the Python date object
@@ -165,7 +165,7 @@ class ProjectForm(forms.ModelForm):
             raise ValidationError(_('تاریخ خاتمه اجباری است.'))
         try:
             # Use the utility function to parse
-            from Tanbakhsystem.utils import parse_jalali_date
+            from BudgetsSystem.utils import parse_jalali_date
             parsed_date = parse_jalali_date(str(end_date), field_name=_('تاریخ خاتمه'))
             logger.debug(f"Parsed end_date: {parsed_date}")
             return parsed_date  # Return the Python date object
@@ -371,14 +371,124 @@ class PostForm(forms.ModelForm):
         self._user = user  # Store user for use in save
         super().__init__(*args, **kwargs)
 
-class UserPostForm(forms.ModelForm):
+class UserPostForm_(forms.ModelForm):
     class Meta:
         model = UserPost
         fields = ['user', 'post']
         widgets = {
+            'user': forms.Select(attrs={'class': 'form-select'}),
+            'post': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # مثال: فقط کاربران فعال
+        self.fields['user'].queryset = CustomUser.objects.filter(is_active=True)
+
+# ===== CORE BUSINESS LOGIC =====
+class UserPostForm(forms.ModelForm):
+    """
+    فرم برای ایجاد یا به‌روزرسانی اتصال کاربر به پست.
+    مسئولیت: اعتبارسنجی و فیلتر کردن کاربران و پست‌های مجاز.
+    """
+    start_date = forms.CharField(
+        label=_('تاریخ شروع فعالیت '),
+        widget=forms.TextInput(attrs={
+            'data-jdp': '',
+            'class': 'form-control',
+            'placeholder': _('1404/01/17'),
+        })
+    )
+    end_date = forms.CharField(
+        label=_('تاریخ خاتمه فعالیت'),
+        widget=forms.TextInput(attrs={
+            'data-jdp': '',
+            'class': 'form-control',
+            'placeholder': _('1404/01/17'),
+        })
+    )
+    class Meta:
+        model = UserPost
+        fields = ['user', 'post', 'is_active']
+        widgets = {
             'user': forms.Select(attrs={'class': 'form-control'}),
             'post': forms.Select(attrs={'class': 'form-control'}),
+            # 'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            # 'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+    def clean_start_date(self):
+        """اعتبارسنجی تاریخ جلالی"""
+        date_str = self.cleaned_data.get('start_date')
+        try:
+            from tankhah.Factor.NF.form_Nfactor import parse_jalali_date
+            return parse_jalali_date(date_str)
+        except (ValueError, TypeError):
+            logger.warning(f"[FactorForm.clean_date] فرمت تاریخ نامعتبر: {date_str}")
+            raise forms.ValidationError(_('فرمت تاریخ نامعتبر است.'))
+
+    def clean_end_date(self):
+        """اعتبارسنجی تاریخ جلالی"""
+        date_str = self.cleaned_data.get('end_date')
+        try:
+            from tankhah.Factor.NF.form_Nfactor import parse_jalali_date
+            return parse_jalali_date(date_str)
+        except (ValueError, TypeError):
+            logger.warning(f"[FactorForm.clean_date] فرمت تاریخ نامعتبر: {date_str}")
+            raise forms.ValidationError(_('فرمت تاریخ نامعتبر است.'))
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+        logger.debug(f"[UserPostForm] شروع مقداردهی اولیه برای کاربر '{self.request.user.username if self.request else 'Anonymous'}'")
+
+        # فیلتر کاربران فعال
+        self.fields['user'].queryset = CustomUser.objects.filter(is_active=True).order_by('username')
+        # فیلتر پست‌های فعال در سازمان‌های مجاز
+        if self.request and not self.request.user.is_superuser:
+            user_orgs = {up.post.organization for up in self.request.user.userpost_set.filter(is_active=True)
+                         if up.post.organization and not up.post.organization.is_core and not up.post.organization.is_holding}
+            self.fields['post'].queryset = Post.objects.filter(
+                is_active=True,
+                organization__in=user_orgs
+            ).order_by('name')
+        else:
+            self.fields['post'].queryset = Post.objects.filter(is_active=True).order_by('name')
+
+        if self.instance.pk:
+            logger.debug(f"[UserPostForm] ویرایش اتصال با ID: {self.instance.pk}")
+
+    def clean(self):
+        """اعتبارسنجی فرم"""
+        cleaned_data = super().clean()
+        user = cleaned_data.get('user')
+        post = cleaned_data.get('post')
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        is_active = cleaned_data.get('is_active')
+
+        if user and post:
+            # بررسی عدم وجود اتصال فعال مشابه
+            existing = UserPost.objects.filter(
+                user=user,
+                post=post,
+                is_active=True
+            ).exclude(pk=self.instance.pk if self.instance.pk else None)
+            if existing.exists():
+                logger.warning(f"[UserPostForm.clean] اتصال فعال برای کاربر '{user.username}' و پست '{post.name}' وجود دارد")
+                raise ValidationError(_('این کاربر قبلاً به این پست متصل است و اتصال فعال است.'))
+
+        if end_date and start_date and end_date < start_date:
+            logger.warning(f"[UserPostForm.clean] تاریخ پایان {end_date} قبل از تاریخ شروع {start_date} است")
+            raise ValidationError(_('تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد.'))
+
+        from django.utils import timezone
+        if is_active and end_date and end_date < timezone.now().date():
+            logger.warning(f"[UserPostForm.clean] اتصال فعال با تاریخ پایان منقضی‌شده: {end_date}")
+            raise ValidationError(_('اتصال فعال نمی‌تواند تاریخ پایانی منقضی‌شده داشته باشد.'))
+
+        logger.debug("[UserPostForm.clean] اعتبارسنجی فرم با موفقیت انجام شد")
+        return cleaned_data
 
 class PostHistoryForm(forms.ModelForm):
     # changed_at = jDateField(

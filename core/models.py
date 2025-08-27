@@ -227,19 +227,41 @@ class UserPost(models.Model):
         ]
 
     def save(self, *args, **kwargs):
+        """ذخیره اتصال کاربر به پست با مدیریت خطای Redis"""
+        self.full_clean()  # اجرای اعتبارسنجی
         super().save(*args, **kwargs)
-        from channels.layers import get_channel_layer
-        from asgiref.sync import async_to_sync
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            'chart_updates', {
-                'type': 'chart_update',
-                'message': 'UserPost updated, reload chart'
-            }
-        )
+        try:
+            from channels.layers import get_channel_layer
+            channel_layer = get_channel_layer()
+            if channel_layer:
+                from asgiref.sync import async_to_sync
+                async_to_sync(channel_layer.group_send)(
+                    'chart_updates',
+                    {
+                        'type': 'chart_update',
+                        'message': f'UserPost updated for user {self.user.username}, post {self.post.name}',
+                    }
+                )
+                logger.debug(f"[UserPost.save] پیام به‌روزرسانی چارت برای کاربر '{self.user.username}' ارسال شد")
+            else:
+                logger.warning("[UserPost.save] Channel layer در دسترس نیست. پیام به‌روزرسانی چارت ارسال نشد.")
+        except Exception as e:
+            logger.error(f"[UserPost.save] خطا در ارسال پیام به channel layer: {str(e)}", exc_info=True)
+            # ادامه اجرای ذخیره بدون کرش، چون Redis برای ذخیره ضروری نیست
+        logger.info(f"[UserPost.save] اتصال کاربر '{self.user.username}' به پست '{self.post.name}' با موفقیت ذخیره شد")
+
+    def clean(self):
+        """اعتبارسنجی مدل"""
+        super().clean()
+        if self.end_date and self.end_date < self.start_date:
+            raise ValidationError(_('تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد.'))
+        if self.is_active and self.end_date and self.end_date < timezone.now().date():
+            raise ValidationError(_('اتصال فعال نمی‌تواند تاریخ پایانی منقضی‌شده داشته باشد.'))
 
     def __str__(self):
         return f"{self.user.username} - {self.post.name} (از {self.start_date})"
+
+#=================================================
 class PostHistory(models.Model):
     """
     مدل تاریخچه تغییرات پست‌های سازمانی
@@ -409,108 +431,13 @@ class SubProject(models.Model):
             ('SubProject_Branch', 'تخصیص  زیر مجموعه پروژه(شعبه)🏠'),
         ]
 
-# --
-class AccessRule(models.Model):
-    """این مدل مشخص می‌کنه که پست‌های یک سازمان، با branch و min_level خاص، چه اقداماتی می‌تونن توی چه مراحلی برای چه موجودیت‌هایی انجام بدن."""
-
-    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("سازمان"))
-    # stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_('مرحله'))
-    stage = models.CharField(max_length=200, verbose_name=_('نام مرحله'))
-    # stage_order = models.PositiveIntegerField(verbose_name=_('ترتیب مرحله'))
-    stage_order = models.PositiveIntegerField(verbose_name=_('ترتیب مرحله'), null=True, blank=True)
-    post = models.ForeignKey('core.Post', on_delete=models.CASCADE, null=True, blank=True, verbose_name=_('پست'),
-                             help_text=_('پست مرتبط با این قانون. اگر خالی باشد، بر اساس min_level اعمال می‌شود.'))
-    action_type = models.CharField(max_length=25, choices=ACTION_TYPES, verbose_name=_('نوع اقدام'))
-    entity_type = models.CharField(max_length=100, choices=ENTITY_TYPES, verbose_name=_('نوع موجودیت'))
-    min_level = models.IntegerField(default=1, verbose_name=_("حداقل سطح"))
-
-    # branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True,default=None, verbose_name="شاخه")
-    branch = models.ForeignKey('core.Branch', on_delete=models.SET_NULL, null=True, blank=True, default=None, verbose_name="شاخه")
-
-    is_active = models.BooleanField(default=True, verbose_name=_('فعال'))
-    min_signatures = models.PositiveIntegerField(default=1, verbose_name=_("حداقل تعداد امضا"))
-
-    auto_advance = models.BooleanField(default=True, verbose_name=_("پیش‌رفت خودکار"))
-    triggers_payment_order = models.BooleanField(default=False, verbose_name=_("فعال‌سازی دستور پرداخت"))
-    is_payment_order_signer = models.BooleanField(default=False, verbose_name=_("امضاکننده دستور پرداخت"))
-    is_final_stage = models.BooleanField(default=False, verbose_name=_("مرحله نهایی"))
-    created_by = models.ForeignKey('accounts.CustomUser',related_name='access_rules', on_delete=models.SET_NULL, null=True, verbose_name=_("ایجادکننده"))
-
-    class Meta:
-        verbose_name = _("قانون دسترسی")
-        verbose_name_plural = _("قوانین دسترسی")
-        # unique_together = ('organization', 'branch', 'min_level', 'stage', 'action_type', 'entity_type')
-        unique_together = ('organization', 'entity_type', 'stage_order' , 'post', 'action_type')
-
-        default_permissions = ()
-        permissions = [
-            ('AccessRule_add', 'افزودن قانون دسترسی'),
-            ('AccessRule_view', 'نمایش قانون دسترسی'),
-            ('AccessRule_update', 'ویرایش قانون دسترسی'),
-            ('AccessRule_delete', 'حــذف قانون دسترسی'),
-        ]
-    #
-    # def save(self, *args, **kwargs):
-    #     if self.stage_order and self.is_active:
-    #         if AccessRule.objects.filter(
-    #             organization=self.organization,
-    #             entity_type=self.entity_type,
-    #             stage_order=self.stage_order,
-    #             is_active=True
-    #         ).exclude(pk=self.pk).exists():
-    #             raise ValueError(_immediate("ترتیب مرحله {stage_order} برای سازمان {org} و موجودیت {entity} قبلاً استفاده شده است.").format(
-    #                 stage_order=self.stage_order,
-    #                 org=self.organization,
-    #                 entity=self.entity_type
-    #             ))
-    #     super().save(*args, **kwargs)
-
-    # def __str__(self):
-    #     return f"{self.organization} - {self.branch} - {self.action_type} - {self.entity_type}"
-
-    # def save(self, *args, **kwargs):
-    #     # بررسی یکتایی stage_order در سطح مدل، که قبلا داشتید و بسیار خوب است.
-    #     # این باعث می‌شود حتی اگر از جاهای دیگر هم AccessRule ایجاد شود، تداخل پیش نیاید.
-    #     if self.stage_order and self.is_active:
-    #         if AccessRule.objects.filter(
-    #             organization=self.organization,
-    #             entity_type=self.entity_type,
-    #             stage_order=self.stage_order,
-    #             is_active=True
-    #         ).exclude(pk=self.pk).exists():
-    #             raise ValueError(_immediate("ترتیب مرحله {stage_order} برای سازمان {org} و موجودیت {entity} قبلاً استفاده شده است.").format(
-    #                 stage_order=self.stage_order,
-    #                 org=self.organization.name, # استفاده از .name برای نمایش بهتر
-    #                 entity=self.entity_type
-    #             ))
-    #     super().save(*args, **kwargs)
-
-    def __str__(self):
-            return f"{self.organization} - {self.post} - {self.stage} (ترتیب: {self.stage_order}) - {self.action_type}"
 
 class PostAction(models.Model):
-    # ACTION_TYPES = (
-    #     ('APPROVE', _('تأیید')),
-    #     ('REJECT', _('رد')),
-    #     ('FINALIZE', _('اتمام')),
-    #     ('STAGE_CHANGE', _('تغییروضعیت')),
-    #     ('CUSTOM', _('سفارشی')),
-    # )
-    # ENTITY_TYPES = (
-    #     ('FACTOR', _('فاکتور')),
-    #     ('TANKHAH', _('تنخواه')),
-    #     ('BUDGET_ALLOCATION', _('تخصیص بودجه')),
-    #     ('BUDGET_RETURN', _('تخصیص بودجه')),
-    #     ('ISSUE_PAYMENT_ORDER', _('صدور دستور پرداخت')),
-    # )
-
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name=_("پست"))
-    # stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_("مرحله"))
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='postactions',verbose_name=_("پست"))
     action_type = models.CharField(max_length=50, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
     entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, default='TANKHAH',verbose_name=_("نوع موجودیت"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
     min_level = models.IntegerField(null=True, blank=True)  # حداقل سطح دسترسی (اختیاری)
-
     triggers_payment_order = models.BooleanField(default=False,  verbose_name=_("فعال‌سازی دستور پرداخت"))  # مشخصه دستور پرداخت کاریر
     allowed_actions = ArrayField(models.CharField(max_length=25, choices=[
         ('APPROVE', 'تأیید'),
@@ -518,10 +445,12 @@ class PostAction(models.Model):
         ('STAGE_CHANGE', 'تغییر مرحله'),
         ('SIGN_PAYMENT', 'امضای دستور پرداخت')
     ]), default=list, verbose_name=_("اقدامات مجاز"))
-    stage = models.ForeignKey(AccessRule, on_delete=models.CASCADE, related_name='postactions', verbose_name=_("مرحله"))
+    stage = models.ForeignKey('Status', on_delete=models.CASCADE, related_name='postactions', verbose_name=_("مرحله"))
+
 
     def __str__(self):
-        return f"{self.post} - {self.action_type} برای {self.get_entity_type_display()} در {self.stage}"
+        # return f"{self.post} - {self.action_type} برای {self.get_entity_type_display()} در {self.stage}"
+        return f"{self.post} → {self.stage} :: {self.action_type}  برای {self.get_entity_type_display()}({'✅' if self.allowed_actions else '❌'})"
         # return f"{self.post} - {self.action_type} در {self.stage}"
 
     class Meta:
@@ -789,3 +718,81 @@ class WorkflowStage(models.Model):
             ('WorkflowStage_delete', 'حذف مرحله گردش کار'),
             ('WorkflowStage_triggers_payment_order', 'فعال‌سازی دستور پرداخت - مرحله گردش کار'),
         ]
+# --
+class AccessRule(models.Model):
+    """این مدل مشخص می‌کنه که پست‌های یک سازمان، با branch و min_level خاص، چه اقداماتی می‌تونن توی چه مراحلی برای چه موجودیت‌هایی انجام بدن."""
+
+    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("سازمان"))
+    # stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_('مرحله'))
+    stage = models.CharField(max_length=200, verbose_name=_('نام مرحله'))
+    # stage_order = models.PositiveIntegerField(verbose_name=_('ترتیب مرحله'))
+    stage_order = models.PositiveIntegerField(verbose_name=_('ترتیب مرحله'), null=True, blank=True)
+    post = models.ForeignKey('core.Post', on_delete=models.CASCADE, null=True, blank=True, verbose_name=_('پست'),
+                             help_text=_('پست مرتبط با این قانون. اگر خالی باشد، بر اساس min_level اعمال می‌شود.'))
+    action_type = models.CharField(max_length=25, choices=ACTION_TYPES, verbose_name=_('نوع اقدام'))
+    entity_type = models.CharField(max_length=100, choices=ENTITY_TYPES, verbose_name=_('نوع موجودیت'))
+    min_level = models.IntegerField(default=1, verbose_name=_("حداقل سطح"))
+
+    # branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True,default=None, verbose_name="شاخه")
+    branch = models.ForeignKey('core.Branch', on_delete=models.SET_NULL, null=True, blank=True, default=None, verbose_name="شاخه")
+
+    is_active = models.BooleanField(default=True, verbose_name=_('فعال'))
+    min_signatures = models.PositiveIntegerField(default=1, verbose_name=_("حداقل تعداد امضا"))
+
+    auto_advance = models.BooleanField(default=True, verbose_name=_("پیش‌رفت خودکار"))
+    triggers_payment_order = models.BooleanField(default=False, verbose_name=_("فعال‌سازی دستور پرداخت"))
+    is_payment_order_signer = models.BooleanField(default=False, verbose_name=_("امضاکننده دستور پرداخت"))
+    is_final_stage = models.BooleanField(default=False, verbose_name=_("مرحله نهایی"))
+    created_by = models.ForeignKey('accounts.CustomUser',related_name='access_rules', on_delete=models.SET_NULL, null=True, verbose_name=_("ایجادکننده"))
+
+    class Meta:
+        verbose_name = _("قانون دسترسی")
+        verbose_name_plural = _("قوانین دسترسی")
+        # unique_together = ('organization', 'branch', 'min_level', 'stage', 'action_type', 'entity_type')
+        unique_together = ('organization', 'entity_type', 'stage_order' , 'post', 'action_type')
+
+        default_permissions = ()
+        permissions = [
+            ('AccessRule_add', 'افزودن قانون دسترسی'),
+            ('AccessRule_view', 'نمایش قانون دسترسی'),
+            ('AccessRule_update', 'ویرایش قانون دسترسی'),
+            ('AccessRule_delete', 'حــذف قانون دسترسی'),
+        ]
+    #
+    # def save(self, *args, **kwargs):
+    #     if self.stage_order and self.is_active:
+    #         if AccessRule.objects.filter(
+    #             organization=self.organization,
+    #             entity_type=self.entity_type,
+    #             stage_order=self.stage_order,
+    #             is_active=True
+    #         ).exclude(pk=self.pk).exists():
+    #             raise ValueError(_immediate("ترتیب مرحله {stage_order} برای سازمان {org} و موجودیت {entity} قبلاً استفاده شده است.").format(
+    #                 stage_order=self.stage_order,
+    #                 org=self.organization,
+    #                 entity=self.entity_type
+    #             ))
+    #     super().save(*args, **kwargs)
+
+    # def __str__(self):
+    #     return f"{self.organization} - {self.branch} - {self.action_type} - {self.entity_type}"
+
+    # def save(self, *args, **kwargs):
+    #     # بررسی یکتایی stage_order در سطح مدل، که قبلا داشتید و بسیار خوب است.
+    #     # این باعث می‌شود حتی اگر از جاهای دیگر هم AccessRule ایجاد شود، تداخل پیش نیاید.
+    #     if self.stage_order and self.is_active:
+    #         if AccessRule.objects.filter(
+    #             organization=self.organization,
+    #             entity_type=self.entity_type,
+    #             stage_order=self.stage_order,
+    #             is_active=True
+    #         ).exclude(pk=self.pk).exists():
+    #             raise ValueError(_immediate("ترتیب مرحله {stage_order} برای سازمان {org} و موجودیت {entity} قبلاً استفاده شده است.").format(
+    #                 stage_order=self.stage_order,
+    #                 org=self.organization.name, # استفاده از .name برای نمایش بهتر
+    #                 entity=self.entity_type
+    #             ))
+    #     super().save(*args, **kwargs)
+
+    def __str__(self):
+            return f"{self.organization} - {self.post} - {self.stage} (ترتیب: {self.stage_order}) - {self.action_type}"

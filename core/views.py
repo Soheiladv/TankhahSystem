@@ -1445,17 +1445,65 @@ class PostDeleteView(PermissionBaseView, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('پست سازمانی با موفقیت حذف شد.'))
         return super().delete(request, *args, **kwargs)
-
+#     ==================================================
 # --- UserPost Views ---
 class UserPostListView(PermissionBaseView, ListView):
+    """
+    ویو برای نمایش لیست اتصالات کاربر به پست با قابلیت جستجو.
+    مسئولیت: نمایش، فیلتر کردن، و صفحه‌بندی اتصالات با توجه به مجوزهای کاربر.
+    """
     model = UserPost
     template_name = 'core/post/userpost_list.html'
     context_object_name = 'userposts'
     paginate_by = 10
-    extra_context = {'title': _('لیست اتصالات کاربر به پست')}
+    permission_required = 'core.UserPost_view'
 
-    permission_codename = 'core.UserPost_view'
-    # check_organization = True  # فعال کردن چک سازمان
+    def get_queryset(self):
+        """فیلتر کردن اتصالات بر اساس جستجو و سازمان‌های مجاز"""
+        queryset = UserPost.objects.select_related('user', 'post__organization').order_by('-start_date')
+        logger.debug(f"[UserPostListView] شروع فیلتر اتصالات برای کاربر '{self.request.user.username}'")
+
+        # اعمال فیلترهای جستجو
+        username = self.request.GET.get('username', '').strip()
+        post_name = self.request.GET.get('post_name', '').strip()
+        organization_id = self.request.GET.get('organization', '').strip()
+
+        if username:
+            queryset = queryset.filter(user__username__icontains=username)
+            logger.debug(f"[UserPostListView] فیلتر بر اساس نام کاربر: {username}")
+        if post_name:
+            queryset = queryset.filter(post__name__icontains=post_name)
+            logger.debug(f"[UserPostListView] فیلتر بر اساس نام پست: {post_name}")
+        if organization_id:
+            queryset = queryset.filter(post__organization__id=organization_id)
+            logger.debug(f"[UserPostListView] فیلتر بر اساس سازمان: {organization_id}")
+
+        # محدود کردن به سازمان‌های مجاز برای کاربران غیرسوپریوزر
+        if not self.request.user.is_superuser:
+            user_orgs = {up.post.organization for up in self.request.user.userpost_set.filter(is_active=True)
+                         if up.post.organization and not up.post.organization.is_core and not up.post.organization.is_holding}
+            if not user_orgs:
+                logger.warning(f"[UserPostListView] کاربر '{self.request.user.username}' به هیچ سازمان شعبه‌ای دسترسی ندارد")
+                messages.error(self.request, _("شما به هیچ سازمانی دسترسی ندارید."))
+                return queryset.none()
+            queryset = queryset.filter(post__organization__in=user_orgs)
+            logger.debug(f"[UserPostListView] فیلتر به سازمان‌های شعبه‌ای: {[org.name for org in user_orgs]}")
+
+        logger.debug(f"[UserPostListView] تعداد اتصالات فیلترشده: {queryset.count()}")
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        """اضافه کردن داده‌های اضافی به context"""
+        context = super().get_context_data(**kwargs)
+        context['title'] = _("لیست اتصالات کاربر به پست")
+        context['organizations'] = Organization.objects.filter(is_active=True).order_by('name')
+        return context
+
+    def handle_no_permission(self):
+        """مدیریت عدم دسترسی"""
+        logger.warning(f"[UserPostListView] کاربر '{self.request.user.username}' مجوز '{self.permission_required}' را ندارد")
+        messages.error(self.request, _("شما مجوز مشاهده اتصالات کاربر به پست را ندارید."))
+        return super().handle_no_permission()
 class UserPostCreateView(PermissionBaseView, CreateView):
     model = UserPost
     form_class = UserPostForm
@@ -1473,13 +1521,51 @@ class UserPostUpdateView(PermissionBaseView, UpdateView):
     form_class = UserPostForm
     template_name = 'core/post/userpost_form.html'
     success_url = reverse_lazy('userpost_list')
-    # permission_required = 'Tankhah.UserPost_update'
     permission_codename = 'core.UserPost_update'
-    # check_organization = True  # فعال کردن چک سازمان
+    success_message = _('اتصال کاربر به پست با موفقیت به‌روزرسانی شد.')
+
+    def get_form_kwargs(self):
+        """اضافه کردن request به kwargs فرم"""
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def has_permission(self):
+        """بررسی مجوزهای کاربر"""
+        has_perm = super().has_permission()
+        if not has_perm:
+            logger.warning(
+                f"[UserPostUpdateView] کاربر '{self.request.user.username}' مجوز '{self.permission_required}' را ندارد")
+            return False
+
+        userpost = self.get_object()
+        if not self.request.user.is_superuser:
+            user_orgs = {up.post.organization for up in self.request.user.userpost_set.filter(is_active=True)
+                         if
+                         up.post.organization and not up.post.organization.is_core and not up.post.organization.is_holding}
+            if userpost.post.organization not in user_orgs:
+                logger.warning(
+                    f"[UserPostUpdateView] کاربر '{self.request.user.username}' به سازمان پست '{userpost.post.organization.name}' دسترسی ندارد")
+                messages.error(self.request, _('شما به سازمان این پست دسترسی ندارید.'))
+                return False
+
+        logger.debug(f"[UserPostUpdateView] مجوز تأیید شد برای کاربر '{self.request.user.username}'")
+        return True
 
     def form_valid(self, form):
-        messages.success(self.request, _('اتصال کاربر به پست با موفقیت به‌روزرسانی شد.'))
+        """مدیریت فرم معتبر"""
+        userpost = form.instance
+        logger.info(
+            f"[UserPostUpdateView] اتصال کاربر '{userpost.user.username}' به پست '{userpost.post.name}' به‌روزرسانی شد")
+        messages.success(self.request,
+                         _(f"اتصال کاربر '{userpost.user.username}' به پست '{userpost.post.name}' با موفقیت به‌روزرسانی شد."))
         return super().form_valid(form)
+
+    def form_invalid(self, form):
+        """مدیریت فرم نامعتبر"""
+        logger.warning(f"[UserPostUpdateView] فرم نامعتبر برای کاربر '{self.request.user.username}': {form.errors}")
+        messages.error(self.request, _('خطا در به‌روزرسانی اتصال. لطفاً ورودی‌ها را بررسی کنید.'))
+        return super().form_invalid(form)
 class UserPostDeleteView(PermissionBaseView, DeleteView):
     model = UserPost
     template_name = 'core/post/post_confirm_delete.html'
@@ -1491,6 +1577,7 @@ class UserPostDeleteView(PermissionBaseView, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('اتصال کاربر به پست با موفقیت حذف شد.'))
         return super().delete(request, *args, **kwargs)
+#     ==================================================
 # --- PostHistory Views ---
 class PostHistoryListView(PermissionBaseView, ListView):
     model = PostHistory
