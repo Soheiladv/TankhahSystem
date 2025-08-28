@@ -3,6 +3,7 @@ import logging
 from decimal import Decimal
 from time import timezone
 
+from django.contrib.auth.decorators import login_required
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
@@ -1505,25 +1506,18 @@ class UserPostListView(PermissionBaseView, ListView):
         logger.warning(f"[UserPostListView] کاربر '{self.request.user.username}' مجوز '{self.permission_required}' را ندارد")
         messages.error(self.request, _("شما مجوز مشاهده اتصالات کاربر به پست را ندارید."))
         return super().handle_no_permission()
-class UserPostCreateView(PermissionBaseView, CreateView):
+    #     ==================================================
+class UserPostCreateView(PermissionBaseView,  CreateView):
+    """
+    ویو برای ایجاد اتصال کاربر به پست.
+    مسئولیت: مدیریت فرم و بررسی مجوزهای کاربر.
+    """
     model = UserPost
     form_class = UserPostForm
     template_name = 'core/post/userpost_form.html'
     success_url = reverse_lazy('userpost_list')
-    # permission_required = 'Tankhah.UserPost_add'
-    permission_codename = 'core.UserPost_add'
-    # check_organization = True  # فعال کردن چک سازمان
-
-    def form_valid(self, form):
-        messages.success(self.request, _('اتصال کاربر به پست با موفقیت ایجاد شد.'))
-        return super().form_valid(form)
-class UserPostUpdateView(PermissionBaseView, UpdateView):
-    model = UserPost
-    form_class = UserPostForm
-    template_name = 'core/post/userpost_form.html'
-    success_url = reverse_lazy('userpost_list')
-    permission_codename = 'core.UserPost_update'
-    success_message = _('اتصال کاربر به پست با موفقیت به‌روزرسانی شد.')
+    permission_required = 'core.UserPost_add'
+    check_organization = True
 
     def get_form_kwargs(self):
         """اضافه کردن request به kwargs فرم"""
@@ -1535,18 +1529,57 @@ class UserPostUpdateView(PermissionBaseView, UpdateView):
         """بررسی مجوزهای کاربر"""
         has_perm = super().has_permission()
         if not has_perm:
-            logger.warning(
-                f"[UserPostUpdateView] کاربر '{self.request.user.username}' مجوز '{self.permission_required}' را ندارد")
+            logger.warning(f"[UserPostCreateView] کاربر '{self.request.user.username}' مجوز '{self.permission_required}' را ندارد")
+            messages.error(self.request, _("شما مجوز ایجاد اتصال کاربر به پست را ندارید."))
+            return False
+        logger.debug(f"[UserPostCreateView] مجوز تأیید شد برای کاربر '{self.request.user.username}'")
+        return True
+
+    def form_valid(self, form):
+        """مدیریت فرم معتبر"""
+        userpost = form.instance
+        logger.info(f"[UserPostCreateView] اتصال کاربر '{userpost.user.username}' به پست '{userpost.post.name}' ایجاد شد")
+        messages.success(self.request, _(f"اتصال کاربر '{userpost.user.username}' به پست '{userpost.post.name}' با موفقیت ایجاد شد."))
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        """مدیریت فرم نامعتبر"""
+        logger.warning(f"[UserPostCreateView] فرم نامعتبر برای کاربر '{self.request.user.username}': {form.errors}")
+        messages.error(self.request, _('خطا در ایجاد اتصال. لطفاً ورودی‌ها را بررسی کنید.'))
+        return super().form_invalid(form)
+#     ==================================================
+class UserPostUpdateView(PermissionBaseView,   UpdateView):
+    """
+    ویو برای به‌روزرسانی اتصال کاربر به پست.
+    مسئولیت: مدیریت فرم و بررسی مجوزهای کاربر.
+    """
+    model = UserPost
+    form_class = UserPostForm
+    template_name = 'core/post/userpost_form.html'
+    success_url = reverse_lazy('userpost_list')
+    permission_required = 'core.UserPost_update'
+    check_organization = True
+
+    def get_form_kwargs(self):
+        """اضافه کردن request به kwargs فرم"""
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def has_permission(self):
+        """بررسی مجوزهای کاربر"""
+        has_perm = super().has_permission()
+        if not has_perm:
+            logger.warning(f"[UserPostUpdateView] کاربر '{self.request.user.username}' مجوز '{self.permission_required}' را ندارد")
+            messages.error(self.request, _("شما مجوز به‌روزرسانی اتصال کاربر به پست را ندارید."))
             return False
 
         userpost = self.get_object()
         if not self.request.user.is_superuser:
             user_orgs = {up.post.organization for up in self.request.user.userpost_set.filter(is_active=True)
-                         if
-                         up.post.organization and not up.post.organization.is_core and not up.post.organization.is_holding}
+                         if up.post.organization and not up.post.organization.is_core and not up.post.organization.is_holding}
             if userpost.post.organization not in user_orgs:
-                logger.warning(
-                    f"[UserPostUpdateView] کاربر '{self.request.user.username}' به سازمان پست '{userpost.post.organization.name}' دسترسی ندارد")
+                logger.warning(f"[UserPostUpdateView] کاربر '{self.request.user.username}' به سازمان پست '{userpost.post.organization.name}' دسترسی ندارد")
                 messages.error(self.request, _('شما به سازمان این پست دسترسی ندارید.'))
                 return False
 
@@ -1556,10 +1589,8 @@ class UserPostUpdateView(PermissionBaseView, UpdateView):
     def form_valid(self, form):
         """مدیریت فرم معتبر"""
         userpost = form.instance
-        logger.info(
-            f"[UserPostUpdateView] اتصال کاربر '{userpost.user.username}' به پست '{userpost.post.name}' به‌روزرسانی شد")
-        messages.success(self.request,
-                         _(f"اتصال کاربر '{userpost.user.username}' به پست '{userpost.post.name}' با موفقیت به‌روزرسانی شد."))
+        logger.info(f"[UserPostUpdateView] اتصال کاربر '{userpost.user.username}' به پست '{userpost.post.name}' به‌روزرسانی شد")
+        messages.success(self.request, _(f"اتصال کاربر '{userpost.user.username}' به پست '{userpost.post.name}' با موفقیت به‌روزرسانی شد."))
         return super().form_valid(form)
 
     def form_invalid(self, form):
@@ -1567,6 +1598,8 @@ class UserPostUpdateView(PermissionBaseView, UpdateView):
         logger.warning(f"[UserPostUpdateView] فرم نامعتبر برای کاربر '{self.request.user.username}': {form.errors}")
         messages.error(self.request, _('خطا در به‌روزرسانی اتصال. لطفاً ورودی‌ها را بررسی کنید.'))
         return super().form_invalid(form)
+
+#     ==================================================
 class UserPostDeleteView(PermissionBaseView, DeleteView):
     model = UserPost
     template_name = 'core/post/post_confirm_delete.html'
@@ -1611,6 +1644,62 @@ def search_posts_autocomplete(request):
     ]
     return JsonResponse(data, safe=False)
 
+from django.utils.decorators import method_decorator
+@method_decorator(login_required, name='dispatch')
+class PostSearchAPIView(PermissionBaseView, View):
+    """
+    API برای جستجوی پست‌ها با پشتیبانی از فیلترهای نام و سازمان.
+    مسئولیت: ارائه نتایج جستجو برای Select2 در فرم UserPost.
+    """
+    permission_required = 'core.UserPost_view'
+
+    def get(self, request, *args, **kwargs):
+        query = request.GET.get('q', '').strip()
+        page = int(request.GET.get('page', 1))
+        per_page = 10
+        offset = (page - 1) * per_page
+
+        logger.debug(f"[PostSearchAPIView] جستجو برای عبارت: '{query}', صفحه: {page}")
+
+        # فیلتر پایه
+        queryset = Post.objects.filter(is_active=True).select_related('organization')
+
+        # محدود کردن به سازمان‌های مجاز برای کاربران غیرسوپریوزر
+        if not request.user.is_superuser:
+            user_orgs = {up.post.organization for up in request.user.userpost_set.filter(is_active=True)
+                         if up.post.organization and not up.post.organization.is_core and not up.post.organization.is_holding}
+            if not user_orgs:
+                logger.warning(f"[PostSearchAPIView] کاربر '{request.user.username}' به هیچ سازمان شعبه‌ای دسترسی ندارد")
+                return JsonResponse({'results': [], 'has_next': False}, status=200)
+            queryset = queryset.filter(organization__in=user_orgs)
+
+        # جستجو بر اساس نام پست یا سازمان
+        if query:
+            queryset = queryset.filter(
+                Q(name__icontains=query) |
+                Q(organization__name__icontains=query)
+            )
+
+        # صفحه‌بندی
+        total = queryset.count()
+        queryset = queryset[offset:offset + per_page]
+        has_next = total > offset + per_page
+
+        # فرمت نتایج برای Select2
+        results = [
+            {
+                'id': post.id,
+                'name': post.name,
+                'organization_name': post.organization.name if post.organization else 'بدون سازمان'
+            }
+            for post in queryset
+        ]
+
+        logger.info(f"[PostSearchAPIView] تعداد نتایج: {len(results)}, صفحه بعدی: {has_next}")
+        return JsonResponse({
+            'results': results,
+            'has_next': has_next
+        }, status=200)
 #     ==================================================
 # --- PostHistory Views ---
 class PostHistoryListView(PermissionBaseView, ListView):

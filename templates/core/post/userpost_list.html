@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
-{% load rcms_custom_filters static jalali_tags %}
+{% load rcms_custom_filters jformat static jalali_tags %}
 
 {% block content %}
 <div class="container mt-5">
@@ -50,6 +50,8 @@
                             <th scope="col">{% trans "کاربر" %}</th>
                             <th scope="col">{% trans "پست" %}</th>
                             <th scope="col">{% trans "سازمان" %}</th>
+                            <th scope="col">{% trans "تاریخ شروع فعالیت" %}</th>
+                            <th scope="col">{% trans "تاریخ خاتمه فعالیت" %}</th>
                             <th scope="col">{% trans "وضعیت" %}</th>
                             <th scope="col">{% trans "اقدامات" %}</th>
                         </tr>
@@ -61,6 +63,8 @@
                                 <td>{{ userpost.user.username }}</td>
                                 <td>{{ userpost.post.name }}</td>
                                 <td>{{ userpost.post.organization.name }}</td>
+                                <td>{{ userpost.start_date  |jformat:"%Y:%m:%y" |to_persian_number}}</td>
+                                <td>{{ userpost.end_date|jformat:"%Y:%m:%y" |to_persian_number}}</td>
                                 <td>
                                     <span class="badge {% if userpost.is_active %}bg-success{% else %}bg-danger{% endif %}">
                                         {% if userpost.is_active %}{% trans "فعال" %}{% else %}{% trans "غیرفعال" %}{% endif %}

@@ -19,6 +19,7 @@ from core.views import (
     PostHistoryListView, PostHistoryCreateView, PostHistoryDeleteView,
     # مراحل گردش کار
     WorkflowStageListView, WorkflowStageCreateView, WorkflowStageUpdateView, WorkflowStageDeleteView,
+     PostSearchAPIView,
 
 )
 from reports.views import FinancialDashboardView
@@ -85,23 +86,29 @@ urlpatterns = [
             path('posts/create/', PostCreateView.as_view(), name='post_create'),
             path('posts/<int:pk>/update/', PostUpdateView.as_view(), name='post_update'),
             path('posts/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),
-            # اتصال کاربر به پست
+        # ========================================================
+        # اتصال کاربر به پست
+        # ========================================================
             path('userposts/', UserPostListView.as_view(), name='userpost_list'),
             path('userposts/create/', UserPostCreateView.as_view(), name='userpost_create'),
             path('userposts/<int:pk>/update/', UserPostUpdateView.as_view(), name='userpost_update'),
             path('userposts/<int:pk>/delete/', UserPostDeleteView.as_view(), name='userpost_delete'),
-
-            # تاریخچه پست‌ها
+            path('api/posts/', PostSearchAPIView.as_view(), name='post_search_api'),
+       # ========================================================
+        # تاریخچه پست‌ها
+        # ========================================================
             path('posthistory/', PostHistoryListView.as_view(), name='posthistory_list'),
             path('posthistory/create/', PostHistoryCreateView.as_view(), name='posthistory_create'),
             path('posthistory/<int:pk>/delete/', PostHistoryDeleteView.as_view(), name='posthistory_delete'),
-
-            # مراحل گردش کار
+       # ========================================================
+       # مراحل گردش کار
+       # ========================================================
             path('workflow-stages/', WorkflowStageListView.as_view(), name='workflow_stage_list'),
             path('workflow-stages/create/', WorkflowStageCreateView.as_view(), name='workflow_stage_create'),
             path('workflow-stages/<int:pk>/update/', WorkflowStageUpdateView.as_view(), name='workflow_stage_update'),
             path('workflow-stages/<int:pk>/delete/', WorkflowStageDeleteView.as_view(), name='workflow_stage_delete'),
-        ]
+       # ========================================================
+]
 
 urlpatterns += [
             path('subprojects/', SubProjectListView.as_view(), name='subproject_list'),
