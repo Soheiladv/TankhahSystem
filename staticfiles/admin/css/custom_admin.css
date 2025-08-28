@@ -1,0 +1,39 @@
+:root {
+    --primary-color: #1abc9c;
+    --primary-hover: #16a085;
+    --secondary-color: #2c3e50;
+    --accent-color: #e74c3c;
+    --light-color: #ecf0f1;
+    --dark-color: #34495e;
+    --success-color: #2ecc71;
+    --warning-color: #f39c12;
+    --danger-color: #e74c3c;
+    --border-radius: 6px;
+    --box-shadow: 0 2px 10px rgba(232, 213, 213, 0.1);
+    --transition: all 0.2s ease;
+}
+
+body {
+    font-family: 'Parastoo', sans-serif;
+    background-color: #f5f7fa;
+    color: #6c1111;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    direction: rtl;
+    text-align: right;
+}
+
+[data-theme="dark"] {
+    --primary-color: #667eea;
+    --secondary-color: #4a5568;
+    --light-color: #e2e8f0;
+    --dark-color: #2d3748;
+    --success-color: #38a169;
+    --warning-color: #ed8936;
+    --danger-color: #e53e3e;
+    background-color: #212529;
+    color: #e2e8f0;
+}
+
+/* بقیه استایل‌ها مشابه کد درون‌خطی */

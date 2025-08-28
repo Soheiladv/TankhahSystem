@@ -1,0 +1,1381 @@
+:root {
+    /* Base Colors (Default Light Theme) */
+    --primary: #007bff; /* Vibrant Blue */
+    --secondary: #6c757d; /* Muted Gray */
+    --success: #28a745; /* Green */
+    --danger: #dc3545; /* Red */
+    --warning: #ffc107; /* Yellow for warnings */
+    --info: #17a2b8; /* Cyan/Info blue */
+
+    --light-bg: #f8f9fa; /* Very light gray background */
+    --dark-bg: #212529;  /* Dark gray for contrast */
+
+    --sidebar-bg: #1e2a44; /* Dark blue for sidebar */
+    --footer-bg: #2c3e50; /* Slightly lighter dark blue for footer */
+
+    --text-light: #ecf0f1; /* Off-white for dark backgrounds */
+    --text-dark: #343a40; /* Dark gray for light backgrounds */
+    --text-muted: #6c757d; /* Muted text */
+
+    --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); /* Soft shadow */
+    --border-color: #dee2e6; /* Standard border color */
+
+    /* Table Specific Variables */
+    --table-bg: #ffffff;
+    --table-border: #e9ecef;
+    --table-header-bg: var(--primary); /* Table header inherits primary color */
+    --table-header-text: var(--text-light); /* Table header text light */
+    --table-striped-bg: #f5f5f5; /* Slightly darker for striped rows */
+    --table-hover-bg: rgba(0, 123, 255, 0.08); /* Light blue tint on hover */
+    --table-text-color: var(--text-dark);
+}
+
+/* Dynamic Themes */
+/* --- Light Theme (Default, explicitly defined for clarity) --- */
+body.theme-light {
+    --primary: #007bff;
+    --secondary: #6c757d;
+    --success: #28a745;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --info: #17a2b8;
+
+    --light-bg: #f8f9fa;
+    --dark-bg: #212529;
+
+    --sidebar-bg: #1e2a44;
+    --footer-bg: #2c3e50;
+
+    --text-light: #ecf0f1;
+    --text-dark: #343a40;
+    --text-muted: #6c757d;
+
+    --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    --border-color: #dee2e6;
+
+    --table-bg: #ffffff;
+    --table-border: #e9ecef;
+    --table-header-bg: var(--primary);
+    --table-header-text: var(--text-light);
+    --table-striped-bg: #f5f5f5;
+    --table-hover-bg: rgba(0, 123, 255, 0.08);
+    --table-text-color: var(--text-dark);
+}
+
+/* --- Dark Theme --- */
+body.theme-dark {
+    --primary: #8a7aff; /* Softer purple/blue for dark mode primary */
+    --secondary: #a0aec0; /* Lighter gray for secondary */
+    --success: #48bb78;
+    --danger: #f56565;
+    --warning: #f6ad55;
+    --info: #4fd1c5;
+
+    --light-bg: #1a202c; /* Dark background */
+    --dark-bg: #000000; /* Even darker for true dark contrast if needed, or leave at default dark-bg */
+
+    --sidebar-bg: #2d3748; /* Darker blue-gray for sidebar */
+    --footer-bg: #1a202c; /* Matches light-bg for subtle integration */
+
+    --text-light: #e2e8f0; /* Light text for dark backgrounds */
+    --text-dark: #cbd5e0; /* Slightly darker light text for less harsh contrast */
+    --text-muted: #a0aec0;
+
+    --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3); /* Darker shadow for dark mode */
+    --border-color: #4a5568; /* Darker borders */
+
+    --table-bg: #2d3748; /* Dark table background */
+    --table-border: #4a5568; /* Darker table borders */
+    --table-header-bg: var(--primary);
+    --table-header-text: var(--text-light);
+    --table-striped-bg: #28303e; /* Slightly different dark for striped rows */
+    --table-hover-bg: rgba(138, 122, 255, 0.15); /* Light purple tint on hover */
+    --table-text-color: var(--text-dark);
+}
+
+/* --- Blue Theme --- */
+body.theme-blue {
+    --primary: #3182ce; /* Stronger blue */
+    --secondary: #a0aec0;
+    --success: #48bb78;
+    --danger: #f56565;
+    --warning: #f6ad55;
+    --info: #4fd1c5;
+
+    --light-bg: #ebf8ff; /* Very light blue background */
+    --dark-bg: #2a4365;
+
+    --sidebar-bg: #2a4365; /* Darker blue for sidebar */
+    --footer-bg: #2a4365;
+
+    --text-light: #e6f0fa; /* Light text on dark blue elements */
+    --text-dark: #2a4365; /* Dark blue text on light backgrounds */
+    --text-muted: #6b7280;
+
+    --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    --border-color: #a0aec0;
+
+    --table-bg: #ffffff; /* White table background for contrast */
+    --table-border: #bee3f8; /* Lighter blue borders */
+    --table-header-bg: var(--primary);
+    --table-header-text: var(--text-light);
+    --table-striped-bg: #f7fbfe;
+    --table-hover-bg: #e1f0fa; /* Light blue hover */
+    --table-text-color: var(--text-dark);
+}
+
+/* --- Green Theme --- */
+body.theme-green {
+    --primary: #38a169; /* Stronger green */
+    --secondary: #a0aec0;
+    --success: #38a169; /* Main green for success */
+    --danger: #f56565;
+    --warning: #f6ad55;
+    --info: #4fd1c5;
+
+    --light-bg: #edfdf2; /* Very light green background */
+    --dark-bg: #276749;
+
+    --sidebar-bg: #276749; /* Darker green for sidebar */
+    --footer-bg: #276749;
+
+    --text-light: #e6ffed; /* Light text on dark green elements */
+    --text-dark: #276749; /* Dark green text on light backgrounds */
+    --text-muted: #6b7280;
+
+    --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    --border-color: #a0aec0;
+
+    --table-bg: #ffffff; /* White table background for contrast */
+    --table-border: #c6f6d5; /* Lighter green borders */
+    --table-header-bg: var(--primary);
+    --table-header-text: var(--text-light);
+    --table-striped-bg: #f2fff5;
+    --table-hover-bg: #d9f3e6; /* Light green hover */
+    --table-text-color: var(--text-dark);
+}
+
+/* --- General Structure & Typography --- */
+body {
+    font-family: 'Tahoma', 'Segoe UI', sans-serif;
+    direction: rtl; /* Right-to-Left direction */
+    background-color: var(--light-bg);
+    color: var(--text-dark);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth theme transitions */
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: var(--primary); /* Keep primary color on hover, or a darker shade */
+    opacity: 0.8;
+}
+
+/* --- Navigation Bar --- */
+.navbar {
+    background: linear-gradient(90deg, var(--sidebar-bg), var(--primary));
+    box-shadow: var(--shadow);
+    padding: 0.75rem 1rem;
+    position: sticky; /* Make navbar sticky */
+    top: 0;
+    z-index: 1060; /* Ensure it stays on top */
+}
+
+.navbar-brand img {
+    width: 45px;
+    height: 45px; /* Ensure consistent height */
+    object-fit: contain; /* Maintain aspect ratio */
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand img:hover {
+    transform: scale(1.1);
+}
+
+.navbar-nav .nav-link {
+    color: var(--text-light);
+    padding: 0.625rem 0.9375rem; /* 10px 15px */
+    border-radius: 1.25rem; /* 20px */
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    background: rgba(255, 255, 255, 0.15); /* Slightly more prominent hover */
+    color: var(--text-light);
+}
+
+/* --- Sidebar --- */
+.sidebar {
+    position: fixed;
+    top: 0;
+    right: -300px; /* Initially hidden */
+    width: 300px;
+    height: 100%;
+    background: var(--sidebar-bg);
+    z-index: 1050;
+    transition: right 0.3s ease, background-color 0.3s ease; /* Smooth transitions */
+    box-shadow: var(--shadow);
+    overflow-y: auto;
+    padding-top: 1rem; /* Space from top */
+}
+
+.sidebar.active {
+    right: 0;
+}
+
+.sidebar-header {
+    background: linear-gradient(135deg, var(--primary), var(--sidebar-bg));
+    color: var(--text-light);
+    padding: 1.25rem; /* 20px */
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 1rem;
+}
+
+.sidebar .nav-link {
+    color: var(--text-light);
+    padding: 0.75rem 1.25rem; /* 12px 20px */
+    margin: 0.3125rem 0.625rem; /* 5px 10px */
+    border-radius: 1.5625rem; /* 25px */
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.sidebar .nav-link i {
+    margin-left: 0.625rem; /* 10px */
+    width: 1.25rem; /* 20px */
+    text-align: center;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+    background: var(--primary);
+    color: var(--text-light); /* Ensure text stays light on active/hover */
+    transform: translateX(-0.3125rem); /* -5px */
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+}
+
+/* --- Main Content Area --- */
+.content {
+    flex: 1;
+    padding: 1.875rem; /* 30px */
+    transition: margin-right 0.3s ease;
+    min-height: calc(100vh - 120px); /* Adjust for header/footer heights */
+}
+
+.content.shifted {
+    margin-right: 300px;
+}
+
+/* --- Footer --- */
+.footer {
+    background: var(--footer-bg);
+    color: var(--text-light);
+    padding: 1.875rem 0; /* 30px */
+    box-shadow: 0 -0.125rem 0.625rem rgba(0, 0, 0, 0.1); /* 0 -2px 10px */
+    text-align: center;
+}
+
+.footer a {
+    color: var(--text-light);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer a:hover {
+    color: var(--primary);
+}
+
+/* --- Menu Toggle Button --- */
+.navbar-toggle {
+    position: fixed;
+    top: 4.375rem; /* 70px */
+    right: 1.25rem; /* 20px */
+    z-index: 1100;
+    background: var(--primary);
+    border: none;
+    padding: 0.75rem; /* 12px */
+    border-radius: 50%;
+    color: #fff;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease, background-color 0.3s ease;
+    cursor: pointer;
+}
+
+.navbar-toggle:hover {
+    transform: rotate(90deg) scale(1.05); /* Add slight scale */
+    background-color: var(--primary); /* Keep primary color */
+}
+
+/* --- General Buttons --- */
+.btn {
+    font-size: 1rem; /* 16px */
+    border-radius: 0.375rem; /* 6px */
+    padding: 0.625rem 1.25rem; /* 10px 20px */
+    transition: all 0.3s ease;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1); /* Softer shadow for buttons */
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: var(--text-light);
+}
+.btn-primary:hover {
+    background-color: var(--primary);
+    opacity: 0.9;
+    transform: translateY(-2px); /* Lift effect */
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+}
+
+.btn-outline-primary {
+    color: var(--primary);
+    border-color: var(--primary);
+    background-color: transparent;
+}
+.btn-outline-primary:hover {
+    background-color: var(--primary);
+    color: var(--text-light);
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+}
+
+.btn-success {
+    background-color: var(--success);
+    color: #fff;
+}
+.btn-success:hover {
+    background-color: var(--success);
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+}
+
+.btn-warning {
+    background-color: var(--warning);
+    color: var(--text-dark); /* Ensure readable text on warning background */
+}
+.btn-warning:hover {
+    background-color: var(--warning);
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+}
+
+.btn-danger {
+    background-color: var(--danger);
+    color: #fff;
+}
+.btn-danger:hover {
+    background-color: var(--danger);
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+}
+
+.btn-info {
+    background-color: var(--info);
+    color: #fff;
+}
+.btn-info:hover {
+    background-color: var(--info);
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+}
+
+/* --- Cards --- */
+.card {
+    border-radius: 0.9375rem; /* 15px */
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+    background-color: var(--table-bg); /* Cards take table-bg */
+    margin-bottom: 1.25rem; /* 20px */
+    border: 1px solid var(--border-color); /* Add a subtle border */
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow); /* Reapply shadow on hover or create a new one */
+}
+
+.card-header {
+    background: var(--light-bg); /* Header background uses light-bg for contrast */
+    color: var(--text-dark);
+    padding: 0.9375rem; /* 15px */
+    border-radius: 0.9375rem 0.9375rem 0 0 !important;
+    border-bottom: 1px solid var(--border-color); /* Use a general border variable */
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 1.25rem; /* 20px */
+}
+
+.card-footer {
+    background: var(--light-bg);
+    color: var(--text-dark);
+    padding: 0.9375rem;
+    border-radius: 0 0 0.9375rem 0.9375rem !important;
+    border-top: 1px solid var(--border-color);
+}
+
+/* --- Table Enhancements --- */
+.table-responsive {
+    border-radius: 0.625rem; /* 10px */
+    box-shadow: var(--shadow);
+    overflow: hidden; /* Ensures rounded corners */
+    margin-bottom: 1.25rem; /* 20px */
+    border: 1px solid var(--table-border); /* Consistent table border */
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 0;
+    background-color: var(--table-bg);
+    color: var(--table-text-color); /* Table text color */
+    border-collapse: collapse; /* Ensure borders collapse for clean lines */
+}
+
+.table th {
+    background-color: var(--table-header-bg);
+    color: var(--table-header-text);
+    text-align: right; /* RTL friendly */
+    vertical-align: middle;
+    padding: 0.75rem 0.9375rem; /* 12px 15px */
+    border: 1px solid var(--table-border);
+    white-space: nowrap; /* Prevent headers from wrapping too much */
+}
+
+.table td {
+    padding: 0.625rem 0.9375rem; /* 10px 15px */
+    text-align: right; /* RTL friendly */
+    vertical-align: middle;
+    border: 1px solid var(--table-border);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--table-striped-bg);
+}
+
+.table-hover tbody tr:hover {
+    background-color: var(--table-hover-bg);
+}
+
+/* --- Badges --- */
+.badge {
+    padding: 0.4em 0.7em;
+    font-size: 0.75em;
+    font-weight: 600;
+    border-radius: 0.25rem;
+}
+.badge.rounded-pill {
+    border-radius: 1rem; /* More rounded */
+}
+
+/* --- Level Specific Badges (Define explicitly as they are hardcoded classes) --- */
+.badge.bg-level-1 { background-color: #007bff !important; color: #fff; } /* Primary Blue */
+.badge.bg-level-2 { background-color: #28a745 !important; color: #fff; } /* Success Green */
+.badge.bg-level-3 { background-color: #ffc107 !important; color: #212529; } /* Warning Yellow */
+.badge.bg-level-4 { background-color: #17a2b8 !important; color: #fff; } /* Info Cyan */
+.badge.bg-level-5 { background-color: #dc3545 !important; color: #fff; } /* Danger Red */
+/* Add more level specific colors if needed based on your logic */
+
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+    body {
+        font-size: 0.75rem; /* 12px */
+    }
+
+    .sidebar {
+        width: 100%;
+        right: -100%; /* Full width when active, off-screen when not */
+    }
+
+    .content.shifted {
+        margin-right: 0; /* No margin shift on small screens */
+    }
+
+    .navbar-nav {
+        padding: 0.625rem; /* 10px */
+    }
+
+    .navbar-toggle {
+        top: 3.75rem; /* 60px - adjusted for smaller screens */
+    }
+
+    /* Table responsivity for small screens */
+    .table-responsive {
+        border-radius: 0.625rem; /* Maintain border radius */
+        box-shadow: var(--shadow);
+        background: var(--table-bg);
+    }
+    .table {
+        border: none; /* Remove table border for individual cell borders */
+    }
+    .table thead {
+        display: none; /* Hide table header */
+    }
+
+    .table tbody, .table tr, .table td {
+        display: block; /* Make table elements block-level */
+        width: 100%; /* Occupy full width */
+    }
+
+    .table tr {
+        margin-bottom: 1rem; /* Space between rows */
+        border: 1px solid var(--table-border); /* Add border to individual rows */
+        border-radius: 0.5rem; /* Rounded corners for rows */
+        overflow: hidden;
+    }
+
+    .table td {
+        text-align: right;
+        padding-left: 50%; /* Space for data-label */
+        position: relative;
+        border: none; /* Remove individual cell borders */
+        border-bottom: 1px solid var(--table-border); /* Add bottom border to cells */
+    }
+
+    .table td:last-child {
+        border-bottom: none; /* No bottom border for the last cell in a row */
+    }
+
+    .table td:before {
+        content: attr(data-label);
+        position: absolute;
+        right: 0.9375rem; /* Align to right */
+        width: 45%; /* Control label width */
+        font-weight: bold;
+        text-align: left; /* Align label text to left for RTL */
+        color: var(--text-muted); /* Muted color for labels */
+    }
+
+    .btn {
+        width: 100%;
+        margin: 0.3125rem 0; /* 5px 0 */
+    }
+}
+
+/* --- Print Styles --- */
+@media print {
+    body {
+        font-size: 0.75rem; /* 12px */
+        background: none;
+        color: #000;
+    }
+
+    .no-print,
+    .btn,
+    .navbar,
+    .sidebar,
+    .navbar-toggle,
+    .card-footer { /* Hide footer in print as well */
+        display: none !important;
+    }
+
+    .content {
+        margin: 0;
+        padding: 0;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        color: #000;
+        page-break-inside: auto; /* Allow table to break across pages */
+    }
+
+    .table th,
+    .table td {
+        padding: 0.3125rem; /* 5px */
+        font-size: 0.625rem; /* 10pt */
+        border: 1px solid #ddd;
+    }
+    .table thead {
+        display: table-header-group; /* Show table header on each page */
+    }
+    .table tr {
+        page-break-inside: avoid; /* Prevent row breaks */
+        page-break-after: auto;
+    }
+
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
+    }
+}
+
+/*:root {*/
+/*  !* رنگ‌های پایه *!*/
+/*  --primary: #007bff;*/
+/*  --secondary: #6c757d;*/
+/*  --success: #28a745;*/
+/*  --danger: #dc3545;*/
+/*  --warning: #ff9800;*/
+/*  --light-bg: #f8f9fa;*/
+/*  --dark-bg: #212529;*/
+/*  --sidebar-bg: #1e2a44;*/
+/*  --footer-bg: #2c3e50;*/
+/*  --text-light: #ecf0f1;*/
+/*  --text-dark: #212529;*/
+/*  --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);*/
+/*  --table-bg: #ffffff;*/
+/*  --table-border: #dee2e6;*/
+/*  --table-header-bg: #007bff;*/
+/*  --table-hover: #e9ecef;*/
+/*}*/
+
+/*!* تم‌های پویا *!*/
+/*body.theme-light {*/
+/*  --primary: #007bff;*/
+/*  --sidebar-bg: #1e2a44;*/
+/*  --footer-bg: #2c3e50;*/
+/*  --light-bg: #f8f9fa;*/
+/*  --text-dark: #212529;*/
+/*  --text-light: #ecf0f1;*/
+/*  --table-bg: #ffffff;*/
+/*  --table-header-bg: #007bff;*/
+/*  --table-hover: #e9ecef;*/
+/*}*/
+
+/*body.theme-dark {*/
+/*  --primary: #667eea;*/
+/*  --sidebar-bg: #2d3748;*/
+/*  --footer-bg: #4a5568;*/
+/*  --light-bg: #212529;*/
+/*  --text-dark: #e2e8f0;*/
+/*  --text-light: #e2e8f0;*/
+/*  --table-bg: #2d3748;*/
+/*  --table-header-bg: #667eea;*/
+/*  --table-border: #4a5568;*/
+/*  --table-hover: #3c4858;*/
+/*}*/
+
+/*body.theme-blue {*/
+/*  --primary: #4299e1;*/
+/*  --sidebar-bg: #3182ce;*/
+/*  --footer-bg: #2b6cb0;*/
+/*  --light-bg: #e6f0fa;*/
+/*  --text-dark: #2b6cb0;*/
+/*  --text-light: #e6f0fa;*/
+/*  --table-bg: #ebf8ff;*/
+/*  --table-header-bg: #4299e1;*/
+/*  --table-border: #90cdf4;*/
+/*  --table-hover: #d4edff;*/
+/*}*/
+
+/*body.theme-green {*/
+/*  --primary: #48bb78;*/
+/*  --sidebar-bg: #38a169;*/
+/*  --footer-bg: #2f855a;*/
+/*  --light-bg: #f0fff4;*/
+/*  --text-dark: #2f855a;*/
+/*  --text-light: #c6f6d5;*/
+/*  --table-bg: #f0fff4;*/
+/*  --table-header-bg: #48bb78;*/
+/*  --table-border: #9ae6b4;*/
+/*  --table-hover: #e6ffed;*/
+/*}*/
+
+/*!* ساختار اصلی *!*/
+/*body {*/
+/*  font-family: 'Tahoma', 'Segoe UI', sans-serif;*/
+/*  direction: rtl;*/
+/*  background-color: var(--light-bg);*/
+/*  color: var(--text-dark);*/
+/*}*/
+
+/*!* نوار ناوبری *!*/
+/*.navbar {*/
+/*  background: linear-gradient(90deg, var(--sidebar-bg), var(--primary));*/
+/*  box-shadow: var(--shadow);*/
+/*  padding: 0.75rem 1rem;*/
+/*}*/
+
+/*.navbar-brand img {*/
+/*  width: 45px;*/
+/*  transition: transform 0.3s ease;*/
+/*}*/
+
+/*.navbar-brand img:hover {*/
+/*  transform: scale(1.1);*/
+/*}*/
+
+/*.navbar-nav .nav-link {*/
+/*  color: var(--text-light);*/
+/*  padding: 10px 15px;*/
+/*  border-radius: 20px;*/
+/*  transition: background 0.3s ease;*/
+/*}*/
+
+/*.navbar-nav .nav-link:hover {*/
+/*  background: rgba(255, 255, 255, 0.1);*/
+/*}*/
+
+/*!* سایدبار *!*/
+/*.sidebar {*/
+/*  position: fixed;*/
+/*  top: 0;*/
+/*  right: -300px;*/
+/*  width: 300px;*/
+/*  height: 100%;*/
+/*  background: var(--sidebar-bg);*/
+/*  z-index: 1050;*/
+/*  transition: right 0.3s ease;*/
+/*  box-shadow: var(--shadow);*/
+/*  overflow-y: auto;*/
+/*}*/
+
+/*.sidebar.active {*/
+/*  right: 0;*/
+/*}*/
+
+/*.sidebar-header {*/
+/*  background: linear-gradient(135deg, var(--primary), var(--sidebar-bg));*/
+/*  padding: 20px;*/
+/*  text-align: center;*/
+/*  border-bottom: 1px solid rgba(255, 255, 255, 0.1);*/
+/*}*/
+
+/*.sidebar .nav-link {*/
+/*  color: var(--text-light);*/
+/*  padding: 12px 20px;*/
+/*  margin: 5px 10px;*/
+/*  border-radius: 25px;*/
+/*  display: flex;*/
+/*  align-items: center;*/
+/*  transition: all 0.3s ease;*/
+/*}*/
+
+/*.sidebar .nav-link:hover,*/
+/*.sidebar .nav-link.active {*/
+/*  background: var(--primary);*/
+/*  transform: translateX(-5px);*/
+/*}*/
+
+/*.sidebar .nav-link i {*/
+/*  margin-left: 10px;*/
+/*  width: 20px;*/
+/*  text-align: center;*/
+/*}*/
+
+/*!* محتوای اصلی *!*/
+/*.content {*/
+/*  flex: 1;*/
+/*  padding: 30px;*/
+/*  transition: margin-right 0.3s ease;*/
+/*}*/
+
+/*.content.shifted {*/
+/*  margin-right: 300px;*/
+/*}*/
+
+/*!* فوتر *!*/
+/*.footer {*/
+/*  background: var(--footer-bg);*/
+/*  color: var(--text-light);*/
+/*  padding: 30px 0;*/
+/*  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);*/
+/*}*/
+
+/*.footer a {*/
+/*  color: var(--text-light);*/
+/*  text-decoration: none;*/
+/*  transition: color 0.3s ease;*/
+/*}*/
+
+/*.footer a:hover {*/
+/*  color: var(--primary);*/
+/*}*/
+
+/*!* دکمه منو *!*/
+/*.navbar-toggle {*/
+/*  position: fixed;*/
+/*  top: 70px;*/
+/*  right: 20px;*/
+/*  z-index: 1100;*/
+/*  background: var(--primary);*/
+/*  border: none;*/
+/*  padding: 12px;*/
+/*  border-radius: 50%;*/
+/*  color: #fff;*/
+/*  box-shadow: var(--shadow);*/
+/*  transition: transform 0.3s ease;*/
+/*}*/
+
+/*.navbar-toggle:hover {*/
+/*  transform: rotate(90deg);*/
+/*}*/
+
+/*!* دکمه‌ها *!*/
+/*.btn {*/
+/*  font-size: 18px;*/
+/*  border-radius: 25px;*/
+/*  padding: 10px 20px;*/
+/*  transition: all 0.3s ease;*/
+/*  box-shadow: var(--shadow);*/
+/*  border: none;*/
+/*}*/
+
+/*.btn-primary {*/
+/*  background-color: var(--primary);*/
+/*}*/
+
+/*.btn-primary:hover {*/
+/*  background-color: var(--primary);*/
+/*  opacity: 0.9;*/
+/*  transform: scale(1.05);*/
+/*}*/
+
+/*.btn-success {*/
+/*  background-color: var(--success);*/
+/*}*/
+
+/*.btn-success:hover {*/
+/*  background-color: var(--success);*/
+/*  opacity: 0.9;*/
+/*  transform: scale(1.05);*/
+/*}*/
+
+/*.btn-warning {*/
+/*  background-color: var(--warning);*/
+/*}*/
+
+/*.btn-warning:hover {*/
+/*  background-color: var(--warning);*/
+/*  opacity: 0.9;*/
+/*  transform: scale(1.05);*/
+/*}*/
+
+/*.btn-danger {*/
+/*  background-color: var(--danger);*/
+/*}*/
+
+/*.btn-danger:hover {*/
+/*  background-color: var(--danger);*/
+/*  opacity: 0.9;*/
+/*  transform: scale(1.05);*/
+/*}*/
+
+/*!* کارت‌ها *!*/
+/*.card {*/
+/*  border-radius: 15px;*/
+/*  box-shadow: var(--shadow);*/
+/*  overflow: hidden;*/
+/*  transition: transform 0.3s ease;*/
+/*  background-color: var(--table-bg);*/
+/*  margin-bottom: 20px;*/
+/*}*/
+
+/*.card:hover {*/
+/*  transform: translateY(-5px);*/
+/*}*/
+
+/*.card-header {*/
+/*  background: var(--light-bg);*/
+/*  color: var(--text-dark);*/
+/*  padding: 15px;*/
+/*  border-radius: 15px 15px 0 0 !important;*/
+/*  border-bottom: 1px solid var(--table-border);*/
+/*}*/
+
+/*!* بهبود جدول‌ها *!*/
+/*.table-container {*/
+/*  overflow-x: auto;*/
+/*  -webkit-overflow-scrolling: touch;*/
+/*  border-radius: 10px;*/
+/*  box-shadow: var(--shadow);*/
+/*  background: var(--table-bg);*/
+/*  margin-bottom: 20px;*/
+/*}*/
+
+/*.table {*/
+/*  width: 100%;*/
+/*  margin-bottom: 0;*/
+/*  background-color: var(--table-bg);*/
+/*  color: var(--text-dark);*/
+/*}*/
+
+/*.table th {*/
+/*  background-color: var(--table-header-bg);*/
+/*  color: var(--text-light);*/
+/*  text-align: center;*/
+/*  vertical-align: middle;*/
+/*  padding: 12px 15px;*/
+/*  border: 1px solid var(--table-border);*/
+/*}*/
+
+/*.table td {*/
+/*  padding: 10px 15px;*/
+/*  text-align: center;*/
+/*  vertical-align: middle;*/
+/*  border: 1px solid var(--table-border);*/
+/*}*/
+
+/*.table-striped tbody tr:nth-of-type(odd) {*/
+/*  background-color: rgba(0, 0, 0, 0.02);*/
+/*}*/
+
+/*.table-hover tbody tr:hover {*/
+/*  background-color: var(--table-hover);*/
+/*}*/
+
+/*!* حالت ریسپانسیو *!*/
+/*@media (max-width: 768px) {*/
+/*  body {*/
+/*    font-size: 11px;*/
+/*  }*/
+
+/*  .sidebar {*/
+/*    width: 100%;*/
+/*    right: -100%;*/
+/*  }*/
+
+/*  .content.shifted {*/
+/*    margin-right: 0;*/
+/*  }*/
+
+/*  .navbar-nav {*/
+/*    padding: 10px;*/
+/*  }*/
+
+/*  .navbar-toggle {*/
+/*    top: 60px;*/
+/*  }*/
+
+/*  .table-responsive {*/
+/*    display: block;*/
+/*    width: 100%;*/
+/*    overflow-x: auto;*/
+/*  }*/
+
+/*  .table {*/
+/*    display: block;*/
+/*    width: 100%;*/
+/*  }*/
+
+/*  .table thead {*/
+/*    display: none;*/
+/*  }*/
+
+/*  .table tbody {*/
+/*    display: block;*/
+/*    width: 100%;*/
+/*  }*/
+
+/*  .table tr {*/
+/*    display: block;*/
+/*    margin-bottom: 15px;*/
+/*    border-bottom: 2px solid var(--table-border);*/
+/*  }*/
+
+/*  .table td {*/
+/*    display: block;*/
+/*    text-align: left;*/
+/*    padding-left: 50%;*/
+/*    position: relative;*/
+/*    border-bottom: 1px solid var(--table-border);*/
+/*  }*/
+
+/*  .table td:before {*/
+/*    content: attr(data-label);*/
+/*    position: absolute;*/
+/*    left: 15px;*/
+/*    width: calc(50% - 15px);*/
+/*    padding-right: 10px;*/
+/*    font-weight: bold;*/
+/*    text-align: right;*/
+/*  }*/
+
+/*  .btn {*/
+/*    width: 100%;*/
+/*    margin: 5px 0;*/
+/*  }*/
+/*}*/
+
+/*!* حالت پرینت *!*/
+/*@media print {*/
+/*  body {*/
+/*    font-size: 12px;*/
+/*    background: none;*/
+/*    color: #000;*/
+/*  }*/
+
+/*  .no-print,*/
+/*  .btn,*/
+/*  .navbar,*/
+/*  .sidebar,*/
+/*  .navbar-toggle {*/
+/*    display: none !important;*/
+/*  }*/
+
+/*  .content {*/
+/*    margin: 0;*/
+/*    padding: 0;*/
+/*  }*/
+
+/*  .table {*/
+/*    width: 100%;*/
+/*    border-collapse: collapse;*/
+/*  }*/
+
+/*  .table th,*/
+/*  .table td {*/
+/*    padding: 5px;*/
+/*    font-size: 10pt;*/
+/*    border: 1px solid #ddd;*/
+/*  }*/
+
+/*  @page {*/
+/*    size: A4 landscape;*/
+/*    margin: 10mm;*/
+/*  }*/
+/*}*/
+
+
+/*    !*:root {*!*/
+/*    !*    !* رنگ‌های پایه *!*!*/
+/*    !*    --primary: #007bff;*!*/
+/*    !*    --secondary: #6c757d;*!*/
+/*    !*    --success: #28a745;*!*/
+/*    !*    --danger: #dc3545;*!*/
+/*    !*    --light-bg: #f8f9fa;*!*/
+/*    !*    --dark-bg: #212529;*!*/
+/*    !*    --sidebar-bg: #1e2a44;*!*/
+/*    !*    --footer-bg: #2c3e50;*!*/
+/*    !*    --text-light: #ecf0f1;*!*/
+/*    !*    --text-dark: #212529;*!*/
+/*    !*    --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);*!*/
+/*    !*    --table-bg: #ffffff;*!*/
+/*    !*    --table-border: #dee2e6;*!*/
+/*    !*    --table-header-bg: #007bff;*!*/
+/*    !*}*!*/
+
+
+/*    !*!* تم‌های پویا *!*!*/
+/*    !*body.theme-light {*!*/
+/*    !*    --primary: #007bff;*!*/
+/*    !*    --sidebar-bg: #1e2a44;*!*/
+/*    !*    --footer-bg: #2c3e50;*!*/
+/*    !*    --light-bg: #f8f9fa;*!*/
+/*    !*    --text-dark: #212529;*!*/
+/*    !*    --text-light: #ecf0f1;*!*/
+/*    !*    --table-bg: #ffffff;*!*/
+/*    !*    --table-header-bg: #007bff;*!*/
+/*    !*    --btn-hover-primary: #0056b3;*!*/
+/*    !*    --btn-hover-success: #218838;*!*/
+/*    !*    --btn-hover-danger: #c82333;*!*/
+/*    !*}*!*/
+
+/*    !*body.theme-dark {*!*/
+/*    !*    --primary: #667eea;*!*/
+/*    !*    --sidebar-bg: #2d3748;*!*/
+/*    !*    --footer-bg: #4a5568;*!*/
+/*    !*    --light-bg: #212529;*!*/
+/*    !*    --text-dark: #e2e8f0;*!*/
+/*    !*    --text-light: #e2e8f0;*!*/
+/*    !*    --table-bg: #2d3748;*!*/
+/*    !*    --table-header-bg: #667eea;*!*/
+/*    !*    --table-border: #4a5568;*!*/
+/*    !*    --btn-hover-primary: #5a67d8;*!*/
+/*    !*    --btn-hover-success: #38a169;*!*/
+/*    !*    --btn-hover-danger: #e53e3e;*!*/
+/*    !*}*!*/
+
+/*    !*body.theme-blue {*!*/
+/*    !*    --primary: #4299e1;*!*/
+/*    !*    --sidebar-bg: #3182ce;*!*/
+/*    !*    --footer-bg: #2b6cb0;*!*/
+/*    !*    --light-bg: #e6f0fa;*!*/
+/*    !*    --text-dark: #2b6cb0;*!*/
+/*    !*    --text-light: #e6f0fa;*!*/
+/*    !*    --table-bg: #ebf8ff;*!*/
+/*    !*    --table-header-bg: #4299e1;*!*/
+/*    !*    --table-border: #90cdf4;*!*/
+/*    !*    --btn-hover-primary: #3182ce;*!*/
+/*    !*    --btn-hover-success: #38b2ac;*!*/
+/*    !*    --btn-hover-danger: #e53e3e;*!*/
+/*    !*}*!*/
+
+/*    !*body.theme-green {*!*/
+/*    !*    --primary: #48bb78;*!*/
+/*    !*    --sidebar-bg: #38a169;*!*/
+/*    !*    --footer-bg: #2f855a;*!*/
+/*    !*    --light-bg: #f0fff4;*!*/
+/*    !*    --text-dark: #2f855a;*!*/
+/*    !*    --text-light: #c6f6d5;*!*/
+/*    !*    --table-bg: #f0fff4;*!*/
+/*    !*    --table-header-bg: #48bb78;*!*/
+/*    !*    --table-border: #9ae6b4;*!*/
+/*    !*    --btn-hover-primary: #38a169;*!*/
+/*    !*    --btn-hover-success: #38a169;*!*/
+/*    !*    --btn-hover-danger: #e53e3e;*!*/
+/*    !*}*!*/
+
+/*    !*!* نوار ناوبری *!*!*/
+/*    !*.navbar {*!*/
+/*    !*    background: linear-gradient(90deg, var(--sidebar-bg), var(--primary));*!*/
+/*    !*    box-shadow: var(--shadow);*!*/
+/*    !*    padding: 0.75rem 1rem;*!*/
+/*    !*}*!*/
+
+/*    !*.navbar-nav .nav-link {*!*/
+/*    !*    color: var(--text-light);*!*/
+/*    !*    padding: 10px 15px;*!*/
+/*    !*    border-radius: 20px;*!*/
+/*    !*    transition: background 0.3s ease;*!*/
+/*    !*}*!*/
+
+/*    !*.navbar-nav .nav-link:hover {*!*/
+/*    !*    background: rgba(255, 255, 255, 0.1);*!*/
+/*    !*}*!*/
+
+/*    !*.navbar-brand img {*!*/
+/*    !*    width: 45px;*!*/
+/*    !*    transition: transform 0.3s ease;*!*/
+/*    !*}*!*/
+
+/*    !*.navbar-brand img:hover {*!*/
+/*    !*    transform: scale(1.1);*!*/
+/*    !*}*!*/
+
+/*    !*!* سایدبار *!*!*/
+/*    !*.sidebar {*!*/
+/*    !*    position: fixed;*!*/
+/*    !*    top: 0;*!*/
+/*    !*    right: -300px;*!*/
+/*    !*    width: 300px;*!*/
+/*    !*    height: 100%;*!*/
+/*    !*    background: var(--sidebar-bg);*!*/
+/*    !*    z-index: 1050;*!*/
+/*    !*    transition: right 0.3s ease;*!*/
+/*    !*    box-shadow: var(--shadow);*!*/
+/*    !*    overflow-y: auto;*!*/
+/*    !*}*!*/
+
+/*    !*.sidebar.active { right: 0; }*!*/
+
+/*    !*.sidebar-header {*!*/
+/*    !*    background: linear-gradient(135deg, var(--primary), var(--sidebar-bg));*!*/
+/*    !*    padding: 20px;*!*/
+/*    !*    text-align: center;*!*/
+/*    !*    border-bottom: 1px solid rgba(255, 255, 255, 0.1);*!*/
+/*    !*}*!*/
+
+/*    !*.sidebar .nav-link {*!*/
+/*    !*    color: var(--text-light);*!*/
+/*    !*    padding: 12px 20px;*!*/
+/*    !*    margin: 5px 10px;*!*/
+/*    !*    border-radius: 25px;*!*/
+/*    !*    display: flex;*!*/
+/*    !*    align-items: center;*!*/
+/*    !*    transition: all 0.3s ease;*!*/
+/*    !*}*!*/
+
+/*    !*.sidebar .nav-link:hover, .sidebar .nav-link.active {*!*/
+/*    !*    background: var(--primary);*!*/
+/*    !*    transform: translateX(-5px);*!*/
+/*    !*}*!*/
+
+/*    !*.sidebar .nav-link i {*!*/
+/*    !*    margin-left: 10px;*!*/
+/*    !*    width: 20px;*!*/
+/*    !*    text-align: center;*!*/
+/*    !*}*!*/
+
+/*    !*!* محتوای اصلی *!*!*/
+/*    !*.content {*!*/
+/*    !*    flex: 1;*!*/
+/*    !*    padding: 30px;*!*/
+/*    !*    transition: margin-right 0.3s ease;*!*/
+/*    !*}*!*/
+
+/*    !*.content.shifted {*!*/
+/*    !*    margin-right: 300px;*!*/
+/*    !*}*!*/
+
+/*    !*!* فوتر *!*!*/
+/*    !*.footer {*!*/
+/*    !*    background: var(--footer-bg);*!*/
+/*    !*    color: var(--text-light);*!*/
+/*    !*    padding: 30px 0;*!*/
+/*    !*    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);*!*/
+/*    !*}*!*/
+
+/*    !*.footer a {*!*/
+/*    !*    color: var(--text-light);*!*/
+/*    !*    text-decoration: none;*!*/
+/*    !*    transition: color 0.3s ease;*!*/
+/*    !*}*!*/
+
+/*    !*.footer a:hover {*!*/
+/*    !*    color: var(--primary);*!*/
+/*    !*}*!*/
+
+/*    !*!* دکمه منو *!*!*/
+/*    !*.navbar-toggle {*!*/
+/*    !*    position: fixed;*!*/
+/*    !*    top: 70px;*!*/
+/*    !*    right: 20px;*!*/
+/*    !*    z-index: 1100;*!*/
+/*    !*    background: var(--primary);*!*/
+/*    !*    border: none;*!*/
+/*    !*    padding: 12px;*!*/
+/*    !*    border-radius: 50%;*!*/
+/*    !*    color: #fff;*!*/
+/*    !*    box-shadow: var(--shadow);*!*/
+/*    !*    transition: transform 0.3s ease;*!*/
+/*    !*}*!*/
+
+/*    !*.navbar-toggle:hover {*!*/
+/*    !*    transform: rotate(90deg);*!*/
+/*    !*}*!*/
+
+/*    !*!* دکمه‌ها *!*!*/
+/*    !*.btn {*!*/
+/*    !*    font-size: 11px;*!*/
+/*    !*    border-radius: 25px;*!*/
+/*    !*    padding: 10px 20px;*!*/
+/*    !*    transition: all 0.3s ease;*!*/
+/*    !*    box-shadow: var(--shadow);*!*/
+/*    !*}*!*/
+
+/*    !*.btn-primary {*!*/
+/*    !*    background-color: var(--primary);*!*/
+/*    !*    border: none;*!*/
+/*    !*}*!*/
+
+/*    !*.btn-primary:hover {*!*/
+/*    !*    background-color: var(--btn-hover-primary);*!*/
+/*    !*    transform: scale(1.05);*!*/
+/*    !*}*!*/
+
+/*    !*.btn-success {*!*/
+/*    !*    background-color: var(--success);*!*/
+/*    !*}*!*/
+
+/*    !*.btn-success:hover {*!*/
+/*    !*    background-color: var(--btn-hover-success);*!*/
+/*    !*    transform: scale(1.05);*!*/
+/*    !*}*!*/
+
+/*    !*.btn-warning {*!*/
+/*    !*    background-color: #ff9800;*!*/
+/*    !*}*!*/
+
+/*    !*.btn-warning:hover {*!*/
+/*    !*    background-color: #f57c00;*!*/
+/*    !*    transform: scale(1.05);*!*/
+/*    !*}*!*/
+
+/*    !*.btn-danger {*!*/
+/*    !*    background-color: var(--danger);*!*/
+/*    !*}*!*/
+
+/*    !*.btn-danger:hover {*!*/
+/*    !*    background-color: var(--btn-hover-danger);*!*/
+/*    !*    transform: scale(1.05);*!*/
+/*    !*}*!*/
+
+/*    !*!* کارت‌ها *!*!*/
+/*    !*.card {*!*/
+/*    !*    border-radius: 15px;*!*/
+/*    !*    box-shadow: var(--shadow);*!*/
+/*    !*    overflow: hidden;*!*/
+/*    !*    transition: transform 0.3s ease;*!*/
+/*    !*}*!*/
+
+/*    !*.card:hover {*!*/
+/*    !*    transform: translateY(-5px);*!*/
+/*    !*}*!*/
+
+/*    !*.card-header {*!*/
+/*    !*    background: var(--light-bg);*!*/
+/*    !*    color: var(--text-dark);*!*/
+/*    !*    padding: 15px;*!*/
+/*    !*    border-radius: 15px 15px 0 0;*!*/
+/*    !*}*!*/
+
+/*    !*!* جدول‌ها *!*!*/
+/*    !*.table {*!*/
+/*    !*    border-radius: 10px;*!*/
+/*    !*    box-shadow: var(--shadow);*!*/
+/*    !*    overflow: hidden;*!*/
+/*    !*    background: var(--table-bg);*!*/
+/*    !*}*!*/
+
+/*    !*.table th, .table td {*!*/
+/*    !*    padding: 15px;*!*/
+/*    !*    text-align: center;*!*/
+/*    !*    border: 1px solid var(--table-border);*!*/
+/*    !*    color: var(--text-dark);*!*/
+/*    !*}*!*/
+
+/*    !*.table thead th {*!*/
+/*    !*    background: var(--table-header-bg);*!*/
+/*    !*    color: var(--text-light);*!*/
+/*    !*}*!*/
+
+/*    !*.table tbody tr {*!*/
+/*    !*    transition: background 0.3s ease;*!*/
+/*    !*}*!*/
+
+/*    !*.table tbody tr:hover {*!*/
+/*    !*    background: #e9ecef;*!*/
+/*    !*}*!*/
+
+/*    !*!* ریسپانسیو *!*!*/
+/*    !*@media (max-width: 768px) {*!*/
+/*    !*    body { font-size: 11px; }*!*/
+/*    !*    .sidebar {*!*/
+/*    !*        width: 100%;*!*/
+/*    !*        right: -100%;*!*/
+/*    !*    }*!*/
+/*    !*    .content.shifted { margin-right: 0; }*!*/
+/*    !*    .navbar-nav { padding: 10px; }*!*/
+/*    !*    .navbar-toggle { top: 60px; }*!*/
+/*    !*    .table-responsive { overflow-x: auto; }*!*/
+/*    !*    .table thead { display: none; }*!*/
+/*    !*    .table, .table tbody, .table tr, .table td {*!*/
+/*    !*        display: block;*!*/
+/*    !*        width: 100%;*!*/
+/*    !*    }*!*/
+/*    !*    .table tr {*!*/
+/*    !*        margin-bottom: 15px;*!*/
+/*    !*        border-bottom: 1px solid var(--table-border);*!*/
+/*    !*    }*!*/
+/*    !*    .table td {*!*/
+/*    !*        text-align: right;*!*/
+/*    !*        padding-left: 50%;*!*/
+/*    !*        position: relative;*!*/
+/*    !*    }*!*/
+/*    !*    .table td:before {*!*/
+/*    !*        content: attr(data-label);*!*/
+/*    !*        position: absolute;*!*/
+/*    !*        left: 10px;*!*/
+/*    !*        width: 45%;*!*/
+/*    !*        font-weight: bold;*!*/
+/*    !*    }*!*/
+/*    !*    .btn { width: 100%; margin: 5px 0; }*!*/
+/*    !*}*!*/
+
+/*    !*!* پرینت *!*!*/
+/*    !*@media print {*!*/
+/*    !*    body { font-size: 12px; background: none; }*!*/
+/*    !*    .no-print, .btn, .navbar, .sidebar, .navbar-toggle { display: none !important; }*!*/
+/*    !*    .content { margin: 0; padding: 0; }*!*/
+/*    !*    .table th, .table td { padding: 5px; font-size: 10pt; }*!*/
+/*    !*    @page { size: A4 landscape; margin: 10mm; }*!*/
+/*    !*}*!*/
