@@ -577,7 +577,7 @@ class Transition(models.Model):
             ('Transition_delete','حــذف گذار گردش کار '),
         ]
 
-##############################################################################################################
+######################################################## #############################################
 class SystemSettings(models.Model):
     budget_locked_percentage_default = models.DecimalField(
         max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده پیش‌فرض بودجه"))
