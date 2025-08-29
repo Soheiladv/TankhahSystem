@@ -577,7 +577,7 @@ class Transition(models.Model):
             ('Transition_delete','حــذف گذار گردش کار '),
         ]
 
-######################################################## #############################################
+##################################################### ##########################################
 class SystemSettings(models.Model):
     budget_locked_percentage_default = models.DecimalField(
         max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده پیش‌فرض بودجه"))
@@ -588,8 +588,7 @@ class SystemSettings(models.Model):
         default='NOTIFY', verbose_name=_("اقدام هشدار پیش‌فرض بودجه"))
     allocation_locked_percentage_default = models.DecimalField(
         max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده پیش‌فرض تخصیص"))
-    tankhah_used_statuses = models.JSONField(
-        default=list, blank=True, verbose_name=_("وضعیت‌های مصرف‌شده تنخواه"))
+    tankhah_used_statuses = models.JSONField( default=list, blank=True, verbose_name=_("وضعیت‌های مصرف‌شده تنخواه"))
     tankhah_accessible_organizations = models.JSONField(
         default=list, blank=True, verbose_name=_("سازمان‌های مجاز برای ثبت تنخواه"),
         help_text=_("لیست ID سازمان‌هایی که همه کاربران می‌توانند برای آن‌ها تنخواه ثبت کنند (مثل دفتر مرکزی)"))
