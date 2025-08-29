@@ -60,10 +60,9 @@
                         {% for userpost in userposts %}
                             <tr>
                                 <td>{{ forloop.counter|to_persian_number }}</td>
-                                <td>{{ userpost.user.username }}</td>
+                                <td>{{ userpost.user.get_full_name }}</td>
                                 <td>{{ userpost.post.name }}</td>
                                 <td>{{ userpost.post.organization.name }}</td>
-                              
                                 <td>{{ userpost.start_date  |jformat:"%Y:%m:%y" |to_persian_number}}</td>
                                 <td>{{ userpost.end_date|jformat:"%Y:%m:%y" |to_persian_number}}</td>
                                 <td>
