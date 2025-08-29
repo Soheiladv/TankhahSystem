@@ -579,8 +579,7 @@ class Transition(models.Model):
 
 ##################################################### ##########################################
 class SystemSettings(models.Model):
-    budget_locked_percentage_default = models.DecimalField(
-        max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده پیش‌فرض بودجه"))
+    budget_locked_percentage_default = models.DecimalField(        max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده پیش‌فرض بودجه"))
     budget_warning_threshold_default = models.DecimalField(max_digits=5, decimal_places=2, default=10, verbose_name=_("آستانه هشدار پیش‌فرض بودجه"))
     budget_warning_action_default = models.CharField(
         max_length=50, choices=[('NOTIFY', 'اعلان'), ('LOCK', 'قفل'), ('RESTRICT', 'محدود')],
