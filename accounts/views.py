@@ -1188,8 +1188,14 @@ class SetTimeLockView(BaseTimeLockView):
             organization_name = form.cleaned_data['organization_name']
             if self.set_lock(expiry_date, max_users, organization_name):
                 return redirect(self.success_url)
-        messages.error(request, f"ورودی‌ها نامعتبر است: {'; '.join([f'{field}: {', '.join(errors)}' for field, errors in form.errors.items()])}")
+        # messages.error(request, f"ورودی‌ها نامعتبر است: {'; '.join([f'{field}: {', '.join(errors)}' for field, errors in form.errors.items()])}")
+        # return render(request, self.template_name, self.get_context_data(form=form))
+        #
+
+        errors_text = '; '.join([f"{field}: {', '.join(errors)}" for field, errors in form.errors.items()])
+        messages.error(request, f"ورودی‌ها نامعتبر است: {errors_text}")
         return render(request, self.template_name, self.get_context_data(form=form))
+
 
 @method_decorator(staff_member_required, name='dispatch')
 class TimeLockCreateView(FormView):
