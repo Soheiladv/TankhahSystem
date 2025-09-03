@@ -29,7 +29,7 @@ from tankhah.views import (
     ItemCategoryListView, ItemCategoryCreateView, ItemCategoryUpdateView, ItemCategoryDeleteView, RulesUserGuideView,
     FactorStatusUpdateView, upload_tankhah_documents, ItemCategoryDetailView
 )
-from tankhah.Factor.FactorDetail.views_FactorDetail import  FactorDetailView
+from tankhah.Factor.FactorDetail.views_FactorDetail import FactorDetailView, PerformFactorTransitionAPI
 #FactorStatusUpdateView, mark_notification_as_read,, get_unread_notifications, FactorDetailView,    upload_tankhah_documents,
 from tankhah.Factor.view_Factor import (TankhahBudgetInfoAjaxView,  BudgetCheckView)
 from tankhah.views import (itemcategory_list,itemcategory_create,itemcategory_update,itemcategory_delete
@@ -121,7 +121,30 @@ urlpatterns +=[
 
 urlpatterns += [
     path( 'tankhah/<int:pk>/update-status/', EnhancedTankhahUpdateStatusView.as_view(), name='enhancedtankhah_update_status'),
-] # ایجاد دستور پرداخت خودکار تنخواه
+    # URL برای API تغییر وضعیت فاکتور
+    path('api/factor/<int:pk>/transition/', PerformFactorTransitionAPI.as_view(), name='api_factor_perform_transition'),
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ایجاد دستور پرداخت خودکار تنخواه
 # urlpatterns += [
 #     # لیست تمام اعلان‌ها
 #     path('notification_list/',  NotificationListView.as_view(), name='notification_list'),
@@ -235,7 +258,7 @@ urlpatterns += [
     path('factors/lis___/', FactorListView__.as_view(), name='factor_list___'),
     # جزئیات فاکتور
     # path('factors/<int:pk>/', FactorDetailView.as_view(), name='factor_detail'),
-    path('factor/<int:pk>/perform-action/', FactorDetailView.as_view(), name='detail_factor'),
+    path('factor/<int:pk>/perform-action/', FactorDetailView.as_view(), name='detail_factor'), #OK
 
     # ویرایش فاکتور
     path('factors/<int:pk>/edit/', FactorEditView.as_view(), name='factor_edit'),

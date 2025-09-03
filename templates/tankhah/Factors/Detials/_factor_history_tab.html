@@ -1,0 +1,52 @@
+{% load i18n static humanize %}
+<style>
+    /* استایل‌های تایم‌لاین */
+    .timeline { position: relative; padding: 1rem 0; }
+    .timeline::before { content: ''; position: absolute; top: 0; left: 18px; height: 100%; width: 4px; background: #e9ecef; border-radius: 2px; }
+    .timeline-item { position: relative; margin-bottom: 1.5rem; }
+    .timeline-item .icon { position: absolute; top: 5px; left: 0; width: 40px; height: 40px; background: #fff; border: 4px solid #e9ecef; border-radius: 50%; text-align: center; line-height: 32px; font-size: 1.2rem; z-index: 1; }
+    .timeline-item .card { margin-left: 60px; }
+    .timeline-item.success .icon { border-color: #198754; color: #198754; }
+    .timeline-item.warning .icon { border-color: #ffc107; color: #ffc107; }
+    .timeline-item.danger .icon { border-color: #dc3545; color: #dc3545; }
+</style>
+
+{% if approval_logs %}
+    <div class="timeline">
+    {% for log in approval_logs %}
+        {% with action_code=log.action.code|default:"" %}
+        <div class="timeline-item 
+            {% if 'APPROVE' in action_code %}success{% elif 'REJECT' in action_code %}danger{% else %}warning{% endif %}">
+            <div class="icon">
+                <i class="fas 
+                {% if 'APPROVE' in action_code %}fa-check{% elif 'REJECT' in action_code %}fa-times{% elif 'EDIT' in action_code %}fa-pen{% else %}fa-info{% endif %}"></i>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="card-title fw-bold mb-1">{{ log.action.name }}</h6>
+                        <small class="text-muted">{{ log.timestamp|naturaltime }}</small>
+                    </div>
+                    <p class="mb-1 small text-muted">
+                        {% trans "توسط:" %} {{ log.user.get_full_name|default:log.user.username }}
+                        {% if log.post %}({{ log.post.title }}){% endif %}
+                    </p>
+                    {% if log.comment %}
+                        <p class="card-text bg-light border rounded p-2 mt-2 mb-0 small">{{ log.comment }}</p>
+                    {% endif %}
+                    <div class="mt-2 small">
+                        <span class="badge bg-secondary">{{ log.from_status.name }}</span>
+                        <i class="fas fa-long-arrow-alt-right mx-2"></i>
+                        <span class="badge 
+                        {% if 'APPROVE' in action_code %}bg-success{% elif 'REJECT' in action_code %}bg-danger{% else %}bg-primary{% endif %}">
+                        {{ log.to_status.name }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+    {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-secondary text-center">{% trans "هیچ اقدامی برای این فاکتور ثبت نشده است." %}</div>
+{% endif %}

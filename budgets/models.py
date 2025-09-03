@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.core.cache import cache
 
 from core.models import Organization, Project, AccessRule, Post, UserPost
-from tankhah.models import Factor, Tankhah, ApprovalLog
+from tankhah.models import Factor, Tankhah, ApprovalLog, get_default_factor_status
 
 logger = logging.getLogger(__name__)
 from django.contrib.contenttypes.models import ContentType
@@ -24,13 +24,19 @@ from django.db.models import Sum
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from accounts.models import CustomUser
-from tankhah.constants import ACTION_TYPES
+
+
+# from tankhah.constants import ACTION_TYPES
 
 
 def get_current_date():
     return timezone.now().date()
+
+
 """ مدل نوع بودجه """  # ------------------------------------
 """BudgetPeriod (دوره بودجه کلان):"""
+
+
 class BudgetPeriod(models.Model):
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("دفتر مرکزی"),
                                      related_name='budget_periods')
@@ -281,8 +287,12 @@ class BudgetPeriod(models.Model):
     #         logger.info(f"Notification sent for BudgetPeriod {self.pk}: {status} - {message}")
     #     except Exception as e:
     #         logger.error(f"Error sending notification for BudgetPeriod {self.pk}: {str(e)}")
+
+
 # --------------------------------------
 """ BudgetAllocation (تخصیص بودجه):"""
+
+
 class BudgetAllocation(models.Model):
     """
     تخصیص بودجه به سازمان‌ها (شعبات یا ادارات) و پروژه‌ها.
@@ -467,9 +477,9 @@ class BudgetAllocation(models.Model):
             adjustment_increase=Sum('amount', filter=Q(transaction_type='ADJUSTMENT_INCREASE')),
         )
         consumed = (transactions_sum['consumption'] or Decimal('0')) + (
-                    transactions_sum['adjustment_decrease'] or Decimal('0'))
+                transactions_sum['adjustment_decrease'] or Decimal('0'))
         added_back = (transactions_sum['returns'] or Decimal('0')) + (
-                    transactions_sum['adjustment_increase'] or Decimal('0'))
+                transactions_sum['adjustment_increase'] or Decimal('0'))
         return self.allocated_amount - consumed + added_back
 
     def check_allocation_status(self):
@@ -563,8 +573,12 @@ class BudgetAllocation(models.Model):
             cache.delete(f"budget_allocation_balance_{self.pk}")
             cache.delete(f"project_total_budget_v2_{self.project.pk}_no_filters" if self.project else None)
             cache.delete(f"project_remaining_budget_{self.project.pk}_no_filters" if self.project else None)
+
+
 # --------------------------------------
 """ BudgetItem (نوع ردیف بودجه):"""
+
+
 class BudgetItem(models.Model):
     budget_period = models.ForeignKey('BudgetPeriod', on_delete=models.CASCADE, related_name='budget_items',
                                       verbose_name=_("دوره بودجه"))
@@ -590,8 +604,11 @@ class BudgetItem(models.Model):
         super().clean()
         if not self.name:
             raise ValidationError(_("نام ردیف بودجه نمی‌تواند خالی باشد."))
+
+
 # --------------------------------------
 """ BudgetTransaction (تراکنش بودجه):"""
+
 
 class BudgetTransaction(models.Model):
     TRANSACTION_TYPES = (
@@ -681,7 +698,8 @@ class BudgetTransaction(models.Model):
     def save(self, *args, **kwargs):
         """ذخیره تراکنش با به‌روزرسانی تخصیص و دوره بودجه"""
         allocation_id_for_log = self.allocation.pk if self.allocation else 'N/A'
-        logger.debug(f"Starting save for BudgetTransaction: "f"amount={self.amount}, type={self.transaction_type}, "f"allocation ID={allocation_id_for_log}")
+        logger.debug(
+            f"Starting save for BudgetTransaction: "f"amount={self.amount}, type={self.transaction_type}, "f"allocation ID={allocation_id_for_log}")
         try:
             with transaction.atomic():
                 if not self.transaction_id:
@@ -725,6 +743,8 @@ class BudgetTransaction(models.Model):
 
 # --------------------------------------
 """Payee (دریافت‌کننده):"""
+
+
 class Payee(models.Model):
     """توضیح: اطلاعات دریافت‌کننده پرداخت با نوع مشخص (فروشنده، کارمند، دیگر)."""
     PAYEE_TYPES = (
@@ -759,8 +779,12 @@ class Payee(models.Model):
             ('Payee_update', _('بروزرسانی دریافت‌کننده')),
             ('Payee_delete', _('حذف دریافت‌کننده')),
         ]
+
+
 # --------------------------------------
 """PaymentOrder (دستور پرداخت):"""
+
+
 # --------------------------------------
 class PaymentOrder(models.Model):
     STATUS_CHOICES = (
@@ -784,8 +808,18 @@ class PaymentOrder(models.Model):
                               verbose_name=_('دریافت‌کننده'))
     description = models.TextField(_('شرح پرداخت'), blank=True)
     payment_id = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("شناسه پرداخت"))
-    status = models.CharField(max_length=50, choices=ACTION_TYPES, default='DRAFT',
-                              verbose_name=_("وضعیت"))  # STATUS_CHOICES
+    # status = models.CharField(max_length=50, choices=ACTION_TYPES, default='DRAFT',
+    #                           verbose_name=_("وضعیت"))  # STATUS_CHOICES
+
+    status = models.ForeignKey(
+        'core.Status',
+        on_delete=models.PROTECT,
+        verbose_name=_("وضعیت"),
+        default=get_default_factor_status,
+        null=True,  # null=True برای جلوگیری از خطا در صورتی که get_default_factor_status چیزی برنگرداند
+        blank=True,
+        # db_column='status'
+    )
     created_by_post = models.ForeignKey(Post, on_delete=models.SET_NULL, null=True, verbose_name=_("پست ایجادکننده"))
     min_signatures = models.IntegerField(default=1, verbose_name=_("حداقل تعداد امضا"))
     created_by = models.ForeignKey(CustomUser, on_delete=models.PROTECT, related_name='created_payment_orders',
@@ -893,8 +927,12 @@ class PaymentOrder(models.Model):
                 )
                 self.is_locked = True
                 self.save()
+
+
 # --------------------------------------
 """TransactionType (نوع تراکنش):"""
+
+
 class TransactionType(models.Model):
     """توضیح: تعریف پویا نوع تراکنش‌ها (مثل بیمه، جریمه) با امکان نیاز به تأیید اضافی."""
     name = models.CharField(max_length=250, unique=True, verbose_name=_("نام"))
@@ -933,8 +971,12 @@ class TransactionType(models.Model):
             ('TransactionType_update', _('بروزرسانی نوع تراکنش')),
             ('TransactionType_delete', _('حذف نوع تراکنش')),
         ]
+
+
 # --------------------------------------
 """مدل BudgetReallocation برای انتقال باقی‌مانده بودجه متوقف‌شده."""
+
+
 class BudgetReallocation(models.Model):
     source_allocation = models.ForeignKey('BudgetAllocation', on_delete=models.CASCADE,
                                           related_name='reallocations_from')
@@ -951,8 +993,12 @@ class BudgetReallocation(models.Model):
             raise ValidationError(_("مبلغ انتقال باید مثبت باشد."))
         if self.source_allocation.get_remaining_amount() < self.amount:
             raise ValidationError(_("بودجه کافی در تخصیص منبع وجود ندارد."))
+
+
 # --------------------------------------
 """یه جدول تنظیمات (BudgetSettings) برای مدیریت قفل و هشدار در سطوح مختلف:"""
+
+
 class BudgetSettings(models.Model):
     level = models.CharField(max_length=50,
                              choices=[('PERIOD', 'دوره بودجه'), ('ALLOCATION', 'تخصیص'), ('PROJECT', 'پروژه')])
@@ -967,9 +1013,13 @@ class BudgetSettings(models.Model):
     # content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     # object_id = models.PositiveIntegerField()
     # content_object = GenericForeignKey('content_type', 'object_id')
+
+
 """مدل BudgetHistory برای لاگ کردن تغییرات بودجه و تخصیص‌ها:"""
 # ------------------------------------
 """تاریخچه برای هر بودجه کلان"""
+
+
 class BudgetHistory(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
@@ -1015,8 +1065,12 @@ class BudgetHistory(models.Model):
             ('BudgetHistory_update', 'بروزرسانی تاریخچه برای هر بودجه کلان'),
             ('BudgetHistory_delete', ' حــذف تاریخچه برای هر بودجه کلان'),
         ]
+
+
 # --------------------------------------
 """'دسترسی برای جابجایی و برگشت بودجه'"""
+
+
 class BudgetTransferReturn(models.Model):
     class Meta:
         verbose_name = 'دسترسی برای جابجایی و برگشت بودجه'
@@ -1026,8 +1080,12 @@ class BudgetTransferReturn(models.Model):
             ('BudgetTransfer', 'دسترسی جابجایی بودجه'),
             ('BudgetReturn', 'دسترسی برگشت جابجایی بودجه'),
         ]
+
+
 # --------------------------------------
 """ مدل پیشنهادی برای هزینه‌های متعارف"""
+
+
 class CostCenter(models.Model):
     """ مدل پیشنهادی برای هزینه‌های متعارف"""
     name = models.CharField(max_length=200, verbose_name=_("نام مرکز هزینه"))
@@ -1052,7 +1110,11 @@ class CostCenter(models.Model):
     class Meta:
         verbose_name = _("مرکز هزینه")
         verbose_name_plural = _("مراکز هزینه")
+
+
 """ مدل ثبت دستور پرداخت  """
+
+
 def generate_payment_order_number(self):
     last_order = PaymentOrder.objects.order_by('pk').last()
     if not last_order:

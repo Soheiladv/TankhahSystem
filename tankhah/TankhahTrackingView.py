@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView
 from accounts.models import CustomUser
-from core.models import UserPost
+from core.models import UserPost, EntityType, Transition
 from tankhah.Factor.Approved.fun_can_edit_approval import can_edit_approval
 from core.models import  WorkflowStage
 from tankhah.models import Tankhah, ApprovalLog
@@ -155,13 +155,6 @@ class TankhahTrackingView1(PermissionBaseView, DetailView):
                     userpost__post__level__lt=user_level,
                     userpost__end_date__isnull=True
                 ).distinct()
-                notify.send(
-                    self.request.user,
-                    recipient=lower_users,
-                    verb='تنخواه شما توسط رده بالاتر دیده شد',
-                    target=tankhah
-                )
-
         # خلاصه آماری
         factors = tankhah.factors.all()
         context['stats'] = {
@@ -226,56 +219,105 @@ class TankhahTrackingViewOLDer(PermissionBaseView, DetailView):
 
         return redirect('tankhah_tracking', pk=tankhah.pk)
 
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_superuser or user.has_perm('tankhah.view_tankhah'):
+            logger.info(f"User {user.username} has global access. Returning all Tankhah objects.")
+            self.has_global_access = True
+            # ## FIX:  'current_status' به 'status' تغییر کرد
+            return Tankhah.objects.all().select_related(
+                'status', 'organization', 'project', 'subproject'
+            ).prefetch_related(
+                Prefetch('factors', queryset=Factor.objects.select_related('status'))
+            ).order_by('-created_at')
+
+        self.has_global_access = False
+        user_posts = Post.objects.filter(
+            userpost__user=user,
+            userpost__is_active=True,
+            userpost__end_date__isnull=True
+        ).distinct()
+
+        if not user_posts.exists():
+            logger.warning(f"Regular user {user.username} has no active posts.")
+            return Tankhah.objects.none()
+
+        try:
+            tankhah_entity_type = EntityType.objects.get(code='TANKHAH')
+        except EntityType.DoesNotExist:
+            logger.error("EntityType with code 'TANKHAH' does not exist.")
+            return Tankhah.objects.none()
+
+        permitted_org_ids = Transition.objects.filter(
+            entity_type=tankhah_entity_type,
+            allowed_posts__in=user_posts
+        ).values_list('organization_id', flat=True).distinct()
+
+        if not permitted_org_ids:
+            logger.warning(f"User {user.username} has no Transition permissions for EntityType 'TANKHAH'.")
+            return Tankhah.objects.none()
+
+        self.permitted_org_ids = list(permitted_org_ids)
+
+        # ## FIX:  'current_status' به 'status' تغییر کرد
+        queryset = Tankhah.objects.filter(
+            organization_id__in=self.permitted_org_ids
+        ).select_related(
+            'status', 'organization', 'project', 'subproject'
+        ).prefetch_related(
+            Prefetch('factors', queryset=Factor.objects.select_related('status'))
+        ).order_by('-created_at')
+
+        return queryset
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        tankhah = self.object
         user = self.request.user
-        user_post = UserPost.objects.filter(user=user, end_date__isnull=True).first()
-        user_level = user_post.post.level if user_post else 0
-        max_change_level = user_post.post.max_change_level if user_post else 0
 
-        context['title'] = _('پیگیری تنخواه') + f" - {tankhah.number}"
-        context['factors'] = tankhah.factors.all().prefetch_related('items__approval_logs', 'documents', 'approval_logs')
-        context['documents'] = tankhah.documents.all()
+        if self.has_global_access:
+            possible_transitions = Transition.objects.filter(
+                entity_type__code='TANKHAH', is_active=True
+            ).select_related('action', 'to_status')
+        else:
+            user_posts = Post.objects.filter(userpost__user=user, userpost__is_active=True).distinct()
+            possible_transitions = Transition.objects.filter(
+                entity_type__code='TANKHAH',
+                allowed_posts__in=user_posts,
+                is_active=True
+            ).select_related('action', 'to_status')
 
-        workflow_stages = WorkflowStage.objects.filter(order__lte=max_change_level).order_by('-order')
-        current_stage = tankhah.current_stage
-        if not current_stage:
-            tankhah.current_stage = workflow_stages.first()
-            tankhah.save()
+        transitions_map = {}
+        for t in possible_transitions:
+            key = (t.from_status_id, t.organization_id)
+            if key not in transitions_map:
+                transitions_map[key] = []
+            transitions_map[key].append(t)
 
-        stages_data = []
-        from django.db.models import Q
-        for stage in WorkflowStage.objects.order_by('-order'):
-            approvals = ApprovalLog.objects.filter(
-                Q(tankhah=tankhah) |
-                Q(factor__tankhah=tankhah) |
-                Q(factor_item__factor__tankhah=tankhah),
-                stage=stage
-            ).select_related('user', 'post').filter(post__level__lte=max_change_level)
+        tankhahs_processed_data = []
+        for tankhah in self.object_list:
+            # ## FIX:  'current_status_id' به 'status_id' تغییر کرد
+            lookup_key = (tankhah.status_id, tankhah.organization_id)
+            available_transitions = transitions_map.get(lookup_key, [])
 
-            is_completed = approvals.filter(action='APPROVE').exists() and stage.order < tankhah.current_stage.order
-            stages_data.append({
-                'name': stage.name,
-                'order': stage.order,
-                'is_current': stage == tankhah.current_stage,
-                'is_completed': is_completed,
-                'approvals': approvals,
-                'approvers': [
-                    f"{approver.post.name} ({userpost.user.get_full_name()})"
-                    for approver in stage.stageapprover_set.prefetch_related('post__userpost_set__user').all()
-                    for userpost in approver.post.userpost_set.filter(end_date__isnull=True)
-                    if approver.post.level <= max_change_level
-                ],
+            # ## FIX:  'current_status' به 'status' تغییر کرد
+            is_payment_ready = tankhah.status.is_final_approve if tankhah.status else False
+
+            tankhahs_processed_data.append({
+                'tankhah': tankhah,
+                'factors': tankhah.factors.all(),
+                'available_transitions': available_transitions,
+                'is_payment_ready': is_payment_ready,
             })
-        context['stages'] = stages_data
-        context['can_change_stage'] = can_edit_approval(user, tankhah, tankhah.current_stage)
-        context['workflow_stages'] = workflow_stages
-        context['can_approve_factor'] = self.request.user.has_perm('tankhah.FactorItem_approve') and can_edit_approval(user, tankhah, tankhah.current_stage)
-        context['can_archive'] = not tankhah.is_archived and self.request.user.has_perm('tankhah.Tankhah_change')
+
+        context['tankhahs_data'] = tankhahs_processed_data
+        context['title'] = _('وضعیت کلی تنخواه‌ها')
+
         return context
 
-#==  وضعیت کلی تنخواه ها
+
+from django.db.models.query import Prefetch
+# ==========================================#==  وضعیت کلی تنخواه ها
 class TankhahStatusView(PermissionBaseView, ListView):
     model = Tankhah
     template_name = 'tankhah/Reports/tankhah_status.html'
@@ -283,88 +325,107 @@ class TankhahStatusView(PermissionBaseView, ListView):
     permission_required = ['tankhah.Tankhah_view']
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
 
+    # در فایل views.py مربوط به اپلیکیشن tankhah
+    # کلاس TankhahStatusView
+
     def get_queryset(self):
         user = self.request.user
-        # دریافت پست‌های فعال کاربر
-        user_posts = Post.objects.filter(
-            userpost__user=user,
-            userpost__is_active=True,
-            userpost__end_date__isnull=True
-        )
-        if not user_posts.exists():
-            logger.warning(f"User {user.username} has no active posts")
-            raise PermissionDenied(_('شما پست فعالی ندارید.'))
 
-        # دریافت سازمان‌های مجاز
-        user_orgs = Organization.objects.filter(
-            Q(post__in=user_posts) | Q(post__userpost__user=user)
+        # ## FIX: افزودن budget_item به select_related برای واکشی "دسته‌بندی بودجه"
+        select_related_fields = [
+            'status', 'organization', 'project', 'subproject',
+            'project_budget_allocation',
+            'project_budget_allocation__budget_period',
+            'project_budget_allocation__budget_item'  # این خط اضافه شد
+        ]
+        prefetch_related_fields = [
+            Prefetch('factors', queryset=Factor.objects.select_related('status'))
+        ]
+
+        if user.is_superuser or user.has_perm('tankhah.Tankhah_view'):
+            logger.info(f"User {user.username} has global access. Returning all Tankhah objects.")
+            self.has_global_access = True
+            return Tankhah.objects.all().select_related(*select_related_fields).prefetch_related(
+                *prefetch_related_fields).order_by('-created_at')
+
+        self.has_global_access = False
+        user_posts = Post.objects.filter(
+            userpost__user=user, userpost__is_active=True, userpost__end_date__isnull=True
         ).distinct()
 
-        # بررسی دسترسی بر اساس AccessRule
-        access_rules = AccessRule.objects.filter(
-            Q(post__in=user_posts) | Q(min_level__lte=user_posts.first().level, branch=user_posts.first().branch),
-            organization__in=user_orgs,
-            entity_type__in=['TANKHAH', 'FACTOR'],
-            action_type='VIEW',
-            is_active=True
-        )
-        if not access_rules.exists():
-            logger.warning(f"User {user.username} lacks access rules for TANKHAH/FACTOR")
-            raise PermissionDenied(_('شما اجازه مشاهده تنخواه یا فاکتور را ندارید.'))
+        if not user_posts.exists():
+            logger.warning(f"Regular user {user.username} has no active posts.")
+            return Tankhah.objects.none()
 
-        # فیلتر تنخواه‌ها بر اساس سازمان و دسترسی
+        try:
+            tankhah_entity_type = EntityType.objects.get(code='TANKHAH')
+        except EntityType.DoesNotExist:
+            logger.error("EntityType with code 'TANKHAH' does not exist.")
+            return Tankhah.objects.none()
+
+        permitted_org_ids = Transition.objects.filter(
+            entity_type=tankhah_entity_type,
+            allowed_posts__in=user_posts
+        ).values_list('organization_id', flat=True).distinct()
+
+        if not permitted_org_ids:
+            logger.warning(f"User {user.username} has no Transition permissions for EntityType 'TANKHAH'.")
+            return Tankhah.objects.none()
+
+        self.permitted_org_ids = list(permitted_org_ids)
+
         queryset = Tankhah.objects.filter(
-            organization__in=user_orgs
-        ).select_related('current_stage', 'organization', 'project', 'subproject').prefetch_related('factors')
+            organization_id__in=self.permitted_org_ids
+        ).select_related(*select_related_fields).prefetch_related(*prefetch_related_fields).order_by('-created_at')
 
-        return queryset.order_by('-created_at')
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        user_posts = Post.objects.filter(userpost__user=user, userpost__is_active=True)
-        context['title'] = _('وضعیت تنخواه‌ها و فاکتورها')
 
-        # جمع‌آوری اطلاعات مراحل و وضعیت‌ها
-        tankhahs_data = []
-        for tankhah in self.object_list:
-            factors = tankhah.factors.all()#.select_related('current_stage')
-            payment_stage = WorkflowStage.objects.filter(triggers_payment_order=True, is_active=True).first()
-
-            # وضعیت بودجه
-            budget_info = {
-                'total': tankhah.project.get_total_budget() if tankhah.project else 0,
-                'remaining': tankhah.project.get_remaining_budget() if tankhah.project else 0,
-            } if hasattr(tankhah, 'project') and tankhah.project else {'total': 0, 'remaining': 0}
-
-            # بررسی دسترسی برای تغییر مرحله یا تأیید
-            can_view_details = AccessRule.objects.filter(
-                Q(post__in=user_posts) | Q(min_level__lte=user_posts.first().level, branch=user_posts.first().branch),
-                organization=tankhah.organization,
-                entity_type='TANKHAH',
-                action_type='VIEW',
+        if self.has_global_access:
+            possible_transitions = Transition.objects.filter(
+                entity_type__code='TANKHAH', is_active=True
+            ).select_related('action', 'to_status')
+        else:
+            user_posts = Post.objects.filter(userpost__user=user, userpost__is_active=True).distinct()
+            possible_transitions = Transition.objects.filter(
+                entity_type__code='TANKHAH',
+                allowed_posts__in=user_posts,
                 is_active=True
-            ).exists()
+            ).select_related('action', 'to_status')
 
-            tankhahs_data.append({
+        transitions_map = {}
+        for t in possible_transitions:
+            key = (t.from_status_id, t.organization_id)
+            if key not in transitions_map:
+                transitions_map[key] = []
+            transitions_map[key].append(t)
+
+        tankhahs_processed_data = []
+        for tankhah in self.object_list:
+            # ## FIX: استفاده از status_id به جای current_status_id
+            lookup_key = (tankhah.status_id, tankhah.organization_id)
+            available_transitions = transitions_map.get(lookup_key, [])
+
+            # ## FIX: استفاده از status به جای current_status
+            is_payment_ready = tankhah.status.is_final_approve if tankhah.status else False
+
+            tankhahs_processed_data.append({
                 'tankhah': tankhah,
-                'current_stage': tankhah.current_stage,
-                'status': tankhah.status,
-                # 'factors': [
-                #     {
-                #         'factor': factor,
-                #         'current_stage': factor.current_stage,
-                #         'status': factor.status
-                #     } for factor in factors
-                # ],
-                'budget': budget_info,
-                'can_view_details': can_view_details,
-                'is_payment_ready': payment_stage and tankhah.current_stage == payment_stage and tankhah.status == 'APPROVED'
+                'factors': tankhah.factors.all(),
+                'available_transitions': available_transitions,
+                'is_payment_ready': is_payment_ready,
             })
 
-        context['tankhahs_data'] = tankhahs_data
-        context['workflow_stages'] = WorkflowStage.objects.filter(is_active=True).order_by('order')
+        context['tankhahs_data'] = tankhahs_processed_data
+        context['title'] = _('وضعیت کلی تنخواه‌ها')
+
         return context
+
+
+# ==========================================
 
 class old__TankhahApprovalTimelineView(PermissionRequiredMixin, DetailView):
     model = Tankhah

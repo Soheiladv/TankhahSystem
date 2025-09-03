@@ -974,9 +974,10 @@ class ApprovalLog(models.Model):
     # --- فیلدهای اصلی لاگ ---
     # action = models.CharField(max_length=45, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
 
-    from_status = models.ForeignKey('core.Status', on_delete=models.PROTECT, related_name='+')
-    to_status = models.ForeignKey('core.Status', on_delete=models.PROTECT, related_name='+')
-    action = models.ForeignKey('core.Action', on_delete=models.PROTECT, verbose_name=_("نوع اقدام گردش کار"))
+    from_status = models.ForeignKey('core.Status', on_delete=models.PROTECT, related_name='+',verbose_name= _('از وضعیت '))
+    to_status = models.ForeignKey('core.Status', on_delete=models.PROTECT, related_name='+',verbose_name=_("تغییر به"))
+    # action = models.ForeignKey('core.Action', on_delete=models.CASCADE, verbose_name=_("نوع اقدام گردش کار"))
+    action = models.ForeignKey('core.Action', on_delete=models.PROTECT, verbose_name=_("اقدام انجام شده"))
 
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, verbose_name=_("کاربر"))
     post = models.ForeignKey('core.Post', on_delete=models.SET_NULL, null=True, verbose_name=_("پست تأییدکننده"))
@@ -1002,8 +1003,7 @@ class ApprovalLog(models.Model):
 
     date = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
     action_type = models.CharField(max_length=50, blank=True, verbose_name=_("نوع اقدام"))
-    # stage = models.ForeignKey('core.AccessRule', on_delete=models.SET_NULL, null=False, blank=True,default=None, related_name='approval_logs_access', verbose_name=_("مرحله"))
-
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, related_name='approvalLog_created', verbose_name=_("ایجادکننده"))
 
 # --- پراپرتی‌های کمکی برای دسترسی آسان ---
     @property
@@ -1301,37 +1301,37 @@ class ItemCategory(models.Model):
             ('ItemCategory_delete','حــذف دسته بندی نوع هزینه کرد'),
         ]
 # -------------------------------------------------------
-class DashboardView(TemplateView):
-    template_name = 'tankhah/calc_dashboard.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-
-        # تنخواه‌های در انتظار در هر مرحله
-        from core.models import AccessRule
-        stages = AccessRule.objects.all()
-        for stage in stages:
-            context[f'tankhah_pending_{stage.name}'] = Tankhah.objects.filter(
-                current_stage=stage, status='PENDING'
-            ).count()
-
-        # تنخواه‌های نزدیک به مهلت
-        context['tankhah_due_soon'] = Tankhah.objects.filter(
-            due_date__lte=timezone.now() + timezone.timedelta(days=7),
-            status='PENDING'
-        ).count()
-
-        # مجموع مبلغ تأییدشده در ماه جاری
-        current_month = timezone.now().month
-        context['total_approved_this_month'] = Tankhah.objects.filter(
-            status='APPROVED', date__month=current_month
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        print(context['total_approved_this_month'])
-        # آخرین فعالیت‌ها
-        context['recent_approvals'] = ApprovalLog.objects.order_by('-timestamp')[:5]
-
-        return context
+# class DashboardView(TemplateView):
+#     template_name = 'tankhah/calc_dashboard.html'
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         user = self.request.user
+#
+#         # تنخواه‌های در انتظار در هر مرحله
+#         from core.models import AccessRule
+#         stages = AccessRule.objects.all()
+#         for stage in stages:
+#             context[f'tankhah_pending_{stage.name}'] = Tankhah.objects.filter(
+#                 current_stage=stage, status='PENDING'
+#             ).count()
+#
+#         # تنخواه‌های نزدیک به مهلت
+#         context['tankhah_due_soon'] = Tankhah.objects.filter(
+#             due_date__lte=timezone.now() + timezone.timedelta(days=7),
+#             status='PENDING'
+#         ).count()
+#
+#         # مجموع مبلغ تأییدشده در ماه جاری
+#         current_month = timezone.now().month
+#         context['total_approved_this_month'] = Tankhah.objects.filter(
+#             status='APPROVED', date__month=current_month
+#         ).aggregate(total=Sum('amount'))['total'] or 0
+#         print(context['total_approved_this_month'])
+#         # آخرین فعالیت‌ها
+#         context['recent_approvals'] = ApprovalLog.objects.order_by('-timestamp')[:5]
+#
+#         return context
 class Dashboard_Tankhah(models.Model):
     class Meta:
         default_permissions = ()

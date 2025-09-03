@@ -91,7 +91,7 @@ def get_factor_current_stage___(factor):
         logger.error(f"[get_factor_current_stage] Error fetching stage for factor {factor.factornumber}: {e}", exc_info=True)
         return 1  # مقدار پیش‌فرض در صورت خطا
 
-def get_factor_current_stage(factor):
+def get_factor_current_stage__error(factor):
     """
     تعیین مرحله فعلی فاکتور بر اساس آخرین ApprovalLog.
     اگر هیچ ApprovalLog وجود نداشته باشد، اولین stage_order از AccessRule (stage_order=1) را برمی‌گرداند.
@@ -135,3 +135,36 @@ def get_factor_current_stage(factor):
     except Exception as e:
         logger.error(f"[get_factor_current_stage] Error for factor {factor.number}: {str(e)}", exc_info=True)
         return 1
+
+def get_factor_current_stage(factor):
+    """
+    مرحله فعلی فاکتور را بر اساس آخرین لاگ یا وضعیت اولیه خود فاکتور برمی‌گرداند.
+    """
+    logger.debug(f"Fetching current stage for factor: {factor.number}")
+    try:
+        # ۱. ابتدا آخرین لاگ ثبت شده برای فاکتور را بررسی می‌کنیم
+        last_log = ApprovalLog.objects.filter(factor=factor).select_related('to_status').order_by('-timestamp').first()
+        if last_log and last_log.to_status:
+            # اگر لاگی وجود داشت، مرحله فعلی، وضعیت نهایی آن لاگ است
+            logger.debug(f"Found stage '{last_log.to_status.name}' from the latest ApprovalLog.")
+            return last_log.to_status  # آبجکت کامل Status را برمی‌گردانیم
+
+        # ۲. اگر هیچ لاگی وجود نداشت، فاکتور در مرحله اولیه خود است.
+        #    وضعیت فعلی فاکتور باید همان وضعیت اولیه باشد.
+        if factor.status and factor.status.is_initial:
+            logger.debug(f"No logs found. Returning initial status '{factor.status.name}'.")
+            return factor.status
+
+        # ۳. حالت اضطراری: اگر فاکتور لاگ ندارد ولی وضعیتش هم اولیه نیست (یک ناهماهنگی در داده‌ها)
+        #    باز هم وضعیت فعلی‌اش را به عنوان مرجع برمی‌گردانیم.
+        if factor.status:
+            logger.warning(
+                f"Factor {factor.number} has no logs, but its status '{factor.status.name}' is not initial. Returning current status as stage.")
+            return factor.status
+
+        logger.error(f"Could not determine stage for factor {factor.number}. It has no logs and no status.")
+        return None
+
+    except Exception as e:
+        logger.error(f"Error in get_factor_current_stage for factor {factor.number}: {e}", exc_info=True)
+        return None

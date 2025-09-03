@@ -1,0 +1,18 @@
+{% load i18n static humanize %}
+
+{% if factor.documents.all %}
+    <div class="list-group">
+    {% for doc in factor.documents.all %}
+        <a href="{{ doc.file.url }}" target="_blank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-file-alt fa-lg me-3 text-secondary"></i>
+                <span class="fw-bold">{{ doc.get_filename }}</span>
+                <small class="d-block text-muted ms-5">{% trans "بارگذاری توسط:" %} {{ doc.uploaded_by.get_full_name|default:doc.uploaded_by.username }} - {{ doc.uploaded_at|naturaltime }}</small>
+            </div>
+            <i class="fas fa-external-link-alt text-muted"></i>
+        </a>
+    {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-secondary text-center">{% trans "هیچ سندی برای این فاکتور پیوست نشده است." %}</div>
+{% endif %}

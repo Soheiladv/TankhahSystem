@@ -431,7 +431,6 @@ class SubProject(models.Model):
             ('SubProject_Branch', 'تخصیص  زیر مجموعه پروژه(شعبه)🏠'),
         ]
 
-
 class PostAction(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='postactions',verbose_name=_("پست"))
     action_type = models.CharField(max_length=50, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
@@ -463,8 +462,6 @@ class PostAction(models.Model):
             ('PostAction_update', 'بروزرسانی اقدامات مجاز پست'),
             ('PostAction_delete', 'حذف اقدامات مجاز پست'),
         ]
-
-###################### State Machine  #######################################
 ###################### NEW Config Status For ACTIONS TYPE ENTITY TYPES #######################################
 # یک کلاس پایه برای فیلدهای مشترک (ایجادکننده، تاریخ، وضعیت فعالیت)
 # مدل‌ها برای پشتیبانی از تاریخچه و بازنشستگی

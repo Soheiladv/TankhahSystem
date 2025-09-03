@@ -1,102 +1,169 @@
-{% extends 'base.html' %}
-{% load i18n static %}
+{% extends "base.html" %}
+{% load i18n static humanize jalali_tags rcms_custom_filters %}
+
+{% block title %}{% trans "وضعیت کلی تنخواه‌ها" %}{% endblock %}
 
 {% block extra_css %}
-
-    <style>
-         .container { max-width: 1200px; margin-top: 50px; }
-        .card { border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
-        .table { background-color: #fff; border-radius: 8px; }
-        .status-pending { background-color: #fff3cd; color: #856404; }
-        .status-approved { background-color: #d4edda; color: #155724; }
-        .status-rejected { background-color: #f8d7da; color: #721c24; }
-        .badge { font-size: 0.9em; }
-    </style>
+<style>
+    .card { border: none; border-radius: .75rem; box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.07); }
+    .table thead th { background-color: #f8f9fa; font-weight: 600; text-align: center; vertical-align: middle; }
+    .table tbody td { vertical-align: middle; }
+    
+    /* Style for clickable main row */
+    .main-row { cursor: pointer; }
+    .main-row:hover { background-color: #f8f9fa; }
+    
+    /* Style for the collapsible details section */
+    .details-row td { padding: 0 !important; border-top: none; }
+    .details-card { border-radius: 0; box-shadow: none; border-top: 2px solid #dee2e6; }
+    .details-card-body { padding: 1.5rem; }
+    .details-section { margin-bottom: 1.5rem; }
+    .details-section h5 { font-weight: bold; color: var(--bs-primary); border-bottom: 2px solid #e9ecef; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+    
+    .budget-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; font-size: 0.9rem; }
+    .budget-info-grid > div { background-color: #f8f9fa; padding: 0.75rem; border-radius: .5rem; }
+    .progress { height: 8px; }
+</style>
 {% endblock %}
 
 {% block content %}
-    <div class="container">
-        <div class="card">
-            <div class="card-body">
-                <h1 class="card-title text-center mb-4">{% trans "وضعیت تنخواه‌ها و فاکتورها" %}</h1>
-                {% if tankhahs_data %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>{% trans "شماره تنخواه" %}</th>
-                                    <th>{% trans "سازمان" %}</th>
-                                    <th>{% trans "مرحله فعلی" %}</th>
-                                    <th>{% trans "وضعیت" %}</th>
-                                    <th>{% trans "فاکتورها" %}</th>
-                                    <th>{% trans "بودجه" %}</th>
-                                    <th>{% trans "اقدامات" %}</th>
+<div class="container-fluid py-4">
+    <div class="card">
+        <div class="card-header border-0 bg-light">
+            <h2 class="mb-0 text-center fw-bold">{% trans "وضعیت کلی تنخواه‌ها" %}</h2>
+        </div>
+        <div class="card-body p-0">
+            {% if tankhahs_data %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 30px;" {% trans "ردیف" %}></th>
+                                <th>{% trans "شماره تنخواه" %}</th>
+                                <th>{% trans "سازمان / پروژه" %}</th>
+                                <th class="text-center">{% trans "مبلغ تنخواه" %}</th>
+                                <th class="text-center">{% trans "وضعیت فعلی" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for data in tankhahs_data %}
+                                <tr class="main-row" data-bs-toggle="collapse" href="#details-{{ data.tankhah.pk }}" role="button" aria-expanded="false" aria-controls="details-{{ data.tankhah.pk }}">
+                                    <td class="text-center"><i class="fas fa-chevron-down">{{ forloop.counter|to_persian_number }}</i></td>
+                                    <td class="fw-bold">{{ data.tankhah.code|default:data.tankhah.pk }}</td>
+                                    <td>
+                                        <strong>{{ data.tankhah.organization.name }}</strong>
+                                        {% if data.tankhah.project %}<br><small class="text-muted">{{ data.tankhah.project.name }}</small>{% endif %}
+                                    </td>
+                                    <td class="text-center fw-bold">{{ data.tankhah.amount|intcomma:False|to_persian_number }} ریال</td>
+                                    <td class="text-center">
+                                        {% if data.tankhah.status %}
+                                            <span class="badge rounded-pill fs-6 status-{{ data.tankhah.status.code }}">{{ data.tankhah.status.name }}</span>
+                                        {% else %}
+                                            <span class="badge rounded-pill fs-6 bg-secondary">{% trans "نامشخص" %}</span>
+                                        {% endif %}
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {% for data in tankhahs_data %}
-                                    <tr>
-                                        <td>{{ data.tankhah.number }}</td>
-                                        <td>{{ data.tankhah.organization.name }}</td>
-                                        <td>
-                                            {% if data.current_stage %}
-                                                <span class="badge bg-primary">{{ data.current_stage.name }}</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">{% trans "نامشخص" %}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <span class="badge status-{{ data.status|lower }}">
-                                                {{ data.tankhah.get_status_display }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            {% for factor_data in data.factors %}
-                                                <div>
-                                                    <strong>{{ factor_data.factor.number }}</strong>:
-                                                    {% if factor_data.current_stage %}
-                                                        <span class="badge bg-info">{{ factor_data.current_stage.name }}</span>
-                                                    {% else %}
-                                                        <span class="badge bg-secondary">{% trans "نامشخص" %}</span>
-                                                    {% endif %}
-                                                    <span class="badge status-{{ factor_data.status|lower }}">
-                                                        {{ factor_data.factor.get_status_display }}
-                                                    </span>
+                                <tr class="details-row">
+                                    <td colspan="5">
+                                        <div class="collapse" id="details-{{ data.tankhah.pk }}">
+                                            <div class="card details-card">
+                                                <div class="card-body details-card-body">
+                                                    
+                                                    {% with allocation=data.tankhah.project_budget_allocation %}
+                                                    <div class="details-section">
+                                                        <h5><i class="fas fa-wallet me-2"></i>{% trans "اطلاعات بودجه" %}</h5>
+                                                        {% if allocation %}
+                                                            <div class="budget-info-grid">
+                                                                <div><strong>{% trans "دسته بندی بودجه:" %}</strong><br>{{ allocation.budget_item.name }}</div>
+                                                                <div><strong>{% trans "تاریخ تخصیص:" %}</strong><br>{{ allocation.allocation_date|to_jalali:'%Y/%m/%d' }}</div>
+                                                                {% if allocation.budget_period %}
+                                                                <div><strong>{% trans "مدت زمان دوره:" %}</strong><br>{{ allocation.budget_period.start_date|to_jalali:'%y/%m/%d' }} تا {{ allocation.budget_period.end_date|to_jalali:'%y/%m/%d' }}</div>
+                                                                <div><strong>{% trans "تاریخ انقضا:" %}</strong><br><span class="text-danger fw-bold">{{ allocation.budget_period.end_date|to_jalali:'%Y/%m/%d' }}</span></div>
+                                                                {% endif %}
+                                                            </div>
+                                                            <hr>
+                                                            <h6>{% trans "وضعیت مالی تخصیص" %}</h6>
+                                                            <strong>{% trans "کل تخصیص:" %}</strong> {{ allocation.allocated_amount|intcomma:False|to_persian_number }} ریال
+                                                            {% with consumed=allocation.allocated_amount|subtract:allocation.get_actual_remaining_amount percentage=consumed|percentage_of:allocation.allocated_amount %}
+                                                            <div class="progress mt-2 mb-2" data-bs-toggle="tooltip" title="{% trans "درصد مصرف:" %} {{ percentage|floatformat:1|to_persian_number }}%">
+                                                                <div class="progress-bar bg-danger" role="progressbar" style="width: {{ percentage }}%;" aria-valuenow="{{ percentage }}"></div>
+                                                            </div>
+                                                            <div class="d-flex justify-content-between">
+                                                                <span class="text-danger">{% trans "مصرف شده:" %} {{ consumed|intcomma:False|to_persian_number }} ریال</span>
+                                                                <span class="text-success">{% trans "مانده:" %} {{ allocation.get_actual_remaining_amount|intcomma:False|to_persian_number }} ریال</span>
+                                                            </div>
+                                                            {% endwith %}
+                                                        {% else %}
+                                                            <p class="text-muted">{% trans "برای این تنخواه، تخصیص بودجه مستقیمی ثبت نشده است." %}</p>
+                                                        {% endif %}
+                                                    </div>
+                                                    {% endwith %}
+
+                                                    <div class="details-section">
+                                                        <h5><i class="fas fa-receipt me-2"></i>{% trans "فاکتورهای ضمیمه" %}</h5>
+                                                        {% if data.factors %}
+                                                            <ul class="list-group list-group-flush">
+                                                            {% for factor in data.factors %}
+                                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                                    <span>
+                                                                        <i class="fas fa-file-invoice me-2 text-muted"></i>
+                                                                        <strong>#{{ factor.number|default:factor.pk }}</strong> - {{ factor.amount|intcomma:False|to_persian_number }} ریال
+                                                                    </span>
+                                                                    <span class="badge rounded-pill status-{{ factor.status.code }}">{{ factor.status.name }}</span>
+                                                                </li>
+                                                            {% endfor %}
+                                                            </ul>
+                                                        {% else %}
+                                                            <p class="text-muted">{% trans "هیچ فاکتوری برای این تنخواه ثبت نشده است." %}</p>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    <div class="details-section">
+                                                        <h5><i class="fas fa-tasks me-2"></i>{% trans "اقدامات مجاز" %}</h5>
+                                                        {% if data.available_transitions or data.is_payment_ready %}
+                                                            {% for transition in data.available_transitions %}
+                                                                <a href="#" class="btn btn-primary">
+                                                                    {{ transition.action.name }}
+                                                                </a>
+                                                            {% endfor %}
+                                                            {% if data.is_payment_ready %}
+                                                                <a href="#" class="btn btn-success">
+                                                                    <i class="fas fa-dollar-sign me-1"></i> {% trans "ایجاد دستور پرداخت" %}
+                                                                </a>
+                                                            {% endif %}
+                                                        {% else %}
+                                                             <p class="text-muted">{% trans "در وضعیت فعلی، هیچ اقدامی برای شما مجاز نیست." %}</p>
+                                                        {% endif %}
+                                                    </div>
+
                                                 </div>
-                                            {% empty %}
-                                                {% trans "بدون فاکتور" %}
-                                            {% endfor %}
-                                        </td>
-                                        <td>
-                                            <div>{% trans "کل" %}: {{ data.budget.total|floatformat:0 }} {% trans "ریال" %}</div>
-                                            <div>{% trans "باقیمانده" %}: {{ data.budget.remaining|floatformat:0 }} {% trans "ریال" %}</div>
-                                        </td>
-                                        <td>
-                                            {% if data.can_view_details %}
-                                                <a href="{% url 'tankhah_detail' data.tankhah.pk %}" class="btn btn-sm btn-info">
-                                                    {% trans "جزئیات" %}
-                                                </a>
-                                            {% endif %}
-                                            {% if data.is_payment_ready %}
-                                                <a href="{% url 'payment_order_create' %}" class="btn btn-sm btn-primary">
-                                                    {% trans "ایجاد دستور پرداخت" %}
-                                                </a>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="alert alert-info text-center">
-                        {% trans "هیچ تنخواهی برای نمایش وجود ندارد." %}
-                    </div>
-                {% endif %}
-            </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center m-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {% trans "هیچ تنخواهی برای نمایش وجود ندارد." %}
+                </div>
+            {% endif %}
         </div>
     </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
- {% endblock %}
+<script>
+    // فعال‌سازی تولتیپ‌ها برای نمایش درصد مصرف بودجه
+    document.addEventListener('DOMContentLoaded', function () {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

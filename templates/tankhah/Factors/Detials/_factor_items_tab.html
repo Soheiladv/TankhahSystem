@@ -1,0 +1,36 @@
+{% load i18n static humanize %}
+
+{% if factor.items.all %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>{% trans "شرح کالا / خدمات" %}</th>
+                    <th class="text-center">{% trans "تعداد" %}</th>
+                    <th class="text-end">{% trans "قیمت واحد" %}</th>
+                    <th class="text-end">{% trans "جمع کل" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in factor.items.all %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item.description }}</td>
+                        <td class="text-center">{{ item.quantity }}</td>
+                        <td class="text-end">{{ item.unit_price|intcomma }}</td>
+                        <td class="text-end fw-bold">{{ item.total_price|intcomma }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="table-light">
+                    <td colspan="4" class="text-end fw-bold fs-6">{% trans "جمع کل اقلام:" %}</td>
+                    <td class="text-end fw-bold fs-6">{{ items_total|intcomma }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-secondary text-center">{% trans "هیچ آیتمی برای این فاکتور ثبت نشده است." %}</div>
+{% endif %}
