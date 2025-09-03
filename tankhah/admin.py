@@ -140,50 +140,50 @@ class ApprovalInline(admin.TabularInline):
     # autocomplete_fields = ('user',)
 
 
-# ادمین تأیید
-@admin.register(ApprovalLog)
-class ApprovalAdmin(admin.ModelAdmin):
-    list_display = ('tankhah', 'factor_number', 'user', 'date', 'action', 'comment_short')
-    list_filter = (
-        ('date', JDateFieldListFilter),
-        'action',
-        'tankhah__organization',
-    )
-    search_fields = ('tankhah', 'factor__number', 'user__username', 'comment')
-    list_select_related = ('tankhah', 'factor', 'user')
-    # autocomplete_fields = ('tankhah', 'factor', 'user')
-    ordering = ('-date',)
-    fieldsets = (
-        (None, {
-            'fields': ('tankhah', 'factor', 'user', 'date',)
-        }),
-        (_('توضیحات'), {
-            'fields': ('comment',),
-            'classes': ('collapse',)
-        }),
-    )
-    readonly_fields = ('date',)  # تاریخ به صورت خودکار ست می‌شه
-
-    def tankhah_number(self, obj):
-        return obj.Tankhah.number if obj.Tankhah else '-'
-
-    tankhah_number.short_description = _('شماره تنخواه')
-
-    def factor_number(self, obj):
-        return obj.factor.number if obj.factor else '-'
-
-    factor_number.short_description = _('شماره فاکتور')
-
-    def comment_short(self, obj):
-        return obj.comment[:50] + '...' if obj.comment and len(obj.comment) > 50 else obj.comment
-
-    comment_short.short_description = _('توضیحات کوتاه')
-
-    def save_model(self, request, obj, form, change):
-        # ثبت کاربر فعلی به عنوان تأییدکننده اگه جدید باشه
-        if not obj.pk and not obj.user:
-            obj.user = request.user
-        super().save_model(request, obj, form, change)
+# # ادمین تأیید
+# @admin.register(ApprovalLog)
+# class ApprovalAdmin(admin.ModelAdmin):
+#     list_display = ('tankhah', 'factor_number', 'user', 'date', 'action', 'comment_short')
+#     list_filter = (
+#         ('date', JDateFieldListFilter),
+#         'action',
+#         'tankhah__organization',
+#     )
+#     search_fields = ('tankhah', 'factor__number', 'user__username', 'comment')
+#     list_select_related = ('tankhah', 'factor', 'user')
+#     # autocomplete_fields = ('tankhah', 'factor', 'user')
+#     ordering = ('-date',)
+#     fieldsets = (
+#         (None, {
+#             'fields': ('tankhah', 'factor', 'user', 'date',)
+#         }),
+#         (_('توضیحات'), {
+#             'fields': ('comment',),
+#             'classes': ('collapse',)
+#         }),
+#     )
+#     readonly_fields = ('date',)  # تاریخ به صورت خودکار ست می‌شه
+#
+#     def tankhah_number(self, obj):
+#         return obj.Tankhah.number if obj.Tankhah else '-'
+#
+#     tankhah_number.short_description = _('شماره تنخواه')
+#
+#     def factor_number(self, obj):
+#         return obj.factor.number if obj.factor else '-'
+#
+#     factor_number.short_description = _('شماره فاکتور')
+#
+#     def comment_short(self, obj):
+#         return obj.comment[:50] + '...' if obj.comment and len(obj.comment) > 50 else obj.comment
+#
+#     comment_short.short_description = _('توضیحات کوتاه')
+#
+#     def save_model(self, request, obj, form, change):
+#         # ثبت کاربر فعلی به عنوان تأییدکننده اگه جدید باشه
+#         if not obj.pk and not obj.user:
+#             obj.user = request.user
+#         super().save_model(request, obj, form, change)
 
 admin.site.register(ItemCategory)
 

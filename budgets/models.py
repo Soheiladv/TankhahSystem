@@ -32,11 +32,8 @@ from accounts.models import CustomUser
 def get_current_date():
     return timezone.now().date()
 
-
 """ مدل نوع بودجه """  # ------------------------------------
 """BudgetPeriod (دوره بودجه کلان):"""
-
-
 class BudgetPeriod(models.Model):
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("دفتر مرکزی"),
                                      related_name='budget_periods')
@@ -287,12 +284,8 @@ class BudgetPeriod(models.Model):
     #         logger.info(f"Notification sent for BudgetPeriod {self.pk}: {status} - {message}")
     #     except Exception as e:
     #         logger.error(f"Error sending notification for BudgetPeriod {self.pk}: {str(e)}")
-
-
 # --------------------------------------
 """ BudgetAllocation (تخصیص بودجه):"""
-
-
 class BudgetAllocation(models.Model):
     """
     تخصیص بودجه به سازمان‌ها (شعبات یا ادارات) و پروژه‌ها.
@@ -573,12 +566,8 @@ class BudgetAllocation(models.Model):
             cache.delete(f"budget_allocation_balance_{self.pk}")
             cache.delete(f"project_total_budget_v2_{self.project.pk}_no_filters" if self.project else None)
             cache.delete(f"project_remaining_budget_{self.project.pk}_no_filters" if self.project else None)
-
-
 # --------------------------------------
 """ BudgetItem (نوع ردیف بودجه):"""
-
-
 class BudgetItem(models.Model):
     budget_period = models.ForeignKey('BudgetPeriod', on_delete=models.CASCADE, related_name='budget_items',
                                       verbose_name=_("دوره بودجه"))
@@ -604,12 +593,8 @@ class BudgetItem(models.Model):
         super().clean()
         if not self.name:
             raise ValidationError(_("نام ردیف بودجه نمی‌تواند خالی باشد."))
-
-
 # --------------------------------------
 """ BudgetTransaction (تراکنش بودجه):"""
-
-
 class BudgetTransaction(models.Model):
     TRANSACTION_TYPES = (
         ('ALLOCATION', _('تخصیص اولیه')),
@@ -739,12 +724,8 @@ class BudgetTransaction(models.Model):
 
     def __str__(self):
         return f"{self.get_transaction_type_display()} - {self.amount:,.0f} - {self.timestamp.strftime('%Y/%m/%d')}"
-
-
 # --------------------------------------
 """Payee (دریافت‌کننده):"""
-
-
 class Payee(models.Model):
     """توضیح: اطلاعات دریافت‌کننده پرداخت با نوع مشخص (فروشنده، کارمند، دیگر)."""
     PAYEE_TYPES = (
@@ -779,12 +760,8 @@ class Payee(models.Model):
             ('Payee_update', _('بروزرسانی دریافت‌کننده')),
             ('Payee_delete', _('حذف دریافت‌کننده')),
         ]
-
-
 # --------------------------------------
 """PaymentOrder (دستور پرداخت):"""
-
-
 # --------------------------------------
 class PaymentOrder(models.Model):
     STATUS_CHOICES = (
@@ -927,12 +904,8 @@ class PaymentOrder(models.Model):
                 )
                 self.is_locked = True
                 self.save()
-
-
 # --------------------------------------
 """TransactionType (نوع تراکنش):"""
-
-
 class TransactionType(models.Model):
     """توضیح: تعریف پویا نوع تراکنش‌ها (مثل بیمه، جریمه) با امکان نیاز به تأیید اضافی."""
     name = models.CharField(max_length=250, unique=True, verbose_name=_("نام"))
@@ -971,12 +944,8 @@ class TransactionType(models.Model):
             ('TransactionType_update', _('بروزرسانی نوع تراکنش')),
             ('TransactionType_delete', _('حذف نوع تراکنش')),
         ]
-
-
 # --------------------------------------
 """مدل BudgetReallocation برای انتقال باقی‌مانده بودجه متوقف‌شده."""
-
-
 class BudgetReallocation(models.Model):
     source_allocation = models.ForeignKey('BudgetAllocation', on_delete=models.CASCADE,
                                           related_name='reallocations_from')
@@ -993,8 +962,6 @@ class BudgetReallocation(models.Model):
             raise ValidationError(_("مبلغ انتقال باید مثبت باشد."))
         if self.source_allocation.get_remaining_amount() < self.amount:
             raise ValidationError(_("بودجه کافی در تخصیص منبع وجود ندارد."))
-
-
 # --------------------------------------
 """یه جدول تنظیمات (BudgetSettings) برای مدیریت قفل و هشدار در سطوح مختلف:"""
 

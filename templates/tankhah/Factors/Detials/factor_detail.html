@@ -1,12 +1,9 @@
 {% extends 'base.html' %}
-{% load i18n static humanize %}
+{% load i18n static rcms_custom_filters jformat  %}
 
 {% block title %}{{ title }}{% endblock %}
 
 {% block extra_head %}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
         /* --- استایل‌های اصلی صفحه --- */
@@ -70,7 +67,7 @@
             </div>
             <div>
                 <p class="mb-0"><strong>{% trans "شماره فاکتور:" %}</strong> {{ factor.number }}</p>
-                <p class="mb-0"><strong>{% trans "تاریخ چاپ:" %}</strong> {% now "Y/m/d" %}</p>
+                <p class="mb-0"><strong>{% trans "تاریخ چاپ:" %}</strong> {% now "Y/m/d"  %}</p>
             </div>
         </div>
     </div>
@@ -94,24 +91,24 @@
                     <div class="row">
                         <div class="col-md-6"><ul class="list-unstyled info-list">
                             <li><span class="label">{% trans "عنوان:" %}</span><span class="value">{{ factor.title }}</span></li>
-                            <li><span class="label">{% trans "تاریخ:" %}</span><span class="value">{{ factor.date|date:"Y/m/d" }}</span></li>
-                            <li class="align-items-start"><span class="label">{% trans "مبلغ:" %}</span><span class="value fs-5 text-primary fw-bold">{{ factor.amount|intcomma }}<small class="text-muted ms-1">{% trans "ریال" %}</small></span></li>
+                            <li><span class="label">{% trans "تاریخ:" %}</span><span class="value">{{ factor.date|jformat:"%Y/%m/%d"|to_persian_number }}</span></li>
+                            <li class="align-items-start"><span class="label">{% trans "مبلغ:" %}</span><span class="value fs-5 text-primary fw-bold">{{ factor.amount|to_persian_number }}<small class="text-muted ms-1">{% trans "ریال" %}</small></span></li>
                         </ul></div>
                         <div class="col-md-6"><ul class="list-unstyled info-list">
                             <li><span class="label">{% trans "تنخواه:" %}</span><span class="value"><a href="{% url 'tankhah_detail' pk=factor.tankhah.pk %}">{{ factor.tankhah.title }}</a></span></li>
                             <li><span class="label">{% trans "ایجاد کننده:" %}</span><span class="value">{{ factor.created_by.get_full_name|default:factor.created_by.username }}</span></li>
-                            <li><span class="label">{% trans "تاریخ ایجاد:" %}</span><span class="value">{{ factor.created_at|date:"Y/m/d H:i" }}</span></li>
+                            <li><span class="label">{% trans "تاریخ ایجاد:" %}</span><span class="value">{{ factor.created_at|jformat:"%Y/%m/%d "|to_persian_number }}</span></li>
                         </ul></div>
                     </div>
-                    {% if factor.description %}<p class="mt-3 border p-3 rounded bg-light mb-0">{{ factor.description|linebreaksbr }}</p>{% endif %}
+                    {% if factor.description %}<p class="mt-3 border p-3 rounded bg-light mb-0">{{ factor.description|linebreaksbr|to_persian_number }}</p>{% endif %}
                 </div>
             </div>
 
             <div class="no-print">
                 <ul class="nav nav-tabs" role="tablist">
-                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#items-tab-content"><i class="fas fa-list-alt me-2"></i>{% trans "اقلام فاکتور" %} <span class="badge rounded-pill bg-light text-dark ms-1">{{ factor.items.count }}</span></button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#docs-tab-content"><i class="fas fa-paperclip me-2"></i>{% trans "اسناد پیوست" %} <span class="badge rounded-pill bg-light text-dark ms-1">{{ factor.documents.count }}</span></button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#history-tab-content"><i class="fas fa-history me-2"></i>{% trans "تاریخچه اقدامات" %} <span class="badge rounded-pill bg-light text-dark ms-1">{{ approval_logs.count }}</span></button></li>
+                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#items-tab-content"><i class="fas fa-list-alt me-2"></i>{% trans "اقلام فاکتور" %} <span class="badge rounded-pill bg-light text-dark ms-1">{{ factor.items.count |to_persian_number}}</span></button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#docs-tab-content"><i class="fas fa-paperclip me-2"></i>{% trans "اسناد پیوست" %} <span class="badge rounded-pill bg-light text-dark ms-1">{{ factor.documents.count |to_persian_number}}</span></button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#history-tab-content"><i class="fas fa-history me-2"></i>{% trans "تاریخچه اقدامات" %} <span class="badge rounded-pill bg-light text-dark ms-1">{{ approval_logs.count|to_persian_number }}</span></button></li>
                 </ul>
                 <div class="tab-content">
                     <div class="tab-pane fade show active" id="items-tab-content" role="tabpanel">{% include 'tankhah/Factors/Detials/_factor_items_tab.html' %}</div>
@@ -175,6 +172,115 @@
 document.addEventListener('DOMContentLoaded', function () {
     const confirmActionModal = document.getElementById('confirmActionModal');
     if (confirmActionModal) {
+        const modalInstance = new bootstrap.Modal(confirmActionModal); // ساخت نمونه modal
+        const modalActionName = confirmActionModal.querySelector('#actionName');
+        const modalNextStatus = confirmActionModal.querySelector('#nextStatus');
+        const confirmButton = confirmActionModal.querySelector('#confirmActionButton');
+        const actionDescription = confirmActionModal.querySelector('#actionDescription');
+
+        let currentTransitionId; // متغیری برای نگهداری ID گذار
+
+        // وقتی modal در حال باز شدن است، اطلاعات را از دکمه می‌خوانیم
+        confirmActionModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget; // دکمه‌ای که کلیک شده
+
+            // خواندن data-attributes از دکمه
+            currentTransitionId = button.getAttribute('data-transition-id'); // <-- ID گذار را ذخیره می‌کنیم
+            const actionName = button.getAttribute('data-action-name');
+            const nextStatus = button.getAttribute('data-next-status');
+
+            // آپدیت محتوای modal
+            if (modalActionName) modalActionName.textContent = actionName;
+            if (modalNextStatus) modalNextStatus.textContent = nextStatus;
+
+            // ریست کردن فرم modal
+            if (actionDescription) actionDescription.value = '';
+            if (confirmButton) {
+                confirmButton.disabled = false;
+                confirmButton.innerHTML = '{% trans "تأیید" %}';
+            }
+        });
+
+        if (confirmButton) {
+            confirmButton.addEventListener('click', function () {
+                if (!currentTransitionId) {
+                    console.error("Transition ID is missing!");
+                    return;
+                }
+
+                confirmButton.disabled = true;
+                confirmButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {% trans "در حال ارسال..." %}`;
+
+                // --- **اصلاح کلیدی:** ساخت URL داینامیک ---
+                // الگوی URL را از جنگو می‌گیریم و جای پارامترها را خالی می‌گذاریم
+                const apiUrlTemplate = "{% url 'api_factor_perform_transition' pk=0 transition_id=0 %}";
+                // جای 0 ها را با مقادیر واقعی جایگزین می‌کنیم
+                const apiUrl = apiUrlTemplate
+                    .replace('/0/transition/0/', `/${ '{{ factor.pk }}' }/transition/${currentTransitionId}/`);
+
+                console.log("Sending POST request to:", apiUrl); // برای دیباگ
+
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        // **مهم:** دیگر نیازی به ارسال action_id در body نیست، چون در URL هست
+                        // action_id: currentTransitionId,
+                        comment: actionDescription.value
+                    })
+                })
+                .then(response => {
+                    // مدیریت پاسخ بهتر
+                    return response.json().then(data => {
+                        if (!response.ok) {
+                            // اگر پاسخ خطا بود، آبجکت خطا را reject کن
+                            return Promise.reject(data);
+                        }
+                        return data; // اگر موفق بود، داده را resolve کن
+                    });
+                })
+                .then(data => {
+                    // بستن modal
+                    modalInstance.hide();
+                    // نمایش پیام موفقیت با SweetAlert
+                    Swal.fire({
+                        icon: 'success',
+                        title: '{% trans "موفقیت‌آمیز" %}',
+                        text: data.message || '{% trans "اقدام با موفقیت انجام شد!" %}',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload(); // رفرش صفحه برای دیدن تغییرات
+                    });
+                })
+                .catch(error => {
+                    console.error('API Error:', error);
+                    // نمایش خطای دریافت شده از سرور با SweetAlert
+                    Swal.fire({
+                        icon: 'error',
+                        title: '{% trans "خطا در انجام اقدام" %}',
+                        text: error.error || error.detail || '{% trans "یک خطای پیش‌بینی نشده رخ داد." %}',
+                        confirmButtonText: '{% trans "متوجه شدم" %}'
+                    });
+                    // فعال کردن مجدد دکمه
+                    confirmButton.disabled = false;
+                    confirmButton.innerHTML = '{% trans "تأیید" %}';
+                });
+            });
+        }
+    }
+});
+</script>
+{% endblock %}
+{% comment %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const confirmActionModal = document.getElementById('confirmActionModal');
+    if (confirmActionModal) {
         const modalTitle = confirmActionModal.querySelector('#actionName');
         const modalNextStatus = confirmActionModal.querySelector('#nextStatus');
         const confirmButton = confirmActionModal.querySelector('#confirmActionButton');
@@ -194,13 +300,13 @@ document.addEventListener('DOMContentLoaded', function () {
         confirmButton.onclick = function () {
             confirmButton.disabled = true;
             confirmButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {% trans "در حال ارسال..." %}`;
-            
+
             // --- شروع اصلاحات ---
             // متغیر factor.pk توسط جنگو قبل از ارسال صفحه به مرورگر،
             // با مقدار واقعی (مثلاً 71) جایگزین می‌شود.
             const apiUrl = "{% url 'api_factor_perform_transition' pk=factor.pk %}";
             // --- پایان اصلاحات ---
-            
+
             fetch(apiUrl, { // <-- از متغیر تعریف شده در بالا استفاده می‌کنیم
                 method: 'POST',
                 headers: {
@@ -235,3 +341,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 {% endblock %}
+{% endcomment %}

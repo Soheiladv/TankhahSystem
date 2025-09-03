@@ -1533,13 +1533,13 @@ class DashboardView(LoginRequiredMixin, View):
 
         # فعالیت‌های اخیر
         try:
-            context['recent_activities'] = ApprovalLog.objects.select_related('user', 'tankhah', 'factor', 'stage').order_by('-timestamp')[:7]
+            context['recent_activities'] = ApprovalLog.objects.select_related('user', 'tankhah', 'factor', 'action').order_by('-timestamp')[:7]
             if not context['recent_activities']:
                 context['recent_activities'] = [
                     {
                         'tankhah': {'number': 'T001'},
                         'get_action_display': lambda: 'تأیید',
-                        'user': {'username': 'کاربر نمونه'},
+                        'user': {'username':request.user},
                         'timestamp': now,
                         'comment': 'تأیید نمونه'
                     }

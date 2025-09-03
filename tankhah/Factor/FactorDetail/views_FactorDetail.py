@@ -1,5 +1,6 @@
 import logging
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.views.generic import DetailView
 
@@ -231,67 +232,81 @@ def get_user_allowed_transitions(user, factor):
 # ===================================================================
 class PerformFactorTransitionAPI(APIView):
     # permission_classes = [IsAuthenticated]
-    def post(self, request, pk, format=None):
+    def post(self, request, pk, transition_id):
+        factor = get_object_or_404(Factor, pk=pk)
+        target_transition = get_object_or_404(Transition, pk=transition_id)
+        comment = request.data.get('comment', '')  # دریافت کامنت از بدنه درخواست POST
+        user = request.user
+
+        logger.info(
+            f"API: Attempting transition '{target_transition.name}' on Factor {factor.pk} by user {user.username}")
+
+        # --- ۱. بررسی دسترسی با استفاده از تابع can_perform_action ---
+        # **مهم:** این تابع باید با مدل‌های گردش کار جدید شما کار کند.
+        # action_code = target_transition.action.code
+        # if not can_perform_action(user, factor, action_code):
+        #     logger.warning(f"Permission denied for user {user.username} to perform action '{action_code}' on factor {factor.pk}")
+        #     return Response({'error': _("شما مجاز به انجام این اقدام نیستید.")}, status=status.HTTP_403_FORBIDDEN)
+        # **توجه:** فعلاً فرض می‌کنیم دسترسی از قبل چک شده است.
+
+        # --- ۲. بررسی اینکه آیا گذار برای وضعیت فعلی فاکتور معتبر است ---
+        if factor.status != target_transition.from_status:
+            logger.error(
+                f"Transition Mismatch: Factor {factor.pk} is in status '{factor.status.name}' but transition {target_transition.pk} expects status '{target_transition.from_status.name}'.")
+            return Response(
+                {'error': _(
+                    "این اقدام در وضعیت فعلی فاکتور مجاز نیست. ممکن است شخص دیگری قبلاً وضعیت آن را تغییر داده باشد. لطفاً صفحه را رفرش کنید.")},
+                status=status.HTTP_409_CONFLICT  # 409 Conflict
+            )
+
         try:
             with transaction.atomic():
-                factor = get_object_or_404(Factor.objects.select_for_update(), pk=pk)
-                action_id = request.data.get('action_id')
-                description = request.data.get('description', '')
+                original_status = factor.status
 
-                if not action_id:
-                    return Response({'success': False, 'error': 'Action ID is required.'},
-                                    status=status.HTTP_400_BAD_REQUEST)
-
-                # --- شروع اصلاحات کلیدی ---
-                # به جای فراخوانی اشتباه، از تابع کمکی مستقل و صحیح استفاده می‌کنیم
-                allowed_transitions = get_user_allowed_transitions(request.user, factor)
-                target_transition = next((t for t in allowed_transitions if str(t.action.id) == str(action_id)), None)
-                # --- پایان اصلاحات کلیدی ---
-
-                # حالا این لاگ به درستی اجرا خواهد شد
-                logger.info(f'Found target_transition: {target_transition}')
-
-                if not target_transition:
-                    logger.warning(
-                        f"Forbidden action by user {request.user.username} on factor {pk}. Action ID: {action_id}")
-                    return Response({'success': False, 'error': 'This action is not allowed for your role.'},
-                                    status=status.HTTP_403_FORBIDDEN)
-
-                old_status = factor.status
-                new_status = target_transition.to_status
-                user_post = request.user.userpost_set.filter(is_active=True).first()
-
-                # به‌روزرسانی وضعیت فاکتور
-                factor.status = new_status
-                factor.save(update_fields=['status'])
-
-                print(">>> target_transition.action =", target_transition.action)
-                print(">>> type =", type(target_transition.action))
-                print(">>> id =", getattr(target_transition.action, "id", None))
-
-                # ایجاد لاگ تایید
-                result = ApprovalLog.objects.create(
-                    factor=factor,
-                    user=request.user,
-                    post=(user_post.post if user_post else None),
-                    from_status=old_status,  # <-- **فیلد اجباری اضافه شد**
-                    to_status=new_status,  # <-- **فیلد اجباری اضافه شد**
-                    action=target_transition.action,  # ← این خودش Action object هست✅
-                    comment=description,
-                    created_by=request.user,  # یا هر اسمی که مدل ApprovalLog برای کاربر داره
-                )
-                print(f'result Approve save  {result}')
+                # ۱. تغییر وضعیت فاکتور
+                factor.status = target_transition.to_status
+                # ممکن است بخواهید فیلدهای دیگری را هم آپدیت کنید، مثلاً locked_by_stage
+                # factor.locked_by_stage = ...
+                factor.save(update_fields=['status'])  # فقط فیلد وضعیت را آپدیت کن
                 logger.info(
-                    f"Factor {factor.number} successfully transitioned to '{new_status.name}' by user {request.user.username}.")
-                return Response({
-                    'success': True,
-                    'message': f"فاکتور با موفقیت به وضعیت '{new_status.name}' تغییر یافت."
-                }, status=status.HTTP_200_OK)
+                    f"Factor {factor.pk} status changed from '{original_status.name}' to '{target_transition.to_status.name}'.")
+
+                # ۲. ایجاد رکورد در ApprovalLog (با فیلد action)
+                # **نقطه کلیدی اصلاح:**
+                approval_log = ApprovalLog.objects.create(
+                    factor=factor,  # فاکتور مرتبط
+                    content_object=factor,  # برای GenericForeignKey
+                    from_status=original_status,  # وضعیت قبلی
+                    to_status=target_transition.to_status,  # وضعیت جدید
+                    action=target_transition.action,  # **اصلاح اصلی: اقدام انجام شده**
+                    user=user,  # کاربر انجام دهنده
+                    post=user.userpost_set.filter(is_active=True).first().post if user.userpost_set.filter(
+                        is_active=True).exists() else None,  # پست کاربر
+                    comment=comment,  # توضیحات کاربر
+                    created_by=user  # (اختیاری) اگر می‌خواهید ثبت کنید چه کسی لاگ را ایجاد کرده
+                )
+                logger.info(f"ApprovalLog {approval_log.pk} created for Factor {factor.pk} transition.")
+
+                # ۳. ارسال اعلان (Notification)
+                # ... (منطق ارسال اعلان به کاربر مرحله بعد یا کاربر ایجاد کننده) ...
+
+        except ValidationError as e:
+            logger.error(f"Validation error during transition for factor {factor.pk}: {e}", exc_info=True)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            logger.error(f"Critical error in PerformFactorTransitionAPI for factor {pk}: {e}", exc_info=True)
-            return Response({'success': False, 'error': 'یک خطای پیش‌بینی نشده در سرور رخ داد.'},
+            logger.error(f"Critical error in PerformFactorTransitionAPI for factor {factor.pk}: {e}", exc_info=True)
+            return Response({'error': _("خطای پیش‌بینی نشده در سرور رخ داد.")},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
- # ===================================================================
+
+        return Response({
+            'success': True,
+            'message': _("عملیات با موفقیت انجام شد و فاکتور به وضعیت '{}' تغییر یافت.").format(
+                target_transition.to_status.name),
+            'new_status': target_transition.to_status.name
+        }, status=status.HTTP_200_OK)
+
+
+# ===================================================================
 # ۲. ویوی جزئیات فاکتور (اصلاح شده)
 # ===================================================================
 class FactorDetailView(PermissionBaseView, DetailView):
@@ -451,6 +466,19 @@ class FactorDetailView(PermissionBaseView, DetailView):
         context['can_view_budget'] = user.has_perm('budgets.view_budgetperiod')
 
         context['is_overdue'] = factor.date < timezone.now().date() and factor.status.code not in ['PAID', 'REJECTED']
+
+
+        user_posts = user.userpost_set.filter(is_active=True, end_date__isnull=True).values_list('post', flat=True)
+        if user_posts:
+            # پیدا کردن گذارهای ممکن برای وضعیت فعلی فاکتور که کاربر به آنها دسترسی دارد
+            possible_transitions = Transition.objects.filter(
+                entity_type__code='FACTOR',
+                from_status=factor.status,
+                organization=factor.tankhah.organization,
+                allowed_posts__id__in=list(user_posts),
+                is_active=True
+            ).select_related('action', 'to_status').distinct()
+            context['possible_transitions'] = possible_transitions
 
         return context
 

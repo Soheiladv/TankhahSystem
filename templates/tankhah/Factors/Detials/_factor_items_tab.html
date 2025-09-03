@@ -1,4 +1,4 @@
-{% load i18n static humanize %}
+{% load i18n static rcms_custom_filters %}
 
 {% if factor.items.all %}
     <div class="table-responsive">
@@ -15,18 +15,18 @@
             <tbody>
                 {% for item in factor.items.all %}
                     <tr>
-                        <td>{{ forloop.counter }}</td>
+                        <td>{{ forloop.counter |format_negative}}</td>
                         <td>{{ item.description }}</td>
-                        <td class="text-center">{{ item.quantity }}</td>
-                        <td class="text-end">{{ item.unit_price|intcomma }}</td>
-                        <td class="text-end fw-bold">{{ item.total_price|intcomma }}</td>
+                        <td class="text-center">{{ item.quantity |format_negative}}</td>
+                        <td class="text-end">{{ item.unit_price|format_negative }}</td>
+                        <td class="text-end fw-bold">{{ item.total_price|format_negative }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
             <tfoot>
                 <tr class="table-light">
                     <td colspan="4" class="text-end fw-bold fs-6">{% trans "جمع کل اقلام:" %}</td>
-                    <td class="text-end fw-bold fs-6">{{ items_total|intcomma }}</td>
+                    <td class="text-end fw-bold fs-6">{{ items_total|format_negative }}</td>
                 </tr>
             </tfoot>
         </table>

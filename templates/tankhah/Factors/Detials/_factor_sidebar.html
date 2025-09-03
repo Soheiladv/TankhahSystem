@@ -61,4 +61,25 @@
 </div>
 {% endif %}
 
+
+{% if possible_transitions %}
+<div class="card mt-4">
+    <div class="card-header"><i class="fas fa-tasks me-2"></i>{% trans "اقدامات ممکن" %}</div>
+    <div class="card-body">
+        <div class="d-grid gap-2">
+            {% for transition in possible_transitions %}
+                <button type="button" class="btn btn-outline-primary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#confirmActionModal"
+                        data-transition-id="{{ transition.pk }}" {# **مهم:** ID گذار #}
+                        data-action-name="{{ transition.name }}" {# نام گذار برای نمایش #}
+                        data-next-status="{{ transition.to_status.name }}"> {# وضعیت بعدی برای نمایش #}
+                    {{ transition.name }}
+                </button>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% if is_overdue %}<div class="alert alert-danger text-center"><i class="fas fa-exclamation-triangle me-2"></i><strong>{% trans "سررسید شده!" %}</strong> {% trans "تاریخ این فاکتور گذشته است." %}</div>{% endif %}

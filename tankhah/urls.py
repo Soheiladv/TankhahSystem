@@ -122,7 +122,9 @@ urlpatterns +=[
 urlpatterns += [
     path( 'tankhah/<int:pk>/update-status/', EnhancedTankhahUpdateStatusView.as_view(), name='enhancedtankhah_update_status'),
     # URL برای API تغییر وضعیت فاکتور
-    path('api/factor/<int:pk>/transition/', PerformFactorTransitionAPI.as_view(), name='api_factor_perform_transition'),
+    # path('api/factor/<int:pk>/transition/',                     PerformFactorTransitionAPI.as_view(), name='api_factor_perform_transition'),
+    path('api/factor/<int:pk>/transition/<int:transition_id>/', PerformFactorTransitionAPI.as_view(), name='api_factor_perform_transition'),
+
 ]
 
 

@@ -322,80 +322,91 @@ class TankhahStatusView(PermissionBaseView, ListView):
     model = Tankhah
     template_name = 'tankhah/Reports/tankhah_status.html'
     context_object_name = 'tankhahs'
-    permission_required = ['tankhah.Tankhah_view']
+    permission_codenames = ['tankhah.Tankhah_view']
+    check_organization = True
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
 
-    # در فایل views.py مربوط به اپلیکیشن tankhah
-    # کلاس TankhahStatusView
-
     def get_queryset(self):
-        user = self.request.user
+        """
+        ساده‌سازی شده: این متد دیگر دسترسی را کنترل نمی‌کند.
+        PermissionBaseView ابتدا کاربران را بر اساس پرمیشن و سازمان فیلتر می‌کند.
+        این متد فقط کوئری فیلتر شده را دریافت کرده و آن را برای نمایش بهینه می‌کند.
+        """
+        # queryset ابتدا توسط PermissionBaseView بر اساس سازمان‌های مجاز کاربر فیلتر می‌شود
+        queryset = super().get_queryset()
 
-        # ## FIX: افزودن budget_item به select_related برای واکشی "دسته‌بندی بودجه"
+        # لیست فیلدهای مورد نیاز برای بهینه‌سازی
         select_related_fields = [
             'status', 'organization', 'project', 'subproject',
             'project_budget_allocation',
             'project_budget_allocation__budget_period',
-            'project_budget_allocation__budget_item'  # این خط اضافه شد
+            'project_budget_allocation__budget_item'
         ]
         prefetch_related_fields = [
             Prefetch('factors', queryset=Factor.objects.select_related('status'))
         ]
 
-        if user.is_superuser or user.has_perm('tankhah.Tankhah_view'):
-            logger.info(f"User {user.username} has global access. Returning all Tankhah objects.")
-            self.has_global_access = True
-            return Tankhah.objects.all().select_related(*select_related_fields).prefetch_related(
-                *prefetch_related_fields).order_by('-created_at')
+        # اعمال بهینه‌سازی‌ها و مرتب‌سازی نهایی
+        return queryset.select_related(*select_related_fields).prefetch_related(*prefetch_related_fields).order_by(
+            '-created_at')
 
-        self.has_global_access = False
-        user_posts = Post.objects.filter(
-            userpost__user=user, userpost__is_active=True, userpost__end_date__isnull=True
-        ).distinct()
-
-        if not user_posts.exists():
-            logger.warning(f"Regular user {user.username} has no active posts.")
-            return Tankhah.objects.none()
-
-        try:
-            tankhah_entity_type = EntityType.objects.get(code='TANKHAH')
-        except EntityType.DoesNotExist:
-            logger.error("EntityType with code 'TANKHAH' does not exist.")
-            return Tankhah.objects.none()
-
-        permitted_org_ids = Transition.objects.filter(
-            entity_type=tankhah_entity_type,
-            allowed_posts__in=user_posts
-        ).values_list('organization_id', flat=True).distinct()
-
-        if not permitted_org_ids:
-            logger.warning(f"User {user.username} has no Transition permissions for EntityType 'TANKHAH'.")
-            return Tankhah.objects.none()
-
-        self.permitted_org_ids = list(permitted_org_ids)
-
-        queryset = Tankhah.objects.filter(
-            organization_id__in=self.permitted_org_ids
-        ).select_related(*select_related_fields).prefetch_related(*prefetch_related_fields).order_by('-created_at')
-
-        return queryset
-
+        #
+        # # ## FIX: استثنای دسترسی فقط برای Superuser ##
+        # # اگر کاربر، ادمین کل سیستم باشد، تمام تنخواه‌ها را بدون هیچ فیلتر دیگری مشاهده می‌کند.
+        # if user.is_superuser:
+        #     logger.info(f"User {user.username} is a superuser. Returning all Tankhah objects.")
+        #     self.has_global_access = True
+        #     return Tankhah.objects.all().select_related(*select_related_fields).prefetch_related(
+        #         *prefetch_related_fields).order_by('-created_at')
+        #
+        # # --- اگر کاربر superuser نباشد، منطق دسترسی دقیق بر اساس Post اجرا می‌شود ---
+        # self.has_global_access = False
+        # user_posts = Post.objects.filter(
+        #     userpost__user=user, userpost__is_active=True, userpost__end_date__isnull=True
+        # ).distinct()
+        #
+        # if not user_posts.exists():
+        #     logger.warning(f"Regular user {user.username} has no active posts.")
+        #     return Tankhah.objects.none()
+        #
+        # try:
+        #     tankhah_entity_type = EntityType.objects.get(code='TANKHAH')
+        # except EntityType.DoesNotExist:
+        #     logger.error("EntityType with code 'TANKHAH' does not exist.")
+        #     return Tankhah.objects.none()
+        #
+        # permitted_org_ids = Transition.objects.filter(
+        #     entity_type=tankhah_entity_type,
+        #     allowed_posts__in=user_posts
+        # ).values_list('organization_id', flat=True).distinct()
+        #
+        # if not permitted_org_ids:
+        #     logger.warning(f"User {user.username} has no Transition permissions for EntityType 'TANKHAH'.")
+        #     return Tankhah.objects.none()
+        #
+        # # این خط برای get_context_data لازم نیست چون check_organization در PermissionBaseView
+        # # به صورت خودکار کوئری را فیلتر می‌کند.
+        # # self.permitted_org_ids = list(permitted_org_ids)
+        #
+        # queryset = Tankhah.objects.filter(
+        #     organization_id__in=permitted_org_ids
+        # ).select_related(*select_related_fields).prefetch_related(*prefetch_related_fields).order_by('-created_at')
+        #
+        # return queryset
     def get_context_data(self, **kwargs):
+        """
+        ساده‌سازی شده: این متد دیگر دسترسی کاربر را برای هر اقدام بررسی نمی‌کند.
+        بلکه تمام اقدامات ممکن برای هر وضعیت را واکشی کرده و به تمپلیت می‌دهد.
+        تمپلیت می‌تواند بر اساس نیاز، دکمه‌ها را نمایش دهد یا مخفی کند.
+        """
         context = super().get_context_data(**kwargs)
-        user = self.request.user
 
-        if self.has_global_access:
-            possible_transitions = Transition.objects.filter(
-                entity_type__code='TANKHAH', is_active=True
-            ).select_related('action', 'to_status')
-        else:
-            user_posts = Post.objects.filter(userpost__user=user, userpost__is_active=True).distinct()
-            possible_transitions = Transition.objects.filter(
-                entity_type__code='TANKHAH',
-                allowed_posts__in=user_posts,
-                is_active=True
-            ).select_related('action', 'to_status')
+        # واکشی تمام گذارهای ممکن برای موجودیت تنخواه در یک کوئری
+        possible_transitions = Transition.objects.filter(
+            entity_type__code='TANKHAH', is_active=True
+        ).select_related('action', 'to_status')
 
+        # ساخت یک دیکشنری برای دسترسی سریع به اقدامات هر وضعیت
         transitions_map = {}
         for t in possible_transitions:
             key = (t.from_status_id, t.organization_id)
@@ -405,11 +416,8 @@ class TankhahStatusView(PermissionBaseView, ListView):
 
         tankhahs_processed_data = []
         for tankhah in self.object_list:
-            # ## FIX: استفاده از status_id به جای current_status_id
             lookup_key = (tankhah.status_id, tankhah.organization_id)
             available_transitions = transitions_map.get(lookup_key, [])
-
-            # ## FIX: استفاده از status به جای current_status
             is_payment_ready = tankhah.status.is_final_approve if tankhah.status else False
 
             tankhahs_processed_data.append({
@@ -423,6 +431,53 @@ class TankhahStatusView(PermissionBaseView, ListView):
         context['title'] = _('وضعیت کلی تنخواه‌ها')
 
         return context
+
+    # def get_context_data(self, **kwargs):
+    #     # متد get_context_data نیازی به تغییر ندارد و با هر دو حالت (superuser و کاربر عادی)
+    #     # به درستی کار می‌کند.
+    #     context = super().get_context_data(**kwargs)
+    #     user = self.request.user
+    #
+    #     # تشخیص اینکه کاربر مدیر است یا نه، از get_queryset به اینجا منتقل می‌شود
+    #     has_global_access = hasattr(self, 'has_global_access') and self.has_global_access
+    #
+    #     if has_global_access:
+    #         possible_transitions = Transition.objects.filter(
+    #             entity_type__code='TANKHAH', is_active=True
+    #         ).select_related('action', 'to_status')
+    #     else:
+    #         user_posts = Post.objects.filter(userpost__user=user, userpost__is_active=True).distinct()
+    #         possible_transitions = Transition.objects.filter(
+    #             entity_type__code='TANKHAH',
+    #             allowed_posts__in=user_posts,
+    #             is_active=True
+    #         ).select_related('action', 'to_status')
+    #
+    #     transitions_map = {}
+    #     for t in possible_transitions:
+    #         key = (t.from_status_id, t.organization_id)
+    #         if key not in transitions_map:
+    #             transitions_map[key] = []
+    #         transitions_map[key].append(t)
+    #
+    #     tankhahs_processed_data = []
+    #     for tankhah in self.object_list:
+    #         lookup_key = (tankhah.status_id, tankhah.organization_id)
+    #         available_transitions = transitions_map.get(lookup_key, [])
+    #         is_payment_ready = tankhah.status.is_final_approve if tankhah.status else False
+    #
+    #         tankhahs_processed_data.append({
+    #             'tankhah': tankhah,
+    #             'factors': tankhah.factors.all(),
+    #             'available_transitions': available_transitions,
+    #             'is_payment_ready': is_payment_ready,
+    #         })
+    #
+    #     context['tankhahs_data'] = tankhahs_processed_data
+    #     context['title'] = _('وضعیت کلی تنخواه‌ها')
+    #
+    #     return context
+
 
 
 # ==========================================

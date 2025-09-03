@@ -8,7 +8,7 @@
 </head>
 <body>
     <h1>{{ report_main_title }}</h1>
-    <p style="text-align: center; font-size: 8pt;">{% translate "تاریخ گزارش:" %} {% now "Y/m/d H:i"|to_jalali:"%Y/%m/%d ساعت %H:%M"|to_persian_number %}</p>
+    <p style="text-align: center; font-size: 8pt;">{% translate "تاریخ گزارش:" %} {% now "Y/m/d H:i"%}</p>
 
     {% for period_item_data in budget_periods_report_data %}
         <div class="period-container" style="page-break-inside: avoid;">
