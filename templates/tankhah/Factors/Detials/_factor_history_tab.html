@@ -1,52 +1,90 @@
-{% load i18n static humanize %}
-<style>
-    /* استایل‌های تایم‌لاین */
-    .timeline { position: relative; padding: 1rem 0; }
-    .timeline::before { content: ''; position: absolute; top: 0; left: 18px; height: 100%; width: 4px; background: #e9ecef; border-radius: 2px; }
-    .timeline-item { position: relative; margin-bottom: 1.5rem; }
-    .timeline-item .icon { position: absolute; top: 5px; left: 0; width: 40px; height: 40px; background: #fff; border: 4px solid #e9ecef; border-radius: 50%; text-align: center; line-height: 32px; font-size: 1.2rem; z-index: 1; }
-    .timeline-item .card { margin-left: 60px; }
-    .timeline-item.success .icon { border-color: #198754; color: #198754; }
-    .timeline-item.warning .icon { border-color: #ffc107; color: #ffc107; }
-    .timeline-item.danger .icon { border-color: #dc3545; color: #dc3545; }
-</style>
+{% load i18n jformat humanize rcms_custom_filters %}
 
 {% if approval_logs %}
-    <div class="timeline">
-    {% for log in approval_logs %}
-        {% with action_code=log.action.code|default:"" %}
-        <div class="timeline-item 
-            {% if 'APPROVE' in action_code %}success{% elif 'REJECT' in action_code %}danger{% else %}warning{% endif %}">
-            <div class="icon">
-                <i class="fas 
-                {% if 'APPROVE' in action_code %}fa-check{% elif 'REJECT' in action_code %}fa-times{% elif 'EDIT' in action_code %}fa-pen{% else %}fa-info{% endif %}"></i>
-            </div>
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <h6 class="card-title fw-bold mb-1">{{ log.action.name }}</h6>
-                        <small class="text-muted">{{ log.timestamp|naturaltime }}</small>
+    <ul class="list-group list-group-flush">
+        {% for log in approval_logs %}
+            <li class="list-group-item px-0 py-3">
+                <div class="d-flex w-100">
+                    <div>
+                        <i class="fas fa-history text-muted me-3 fs-4"></i>
                     </div>
-                    <p class="mb-1 small text-muted">
-                        {% trans "توسط:" %} {{ log.user.get_full_name|default:log.user.username }}
-                        {% if log.post %}({{ log.post.title }}){% endif %}
-                    </p>
-                    {% if log.comment %}
-                        <p class="card-text bg-light border rounded p-2 mt-2 mb-0 small">{{ log.comment }}</p>
-                    {% endif %}
-                    <div class="mt-2 small">
-                        <span class="badge bg-secondary">{{ log.from_status.name }}</span>
-                        <i class="fas fa-long-arrow-alt-right mx-2"></i>
-                        <span class="badge 
-                        {% if 'APPROVE' in action_code %}bg-success{% elif 'REJECT' in action_code %}bg-danger{% else %}bg-primary{% endif %}">
-                        {{ log.to_status.name }}</span>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="mb-1 fw-bold">
+                                {{ log.action.name }}
+                                <span class="fw-normal text-muted">{% trans "توسط" %}</span>
+                                {{ log.user.get_full_name|default:log.user.username }}
+                                <span class="fw-normal text-muted">({{ log.post.name|default:'پست نامشخص' }})</span>
+                            </h6>
+                            <small class="text-muted">{{ log.timestamp|jformat:"%Y/%m/%d - %H:%M"|to_persian_number }}</small>
+                        </div>
+                        <p class="mb-1 small">
+                            {% blocktrans with from_status=log.from_status.name to_status=log.to_status.name %}
+                            تغییر وضعیت از <strong class="text-secondary">{{ from_status }}</strong> به <strong class="text-success">{{ to_status }}</strong>
+                            {% endblocktrans %}
+                        </p>
+                        {% if log.comment %}
+                            <p class="mb-0 mt-2 p-2 bg-light border rounded small fst-italic">
+                                <i class="fas fa-comment-dots me-1"></i> {{ log.comment|linebreaksbr }}
+                            </p>
+                        {% endif %}
                     </div>
                 </div>
-            </div>
-        </div>
-        {% endwith %}
-    {% endfor %}
-    </div>
+            </li>
+        {% endfor %}
+    </ul>
 {% else %}
-    <div class="alert alert-secondary text-center">{% trans "هیچ اقدامی برای این فاکتور ثبت نشده است." %}</div>
+    <div class="alert alert-secondary text-center">
+        <i class="fas fa-info-circle me-2"></i>
+        {% trans "هیچ تاریخچه‌ای برای این فاکتور ثبت نشده است." %}
+    </div>
+{% endif %}
+
+
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>{% trans "تاریخ" %}</th>
+            <th>{% trans "کاربر" %}</th>
+            <th>{% trans "پست" %}</th>
+            <th>{% trans "اقدام" %}</th>
+            <th>{% trans "وضعیت قبلی" %}</th>
+            <th>{% trans "وضعیت جدید" %}</th>
+            <th>{% trans "توضیحات" %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in approval_logs %}
+        <tr>
+            <td>{{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}</td>
+            <td>{{ log.user.get_full_name|default:log.user.username }}</td>
+            <td>{{ log.post.title }}</td>
+            <td>{{ log.action.name }}</td>
+            <td>{{ log.from_status.name }}</td>
+            <td>{{ log.to_status.name}}</td>
+            <td>{{ log.comment|linebreaksbr }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center">{% trans "هیچ اقدامی ثبت نشده است." %}</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if next_steps_with_posts %}
+<div class="mt-3 alert alert-info">
+    <strong>{% trans "کاربران مرحله بعد:" %}</strong>
+    <ul>
+        {% for step in next_steps_with_posts %}
+            <li>
+                {{ step.action.name }} → وضعیت "{{ step.to_status.name }}"
+                <ul>
+                    {% for post in step.posts %}
+                        <li>{{ post.name }}</li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
 {% endif %}

@@ -1,83 +1,100 @@
-{% load i18n static humanize %}
+{% load i18n static rcms_custom_filters %}
 
 <div class="card mb-4">
-    <div class="card-header"><i class="fas fa-cogs me-2"></i>{% trans "اقدامات و مرحله بعدی" %}</div>
+    <div class="card-header fw-bold"><i class="fas fa-tasks me-2"></i>{% trans "اقدامات مجاز برای شما" %}</div>
     <div class="card-body">
-        {% if allowed_transitions %}
-            <p class="small text-muted mb-2">{% trans "اقدامات مجاز برای شما:" %}</p>
-            <div class="action-buttons d-grid gap-2">
-            {% for transition in allowed_transitions|dictsort:"action.name" %}
-                {% ifchanged transition.action.id %}
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmActionModal" data-action-id="{{ transition.action.pk }}" data-action-name="{{ transition.action.name }}" data-next-status="{{ transition.to_status.name }}">
-                        <i class="fas fa-{{ transition.action.icon_class|default:'check' }} me-2"></i>{{ transition.action.name }}
+        {% if available_transitions %}
+            <div class="d-grid gap-2">
+                {% for transition in available_transitions %}
+                    <button type="button" class="btn btn-primary" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#confirmActionModal" 
+                            data-transition-id="{{ transition.pk }}"
+                            data-action-name="{{ transition.action.name }}" 
+                            data-next-status="{{ transition.to_status.name }}">
+                        <i class="fas fa-check me-2"></i>{{ transition.action.name }}
                     </button>
-                {% endifchanged %}
-            {% endfor %}
+                {% endfor %}
             </div>
-            <hr>
-            <p class="small text-muted fw-bold mb-2">{% trans "مسئولین مراحل بعدی:" %}</p>
-            {% for step in next_steps_with_posts %}
-                <div class="mb-2">
-                    <span class="fw-bold">{{ step.action.name }}</span> <i class="fas fa-arrow-left mx-1 small"></i> <span class="text-muted">{{ step.to_status.name }}</span>
-                    <div class="d-flex flex-wrap mt-1 ps-2">
-                        {% for post in step.posts %}<span class="badge bg-light text-dark me-1 mb-1 border">{{ post }}</span>{% empty %}<span class="badge bg-secondary">{% trans "همه" %}</span>{% endfor %}
-                    </div>
-                </div>
-            {% endfor %}
         {% else %}
-            <div class="alert alert-secondary text-center small p-2">{% trans "هیچ اقدام مجاز دیگری برای این فاکتور وجود ندارد." %}</div>
+             <div class="alert alert-light text-center small p-2 mb-0">{% trans "در وضعیت فعلی، اقدامی برای شما مجاز نیست." %}</div>
         {% endif %}
     </div>
 </div>
 
-{% if can_view_budget and tankhah_budget_summary %}
-<div class="card mb-4">
-    <div class="card-header"><i class="fas fa-chart-pie me-2"></i>{% trans "خلاصه بودجه تنخواه" %}</div>
+<div class="card">
+    <div class="card-header fw-bold"><i class="fas fa-sitemap me-2"></i>{% trans "مسیر کامل گردش کار" %}</div>
     <div class="card-body">
-        <div class="row text-center mb-3">
-            <div class="col-6"><div class="fs-5 fw-bold text-success">{{ tankhah_budget_summary.initial|intcomma }}</div><small class="text-muted">{% trans "کل بودجه" %}</small></div>
-            <div class="col-6"><div class="fs-5 fw-bold text-primary">{{ tankhah_budget_summary.available|intcomma }}</div><small class="text-muted">{% trans "قابل دسترس" %}</small></div>
-        </div>
-        <div class="progress" style="height: 10px;">
-            <div class="progress-bar bg-success" role="progressbar" style="width: {{ tankhah_budget_summary.paid_percentage }}%" title="{% trans 'پرداخت شده' %}"></div>
-            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ tankhah_budget_summary.committed_percentage }}%" title="{% trans 'تعهد شده' %}"></div>
-        </div>
-        <div class="d-flex justify-content-between mt-2 small">
-            <span><i class="fas fa-square text-success"></i> {% trans "پرداخت" %}: {{ tankhah_budget_summary.paid_percentage }}%</span>
-            <span><i class="fas fa-square text-warning"></i> {% trans "تعهد" %}: {{ tankhah_budget_summary.committed_percentage }}%</span>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-{% if budget_trace %}
-<div class="card mb-4">
-    <div class="card-header"><i class="fas fa-sitemap me-2"></i>{% trans "مسیر بودجه" %}</div>
-    <ul class="list-group list-group-flush">
-        {% for item in budget_trace %}
-            <li class="list-group-item small"><strong>{{ item.level }}:</strong> {{ item.object.title }}</li>
-        {% endfor %}
-    </ul>
-</div>
-{% endif %}
- 
-{% if possible_transitions %}
-<div class="card mt-4">
-    <div class="card-header"><i class="fas fa-tasks me-2"></i>{% trans "اقدامات ممکن" %}</div>
-    <div class="card-body">
-        <div class="d-grid gap-2">
-            {% for transition in possible_transitions %}
-                <button type="button" class="btn btn-outline-primary"
-                        data-bs-toggle="modal"
-                        data-bs-target="#confirmActionModal"
-                        data-transition-id="{{ transition.pk }}" {# **مهم:** ID گذار #}
-                        data-action-name="{{ transition.name }}" {# نام گذار برای نمایش #}
-                        data-next-status="{{ transition.to_status.name }}"> {# وضعیت بعدی برای نمایش #}
-                    {{ transition.name }}
-                </button>
+        <div class="timeline">
+            <div class="timeline-item current">
+                <div class="timeline-icon"><i class="fas fa-flag-checkered"></i></div>
+                <div class="timeline-content">
+                    <h6 class="fw-bold">{% trans "وضعیت فعلی" %}</h6>
+                    <p class="mb-0">{{ factor.status.name }}</p>
+                </div>
+            </div>
+            
+            {% for step in full_workflow_path %}
+            <div class="timeline-item">
+                <div class="timeline-icon"><i class="fas fa-arrow-down"></i></div>
+                <div class="timeline-content">
+                    <small class="text-muted">{{ step.action.name }}</small>
+                    <h6 class="fw-bold">{{ step.to_status.name }}</h6>
+                    <div class="d-flex flex-wrap mt-1">
+                        {% for post in step.posts %}
+                            <span class="badge bg-light text-dark me-1 mb-1 border">{{ post.name }}</span>
+                        {% empty %}
+                            <span class="badge bg-secondary">{% trans "پستی تعریف نشده" %}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
             {% endfor %}
+            
         </div>
     </div>
 </div>
-{% endif %}
-{% if is_overdue %}<div class="alert alert-danger text-center"><i class="fas fa-exclamation-triangle me-2"></i><strong>{% trans "سررسید شده!" %}</strong> {% trans "تاریخ این فاکتور گذشته است." %}</div>{% endif %}
+
+
+
+<div class="card mb-4">
+    <div class="card-header"><i class="fas fa-route me-2"></i>{% trans "مسیر تأیید فاکتور" %}</div>
+    <div class="card-body">
+        {% if approval_path %}
+        <ol>
+            {% for step in approval_path %}
+            <li>
+                <strong>{{ step.action.name }}</strong> (از وضعیت "{{ step.from_status.name }}" به "{{ step.to_status.name }}")
+                <ul>
+                    {% for post in step.posts %}
+                    <li>
+                        {{ post.name }}
+                        {% if step.is_user_in_post %}<span class="badge bg-success ms-1">{% trans "شما" %}</span>{% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </li>
+            {% endfor %}
+        </ol>
+        {% else %}
+        <p class="text-muted">{% trans "مسیر تأیید برای این فاکتور تعریف نشده است." %}</p>
+        {% endif %}
+    </div>
+</div>
+
+
+<div class="card mb-4">
+    <div class="card-header"><i class="fas fa-wallet me-2"></i>{% trans "خلاصه بودجه پروژه و تنخواه" %}</div>
+    <div class="card-body">
+        <ul class="list-unstyled">
+            <li>{% trans "بودجه اولیه:" %} {{ budget_summary.initial|to_persian_number }}</li>
+            <li>{% trans "مبلغ پرداخت شده:" %} {{ budget_summary.paid|to_persian_number }}</li>
+            <li>{% trans "تعهد شده:" %} {{ budget_summary.committed|to_persian_number }}</li>
+            <li>{% trans "موجودی:" %} {{ budget_summary.available|to_persian_number }}</li>
+            <li>{% trans "مانده:" %} {{ budget_summary.balance|to_persian_number }}</li>
+            <li>{% trans "درصد پرداخت شده:" %} {{ budget_summary.paid_percentage|floatformat:1 }}%</li>
+            <li>{% trans "درصد تعهد شده:" %} {{ budget_summary.committed_percentage|floatformat:1 }}%</li>
+        </ul>
+    </div>
+</div>
+

@@ -291,7 +291,6 @@ class OrganizationForm(forms.ModelForm):
             'parent_organization': _('نوع سازمان'),
             'description': _('توضیحات'),
         }
-# -- new
 
 class PostForm(forms.ModelForm):
     class Meta:
@@ -311,50 +310,44 @@ class PostForm(forms.ModelForm):
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self._user = user
+        # فقط پست‌های فعال برای parent و branch
         self.fields['branch'].queryset = Branch.objects.filter(is_active=True)
         self.fields['parent'].queryset = Post.objects.filter(is_active=True).exclude(pk=self.instance.pk if self.instance.pk else None)
-        self.fields['access_rules'] = forms.ModelMultipleChoiceField(
-            queryset=AccessRule.objects.filter(is_active=True),
+
+        # مراحل تایید: از جدول Transition/PostAction استفاده می‌کنیم
+        self.fields['post_actions'] = forms.ModelMultipleChoiceField(
+            queryset=PostAction.objects.filter(is_active=True),
             widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
             required=False,
-            label=_('مراحل تأیید'),
-            initial=AccessRule.objects.filter(postactions__post=self.instance, postactions__is_active=True) if self.instance.pk else None
+            label='مراحل تأیید',
+            initial=PostAction.objects.filter(post=self.instance, is_active=True) if self.instance.pk else None
         )
 
     def save(self, commit=True):
         post = super().save(commit=False)
         if commit:
-            post.save(changed_by=self.instance.changed_by or self._user)
-            selected_rules = self.cleaned_data.get('access_rules', [])
-            current_actions = PostAction.objects.filter(post=post)
-            current_rule_ids = set(current_actions.values_list('stage_id', flat=True))
+            post.save(changed_by=self._user)  # بجای getattr(self._user, 'id', None)
+            selected_actions = self.cleaned_data.get('post_actions', [])
 
-            PostAction.objects.filter(
-                post=post,
-                stage__in=AccessRule.objects.exclude(id__in=[r.id for r in selected_rules])
-            ).delete()
+            # حذف PostAction هایی که انتخاب نشده‌اند
+            PostAction.objects.filter(post=post).exclude(id__in=[a.id for a in selected_actions]).delete()
 
-            for rule in selected_rules:
-                if rule.id not in current_rule_ids:
+            # ایجاد PostAction های جدید
+            existing_ids = set(PostAction.objects.filter(post=post).values_list('id', flat=True))
+            for action in selected_actions:
+                if action.id not in existing_ids:
                     PostAction.objects.create(
                         post=post,
-                        stage=rule,
-                        action_type=rule.action_type,
-                        entity_type=rule.entity_type,
+                        stage=action.stage,
+                        action_type=action.action_type,
+                        entity_type=action.entity_type,
                         is_active=True
                     )
-
         return post
 
-    def _get_user(self):
-        """Helper to access user from the view."""
-        return getattr(self, '_user', None)
-
-    def __init__(self, *args, user=None, **kwargs):
-        self._user = user  # Store user for use in save
-        super().__init__(*args, **kwargs)
 #================================== parse_jalali_date ==========
 def parse_jalali_date(date_str, field_name="تاریخ"):
     """
@@ -529,7 +522,7 @@ class PostHistoryForm(forms.ModelForm):
 
     class Meta:
         model = PostHistory
-        fields = ['post', 'changed_field', 'old_value', 'new_value',   'changed_by']
+        fields = ['post', 'changed_field', 'old_value', 'new_value', 'changed_by']
         widgets = {
             'post': forms.Select(attrs={'class': 'form-control'}),
             'changed_field': forms.TextInput(attrs={'class': 'form-control'}),
