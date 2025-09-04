@@ -60,8 +60,7 @@
     </ul>
 </div>
 {% endif %}
-
-
+ 
 {% if possible_transitions %}
 <div class="card mt-4">
     <div class="card-header"><i class="fas fa-tasks me-2"></i>{% trans "اقدامات ممکن" %}</div>
@@ -81,5 +80,4 @@
     </div>
 </div>
 {% endif %}
-
 {% if is_overdue %}<div class="alert alert-danger text-center"><i class="fas fa-exclamation-triangle me-2"></i><strong>{% trans "سررسید شده!" %}</strong> {% trans "تاریخ این فاکتور گذشته است." %}</div>{% endif %}

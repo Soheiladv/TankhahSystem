@@ -172,24 +172,21 @@
 document.addEventListener('DOMContentLoaded', function () {
     const confirmActionModal = document.getElementById('confirmActionModal');
     if (confirmActionModal) {
-        const modalInstance = new bootstrap.Modal(confirmActionModal); // ساخت نمونه modal
+        const modalInstance = new bootstrap.Modal(confirmActionModal);
         const modalActionName = confirmActionModal.querySelector('#actionName');
         const modalNextStatus = confirmActionModal.querySelector('#nextStatus');
         const confirmButton = confirmActionModal.querySelector('#confirmActionButton');
         const actionDescription = confirmActionModal.querySelector('#actionDescription');
 
-        let currentTransitionId; // متغیری برای نگهداری ID گذار
+        let transitionId; // متغیری برای نگهداری ID گذار
 
-        // وقتی modal در حال باز شدن است، اطلاعات را از دکمه می‌خوانیم
         confirmActionModal.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget; // دکمه‌ای که کلیک شده
+            const button = event.relatedTarget;
+            
+            transitionId = button.dataset.transitionId;
+            const actionName = button.dataset.actionName;
+            const nextStatus = button.dataset.nextStatus;
 
-            // خواندن data-attributes از دکمه
-            currentTransitionId = button.getAttribute('data-transition-id'); // <-- ID گذار را ذخیره می‌کنیم
-            const actionName = button.getAttribute('data-action-name');
-            const nextStatus = button.getAttribute('data-next-status');
-
-            // آپدیت محتوای modal
             if (modalActionName) modalActionName.textContent = actionName;
             if (modalNextStatus) modalNextStatus.textContent = nextStatus;
 
@@ -197,13 +194,13 @@ document.addEventListener('DOMContentLoaded', function () {
             if (actionDescription) actionDescription.value = '';
             if (confirmButton) {
                 confirmButton.disabled = false;
-                confirmButton.innerHTML = '{% trans "تأیید" %}';
+                confirmButton.innerHTML = '{% trans "تأیید و ارسال" %}';
             }
         });
 
         if (confirmButton) {
             confirmButton.addEventListener('click', function () {
-                if (!currentTransitionId) {
+                if (!transitionId) {
                     console.error("Transition ID is missing!");
                     return;
                 }
@@ -211,14 +208,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 confirmButton.disabled = true;
                 confirmButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {% trans "در حال ارسال..." %}`;
 
-                // --- **اصلاح کلیدی:** ساخت URL داینامیک ---
-                // الگوی URL را از جنگو می‌گیریم و جای پارامترها را خالی می‌گذاریم
-                const apiUrlTemplate = "{% url 'api_factor_perform_transition' pk=0 transition_id=0 %}";
-                // جای 0 ها را با مقادیر واقعی جایگزین می‌کنیم
+                // --- FIX: روش امن و پایدار برای ساخت URL ---
+                // الگوی URL را از جنگو می‌گیریم که حاوی placeholder است
+                const apiUrlTemplate = "{% url 'api_factor_perform_transition' pk=0000 transition_id=9999 %}";
+                // جای placeholder ها را با مقادیر واقعی جایگزین می‌کنیم
                 const apiUrl = apiUrlTemplate
-                    .replace('/0/transition/0/', `/${ '{{ factor.pk }}' }/transition/${currentTransitionId}/`);
-
-                console.log("Sending POST request to:", apiUrl); // برای دیباگ
+                    .replace('0000', '{{ factor.pk }}')
+                    .replace('9999', transitionId);
 
                 fetch(apiUrl, {
                     method: 'POST',
@@ -227,47 +223,35 @@ document.addEventListener('DOMContentLoaded', function () {
                         'X-CSRFToken': '{{ csrf_token }}'
                     },
                     body: JSON.stringify({
-                        // **مهم:** دیگر نیازی به ارسال action_id در body نیست، چون در URL هست
-                        // action_id: currentTransitionId,
                         comment: actionDescription.value
                     })
                 })
-                .then(response => {
-                    // مدیریت پاسخ بهتر
-                    return response.json().then(data => {
-                        if (!response.ok) {
-                            // اگر پاسخ خطا بود، آبجکت خطا را reject کن
-                            return Promise.reject(data);
-                        }
-                        return data; // اگر موفق بود، داده را resolve کن
-                    });
-                })
-                .then(data => {
-                    // بستن modal
+                .then(response => response.json().then(data => ({ status: response.status, body: data })))
+                .then(({ status, body }) => {
                     modalInstance.hide();
-                    // نمایش پیام موفقیت با SweetAlert
-                    Swal.fire({
-                        icon: 'success',
-                        title: '{% trans "موفقیت‌آمیز" %}',
-                        text: data.message || '{% trans "اقدام با موفقیت انجام شد!" %}',
-                        timer: 2000,
-                        showConfirmButton: false
-                    }).then(() => {
-                        location.reload(); // رفرش صفحه برای دیدن تغییرات
-                    });
+                    if (status === 200) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '{% trans "موفقیت‌آمیز" %}',
+                            text: body.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
+                    } else {
+                        throw new Error(body.error || '{% trans "یک خطای پیش‌بینی نشده رخ داد." %}');
+                    }
                 })
                 .catch(error => {
                     console.error('API Error:', error);
-                    // نمایش خطای دریافت شده از سرور با SweetAlert
                     Swal.fire({
                         icon: 'error',
                         title: '{% trans "خطا در انجام اقدام" %}',
-                        text: error.error || error.detail || '{% trans "یک خطای پیش‌بینی نشده رخ داد." %}',
+                        text: error.message,
                         confirmButtonText: '{% trans "متوجه شدم" %}'
                     });
                     // فعال کردن مجدد دکمه
                     confirmButton.disabled = false;
-                    confirmButton.innerHTML = '{% trans "تأیید" %}';
+                    confirmButton.innerHTML = '{% trans "تأیید و ارسال" %}';
                 });
             });
         }
@@ -275,6 +259,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 {% endblock %}
+
 {% comment %}
 {% block extra_js %}
 <script>

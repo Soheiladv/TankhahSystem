@@ -228,7 +228,6 @@ def get_user_allowed_transitions(user, factor):
         return []
 
     return list(qs.filter(allowed_posts__in=user_post_ids).distinct())
-
 # ===================================================================
 class PerformFactorTransitionAPI(APIView):
     # permission_classes = [IsAuthenticated]
@@ -304,8 +303,6 @@ class PerformFactorTransitionAPI(APIView):
                 target_transition.to_status.name),
             'new_status': target_transition.to_status.name
         }, status=status.HTTP_200_OK)
-
-
 # ===================================================================
 # ۲. ویوی جزئیات فاکتور (اصلاح شده)
 # ===================================================================
@@ -542,116 +539,3 @@ class FactorDetailView(PermissionBaseView, DetailView):
             return Response({'success': False, 'error': 'یک خطای پیش‌بینی نشده در سرور رخ داد.'},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-class PerformFactorTransitionAPI__(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def _get_allowed_transitions_for_user(self, user, factor):
-        """
-        تابع کمکی (شبیه متد ویو) که ترنزیشن‌های مجاز برای user و factor را برمی‌گرداند.
-        """
-        tankhah = factor.tankhah
-        org = getattr(tankhah, 'organization', None)
-        if not user.is_authenticated or not org or not factor.status:
-            return []
-
-        qs = (
-            Transition.objects
-            .filter(entity_type__code='FACTOR', from_status=factor.status, organization=org, is_active=True)
-            .select_related('action', 'to_status')
-            .prefetch_related('allowed_posts')
-        )
-        if user.is_superuser:
-            return list(qs)
-
-        user_post_ids = list(user.userpost_set.filter(is_active=True).values_list('post_id', flat=True))
-        if not user_post_ids:
-            return []
-
-        return list(qs.filter(allowed_posts__in=user_post_ids).distinct())
-
-    def post(self, request, pk, format=None):
-        try:
-            with transaction.atomic():
-                # قفل رکورد factor برای جلوگیری از race condition
-                factor = get_object_or_404(Factor.objects.select_for_update(), pk=pk)
-                action_id = request.data.get('action_id')
-                description = request.data.get('description', '') or request.data.get('comment', '')
-
-                if not action_id:
-                    return Response({'success': False, 'error': 'Action ID is required.'},
-                                    status=status.HTTP_400_BAD_REQUEST)
-
-                logger.info(f"action_id (raw) from request: {action_id}")
-
-                allowed_transitions = get_user_allowed_transitions(request.user, factor)
-                logger.info(f"Allowed transitions for user {request.user.username} on factor {factor.pk}: " +
-                            f"{[(t.id, getattr(t.action, 'id', None), t.to_status.code) for t in allowed_transitions]}")
-
-                target_transition = next(
-                    (t for t in allowed_transitions if t.action and str(t.action.id) == str(action_id)), None)
-                logger.info(f"Matched transition: {target_transition}")
-
-                if not target_transition:
-                    return Response(
-                        {'success': False, 'error': 'This action is not allowed for the current factor or user.'},
-                        status=status.HTTP_403_FORBIDDEN)
-
-                # ---------- بررسی‌های بودجه (مثال: اگر باید مانع از تأیید بیش از موجودی تخصیص شویم)
-                # اگر ترنزیشن به وضعیت پرداخت/تأیید نهایی می‌رود، بررسی تخصیص:
-                alloc = getattr(factor.tankhah, 'project_budget_allocation', None)
-                if alloc:
-                    remaining_alloc = alloc.get_remaining_amount()
-                    # تصمیم‌گیری بستگی به منطق شما دارد؛ نمونه:
-                    if target_transition.to_status and getattr(target_transition.to_status, 'code', '') in (
-                            'APPROVED', 'PAID'):
-                        if factor.amount > remaining_alloc:
-                            return Response({
-                                'success': False,
-                                'error': 'بودجه تخصیص‌یافته برای این تخصیص کافی نیست.'
-                            }, status=status.HTTP_400_BAD_REQUEST)
-
-                # ---------- اعمال تغییر وضعیت
-                old_status = factor.status
-                factor.status = target_transition.to_status
-                factor.save(update_fields=['status'])
-
-                # ---------- ثبت ApprovalLog (فیلدها باید مطابق مدل شما باشند)
-                user_post = request.user.userpost_set.filter(is_active=True).first()
-                result = ApprovalLog.objects.create(
-                    factor=factor,
-                    user=request.user,
-                    post=(user_post.post if user_post else None),
-                    from_status=old_status,
-                    to_status=target_transition.to_status,
-                    action=target_transition.action if target_transition.action else None,
-                    comment=description
-                )
-                logger.info(f' result {result}')
-                # ---------- پاسخ مفید: نفرات بعدی + مسیر بودجه
-                next_transitions = Transition.objects.filter(entity_type__code='FACTOR',
-                                                             from_status=target_transition.to_status,
-                                                             organization=factor.tankhah.organization,
-                                                             is_active=True).prefetch_related('allowed_posts')
-                next_posts = []
-                for nt in next_transitions:
-                    for p in nt.allowed_posts.all():
-                        next_posts.append({'id': p.pk, 'name': str(p)})
-
-                budget_trace = []
-                if alloc:
-                    budget_trace.append({'level': 'allocation', 'id': alloc.pk, 'repr': str(alloc)})
-                    if alloc.budget_period:
-                        budget_trace.append(
-                            {'level': 'budget_period', 'id': alloc.budget_period.pk, 'repr': str(alloc.budget_period)})
-
-                return Response({
-                    'success': True,
-                    'message': f"Factor moved from '{old_status.name}' to '{factor.status.name}'.",
-                    'next_posts': next_posts,
-                    'budget_trace': budget_trace
-                }, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            # logger.exception(e)
-            return Response({'success': False, 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
