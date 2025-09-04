@@ -1241,6 +1241,8 @@ class ApprovalLog(models.Model):
     # --- فیلدهای تکمیلی ---
     is_final_approval = models.BooleanField(default=False, verbose_name=_("تایید نهایی"))
 
+    seen_by_higher = models.BooleanField(default=False, verbose_name=_("دیده‌شده توسط رده بالاتر"))
+
     # FIX: حذف فیلدهای تکراری و مبهم مانند stage و action_type
     # stage_rule = models.ForeignKey(Status, ...) # این فیلد تکراری و غیرضروری است
 

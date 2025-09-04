@@ -267,41 +267,12 @@ class PostHistory(models.Model):
     مدل تاریخچه تغییرات پست‌های سازمانی
     برای ثبت تغییرات اعمال‌شده روی پست‌ها (مثل تغییر نام، والد یا شاخه)
     """
-    post = models.ForeignKey(
-        Post,
-        on_delete=models.CASCADE,
-        verbose_name=_("پست سازمانی"),
-        help_text=_("پستی که تغییر کرده است")
-    )
-    changed_field = models.CharField(
-        max_length=50,
-        verbose_name=_("فیلد تغییر یافته"),
-        help_text=_("نام فیلدی که تغییر کرده (مثل name یا parent)")
-    )
-    old_value = models.TextField(
-        null=True,
-        blank=True,
-        verbose_name=_("مقدار قبلی"),
-        help_text=_("مقدار قبلی فیلد قبل از تغییر")
-    )
-    new_value = models.TextField(
-        null=True,
-        blank=True,
-        verbose_name=_("مقدار جدید"),
-        help_text=_("مقدار جدید فیلد بعد از تغییر")
-    )
-    changed_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name=_("تاریخ و زمان تغییر"),
-        help_text=_("زمان ثبت تغییر به صورت خودکار")
-    )
-    changed_by = models.ForeignKey(
-        CustomUser,
-        on_delete=models.SET_NULL,
-        null=True,
-        verbose_name=_("تغییر دهنده"),
-        help_text=_("کاربری که این تغییر را اعمال کرده")
-    )
+    post = models.ForeignKey(Post,on_delete=models.CASCADE,verbose_name=_("پست سازمانی"),help_text=_("پستی که تغییر کرده است")    )
+    changed_field = models.CharField(max_length=50,verbose_name=_("فیلد تغییر یافته"),help_text=_("نام فیلدی که تغییر کرده (مثل name یا parent)")    )
+    old_value = models.TextField(null=True,blank=True,verbose_name=_("مقدار قبلی"),help_text=_("مقدار قبلی فیلد قبل از تغییر")    )
+    new_value = models.TextField(null=True,blank=True,verbose_name=_("مقدار جدید"),help_text=_("مقدار جدید فیلد بعد از تغییر")    )
+    changed_at = models.DateTimeField(        auto_now_add=True,        verbose_name=_("تاریخ و زمان تغییر"),        help_text=_("زمان ثبت تغییر به صورت خودکار")    )
+    changed_by = models.ForeignKey(        CustomUser,        on_delete=models.SET_NULL,        null=True,        verbose_name=_("تغییر دهنده"),        help_text=_("کاربری که این تغییر را اعمال کرده")    )
 
     # غیرفعال کردن مجوزهای پیش‌فرض (add, change, delete, view)
     default_permissions = ()

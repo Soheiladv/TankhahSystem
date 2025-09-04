@@ -4,6 +4,7 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
     <style>
         /* --- استایل‌های اصلی صفحه --- */
@@ -13,7 +14,7 @@
             --border-color: #dee2e6;
             --text-muted: #6c757d;
         }
-        body { font-family: 'Vazirmatn', sans-serif; background-color: var(--light-bg); }
+
         .card { border-radius: .75rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: none; }
         .card-header { background-color: #fff; border-bottom: 1px solid var(--border-color); font-weight: 700; font-size: 1.1rem; }
         .badge-status { padding: .6em .9em; border-radius: .5rem; font-weight: 600; font-size: .85em; }
@@ -49,6 +50,42 @@
             .table { font-size: 9pt; }
         }
         .print-only { display: none; }
+        
+        /* این کد را به <style> در فایل factor_detail.html اضافه کنید */
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+    border-left: 2px solid #e9ecef;
+}
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+.timeline-icon {
+    position: absolute;
+    left: -16px;
+    top: 0;
+    width: 30px;
+    height: 30px;
+    background-color: #0d6efd;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+}
+.timeline-item.current .timeline-icon {
+    background-color: #198754; /* رنگ سبز برای مرحله فعلی */
+}
+.timeline-content {
+    padding-left: 15px;
+}
+        
     </style>
 {% endblock %}
 
@@ -149,10 +186,13 @@
     </div>
 </div>
 
-<div class="modal fade" id="confirmActionModal" tabindex="-1">
+<div class="modal fade" id="confirmActionModal" tabindex="-1"
+     data-url-template="{% url 'api_factor_perform_transition' pk=factor.pk transition_id=9999 %}">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white"><h5 class="modal-title">{% trans "تأیید اقدام" %}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header bg-primary text-white"><h5 class="modal-title">{% trans "تأیید اقدام" %}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
             <div class="modal-body">
                 <p>{% trans "آیا از انجام اقدام" %} "<strong id="actionName"></strong>" {% trans "اطمینان دارید؟" %}</p>
                 <p class="text-muted small">{% trans "وضعیت فاکتور به" %} "<strong id="nextStatus"></strong>" {% trans "تغییر خواهد یافت." %}</p>
@@ -170,19 +210,24 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // کتابخانه SweetAlert2 را حتما در base.html اضافه کنید
+    // <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
+
     const confirmActionModal = document.getElementById('confirmActionModal');
     if (confirmActionModal) {
+        // خواندن الگوی URL از data attribute مودال که اکنون حاوی pk صحیح است
+        const apiUrlTemplate = confirmActionModal.dataset.urlTemplate;
+
         const modalInstance = new bootstrap.Modal(confirmActionModal);
         const modalActionName = confirmActionModal.querySelector('#actionName');
         const modalNextStatus = confirmActionModal.querySelector('#nextStatus');
         const confirmButton = confirmActionModal.querySelector('#confirmActionButton');
         const actionDescription = confirmActionModal.querySelector('#actionDescription');
 
-        let transitionId; // متغیری برای نگهداری ID گذار
+        let transitionId;
 
         confirmActionModal.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
-            
             transitionId = button.dataset.transitionId;
             const actionName = button.dataset.actionName;
             const nextStatus = button.dataset.nextStatus;
@@ -190,7 +235,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (modalActionName) modalActionName.textContent = actionName;
             if (modalNextStatus) modalNextStatus.textContent = nextStatus;
 
-            // ریست کردن فرم modal
             if (actionDescription) actionDescription.value = '';
             if (confirmButton) {
                 confirmButton.disabled = false;
@@ -201,20 +245,18 @@ document.addEventListener('DOMContentLoaded', function () {
         if (confirmButton) {
             confirmButton.addEventListener('click', function () {
                 if (!transitionId) {
-                    console.error("Transition ID is missing!");
+                    console.error("شناسه انتقال مفقود است!");
                     return;
                 }
 
                 confirmButton.disabled = true;
-                confirmButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {% trans "در حال ارسال..." %}`;
+                confirmButton.innerHTML = `<span class="spinner-border spinner-border-sm"></span> {% trans "در حال ارسال..." %}`;
 
                 // --- FIX: روش امن و پایدار برای ساخت URL ---
-                // الگوی URL را از جنگو می‌گیریم که حاوی placeholder است
-                const apiUrlTemplate = "{% url 'api_factor_perform_transition' pk=0000 transition_id=9999 %}";
-                // جای placeholder ها را با مقادیر واقعی جایگزین می‌کنیم
-                const apiUrl = apiUrlTemplate
-                    .replace('0000', '{{ factor.pk }}')
-                    .replace('9999', transitionId);
+                // اکنون فقط کافیست placeholder مربوط به transition_id را جایگزین کنیم
+                const apiUrl = apiUrlTemplate.replace('9999', transitionId);
+
+                console.log("Final API URL:", apiUrl); // برای دیباگ نهایی
 
                 fetch(apiUrl, {
                     method: 'POST',
@@ -222,9 +264,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': '{{ csrf_token }}'
                     },
-                    body: JSON.stringify({
-                        comment: actionDescription.value
-                    })
+                    body: JSON.stringify({ comment: actionDescription.value })
                 })
                 .then(response => response.json().then(data => ({ status: response.status, body: data })))
                 .then(({ status, body }) => {
@@ -238,18 +278,17 @@ document.addEventListener('DOMContentLoaded', function () {
                             showConfirmButton: false
                         }).then(() => location.reload());
                     } else {
-                        throw new Error(body.error || '{% trans "یک خطای پیش‌بینی نشده رخ داد." %}');
+                        throw new Error(body.error || '{% trans "یک خطای ناشناخته رخ داد." %}');
                     }
                 })
                 .catch(error => {
-                    console.error('API Error:', error);
+                    modalInstance.hide();
                     Swal.fire({
                         icon: 'error',
-                        title: '{% trans "خطا در انجام اقدام" %}',
+                        title: '{% trans "خطا" %}',
                         text: error.message,
                         confirmButtonText: '{% trans "متوجه شدم" %}'
                     });
-                    // فعال کردن مجدد دکمه
                     confirmButton.disabled = false;
                     confirmButton.innerHTML = '{% trans "تأیید و ارسال" %}';
                 });
@@ -257,73 +296,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 });
+
 </script>
 {% endblock %}
-
-{% comment %}
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const confirmActionModal = document.getElementById('confirmActionModal');
-    if (confirmActionModal) {
-        const modalTitle = confirmActionModal.querySelector('#actionName');
-        const modalNextStatus = confirmActionModal.querySelector('#nextStatus');
-        const confirmButton = confirmActionModal.querySelector('#confirmActionButton');
-        const actionDescription = confirmActionModal.querySelector('#actionDescription');
-        let actionId;
-
-        confirmActionModal.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget;
-            actionId = button.getAttribute('data-action-id');
-            modalTitle.textContent = button.getAttribute('data-action-name');
-            modalNextStatus.textContent = button.getAttribute('data-next-status');
-            actionDescription.value = '';
-            confirmButton.disabled = false;
-            confirmButton.innerHTML = '{% trans "تأیید" %}';
-        });
-
-        confirmButton.onclick = function () {
-            confirmButton.disabled = true;
-            confirmButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {% trans "در حال ارسال..." %}`;
-
-            // --- شروع اصلاحات ---
-            // متغیر factor.pk توسط جنگو قبل از ارسال صفحه به مرورگر،
-            // با مقدار واقعی (مثلاً 71) جایگزین می‌شود.
-            const apiUrl = "{% url 'api_factor_perform_transition' pk=factor.pk %}";
-            // --- پایان اصلاحات ---
-
-            fetch(apiUrl, { // <-- از متغیر تعریف شده در بالا استفاده می‌کنیم
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}' // اطمینان حاصل کنید که CSRF token در دسترس است
-                },
-                body: JSON.stringify({
-                    action_id: actionId,
-                    description: actionDescription.value
-                })
-            })
-            .then(response => {
-                if (!response.ok) { return response.json().then(err => Promise.reject(err)); }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    alert(data.message || '{% trans "اقدام با موفقیت انجام شد!" %}');
-                    location.reload();
-                } else {
-                    throw new Error(data.error || '{% trans "خطای نامشخص" %}');
-                }
-            })
-            .catch(error => {
-                console.error('API Error:', error);
-                alert('{% trans "خطا در انجام اقدام:" %} ' + (error.error || error.message));
-                confirmButton.disabled = false;
-                confirmButton.innerHTML = '{% trans "تأیید" %}';
-            });
-        };
-    }
-});
-</script>
-{% endblock %}
-{% endcomment %}

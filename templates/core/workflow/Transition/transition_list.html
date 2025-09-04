@@ -28,6 +28,7 @@
                             <th>{% trans "ردیف" %}</th>
                             <th>{% trans "نام/شرح گذار" %}</th>
                             <th>{% trans "نوع موجودیت" %}</th>
+                            <th>{% trans "مرتبط به سازمان" %}</th>
                             <th>{% trans "از وضعیت" %}</th>
                             <th>{% trans "با اقدام" %}</th>
                             <th>{% trans "به وضعیت" %}</th>
@@ -40,6 +41,7 @@
                             <td><strong>{{ forloop.counter|to_persian_number }}</strong></td>
                             <td><strong>{{ transition.name }}</strong></td>
                             <td>{{ transition.get_entity_type_display }}</td>
+                            <td><span class="badge bg-secondary">{{ transition.from_status.organization }}</span></td>
                             <td><span class="badge bg-secondary">{{ transition.from_status.name }}</span></td>
                             <td><span class="badge bg-warning text-dark">{{ transition.action.name }}</span></td>
                             <td><span class="badge bg-success">{{ transition.to_status.name }}</span></td>

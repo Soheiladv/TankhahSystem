@@ -13,6 +13,23 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import View, ListView, CreateView, DeleteView
 import logging
 logger = logging.getLogger('TransitionLogger')
+class TransitionListView(PermissionBaseView, ListView):
+    model = Transition
+    template_name = 'core/workflow/Transition/transition_list.html'
+    context_object_name = 'transitions'
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = Transition.objects.filter(is_active=True).select_related(
+            'from_status', 'action', 'to_status'
+        ).order_by('entity_type', 'from_status__name')
+
+        search_query = self.request.GET.get('q', '').strip()
+        if search_query:
+            queryset = queryset.filter(name__icontains=search_query)
+        return queryset
+
+
 class TransitionCreateView(PermissionBaseView, CreateView):
     model = Transition
     form_class = TransitionForm
@@ -114,22 +131,6 @@ class TransitionUpdateView(PermissionBaseView, View):
         }
         return render(request, self.template_name, context)
 
-
-class TransitionListView(PermissionBaseView, ListView):
-    model = Transition
-    template_name = 'core/workflow/Transition/transition_list.html'
-    context_object_name = 'transitions'
-    paginate_by = 10
-
-    def get_queryset(self):
-        queryset = Transition.objects.filter(is_active=True).select_related(
-            'from_status', 'action', 'to_status'
-        ).order_by('entity_type', 'from_status__name')
-
-        search_query = self.request.GET.get('q', '').strip()
-        if search_query:
-            queryset = queryset.filter(name__icontains=search_query)
-        return queryset
 
 
 class TransitionDeleteView(PermissionBaseView, DeleteView):
