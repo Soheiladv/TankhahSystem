@@ -17,6 +17,8 @@ sys.path.insert(0, str(BASE_DIR))
 TEMPLATE_DIRS = [
     os.path.join(BASE_DIR, 'templates'),
 ]
+import dotenv
+import os 
 
 SECRET_KEY = 'django-insecure-*zron+$_y8zn14z7a7r(wgllx%8n0vii^(6uar=_r)94(v!khc'
 DEBUG = True  # در محیط توسعه، DEBUG = True باشد
