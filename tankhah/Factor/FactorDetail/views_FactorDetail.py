@@ -273,6 +273,7 @@ class FactorDetailView(PermissionBaseView, DetailView):
 
         # استخراج کاربران فعال هر پست برای گام‌های بعدی (نمایش افراد موثر)
         next_approvers_by_step = []
+        workflow_participants = []
         for step in full_path:
             posts_list = step.get('posts', [])
             if not posts_list:
@@ -280,6 +281,11 @@ class FactorDetailView(PermissionBaseView, DetailView):
                     'action': step.get('action'),
                     'to_status': step.get('to_status'),
                     'users': []
+                })
+                workflow_participants.append({
+                    'action': step.get('action'),
+                    'to_status': step.get('to_status'),
+                    'posts': []
                 })
                 continue
 
@@ -291,18 +297,29 @@ class FactorDetailView(PermissionBaseView, DetailView):
 
             seen_user_ids = set()
             users = []
+            posts_info = []
             for up in userposts_qs:
                 if up.user and up.user_id not in seen_user_ids:
                     seen_user_ids.add(up.user_id)
                     users.append(up.user)
+            # جمع آوری اطلاعات هر پست (سطح و کاربرانش)
+            for p in posts_list:
+                p_users = [up.user for up in userposts_qs if up.post_id == p.id and up.user_id]
+                posts_info.append({'post': p, 'level': getattr(p, 'level', None), 'users': p_users})
 
             next_approvers_by_step.append({
                 'action': step.get('action'),
                 'to_status': step.get('to_status'),
                 'users': users
             })
+            workflow_participants.append({
+                'action': step.get('action'),
+                'to_status': step.get('to_status'),
+                'posts': posts_info
+            })
 
         context['next_approvers_by_step'] = next_approvers_by_step
+        context['workflow_participants'] = workflow_participants
 
         # لاگ‌های شمارشی برای عیب‌یابی سریع
         transitions_str = [f"{s['action'].name}->{s['to_status'].name}" for s in full_path]
@@ -316,6 +333,17 @@ class FactorDetailView(PermissionBaseView, DetailView):
             len(next_approvers_by_step)
         )
         logger.debug("[FACTOR_DETAIL] full_workflow_path=%s", transitions_str)
+
+        # لاگ تشخیصی برای خالی بودن اقدامات مجاز
+        try:
+            user_post_ids_dbg = list(user.userpost_set.filter(is_active=True, end_date__isnull=True).values_list('post_id', flat=True)) if user.is_authenticated else []
+            dbg_transitions = []
+            for step in full_path:
+                posts_ids = [getattr(p, 'id', None) for p in step.get('posts', [])]
+                dbg_transitions.append({'action': step.get('action').name, 'to': step.get('to_status').code, 'posts': posts_ids})
+            logger.debug("[FACTOR_DETAIL] user_posts=%s transitions_posts=%s", user_post_ids_dbg, dbg_transitions)
+        except Exception as e:
+            logger.debug("[FACTOR_DETAIL] debug building failed: %s", e)
 
         # سایر اطلاعات
         context['approval_logs'] = factor.approval_logs.all()
