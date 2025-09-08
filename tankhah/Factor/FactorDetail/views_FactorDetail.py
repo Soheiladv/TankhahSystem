@@ -16,7 +16,8 @@ import logging
 
 from budgets.budget_calculations import get_committed_budget, get_tankhah_available_budget
 from core.PermissionBase import PermissionBaseView
-from core.models import Transition
+from core.models import Transition, UserPost
+from django.db import models
 from tankhah.models import Factor, ApprovalLog, FactorDocument
 
 
@@ -103,20 +104,46 @@ def get_user_allowed_transitions(user, factor):
     """
     لیست گذارهای مجاز برای کاربر و فاکتور مشخص
     """
-    all_steps = get_next_steps_with_posts(factor)
-    allowed = []
+    # اگر وضعیت/تنخواه/سازمان تعریف نشده باشد، اقدامی مجاز نیست
+    if not getattr(factor, 'status', None) or not getattr(factor, 'tankhah', None) or not getattr(factor.tankhah, 'organization', None):
+        return []
 
-    user_post_ids = set()
+    # سلسله‌مراتب سازمان (برای ارث‌بری قوانین از سازمان‌های والد)
+    org_hierarchy_pks = []
+    current_org = factor.tankhah.organization
+    while current_org:
+        org_hierarchy_pks.append(current_org.pk)
+        current_org = getattr(current_org, 'parent_organization', None)
+
+    # دریافت تمام ترنزیشن‌های فعال از وضعیت فعلی فاکتور برای این سازمان/سازمان‌های والد
+    transitions_qs = Transition.objects.filter(
+        entity_type__code='FACTOR',
+        from_status=factor.status,
+        organization_id__in=org_hierarchy_pks,
+        is_active=True,
+    ).select_related('action', 'from_status', 'to_status').prefetch_related('allowed_posts')
+
+    # برای ادمین: همه ترنزیشن‌ها مجازند
+    if user.is_superuser:
+        result = list(transitions_qs)
+        logger.info(f"User {user.username} allowed transitions: {[t.action.name for t in result]}")
+        return result
+
+    # شناسه پست‌های فعال کاربر (با درنظر گرفتن end_date)
+    user_post_ids = []
     if user.is_authenticated:
-        user_post_ids = set(user.userpost_set.filter(is_active=True).values_list('post_id', flat=True))
+        user_post_ids = list(
+            user.userpost_set.filter(is_active=True, end_date__isnull=True).values_list('post_id', flat=True)
+        )
 
-    for step in all_steps:
-        posts_ids = {p.id for p in step['posts']}
-        if user.is_superuser or not posts_ids.isdisjoint(user_post_ids):
-            allowed.append(step)
+    # ترنزیشن‌های عمومی (بدون پست) + ترنزیشن‌هایی که با پست‌های کاربر همپوشان دارند
+    filtered = transitions_qs.filter(
+        models.Q(allowed_posts__isnull=True) | models.Q(allowed_posts__in=user_post_ids)
+    ).distinct()
 
-    logger.info(f"User {user.username} allowed transitions: {[s['action'].name for s in allowed]}")
-    return allowed
+    result = list(filtered)
+    logger.info(f"User {user.username} allowed transitions: {[t.action.name for t in result]}")
+    return result
 
 # ===================================================================
 # ۲. API برای انجام اقدام روی فاکتور
@@ -207,12 +234,88 @@ class FactorDetailView(PermissionBaseView, DetailView):
             context['tankhah_budget_summary'] = self._compute_tankhah_budget_summary(factor.tankhah)
 
         # اقدامات مجاز و مسیر گردش کار
+        if not factor.status or not getattr(factor, 'tankhah', None) or not getattr(factor.tankhah, 'organization', None):
+            logger.warning(
+                "[FACTOR_DETAIL] Missing essentials -> status:%s tankhah:%s org:%s",
+                getattr(factor, 'status', None), bool(getattr(factor, 'tankhah', None)),
+                bool(getattr(getattr(factor, 'tankhah', None), 'organization', None))
+            )
         full_path = get_next_steps_with_posts(factor)
         context['full_workflow_path'] = full_path
         context['available_transitions'] = get_user_allowed_transitions(user, factor)
 
-        # لاگ برای بررسی خروجی
-        logger.info(f"Factor {factor.pk} full_workflow_path: {[f'{s['action'].name}->{s['to_status'].name}' for s in full_path]}")
+        # مسیر تأیید برای تمپلیت موجود (با برچسب کاربر)
+        try:
+            user_post_ids = set()
+            if user.is_authenticated:
+                user_post_ids = set(
+                    user.userpost_set.filter(is_active=True, end_date__isnull=True).values_list('post_id', flat=True)
+                )
+            approval_path = []
+            for step in full_path:
+                posts = step.get('posts', [])
+                is_user_in_post = any(getattr(p, 'id', None) in user_post_ids for p in posts)
+                approval_path.append({
+                    'action': step.get('action'),
+                    'from_status': step.get('from_status'),
+                    'to_status': step.get('to_status'),
+                    'posts': posts,
+                    'is_user_in_post': is_user_in_post,
+                })
+            context['approval_path'] = approval_path
+        except Exception as e:
+            logger.error("[FACTOR_DETAIL] Building approval_path failed: %s", e, exc_info=True)
+            context['approval_path'] = []
+
+        # هم‌نام‌سازی برای تمپلیت "budget_summary"
+        if 'tankhah_budget_summary' in context:
+            context['budget_summary'] = context['tankhah_budget_summary']
+
+        # استخراج کاربران فعال هر پست برای گام‌های بعدی (نمایش افراد موثر)
+        next_approvers_by_step = []
+        for step in full_path:
+            posts_list = step.get('posts', [])
+            if not posts_list:
+                next_approvers_by_step.append({
+                    'action': step.get('action'),
+                    'to_status': step.get('to_status'),
+                    'users': []
+                })
+                continue
+
+            userposts_qs = UserPost.objects.filter(
+                post__in=posts_list,
+                is_active=True,
+                end_date__isnull=True
+            ).select_related('user', 'post')
+
+            seen_user_ids = set()
+            users = []
+            for up in userposts_qs:
+                if up.user and up.user_id not in seen_user_ids:
+                    seen_user_ids.add(up.user_id)
+                    users.append(up.user)
+
+            next_approvers_by_step.append({
+                'action': step.get('action'),
+                'to_status': step.get('to_status'),
+                'users': users
+            })
+
+        context['next_approvers_by_step'] = next_approvers_by_step
+
+        # لاگ‌های شمارشی برای عیب‌یابی سریع
+        transitions_str = [f"{s['action'].name}->{s['to_status'].name}" for s in full_path]
+        logger.info(
+            "[FACTOR_DETAIL] factor=%s status=%s org=%s path_len=%d allowed_len=%d next_users_steps=%d",
+            factor.pk,
+            getattr(getattr(factor, 'status', None), 'code', None),
+            getattr(getattr(getattr(factor, 'tankhah', None), 'organization', None), 'pk', None),
+            len(full_path),
+            len(context['available_transitions']) if context.get('available_transitions') is not None else -1,
+            len(next_approvers_by_step)
+        )
+        logger.debug("[FACTOR_DETAIL] full_workflow_path=%s", transitions_str)
 
         # سایر اطلاعات
         context['approval_logs'] = factor.approval_logs.all()
