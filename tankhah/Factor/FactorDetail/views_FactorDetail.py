@@ -103,50 +103,20 @@ def get_user_allowed_transitions(user, factor):
     """
     لیست گذارهای مجاز برای کاربر و فاکتور مشخص
     """
-    # اگر وضعیت/تنخواه/سازمان تعریف نشده باشد، اقدامی مجاز نیست
-    if not getattr(factor, 'status', None) or not getattr(factor, 'tankhah', None) or not getattr(factor.tankhah, 'organization', None):
-        return []
+    all_steps = get_next_steps_with_posts(factor)
+    allowed = []
 
-    # سلسله‌مراتب سازمان (برای ارث‌بری قوانین از سازمان‌های والد)
-    org_hierarchy_pks = []
-    current_org = factor.tankhah.organization
-    while current_org:
-        org_hierarchy_pks.append(current_org.pk)
-        current_org = getattr(current_org, 'parent_organization', None)
-
-    # دریافت تمام ترنزیشن‌های فعال از وضعیت فعلی فاکتور برای این سازمان/سازمان‌های والد
-    transitions_qs = Transition.objects.filter(
-        entity_type__code='FACTOR',
-        from_status=factor.status,
-        organization_id__in=org_hierarchy_pks,
-        is_active=True,
-    ).select_related('action', 'from_status', 'to_status').prefetch_related('allowed_posts')
-
-    # شناسه پست‌های فعال کاربر (با درنظر گرفتن end_date)
     user_post_ids = set()
     if user.is_authenticated:
-        user_post_ids = set(
-            user.userpost_set.filter(is_active=True, end_date__isnull=True).values_list('post_id', flat=True)
-        )
+        user_post_ids = set(user.userpost_set.filter(is_active=True).values_list('post_id', flat=True))
 
-    allowed_steps = []
-    for t in transitions_qs:
-        posts_list = list(t.allowed_posts.all())
-        allowed_post_ids = {p.id for p in posts_list}
+    for step in all_steps:
+        posts_ids = {p.id for p in step['posts']}
+        if user.is_superuser or not posts_ids.isdisjoint(user_post_ids):
+            allowed.append(step)
 
-        # اگر برای ترنزیشن پستی تعریف نشده باشد، آن را «عمومی» در نظر بگیریم
-        is_generic = len(allowed_post_ids) == 0
-        is_allowed = user.is_superuser or is_generic or not allowed_post_ids.isdisjoint(user_post_ids)
-        if is_allowed:
-            allowed_steps.append({
-                'action': t.action,
-                'from_status': t.from_status,
-                'to_status': t.to_status,
-                'posts': posts_list,
-            })
-
-    logger.info(f"User {user.username} allowed transitions: {[s['action'].name for s in allowed_steps]}")
-    return allowed_steps
+    logger.info(f"User {user.username} allowed transitions: {[s['action'].name for s in allowed]}")
+    return allowed
 
 # ===================================================================
 # ۲. API برای انجام اقدام روی فاکتور
@@ -242,9 +212,7 @@ class FactorDetailView(PermissionBaseView, DetailView):
         context['available_transitions'] = get_user_allowed_transitions(user, factor)
 
         # لاگ برای بررسی خروجی
-        # logger.info(
-        #     f"Factor {factor.pk} full_workflow_path: ",
-        #     f"{[f'{s[\"action\"].name}->{s[\"to_status\"].name}' for s in full_path]}")
+        logger.info(f"Factor {factor.pk} full_workflow_path: {[f'{s['action'].name}->{s['to_status'].name}' for s in full_path]}")
 
         # سایر اطلاعات
         context['approval_logs'] = factor.approval_logs.all()
