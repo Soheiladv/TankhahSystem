@@ -427,12 +427,14 @@ class PostAction(models.Model):
         verbose_name = _("اقدام مجاز پست")
         verbose_name_plural = _("اقدامات مجاز پست‌ها")
         # unique_together = ('post', 'stage', 'action_type', 'entity_type')  # اضافه کردن entity_type به unique_together
+        default_permissions =()
         permissions = [
             ('PostAction_view', 'نمایش اقدامات مجاز پست'),
             ('PostAction_add', 'افزودن اقدامات مجاز پست'),
             ('PostAction_update', 'بروزرسانی اقدامات مجاز پست'),
             ('PostAction_delete', 'حذف اقدامات مجاز پست'),
         ]
+
 ###################### NEW Config Status For ACTIONS TYPE ENTITY TYPES #######################################
 # یک کلاس پایه برای فیلدهای مشترک (ایجادکننده، تاریخ، وضعیت فعالیت)
 # مدل‌ها برای پشتیبانی از تاریخچه و بازنشستگی

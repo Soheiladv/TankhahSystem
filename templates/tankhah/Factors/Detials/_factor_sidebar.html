@@ -22,6 +22,25 @@
     </div>
 </div>
 
+<div class="card mb-4">
+    <div class="card-header fw-bold"><i class="fas fa-circle-info me-2"></i>{% trans "اطلاعات پروژه / بودجه" %}</div>
+    <div class="card-body small">
+        {% if factor.tankhah.project %}
+            <div class="mb-2"><span class="text-muted">{% trans "پروژه" %}:</span> <strong>{{ factor.tankhah.project.name }}</strong></div>
+        {% endif %}
+        {% if tankhah_budget_summary %}
+            <div class="row g-2">
+                <div class="col-6"><span class="text-muted">{% trans "بودجه اولیه" %}:</span> <strong>{{ tankhah_budget_summary.initial|to_persian_number }}</strong></div>
+                <div class="col-6"><span class="text-muted">{% trans "پرداخت شده" %}:</span> <strong>{{ tankhah_budget_summary.paid|to_persian_number }}</strong></div>
+                <div class="col-6"><span class="text-muted">{% trans "تعهد شده" %}:</span> <strong>{{ tankhah_budget_summary.committed|to_persian_number }}</strong></div>
+                <div class="col-6"><span class="text-muted">{% trans "موجودی" %}:</span> <strong>{{ tankhah_budget_summary.available|to_persian_number }}</strong></div>
+            </div>
+        {% else %}
+            <div class="text-muted">{% trans "اطلاعات بودجه در دسترس نیست." %}</div>
+        {% endif %}
+    </div>
+</div>
+
 <div class="card">
     <div class="card-header fw-bold"><i class="fas fa-sitemap me-2"></i>{% trans "مسیر کامل گردش کار" %}</div>
     <div class="card-body">
@@ -56,11 +75,11 @@
 </div>
 
 <div class="card mt-4">
-    <div class="card-header fw-bold"><i class="fas fa-users me-2"></i>{% trans "افراد تأثیرگذار بعدی" %}</div>
+    <div class="card-header fw-bold"><i class="fas fa-users me-2"></i>{% trans "افراد و پست‌های مجاز (گام‌های بعدی)" %}</div>
     <div class="card-body">
-        {% if next_approvers_by_step %}
+        {% if workflow_participants %}
             <div class="accordion" id="nextApproversAccordion">
-                {% for step in next_approvers_by_step %}
+                {% for step in workflow_participants %}
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="heading-{{ forloop.counter }}">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ forloop.counter }}">
@@ -70,14 +89,31 @@
                         </h2>
                         <div id="collapse-{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#nextApproversAccordion">
                             <div class="accordion-body">
-                                {% if step.users %}
-                                    <ul class="list-unstyled mb-0">
-                                        {% for u in step.users %}
-                                            <li class="mb-1"><i class="fas fa-user text-muted me-1"></i>{{ u.get_full_name|default:u.username }}</li>
+                                {% if step.posts %}
+                                    <ul class="list-group list-group-flush">
+                                        {% for p in step.posts %}
+                                            <li class="list-group-item">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <span class="badge bg-secondary me-2">{% trans "سطح" %} {{ p.level|default:'-' }}</span>
+                                                        <strong>{{ p.post.name }}</strong>
+                                                    </div>
+                                                    <span class="badge bg-light text-dark border">{{ p.users|length }}</span>
+                                                </div>
+                                                {% if p.users %}
+                                                    <ul class="mt-2 mb-0 ps-3">
+                                                        {% for u in p.users %}
+                                                            <li class="small"><i class="fas fa-user text-muted me-1"></i>{{ u.get_full_name|default:u.username }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% else %}
+                                                    <div class="text-muted small mt-2">{% trans "کاربری برای این پست فعال نیست." %}</div>
+                                                {% endif %}
+                                            </li>
                                         {% endfor %}
                                     </ul>
                                 {% else %}
-                                    <div class="text-muted small">{% trans "کاربری برای این گام تعریف نشده است." %}</div>
+                                    <div class="text-muted small">{% trans "پستی برای این گام تعریف نشده است." %}</div>
                                 {% endif %}
                             </div>
                         </div>
@@ -88,7 +124,6 @@
             <div class="text-muted small">{% trans "مسیر آتی برای این فاکتور یافت نشد." %}</div>
         {% endif %}
     </div>
-    
 </div>
 
 

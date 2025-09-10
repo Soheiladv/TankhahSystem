@@ -149,12 +149,21 @@ urlpatterns = [
                   path('groups/users/<int:pk>/', views.GroupUserListView.as_view(), name='group_user_list'),
 
                   # Role URLs
+                  # ============================
                   path('roles/', RoleListView.as_view(), name='roles'),
                   path('roles/create/', RoleCreateView.as_view(), name='role_create'),
 
                   path('roles/<int:pk>/edit/', RoleUpdateView.as_view(), name='role_update'),
                   path('roles/<int:pk>/delete/', RoleDeleteView.as_view(), name='role_delete'),
+                  path('role/<int:pk>/print/', views.RolePrintView.as_view(), name='role_print'),
 
+                  #### تغییر وابستگی در خذف کاربر از رول
+                  path('roles/<int:pk>/transfer-dependencies/', TransferRoleDependenciesView.as_view(),
+                       name='transfer_role_dependencies'),
+                  path('roles/<int:pk>/deactivate/', DeactivateRoleView.as_view(), name='deactivate_role'),
+
+                  path('roles/<int:pk>/deactivate/', DeactivateRoleView.as_view(), name='deactivate_role'),
+                  # ============================
                   # Profile URL
                   path('profile/', views.ProfileView.as_view(), name='profile'),  # صفحه اصلی پروفایل (ایجاد/ویرایش)
 
@@ -167,12 +176,6 @@ urlpatterns = [
                   path('profile/delete/', views.profile_delete, name='profile_delete'),  # حذف پروفایل
                   path('advanced-search/', AdvancedProfileSearchView.as_view(), name='advanced_profile_search'),
 
-                  #### تغییر وابستگی در خذف کاربر از رول
-                  path('roles/<int:pk>/transfer-dependencies/', TransferRoleDependenciesView.as_view(),
-                       name='transfer_role_dependencies'),
-                  path('roles/<int:pk>/deactivate/', DeactivateRoleView.as_view(), name='deactivate_role'),
-
-                  path('roles/<int:pk>/deactivate/', DeactivateRoleView.as_view(), name='deactivate_role'),
 
                   ## AuditLog
                   path('audit-logs/', views.audit_log_list, name='audit_log_list'),

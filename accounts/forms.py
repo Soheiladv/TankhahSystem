@@ -234,6 +234,7 @@ class CustomUserChangeForm(forms.ModelForm):
             # تنظیم فیلد ManyToMany با مقادیر انتخاب‌شده
             instance.groups.set(self.cleaned_data['groups'])
         return instance
+
 class RoleForm(forms.ModelForm):
     class Meta:
         model = Role
@@ -242,7 +243,7 @@ class RoleForm(forms.ModelForm):
             'name': forms.TextInput(
                 attrs={'class': 'form-control', 'placeholder': 'عنوان نقش', 'aria-label': 'عنوان نقش', }),
             'permissions': forms.SelectMultiple(attrs={'class': 'form-control'}),  # استفاده از CheckboxSelectMultiple
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'توضیحات نقش',
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 1, 'placeholder': 'توضیحات نقش',
                                                  'aria-label': 'توضیحات نقش', }),
             'parent': forms.Select(attrs={'class': 'form-control'}),
         }

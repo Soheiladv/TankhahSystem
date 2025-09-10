@@ -1,463 +1,286 @@
 {% extends "base.html" %}
-
+{% load static i18n rcms_custom_filters jformat  %}
 {% block extra_css %}
-    <style>
-        .card {
-            border: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            overflow: hidden;
-        }
+<style>
+    body {
+        background-color: #f4f7f6;
+    }
+    .main-card {
+        border: none;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+    .card-header-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 0.75rem 0.75rem 0 0 !important;
+        padding: 1.5rem;
+    }
+    .permissions-container {
+        display: flex;
+        min-height: 500px;
+    }
+    .apps-nav {
+        width: 30%;
+        border-right: 1px solid #e9ecef;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        overflow-y: auto;
+    }
+    .permissions-content {
+        width: 70%;
+        padding: 1.5rem;
+        overflow-y: auto;
+    }
+    .apps-nav .list-group-item {
+        border-radius: 0.5rem !important;
+        margin-bottom: 0.5rem;
+        border: none;
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+    }
+    .apps-nav .list-group-item:hover {
+        background-color: #e9ecef;
+        transform: translateX(3px);
+    }
+    .apps-nav .list-group-item.active {
+        background-color: #0d6efd;
+        color: white;
+        box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+    }
+    .progress { height: 6px; }
+    .form-check-label {
+        width: 100%;
+        cursor: pointer;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.375rem;
+        transition: background-color 0.2s ease;
+    }
+    .form-check-input:checked + .form-check-label {
+        background-color: #e7f1ff;
+    }
+    .permission-panel { display: none; }
+    .permission-panel.active { display: block; animation: fadeIn 0.4s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .card-header {
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            transition: all 0.3s ease;
-        }
-
-        .card-header:hover {
-            background: linear-gradient(135deg, #0056b3, #003d80);
-        }
-
-        .nav-tabs {
-            border-bottom: none;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-        }
-
-        .nav-tabs .nav-link {
-            background: #f8f9fa;
-            border: none;
-            margin: 0 5px 0 0;
-            border-radius: 8px 8px 0 0;
-            padding: 0.75rem 1.25rem;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            cursor: pointer;
-        }
-
-        .nav-tabs .nav-link.active {
-            background: #fff;
-            color: #007bff;
-            font-weight: bold;
-            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-tabs .nav-link:hover {
-            background: #e9ecef;
-            transform: translateY(-2px);
-        }
-
-        .nav-link .toggle-icon {
-            transition: transform 0.3s ease;
-            margin-left: 0.5rem;
-        }
-
-        .nav-link.active .toggle-icon {
-            transform: rotate(180deg);
-        }
-
-        .tab-content {
-            background: #fff;
-            border-radius: 0 0 10px 10px;
-            max-height: 400px;
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        .permission-item {
-            padding: 0.75rem;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }
-
-        .permission-item:hover {
-            background: #f1f8ff;
-            transform: translateX(5px);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .permission-item.selected {
-            background: #e6f4ea;
-        }
-
-        .selected-count-badge {
-            display: flex;
-            align-items: center;
-            background: #f8f9fa;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .selected-badge {
-            min-width: 20px;
-            text-align: center;
-        }
-
-        .btn-success, .btn-outline-primary, .btn-outline-danger {
-            transition: all 0.3s ease;
-        }
-
-        .btn-success:hover, .btn-outline-primary:hover, .btn-outline-danger:hover {
-            transform: translateY(-2px);
-        }
-
-        .tab-pane {
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-selected {
-            background: #e6f4ea;
-            transform: scale(1.03);
-        }
-
-        .animate-deselected {
-            background: #fff;
-            transform: scale(0.97);
-        }
-
-        .animate-invalid {
-            border-color: #dc3545;
-            box-shadow: 0 0 5px rgba(220, 53, 69, 0.5);
-        }
-    </style>
+    .search-input {
+        border-radius: 2rem;
+        padding-left: 2.5rem;
+    }
+    .search-icon {
+        position: absolute;
+        top: 50%;
+        left: 0.75rem;
+        transform: translateY(-50%);
+        color: #aaa;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-    <div class="container-fluid mt-4">
-        <div class="card shadow-lg">
-            <div class="card-header bg-primary text-white">
-                <h3 class="card-title mb-0">
-                    <i class="fas {% if object %}fa-edit{% else %}fa-plus-circle{% endif %} mr-2"></i>
-                    {% if object %}ویرایش نقش{% else %}ایجاد نقش جدید{% endif %}
-                </h3>
+<div class="container my-5">
+    <form method="post" id="roleForm" novalidate>
+        {% csrf_token %}
+        <div class="card main-card">
+            <div class="card-header-custom text-white">
+                <h2 class="card-title mb-0">
+                    <i class="fas {% if object %}fa-edit{% else %}fa-plus-circle{% endif %} me-2"></i>
+                    {{ title }}
+                </h2>
             </div>
-            <div>
-                <div>
-                    <div class="card-body">
-                        <form method="post" id="roleForm" class="needs-validation" novalidate>
-                            {% csrf_token %}
+            <div class="card-body p-4">
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">عنوان نقش</label>
+                        <input type="text" class="form-control form-control-lg" id="{{ form.name.id_for_label }}" name="{{ form.name.name }}" value="{{ form.name.value|default:'' }}" required placeholder="مثال: مدیر فروشگاه">
+                        <div class="invalid-feedback">لطفاً عنوان نقش را وارد کنید.</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">توضیحات (اختیاری)</label>
+                        <textarea class="form-control" id="{{ form.description.id_for_label }}" name="{{ form.description.name }}" rows="3">{{ form.description.value|default:'' }}</textarea>
+                    </div>
+                </div>
 
-                            <!-- اطلاعات پایه -->
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="{{ form.name.id_for_label }}" class="font-weight-bold text-primary">
-                                            <i class="fas fa-tag mr-2"></i>عنوان نقش
-                                        </label>
-                                        <input type="text" class="form-control form-control-lg"
-                                               id="{{ form.name.id_for_label }}"
-                                               name="{{ form.name.name }}" value="{{ form.name.value|default:'' }}"
-                                               required
-                                               placeholder="عنوان نقش را وارد کنید" aria-label="عنوان نقش">
-                                        <div class="invalid-feedback">لطفاً عنوان نقش را وارد کنید</div>
-                                    </div>
+                <hr class="my-4">
+
+                <h4 class="mb-3 fw-bold">
+                    <i class="fas fa-tasks me-2 text-primary"></i>انتخاب مجوزها
+                </h4>
+
+                <div class="permissions-container border rounded">
+                    <div class="apps-nav">
+                        <div class="position-relative mb-3">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="permission_search" class="form-control search-input" placeholder="جستجو در مجوزها...">
+                        </div>
+                        <div class="list-group" id="appsList">
+                            {% for app_name, permissions in permissions_tree.items %}
+                            <a class="list-group-item list-group-item-action flex-column align-items-start {% if forloop.first %}active{% endif %}"
+                               data-bs-toggle="list" href="#app-{{ forloop.counter }}" role="tab">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1 fw-bold app-name">{{ app_name }}</h6>
+                                    <small><span class="badge bg-secondary rounded-pill">{{ permissions|length }}</span></small>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="{{ form.description.id_for_label }}"
-                                               class="font-weight-bold text-primary">
-                                            <i class="fas fa-align-left mr-2"></i>توضیحات
-                                        </label>
-                                        <textarea class="form-control" id="{{ form.description.id_for_label }}"
-                                                  name="{{ form.description.name }}" rows="2"
-                                                  placeholder="توضیحات اختیاری">{{ form.description.value|default:'' }}</textarea>
-                                    </div>
+                                <div class="progress mt-2">
+                                    <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
-                            </div>
-
-                            <!-- مجوزها -->
-                            <div class="mb-4">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h4 class="mb-0 text-primary">
-                                        <i class="fas fa-key mr-2"></i>مدیریت مجوزها
-                                        <small class="text-muted">({{ permissions_tree|length }} اپلیکیشن)</small>
-                                    </h4>
-                                    <div class="selected-count-badge">
-                                        <span class="badge badge-pill badge-success" id="totalSelectedBadge">0</span>
-                                        <span>مجوز انتخاب‌شده</span>
-                                    </div>
-                                </div>
-
-                                <div class="input-group mb-3">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                    </div>
-                                    <input type="text" id="permission_search" class="form-control"
-                                           placeholder="جستجو در مجوزها..." aria-label="جستجوی مجوزها">
-                                    <div class="input-group-append">
-                                        <button class="btn btn-outline-primary" type="button" id="selectAllBtn">
-                                            <i class="fas fa-check-double mr-1"></i>انتخاب همه
-                                        </button>
-                                        <button class="btn btn-outline-danger" type="button" id="deselectAllBtn">
-                                            <i class="fas fa-times-circle mr-1"></i>عدم انتخاب
-                            </button>
-                                    </div>
-                            </div>
-
-                                <ul class="nav nav-tabs" id="permissionTabs" role="tablist">
-                                    {% for app_label, permissions in permissions_tree.items %}
-                                        <li class="nav-item">
-                                            <a class="nav-link {% if forloop.first %}active{% endif %}"
-                                               id="{{ app_label }}-tab" href="#{{ app_label }}"
-                                               role="tab" aria-controls="{{ app_label }}">
-                                                <div class="d-flex align-items-center">
-                                                    <span>{{ app_label|title }}</span>
-                                                    <span class="badge badge-pill badge-primary ml-2">{{ permissions|length }}</span>
-                                                    <span class="selected-badge badge badge-pill badge-secondary ml-2"
-                                                          data-app="{{ app_label }}">0</span>
-                                                </div>
-                                                <i class="fas fa-chevron-down toggle-icon"></i>
-                                            </a>
-                                        </li>
+                            </a>
                             {% endfor %}
-                                </ul>
+                        </div>
+                    </div>
 
-                                <div class="tab-content" id="permissionTabsContent">
-                                    {% for app_label, permissions in permissions_tree.items %}
-                                        <div class="tab-pane fade {% if forloop.first %}show active{% endif %}"
-                                             id="{{ app_label }}" role="tabpanel" aria-labelledby="{{ app_label }}-tab">
-                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                <h5 class="mb-0">مجوزهای {{ app_label|title }}</h5>
-                                                <div>
-                                                    <button type="button"
-                                                            class="btn btn-sm btn-outline-primary select-tab-items mr-2"
-                                                            data-app="{{ app_label }}">
-                                                        <i class="fas fa-check mr-1"></i>انتخاب همه
-                                                    </button>
-                                                    <button type="button"
-                                                            class="btn btn-sm btn-outline-danger deselect-tab-items"
-                                                            data-app="{{ app_label }}">
-                                                        <i class="fas fa-times mr-1"></i>عدم انتخاب
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                {% for perm in permissions %}
-                                                    <div class="col-md-6 mb-2">
-                                                        <div class="custom-control custom-checkbox permission-item {% if perm.id in form.permissions.value %}selected{% endif %}">
-                                                            <input type="checkbox"
-                                                                   class="custom-control-input permission-checkbox"
-                                                                   id="perm_{{ perm.id }}" name="permissions"
-                                                                   value="{{ perm.id }}"
-                                                                   {% if perm.id in form.permissions.value %}checked{% endif %}
-                                                                   data-app="{{ app_label }}">
-                                                            <label class="custom-control-label"
-                                                                   for="perm_{{ perm.id }}">
-                                                                <strong>{{ perm.name }}</strong>
-                                                                <small class="text-muted d-block">{{ perm.codename }}</small>
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-                                    {% endfor %}
+                    <div class="permissions-content tab-content">
+                        {% for app_name, permissions in permissions_tree.items %}
+                        <div class="permission-panel tab-pane {% if forloop.first %}active{% endif %}" id="app-{{ forloop.counter }}">
+                            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                                <h5 class="fw-bold text-primary">{{ app_name }}</h5>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input select-all-in-panel" type="checkbox" role="switch" id="selectAll-{{ forloop.counter }}">
+                                    <label class="form-check-label" for="selectAll-{{ forloop.counter }}">انتخاب همه</label>
                                 </div>
                             </div>
-
-                            <!-- دکمه‌ها -->
-                            <div class="d-flex justify-content-between mt-4">
-                                <a href="{% url 'accounts:role_list' %}" class="btn btn-outline-secondary">
-                                    <i class="fas fa-arrow-right mr-2"></i>بازگشت
-                                </a>
-                                <button type="submit" class="btn btn-success px-4" id="submitBtn">
-                                    <i class="fas fa-save mr-2"></i>ذخیره تغییرات
-                                </button>
+                            <div class="row">
+                                {% for perm in permissions %}
+                                <div class="col-md-6 permission-item">
+                                    <div class="form-check">
+                                        <input class="form-check-input permission-checkbox" type="checkbox" name="permissions" value="{{ perm.id }}" id="perm_{{ perm.id }}"
+                                               {% if perm.id in form.permissions.value %}checked{% endif %}>
+                                        <label class="form-check-label" for="perm_{{ perm.id }}">
+                                            <span class="fw-bold d-block permission-name">{{ perm.name }}</span>
+                                            <small class="text-muted permission-codename">{{ perm.codename }}</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
                             </div>
-                        </form>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
+
+            <div class="card-footer bg-light text-end p-3">
+                <a href="{% url 'accounts:role_list' %}" class="btn btn-secondary me-2">
+                    <i class="fas fa-times me-2"></i>انصراف
+                </a>
+                <button type="submit" class="btn btn-success px-4" id="submitBtn">
+                    <i class="fas fa-save me-2"></i>ذخیره تغییرات
+                </button>
+            </div>
         </div>
-    </div>
+    </form>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const searchInput = document.getElementById('permission_search');
-        const selectAllBtn = document.getElementById('selectAllBtn');
-        const deselectAllBtn = document.getElementById('deselectAllBtn');
-        const submitBtn = document.getElementById('submitBtn');
-        const form = document.getElementById('roleForm');
-        const tabs = document.querySelectorAll('#permissionTabs .nav-link');
-        const checkboxes = document.querySelectorAll('.permission-checkbox');
+document.addEventListener('DOMContentLoaded', () => {
+    // --- انتخاب عناصر DOM ---
+    const searchInput = document.getElementById('permission_search');
+    const appsList = document.getElementById('appsList');
+    const appItems = appsList.querySelectorAll('.list-group-item');
+    const permissionPanels = document.querySelectorAll('.permission-panel');
+    const allCheckboxes = document.querySelectorAll('.permission-checkbox');
 
-        // به‌روزرسانی تعداد انتخاب‌ها
-        function updateSelectionCount() {
-            const totalSelected = document.querySelectorAll('.permission-checkbox:checked').length;
-            document.getElementById('totalSelectedBadge').textContent = totalSelected;
+    // --- توابع اصلی ---
 
-            tabs.forEach(tab => {
-                const badge = tab.querySelector('.selected-badge');
-                if (badge) {  // چک کردن وجود badge
-                    const appLabel = badge.dataset.app;
-                    const tabSelected = document.querySelectorAll(`.permission-checkbox[data-app="${appLabel}"]:checked`).length;
-                    badge.textContent = tabSelected;
-                    badge.classList.toggle('badge-success', tabSelected > 0);
-                    badge.classList.toggle('badge-secondary', tabSelected === 0);
-                }
+    /**
+     * تعداد مجوزهای انتخاب شده در هر اپلیکیشن را به‌روز می‌کند و نوار پیشرفت را تنظیم می‌کند.
+     */
+    const updateAppCounts = () => {
+        appItems.forEach((appItem, index) => {
+            const panel = permissionPanels[index];
+            if (!panel) return;
+            
+            const checkboxesInPanel = panel.querySelectorAll('.permission-checkbox');
+            const checkedCheckboxes = panel.querySelectorAll('.permission-checkbox:checked');
+            const total = checkboxesInPanel.length;
+            const selected = checkedCheckboxes.length;
+            const percentage = total > 0 ? (selected / total) * 100 : 0;
+
+            const progressBar = appItem.querySelector('.progress-bar');
+            progressBar.style.width = `${percentage}%`;
+            progressBar.setAttribute('aria-valuenow', percentage);
+
+            // به‌روزرسانی چک‌باکس "انتخاب همه" در پنل
+            const selectAllSwitch = panel.querySelector('.select-all-in-panel');
+            if (selectAllSwitch) {
+                selectAllSwitch.checked = total > 0 && selected === total;
+            }
+        });
+    };
+
+    /**
+     * رویداد جستجو را مدیریت می‌کند.
+     */
+    const handleSearch = () => {
+        const query = searchInput.value.toLowerCase().trim();
+
+        // فیلتر کردن مجوزها در پنل فعال
+        const activePanel = document.querySelector('.permission-panel.active');
+        if (activePanel) {
+            activePanel.querySelectorAll('.permission-item').forEach(item => {
+                const name = item.querySelector('.permission-name')?.textContent.toLowerCase() || '';
+                const codename = item.querySelector('.permission-codename')?.textContent.toLowerCase() || '';
+                item.style.display = (name.includes(query) || codename.includes(query)) ? '' : 'none';
             });
         }
 
-        // مدیریت تب‌ها
-        function activateTab(tab) {
-            const targetId = tab.getAttribute('href').substring(1);
-            const targetPane = document.getElementById(targetId);
-            const activeTab = document.querySelector('.nav-link.active');
-            const activePane = document.querySelector('.tab-pane.show.active');
+        // فیلتر کردن لیست اپلیکیشن‌ها
+        appItems.forEach(item => {
+            const appName = item.querySelector('.app-name').textContent.toLowerCase();
+            item.style.display = appName.includes(query) ? '' : 'none';
+        });
+    };
 
-            if (activeTab !== tab) {
-                if (activeTab) activeTab.classList.remove('active');
-                if (activePane) activePane.classList.remove('show', 'active');
-                tab.classList.add('active');
-                targetPane.classList.add('show', 'active');
-            }
+    // --- ثبت رویدادها ---
+
+    // رویداد برای جستجو
+    searchInput.addEventListener('input', handleSearch);
+
+    // رویداد برای تغییر وضعیت چک‌باکس‌ها
+    document.querySelector('.permissions-container').addEventListener('change', (e) => {
+        if (e.target.classList.contains('permission-checkbox')) {
+            updateAppCounts();
         }
-
-        tabs.forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                e.preventDefault();
-                activateTab(tab);
-            });
-        });
-
-        // جستجو
-        searchInput.addEventListener('input', () => {
-            const filter = searchInput.value.toLowerCase().trim();
-            let firstVisibleTab = null;
-
-            // فیلتر کردن آیتم‌ها
-            document.querySelectorAll('.permission-item').forEach(item => {
-                const text = item.textContent.toLowerCase();
-                const isVisible = text.includes(filter);
-                item.style.display = isVisible ? '' : 'none';
-                console.log(`Item text: "${text}", Filter: "${filter}", Visible: ${isVisible}`);
-                if (isVisible && !firstVisibleTab) {
-                    firstVisibleTab = item.closest('.tab-pane').id;
-                }
-            });
-
-            // به‌روزرسانی تب‌ها
-            tabs.forEach(tab => {
-                const tabId = tab.getAttribute('href').substring(1);
-                const itemsInTab = document.querySelectorAll(`#${tabId} .permission-item`);
-                let visibleCount = 0;
-                itemsInTab.forEach(item => {
-                    if (item.style.display !== 'none') {
-                        visibleCount++;
-                    }
-                });
-                const hasVisible = visibleCount > 0;
-                tab.style.display = hasVisible || !filter ? '' : 'none';
-                console.log(`Tab: ${tabId}, Visible items: ${visibleCount}, Display: ${tab.style.display}`);
-            });
-
-            // فعال کردن اولین تب قابل‌نمایش
-            if (firstVisibleTab && filter) {
-                const currentActive = document.querySelector('.nav-link.active');
-                console.log(`First visible tab: ${firstVisibleTab}, Current active: ${currentActive ? currentActive.id : 'none'}`);
-                if (!currentActive || currentActive.style.display === 'none') {
-                    const newActiveTab = document.querySelector(`[href="#${firstVisibleTab}"]`);
-                    if (newActiveTab && newActiveTab.style.display !== 'none') {
-                        activateTab(newActiveTab);
-                    }
-                }
-            } else if (!filter) {
-                activateTab(tabs[0]);
-            }
-        });
-
-
-        // انتخاب/عدم انتخاب همه
-        selectAllBtn.addEventListener('click', () => {
-            checkboxes.forEach(cb => {
-                cb.checked = true;
-                cb.closest('.permission-item').classList.add('selected');
-                animateItem(cb.closest('.permission-item'), 'animate-selected');
-            });
-            updateSelectionCount();
-        });
-
-        deselectAllBtn.addEventListener('click', () => {
-            checkboxes.forEach(cb => {
-                cb.checked = false;
-                cb.closest('.permission-item').classList.remove('selected');
-                animateItem(cb.closest('.permission-item'), 'animate-deselected');
-            });
-            updateSelectionCount();
-        });
-
-        // انتخاب/عدم انتخاب در تب
-        document.querySelectorAll('.select-tab-items').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const appLabel = btn.dataset.app;
-                document.querySelectorAll(`.permission-checkbox[data-app="${appLabel}"]`).forEach(cb => {
-                    cb.checked = true;
-                    cb.closest('.permission-item').classList.add('selected');
-                    animateItem(cb.closest('.permission-item'), 'animate-selected');
-                });
-                updateSelectionCount();
-            });
-        });
-
-        document.querySelectorAll('.deselect-tab-items').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const appLabel = btn.dataset.app;
-                document.querySelectorAll(`.permission-checkbox[data-app="${appLabel}"]`).forEach(cb => {
-                    cb.checked = false;
-                    cb.closest('.permission-item').classList.remove('selected');
-                    animateItem(cb.closest('.permission-item'), 'animate-deselected');
-                });
-                updateSelectionCount();
-            });
-        });
-
-        // انیمیشن برای چک‌باکس‌ها
-        checkboxes.forEach(cb => {
-            cb.addEventListener('change', () => {
-                const item = cb.closest('.permission-item');
-                item.classList.toggle('selected', cb.checked);
-                animateItem(item, cb.checked ? 'animate-selected' : 'animate-deselected');
-                updateSelectionCount();
-            });
-        });
-
-        // تابع انیمیشن
-        function animateItem(item, animationClass) {
-            item.classList.add(animationClass);
-            setTimeout(() => item.classList.remove(animationClass), 300);
-        }
-
-        // اعتبارسنجی و ارسال فرم
-        form.addEventListener('submit', (e) => {
-            if (!form.checkValidity()) {
-                e.preventDefault();
-                form.classList.add('was-validated');
-                form.querySelectorAll(':invalid').forEach(input => {
-                    input.classList.add('animate-invalid');
-                    setTimeout(() => input.classList.remove('animate-invalid'), 1000);
-                });
-            } else {
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>در حال ذخیره...';
-                submitBtn.disabled = true;
-            }
-        });
-
-        // مقداردهی اولیه
-        updateSelectionCount();
     });
+
+    // رویداد برای کلیک روی "انتخاب همه" در هر پنل
+    permissionPanels.forEach(panel => {
+        const selectAllSwitch = panel.querySelector('.select-all-in-panel');
+        if (selectAllSwitch) {
+            selectAllSwitch.addEventListener('change', () => {
+                const isChecked = selectAllSwitch.checked;
+                panel.querySelectorAll('.permission-checkbox').forEach(cb => {
+                    cb.checked = isChecked;
+                });
+                updateAppCounts();
+            });
+        }
+    });
+
+    // فعال کردن تب‌ها با Bootstrap 5
+    appItems.forEach(tabEl => {
+        tabEl.addEventListener('click', event => {
+            event.preventDefault();
+            const tab = new bootstrap.Tab(tabEl);
+            tab.show();
+            // بعد از تغییر تب، جستجو را مجدداً اعمال کن
+            handleSearch();
+        });
+    });
+
+    // --- اجرای اولیه ---
+    updateAppCounts();
+
+    // اعتبارسنجی فرم Bootstrap
+    const form = document.getElementById('roleForm');
+    form.addEventListener('submit', event => {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    }, false);
+});
 </script>
 {% endblock %}

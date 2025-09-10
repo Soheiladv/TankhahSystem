@@ -1,3 +1,5 @@
+from django.views.generic import DetailView
+from django.conf import settings
 import datetime
 import hashlib
 import logging
@@ -33,7 +35,7 @@ from django.utils.decorators import method_decorator
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from django.views import View
-from django.views.generic import FormView
+from django.views.generic import FormView, DetailView
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
 from accounts.RCMS_Lock.security import TimeLock
@@ -255,42 +257,78 @@ class RoleCRUDMixin(LoginRequiredMixin, UserPassesTestMixin):
     form_class = RoleForm
     template_name = 'accounts/users/rols/role_form.html'
     success_url = reverse_lazy('role_list')
-
-
-class RoleListView(PermissionBaseView,ListView):
+# ==============================================
+class RoleListView(PermissionBaseView, ListView):
     model = Role
     template_name = 'accounts/users/rols/role_list.html'
-    # template_name = 'accounts/role/role_list.html'
     context_object_name = 'roles'
     permission_codenames = 'see_role'
-    paginate_by = 10  # صفحه‌بندی با 10 آیتم در هر صفحه
+    paginate_by = 10
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        # فیلتر جستجو
+        # برای جلوگیری از خطای N+1 و بهینه‌سازی کوئری
+        queryset = super().get_queryset().prefetch_related('permissions')
+
+        # دریافت پارامترهای جستجو و فیلتر از URL
         query = self.request.GET.get('q', '').strip()
+        show_inactive = self.request.GET.get('show_inactive') == 'true'
+
+        # اعمال فیلتر وضعیت (فعال/غیرفعال)
+        # به صورت پیش‌فرض فقط فعال‌ها نمایش داده می‌شوند
+        if not show_inactive:
+            queryset = queryset.filter(is_active=True)
+
+        # اعمال فیلتر جستجو
         if query:
             queryset = queryset.filter(
                 Q(name__icontains=query) |
-                Q(description__icontains=query)
-            )
-            if not queryset.exists():
-                messages.info(self.request, _("نقشی با این مشخصات یافت نشد."))
+                Q(description__icontains=query) |
+                Q(permissions__name__icontains=query) # جستجو در نام مجوزها
+            ).distinct() # برای جلوگیری از نمایش نتایج تکراری
 
-        # فقط نقش‌های فعال (اختیاری، اگه بخوای همه رو نشون بده این خط رو حذف کن)
-        # queryset = queryset.filter(is_active=True)
-
-        return queryset.order_by('name')
+        return queryset.order_by('-created_at') # مرتب‌سازی بر اساس جدیدترین
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = _("لیست نقش‌ها")
+        context['title'] = _("مدیریت نقش‌ها")
+        # ارسال مقادیر فعلی جستجو و فیلتر به تمپلیت برای حفظ وضعیت
         context['query'] = self.request.GET.get('q', '')
+        context['show_inactive'] = self.request.GET.get('show_inactive') == 'true'
         return context
+    # ==============================================
+# class RoleListView(PermissionBaseView,ListView):
+#     model = Role
+#     template_name = 'accounts/users/rols/role_list.html'
+#     # template_name = 'accounts/role/role_list.html'
+#     context_object_name = 'roles'
+#     permission_codenames = 'see_role'
+#     paginate_by = 10  # صفحه‌بندی با 10 آیتم در هر صفحه
+#
+#     def get_queryset(self):
+#         queryset = super().get_queryset()
+#         # فیلتر جستجو
+#         query = self.request.GET.get('q', '').strip()
+#         if query:
+#             queryset = queryset.filter(
+#                 Q(name__icontains=query) |
+#                 Q(description__icontains=query)
+#             )
+#             if not queryset.exists():
+#                 messages.info(self.request, _("نقشی با این مشخصات یافت نشد."))
+#
+#         # فقط نقش‌های فعال (اختیاری، اگه بخوای همه رو نشون بده این خط رو حذف کن)
+#         # queryset = queryset.filter(is_active=True)
+#
+#         return queryset.order_by('name')
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['title'] = _("لیست نقش‌ها")
+#         context['query'] = self.request.GET.get('q', '')
+#         return context
 
 
-# @method_decorator(has_permission('see_role'), name='dispatch')
-# class RoleListView1(LoginRequiredMixin, View):
+# ===========================================================
 class RoleListView1(PermissionBaseView, View):
     template_name = 'accounts/users/rols/role_list.html'
     permission_codenames = 'see_role'
@@ -299,7 +337,7 @@ class RoleListView1(PermissionBaseView, View):
         roles = Role.objects.all() if show_inactive else Role.objects.filter(is_active=True)
         return render(request, self.template_name, {'roles': roles, 'show_inactive': show_inactive})
 
-
+# =========================================================
 # لیست اپ‌هایی که نمی‌خوای نشون داده بشن
 EXCLUDED_APPS = [
     'admin_interface',
@@ -308,7 +346,6 @@ EXCLUDED_APPS = [
     'sessions',
     # هر اپ دیگه‌ای که نمی‌خوای رو اضافه کن
 ]
-
 
 # @method_decorator(has_permission('create_role'), name='dispatch')
 class RoleCreateView(PermissionBaseView,CreateView):
@@ -341,8 +378,7 @@ class RoleCreateView(PermissionBaseView,CreateView):
             tree[app_label].append(perm)
         return tree
 
-# @method_decorator(has_permission('modify_role'), name='dispatch')
-class RoleUpdateView(PermissionBaseView,  UpdateView):
+class __RoleUpdateView(PermissionBaseView,  UpdateView):
     model = Role
     form_class = RoleForm
     template_name = 'accounts/role/role_form.html'
@@ -358,7 +394,6 @@ class RoleUpdateView(PermissionBaseView,  UpdateView):
                 app_label_farsi = app_config.verbose_name
                 # print(f"App: {app_config.name}, Verbose: {app_label_farsi}")
                 tree.setdefault(app_label_farsi, []).append(perm)
-        # print("permissions_tree keys:", list(tree.keys()))
         context['permissions_tree'] = tree
         print("Loaded apps:", [app.verbose_name for app in apps.get_app_configs()])
         return context
@@ -373,6 +408,53 @@ class RoleUpdateView(PermissionBaseView,  UpdateView):
             tree.setdefault(app_label_farsi, []).append(perm)
         print("permissions_tree keys:", list(tree.keys()))  # برای دیباگ
         return tree
+
+# یک میکس‌این برای جلوگیری از تکرار کد
+class RoleFormMixin:
+    model = Role
+    form_class = RoleForm
+    template_name = 'accounts/role/role_form.html'  # آدرس تمپلیت جدید
+    success_url = reverse_lazy('accounts:role_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['permissions_tree'] = self.get_permissions_tree()
+        context['title'] = _("ایجاد نقش جدید") if 'create' in self.request.path else _("ویرایش نقش")
+        return context
+
+    def get_permissions_tree(self):
+        """
+        درخت مجوزها را با گروه‌بندی بر اساس نام فارسی اپلیکیشن‌ها ایجاد و مرتب می‌کند.
+        """
+        # می‌توانید لیست اپلیکیشن‌های مورد نظر برای حذف را در settings.py تعریف کنید
+        EXCLUDED_APPS = getattr(settings, 'ROLE_FORM_EXCLUDED_APPS', [
+            'admin', 'auth', 'contenttypes', 'sessions', 'messages', 'staticfiles'
+        ])
+
+        # مجوزها را یکجا با content_type دریافت و مرتب می‌کنیم
+        permissions = Permission.objects.select_related('content_type').order_by('content_type__app_label', 'codename')
+
+        tree = {}
+        for perm in permissions:
+            app_label = perm.content_type.app_label
+            # اگر اپلیکیشن در لیست استثناها نبود
+            if app_label not in EXCLUDED_APPS:
+                try:
+                    app_config = apps.get_app_config(app_label)
+                    # از verbose_name برای نام فارسی اپلیکیشن استفاده می‌کنیم
+                    app_verbose_name = app_config.verbose_name
+                    tree.setdefault(app_verbose_name, []).append(perm)
+                except LookupError:
+                    # اگر اپلیکیشنی پیدا نشد، از آن صرف نظر کن
+                    continue
+
+        # مرتب‌سازی دیکشنری بر اساس کلیدها (نام فارسی اپلیکیشن‌ها)
+        sorted_tree = dict(sorted(tree.items()))
+        return sorted_tree
+
+class RoleUpdateView(PermissionBaseView, RoleFormMixin, UpdateView):
+    permission_codenames = 'modify_role'
+
 
 @method_decorator(has_permission('remove_role'), name='dispatch')
 class RoleDeleteView(DeleteView):
@@ -418,7 +500,69 @@ class RoleDeleteView(DeleteView):
 
         return HttpResponseRedirect(self.get_success_url())
 
-# User Views
+# ==============================================================================================
+class RolePrintView(PermissionBaseView, DetailView):
+    model = Role
+    template_name = 'accounts/role/role_print_view.html'
+    context_object_name = 'role'
+    permission_codenames = 'see_role'  # یا هر مجوزی که برای دیدن نقش لازم است
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        role = self.get_object()
+
+        # از همان منطق قبلی برای گرفتن درخت مجوزها استفاده می‌کنیم
+        # این کد را می‌توانید از RoleFormMixin کپی کنید یا یک کلاس پایه مشترک بسازید
+        # --- شروع منطق get_permissions_tree ---
+        EXCLUDED_APPS = getattr(settings, 'ROLE_FORM_EXCLUDED_APPS', [
+            'admin', 'auth', 'contenttypes', 'sessions', 'messages', 'staticfiles'
+        ])
+        all_permissions = Permission.objects.select_related('content_type').order_by('content_type__app_label',
+                                                                                     'codename')
+
+        tree = {}
+        for perm in all_permissions:
+            app_label = perm.content_type.app_label
+            if app_label not in EXCLUDED_APPS:
+                try:
+                    app_config = apps.get_app_config(app_label)
+                    app_verbose_name = app_config.verbose_name
+                    tree.setdefault(app_verbose_name, []).append(perm)
+                except LookupError:
+                    continue
+        sorted_tree = dict(sorted(tree.items()))
+        # --- پایان منطق get_permissions_tree ---
+
+        # شناسه مجوزهای اختصاص داده شده به این نقش
+        assigned_perm_ids = set(role.permissions.values_list('id', flat=True))
+
+        # ساختار نهایی داده برای تمپلیت
+        app_permission_status = []
+        for app_name, permissions in sorted_tree.items():
+            app_data = {
+                'name': app_name,
+                'assigned': [],
+                'unassigned': []
+            }
+            for perm in permissions:
+                if perm.id in assigned_perm_ids:
+                    app_data['assigned'].append(perm)
+                else:
+                    app_data['unassigned'].append(perm)
+
+            # فقط اپلیکیشن‌هایی را اضافه کن که حداقل یک مجوز (اختصاصی یا غیراختصاصی) دارند
+            if app_data['assigned'] or app_data['unassigned']:
+                app_permission_status.append(app_data)
+
+        context['title'] = f"چاپ مجوزهای نقش: {role.name}"
+        context['app_permission_status'] = app_permission_status
+        context['print_date_now'] =  now()
+        context['print_time_now'] =  f'{now().time().hour}:{  now().time().minute}'
+
+        return context
+
+# ==============================================================================================
+
 class UserCRUDMixin(LoginRequiredMixin, UserPassesTestMixin):
     raise_exception = True
     model = CustomUser

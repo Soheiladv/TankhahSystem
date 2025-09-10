@@ -21,9 +21,7 @@ except ImportError:
     jdate = None
     logging.error("jdatetime is not installed. Please install it using 'pip install jdatetime'")
 #---------------------------------.
-
-
-class FactorListView(PermissionBaseView, ListView):
+class FactorListView(PermissionBaseView, ListView):# اصلی
     model = Factor
     template_name = 'tankhah/factor_list.html'
     context_object_name = 'factors'

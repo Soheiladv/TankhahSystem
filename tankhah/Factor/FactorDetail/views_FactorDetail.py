@@ -129,21 +129,40 @@ def get_user_allowed_transitions(user, factor):
         logger.info(f"User {user.username} allowed transitions: {[t.action.name for t in result]}")
         return result
 
-    # شناسه پست‌های فعال کاربر (با درنظر گرفتن end_date)
-    user_post_ids = []
+    # شناسه پست‌های فعال کاربر
+    user_post_ids_set = set()
+    user_levels = []
     if user.is_authenticated:
-        user_post_ids = list(
-            user.userpost_set.filter(is_active=True, end_date__isnull=True).values_list('post_id', flat=True)
-        )
+        active_userposts = user.userpost_set.filter(is_active=True).select_related('post')
+        user_post_ids_set = set(active_userposts.values_list('post_id', flat=True))
+        user_levels = [up.post.level for up in active_userposts if getattr(up.post, 'level', None) is not None]
 
-    # ترنزیشن‌های عمومی (بدون پست) + ترنزیشن‌هایی که با پست‌های کاربر همپوشان دارند
-    filtered = transitions_qs.filter(
-        models.Q(allowed_posts__isnull=True) | models.Q(allowed_posts__in=user_post_ids)
-    ).distinct()
+    # قانون قفل‌شدن سطح پایین پس از اقدام سطح بالاتر
+    # اگر کاربر سطحی دارد و در لاگِ این فاکتور اقدامی توسط پستی با level کمتر (مرتبه بالاتر) ثبت شده باشد، اقدامی برای این کاربر مجاز نیست
+    if user_levels:
+        try:
+            user_min_level = min(user_levels)  # سطح بالاتر عدد کمتر
+            higher_action_exists = factor.approval_logs.filter(post__level__lt=user_min_level).exists()
+            if higher_action_exists:
+                logger.info(
+                    f"User {user.username} blocked by higher-level action. user_min_level={user_min_level}")
+                return []
+        except Exception as e:
+            logger.debug(f"Level-block check failed: {e}")
 
-    result = list(filtered)
-    logger.info(f"User {user.username} allowed transitions: {[t.action.name for t in result]}")
-    return result
+    # تشخیص عمومی بودن ترنزیشن بدون اتکای مستقیم به فیلتر M2M
+    allowed = []
+    for t in transitions_qs:
+        allowed_posts = list(t.allowed_posts.all())
+        if not allowed_posts:  # عمومی
+            allowed.append(t)
+            continue
+        allowed_post_ids = {p.id for p in allowed_posts}
+        if not user_post_ids_set.isdisjoint(allowed_post_ids):
+            allowed.append(t)
+
+    logger.info(f"User {user.username} allowed transitions: {[t.action.name for t in allowed]}")
+    return allowed
 
 # ===================================================================
 # ۲. API برای انجام اقدام روی فاکتور
@@ -249,7 +268,7 @@ class FactorDetailView(PermissionBaseView, DetailView):
             user_post_ids = set()
             if user.is_authenticated:
                 user_post_ids = set(
-                    user.userpost_set.filter(is_active=True, end_date__isnull=True).values_list('post_id', flat=True)
+                    user.userpost_set.filter(is_active=True).values_list('post_id', flat=True)
                 )
             approval_path = []
             for step in full_path:
@@ -291,8 +310,7 @@ class FactorDetailView(PermissionBaseView, DetailView):
 
             userposts_qs = UserPost.objects.filter(
                 post__in=posts_list,
-                is_active=True,
-                end_date__isnull=True
+                is_active=True
             ).select_related('user', 'post')
 
             seen_user_ids = set()
@@ -312,14 +330,8 @@ class FactorDetailView(PermissionBaseView, DetailView):
                 'to_status': step.get('to_status'),
                 'users': users
             })
-            workflow_participants.append({
-                'action': step.get('action'),
-                'to_status': step.get('to_status'),
-                'posts': posts_info
-            })
 
         context['next_approvers_by_step'] = next_approvers_by_step
-        context['workflow_participants'] = workflow_participants
 
         # لاگ‌های شمارشی برای عیب‌یابی سریع
         transitions_str = [f"{s['action'].name}->{s['to_status'].name}" for s in full_path]
@@ -333,17 +345,6 @@ class FactorDetailView(PermissionBaseView, DetailView):
             len(next_approvers_by_step)
         )
         logger.debug("[FACTOR_DETAIL] full_workflow_path=%s", transitions_str)
-
-        # لاگ تشخیصی برای خالی بودن اقدامات مجاز
-        try:
-            user_post_ids_dbg = list(user.userpost_set.filter(is_active=True, end_date__isnull=True).values_list('post_id', flat=True)) if user.is_authenticated else []
-            dbg_transitions = []
-            for step in full_path:
-                posts_ids = [getattr(p, 'id', None) for p in step.get('posts', [])]
-                dbg_transitions.append({'action': step.get('action').name, 'to': step.get('to_status').code, 'posts': posts_ids})
-            logger.debug("[FACTOR_DETAIL] user_posts=%s transitions_posts=%s", user_post_ids_dbg, dbg_transitions)
-        except Exception as e:
-            logger.debug("[FACTOR_DETAIL] debug building failed: %s", e)
 
         # سایر اطلاعات
         context['approval_logs'] = factor.approval_logs.all()

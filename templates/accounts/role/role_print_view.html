@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load static   i18n rcms_custom_filters jformat  %}
+{% block content %}
+
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+
+    <style>
+        /* استایل‌های عمومی */
+
+        body {
+                background-color: #f0f2f5;
+        }
+        .print-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            background: white;
+            padding: 2rem;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        .print-header {
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+        .permission-section {
+            margin-bottom: 2rem;
+            page-break-inside: avoid; /* جلوگیری از شکستن بخش‌ها در وسط صفحه */
+        }
+        .permission-list {
+            list-style-type: none;
+            padding-right: 0;
+        }
+        .permission-list li {
+            padding: 0.5rem;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        .permission-list li.assigned {
+            color: #198754; /* سبز */
+        }
+        .permission-list li.unassigned {
+            color: #6c757d; /* خاکستری */
+            font-style: italic;
+        }
+        .permission-list i {
+            margin-left: 0.75rem;
+            width: 20px;
+        }
+        .print-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        /* استایل‌های مخصوص چاپ */
+        @media print {
+            body {
+                background-color: white;
+                font-size: 11pt;
+            }
+            .print-container {
+                box-shadow: none;
+                margin: 0;
+                max-width: 100%;
+                padding: 0;
+            }
+            .no-print {
+                display: none !important; /* مهمترین بخش: مخفی کردن عناصر اضافی */
+            }
+            a {
+                text-decoration: none;
+                color: black;
+            }
+            .permission-section h4 {
+                background-color: #f8f9fa !important; /* رنگ ملایم برای هدر بخش‌ها */
+                -webkit-print-color-adjust: exact; /* تضمین چاپ رنگ پس‌زمینه در مرورگرها */
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+
+     <div class="print-container">
+        <header class="print-header">
+            <h1 class="display-6" >
+                <strong style="color:red">عنوان گروه : </strong> 
+                {{ role.name }} 
+            </h1>
+            <p class="text-muted">{{ role.description|default:"بدون توضیحات" }}</p>
+            <p class="small text-muted"> 📅زمان چاپ: {{  print_date_now |jformat:"%Y/%m/%d" |to_persian_number }} ⌚{{  print_time_now  |to_persian_number }} </p>
+        </header>
+
+        {% for app_data in app_permission_status %}
+            <section class="permission-section">
+                <h4 class="p-2 bg-light rounded mb-3">{{ app_data.name }}</h4>
+
+                {% if app_data.assigned %}
+                    <h6 class="text-success">مجوزهای اختصاص داده شده ({{ app_data.assigned|length }} مورد)</h6>
+                    <ul class="permission-list">
+                        {% for perm in app_data.assigned %}
+                            <li class="assigned">
+                                <i class="fas fa-check-circle"></i>
+                                <span>{{ perm.name }} (<code>{{ perm.codename }}</code>)</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                {% if app_data.unassigned %}
+                    <h6 class="text-muted mt-4">مجوزهای اختصاص داده نشده ({{ app_data.unassigned|length }} مورد)</h6>
+                    <ul class="permission-list">
+                        {% for perm in app_data.unassigned %}
+                            <li class="unassigned">
+                                <i class="far fa-circle"></i>
+                                <span>{{ perm.name }} (<code>{{ perm.codename }}</code>)</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+            </section>
+        {% endfor %}
+    </div>
+
+    <button onclick="window.print();" class="btn btn-primary btn-lg shadow no-print print-button">
+        <i class="fas fa-print me-2"></i> چاپ
+    </button>
+
+
+
+{% endblock %}

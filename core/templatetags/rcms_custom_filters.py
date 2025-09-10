@@ -7,7 +7,19 @@ import re
 
 register = template.Library()
 
+# ============================ Jformat
+from django import template
+import jdatetime
 
+register = template.Library()
+
+@register.filter
+def jformat(value, format_string):
+    if value:
+        jdate = jdatetime.datetime.fromgregorian(datetime=value)
+        return jdate.strftime(format_string)
+    return value
+# =============================================================
 @register.filter
 def thousand_separator(value):
     try:

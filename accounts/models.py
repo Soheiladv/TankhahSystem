@@ -257,6 +257,7 @@ class Role(models.Model):
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children',
                                verbose_name=_("نقش والدین"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
 
     class Meta:
         verbose_name = _("نقش")
@@ -304,6 +305,13 @@ class CustomUserGroup(models.Model):
         db_table = 'accounts_customuser_groups'
         verbose_name = 'افزودن کاربری'
         verbose_name_plural = 'افزودن کاربری'
+        default_permissions = []
+        permissions = [
+            ('CustomUserGroup_add','افزودن گروه کاربری'),
+            ('CustomUserGroup_update','بروزرسانی کاربر'),
+            ('CustomUserGroup_view','نمایش گروه کاربری'),
+            ('CustomUserGroup_delete','حــذف گروه کاربری'),
+        ]
 class AuditLog(models.Model):
     """لاگ گیری سیستمی"""
     ACTION_CHOICES = [
