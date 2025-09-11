@@ -1,282 +1,400 @@
 {% extends "base.html" %}
-{% load static %}
-{% load rcms_custom_filters jformat  %}
+{% load static i18n rcms_custom_filters %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        {% trans "ویرایش دریافت‌کننده" %}
+    {% else %}
+        {% trans "ایجاد دریافت‌کننده جدید" %}
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --primary: #4f46e5;
+    --secondary: #64748b;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #0ea5e9;
+    --light-gray: #f1f5f9;
+    --dark-gray: #334155;
+    --bg-body: #f8fafc;
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    --border-radius: 0.75rem;
+    --transition: all 0.3s ease-in-out;
+}
+
+body {
+    font-family: 'Vazir', sans-serif;
+    direction: rtl;
+    text-align: right;
+    background-color: var(--bg-body);
+}
+
+.main-content {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-card {
+    background-color: #fff;
+    box-shadow: var(--shadow-md);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+.form-card:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--dark-gray);
+}
+
+.form-control, .form-select {
+    border-radius: 0.5rem;
+    transition: var(--transition);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
+}
+
+.is-invalid {
+    border-color: var(--danger);
+}
+
+.invalid-feedback {
+    font-size: 0.85rem;
+}
+
+.btn-primary, .btn-success {
+    transition: var(--transition);
+}
+
+.btn-success:hover {
+    background-color: #0d8f6b;
+    border-color: #0d8f6b;
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--light-gray);
+}
+
+.form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.required::after {
+    content: '*';
+    color: var(--danger);
+    margin-right: 4px;
+}
+
+@media (max-width: 768px) {
+    .form-card {
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid main-content py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8 col-xl-6">
-            <!-- کارت فرم -->
-            <div class="card shadow-lg border-0">
+            <div class="card form-card p-4">
                 <div class="card-header bg-primary text-white py-3">
                     <div class="d-flex align-items-center">
                         <i class="fas fa-user-plus fa-2x me-3"></i>
                         <div>
-                            <h4 class="mb-0">ایجاد دریافت‌کننده جدید</h4>
-                            <p class="mb-0 opacity-75">فرم ثبت اطلاعات دریافت‌کننده پرداخت</p>
+                            <h4 class="mb-0">
+                                {% if form.instance.pk %}
+                                    {% trans "ویرایش دریافت‌کننده" %}
+                                {% else %}
+                                    {% trans "ایجاد دریافت‌کننده جدید" %}
+                                {% endif %}
+                            </h4>
+                            <p class="mb-0 opacity-75">{% trans "فرم ثبت اطلاعات دریافت‌کننده پرداخت" %}</p>
                         </div>
                     </div>
                 </div>
-
                 <div class="card-body p-4">
-                    <!-- نمایش خطاهای کلی فرم -->
                     {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        {% for error in form.non_field_errors %}
-                            {{ error }}
-                        {% endfor %}
-                    </div>
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            {% for error in form.non_field_errors %}
+                                {{ error }}<br>
+                            {% endfor %}
+                        </div>
                     {% endif %}
-
-                    <form method="post" novalidate id="payee-form">
+                    <form method="post" id="payee-form" novalidate>
                         {% csrf_token %}
-                        
-                        <!-- بخش نوع شخص -->
-                        <div class="row mb-4">
+                        <div class="row g-3">
+                            <!-- نوع شخص و نوع دریافت‌کننده -->
                             <div class="col-12">
                                 <h5 class="text-primary border-bottom pb-2 mb-3">
-                                    <i class="fas fa-user-tag me-2"></i>
-                                    اطلاعات هویتی
+                                    <i class="fas fa-user-tag me-2"></i>{% trans "اطلاعات هویتی" %}
                                 </h5>
                             </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.entity_type.label }} *</label>
+                            <div class="col-md-6">
+                                <label for="{{ form.entity_type.id_for_label }}" class="form-label required">
+                                    {{ form.entity_type.label }}
+                                </label>
                                 {{ form.entity_type }}
                                 {% if form.entity_type.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.entity_type.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.entity_type.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.payee_type.label }}</label>
+                            <div class="col-md-6">
+                                <label for="{{ form.payee_type.id_for_label }}" class="form-label required">
+                                    {{ form.payee_type.label }}
+                                </label>
                                 {{ form.payee_type }}
                                 {% if form.payee_type.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.payee_type.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- اطلاعات حقیقی (مشروط) -->
-                        <div id="individual-fields" class="row mb-4" style="display: none;">
-                            <div class="col-12">
-                                <h6 class="text-secondary mb-3">
-                                    <i class="fas fa-user me-2"></i>
-                                    اطلاعات شخص حقیقی
-                                </h6>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.name.label }} *</label>
-                                {{ form.name }}
-                                {% if form.name.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.name.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.payee_type.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.family.label }} *</label>
-                                {{ form.family }}
-                                {% if form.family.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.family.errors %}
-                                        {{ error }}
-                                    {% endfor %}
+                            <!-- اطلاعات اشخاص حقیقی -->
+                            <div id="individual-fields" class="row g-3" style="display: none;">
+                                <div class="col-12">
+                                    <h6 class="text-secondary mb-3">
+                                        <i class="fas fa-user me-2"></i>{% trans "اطلاعات شخص حقیقی" %}
+                                    </h6>
                                 </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- اطلاعات حقوقی (مشروط) -->
-                        <div id="legal-fields" class="row mb-4" style="display: none;">
-                            <div class="col-12">
-                                <h6 class="text-secondary mb-3">
-                                    <i class="fas fa-building me-2"></i>
-                                    اطلاعات شخص حقوقی
-                                </h6>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.legal_name.label }} *</label>
-                                {{ form.legal_name }}
-                                {% if form.legal_name.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.legal_name.errors %}
-                                        {{ error }}
-                                    {% endfor %}
+                                <div class="col-md-6">
+                                    <label for="{{ form.name.id_for_label }}" class="form-label required">
+                                        {{ form.name.label }}
+                                    </label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.name.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
                                 </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.brand_name.label }}</label>
-                                {{ form.brand_name }}
-                                {% if form.brand_name.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.brand_name.errors %}
-                                        {{ error }}
-                                    {% endfor %}
+                                <div class="col-md-6">
+                                    <label for="{{ form.family.id_for_label }}" class="form-label required">
+                                        {{ form.family.label }}
+                                    </label>
+                                    {{ form.family }}
+                                    {% if form.family.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.family.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
                                 </div>
-                                {% endif %}
                             </div>
-                        </div>
 
-                        <!-- اطلاعات شناسایی -->
-                        <div class="row mb-4">
+                            <!-- اطلاعات اشخاص حقوقی -->
+                            <div id="legal-fields" class="row g-3" style="display: none;">
+                                <div class="col-12">
+                                    <h6 class="text-secondary mb-3">
+                                        <i class="fas fa-building me-2"></i>{% trans "اطلاعات شخص حقوقی" %}
+                                    </h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ form.legal_name.id_for_label }}" class="form-label required">
+                                        {{ form.legal_name.label }}
+                                    </label>
+                                    {{ form.legal_name }}
+                                    {% if form.legal_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.legal_name.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ form.brand_name.id_for_label }}" class="form-label">
+                                        {{ form.brand_name.label }}
+                                    </label>
+                                    {{ form.brand_name }}
+                                    {% if form.brand_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.brand_name.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- اطلاعات شناسایی -->
                             <div class="col-12">
                                 <h5 class="text-primary border-bottom pb-2 mb-3">
-                                    <i class="fas fa-id-card me-2"></i>
-                                    اطلاعات شناسایی
+                                    <i class="fas fa-id-card me-2"></i>{% trans "اطلاعات شناسایی" %}
                                 </h5>
                             </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.national_id.label }} *</label>
+                            <div class="col-md-6">
+                                <label for="{{ form.national_id.id_for_label }}" class="form-label required">
+                                    {{ form.national_id.label }}
+                                </label>
                                 {{ form.national_id }}
-                                <div class="form-text" id="national-id-help">کد ملی برای اشخاص حقیقی، شناسه ملی برای اشخاص حقوقی</div>
-                                {% if form.national_id.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.national_id.errors %}
-                                        {{ error }}
-                                    {% endfor %}
+                                <div class="form-text" id="national-id-help">
+                                    {% trans "کد ملی (10 رقم) یا شناسه حقوقی (11 رقم)" %}
                                 </div>
+                                {% if form.national_id.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.national_id.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.tax_id.label }}</label>
+                            <div class="col-md-6">
+                                <label for="{{ form.tax_id.id_for_label }}" class="form-label">
+                                    {{ form.tax_id.label }}
+                                </label>
                                 {{ form.tax_id }}
                                 {% if form.tax_id.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.tax_id.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.tax_id.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             </div>
-                        </div>
 
-                        <!-- اطلاعات بانکی -->
-                        <div class="row mb-4">
+                            <!-- اطلاعات بانکی -->
                             <div class="col-12">
                                 <h5 class="text-primary border-bottom pb-2 mb-3">
-                                    <i class="fas fa-university me-2"></i>
-                                    اطلاعات بانکی
+                                    <i class="fas fa-university me-2"></i>{% trans "اطلاعات بانکی" %}
                                 </h5>
                             </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.account_number.label }}</label>
+                            <div class="col-md-6">
+                                <label for="{{ form.account_number.id_for_label }}" class="form-label">
+                                    {{ form.account_number.label }}
+                                </label>
                                 {{ form.account_number }}
-                                <div class="form-text">فقط اعداد مجاز هستند</div>
+                                <div class="form-text">{% trans "فقط اعداد مجاز هستند" %}</div>
                                 {% if form.account_number.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.account_number.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.account_number.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.iban.label }}</label>
+                            <div class="col-md-6">
+                                <label for="{{ form.iban.id_for_label }}" class="form-label">
+                                    {{ form.iban.label }}
+                                </label>
                                 <div class="input-group">
                                     <span class="input-group-text">IR</span>
                                     {{ form.iban }}
                                 </div>
-                                <div class="form-text">24 رقم بعد از IR</div>
+                                <div class="form-text">{% trans "24 رقم بعد از IR (فقط اعداد)" %}</div>
                                 {% if form.iban.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.iban.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.iban.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             </div>
-                        </div>
 
-                        <!-- اطلاعات تماس -->
-                        <div class="row mb-4">
+                            <!-- اطلاعات تماس -->
                             <div class="col-12">
                                 <h5 class="text-primary border-bottom pb-2 mb-3">
-                                    <i class="fas fa-address-book me-2"></i>
-                                    اطلاعات تماس
+                                    <i class="fas fa-address-book me-2"></i>{% trans "اطلاعات تماس" %}
                                 </h5>
                             </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.phone.label }}</label>
+                            <div class="col-md-6">
+                                <label for="{{ form.phone.id_for_label }}" class="form-label">
+                                    {{ form.phone.label }}
+                                </label>
                                 {{ form.phone }}
-                                <div class="form-text">فرمت: 09xxxxxxxxx</div>
+                                <div class="form-text">{% trans "فرمت: 09xxxxxxxxx" %}</div>
                                 {% if form.phone.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.phone.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.phone.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ form.email.label }}</label>
+                            <div class="col-md-6">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                    {{ form.email.label }}
+                                </label>
                                 {{ form.email }}
                                 {% if form.email.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.email.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.email.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             </div>
-
-                            <div class="col-12 mb-3">
-                                <label class="form-label">{{ form.address.label }}</label>
+                            <div class="col-12">
+                                <label for="{{ form.address.id_for_label }}" class="form-label">
+                                    {{ form.address.label }}
+                                </label>
                                 {{ form.address }}
                                 {% if form.address.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.address.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.address.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             </div>
-                        </div>
 
-                        <!-- وضعیت فعال -->
-                        <div class="row mb-4">
+                            <!-- وضعیت فعال -->
                             <div class="col-12">
                                 <div class="form-check form-switch">
                                     {{ form.is_active }}
                                     <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
                                         {{ form.is_active.label }}
                                     </label>
+                                    {% if form.is_active.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.is_active.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- دکمه‌های اقدام -->
-                        <div class="row mt-4">
-                            <div class="col-12">
+                            <!-- دکمه‌ها -->
+                            <div class="col-12 mt-4">
                                 <div class="d-flex justify-content-between">
-                                    <a href="{% url 'payee_list' %}" class="btn btn-secondary">
-                                        <i class="fas fa-arrow-right me-2"></i>
-                                        بازگشت به لیست
+                                    <a href="{% url 'payee_list' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت به لیست" %}
                                     </a>
                                     <button type="submit" class="btn btn-success">
                                         <i class="fas fa-save me-2"></i>
-                                        ایجاد دریافت‌کننده
+                                        {% if form.instance.pk %}
+                                            {% trans "ذخیره تغییرات" %}
+                                        {% else %}
+                                            {% trans "ایجاد دریافت‌کننده" %}
+                                        {% endif %}
                                     </button>
                                 </div>
                             </div>
@@ -290,8 +408,13 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // تنظیم RTL
+    document.documentElement.setAttribute('dir', 'rtl');
+
     // عناصر DOM
     const entityTypeSelect = document.getElementById('{{ form.entity_type.id_for_label }}');
     const individualFields = document.getElementById('individual-fields');
@@ -301,149 +424,168 @@ document.addEventListener('DOMContentLoaded', function() {
     const ibanInput = document.getElementById('{{ form.iban.id_for_label }}');
     const phoneInput = document.getElementById('{{ form.phone.id_for_label }}');
     const accountInput = document.getElementById('{{ form.account_number.id_for_label }}');
-    
-    // تابع برای نمایش/مخفی کردن فیلدها بر اساس نوع شخص
+
+    // نمایش/مخفی کردن فیلدها
     function toggleEntityFields() {
         const entityType = entityTypeSelect.value;
-        
         if (entityType === 'INDIVIDUAL') {
             individualFields.style.display = 'block';
             legalFields.style.display = 'none';
-            nationalIdHelp.textContent = 'کد ملی 10 رقمی';
-            
-            // علامت‌گذاری فیلدهای اجباری
-            document.querySelector('label[for="{{ form.name.id_for_label }}"]').classList.add('required');
-            document.querySelector('label[for="{{ form.family.id_for_label }}"]').classList.add('required');
-            
+            nationalIdHelp.textContent = '{% trans "کد ملی 10 رقمی" %}';
+            document.getElementById('{{ form.name.id_for_label }}').required = true;
+            document.getElementById('{{ form.family.id_for_label }}').required = true;
+            document.getElementById('{{ form.legal_name.id_for_label }}').required = false;
+            document.getElementById('{{ form.brand_name.id_for_label }}').required = false;
         } else if (entityType === 'LEGAL') {
             individualFields.style.display = 'none';
             legalFields.style.display = 'block';
-            nationalIdHelp.textContent = 'شناسه حقوقی 11 رقمی';
-            
-            // علامت‌گذاری فیلدهای اجباری
-            document.querySelector('label[for="{{ form.legal_name.id_for_label }}"]').classList.add('required');
-            
+            nationalIdHelp.textContent = '{% trans "شناسه حقوقی 11 رقمی" %}';
+            document.getElementById('{{ form.name.id_for_label }}').required = false;
+            document.getElementById('{{ form.family.id_for_label }}').required = false;
+            document.getElementById('{{ form.legal_name.id_for_label }}').required = true;
+            document.getElementById('{{ form.brand_name.id_for_label }}').required = false;
         } else {
             individualFields.style.display = 'none';
             legalFields.style.display = 'none';
-            nationalIdHelp.textContent = 'کد ملی برای اشخاص حقیقی، شناسه ملی برای اشخاص حقوقی';
+            nationalIdHelp.textContent = '{% trans "کد ملی برای اشخاص حقیقی، شناسه ملی برای اشخاص حقوقی" %}';
         }
     }
-    
+
     // فرمت کردن شبا
     function formatIBAN(input) {
-    let value = input.value.replace(/[^0-9IR]/gi, '').toUpperCase();
-    if (!value.startsWith('IR')) {
-        value = 'IR' + value.replace(/^IR/, '');
+        let value = input.value.replace(/[^0-9]/g, '');
+        if (value.length > 24) {
+            value = value.substring(0, 24);
+        }
+        let formatted = '';
+        for (let i = 0; i < value.length; i += 4) {
+            formatted += value.substring(i, i + 4) + ' ';
+        }
+        input.value = formatted.trim();
+        // اعتبارسنجی بلادرنگ
+        const feedback = input.nextElementSibling.nextElementSibling;
+        if (value.length && value.length !== 24) {
+            input.classList.add('is-invalid');
+            feedback.textContent = '{% trans "شماره شبا باید دقیقاً 24 رقم باشد." %}';
+        } else {
+            input.classList.remove('is-invalid');
+            feedback.textContent = '';
+        }
     }
-    // فقط برای نمایش
-    let numbers = value.substring(2);
-    numbers = numbers.substring(0, 24);
-    let formatted = 'IR ' + numbers.match(/.{1,4}/g).join(' ');
-    input.value = formatted;
-}
-    
+
     // فرمت کردن شماره تلفن
     function formatPhone(input) {
         let value = input.value.replace(/[^0-9]/g, '');
-        
-        // حذف پیش‌شماره بین‌المللی
         if (value.startsWith('98')) {
             value = '0' + value.substring(2);
         } else if (value.startsWith('+98')) {
             value = '0' + value.substring(3);
         }
-        
-        // محدود کردن به 11 رقم
-        value = value.substring(0, 11);
-        
-        // فرمت کردن
-        if (value.length > 0) {
-            let formatted = value;
-            if (value.length > 4) {
-                formatted = value.substring(0, 4) + ' ' + value.substring(4);
-            }
-            if (value.length > 7) {
-                formatted = formatted.substring(0, 8) + ' ' + formatted.substring(8);
-            }
-            if (value.length > 9) {
-                formatted = formatted.substring(0, 11) + ' ' + formatted.substring(11);
-            }
-            input.value = formatted;
+        if (value.length > 11) {
+            value = value.substring(0, 11);
+        }
+        let formatted = value;
+        if (value.length > 4) formatted = value.substring(0, 4) + ' ' + value.substring(4);
+        if (value.length > 7) formatted = formatted.substring(0, 8) + ' ' + formatted.substring(8);
+        if (value.length > 9) formatted = formatted.substring(0, 11) + ' ' + formatted.substring(11);
+        input.value = formatted.trim();
+        // اعتبارسنجی بلادرنگ
+        const feedback = input.nextElementSibling.nextElementSibling;
+        if (value.length && (value.length !== 11 || !value.startsWith('09'))) {
+            input.classList.add('is-invalid');
+            feedback.textContent = '{% trans "شماره تلفن باید 11 رقمی و با 09 شروع شود." %}';
+        } else {
+            input.classList.remove('is-invalid');
+            feedback.textContent = '';
         }
     }
-    
-    // رویداد تغییر نوع شخص
+
+    // رویدادها
     entityTypeSelect.addEventListener('change', toggleEntityFields);
-    
-    // رویدادهای فرمت کردن
-    ibanInput.addEventListener('input', function() {
-        formatIBAN(this);
-    });
-    
-    phoneInput.addEventListener('input', function() {
-        formatPhone(this);
-    });
-    
-    // فقط اعداد برای شماره حساب
+    ibanInput.addEventListener('input', function() { formatIBAN(this); });
+    phoneInput.addEventListener('input', function() { formatPhone(this); });
     accountInput.addEventListener('input', function() {
         this.value = this.value.replace(/[^0-9]/g, '');
     });
-    
+
     // اجرای اولیه
     toggleEntityFields();
-    
-    // فرمت کردن مقادیر اولیه اگر وجود دارند
     if (ibanInput.value) {
         formatIBAN(ibanInput);
     }
     if (phoneInput.value) {
         formatPhone(phoneInput);
     }
-    
-    // اعتبارسنجی فرم
+
+    // اعتبارسنجی فرم هنگام ارسال
     const form = document.getElementById('payee-form');
     form.addEventListener('submit', function(e) {
         let isValid = true;
         const entityType = entityTypeSelect.value;
-        
+        const ibanValue = ibanInput.value.replace(/[^0-9]/g, '');
+
         // اعتبارسنجی نوع شخص
         if (entityType === 'INDIVIDUAL') {
             const name = document.getElementById('{{ form.name.id_for_label }}').value;
             const family = document.getElementById('{{ form.family.id_for_label }}').value;
-            
             if (!name || !family) {
                 isValid = false;
-                alert('لطفاً نام و نام خانوادگی را برای شخص حقیقی وارد کنید.');
+                Swal.fire({
+                    icon: 'error',
+                    title: '{% trans "خطا" %}',
+                    text: '{% trans "نام و نام خانوادگی برای اشخاص حقیقی الزامی است." %}'
+                });
             }
-            
         } else if (entityType === 'LEGAL') {
             const legalName = document.getElementById('{{ form.legal_name.id_for_label }}').value;
-            
             if (!legalName) {
                 isValid = false;
-                alert('لطفاً نام حقوقی را برای شخص حقوقی وارد کنید.');
+                Swal.fire({
+                    icon: 'error',
+                    title: '{% trans "خطا" %}',
+                    text: '{% trans "نام حقوقی برای اشخاص حقوقی الزامی است." %}'
+                });
             }
         }
-        
+
         // اعتبارسنجی شبا
-        const ibanValue = ibanInput.value.replace(/ /g, '');
-        if (ibanValue && ibanValue.length !== 26) {
+        if (ibanValue && ibanValue.length !== 24) {
             isValid = false;
-            alert('شماره شبا باید 24 رقم به همراه IR باشد.');
+            Swal.fire({
+                icon: 'error',
+                title: '{% trans "خطا" %}',
+                text: '{% trans "شماره شبا باید دقیقاً 24 رقم باشد." %}'
+            });
         }
-        
+
         // اعتبارسنجی تلفن
-        const phoneValue = phoneInput.value.replace(/ /g, '');
+        const phoneValue = phoneInput.value.replace(/[^0-9]/g, '');
         if (phoneValue && (phoneValue.length !== 11 || !phoneValue.startsWith('09'))) {
             isValid = false;
-            alert('شماره تلفن باید 11 رقمی و با 09 شروع شود.');
+            Swal.fire({
+                icon: 'error',
+                title: '{% trans "خطا" %}',
+                text: '{% trans "شماره تلفن باید 11 رقمی و با 09 شروع شود." %}'
+            });
         }
-        
+
         if (!isValid) {
             e.preventDefault();
         }
     });
+
+    // نمایش پیام‌های Django
+    {% if messages %}
+        {% for message in messages %}
+            Swal.fire({
+                icon: '{{ message.tags }}' === 'success' ? 'success' : 'error',
+                title: '{{ message.tags|capfirst }}',
+                text: '{{ message }}',
+                timer: 3000,
+                showConfirmButton: false
+            });
+        {% endfor %}
+    {% endif %}
 });
 </script>
 {% endblock %}
