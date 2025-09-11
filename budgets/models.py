@@ -22,9 +22,20 @@ from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum
 from decimal import Decimal
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ImproperlyConfigured
 from accounts.models import CustomUser
 
+
+def get_default_payment_order_status():
+    from core.models import Status
+    try:
+        # فرض می‌کنیم یک وضعیت اولیه برای دستور پرداخت با کد 'PO_DRAFT' دارید
+        return Status.objects.get(code='PO_DRAFT', is_initial=True)
+    except Status.DoesNotExist:
+        raise ImproperlyConfigured(
+            "وضعیت اولیه برای دستور پرداخت با کد 'PO_DRAFT' تعریف نشده است. لطفاً آن را در پنل ادمین ایجاد کنید.")
+    except Status.MultipleObjectsReturned:
+        raise ImproperlyConfigured("بیش از یک وضعیت اولیه برای دستور پرداخت تعریف شده است.")
 
 def get_current_date():
     return timezone.now().date()
@@ -65,11 +76,6 @@ class BudgetPeriod(models.Model):
 
     @property
     def is_locked(self):
-        """
-        بررسی وضعیت قفل دوره بودجه.
-        Returns:
-            tuple: (bool, str) - وضعیت قفل و پیام مربوطه
-        """
         try:
             if not self.is_active:
                 return True, _("دوره بودجه غیرفعال است.")
@@ -124,10 +130,10 @@ class BudgetPeriod(models.Model):
 
                 BudgetHistory.objects.create(
                     content_object=self,
-                    action='STATUS_CHANGE',  # یک اکشن مناسب
+                    action='STATUS_CHANGE',
                     details=f"تغییر وضعیت از '{original_status}' به '{current_status}'. پیام: {current_message}",
-                    created_by=self.created_by,  # ایده آل: کاربری که تغییر را ایجاد کرده
-                    transaction_id=transaction_id  # <--- پاس دادن شناسه یکتا
+                    created_by=self.created_by,
+                    transaction_id=transaction_id
                 )
                 logger.info(f"BudgetHistory created for BudgetPeriod {self.pk} due to status change.")
 
@@ -190,9 +196,6 @@ class BudgetPeriod(models.Model):
             logger.error(f"Error updating lock status for BudgetPeriod {self.pk}: {str(e)}")
 
     def get_remaining_amount(self):
-        """
-        محاسبه بودجه باقیمانده دوره بر اساس تراکنش‌ها.
-        """
         allocations_in_period = self.allocations.all()
 
         if not allocations_in_period.exists():
@@ -237,9 +240,6 @@ class BudgetPeriod(models.Model):
 # --------------------------------------
 """ BudgetAllocation (تخصیص بودجه):"""
 class BudgetAllocation(models.Model):
-    """
-    تخصیص بودجه به سازمان‌ها (شعبات یا ادارات) و پروژه‌ها.
-    """
     budget_period = models.ForeignKey('BudgetPeriod', on_delete=models.CASCADE, related_name='allocations',
                                       verbose_name=_("دوره بودجه"))
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, related_name='budget_allocations',
@@ -479,7 +479,7 @@ class BudgetAllocation(models.Model):
                     budget_source_obj=self,
                     transaction_type=transaction_type,
                     amount=abs(adjustment_amount),
-                    created_by=self.created_by,  # ایده آل: کاربری که تغییر را اعمال کرده
+                    created_by=self.created_by,
                     description=f"اصلاح مبلغ تخصیص از {old_amount:,.0f} به {self.allocated_amount:,.0f}"
                 )
             from django.core.cache import cache
@@ -640,7 +640,6 @@ class BudgetTransaction(models.Model):
 # --------------------------------------
 """Payee (دریافت‌کننده):"""
 class Payee(models.Model):
-    """توضیح: اطلاعات دریافت‌کننده پرداخت با نوع مشخص (فروشنده، کارمند، دیگر)."""
     PAYEE_TYPES = (
         ('VENDOR', _('فروشنده')),
         ('EMPLOYEE', _('کارمند')),
@@ -675,7 +674,6 @@ class Payee(models.Model):
         ]
 # --------------------------------------
 """PaymentOrder (دستور پرداخت):"""
-# --------------------------------------
 class PaymentOrder(models.Model):
     tankhah = models.ForeignKey(Tankhah, on_delete=models.CASCADE, related_name='payment_orders',
                                 verbose_name=_("تنخواه"))
@@ -693,7 +691,7 @@ class PaymentOrder(models.Model):
         'core.Status',
         on_delete=models.PROTECT,
         verbose_name=_("وضعیت"),
-        default=get_default_initial_status,
+        default=get_default_payment_order_status,
         null=True,
         blank=True,
     )
@@ -802,7 +800,6 @@ class PaymentOrder(models.Model):
 # --------------------------------------
 """TransactionType (نوع تراکنش):"""
 class TransactionType(models.Model):
-    """توضیح: تعریف پویا نوع تراکنش‌ها (مثل بیمه، جریمه) با امکان نیاز به تأیید اضافی."""
     name = models.CharField(max_length=250, unique=True, verbose_name=_("نام"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
     requires_extra_approval = models.BooleanField(default=False,
@@ -943,7 +940,6 @@ class BudgetTransferReturn(models.Model):
 
 
 class CostCenter(models.Model):
-    """ مدل پیشنهادی برای هزینه‌های متعارف"""
     name = models.CharField(max_length=200, verbose_name=_("نام مرکز هزینه"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("کد مرکز هزینه"))
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("سازمان"))

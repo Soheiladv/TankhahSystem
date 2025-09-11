@@ -57,26 +57,26 @@
                 {{ form.password2.label_tag }}
                 {{ form.password2 }}
             </div>
-        <!-- گروه‌ها -->
-        <div class="col-md-6">
-            <label for="id_groups" class="form-label"><i class="fas fa-users"></i> گروه‌ها</label>
-            <select name="groups" id="id_groups" multiple class="form-control">
-                {% for group in groups %}
-                    <option value="{{ group.id }}" {% if group in object.groups.all %}selected{% endif %}>{{ group.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
+       <!-- نقش‌ها -->
+<div class="col-md-6">
+    <label for="id_roles" class="form-label"><i class="fas fa-briefcase"></i> نقش‌ها</label>
+    <select name="roles" id="id_roles" multiple class="form-control">
+        {% for role in roles %}
+            <option value="{{ role.id }}" {% if role in object.roles.all %}selected{% endif %}>{{ role.name }}</option>
+        {% endfor %}
+    </select>
+</div>
 
-        <!-- نقش -->
-        <div class="col-md-6">
-            <label for="id_role" class="form-label"><i class="fas fa-briefcase"></i> نقش</label>
-            <select name="role" id="id_role" class="form-control">
-                <option value="">بدون نقش</option>
-                {% for role in roles %}
-                    <option value="{{ role.id }}" {% if object.role and role.id == object.role.id %}selected{% endif %}>{{ role.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
+<!-- گروه‌ها -->
+<div class="col-md-6">
+    <label for="id_groups" class="form-label"><i class="fas fa-users"></i> گروه‌ها</label>
+    <select name="groups" id="id_groups" multiple class="form-control">
+        {% for group in groups %}
+            <option value="{{ group.id }}" {% if group in object.groups.all %}selected{% endif %}>{{ group.name }}</option>
+        {% endfor %}
+    </select>
+</div>
+
 
         <!-- وضعیت فعال بودن -->
         <div class="col-md-6 form-check">

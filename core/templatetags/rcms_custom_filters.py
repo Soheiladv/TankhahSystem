@@ -697,3 +697,14 @@ def add_attr(field, attrs_str):
 
 
 #-----------------------------------------------------
+
+
+@register.simple_tag(takes_context=True)
+def query_params(context, **kwargs):
+    """
+    Updates query parameters in a URL.
+    """
+    query = context['request'].GET.copy()
+    for key, value in kwargs.items():
+        query[key] = value
+    return query.urlencode()

@@ -283,9 +283,10 @@ class FactorForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        logger.debug(f"[FactorForm] شروع مقداردهی اولیه برای کاربر '{self.user.username if self.user else 'Anonymous'}'.")
+        logger.debug(
+            f"[FactorForm.__init__] شروع مقداردهی اولیه برای کاربر '{self.user.username if self.user else 'Anonymous'}'.")
 
-        # فیلتر پایه برای تنخواه‌ها
+        # فیلتر اولیه تنخواه‌ها
         tankhah_queryset = Tankhah.objects.filter(
             is_archived=False,
             status__code__in=['DRAFT', 'PENDING', 'APPROVED'],
@@ -293,57 +294,56 @@ class FactorForm(forms.ModelForm):
             project__isnull=False
         ).select_related('organization', 'project').order_by('-created_at')
 
-        # اعتبارسنجی پروژه‌های معتبر
-        try:
-            tankhah_queryset = tankhah_queryset.filter(project__in=Project.objects.all())
-            logger.debug(f"[FactorForm] تعداد تنخواه‌های با پروژه معتبر: {tankhah_queryset.count()}")
-        except Exception as e:
-            logger.error(f"[FactorForm] خطا در فیلتر کردن تنخواه‌های با پروژه معتبر: {str(e)}", exc_info=True)
-            raise forms.ValidationError(_('خطا در بارگذاری تنخواه‌ها: مشکل در داده‌های پروژه. لطفاً با مدیر سیستم تماس بگیرید.'))
-
-        # فیلتر سطح دسترسی کاربر
+        # اگر کاربر وارد سیستم شده و سوپر یوزر نیست، فیلتر دسترسی اعمال شود
         if self.user and not self.user.is_superuser:
+            # سازمان‌های قابل دسترسی کاربر
             user_posts = self.user.userpost_set.filter(is_active=True).select_related('post__organization')
             if not user_posts.exists():
-                logger.warning(f"[FactorForm] کاربر '{self.user.username}' هیچ پست فعال سازمانی ندارد")
-                raise forms.ValidationError(_('شما هیچ پست سازمانی فعالی ندارید. لطفاً با مدیر سیستم تماس بگیرید.'))
+                logger.warning(f"[FactorForm.__init__] کاربر '{self.user.username}' هیچ پست فعال ندارد.")
+                raise forms.ValidationError(_('شما هیچ پست فعال سازمانی ندارید. لطفاً با مدیر سیستم تماس بگیرید.'))
 
-            # ساخت مجموعه سازمان‌های مستقیم (فقط شعبه‌ها)
+            # استخراج سازمان‌های قابل دسترسی
             user_orgs = set()
+            central_orgs = set()
             for up in user_posts:
                 org = getattr(up.post, 'organization', None)
-                if org and isinstance(org, Organization) and not org.is_core and not org.is_holding:
-                    user_orgs.add(org)
-                    logger.debug(f"[FactorForm] سازمان شعبه‌ای اضافه شد: {org.name} (کد: {org.code})")
+                if org:
+                    if org.is_core:
+                        central_orgs.add(org)  # دفتر مرکزی
+                    else:
+                        user_orgs.add(org)  # شعبات عادی
+
+            # اگر کاربر دفتر مرکزی دارد، شعبات زیرمجموعه را هم اضافه می‌کنیم
+            for core_org in central_orgs:
+                descendants = core_org.sub_organizations.filter(is_active=True)
+                user_orgs.update(descendants)
 
             if not user_orgs:
-                logger.warning(f"[FactorForm] هیچ سازمان شعبه‌ای برای کاربر '{self.user.username}' یافت نشد")
+                logger.warning(f"[FactorForm.__init__] هیچ سازمان فعال برای کاربر '{self.user.username}' یافت نشد.")
                 raise forms.ValidationError(_('شما به هیچ شعبه‌ای دسترسی ندارید. لطفاً با مدیر سیستم تماس بگیرید.'))
 
-            # فیلتر تنخواه‌ها بر اساس سازمان‌های شعبه‌ای
-            try:
-                # فقط تنخواه‌هایی که سازمان یا پروژه‌شان به سازمان‌های مجاز کاربر مرتبط باشن
-                tankhah_queryset = tankhah_queryset.filter(
-                    Q(organization__in=user_orgs) |
-                    (Q(project__in=Project.objects.filter(organizations__in=user_orgs)) &
-                     Q(project__organizations__is_core=False, project__organizations__is_holding=False))
-                ).distinct()
-                logger.debug(f"[FactorForm] تعداد تنخواه‌های فیلترشده برای شعبه‌ها: {tankhah_queryset.count()}")
-            except Exception as e:
-                logger.error(f"[FactorForm] خطا در فیلتر کردن تنخواه‌ها: {str(e)}", exc_info=True)
-                raise forms.ValidationError(_('خطا در بارگذاری تنخواه‌ها: مشکل در فیلتر سازمان‌ها. لطفاً با مدیر سیستم تماس بگیرید.'))
+            # اعمال فیلتر بر queryset تنخواه‌ها
+            tankhah_queryset = tankhah_queryset.filter(
+                Q(organization__in=user_orgs) |
+                Q(project__organizations__in=user_orgs)
+            ).distinct()
+            logger.debug(f"[FactorForm.__init__] تعداد تنخواه‌های قابل دسترسی پس از فیلتر: {tankhah_queryset.count()}")
 
+        # تنظیم queryset فیلد
         self.fields['tankhah'].queryset = tankhah_queryset
-        logger.debug(f"[FactorForm] تعداد تنخواه‌های نهایی: {tankhah_queryset.count()}")
 
+        # اگر initial برای تنخواه تعیین شده، فیلد غیرفعال شود
         if 'tankhah' in self.initial:
             self.fields['tankhah'].disabled = True
-            logger.debug(f"[FactorForm] تنخواه اولیه غیرفعال شد: {self.initial['tankhah']}")
+            logger.debug(f"[FactorForm.__init__] فیلد تنخواه غیرفعال شد: {self.initial['tankhah']}")
 
+        # تنظیم مقدار اولیه تاریخ
         if not self.initial.get('date'):
             self.initial['date'] = jdatetime.date.today().strftime('%Y/%m/%d')
         elif self.instance and self.instance.pk and self.instance.date:
             self.initial['date'] = jdatetime.date.fromgregorian(date=self.instance.date).strftime('%Y/%m/%d')
+
+        logger.debug(f"[FactorForm.__init__] مقداردهی اولیه فرم کامل شد.")
 
     def clean_date(self):
         """اعتبارسنجی تاریخ جلالی"""

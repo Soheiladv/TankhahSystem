@@ -18,13 +18,10 @@ from .Budget_Items.views_Budget_item import *
 from .BudgetReturn.view_BudgetReturn import BudgetReturnView
 from .BudgetReturn.views_BudgetTransferView import BudgetTransferView
 from .BudgetReturn.budget_Api_Return import ProjectAllocationFreeBudgetAPI, ProjectAllocationAPI
-# from .TransactionType.views_TransactionType import *
 from .Payee.view_Payee import *
 from .PaymentOrder.view_PaymentOrder import *
-from .PaymentOrder.PaymentOrder import PaymentOrderSignView
 from core.views import BudgetAllocationView
 
-# افزودن app_name به شما اجازه می‌دهد در تمپلیت‌ها از 'budgets:dashboard' استفاده کنید که جلوی تداخل نام را می‌گیرد
 # app_name = 'budgets'
 
 urlpatterns = [
@@ -40,28 +37,24 @@ urlpatterns = [
     # ===================================================================
     # ==== مدیریت تعاریف پایه ====
     # ===================================================================
-    # 1. BudgetPeriod (دوره‌های بودجه)
     path('budgetperiod/', BudgetPeriodListView.as_view(), name='budgetperiod_list'),
     path('budgetperiod/add/', BudgetPeriodCreateView.as_view(), name='budgetperiod_create'),
     path('budgetperiod/<int:pk>/', BudgetPeriodDetailView.as_view(), name='budgetperiod_detail'),
     path('budgetperiod/<int:pk>/edit/', BudgetPeriodUpdateView.as_view(), name='budgetperiod_update'),
     path('budgetperiod/<int:pk>/delete/', BudgetPeriodDeleteView.as_view(), name='budgetperiod_delete'),
 
-    # 2. BudgetItem (ردیف‌های بودجه)
     path('budgetitems/', BudgetItemListView.as_view(), name='budgetitem_list'),
     path('budgetitems/create/', BudgetItemCreateView.as_view(), name='budgetitem_create'),
     path('budgetitems/<int:pk>/', BudgetItemDetailView.as_view(), name='budgetitem_detail'),
     path('budgetitems/<int:pk>/update/', BudgetItemUpdateView.as_view(), name='budgetitem_update'),
     path('budgetitems/<int:pk>/delete/', BudgetItemDeleteView.as_view(), name='budgetitem_delete'),
 
-    # 3. Payee (دریافت‌کنندگان)
     path('payee/', PayeeListView.as_view(), name='payee_list'),
     path('payee/add/', PayeeCreateView.as_view(), name='payee_create'),
     path('payee/<int:pk>/', PayeeDetailView.as_view(), name='payee_detail'),
     path('payee/<int:pk>/edit/', PayeeUpdateView.as_view(), name='payee_update'),
     path('payee/<int:pk>/delete/', PayeeDeleteView.as_view(), name='payee_delete'),
 
-    # 4. TransactionType (انواع تراکنش)
     path('transactiontype/', TransactionTypeListView.as_view(), name='transactiontype_list'),
     path('transactiontype/add/', TransactionTypeCreateView.as_view(), name='transactiontype_add'),
     path('transactiontype/<int:pk>/edit/', TransactionTypeUpdateView.as_view(), name='transactiontype_edit'),
@@ -70,7 +63,6 @@ urlpatterns = [
     # ===================================================================
     # ==== عملیات اصلی بودجه ====
     # ===================================================================
-    # 5. BudgetAllocation (تخصیص به سازمان)
     path('budgetallocation/', BudgetAllocationListView.as_view(), name='budgetallocation_list'),
     path('budgetallocations/create/', BudgetAllocationCreateView.as_view(), name='budgetallocation_create'),
     path('budgetallocation/<int:pk>/', BudgetAllocationDetailView.as_view(), name='budgetallocation_detail'),
@@ -79,7 +71,6 @@ urlpatterns = [
     path('organization/<int:org_id>/allocations/', OrganizationBudgetAllocationListView.as_view(),
          name='organization_budgetallocation_list'),
 
-    # 6. ProjectBudgetAllocation (تخصیص به پروژه)
     path('organization/<int:organization_id>/project-budget-allocations/', ProjectBudgetAllocationListView.as_view(),
          name='project_budget_allocation_list'),
     path('organization/<int:organization_id>/project-budget-allocation/', ProjectBudgetAllocationCreateView.as_view(),
@@ -89,17 +80,13 @@ urlpatterns = [
     path('budget/allocation/<int:pk>/edit/', Project__Budget__Allocation__Edit__View.as_view(),
          name='project__budget__allocation__edit__view'),
 
-    # 7. BudgetTransaction (تراکنش‌ها)
     path('budgettransaction/', BudgetTransactionListView.as_view(), name='budgettransaction_list'),
     path('budgettransaction/<int:pk>/', BudgetTransactionDetailView.as_view(), name='budgettransaction_detail'),
     path('budget/allocation/<int:allocation_id>/transactions/', BudgetTransactionListView_2D.as_view(),
          name='budget_transaction_list_2d'),
 
-    # 8. Budget Return & Transfer (بازگشت و انتقال بودجه)
     path('budget-transfer/', BudgetTransferView.as_view(), name='budget_transfer'),
-    # نکته: شما دو URL با نام یکسان 'budget_return' دارید. جنگو فقط آخری را در نظر می‌گیرد.
     path('budget/allocation/<int:allocation_id>/return/', BudgetReturnView.as_view(), name='budget_return'),
-    path('budget-return/<int:allocation_id>/', BudgetReturnView.as_view(), name='budget_return'),
     path('api/project-allocation-free-budget/<int:pk>/', ProjectAllocationFreeBudgetAPI.as_view(),
          name='project_allocation_free_budget'),
     path('api/project-allocations/', ProjectAllocationAPI.as_view(), name='project_allocation_api_list'),
@@ -107,14 +94,13 @@ urlpatterns = [
     # ===================================================================
     # ==== عملیات پرداخت ====
     # ===================================================================
-    # 9. PaymentOrder (دستور پرداخت)
     path('paymentorder/', PaymentOrderListView.as_view(), name='paymentorder_list'),
     path('paymentorder/add/', PaymentOrderCreateView.as_view(), name='paymentorder_add'),
     path('paymentorder/<int:pk>/edit/', PaymentOrderUpdateView.as_view(), name='paymentorder_edit'),
     path('paymentorder/<int:pk>/delete/', PaymentOrderDeleteView.as_view(), name='paymentorder_delete'),
-    path('payment-order/<int:pk>/sign/', PaymentOrderSignView.as_view(), name='payment_order_sign'),
-    path('payment-orders/review/',  PaymentOrderReviewView.as_view(), name='payment_order_review'),
     path('paymentorders/<int:pk>/', PaymentOrderDetailView.as_view(), name='paymentorder_detail'),
+    path('payment-order/<int:pk>/perform-action/<int:action_pk>/', PerformActionView.as_view(), name='paymentorder_perform_action'),
+    path('payment-orders/review/',  PaymentOrderReviewView.as_view(), name='payment_order_review'),
 
     # ===================================================================
     # ==== کارتابل و گزارشات ====
@@ -123,15 +109,5 @@ urlpatterns = [
          name='approve_reject'),
     path('budgetrealtimeReportView/', ProjectBudgetRealtimeReportView.as_view(), name='budgetrealtimeReportView'),
 
-    # متفرقه - این URL از core ایمپورت شده بود
     path('budget_allocation_view/', BudgetAllocationView.as_view(), name='budget_allocation_view'),
 ]
-
-urlpatterns += [
-    path('budgetitems/',  BudgetItemListView.as_view(), name='budgetitem_list'),
-    path('budgetitems/create/',  BudgetItemCreateView.as_view(), name='budgetitem_create'),
-    path('budgetitems/<int:pk>/update/',  BudgetItemUpdateView.as_view(), name='budgetitem_update'),
-    path('budgetitems/<int:pk>/delete/',  BudgetItemDeleteView.as_view(), name='budgetitem_delete'),
-    path('budgetitems/<int:pk>/',  BudgetItemDetailView.as_view(), name='budgetitem_detail'),
-] # تعاریف ردیف بودجه
-

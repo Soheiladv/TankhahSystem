@@ -207,3 +207,20 @@ def dashboard_view(request):
 ### نتیجه‌گیری:
 تابع `get_user_permissions` یک ابزار قدرتمند برای جمع‌آوری مجوزهاست. با استفاده از آن می‌توانید منوها، صفحات و حتی بخش‌های مختلف برنامه را بر اساس نقش‌ها و دسترسی‌های کاربران هماهنگ کنید. مهم‌ترین نکته، استفاده از `codename`ها به عنوان شناسه یکتا برای تطبیق مجوزها است.
 '''
+
+# ================
+'''
+یک helper function بنویسیم که بعد از ذخیره کاربر، همه‌ی مسیرهای دسترسیش رو لاگ کنه:
+'''
+def debug_user_permissions(user):
+    print(f"User: {user.username}")
+    print("Direct roles:", [r.name for r in user.roles.all()])
+    print("Django groups:", [g.name for g in user.groups.all()])
+    for g in user.groups.all():
+        print(f"  Group {g.name} roles:", [r.name for r in g.roles.all()])
+    print("Effective perms:", list(user.get_all_permissions()))
+
+'''
+from accounts.utils import debug_user_permissions
+debug_user_permissions(u)
+'''

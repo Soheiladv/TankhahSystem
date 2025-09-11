@@ -1,115 +1,106 @@
 {% extends 'base.html' %}
+{% load i18n %}
+{% load humanize %}
+
 {% block content %}
 <div class="container mt-4">
-    <h2>جزئیات دستور پرداخت</h2>
     <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>{% trans "جزئیات دستور پرداخت" %} - {{ payment_order.order_number }}</h4>
+        </div>
         <div class="card-body">
-            <p><strong>شماره دستور:</strong> {{ action.order_number }}</p>
-            <p><strong>تنخواه:</strong> {{ action.tankhah.number|default:action.related_tankhah.number }}</p>
-            <p><strong>مبلغ:</strong> {{ action.amount|floatformat:0|default:"0" }} ریال</p>
-            <p><strong>وضعیت:</strong> {{ action.get_status_display }}</p>
-            <p><strong>مرحله:</strong> {{ action.current_stage.name|default:"-" }}</p>
-            <p><strong>صادرکننده:</strong> {{ action.created_by.get_full_name|default:"-" }}</p>
-            <p><strong>دریافت‌کننده:</strong> {{ action.payee.name|default:"-" }}</p>
-            <p><strong>فاکتورهای مرتبط:</strong> {{ action.related_factors.all|join:", "|default:"-" }}</p>
-            <p><strong>توضیحات:</strong> {{ action.description|default:"-" }}</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>{% trans "شماره دستور" %}:</strong> {{ payment_order.order_number }}</p>
+                    <p><strong>{% trans "مبلغ" %}:</strong> {{ payment_order.amount|floatformat:0|intcomma }} {% trans "ریال" %}</p>
+                    <p><strong>{% trans "دریافت‌کننده" %}:</strong> {{ payment_order.payee }}</p>
+                    <p><strong>{% trans "تاریخ صدور" %}:</strong> {{ payment_order.issue_date|date:"Y/m/d" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>{% trans "وضعیت" %}:</strong> <span class="badge bg-info">{{ payment_order.status.name }}</span></p>
+                    <p><strong>{% trans "ایجادکننده" %}:</strong> {{ payment_order.created_by.get_full_name|default:payment_order.created_by.username }}</p>
+                    <p><strong>{% trans "تنخواه مرتبط" %}:</strong> <a href="{% url 'tankhah_detail' payment_order.tankhah.pk %}">{{ payment_order.tankhah.number }}</a></p>
+                    <p><strong>{% trans "فاکتورهای مرتبط" %}:</strong>
+                        {% for factor in payment_order.related_factors.all %}
+                            <a href="{% url 'factor_detail' factor.pk %}">{{ factor.number }}</a>{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            -
+                        {% endfor %}
+                    </p>
+                </div>
+                <div class="col-12">
+                     <p><strong>{% trans "توضیحات" %}:</strong> {{ payment_order.description|default:"-" }}</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <h4 class="mt-4">وضعیت امضاها</h4>
-    <ul class="list-group">
-        {% for approval in approval_logs %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>{{ approval.approver_post.name|default:"-" }}</strong>
-                    {% if approval.is_approved %}
-                        <br><small class="text-muted">امضا شده توسط: {{ approval.approver_user.get_full_name|default:"-" }} در تاریخ {{ approval.timestamp|date:"Y/m/d H:i" }}</small>
-                    {% endif %}
+    <!-- بخش اقدامات گردش کار -->
+    {% if available_actions and not payment_order.is_locked %}
+        <div class="card mt-4">
+            <div class="card-header bg-secondary text-white">
+                <h5>{% trans "اقدامات مجاز" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    {% for transition in available_actions %}
+                        <form method="post" action="{% url 'paymentorder_perform_action' pk=payment_order.pk action_pk=transition.action.pk %}" class="p-3 border rounded bg-light">
+                            {% csrf_token %}
+                            <div class="mb-2">
+                                <label for="comment-{{ transition.action.pk }}" class="form-label">{% trans "توضیحات (اختیاری)" %}</label>
+                                <textarea name="comment" id="comment-{{ transition.action.pk }}" class="form-control form-control-sm" rows="2"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm">
+                                <i class="fas fa-check"></i> {{ transition.action.name }}
+                            </button>
+                        </form>
+                    {% endfor %}
                 </div>
-                {% if approval.is_approved %}
-                    <span class="badge bg-success rounded-pill">تأیید شده</span>
-                {% else %}
-                    <span class="badge bg-warning rounded-pill">در انتظار امضا</span>
-                {% endif %}
-            </li>
-        {% endfor %}
-    </ul>
-
-    {% if user_can_sign %}
-        <form method="post" class="mt-4">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-primary">امضا و تأیید</button>
-        </form>
+            </div>
+        </div>
+    {% elif payment_order.is_locked %}
+        <div class="alert alert-info mt-4">{% trans "این دستور پرداخت در وضعیت نهایی قرار دارد و قفل شده است." %}</div>
     {% endif %}
+
+
+    <!-- بخش تاریخچه اقدامات -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>{% trans "تاریخچه اقدامات" %}</h5>
+        </div>
+        <div class="card-body">
+            {% if approval_logs %}
+                <ul class="list-group">
+                    {% for log in approval_logs %}
+                        <li class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ log.action.name }}</h6>
+                                <small>{{ log.timestamp|date:"Y/m/d H:i" }}</small>
+                            </div>
+                            <p class="mb-1">
+                                {% blocktrans with user_name=log.user.get_full_name|default:log.user.username post_name=log.post.name|default:'-' %}
+                                توسط <strong>{{ user_name }}</strong> (پست: {{ post_name }})
+                                {% endblocktrans %}
+                            </p>
+                            <p class="mb-1">
+                                {% blocktrans with from_status=log.from_status.name to_status=log.to_status.name %}
+                                تغییر وضعیت از <span class="badge bg-secondary">{{ from_status }}</span> به <span class="badge bg-success">{{ to_status }}</span>
+                                {% endblocktrans %}
+                            </p>
+                            {% if log.comment %}
+                                <small class="text-muted"><strong>{% trans "توضیحات" %}:</strong> {{ log.comment }}</small>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>{% trans "هیچ اقدامی تاکنون ثبت نشده است." %}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'paymentorder_list' %}" class="btn btn-secondary">{% trans "بازگشت به لیست" %}</a>
+    </div>
 </div>
 {% endblock %}
-
-{% comment %}{% extends 'base.html' %}
-{% block content %}
-<div class="container mt-4">
-    <h2>جزئیات دستور پرداخت</h2>
-    <div class="card">
-        <div class="card-body">
-            <p><strong>شماره مرجع:</strong> {{ action.reference_number }}</p>
-            <p><strong>تنخواه:</strong> {{ action.tankhah.number }}</p>
-            <p><strong>مبلغ:</strong> {{ action.amount|floatformat:0 }} ریال</p>
-            <p><strong>مرحله:</strong> {{ action.stage.name }}</p>
-            <p><strong>صادرکننده:</strong> {{ action.user.get_full_name }}</p>
-            <p><strong>توضیحات:</strong> {{ action.description }}</p>
-        </div>
-    </div>
-
-    <h4 class="mt-4">وضعیت امضاها</h4>
-    <ul class="list-group">
-        {% for approval in action.approvals.all %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>{{ approval.approver_post.name }}</strong>
-                    {% if approval.is_approved %}
-                        <br><small class="text-muted">امضا شده توسط: {{ approval.approver_user.get_full_name }} در تاریخ {{ approval.timestamp }}</small>
-                    {% endif %}
-                </div>
-                {% if approval.is_approved %}
-                    <span class="badge bg-success rounded-pill">تایید شده</span>
-                {% else %}
-                    <span class="badge bg-warning rounded-pill">در انتظار امضا</span>
-                {% endif %}
-            </li>
-        {% endfor %}
-    </ul>
-
-    {% if user_can_sign %}
-        <form method="post" class="mt-4">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-primary">امضا و تأیید</button>
-        </form>
-    {% endif %}
-</div>
-{% endblock %}{% endcomment %}
-
-{#{% extends 'base.html' %}#}
-{#{% block title %}جزئیات {{ payment_order.order_number }}{% endblock %}#}
-{#{% block content %}#}
-{#<div class="card">#}
-{#    <div class="card-header bg-info text-white">#}
-{#        <h3 class="mb-0">جزئیات دستور پرداخت: {{ payment_order.order_number }}</h3>#}
-{#    </div>#}
-{#    <div class="card-body">#}
-{#        <dl class="row">#}
-{#            <dt class="col-sm-3">تنخواه:</dt><dd class="col-sm-9">{{ payment_order.tankhah }}</dd>#}
-{#            <dt class="col-sm-3">مبلغ:</dt><dd class="col-sm-9">{{ payment_order.amount }}</dd>#}
-{#            <dt class="col-sm-3">دریافت‌کننده:</dt><dd class="col-sm-9">{{ payment_order.payee }}</dd>#}
-{#            <dt class="col-sm-3">وضعیت:</dt><dd class="col-sm-9">{{ payment_order.get_status_display }}</dd>#}
-{#            <dt class="col-sm-3">تاریخ صدور:</dt><dd class="col-sm-9">{{ payment_order.issue_date|date:'Y/m/d' }}</dd>#}
-{#            <dt class="col-sm-3">حداقل امضا:</dt><dd class="col-sm-9">{{ payment_order.min_signatures }}</dd>#}
-{#            <dt class="col-sm-3">شرح:</dt><dd class="col-sm-9">{{ payment_order.description }}</dd>#}
-{#            <dt class="col-sm-3">فاکتورها:</dt><dd class="col-sm-9">#}
-{#                {% for factor in payment_order.related_factors.all %}{{ factor }}، {% empty %}-{% endfor %}#}
-{#            </dd>#}
-{#            <dt class="col-sm-3">ایجادکننده:</dt><dd class="col-sm-9">{{ payment_order.created_by }}</dd>#}
-{#        </dl>#}
-{#        <a href="{% url 'paymentorder_update' payment_order.pk %}" class="btn btn-warning">ویرایش</a>#}
-{#        <a href="{% url 'paymentorder_list' %}" class="btn btn-secondary">بازگشت</a>#}
-{#    </div>#}
-{#</div>#}
-{#{% endblock %}#}

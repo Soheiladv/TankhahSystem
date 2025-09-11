@@ -170,7 +170,8 @@ class CustomUserForm(forms.ModelForm):
     class Meta:
         model = CustomUser
         # fields = ('username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'is_superuser')
-        fields = ['username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'is_superuser', 'roles',
+        fields = ['username', 'email', 'first_name', 'last_name',
+                  'is_active', 'is_staff', 'is_superuser', 'roles',
                   'groups']
 
     def __init__(self, *args, **kwargs):

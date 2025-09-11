@@ -23,7 +23,7 @@ from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from budgets.budget_calculations import get_tankhah_remaining_budget, get_factor_remaining_budget
-from core.PermissionBase import PermissionBaseView, get_lowest_access_level
+from core.PermissionBase import PermissionBaseView#, get_lowest_access_level
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import permission_required

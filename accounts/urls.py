@@ -120,7 +120,7 @@ urlpatterns = [
 
                   # Profile URLs
                   # path('profile/update/', profile_update_view, name='profile_update'),
-                  path('profile/update/', ProfileUpdateView.as_view(), name='profile_update'),
+                  path('profile/update/', ProfileUpdateView.as_view() , name='profile_update'),
                   path('profile/update/success/', profile_update_success, name='profile_update_success'),
                   # path('profile/update/success/', profile_update_success_view, name='profile_update_success'),
                   # مسیر جدید
@@ -169,7 +169,7 @@ urlpatterns = [
 
                   # path('profile/<int:pk>/', views.ProfileView.as_view(), name='profile'),
                   path('profile/create/', views.ProfileCreateView.as_view(), name='profile_create'),
-                  path('profile/<int:user_id>/', views.ProfileUpdateView.as_view(), name='profile_update'),
+                  path('profile/<int:user_id>/', views.ProfileUpdateView.as_view() , name='profile_update'),
 
                   path('profile/<int:user_id>/', views.profile_detail, name='profile_detail'),
 

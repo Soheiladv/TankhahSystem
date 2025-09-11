@@ -41,7 +41,8 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from accounts.RCMS_Lock.security import TimeLock
 from accounts.forms import TimeLockForm
 from accounts.models import TimeLockModel, City
-from core.PermissionBase import PermissionBaseView, check_permission_and_organization
+from core.PermissionBase import PermissionBaseView
+# , check_permission_and_organization)
 from .forms import ActiveUserForm
 from .forms import (CustomUserCreationForm, CustomUserForm, RoleForm, MyGroupForm,
                     ProfileUpdateForm, CustomPasswordChangeForm, ProfileForm, AdvancedProfileSearchForm, UserGroupForm,
@@ -294,6 +295,9 @@ class RoleListView(PermissionBaseView, ListView):
         # ارسال مقادیر فعلی جستجو و فیلتر به تمپلیت برای حفظ وضعیت
         context['query'] = self.request.GET.get('q', '')
         context['show_inactive'] = self.request.GET.get('show_inactive') == 'true'
+        context['print_date_now'] = now()
+        context['print_time_now'] = f'{now().time().hour}:{now().time().minute}'
+
         return context
     # ==============================================
 # class RoleListView(PermissionBaseView,ListView):
@@ -420,6 +424,8 @@ class RoleFormMixin:
         context = super().get_context_data(**kwargs)
         context['permissions_tree'] = self.get_permissions_tree()
         context['title'] = _("ایجاد نقش جدید") if 'create' in self.request.path else _("ویرایش نقش")
+        context['print_date_now'] = now()
+        context['print_time_now'] = f'{now().time().hour}:{now().time().minute}'
         return context
 
     def get_permissions_tree(self):
@@ -650,17 +656,22 @@ class UserEditView(UserCRUDMixin, UpdateView):
     def form_valid(self, form):
         user = form.save(commit=False)
         try:
+            # ذخیره گروه‌ها
             groups = form.cleaned_data.get('groups')
             if groups:
                 user.groups.set(groups)
-            role = form.cleaned_data.get('roles')
-            if role:
-                user.roles = role
+
+            # ذخیره نقش‌ها
+            roles = form.cleaned_data.get('roles')
+            if roles:
+                user.roles.set(roles)
+
             user.save()
             messages.success(self.request, 'اطلاعات کاربر با موفقیت به روز شد.')
         except Exception as e:
             messages.error(self.request, f'خطا در به روز رسانی: {str(e)}')
         return super().form_valid(form)
+
 
 @method_decorator(has_permission('delete_customuser'), name='dispatch')
 class UserDeleteView(UserCRUDMixin, DeleteView):
@@ -849,8 +860,9 @@ def profile_delete(request):
     return render(request, 'accounts/users/profile_delete.html', {'profile': profile})
 
 # ویوی به‌روز شده
-@check_permission_and_organization(permissions='accounts.change_profile', check_org=False)
-def profile_update_view(request):
+# @check_permission_and_organization(permissions='accounts.change_profile', check_org=False)
+# ==================PROFILE UPDATE============================
+def profile_update_view(PermissionBase, request):
     """
     ویو برای به‌روزرسانی پروفایل کاربر.
     فقط خود کاربر می‌تونه پروفایلش رو ویرایش کنه چون instance=request.user هست.
@@ -869,6 +881,7 @@ def profile_update_view(request):
         form = ProfileUpdateForm(instance=request.user)
 
     return render(request, 'accounts/users/profile_update.html', {'form': form})
+# ============================================================
 
 def get_cities(request):
     province_id = request.GET.get('province')

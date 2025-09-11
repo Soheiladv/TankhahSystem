@@ -18,14 +18,14 @@ class Province(models.Model):
     class Meta:
         verbose_name = _("استان")
         verbose_name_plural = _("استان‌ها")
-        default_permissions = []  # جلوگیری از ایجاد permissions پیش‌فرض
+        default_permissions = []
         permissions = [
             ("view_province", _("می‌تواند استان را مشاهده کند")),
             ("add_province", _("می‌تواند استان جدید اضافه کند")),
             ("change_province", _("می‌تواند استان را تغییر دهد")),
             ("delete_province", _("می‌تواند استان را حذف کند")),
         ]
-        ordering = ['name']  # مرتب‌سازی بر اساس نام
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -37,8 +37,8 @@ class City(models.Model):
     class Meta:
         verbose_name = _("شهر")
         verbose_name_plural = _("شهرها")
-        unique_together = ('name', 'province')  # هر شهر توی هر استان باید یکتا باشه
-        default_permissions = []  # جلوگیری از ایجاد permissions پیش‌فرض
+        unique_together = ('name', 'province')
+        default_permissions = []
         permissions = [
             ("view_city", _("می‌تواند شهر را مشاهده کند")),
             ("add_city", _("می‌تواند شهر جدید اضافه کند")),
@@ -84,21 +84,17 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=150, blank=True, verbose_name=_('فامیلی'))
     is_active = models.BooleanField(default=True, verbose_name=_('فعالیت'))
     is_staff = models.BooleanField(default=False, verbose_name=_('کارمندی؟'))
-    # is_superuser = models.BooleanField(default=False)  # بعلت سیاست مدیر پروژه غیرفعال باشد 
-
 
     user_permissions = models.ManyToManyField(
         Permission,
         verbose_name='user permissions',
         blank=True,
-        related_name='accounts_user_set',  # تغییر این خطا
+        related_name='accounts_user_set',
         help_text='مجوزهای خاص برای این کاربر.',
         related_query_name='user',
     )
 
-    # در مدل CustomUser
     def get_active_branch(self):
-        '''خروجی نام برنچ سازمانی کاربر'''
         active_post = self.userpost_set.filter(is_active=True).first()
         return active_post.post.branch if active_post else None
 
@@ -108,8 +104,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = _("کاربر سفارشی")
         verbose_name_plural = _("کاربران سفارشی")
-        # db_table = 'accounts_customuser_users'
-        default_permissions = []  # جلوگیری از ایجاد permissions پیش‌فرض
+        default_permissions = []
         permissions = [
             ("users_view_customuser", _("می‌تواند کاربران سفارشی را مشاهده کند")),
             ("users_add_customuser", _("می‌تواند کاربر سفارشی جدید اضافه کند")),
@@ -123,94 +118,73 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def get_full_name(self):
         full_name = f"{self.first_name} {self.last_name}".strip()
         return full_name if full_name else self.username
-        # return f"{self.first_name} {self.last_name}".strip()
 
     def get_short_name(self):
         return self.first_name
 
+    def get_all_permissions(self, obj=None):
+        """
+        برمی‌گردونه همه‌ی پرمیشن‌های کاربر به صورت lowercase
+        تا تفاوت حروف بزرگ/کوچیک مشکلی ایجاد نکنه.
+        """
+        if not self.is_active:
+            return set()
+        if self.is_superuser:
+            return {f"{p.content_type.app_label}.{p.codename}".lower() for p in Permission.objects.all()}
+
+        perms = set()
+
+        # 1. Permissions from roles directly assigned to the user
+        for role in self.roles.all().prefetch_related('permissions__content_type'):
+            perms.update(
+                f"{p.content_type.app_label}.{p.codename}".lower()
+                for p in role.permissions.all()
+            )
+
+        # 2. Permissions from roles within the user's groups
+        for group in self.groups.all().prefetch_related('roles__permissions__content_type'):
+            for role in group.roles.all():
+                perms.update(
+                    f"{p.content_type.app_label}.{p.codename}".lower()
+                    for p in role.permissions.all()
+                )
+
+        # 3. Direct user permissions
+        for p in self.user_permissions.all().select_related('content_type'):
+            perms.add(f"{p.content_type.app_label}.{p.codename}".lower())
+
+        return perms
+
     def has_perm(self, perm, obj=None):
         if self.is_active and self.is_superuser:
             return True
-        # بررسی فرمت کامل مجوزها
-        all_perms = self.get_all_permissions(obj)
-        return perm in all_perms
-        #
-        # # بررسی مجوزها از طریق نقش‌های گروه‌های سفارشی
-        # for group in self.groups.all():
-        #     for role in group.roles.all():
-        #         if perm in role.permissions.values_list('codename', flat=True):
-        #             return True
-        #
-        # # بررسی مجوزهای مستقیم کاربر
-        # if perm in self.user_permissions.values_list('codename', flat=True):
-        #     return True
-
-        # return False
+        return perm.lower() in self.get_all_permissions(obj)
 
     def get_authorized_organizations(self):
-        """
-               برگرداندن سازمان‌هایی که کاربر از طریق UserPost و Post به آن‌ها دسترسی دارد.
-               شامل سازمان‌های والد نیز می‌شود.
-               """
         from core.models import Organization
         if self.is_superuser:
-            # سوپریوزر به همه سازمان‌ها دسترسی دارد
             return Organization.objects.all()
 
-        # استخراج سازمان‌ها از طریق UserPostهای فعال
         user_orgs = set()
         for user_post in self.userpost_set.filter(is_active=True):
-            # دسترسی به سازمان از طریق پست
             org = user_post.post.organization
             if org:
                 user_orgs.add(org)
-                # اضافه کردن والدین سازمان به مجموعه
                 current_org = org
                 while current_org.parent_organization:
                     current_org = current_org.parent_organization
                     user_orgs.add(current_org)
-        # تبدیل مجموعه به QuerySet
         return Organization.objects.filter(id__in=[org.id for org in user_orgs])
-        #
-        # try:
-        #     from core.models import Organization
-        #     return Organization.objects.filter(
-        #         user_posts__user=self,
-        #         user_posts__is_active=True
-        #     ).distinct()
-        # except Exception as e:
-        #     logger.error(f"خطا در get_authorized_organizations برای کاربر {self.username}: {str(e)}")
-        #     return Organization.objects.none()
-
-    # --------
-    def get_all_permissions(self, obj=None):
-        if not self.is_active or self.is_superuser:
-            return set()
-
-        perms = set()
-        for group in self.groups.all():
-            for role in group.roles.all():
-                perms.update(f"{p.content_type.app_label}.{p.codename}" for p in role.permissions.all())
-        perms.update(
-            f"{p.content_type.app_label}.{p.codename}"
-            for p in self.user_permissions.all()
-        )
-        return perms
 
     @property
     def is_hq(self):
-        """
-        این پراپرتی به صورت متمرکز و قابل اعتماد بررسی می‌کند که آیا کاربر، کاربر دفتر مرکزی است یا خیر.
-        """
-        if self.is_superuser or self.has_perm('tankhah.Factor_full_edit'):
+        if self.is_superuser:
             return True
-
-        # این کوئری بررسی می‌کند که آیا کاربر در یکی از سازمان‌های HQ پست فعال دارد یا خیر.
-        # مطمئن شوید که فیلد شناسایی نوع سازمان در مدل شما 'org_type__fname' است.
         return self.userpost_set.filter(
             is_active=True,
             post__organization__org_type__fname='HQ'
         ).exists()
+
 User = get_user_model()
 class CustomProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile",
@@ -222,7 +196,6 @@ class CustomProfile(models.Model):
     city = models.ForeignKey('City', on_delete=models.SET_NULL, null=True, blank=True, related_name="profiles",
                              verbose_name=_("شهر"))
     phone_number = models.CharField(max_length=15, blank=True, verbose_name=_("شماره تلفن"))
-    # birth_date = jmodels.jDateField(null=True, blank=True, verbose_name=_("تاریخ تولد"))
     birth_date = models.DateField(null=True, blank=True, verbose_name=_("تاریخ تولد"))
     address = models.TextField(blank=True, verbose_name=_("آدرس"))
     location = models.TextField(blank=True, verbose_name=_("موقعیت"))
@@ -263,7 +236,7 @@ class Role(models.Model):
         verbose_name = _("نقش")
         verbose_name_plural = _("نقش‌ها")
         ordering = ["name"]
-        default_permissions = []  # جلوگیری از ایجاد permissions پیش‌فرض
+        default_permissions = []
         permissions = [
             ('Role_create', _('می‌تواند نقش جدید ایجاد کند')),
             ('Role_view', _('می‌تواند نقش‌ها را مشاهده کند')),
@@ -273,17 +246,16 @@ class Role(models.Model):
 
     def __str__(self):
         return self.name
-class MyGroup(models.Model):  # استفاده از نام متفاوت به جای Group
+class MyGroup(models.Model):
     name = models.CharField(max_length=150, unique=True, verbose_name=_("نام گروه"))
     roles = models.ManyToManyField('Role', related_name='mygroups', blank=True, verbose_name=_("تعریف نقش"))
-    # users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="accounts_groups", verbose_name=_("کاربران"),blank=True)
     description = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("تاریخ ویرایش"))
 
     class Meta:
         db_table = 'accounts_mygroups'
-        default_permissions = []  # جلوگیری از ایجاد permissions پیش‌فرض
+        default_permissions = []
         permissions = [
             ("MyGroup_can_view_group", "می‌تواند گروه‌ها را مشاهده کند"),
             ("MyGroup_can_add_group", "می‌تواند گروه جدید اضافه کند"),
@@ -305,15 +277,7 @@ class CustomUserGroup(models.Model):
         db_table = 'accounts_customuser_groups'
         verbose_name = 'افزودن کاربری'
         verbose_name_plural = 'افزودن کاربری'
-        default_permissions = []
-        permissions = [
-            ('CustomUserGroup_add','افزودن گروه کاربری'),
-            ('CustomUserGroup_update','بروزرسانی کاربر'),
-            ('CustomUserGroup_view','نمایش گروه کاربری'),
-            ('CustomUserGroup_delete','حــذف گروه کاربری'),
-        ]
 class AuditLog(models.Model):
-    """لاگ گیری سیستمی"""
     ACTION_CHOICES = [
         ('create', 'افزودن'),
         ('read', 'نمایش'),
@@ -321,22 +285,21 @@ class AuditLog(models.Model):
         ('delete', 'حــذف'),
     ]
 
-    # user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('کاربر'))
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('کاربر'))
     action = models.CharField(max_length=10, choices=ACTION_CHOICES, verbose_name=_('عملیات کاربری'))
-    view_name = models.CharField(max_length=255, verbose_name=_('نام ویو'))  # نام ویو
-    path = models.CharField(max_length=255, verbose_name=_('مسیر درخواست'))  # مسیر درخواست
-    method = models.CharField(max_length=10, verbose_name=_('متد HTTP'))  # متد HTTP (GET, POST, etc.)
+    view_name = models.CharField(max_length=255, verbose_name=_('نام ویو'))
+    path = models.CharField(max_length=255, verbose_name=_('مسیر درخواست'))
+    method = models.CharField(max_length=10, verbose_name=_('متد HTTP'))
     model_name = models.CharField(max_length=255, verbose_name=_('نام مدل'))
     object_id = models.CharField(max_length=255, null=True, blank=True, verbose_name=_('ابجکت'))
     timestamp = models.DateTimeField(default=timezone.now, verbose_name=_('زمان رخداد'))
     details = models.TextField(blank=True, verbose_name=_('ریزمشخصات'))
-    changes = models.JSONField(null=True, blank=True, verbose_name=_('تغییرات'))  # ذخیره تغییرات به‌صورت JSON
+    changes = models.JSONField(null=True, blank=True, verbose_name=_('تغییرات'))
     ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name=_('آدرس IP'))
     browser = models.CharField(max_length=255, blank=True, verbose_name=_('بروزر'))
     status_code = models.IntegerField(null=True, blank=True, verbose_name=_('وضعیت کد'))
     related_object = models.CharField(max_length=255, null=True, blank=True, verbose_name=_('شیء مرتبط'))
-    # aliname= models.CharField(max_length=30)
+
     def __str__(self):
         return f"{self.user} - {self.action} - {self.model_name} - {self.timestamp}"
 
@@ -344,15 +307,15 @@ class AuditLog(models.Model):
         db_table = 'accounts_audit_log'
         verbose_name = _("لاگ گیری از سیستم")
         verbose_name_plural = _("لاگ گیری از سیستم")
-        ordering = ["-timestamp"]  # نمایش آخرین رکوردها ابتدا
-        default_permissions = []  # جلوگیری از ایجاد permissions پیش‌فرض
+        ordering = ["-timestamp"]
+        default_permissions = []
         permissions = [
             ('AuditLog_view', _('می‌تواند لاگ‌ها را مشاهده کند')),
             ('AuditLog_add', _('می‌تواند لاگ‌ها را اضافه کند')),
             ('AuditLog_update', _('می‌تواند لاگ‌ها را بروزرسانی کند')),
             ('AuditLog_delete', _('می‌تواند لاگ‌ها را حذف کند')),
         ]
-####
+
 class ActiveUser(models.Model):
     MAX_ACTIVE_USERS = None
     user = models.ForeignKey(
@@ -418,8 +381,6 @@ class ActiveUser(models.Model):
         help_text=_("زمان خروج کاربر از سیستم، در صورت ثبت"),
     )
 
-    # MAX_ACTIVE_USERS = getattr(settings, 'MAX_ACTIVE_USERS')#, 2)
-
     class Meta:
         verbose_name = _("کاربر فعال")
         verbose_name_plural = _("کاربران فعال")
@@ -431,13 +392,12 @@ class ActiveUser(models.Model):
             ('activeuser_delete', _('حذف تعداد کاربر دارای مجوز برای کار در سیستم')),
         ]
         indexes = [
-            # models.Index(fields=['session_key'], name='idx_user_session'),
             models.Index(fields=['user'], name='idx_user'),
             models.Index(fields=['last_activity'], name='idx_last_activity'),
         ]
         constraints = [
             models.UniqueConstraint(
-                fields=['user'],#, 'session_key'],
+                fields=['user'],
                 name='unique_user_session',
                 violation_error_message=_("هر کاربر تنها می‌تواند یک سشن فعال داشته باشد.")            ),
             models.CheckConstraint(
@@ -450,7 +410,6 @@ class ActiveUser(models.Model):
 
     @classmethod
     def remove_inactive_users(cls):
-        """پاکسازی کاربران غیرفعال و حذف سشن‌های قدیمی"""
         inactivity_threshold = now() - datetime.timedelta(minutes=30)
         inactive_users = cls.objects.filter(last_activity__lt=inactivity_threshold)
         if inactive_users.exists():
@@ -464,7 +423,6 @@ class ActiveUser(models.Model):
 
     @classmethod
     def delete_expired_sessions(cls):
-        """حذف سشن‌های منقضی شده از دیتابیس"""
         from django.contrib.sessions.models import Session
         expired_sessions = Session.objects.filter(expire_date__lt=now())
         for session in expired_sessions:
@@ -472,7 +430,6 @@ class ActiveUser(models.Model):
             session.delete()
 
     def save(self, *args, **kwargs):
-        """هش کردن تعداد کاربران فعال"""
         active_count = ActiveUser.objects.filter(last_activity__gte=now() - datetime.timedelta(minutes=30)).count()
         self.last_activity = now()
         self.hashed_count = hashlib.sha256(str(active_count).encode()).hexdigest()
@@ -480,33 +437,28 @@ class ActiveUser(models.Model):
 
     @classmethod
     def can_login(cls, session_key):
-        """بررسی اینکه آیا کاربر جدید می‌تونه وارد بشه"""
         active_count = cls.objects.filter(
             last_activity__gte=now() - datetime.timedelta(minutes=30)
         ).count()
         max_users = cls.get_max_active_users()
         logger.info(
             f"کاربران فعال: {cls.objects.filter(last_activity__gte=now() - datetime.timedelta(minutes=30)).values_list('user__username', flat=True)}")
-        return active_count < max_users # and not cls.objects.filter(session_key=session_key).exists()
+        return active_count < max_users
 
     def __str__(self):
         return f"{self.user.username} - {self.session_key} - {self.login_time}"
 
     @classmethod
     def get_max_active_users(cls):
-            """گرفتن حداکثر تعداد کاربران از TimeLockModel"""
             expiry_date, max_users, _, _ = TimeLockModel.get_latest_lock()
             return max_users if max_users is not None else getattr(settings, 'MAX_ACTIVE_USERS', 2)
-####
+
 from cryptography.fernet import Fernet, InvalidToken
-# cipher = Fernet(settings.RCMS_SECRET_KEY.encode())
+
 try:
-    # مستقیماً شیء Fernet از settings را ارجاع دهید
     cipher = settings.RCMS_SECRET_KEY_CIPHER
 except AttributeError:
     logger.error("settings.RCMS_SECRET_KEY_CIPHER is not defined or is not a Fernet object. TimeLockModel will not function correctly.")
-    # Fallback برای توسعه: یک cipher ساختگی ایجاد می‌کنیم که رمزگشایی را با شکست مواجه کند.
-    # این فقط برای جلوگیری از کرش کردن برنامه است اگر settings به درستی لود نشود.
     cipher = Fernet(Fernet.generate_key())
 
 class TimeLockModel(models.Model):
@@ -525,7 +477,6 @@ class TimeLockModel(models.Model):
 
     @staticmethod
     def encrypt_value(value):
-        # print(f"Debug - Encrypting: {value}")
         return cipher.encrypt(str(value).encode()).decode()
 
     @staticmethod
@@ -534,10 +485,8 @@ class TimeLockModel(models.Model):
             if isinstance(encrypted_value, str):
                 encrypted_value = encrypted_value.encode()
             decrypted = cipher.decrypt(encrypted_value).decode()
-            # print(f"Debug - Decrypted: {decrypted}")
             return decrypted
         except InvalidToken:
-            # print(f"🔴 خطا: نمی‌تونم {encrypted_value} رو رمزگشایی کنم")
             return None
 
     @staticmethod
@@ -579,13 +528,8 @@ class TimeLockModel(models.Model):
     def get_latest_lock():
         latest_instance = TimeLockModel.objects.filter(is_active=True).order_by('-created_at').first()
         if not latest_instance:
-            # print("Debug - No active lock found")
             return None, None, None, None
         expiry_date, max_users, organization_name = latest_instance.get_decrypted_data()
-        # if expiry_date is None or max_users is None:
-        #     print(f"Debug - Invalid data for latest lock ID {latest_instance.id}")
-        # else:
-        #     print(f"Debug - Latest Lock: Expiry={expiry_date}, Max Users={max_users}, Org={organization_name}")
         return expiry_date, max_users, latest_instance.hash_value, organization_name
 
     class Meta:
@@ -598,6 +542,3 @@ class TimeLockModel(models.Model):
             ("TimeLockModel_update", "ویرایش قفل سیستم"),
             ("TimeLockModel_delete", "حذف قفل سیستم"),
         ]
-
-
-
