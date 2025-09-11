@@ -56,8 +56,7 @@ _____dashboard_links_ = {
          'icon': 'fas fa-plus'},
     ],
     'فاکتورها': [
-        {'name': _('فهرست فاکتورها'), 'url': 'factor_list', 'permission': 'tankhah.view_factor',
-         'icon': 'fas fa-file-invoice'},
+        {'name': _('فهرست فاکتورها'), 'url': 'factor_list', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-file-invoice'},
         {'name': _('ایجاد فاکتور'), 'url': 'Nfactor_create', 'permission': 'tankhah.add_factor', 'icon': 'fas fa-plus'},
     ],
     'عنوان مرکز هزینه (پروژه)': [
@@ -117,20 +116,9 @@ _____dashboard_links_ = {
 }
 dashboard_links = {
     'فاکتورها': [
-        {'name': _('فهرست فاکتورها'), 'url': 'factor_list', 'permission': 'tankhah.view_factor',     'icon': 'fas fa-clipboard-list'},  # لیست کلیپ‌بورد برای فاکتورها
+        {'name': _('فهرست فاکتورها'), 'url': 'factor_list',    'permission': 'tankhah.view_factor',     'icon': 'fas fa-clipboard-list'},  # لیست کلیپ‌بورد برای فاکتورها
         # {'name': _('فهرست فاکتورها2'), 'url': 'factor_list2', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-clipboard-list'}, # لیست کلیپ‌بورد برای فاکتورها
-        {'name': _('فهرست فاکتورها کوتاه '), 'url': 'factor_list3', 'permission': 'tankhah.view_factor',
-         'icon': 'fas fa-clipboard-list'},  # لیست کلیپ‌بورد برای فاکتورها
-        {'name': _('ایجاد فاکتور'), 'url': 'Nfactor_create', 'permission': 'tankhah.add_factor',
-         'icon': 'fas fa-file-invoice'},  # فاکتور خالی
-        {'name': _(' رد/تایید فاکتور '), 'url': 'factor_status_review', 'permission': 'tankhah.factor_view',
-         'icon': 'fas fa-file-invoice'},  # فاکتور خالی
-        # {'name': _('پیشرفته رد/تایید فاکتور'), 'url': 'advance_factor_status_review', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
-        # {'name': _('وضعیت فاکتورها'), 'url': 'factor_approval_path', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
-        # {'name': _('وضعیت فاکتورها'), 'url': 'factor_approval_path', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
-        # {'name': _('وضعیت کلی فاکتورها '), 'url': 'approval_list', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
-        # {'name': _('وضعیت کلی factor_list___ '), 'url': 'factor_list___', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
-        # {'name': _('وضعیت کلی dashboard__ '), 'url': 'dashboard__', 'permission': 'tankhah.factor_view', 'icon': 'fas fa-file-invoice'}, # فاکتور خالی
+       {'name': _('ایجاد فاکتور'),    'url': 'Nfactor_create', 'permission': 'tankhah.add_factor',      'icon': 'fas fa-file-invoice'},  # فاکتور خالی
 
     ],
     'تنخواه': [

@@ -702,7 +702,8 @@ def add_attr(field, attrs_str):
 @register.simple_tag(takes_context=True)
 def query_params(context, **kwargs):
     """
-    Updates query parameters in a URL.
+    تگ تمپلیت برای حفظ پارامترهای GET فعلی در URL و افزودن یا به‌روزرسانی پارامترهای جدید.
+    این تگ 'request' را از context دریافت می‌کند.
     """
     query = context['request'].GET.copy()
     for key, value in kwargs.items():

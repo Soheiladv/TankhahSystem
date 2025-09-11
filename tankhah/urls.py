@@ -9,7 +9,7 @@ from tankhah.Factor.Approved.SubmitFactor import SubmitFactorForApprovalView
 from tankhah.Factor.FactorStatusReviewView import FactorStatusReviewView, AdvancedFactorStatusReviewView, \
     ComprehensiveFactorDetailView, UltimateFactorDetailView
 from tankhah.Factor.NF.view_Nfactor import New_FactorCreateView
-from tankhah.Factor.View_Factor_list import FactorListView, FactorListView2, OptimizedFactorListView
+from tankhah.Factor.View_Factor_list import FactorListView, FactorListView2
 from tankhah.Factor.Approved.view_FactorItemApprove import FactorItemApproveView, FactorApproveView
 from tankhah.Factor.view_FactorUpdate import FactorUpdateView
 from tankhah.Factor.views_approval_path import FactorApprovalPathView
@@ -55,7 +55,7 @@ urlpatterns = [
     # path('factor/create/wizard/',  FactorWizardView.as_view(views.FACTOR_FORMS), name='factor_wizard'), # Wizard URL
     path('ajax/tankhah-budget-info/<int:tankhah_id>/', TankhahBudgetInfoAjaxView.as_view(), name='tankhah_budget_info_ajax'),  # AJAX URL
     path('factor/list2/', FactorListView2.as_view(), name='factor_list2'),  # Example success URL
-    path('factor/list3/', OptimizedFactorListView.as_view(), name='factor_list3'),  # Example success URL
+
 
 
     path('factor/create/new/', New_FactorCreateView.as_view(), name='Nfactor_create'),
