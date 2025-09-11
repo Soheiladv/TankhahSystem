@@ -113,30 +113,6 @@ class BudgetTransactionForm(forms.ModelForm):
 #             raise forms.ValidationError(_('حداقل تعداد امضا باید ۱ یا بیشتر باشد.'))
 #         return min_signatures
 
-class PayeeForm(forms.ModelForm):
-    class Meta:
-        model = Payee
-        fields = ['name', 'family','payee_type', 'national_id', 'account_number', 'iban', 'address','phone','is_active']
-        widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('نام')}),
-            'family': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('نام')}),
-            'payee_type': forms.Select(attrs={'class': 'form-control'}),
-            'national_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('کد ملی/اقتصادی')}),
-            'account_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('شماره حساب')}),
-            'iban': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('شبا')}),
-            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 1}),
-            'phone': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': _('تلفن')}),
-            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input', 'placeholder': _('فعال(نمایش در لیست)')}),
-        }
-        labels = {
-            'name': _('نام'),
-            'payee_type': _('نوع'),
-            'national_id': _('کد ملی/اقتصادی'),
-            'account_number': _('شماره حساب'),
-            'iban': _('شبا'),
-            'address': _('آدرس'),
-            'phone': _('تلفن'),
-        }
 
 class TransactionTypeForm(forms.ModelForm):
     class Meta:

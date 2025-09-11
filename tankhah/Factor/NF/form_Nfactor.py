@@ -272,7 +272,7 @@ class FactorForm(forms.ModelForm):
 
     class Meta:
         model = Factor
-        fields = ['tankhah', 'category', 'date', 'amount', 'description']
+        fields = ['tankhah', 'category', 'date', 'payee','amount', 'description']
         widgets = {
             'tankhah': forms.Select(attrs={'class': 'form-select'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
@@ -390,6 +390,15 @@ class FactorForm(forms.ModelForm):
                 raise forms.ValidationError(_('شما به تمام سازمان‌های مرتبط با پروژه این تنخواه دسترسی ندارید.'))
 
         return tankhah
+
+    def clean_payee(self):
+        payee = self.cleaned_data.get('payee')
+        national_id = self.data.get('national_id')  # اگر از طریق مودال دریافت شود
+        entity_type = self.data.get('entity_type')
+        from budgets.models import Payee
+        if national_id and Payee.objects.filter(national_id=national_id, entity_type=entity_type).exists():
+            raise forms.ValidationError(_("دریافت‌کننده‌ای با این کد ملی/شناسه حقوقی قبلاً ثبت شده است."))
+        return payee
 
     def clean(self):
         """اعتبارسنجی نهایی فرم"""

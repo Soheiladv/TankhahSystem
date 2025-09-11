@@ -15,11 +15,11 @@ from accounts.models import CustomUser
 from django.contrib.contenttypes.models import ContentType
 import logging
 
+
+
 logger = logging.getLogger('Tankhah_Models')
 
 NUMBER_SEPARATOR = getattr(settings, 'NUMBER_SEPARATOR', '-')
-
-
 def get_default_workflow_stage():
     from core.models import AccessRule
     try:
@@ -27,13 +27,9 @@ def get_default_workflow_stage():
     except AccessRule.DoesNotExist:
         stage = AccessRule.objects.order_by('order').first()
         return stage.id if stage else None
-
-
 def tankhah_document_path(instance, filename):
     extension = os.path.splitext(filename)[1]
     return f'documents/{instance.tankhah.number}/document{extension}/%Y/%m/%d/'
-
-
 def factor_document_upload_path(instance, filename):
     factor = instance.factor
     if factor and factor.tankhah:
@@ -42,8 +38,6 @@ def factor_document_upload_path(instance, filename):
         return f'factors/{tankhah_number}/{factor_id}/{filename}'
     else:
         return f'factors/orphaned/{filename}'
-
-
 def get_default_initial_status():
     from core.models import Status
     try:
@@ -56,8 +50,6 @@ def get_default_initial_status():
     except Status.MultipleObjectsReturned:
         raise ImproperlyConfigured(
             "بیش از یک وضعیت اولیه با کد 'DRAFT' در سیستم تعریف شده است. لطفاً اطمینان حاصل کنید که تنها یک وضعیت با کد 'DRAFT' و is_initial=True وجود دارد.")
-
-
 class TankhahDocument(models.Model):
     tankhah = models.ForeignKey('Tankhah', on_delete=models.CASCADE, verbose_name=_("تنخواه"), related_name='documents')
     document = models.FileField(upload_to=tankhah_document_path, verbose_name=_("سند"))
@@ -80,8 +72,6 @@ class TankhahDocument(models.Model):
             ('TankhahDocument_update', 'بروزرسانی اسناد فاکتور منتهی به تنخواه'),
             ('TankhahDocument_delete', 'حــذف اسناد فاکتور منتهی به تنخواه'),
         ]
-
-
 class Tankhah(models.Model):
     number = models.CharField(max_length=150, unique=True, blank=True, verbose_name=_("شماره تنخواه"))
     amount = models.DecimalField(max_digits=25, decimal_places=2, verbose_name=_("مبلغ"))
@@ -313,6 +303,7 @@ class Tankhah(models.Model):
                 return
 
             for factor in approved_factors:
+                from core.models import Status
                 factor.status = Status.objects.get(code='PAID')
                 factor.save(current_user=user)
 
@@ -371,8 +362,6 @@ class Tankhah(models.Model):
                 )
 
         return processed_count
-
-
 class TankhActionType(models.Model):
     action_type = models.CharField(max_length=25, verbose_name=_('انواع  اقدام'))
     code = models.CharField(max_length=50, unique=True, verbose_name=_('تایپ'))
@@ -392,8 +381,6 @@ class TankhActionType(models.Model):
 
     def __str__(self):
         return self.action_type
-
-
 class TankhahAction(models.Model):  # صدور دستور پرداخت
     tankhah = models.ForeignKey(Tankhah, on_delete=models.CASCADE, related_name='actions', verbose_name=_("تنخواه"))
     amount = models.DecimalField(max_digits=25, decimal_places=2, null=True, blank=True,
@@ -433,8 +420,6 @@ class TankhahAction(models.Model):  # صدور دستور پرداخت
             ('TankhahAction_update', 'بروزرسانی اقدامات تنخواه'),
             ('TankhahAction_delete', 'حذف اقدامات تنخواه'),
         ]
-
-
 class FactorDocument(models.Model):
     factor = models.ForeignKey('Factor', on_delete=models.CASCADE, related_name='documents', verbose_name=_("فاکتور"))
     file = models.FileField(upload_to=factor_document_upload_path, verbose_name=_("فایل پیوست"))
@@ -461,8 +446,6 @@ class FactorDocument(models.Model):
             ('FactorDocument_view', 'نمایش سند فاکتور'),
             ('FactorDocument_delete', 'حــذف سند فاکتور'),
         ]
-
-
 class Factor(models.Model):
     number = models.CharField(max_length=100, blank=True, verbose_name=_("شماره فاکتور"))
     tankhah = models.ForeignKey('Tankhah', on_delete=models.PROTECT, related_name='factors', verbose_name=_("تنخواه"))
@@ -491,6 +474,8 @@ class Factor(models.Model):
     re_registered_in = models.ForeignKey('Tankhah', null=True, blank=True, on_delete=models.SET_NULL,
                                          related_name='re_registered_factors', verbose_name=_("تنخواه جدید"))
 
+    payee = models.ForeignKey('budgets.Payee'  , on_delete=models.PROTECT, verbose_name=_("صادرکننده فاکتور"))
+        # سایر فیلدها
     def update_total_amount(self):
         total = self.items.aggregate(total=Sum('amount'))['total'] or Decimal('0')
         if self.amount != total:
@@ -697,8 +682,6 @@ class Factor(models.Model):
             ('factor_unlock', _('باز کردن فاکتور قفل‌شده')),
             ('factor_approval_path', _('بررسی مسیر تایید/رد فاکتور⛓️‍💥')),
         ]
-
-
 class FactorItem(models.Model):
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE, related_name='items', verbose_name=_("فاکتور"))
     description = models.CharField(max_length=255, verbose_name=_("شرح ردیف"))
@@ -783,8 +766,6 @@ class FactorItem(models.Model):
             ('FactorItem_approve', _('تأیید ردیف فاکتور')),
             ('FactorItem_reject', _('رد ردیف فاکتور')),
         ]
-
-
 class ApprovalLog(models.Model):
     tankhah = models.ForeignKey(Tankhah, on_delete=models.CASCADE, null=True, blank=True, related_name='approval_logs',
                                 verbose_name=_("تنخواه"))
@@ -867,8 +848,6 @@ class ApprovalLog(models.Model):
     @property
     def stage_order(self):
         return self.stage_rule.stage_order if self.stage_rule else None
-
-
 class FactorHistory(models.Model):
     class ChangeType(models.TextChoices):
         CREATION = 'CREATION', _('ایجاد')
@@ -898,8 +877,6 @@ class FactorHistory(models.Model):
 
     def __str__(self):
         return f"{self.get_change_type_display()} برای فاکتور {self.factor.number} در {self.change_timestamp}"
-
-
 class StageApprover(models.Model):
     stage = models.ForeignKey('core.AccessRule', on_delete=models.CASCADE, verbose_name=_('مرحله'))
     post = models.ForeignKey('core.Post', on_delete=models.CASCADE, verbose_name=_('پست مجاز'))
@@ -933,16 +910,12 @@ class StageApprover(models.Model):
             ('stageapprover__Update', 'بروزرسانی تأییدکننده مرحله'),
             ('stageapprover__delete', 'حــذف تأییدکننده مرحله'),
         ]
-
-
 class TankhahFinalApproval(models.Model):
     class Meta:
         default_permissions = ()
         permissions = [
             ('TankhahFinalApproval_view', 'دسترسی تایید یا رد تنخواه گردان ')
         ]
-
-
 class ItemCategory(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("نام دسته‌بندی"))
     min_stage_order = models.IntegerField(default=1, verbose_name=_("حداقل ترتیب مرحله"))
@@ -961,8 +934,6 @@ class ItemCategory(models.Model):
             ('ItemCategory_view', 'نمایش دسته بندی نوع هزینه کرد'),
             ('ItemCategory_delete', 'حــذف دسته بندی نوع هزینه کرد'),
         ]
-
-
 class Dashboard_Tankhah(models.Model):
     class Meta:
         default_permissions = ()

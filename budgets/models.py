@@ -4,19 +4,18 @@ from django.db.models import Value, Q
 import logging
 from django.utils import timezone
 from django.core.cache import cache
-
 from core.models import Organization, Project, AccessRule, Post, UserPost
 from tankhah.models import Factor, Tankhah, ApprovalLog, get_default_initial_status
-
-logger = logging.getLogger(__name__)
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.contrib.contenttypes.models import ContentType
-
 from budgets.budget_calculations import check_budget_status, get_project_remaining_budget, calculate_remaining_amount, \
     calculate_threshold_amount, create_budget_transaction
 
 from django.utils import timezone
 from datetime import date, datetime as dt  # اصلاح وارد کردن datetime
-
 import jdatetime
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
@@ -26,6 +25,10 @@ from django.core.exceptions import ValidationError, ImproperlyConfigured
 from accounts.models import CustomUser
 
 
+
+import re
+
+logger = logging.getLogger(__name__)
 def get_default_payment_order_status():
     from core.models import Status
     try:
@@ -640,27 +643,86 @@ class BudgetTransaction(models.Model):
 # --------------------------------------
 """Payee (دریافت‌کننده):"""
 class Payee(models.Model):
+    ENTITY_TYPES = (
+        ('INDIVIDUAL', _('شخص حقیقی')),
+        ('LEGAL', _('شخص حقوقی')),
+    )
     PAYEE_TYPES = (
         ('VENDOR', _('فروشنده')),
         ('EMPLOYEE', _('کارمند')),
-        ('OTHER', _('دیگر')),
+        ('OTHER', _('سایر')),
     )
-    name = models.CharField(max_length=100, verbose_name=_("نام"))
-    family = models.CharField(max_length=100, verbose_name=_("نام خانوادگی"))
-    payee_type = models.CharField(max_length=20, choices=PAYEE_TYPES, verbose_name=_("نوع"))
-    national_id = models.CharField(max_length=20, blank=True, null=True,
-                                   verbose_name=_("کد ملی/اقتصادی"))
-    account_number = models.CharField(max_length=50, blank=True, null=True,
-                                      verbose_name=_("شماره حساب"))
+
+    entity_type = models.CharField(max_length=30, choices=ENTITY_TYPES, verbose_name=_("ماهیت شخص"), default='INDIVIDUAL')
+    name = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("نام"),
+                            help_text=_("برای اشخاص حقیقی"))
+    family = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("نام خانوادگی"),
+                              help_text=_("برای اشخاص حقیقی"))
+    legal_name = models.CharField(max_length=200, blank=True, null=True, verbose_name=_("نام حقوقی"),
+                                  help_text=_("برای اشخاص حقوقی"))
+    brand_name = models.CharField(max_length=200, blank=True, null=True, verbose_name=_("نام تجاری"),
+                                  help_text=_("برای اشخاص حقوقی"))
+
+    national_id = models.CharField(
+        max_length=11,
+        blank=True,
+        null=True,
+        verbose_name=_("کد ملی/شناسه حقوقی"),
+        validators=[
+            RegexValidator(
+                regex=r'^\d{10,11}$',
+                message=_("کد ملی باید 10 رقم و شناسه حقوقی 11 رقم باشد."),
+                code='invalid_national_id'
+            )
+        ]
+    )
+
+
+    account_number = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("شماره حساب"))
     iban = models.CharField(max_length=34, blank=True, null=True, verbose_name=_("شبا"))
     address = models.TextField(blank=True, null=True, verbose_name=_("آدرس"))
     phone = models.CharField(max_length=20, blank=True, null=True, verbose_name=_("تلفن"))
-    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
-                                   related_name='payees_created', verbose_name=_("ایجادکننده"))
-    is_active = models.BooleanField(verbose_name=_('فعال'))
+    email = models.EmailField(blank=True, null=True, verbose_name=_("ایمیل"))
+    tax_id = models.CharField(max_length=20, blank=True, null=True, verbose_name=_("شناسه مالیاتی"))
+    payee_type = models.CharField(max_length=20, choices=PAYEE_TYPES, verbose_name=_("نوع دریافت‌کننده"))
+    created_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='payees_created',
+        verbose_name=_("ایجادکننده")
+    )
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+
+    def clean(self):
+        """اعتبارسنجی فیلدها بر اساس نوع شخص"""
+        if self.entity_type == 'INDIVIDUAL':
+            if not (self.name and self.family):
+                raise ValidationError(_("نام و نام خانوادگی برای اشخاص حقیقی الزامی است."))
+            if self.national_id and len(self.national_id) != 10:
+                raise ValidationError(_("کد ملی باید 10 رقم باشد."))
+            self.legal_name = None
+            self.brand_name = None
+        else:  # LEGAL
+            if not self.legal_name:
+                raise ValidationError(_("نام حقوقی برای اشخاص حقوقی الزامی است."))
+            if self.national_id and len(self.national_id) != 11:
+                raise ValidationError(_("شناسه حقوقی باید 11 رقم باشد."))
+            self.name = None
+            self.family = None
+
+        # اعتبارسنجی شبا
+        if self.iban and not re.match(r'^IR\d{24}$', self.iban):
+            raise ValidationError(_("شماره شبا باید با IR شروع شده و 26 کاراکتر باشد."))
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  # اجرای اعتبارسنجی
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.name} ({self.payee_type})"
+        if self.entity_type == 'INDIVIDUAL':
+            return f"{self.name} {self.family} ({self.get_payee_type_display()})"
+        return f"{self.legal_name} ({self.get_payee_type_display()})"
 
     class Meta:
         verbose_name = _("دریافت‌کننده")
@@ -671,6 +733,12 @@ class Payee(models.Model):
             ('Payee_view', _('نمایش دریافت‌کننده')),
             ('Payee_update', _('بروزرسانی دریافت‌کننده')),
             ('Payee_delete', _('حذف دریافت‌کننده')),
+        ]
+        unique_together = [('entity_type', 'national_id')]  # جلوگیری از تکرار کد ملی/شناسه حقوقی
+        indexes = [
+            models.Index(fields=['national_id', 'entity_type']),
+            models.Index(fields=['name', 'family']),
+            models.Index(fields=['legal_name']),
         ]
 # --------------------------------------
 """PaymentOrder (دستور پرداخت):"""
@@ -856,8 +924,6 @@ class BudgetReallocation(models.Model):
             raise ValidationError(_("بودجه کافی در تخصیص منبع وجود ندارد."))
 # --------------------------------------
 """یه جدول تنظیمات (BudgetSettings) برای مدیریت قفل و هشدار در سطوح مختلف:"""
-
-
 class BudgetSettings(models.Model):
     level = models.CharField(max_length=50,
                              choices=[('PERIOD', 'دوره بودجه'), ('ALLOCATION', 'تخصیص'), ('PROJECT', 'پروژه')])
@@ -867,13 +933,9 @@ class BudgetSettings(models.Model):
                                       choices=[('NOTIFY', 'اعلان'), ('LOCK', 'قفل'), ('RESTRICT', 'محدود')])
     organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, null=True)
     budget_period = models.ForeignKey('BudgetPeriod', on_delete=models.CASCADE, null=True, verbose_name=_("دوره بودجه"))
-
-
 """مدل BudgetHistory برای لاگ کردن تغییرات بودجه و تخصیص‌ها:"""
 # ------------------------------------
 """تاریخچه برای هر بودجه کلان"""
-
-
 class BudgetHistory(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
@@ -918,12 +980,8 @@ class BudgetHistory(models.Model):
             ('BudgetHistory_update', 'بروزرسانی تاریخچه برای هر بودجه کلان'),
             ('BudgetHistory_delete', ' حــذف تاریخچه برای هر بودجه کلان'),
         ]
-
-
 # --------------------------------------
 """'دسترسی برای جابجایی و برگشت بودجه'"""
-
-
 class BudgetTransferReturn(models.Model):
     class Meta:
         verbose_name = 'دسترسی برای جابجایی و برگشت بودجه'
@@ -933,12 +991,8 @@ class BudgetTransferReturn(models.Model):
             ('BudgetTransfer', 'دسترسی جابجایی بودجه'),
             ('BudgetReturn', 'دسترسی برگشت جابجایی بودجه'),
         ]
-
-
 # --------------------------------------
 """ مدل پیشنهادی برای هزینه‌های متعارف"""
-
-
 class CostCenter(models.Model):
     name = models.CharField(max_length=200, verbose_name=_("نام مرکز هزینه"))
     code = models.CharField(max_length=50, unique=True, verbose_name=_("کد مرکز هزینه"))
@@ -962,11 +1016,7 @@ class CostCenter(models.Model):
     class Meta:
         verbose_name = _("مرکز هزینه")
         verbose_name_plural = _("مراکز هزینه")
-
-
 """ مدل ثبت دستور پرداخت  """
-
-
 def generate_payment_order_number(self):
     last_order = PaymentOrder.objects.order_by('pk').last()
     if not last_order:

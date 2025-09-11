@@ -1,81 +1,416 @@
-{% extends 'base.html' %}
-{% load static rcms_custom_filters %}
-{% block title %}لیست دریافت‌کنندگان{% endblock %}
+{% extends "base.html" %}
+{% load static i18n humanize rcms_custom_filters jformat %}
+
+{% block title %}{% trans "لیست دریافت‌کنندگان" %}{% endblock %}
+
+{% block extra_css %}
+
+<style>
+:root {
+    --primary: #4f46e5;
+    --secondary: #64748b;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #0ea5e9;
+    --light-gray: #f1f5f9;
+    --dark-gray: #334155;
+    --bg-body: #f8fafc;
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    --border-radius: 0.75rem;
+    --transition: all 0.3s ease-in-out;
+}
+
+body {
+     direction: rtl;
+    text-align: right;
+    background-color: var(--bg-body);
+}
+
+.main-content {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.stat-card {
+    background-color: #fff;
+    border: none;
+    border-right: 5px solid var(--stat-color);
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    opacity: 0.7;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--dark-gray);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--secondary);
+}
+
+.filter-card {
+    background-color: #fff;
+    box-shadow: var(--shadow-md);
+    border-radius: var(--border-radius);
+}
+
+.table-hover tbody tr {
+    transition: var(--transition);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(79, 70, 229, 0.05);
+}
+
+.search-container .btn-clear {
+    display: none;
+    color: var(--danger);
+}
+
+.search-container .btn-clear.show {
+    display: inline-flex;
+}
+
+@media (max-width: 992px) {
+    .responsive-table thead { display: none; }
+    .responsive-table tbody, .responsive-table tr, .responsive-table td {
+        display: block;
+        width: 100%;
+    }
+    .responsive-table tr {
+        margin-bottom: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.75rem;
+        padding: 1rem;
+    }
+    .responsive-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px dashed #e9ecef;
+    }
+    .responsive-table tr td:last-child { border-bottom: none; }
+    .responsive-table td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        margin-left: 1rem;
+        color: #6c757d;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="card">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <h3 class="mb-0">دریافت‌کنندگان</h3>
-        <a href="{% url 'payee_create' %}" class="btn btn-light">ایجاد دریافت‌کننده جدید</a>
+<div class="container-fluid main-content py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 fw-bold">
+            <i class="fas fa-users me-2 text-primary"></i>{% trans "لیست دریافت‌کنندگان" %}
+        </h1>
+        <a href="{% url 'payee_create' %}" class="btn btn-primary rounded-pill shadow-sm" aria-label="{% trans 'ایجاد دریافت‌کننده جدید' %}">
+            <i class="fas fa-plus me-2"></i>{% trans "ایجاد دریافت‌کننده جدید" %}
+        </a>
     </div>
-    <div class="card-body">
-        <form method="get" class="mb-3">
-            <div class="row">
-                <div class="col-md-4">
-                    <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="جستجو در نام یا کد">
+
+    <!-- Stat Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card h-100" style="--stat-color: var(--primary);">
+                <div class="card-body d-flex align-items-center">
+                    <i class="fas fa-users stat-icon text-primary"></i>
+                    <div class="ms-3">
+                        <div class="stat-value">{{ payees.count|to_persian_number }}</div>
+                        <div class="stat-label">{% trans "تعداد دریافت‌کنندگان" %}</div>
+                    </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="card filter-card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
                 <div class="col-md-4">
-                    <select name="payee_type" class="form-control">
-                        <option value="">همه انواع</option>
-                        {% for type, label in payee_types %}
-                        <option value="{{ type }}" {% if payee_type == type %}selected{% endif %}>{{ label }}</option>
+                    <label for="q" class="form-label fw-semibold">{% trans "جستجو" %}</label>
+                    <div class="input-group search-container">
+                        <span class="input-group-text border-end-0 bg-white">
+                            <i class="fas fa-search text-primary"></i>
+                        </span>
+                        <input type="text" name="q" id="payeeSearch" value="{{ query|default_if_none:'' }}"
+                               class="form-control border-start-0" placeholder="{% trans 'نام، کد ملی، شبا...' %}"
+                               aria-label="{% trans 'جستجوی دریافت‌کننده' %}">
+                        <button type="button" class="btn btn-clear" id="clearSearch" aria-label="{% trans 'پاک کردن جستجو' %}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="payee_type" class="form-label fw-semibold">{% trans "نوع دریافت‌کننده" %}</label>
+                    <select name="payee_type" id="payee_type" class="form-select" aria-label="{% trans 'نوع دریافت‌کننده' %}">
+                        <option value="">{% trans "همه" %}</option>
+                        {% for type_val, type_display in payee_types %}
+                            <option value="{{ type_val }}" {% if type_val == payee_type %}selected{% endif %}>{{ type_display }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">فیلتر</button>
+                <div class="col-md-3">
+                    <label for="entity_type" class="form-label fw-semibold">{% trans "نوع شخص" %}</label>
+                    <select name="entity_type" id="entity_type" class="form-select" aria-label="{% trans 'نوع شخص' %}">
+                        <option value="">{% trans "همه" %}</option>
+                        {% for type_val, type_display in entity_types %}
+                            <option value="{{ type_val }}" {% if type_val == entity_type %}selected{% endif %}>{{ type_display }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-            </div>
-        </form>
-        <table class="table table-striped table-hover">
-            <thead class="bg-light">
-                <tr>
-                    <th>نام</th>
-                    <th>نوع</th>
-                    <th>وضعیت </th>
-                    <th>کد ملی/اقتصادی</th>
-                    <th>شماره حساب</th>
-                    <th>شبا</th>
-                    <th>عملیات</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for payee in payees %}
-                <tr>
-                    <td>{{ payee.name }} {{ payee.family }}</td>
-                    <td>{{ payee.get_payee_type_display }}</td>
-                    <td>{%  if payee.is_active  %}
-                  فعال✅
-                        {%  else %}
-                          <strong style="color: red">غیرفعال⛔</strong>
-                        {% endif %}
-                    </td>
-                    <td>{{ payee.national_id|default:'-' | format_negative  }}</td>
-                    <td>{{ payee.account_number|default:'-' | format_negative }}</td>
-                    <td>{{ payee.iban|default:'-' | format_negative }}</td>
-                    <td>
-                        <a href="{% url 'payee_detail' payee.pk %}" class="btn btn-info btn-sm">جزئیات</a>
-                        <a href="{% url 'payee_update' payee.pk %}" class="btn btn-warning btn-sm">ویرایش</a>
-                        <a href="{% url 'payee_delete' payee.pk %}" class="btn btn-danger btn-sm">حذف</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="6" class="text-center">دریافت‌کننده‌ای یافت نشد.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100" aria-label="{% trans 'اعمال فیلتر' %}">
+                        <i class="fas fa-filter me-2"></i>{% trans "اعمال" %}
+                    </button>
+                    <a href="{% url 'payee_list' %}" class="btn btn-outline-secondary" aria-label="{% trans 'پاک کردن فیلترها' %}">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payees List -->
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body p-0">
+            {% if payees %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 responsive-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">{% trans "ردیف" %}</th>
+                                <th scope="col">{% trans "نام" %}</th>
+                                <th scope="col">{% trans "نوع شخص" %}</th>
+                                <th scope="col">{% trans "نوع دریافت‌کننده" %}</th>
+                                <th scope="col">{% trans "کد ملی/شناسه حقوقی" %}</th>
+                                <th scope="col">{% trans "شبا" %}</th>
+                                <th scope="col">{% trans "عملیات" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payee in payees %}
+                                <tr class="payee-row">
+                                    <td data-label="{% trans 'ردیف' %}">{{ forloop.counter|to_persian_number }}</td>
+                                    <td data-label="{% trans 'نام' %}">
+                                        {% if payee.entity_type == 'INDIVIDUAL' %}
+                                            {{ payee.name }} {{ payee.family }}
+                                        {% else %}
+                                            {{ payee.legal_name }} {% if payee.brand_name %}({{ payee.brand_name }}){% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td data-label="{% trans 'نوع شخص' %}">{{ payee.get_entity_type_display }}</td>
+                                    <td data-label="{% trans 'نوع دریافت‌کننده' %}">{{ payee.get_payee_type_display }}</td>
+                                    <td data-label="{% trans 'کد ملی/شناسه حقوقی' %}">{{ payee.national_id|to_persian_number|default:"-" }}</td>
+                                    <td data-label="{% trans 'شبا' %}">{{ payee.iban|to_persian_number|default:"-" }}</td>
+                                    <td data-label="{% trans 'عملیات' %}">
+                                        <div class="btn-group">
+                                            <a href="{% url 'payee_detail' payee.pk %}" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="{% trans 'جزئیات' %}">
+                                                <i class="fas fa-info-circle"></i>
+                                            </a>
+                                            <a href="{% url 'payee_update' payee.pk %}" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="{% trans 'ویرایش' %}">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'payee_delete' payee.pk %}" class="btn btn-sm btn-outline-danger payee-action-btn" data-action="delete" data-bs-toggle="tooltip" title="{% trans 'حذف' %}">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">{% trans "هیچ دریافت‌کننده‌ای یافت نشد." %}</h5>
+                    <p>{% if query or payee_type or entity_type %}
+                        {% trans "با فیلترهای انتخابی نتیجه‌ای یافت نشد." %}
+                    {% else %}
+                        {% trans "برای شروع یک دریافت‌کننده جدید ایجاد کنید." %}
+                    {% endif %}</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Pagination -->
         {% if is_paginated %}
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&payee_type={{ payee_type }}">قبلی</a></li>
-                {% endif %}
-                <li class="page-item disabled"><span class="page-link">صفحه {{ page_obj.number }} از {{ paginator.num_pages }}</span></li>
-                {% if page_obj.has_next %}
-                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&payee_type={{ payee_type }}">بعدی</a></li>
-                {% endif %}
-            </ul>
-        </nav>
+            <div class="card-footer bg-light border-0">
+                <nav class="d-flex justify-content-center" aria-label="{% trans 'ناوبری صفحه' %}">
+                    <ul class="pagination">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&payee_type={{ payee_type }}&entity_type={{ entity_type }}"
+                                   aria-label="{% trans 'صفحه قبلی' %}">‹</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">‹</span></li>
+                        {% endif %}
+                        {% for i in page_obj.paginator.get_elided_page_range %}
+                            {% if page_obj.number == i %}
+                                <li class="page-item active"><span class="page-link">{{ i|to_persian_number }}</span></li>
+                            {% else %}
+                                {% if i == page_obj.paginator.ELLIPSIS %}
+                                    <li class="page-item disabled"><span class="page-link">{{ i }}</span></li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ i }}&q={{ query }}&payee_type={{ payee_type }}&entity_type={{ entity_type }}">{{ i|to_persian_number }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&payee_type={{ payee_type }}&entity_type={{ entity_type }}"
+                                   aria-label="{% trans 'صفحه بعدی' %}">›</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">›</span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
         {% endif %}
     </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="confirmationModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>{% trans "تأیید عملیات" %}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'بستن' %}"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <p class="fs-5">{% trans "آیا از حذف این دریافت‌کننده اطمینان دارید؟ این عمل قابل بازگشت نیست." %}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "انصراف" %}</button>
+                    <a href="#" id="confirmActionBtn" class="btn btn-danger">{% trans "بله، حذف کن" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // تنظیم RTL
+    document.documentElement.setAttribute('dir', 'rtl');
+
+    // فعال‌سازی Tooltip‌ها
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+        new bootstrap.Tooltip(el, {
+            boundary: 'window',
+            placement: 'top'
+        });
+    });
+
+    // جستجوی دینامیک
+    const searchInput = document.getElementById('payeeSearch');
+    const clearSearch = document.getElementById('clearSearch');
+    const rows = document.querySelectorAll('.payee-row');
+
+    searchInput.addEventListener('input', function() {
+        const keyword = this.value.trim().normalize('NFKC').replace(/[۰-۹]/g, d => String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 0x0030));
+        clearSearch.classList.toggle('show', keyword.length > 0);
+
+        rows.forEach(row => {
+            const text = row.textContent.replace(/[۰-۹]/g, d => String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 0x0030)).normalize('NFKC').toLowerCase();
+            const cells = row.querySelectorAll('td');
+
+            cells.forEach(cell => {
+                cell.innerHTML = cell.innerHTML.replace(/<span class="highlight">(.*?)<\/span>/g, '$1');
+            });
+
+            if (keyword && text.includes(keyword.toLowerCase())) {
+                row.style.display = '';
+                cells.forEach(cell => {
+                    const cellText = cell.textContent.replace(/[۰-۹]/g, d => String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 0x0030)).normalize('NFKC').toLowerCase();
+                    if (cellText.includes(keyword.toLowerCase())) {
+                        const regex = new RegExp(`(${keyword})`, 'gi');
+                        cell.innerHTML = cell.innerHTML.replace(regex, '<span class="highlight">$1</span>');
+                    }
+                });
+            } else {
+                row.style.display = keyword ? 'none' : '';
+            }
+        });
+    });
+
+    clearSearch.addEventListener('click', function() {
+        searchInput.value = '';
+        clearSearch.classList.remove('show');
+        rows.forEach(row => {
+            row.style.display = '';
+            row.querySelectorAll('td').forEach(cell => {
+                cell.innerHTML = cell.innerHTML.replace(/<span class="highlight">(.*?)<\/span>/g, '$1');
+            });
+        });
+    });
+
+    // مدیریت حذف با SweetAlert2
+    const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+    const confirmBtn = document.getElementById('confirmActionBtn');
+
+    document.querySelectorAll('.payee-action-btn[data-action="delete"]').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            confirmBtn.href = this.href;
+            confirmationModal.show();
+        });
+    });
+
+    // نمایش پیام‌های Django
+    {% if messages %}
+        {% for message in messages %}
+            Swal.fire({
+                icon: '{{ message.tags }}' === 'success' ? 'success' : 'error',
+                title: '{{ message.tags|capfirst }}',
+                text: '{{ message }}',
+                timer: 3000,
+                showConfirmButton: false
+            });
+        {% endfor %}
+    {% endif %}
+
+    // تنظیم برچسب‌های responsive برای جدول
+    document.querySelectorAll('.responsive-table').forEach(table => {
+        const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent);
+        table.querySelectorAll('tbody tr').forEach(row => {
+            row.querySelectorAll('td').forEach((td, index) => {
+                td.setAttribute('data-label', headers[index]);
+            });
+        });
+    });
+});
+</script>
 {% endblock %}

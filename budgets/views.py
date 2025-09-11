@@ -13,7 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView, CreateView, TemplateView
 
 # from budgets.ProjectBudgetAllocation.forms_ProjectBudgetAllocation import ProjectBudgetAllocationForm
-from budgets.forms import PayeeForm, TransactionTypeForm
+from budgets.forms import   TransactionTypeForm
 from budgets.models import BudgetPeriod, BudgetAllocation,  BudgetTransaction, PaymentOrder, \
     Payee, TransactionType
 from core.PermissionBase import PermissionBaseView
