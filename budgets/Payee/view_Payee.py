@@ -16,8 +16,6 @@ from core.PermissionBase import PermissionBaseView
 
 logger = logging.getLogger(__name__)
 
-
-
 class PayeeListView(PermissionBaseView,ListView):
     """
     نمایش لیست دریافت‌کنندگان با قابلیت جستجو و صفحه‌بندی.

@@ -47,25 +47,29 @@ class PermissionBaseView(View):
         model = getattr(self, 'model', None)
         if not model:
             logger.warning("Model not defined in PermissionBaseView.")
-            return model.objects.none()  # یا None
+            return model.objects.none()
 
         queryset = model._default_manager.all()
+
+        # 🔹 اگر سوپر یوزر است → همه داده‌ها بدون فیلتر
+        if user.is_superuser:
+            logger.info(f"[PERM_CHECK] User {user.username} is superuser → full queryset access.")
+            return queryset
 
         # گرفتن همه پست‌های فعال کاربر
         user_posts = UserPost.objects.filter(user=user, is_active=True).select_related('post__organization')
         user_orgs = set(up.post.organization for up in user_posts if up.post and up.post.organization)
 
-        # اگر کاربر هیچ پست فعالی ندارد → دسترسی ندارد
         if not user_posts.exists():
             logger.warning(f"[PERM_CHECK] User {user.username} has no active posts.")
             return queryset.none()
 
-        # اگر کاربر هر کدام از پست‌هایش دفتر مرکزی باشد → دسترسی کامل
+        # اگر یکی از سازمان‌ها دفتر مرکزی بود → دسترسی کامل
         if any(org.is_core for org in user_orgs):
             logger.info(f"[PERM_CHECK] User {user.username} has core organization → full access granted.")
             return queryset
 
-        # اعمال فیلتر سازمانی برای کاربران عادی
+        # اعمال فیلتر سازمانی
         if self.check_organization:
             org_ids = [org.id for org in user_orgs]
             if not org_ids:
@@ -82,8 +86,9 @@ class PermissionBaseView(View):
             return True
 
         # گرفتن سازمان‌های فعال کاربر
-        active_posts = UserPost.objects.filter(user=user, is_active=True, post__is_active=True).select_related(
-            'post__organization')
+        active_posts = UserPost.objects.filter(
+            user=user, is_active=True, post__is_active=True
+        ).select_related('post__organization')
         active_orgs = [up.post.organization for up in active_posts if up.post and up.post.organization]
 
         # اگر سازمان دفتر مرکزی باشد → دسترسی کامل
@@ -91,18 +96,31 @@ class PermissionBaseView(View):
             logger.info(f"[PERM_CHECK] User {user.username} has core organization → full access granted.")
             return True
 
-        # بررسی مجوزهای معمول
+        # بررسی مجوزها
         if isinstance(self.permission_codenames, str):
             perms_to_check = [self.permission_codenames]
         else:
             perms_to_check = self.permission_codenames
 
-        user_perms = user.get_all_permissions()
-        missing = [p for p in perms_to_check if p not in user_perms]
+        # همه پرمیژن‌های کاربر
+        user_perms = {p.lower() for p in user.get_all_permissions()}
+
+        # نرمال‌سازی پرمیژن‌های موردنیاز
+        norm_perms = []
+        for perm in perms_to_check:
+            p = perm.lower()
+            if '.' not in p:  # اگر اپ‌نیم نیامده بود
+                # اپ ویو فعلی را پیدا کن
+                app_label = self.model._meta.app_label if hasattr(self, 'model') else ''
+                if app_label:
+                    p = f"{app_label}.{p}"
+            norm_perms.append(p)
+
+        missing = [p for p in norm_perms if p not in user_perms]
         if missing:
             logger.warning(f"[PERM_CHECK] User {user.username} missing permissions: {missing}")
 
-        return any(perm in user_perms for perm in perms_to_check)
+        return any(p in user_perms for p in norm_perms)
 
     def dispatch(self, request, *args, **kwargs):
         """کنترل دسترسی قبل از اجرای ویو"""
@@ -118,12 +136,6 @@ class PermissionBaseView(View):
         logger.info(f"[PERM_CHECK] User {user.username} passed permission check for {request.path}.")
         return super().dispatch(request, *args, **kwargs)
 def check_permission_and_organization(permissions, check_org=False):
-    """
-    Decorator برای بررسی مجوزها و فیلتر سازمانی به صورت داینامیک.
-    - مجوزها را با user.has_perm بررسی می‌کند
-    - شعبات زیرمجموعه دفتر مرکزی را به صورت داینامیک اضافه می‌کند
-    - ادمین، سرپرایزر و سوپر یوزر دسترسی کامل دارند
-    """
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
@@ -132,37 +144,45 @@ def check_permission_and_organization(permissions, check_org=False):
                 logger.warning(f"Unauthorized access attempt by anonymous user to {request.path}.")
                 return redirect('login')
 
-            # اطمینان از اینکه permissions لیست است
+            # نرمال‌سازی لیست پرمیژن‌ها
             perms_to_check = [permissions] if isinstance(permissions, str) else permissions
+            perms_to_check = [p.lower() for p in perms_to_check]
 
-            # دسترسی کامل برای سوپر یوزر یا کاربران با نقش ادمین/سرپرایزر
-                       # بررسی دسترسی کامل
-            from core.models import UserPost
+            # دسترسی کامل برای سوپر یوزر یا کاربران دفتر مرکزی
+            from core.models import UserPost, Organization
             is_full_access = (
-                    user.is_superuser or
-                    UserPost.objects.filter(user=user, is_active=True, post__is_active=True,
-                                            post__organization__is_core=True).exists()
+                user.is_superuser or
+                UserPost.objects.filter(
+                    user=user, is_active=True, post__is_active=True,
+                    post__organization__is_core=True
+                ).exists()
             )
 
-            if is_full_access:
-                logger.info(f"[PERM_CHECK] User {user.username} is admin/supervisor → full access granted.")
-            else:
-                # بررسی مجوزها
-                if not any(user.has_perm(perm) for perm in perms_to_check):
-                    logger.warning(f"User {user.username} is missing permissions: {perms_to_check}")
+            if not is_full_access:
+                # همه پرمیژن‌های کاربر
+                user_perms = {p.lower() for p in user.get_all_permissions()}
+
+                # اگر اپ‌نیم داده نشده بود اضافه کن
+                norm_perms = []
+                for perm in perms_to_check:
+                    if '.' not in perm:
+                        # اگر ویو مدل دارد، اپ‌نیم همان مدل است
+                        model_class = getattr(view_func, 'model', None)
+                        app_label = model_class._meta.app_label if model_class else ''
+                        if app_label:
+                            perm = f"{app_label}.{perm}"
+                    norm_perms.append(perm)
+
+                if not any(p in user_perms for p in norm_perms):
+                    logger.warning(f"User {user.username} missing permissions: {norm_perms}")
                     raise PermissionDenied(_("You do not have permission to perform this action."))
 
-            # بررسی سازمان‌ها در صورت فعال بودن check_org
+            # بررسی سازمان‌ها مثل قبل...
             if check_org and not is_full_access:
-                from .models import UserPost, Organization
-
-                # سازمان‌های فعال کاربر
                 user_orgs = set(
                     UserPost.objects.filter(user=user, is_active=True)
                     .values_list('post__organization_id', flat=True)
                 )
-
-                # اضافه کردن زیرمجموعه‌ها اگر دفتر مرکزی باشد
                 central_orgs = Organization.objects.filter(id__in=user_orgs, is_core=True, is_active=True)
                 all_orgs = set(user_orgs)
                 for org in central_orgs:
@@ -170,18 +190,15 @@ def check_permission_and_organization(permissions, check_org=False):
                     all_orgs.update([d.id for d in descendants])
                 user_orgs = all_orgs
 
-                # بررسی سازمان شیء موردنظر (اگر pk/id موجود باشد)
                 obj_id = kwargs.get('pk') or kwargs.get('id')
                 model_class = getattr(view_func, 'model', None)
                 if obj_id and model_class:
                     obj = get_object_or_404(model_class, pk=obj_id)
                     obj_org_id = None
-
                     if hasattr(obj, 'organization') and obj.organization:
                         obj_org_id = obj.organization.id
                     elif hasattr(obj, 'tankhah') and hasattr(obj.tankhah, 'organization'):
                         obj_org_id = obj.tankhah.organization.id
-
                     if obj_org_id and obj_org_id not in user_orgs:
                         logger.warning(f"User {user.username} tried to access org {obj_org_id} without permission.")
                         raise PermissionDenied(_("You do not have permission to access objects from this organization."))

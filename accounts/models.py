@@ -246,6 +246,7 @@ class Role(models.Model):
 
     def __str__(self):
         return self.name
+
 class MyGroup(models.Model):
     name = models.CharField(max_length=150, unique=True, verbose_name=_("نام گروه"))
     roles = models.ManyToManyField('Role', related_name='mygroups', blank=True, verbose_name=_("تعریف نقش"))

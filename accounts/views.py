@@ -264,6 +264,7 @@ class RoleListView(PermissionBaseView, ListView):
     template_name = 'accounts/users/rols/role_list.html'
     context_object_name = 'roles'
     permission_codenames = 'see_role'
+    check_organization = False
     paginate_by = 10
 
     def get_queryset(self):
