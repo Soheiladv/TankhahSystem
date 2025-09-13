@@ -193,6 +193,14 @@ class Post(models.Model):
                 child.max_change_level = child.level
             child.save(changed_by=changed_by, update_fields=['level', 'max_change_level'])
 
+    def get_active_users(self):
+        """
+        کاربران فعال مرتبط با این پست را برمی‌گرداند.
+        """
+        return CustomUser.objects.filter(
+            userpost__post=self,
+            userpost__is_active=True
+        )
     class Meta:
         verbose_name = _("پست سازمانی")
         verbose_name_plural = _("پست‌های سازمانی")

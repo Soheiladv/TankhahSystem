@@ -159,13 +159,7 @@ def create_payment_order_on_approval(sender, instance, created, **kwargs):
     if created and instance.action == 'APPROVED':
         try:
             logger.info(f"[create_payment_order_on_approval] Processing ApprovalLog {instance.id}")
-            if not instance.stage:
-                logger.warning(f"[create_payment_order_on_approval] No stage defined for ApprovalLog {instance.id}")
-                return
-            if not instance.stage.triggers_payment_order:
-                logger.debug(f"[create_payment_order_on_approval] triggers_payment_order=False for ApprovalLog {instance.id}")
-                return
-
+            
             content_type = instance.content_type
             if content_type.model != 'factor':
                 logger.debug(f"[create_payment_order_on_approval] Content type is {content_type.model}, skipping")
@@ -173,67 +167,61 @@ def create_payment_order_on_approval(sender, instance, created, **kwargs):
 
             factor = Factor.objects.get(id=instance.object_id)
             tankhah = factor.tankhah
-            if factor.status != 'APPROVED':
-                logger.info(f"[create_payment_order_on_approval] Factor {factor.id} is not APPROVED, skipping")
+            
+            # بررسی اینکه فاکتور تایید نهایی شده باشد
+            if not factor.status or not factor.status.is_final_approve:
+                logger.debug(f"[create_payment_order_on_approval] Factor {factor.id} is not final approved, skipping")
                 return
 
-            amount = sum(item.amount for item in factor.items.filter(status='APPROVED'))
+            # بررسی اینکه قبلاً دستور پرداخت ایجاد نشده باشد
+            if PaymentOrder.objects.filter(related_factors=factor).exists():
+                logger.info(f"[create_payment_order_on_approval] PaymentOrder already exists for Factor {factor.id}")
+                return
+
+            amount = factor.amount
             user_post = instance.user.userpost_set.filter(is_active=True, end_date__isnull=True).first()
             if not user_post:
                 logger.warning(f"[create_payment_order_on_approval] No active user post found for user {instance.user.username}")
                 return
 
-            # initial_po_stage = AccessRule.objects.filter(
-            #     entity_type='PAYMENTORDER',
-            #     stage_order=1,
-            #     is_active=True,
-            #     organization=tankhah.organization
-            # ).first()
             from core.models import Status
-            initial_po_stage = Status.objects.filter(code='PAYMENTORDER', is_initial=True).first()
+            initial_po_status = Status.objects.filter(
+                entity_type__code='PAYMENTORDER', 
+                is_initial=True
+            ).first()
 
-            if not initial_po_stage:
-                logger.error(f"[create_payment_order_on_approval] No initial stage found for PAYMENTORDER")
+            if not initial_po_status:
+                logger.error(f"[create_payment_order_on_approval] No initial status found for PAYMENTORDER")
                 return
 
-            payee = factor.payee or Payee.objects.filter(is_active=True, organization=tankhah.organization).first()
-            if not payee:
-                logger.warning(f"[create_payment_order_on_approval] No payee found for Factor {factor.id}")
-                payee = None
-
+            # ایجاد دستور پرداخت
             payment_order = PaymentOrder.objects.create(
                 tankhah=tankhah,
                 related_tankhah=tankhah,
                 amount=amount,
-                payee=payee,
+                payee=None,  # باید بعداً تنظیم شود
                 description=f"دستور پرداخت برای فاکتور {factor.number} (تنخواه: {tankhah.number})",
                 organization=tankhah.organization,
                 project=tankhah.project,
-                status='DRAFT',
+                status=initial_po_status,
                 created_by=instance.user,
                 created_by_post=user_post.post,
-                current_stage=initial_po_stage,
                 issue_date=timezone.now().date(),
-                min_signatures=initial_po_stage.min_signatures or 1,
-                order_number=PaymentOrder().generate_payment_order_number()
+                min_signatures=1
             )
             payment_order.related_factors.add(factor)
             logger.info(f"[create_payment_order_on_approval] Created PaymentOrder {payment_order.order_number} for Factor {factor.id}")
 
             # ارسال اعلان
-            approving_posts = AccessRule.objects.filter(
-                stage_order=initial_po_stage.stage_order,
-                is_active=True,
-                entity_type='PAYMENTORDER',
-                action_type='APPROVE'
-            ).values_list('post', flat=True)
-            notify.send(
+            from notificationApp.utils import send_notification
+            send_notification(
                 sender=instance.user,
-                recipient=CustomUser.objects.filter(userpost__post__in=approving_posts, userpost__is_active=True).distinct(),
-                verb='created',
-                action_object=payment_order,
+                users=[factor.created_by],
+                verb='PAYMENTORDER_CREATED',
                 description=f"دستور پرداخت {payment_order.order_number} برای فاکتور {factor.number} ایجاد شد.",
-                level='high'
+                target=payment_order,
+                entity_type='PAYMENTORDER',
+                priority='HIGH'
             )
         except Exception as e:
             logger.error(f"[create_payment_order_on_approval] Error for ApprovalLog {instance.id}: {str(e)}", exc_info=True)

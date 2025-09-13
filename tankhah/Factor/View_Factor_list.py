@@ -27,7 +27,7 @@ class  FactorListView(PermissionBaseView, ListView):
     model = Factor
     template_name = 'tankhah/factor_list.html'
     context_object_name = 'factors'
-    permission_codenames = ['tankhah.factor_view']
+    permission_codename = 'tankhah.factor_view'
     check_organization = True
     organization_filter_field = 'tankhah__organization__id__in'
     paginate_by = 20
@@ -404,7 +404,7 @@ class FactorListView2(PermissionBaseView, ListView):
     template_name       = 'tankhah/Factors/factor_list_final.html'
     context_object_name = 'factors'
     paginate_by         = 20
-    permission_codenames = ['tankhah.factor_view']
+    permission_codename = 'tankhah.factor_view'
 
     def _user_is_hq(self, user):
         if user.is_superuser or user.has_perm('tankhah.Tankhah_view_all'):

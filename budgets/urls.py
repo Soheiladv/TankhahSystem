@@ -2,6 +2,7 @@
 from django.urls import path
 
 from reports.ComprehensiveBudgetReportView import ComprehensiveBudgetReportView
+from .PaymentOrder.PaymentOrderApproval import PaymentOrderApprovalListView, PaymentOrderApprovalView
 # وارد کردن تمام ویوهای مورد نیاز از بخش‌های مختلف
 from .views import BudgetDashboardView, NumberToWordsView, budget_Help, TransactionTypeListView, \
     TransactionTypeCreateView, TransactionTypeUpdateView, TransactionTypeDeleteView, \
@@ -20,6 +21,7 @@ from .BudgetReturn.views_BudgetTransferView import BudgetTransferView
 from .BudgetReturn.budget_Api_Return import ProjectAllocationFreeBudgetAPI, ProjectAllocationAPI
 from .Payee.view_Payee import *
 from .PaymentOrder.view_PaymentOrder import *
+from .PaymentOrder.views_payment_management import *
 from core.views import BudgetAllocationView
 
 # app_name = 'budgets'
@@ -110,4 +112,16 @@ urlpatterns = [
     path('budgetrealtimeReportView/', ProjectBudgetRealtimeReportView.as_view(), name='budgetrealtimeReportView'),
 
     path('budget_allocation_view/', BudgetAllocationView.as_view(), name='budget_allocation_view'),
+]
+
+# دستور پرداخت - مدیریت و تایید
+urlpatterns += [
+    # مدیریت دستورات پرداخت
+    path('payment-orders/management/', PaymentOrderManagementListView.as_view(), name='paymentorder_management_list'),
+    path('payment-orders/<int:pk>/approval/', PaymentOrderApprovalView.as_view(), name='paymentorder_approval'),
+    path('payment-orders/<int:pk>/detail/', PaymentOrderDetailView.as_view(), name='paymentorder_detail'),
+    path('create-payment-orders-from-factors/', create_payment_orders_from_factors, name='create_payment_orders_from_factors'),
+    
+    # کارتابل تایید (قدیمی)
+    path('payment-orders/approval/', PaymentOrderApprovalListView.as_view(), name='paymentorder_approval_list'),
 ]

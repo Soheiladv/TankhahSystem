@@ -77,6 +77,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.version_info',
+                'budgets.context_processors.payment_order_stats',
             ],
         },
     },

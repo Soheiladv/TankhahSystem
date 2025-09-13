@@ -1,0 +1,36 @@
+<!-- templates/budgets/paymentorder/approval_list.html -->
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>دستورات پرداخت در انتظار تایید</h2>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>شماره دستور</th>
+                    <th>مبلغ</th>
+                    <th>دریافت‌کننده</th>
+                    <th>وضعیت</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in pending_orders %}
+                <tr>
+                    <td>{{ order.order_number }}</td>
+                    <td>{{ order.amount|floatformat:0 }} ریال</td>
+                    <td>{{ order.payee }}</td>
+                    <td><span class="badge bg-warning">{{ order.status.name }}</span></td>
+                    <td>
+                        <a href="{% url 'paymentorder_approval' order.pk %}" class="btn btn-primary btn-sm">تایید/رد</a>
+                        <a href="{% url 'paymentorder_detail' order.pk %}" class="btn btn-info btn-sm">جزئیات</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center">هیچ دستور پرداختی در انتظار تایید نیست.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

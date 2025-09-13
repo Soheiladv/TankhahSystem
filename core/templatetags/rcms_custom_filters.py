@@ -709,3 +709,18 @@ def query_params(context, **kwargs):
     for key, value in kwargs.items():
         query[key] = value
     return query.urlencode()
+
+@register.filter
+def status_badge_class(status_code):
+    """
+    تعیین کلاس CSS برای badge وضعیت دستور پرداخت
+    """
+    status_classes = {
+        'PO_DRAFT': 'secondary',
+        'PO_PENDING': 'warning',
+        'PO_APPROVED': 'success',
+        'PO_REJECTED': 'danger',
+        'PO_PAID': 'primary',
+        'PO_CANCELLED': 'dark'
+    }
+    return status_classes.get(status_code, 'secondary')

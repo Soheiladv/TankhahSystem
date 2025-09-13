@@ -157,6 +157,8 @@ dashboard_links = {
         {'name': _('دسته بندی نوع هزینه کرد'), 'url': 'itemcategory_list', 'icon': 'fas fa-link'},
         {'name': _(' دستور پرداخت'), 'url': 'payment_order_review', 'icon': 'fas fa-link'},
 
+        {'name': _(' کارتابل پرداخت  '), 'url': 'paymentorder_management_list', 'icon': 'fas fa-link'},
+
     ],
     'گزارشات': [
         {'name': _('درخت سیستم'), 'url': 'comprehensive_budget_report', 'icon': 'fas fa-chart-line'},

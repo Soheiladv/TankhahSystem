@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
 from django.db.models import Q
@@ -105,7 +107,7 @@ def send_notification(sender, users=None, posts=None, verb=None, description=Non
                     target_object_id=target.id if target else None
                 )
                 notifications.append(notification)
-
+                logging.info(f'notification Log In Utils For Save ={notification}')
                 # ارسال ایمیل اگر کانال شامل EMAIL باشد
                 if rule.channel == 'EMAIL' and recipient.email:
                     send_mail(

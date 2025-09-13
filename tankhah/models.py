@@ -16,7 +16,6 @@ from django.contrib.contenttypes.models import ContentType
 import logging
 
 
-
 logger = logging.getLogger('Tankhah_Models')
 
 NUMBER_SEPARATOR = getattr(settings, 'NUMBER_SEPARATOR', '-')
@@ -362,6 +361,25 @@ class Tankhah(models.Model):
                 )
 
         return processed_count
+
+    def get_next_payment_stage_posts(self):
+        """
+        بازگشت پست‌هایی که مرحله بعدی دستور پرداخت را بررسی/صدور می‌کنند.
+        این متد با WorkflowStage و AccessRule مرتبط است.
+        """
+        next_posts = []
+
+        if not self.current_stage:
+            return next_posts
+
+        # گرفتن مرحله بعدی برای دستور پرداخت
+        next_stage = self.current_stage.get_next_stage(entity_type='PAYMENTORDER')
+        if next_stage:
+            next_posts = list(next_stage.posts.all())  # فرض بر این است که هر Stage دارای psts مرتبط است
+
+        return next_posts
+
+
 class TankhActionType(models.Model):
     action_type = models.CharField(max_length=25, verbose_name=_('انواع  اقدام'))
     code = models.CharField(max_length=50, unique=True, verbose_name=_('تایپ'))
@@ -381,6 +399,7 @@ class TankhActionType(models.Model):
 
     def __str__(self):
         return self.action_type
+
 class TankhahAction(models.Model):  # صدور دستور پرداخت
     tankhah = models.ForeignKey(Tankhah, on_delete=models.CASCADE, related_name='actions', verbose_name=_("تنخواه"))
     amount = models.DecimalField(max_digits=25, decimal_places=2, null=True, blank=True,
@@ -475,7 +494,21 @@ class Factor(models.Model):
                                          related_name='re_registered_factors', verbose_name=_("تنخواه جدید"))
 
     payee = models.ForeignKey('budgets.Payee'  , on_delete=models.PROTECT, verbose_name=_("صادرکننده فاکتور"))
-        # سایر فیلدها
+
+    def related_users(self):
+        """
+        کاربران مرتبط با فاکتور برای دریافت اعلان
+        - کاربر ایجادکننده
+        - کاربرانی که فاکتور را تایید کرده‌اند
+        """
+        users = set()
+        if self.created_by:
+            users.add(self.created_by)
+        approved_users = self.approved_by.all() if hasattr(self, 'approved_by') else []
+        users.update(approved_users)
+        return users
+
+       # سایر فیلدها
     def update_total_amount(self):
         total = self.items.aggregate(total=Sum('amount'))['total'] or Decimal('0')
         if self.amount != total:
@@ -599,9 +632,63 @@ class Factor(models.Model):
                 raise ValidationError({
                     "rejected_reason": _("برای رد کردن فاکتور، نوشتن دلیل الزامی است.")
                 })
+    # def save(self, *args, **kwargs):
+    #     user = kwargs.pop('current_user', None)
+    #     is_new = self.pk is None
+    #     if is_new:
+    #         if not self.number:
+    #             self.number = self.generate_number()
+    #             logger.debug(f"شماره فاکتور جدید تولید شد: {self.number}")
+    #         if not self.status:
+    #             self.status = get_default_initial_status()
+    #
+    #     with transaction.atomic():
+    #         self.full_clean()
+    #         original = None
+    #         if self.pk:
+    #             original_status = Factor.objects.get(pk=self.pk).status
+    #         super().save(*args, **kwargs)
+    #
+    #         if self.status and self.status.code == 'PAID' and self.status != original_status:
+    #             logger.info(
+    #                 f"Factor {self.number} marked as PAID. Creating CONSUMPTION transaction and checking payment order.")
+    #             self.is_locked = True
+    #             from budgets.budget_calculations import create_budget_transaction
+    #             create_budget_transaction(
+    #                 allocation=self.tankhah.project_budget_allocation,
+    #                 transaction_type='CONSUMPTION',
+    #                 amount=self.amount,
+    #                 related_obj=self,
+    #                 created_by=username or self.created_by,
+    #                 description=f"مصرف بودجه توسط فاکتور پرداخت شده {self.number}",
+    #                 transaction_id=f"TX-FAC-{self.number}"
+    #             )
+    #             self.is_locked = True
+    #
+    #         if original and self.status != original.status and username:
+    #             user_post = username.userpost_set.filter(is_active=True).first() if username else None
+    #             if user_post:
+    #                 action = 'APPROVE' if self.status in ['APPROVED', 'PAID'] else 'REJECT'
+    #                 ApprovalLog.objects.create(
+    #                     factor=self,
+    #                     action=action,
+    #                     stage=self.tankhah.current_stage,
+    #                     user=username,
+    #                     post=user_post.post,
+    #                     content_type=ContentType.objects.get_for_model(self),
+    #                     object_id=self.id,
+    #                     comment=f"تغییر وضعیت فاکتور به {Factor.status.name} توسط {username.get_full_name()}",
+    #                     changed_field='status'
+    #                 )
+    #
+    #         super().save(update_fields=['is_locked'])
+
+
     def save(self, *args, **kwargs):
-        user = kwargs.pop('current_user', None)
+        # کاربر فعلی که تغییر را انجام می‌دهد
+        current_user = kwargs.pop('current_user', None)
         is_new = self.pk is None
+
         if is_new:
             if not self.number:
                 self.number = self.generate_number()
@@ -610,15 +697,22 @@ class Factor(models.Model):
                 self.status = get_default_initial_status()
 
         with transaction.atomic():
+            # بررسی وضعیت قبل از ذخیره
+            original_status = None
+            if not is_new:
+                try:
+                    original_status = Factor.objects.get(pk=self.pk).status
+                except Factor.DoesNotExist:
+                    original_status = None
+
             self.full_clean()
-            original = None
-            if self.pk:
-                original_status = Factor.objects.get(pk=self.pk).status
             super().save(*args, **kwargs)
 
-            if self.status and self.status.code == 'PAID' and self.status != original_status:
+            # اگر فاکتور پرداخت شده است، تراکنش بودجه ایجاد شود
+            if self.status and self.status.code == 'PAID' and (not original_status or original_status != self.status):
                 logger.info(
-                    f"Factor {self.number} marked as PAID. Creating CONSUMPTION transaction and checking payment order.")
+                    f"Factor {self.number} marked as PAID. Creating CONSUMPTION transaction."
+                )
                 self.is_locked = True
                 from budgets.budget_calculations import create_budget_transaction
                 create_budget_transaction(
@@ -626,29 +720,49 @@ class Factor(models.Model):
                     transaction_type='CONSUMPTION',
                     amount=self.amount,
                     related_obj=self,
-                    created_by=username or self.created_by,
+                    created_by=current_user or self.created_by,
                     description=f"مصرف بودجه توسط فاکتور پرداخت شده {self.number}",
                     transaction_id=f"TX-FAC-{self.number}"
                 )
-                self.is_locked = True
 
-            if original and self.status != original.status and username:
-                user_post = username.userpost_set.filter(is_active=True).first() if username else None
+
+            # ثبت لاگ تغییر وضعیت
+            if original_status != self.status and current_user:
+                user_post = current_user.userpost_set.filter(is_active=True).first()
                 if user_post:
-                    action = 'APPROVE' if self.status in ['APPROVED', 'PAID'] else 'REJECT'
+                    action = 'APPROVE' if self.status.code in ['APPROVED', 'PAID'] else 'REJECT'
                     ApprovalLog.objects.create(
                         factor=self,
                         action=action,
                         stage=self.tankhah.current_stage,
-                        user=username,
+                        user=current_user,
                         post=user_post.post,
                         content_type=ContentType.objects.get_for_model(self),
                         object_id=self.id,
-                        comment=f"تغییر وضعیت فاکتور به {Factor.status.name} توسط {username.get_full_name()}",
+                        comment=f"تغییر وضعیت فاکتور به {self.status.name} توسط {current_user.get_full_name()}",
                         changed_field='status'
                     )
+            # ارسال اعلان In-App برای فاکتور تأیید شده
+            if self.status and self.status.code == 'APPROVED' and self.status != getattr(original_status,
+                                                                                         'code', None):
+                try:
+                    factor_users = self.related_users.all()
+                    payment_stage_posts = self.tankhah.get_next_payment_stage_posts()
+                    from notificationApp.utils import send_notification
 
-            super().save(update_fields=['is_locked'])
+                    send_notification(
+                        sender=current_user,
+                        users=factor_users,
+                        posts=payment_stage_posts,
+                        verb='APPROVED',
+                        description=f"فاکتور {self.number} برای پردازش دستور پرداخت آماده شد.",
+                        target=self,
+                        entity_type='FACTOR',
+                        priority='HIGH'
+                    )
+                    super().save(update_fields=['is_locked'])
+                except Exception as e:
+                    logger.error(f"ارسال اعلان فاکتور {self.number} با send_notification ناموفق بود: {e}")
 
     def revert_to_pending(self, user):
         from core.models import Status
@@ -754,6 +868,8 @@ class Factor(models.Model):
             ('factor_unlock', _('باز کردن فاکتور قفل‌شده')),
             ('factor_approval_path', _('بررسی مسیر تایید/رد فاکتور⛓️‍💥')),
         ]
+
+
 class FactorItem(models.Model):
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE, related_name='items', verbose_name=_("فاکتور"))
     description = models.CharField(max_length=255, verbose_name=_("شرح ردیف"))

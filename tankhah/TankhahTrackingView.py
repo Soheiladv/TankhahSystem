@@ -408,7 +408,15 @@ class TankhahStatusView(PermissionBaseView, ListView):
 
         # ساخت یک دیکشنری برای دسترسی سریع به اقدامات هر وضعیت
         transitions_map = {}
+        seen_actions = set()  # برای جلوگیری از تکرار اقدامات مشابه
+        
         for t in possible_transitions:
+            # جلوگیری از تکرار بر اساس ترکیب action و from_status
+            action_key = (t.action.id, t.from_status_id)
+            if action_key in seen_actions:
+                continue
+            seen_actions.add(action_key)
+            
             key = (t.from_status_id, t.organization_id)
             if key not in transitions_map:
                 transitions_map[key] = []

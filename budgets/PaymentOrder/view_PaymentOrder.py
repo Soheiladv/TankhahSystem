@@ -1,4 +1,6 @@
 import logging
+
+from django.contrib.contenttypes.models import ContentType
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView, CreateView, View
 from core.PermissionBase import PermissionBaseView
 from django.db.models import Q
@@ -11,6 +13,7 @@ from django.db import transaction
 from budgets.models import PaymentOrder
 from budgets.PaymentOrder.form_PaymentOrder import PaymentOrderForm
 from core.models import UserPost, Transition, Status
+from notificationApp.utils import send_notification
 from tankhah.models import ApprovalLog
 
 logger = logging.getLogger(__name__)
@@ -34,7 +37,16 @@ def get_available_actions(user, payment_order):
         is_active=True
     ).select_related('action', 'to_status').distinct()
 
-    return list(possible_transitions)
+    # جلوگیری از تکرار ترنزیشن‌ها بر اساس action
+    seen_actions = set()
+    unique_transitions = []
+    for t in possible_transitions:
+        action_key = (t.action.id, t.from_status.id)
+        if action_key not in seen_actions:
+            seen_actions.add(action_key)
+            unique_transitions.append(t)
+
+    return unique_transitions
 
 class PaymentOrderListView(PermissionBaseView, ListView):
     model = PaymentOrder
@@ -84,10 +96,32 @@ class PaymentOrderCreateView(PermissionBaseView, CreateView):
     permission_required = 'budgets.PaymentOrder_add'
 
     def form_valid(self, form):
+        final_status_ids = Status.objects.filter(is_final_approve=True, is_active=True).values_list('id', flat=True)
+        selected_factors = form.cleaned_data.get('related_factors')
+        if selected_factors.exclude(status_id__in=final_status_ids).exists():
+            form.add_error('related_factors', 'فقط فاکتورهای تایید نهایی قابل انتخاب هستند.')
+            return self.form_invalid(form)
+
         form.instance.created_by = self.request.user
         with transaction.atomic():
             response = super().form_valid(form)
             messages.success(self.request, f'دستور پرداخت {form.instance.order_number} با موفقیت ایجاد شد.')
+
+            # ارسال اعلان به کاربران مرتبط با فاکتورهای انتخاب‌شده
+            related_factors = form.cleaned_data.get('related_factors', [])
+            for factor in related_factors:
+                posts = [factor.tankhah.created_by_post] if factor.tankhah and factor.tankhah.created_by_post else []
+                send_notification(
+                    sender=self.request.user,
+                    posts=posts,
+                    verb='PAYMENTORDER_CREATED',
+                    description=f"دستور پرداخت {form.instance.order_number} برای فاکتور {factor} ایجاد شد.",
+                    target=form.instance,
+                    entity_type='PAYMENTORDER',
+                    priority='HIGH'
+                )
+
+
             return response
 
 class PaymentOrderUpdateView(PermissionBaseView, UpdateView):

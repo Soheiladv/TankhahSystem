@@ -63,7 +63,14 @@ def get_next_steps_with_posts(factor, include_final_reject=False):
     ).select_related('action', 'from_status', 'to_status').prefetch_related('allowed_posts')
 
     transitions_map = defaultdict(list)
+    seen_actions = set()  # برای جلوگیری از تکرار اقدامات مشابه
+    
     for t in all_transitions:
+        # جلوگیری از تکرار بر اساس ترکیب action و from_status
+        action_key = (t.action.id, t.from_status_id)
+        if action_key in seen_actions:
+            continue
+        seen_actions.add(action_key)
         transitions_map[t.from_status_id].append(t)
 
     path = []
@@ -100,33 +107,53 @@ def get_next_steps_with_posts(factor, include_final_reject=False):
 
     return path
 
+
 def get_user_allowed_transitions(user, factor):
     """
     لیست گذارهای مجاز برای کاربر و فاکتور مشخص
+    
+    این تابع:
+    1. بررسی می‌کند که فاکتور، تنخواه و سازمان معتبر باشد
+    2. سازمان‌های قابل دسترسی کاربر را از طریق PermissionBaseView دریافت می‌کند
+    3. ترنزیشن‌های فعال از وضعیت فعلی فاکتور را برای سازمان‌های مجاز فیلتر می‌کند
+    4. بررسی می‌کند که کاربر در پست‌های مجاز برای هر ترنزیشن باشد
+    5. قانون قفل‌شدن سطح پایین پس از اقدام سطح بالاتر را اعمال می‌کند
+    
+    Args:
+        user: کاربر درخواست‌کننده
+        factor: فاکتور مورد نظر
+        
+    Returns:
+        list: لیست ترنزیشن‌های مجاز برای کاربر
     """
+    from core.models import Transition, UserPost
+    from core.PermissionBase import PermissionBaseView
+    
     # اگر وضعیت/تنخواه/سازمان تعریف نشده باشد، اقدامی مجاز نیست
     if not getattr(factor, 'status', None) or not getattr(factor, 'tankhah', None) or not getattr(factor.tankhah, 'organization', None):
+        logger.warning(f"Factor {factor.pk} missing required fields: status, tankhah, or organization")
         return []
 
-    # سلسله‌مراتب سازمان (برای ارث‌بری قوانین از سازمان‌های والد)
-    org_hierarchy_pks = []
-    current_org = factor.tankhah.organization
-    while current_org:
-        org_hierarchy_pks.append(current_org.pk)
-        current_org = getattr(current_org, 'parent_organization', None)
+    # استفاده از PermissionBaseView برای دریافت سازمان‌های مجاز کاربر
+    temp_view = PermissionBaseView()
+    user_org_ids = temp_view.get_user_active_organizations(user)
+    
+    if not user_org_ids:
+        logger.warning(f"User {user.username} has no active organizations")
+        return []
 
-    # دریافت تمام ترنزیشن‌های فعال از وضعیت فعلی فاکتور برای این سازمان/سازمان‌های والد
+    # دریافت تمام ترنزیشن‌های فعال از وضعیت فعلی فاکتور برای سازمان‌های مجاز کاربر
     transitions_qs = Transition.objects.filter(
         entity_type__code='FACTOR',
         from_status=factor.status,
-        organization_id__in=org_hierarchy_pks,
+        organization_id__in=user_org_ids,
         is_active=True,
     ).select_related('action', 'from_status', 'to_status').prefetch_related('allowed_posts')
 
     # برای ادمین: همه ترنزیشن‌ها مجازند
     if user.is_superuser:
         result = list(transitions_qs)
-        logger.info(f"User {user.username} allowed transitions: {[t.action.name for t in result]}")
+        logger.info(f"Superuser {user.username} allowed transitions: {[t.action.name for t in result]}")
         return result
 
     # شناسه پست‌های فعال کاربر
@@ -144,25 +171,41 @@ def get_user_allowed_transitions(user, factor):
             user_min_level = min(user_levels)  # سطح بالاتر عدد کمتر
             higher_action_exists = factor.approval_logs.filter(post__level__lt=user_min_level).exists()
             if higher_action_exists:
-                logger.info(
-                    f"User {user.username} blocked by higher-level action. user_min_level={user_min_level}")
+                logger.info(f"User {user.username} blocked by higher-level action. user_min_level={user_min_level}")
                 return []
         except Exception as e:
             logger.debug(f"Level-block check failed: {e}")
 
-    # تشخیص عمومی بودن ترنزیشن بدون اتکای مستقیم به فیلتر M2M
+    # تشخیص ترنزیشن‌های مجاز بر اساس پست‌های مجاز
     allowed = []
+    seen_actions = set()  # برای جلوگیری از تکرار اقدامات مشابه
+    
     for t in transitions_qs:
+        # جلوگیری از تکرار بر اساس ترکیب action و from_status
+        action_key = (t.action.id, t.from_status.id)
+        if action_key in seen_actions:
+            logger.debug(f"Skipping duplicate action {t.action.name} for status {t.from_status.name}")
+            continue
+        seen_actions.add(action_key)
+        
+        # اگر ترنزیشن پست‌های مجاز تعریف نکرده باشد، عمومی است
         allowed_posts = list(t.allowed_posts.all())
         if not allowed_posts:  # عمومی
             allowed.append(t)
+            logger.debug(f"Added public transition: {t.action.name}")
             continue
+            
+        # بررسی اینکه کاربر در پست‌های مجاز باشد
         allowed_post_ids = {p.id for p in allowed_posts}
         if not user_post_ids_set.isdisjoint(allowed_post_ids):
             allowed.append(t)
+            logger.debug(f"Added transition for user posts: {t.action.name}")
+        else:
+            logger.debug(f"Skipped transition - user not in allowed posts: {t.action.name}")
 
     logger.info(f"User {user.username} allowed transitions: {[t.action.name for t in allowed]}")
     return allowed
+
 
 # ===================================================================
 # ۲. API برای انجام اقدام روی فاکتور
@@ -226,7 +269,7 @@ class FactorDetailView(PermissionBaseView, DetailView):
     model = Factor
     template_name = 'tankhah/Factors/Detials/factor_detail.html'
     context_object_name = 'factor'
-    permission_codename = 'tankhah.factor_view'
+    permission_codename = ['factor_view','factor_update','factor_reject','factor_approve']
     check_organization = True
 
     def get_queryset(self):

@@ -276,7 +276,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             text: body.message,
                             timer: 2000,
                             showConfirmButton: false
-                        }).then(() => location.reload());
+                        }).then(() => {
+                            // رفرش صفحه پس از تایید/رد موفق
+                            location.reload();
+                        });
                     } else {
                         throw new Error(body.error || '{% trans "یک خطای ناشناخته رخ داد." %}');
                     }
