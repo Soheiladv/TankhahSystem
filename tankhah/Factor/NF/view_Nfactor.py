@@ -160,17 +160,43 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
         if tankhah_id:
             logger.info(f"پر کردن فرم با تنخواه ID: {tankhah_id}")
             try:
-                tankhah = Tankhah.objects.get(id=tankhah_id)
+                # واکشی ایمن تنخواه همراه با وضعیت و پروژه و ... برای بررسی
+                tankhah = Tankhah.objects.select_related('project', 'status', 'organization',
+                                                         'project_budget_allocation__budget_period').get(pk=tankhah_id)
+
+                # بررسی پروژه معتبر
                 if not isinstance(tankhah.project, Project):
                     logger.error(f"پروژه نامعتبر برای تنخواه {tankhah_id}: {tankhah.project}")
-                    messages.error(self.request, _("پروژه مرتبط با تنخواه نامعتبر است. لطفاً با مدیر سیستم تماس بگیرید."))
+                    messages.error(self.request,
+                                   _("پروژه مرتبط با تنخواه نامعتبر است. لطفاً با مدیر سیستم تماس بگیرید."))
                     return kwargs
-                if tankhah.due_date < timezone.now():
-                    logger.warning(f"تنخواه {tankhah_id} منقضی شده است")
-                    messages.error(self.request, _("تنخواه انتخاب شده منقضی شده است و نمی‌توان برای آن فاکتور ثبت کرد."))
-                else:
-                    kwargs['initial'] = kwargs.get('initial', {})
-                    kwargs['initial']['tankhah'] = tankhah
+
+                # بررسی تاریخ انقضا تنخواه
+                if getattr(tankhah, 'due_date', None):
+                    due = tankhah.due_date
+                    if hasattr(due, 'date'):
+                        due = due.date()
+                    if due < timezone.now().date():
+                        logger.warning(f"تنخواه {tankhah_id} منقضی شده است: {due}")
+                        messages.error(self.request,
+                                       _("تنخواه انتخاب شده منقضی شده است و نمی‌توان برای آن فاکتور ثبت کرد."))
+                        return kwargs
+
+                # بررسی وضعیت نهایی تنخواه
+                status = getattr(tankhah, 'status', None)
+                if status and (getattr(status, 'is_final_approve', False) or getattr(status, 'is_final_reject', False)):
+                    logger.warning(f"تنخواه {tankhah_id} در وضعیت نهایی است: {status}")
+                    messages.error(self.request, _("تنخواه انتخاب شده در وضعیت نهایی قرار دارد و قابل استفاده نیست."))
+                    return kwargs
+
+                # ست کردن initial و مهم‌تر از همه ست کردن instance.tankhah تا در full_clean موجود باشد
+                kwargs.setdefault('initial', {})['tankhah'] = tankhah.pk
+                instance = kwargs.get('instance') or Factor()
+                instance.tankhah = tankhah
+                kwargs['instance'] = instance
+
+                logger.debug(f"[get_form_kwargs] instance.tankhah ست شد: {tankhah_id}")
+
             except Tankhah.DoesNotExist:
                 messages.error(self.request, _("تنخواه انتخاب شده معتبر نیست."))
                 logger.warning(f"تنخواه با ID {tankhah_id} یافت نشد")
@@ -237,6 +263,7 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
                 draft_status = Status.objects.get(code='DRAFT', is_initial=True)
 
                 self.object = form.save(commit=False)
+                self.object.tankhah = tankhah  # 👈 اینجا مقدار تنخواه ست بشه
                 self.object.created_by = user
                 self.object.status = draft_status
                 self.object.amount = total_items_amount

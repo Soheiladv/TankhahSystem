@@ -511,22 +511,94 @@ class Factor(models.Model):
                 new_number = f"FAC{sep}{tankhah_number}{sep}{date_str}{sep}{org_code}{sep}{serial:04d}"
             return new_number
 
+    # def clean(self):
+    #     super().clean()
+    #
+    #     # بررسی دسته‌بندی
+    #     if not self.category:
+    #         raise ValidationError(_("دسته‌بندی الزامی است."))
+    #
+    #     # ---- دسترسی به tankhah فقط از طریق tankhah_id (ایمن‌تر) ----
+    #     tankhah_obj = None
+    #     if getattr(self, "tankhah_id", None):
+    #         from .models import Tankhah  # مسیر درست مدل تنخواه
+    #         tankhah_obj = Tankhah.objects.select_related("status").filter(pk=self.tankhah_id).first()
+    #         if not tankhah_obj:
+    #             raise ValidationError(_("تنخواه انتخاب شده معتبر نیست."))
+    #
+    #         # بررسی تاریخ انقضا
+    #         if getattr(tankhah_obj, "due_date", None):
+    #             due = tankhah_obj.due_date
+    #             if hasattr(due, "date"):
+    #                 due = due.date()
+    #             if due < timezone.now().date():
+    #                 raise ValidationError(_("تنخواه انتخاب‌شده منقضی شده و قابل استفاده نیست."))
+    #
+    #         # بررسی وضعیت نهایی
+    #         if tankhah_obj.status and (
+    #                 getattr(tankhah_obj.status, "is_final_approve", False)
+    #                 or getattr(tankhah_obj.status, "is_final_reject", False)
+    #         ):
+    #             raise ValidationError(
+    #                 _("تنخواه انتخاب‌شده در وضعیت نهایی قرار دارد و نمی‌توان برای آن فاکتور جدید ثبت کرد.")
+    #             )
+    #
+    #     # ---- بررسی وضعیت فاکتور خودش ----
+    #     if self.status:
+    #         status_code = getattr(self.status, "code", None)
+    #         if status_code == "REJECT" and not self.rejected_reason:
+    #             raise ValidationError({"rejected_reason": _("برای رد کردن فاکتور، نوشتن دلیل الزامی است.")})
+    #
+    #         if getattr(self.status, "is_final_reject", False) and not self.rejected_reason:
+    #             raise ValidationError({"rejected_reason": _("برای رد کردن فاکتور، نوشتن دلیل الزامی است.")})
+
     def clean(self):
+        """
+        متد اصلاح‌شده برای اعتبارسنجی ایمن و صحیح.
+        """
         super().clean()
-        if not self.category:
+
+        # 1. اعتبارسنجی‌های غیروابسته به تنخواه
+        if not self.category_id:  # استفاده از _id برای جلوگیری از خطای دیتابیس
             raise ValidationError(_("دسته‌بندی الزامی است."))
-        if self.tankhah and self.tankhah.status:
-            if self.tankhah.status.is_final_approve or self.tankhah.status.is_final_reject:
-                raise ValidationError(
-                    _("تنخواه انتخاب‌شده در وضعیت نهایی قرار دارد و نمی‌توان برای آن فاکتور جدید ثبت کرد."))
 
-        if self.status:
-            if self.status.code == 'REJECT' and not self.rejected_reason:
-                raise ValidationError({"rejected_reason": _("برای رد کردن فاکتور، نوشتن دلیل الزامی است.")})
+        # 2. دریافت ایمن آبجکت تنخواه از طریق tankhah_id
+        tankhah_obj = None
+        if self.tankhah_id:
+            try:
+                # استفاده از select_related برای بهینه‌سازی و دریافت status در یک کوئری
+                tankhah_obj = Tankhah.objects.select_related('status').get(pk=self.tankhah_id)
+            except Tankhah.DoesNotExist:
+                raise ValidationError({'tankhah': _("تنخواه انتخاب شده معتبر نیست.")})
 
-        if self.status and self.status.is_final_reject and not self.rejected_reason:
-            raise ValidationError({"rejected_reason": _("برای رد کردن فاکتور، نوشتن دلیل الزامی است.")})
+        # 3. اگر تنخواه وجود دارد، تمام اعتبارسنجی‌های مربوط به آن را انجام بده
+        if tankhah_obj:
+            # بررسی تاریخ انقضا
+            if getattr(tankhah_obj, 'due_date', None):
+                due_date = tankhah_obj.due_date
+                if hasattr(due_date, 'date'):  # اگر از نوع datetime بود به date تبدیل شود
+                    due_date = due_date.date()
+                if due_date < timezone.now().date():
+                    raise ValidationError({
+                        'tankhah': _("تنخواه انتخاب‌شده منقضی شده و قابل استفاده نیست.")
+                    })
 
+            # بررسی وضعیت نهایی تنخواه
+            status = getattr(tankhah_obj, 'status', None)
+            if status and (getattr(status, 'is_final_approve', False) or getattr(status, 'is_final_reject', False)):
+                raise ValidationError({
+                    'tankhah': _("تنخواه انتخاب‌شده در وضعیت نهایی قرار دارد و نمی‌توان برای آن فاکتور جدید ثبت کرد.")
+                })
+
+        # 4. اعتبارسنجی وضعیت خود فاکتور
+        if self.status_id:  # استفاده از _id برای دسترسی ایمن
+            status_code = getattr(self.status, 'code', None)
+            is_final_reject = getattr(self.status, 'is_final_reject', False)
+
+            if (status_code == 'REJECT' or is_final_reject) and not self.rejected_reason:
+                raise ValidationError({
+                    "rejected_reason": _("برای رد کردن فاکتور، نوشتن دلیل الزامی است.")
+                })
     def save(self, *args, **kwargs):
         user = kwargs.pop('current_user', None)
         is_new = self.pk is None

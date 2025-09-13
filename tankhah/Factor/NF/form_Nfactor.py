@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models import Q
 
 from BudgetsSystem.utils import format_jalali_date, to_english_digits, parse_jalali_date
-from core.models import Project, SubProject, AccessRule, Organization
+from core.models import Project, SubProject, AccessRule, Organization, UserPost
 from tankhah.models import   FactorItem
 from tankhah.utils import restrict_to_user_organization
 from django import forms
@@ -257,6 +257,170 @@ def parse_jalali_date(date_str):
         raise forms.ValidationError(_('فرمت تاریخ نامعتبر است. لطفاً از فرمت YYYY/MM/DD استفاده کنید.'))
 # ===== CORE BUSINESS LOGIC =====
 class FactorForm(forms.ModelForm):
+    date = forms.CharField(
+        label=_('تاریخ ثبت فاکتور'),
+        widget=forms.TextInput(attrs={
+            'data-jdp': '', 'class': 'form-control', 'placeholder': _('1404/01/17'),
+        })
+    )
+
+    class Meta:
+        model = Factor
+        fields = ['tankhah', 'category', 'date', 'payee', 'amount', 'description']
+        widgets = {
+            'tankhah': forms.Select(attrs={'class': 'form-select'}),
+            'category': forms.Select(attrs={'class': 'form-select'}),
+            'payee': forms.Select(attrs={'class': 'form-select'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control form-control-sm text-end'}),
+        }
+
+    def _get_user_scope(self):
+        """
+        ✅ متد داخلی و متمرکز برای تشخیص دامنه دسترسی کاربر.
+        این متد منطق صحیح PermissionBaseView را در خود کپسوله می‌کند.
+        خروجی: یک تاپل (has_full_access: bool, accessible_orgs_queryset)
+        """
+        if not self.user or self.user.is_superuser:
+            return (True, Organization.objects.all())
+
+        # بررسی اینکه آیا کاربر در یک سازمان دفتر مرکزی (core) پست فعال دارد
+        has_core_access = UserPost.objects.filter(
+            user=self.user,
+            is_active=True,
+            post__is_active=True,
+            post__organization__is_core=True
+        ).exists()
+
+        if has_core_access:
+            logger.info(f"[FactorForm Scope] کاربر '{self.user.username}' دسترسی کامل (دفتر مرکزی) دارد.")
+            return (True, Organization.objects.all())
+
+        # در غیر این صورت، فقط سازمان‌های مشخص خود کاربر
+        org_ids = UserPost.objects.filter(user=self.user, is_active=True, post__is_active=True) \
+            .values_list('post__organization_id', flat=True).distinct()
+
+        # حذف مقادیر None از لیست ID ها
+        valid_org_ids = {org_id for org_id in org_ids if org_id is not None}
+
+        logger.info(f"[FactorForm Scope] کاربر '{self.user.username}' به سازمان‌های {valid_org_ids} دسترسی دارد.")
+        return (False, Organization.objects.filter(id__in=valid_org_ids))
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        # ✅ استفاده از متد داخلی برای تشخیص دسترسی
+        has_full_access, accessible_orgs = self._get_user_scope()
+
+        tankhah_queryset = Tankhah.objects.filter(
+            is_archived=False,
+            status__code__in=['DRAFT', 'PENDING', 'APPROVED'],
+            due_date__gte=timezone.now(),
+            project__isnull=False
+        ).select_related('organization', 'project')
+
+        # اگر کاربر دسترسی کامل ندارد، لیست تنخواه‌ها را فیلتر کن
+        if not has_full_access:
+            if not accessible_orgs.exists():
+                tankhah_queryset = Tankhah.objects.none()  # اگر به هیچ سازمانی دسترسی ندارد
+            else:
+                tankhah_queryset = tankhah_queryset.filter(
+                    Q(organization__in=accessible_orgs) |
+                    Q(project__organizations__in=accessible_orgs)
+                ).distinct()
+
+        self.fields['tankhah'].queryset = tankhah_queryset.order_by('-created_at')
+
+        # ... (بقیه منطق __init__ شما برای date و initial بدون تغییر) ...
+        if 'tankhah' in self.initial:
+            self.fields['tankhah'].disabled = True
+        if not self.initial.get('date'):
+            self.initial['date'] = jdatetime.date.today().strftime('%Y/%m/%d')
+        elif self.instance and self.instance.pk and self.instance.date:
+            self.initial['date'] = jdatetime.date.fromgregorian(date=self.instance.date).strftime('%Y/%m/%d')
+
+    def clean_tankhah(self):
+        tankhah = self.cleaned_data.get('tankhah')
+        if not tankhah:
+            # مدیریت حالتی که تنخواه از ویو به صورت initial پاس داده شده
+            if 'tankhah' in self.initial:
+                try:
+                    tankhah = Tankhah.objects.get(pk=self.initial['tankhah'])
+                except Tankhah.DoesNotExist:
+                    raise forms.ValidationError(_('تنخواه انتخاب شده معتبر نیست.'))
+            else:
+                raise forms.ValidationError(_('لطفاً یک تنخواه انتخاب کنید.'))
+
+        # ✅ استفاده مجدد از متد داخلی برای اعتبارسنجی دسترسی
+        has_full_access, accessible_orgs = self._get_user_scope()
+
+        if not has_full_access:
+            # اگر کاربر دسترسی کامل ندارد، بررسی کن به سازمان این تنخواه دسترسی دارد یا خیر
+            if not accessible_orgs.filter(pk=tankhah.organization_id).exists():
+                raise forms.ValidationError(_('شما به سازمان این تنخواه دسترسی ندارید.'))
+
+        # سایر اعتبارسنجی‌ها (تاریخ انقضا و پروژه) بدون تغییر باقی می‌مانند
+        if getattr(tankhah, 'due_date', None) and tankhah.due_date.date() < timezone.now().date():
+            raise forms.ValidationError(_('تنخواه انتخاب‌شده منقضی شده است.'))
+
+        if not isinstance(tankhah.project, Project):
+            raise forms.ValidationError(_('پروژه مرتبط با تنخواه نامعتبر است.'))
+
+        # دسترسی کاربر شعبه
+        user = self.user
+        if user and not user.is_superuser:
+            user_posts = user.userpost_set.filter(is_active=True)
+            user_orgs = {up.post.organization for up in user_posts if
+                         up.post.organization and not up.post.organization.is_core}
+
+            # دفتر مرکزی فقط با پرمیشن خاص می‌تواند ثبت کند
+            if tankhah.organization.is_core and not user.has_perm('Factor_full_edit'):
+                raise forms.ValidationError(
+                    _('کاربر دفتر مرکزی بدون مجوز نمی‌تواند فاکتور ثبت کند.')
+                )
+
+            # بررسی شعبه‌ها
+            if tankhah.organization not in user_orgs and not tankhah.organization.is_core:
+                raise forms.ValidationError(_('شما به این شعبه دسترسی ندارید.'))
+
+
+        return tankhah
+
+    def clean_date(self):
+        date_str = self.cleaned_data.get('date')
+        try:
+            return parse_jalali_date(date_str)
+        except (ValueError, TypeError):
+            raise forms.ValidationError(_('فرمت تاریخ نامعتبر است.'))
+
+    # متد clean نهایی بدون تغییر باقی می‌ماند
+    def clean(self):
+        cleaned_data = super().clean()
+        tankhah = cleaned_data.get('tankhah')
+        amount = cleaned_data.get('amount')
+
+        if not all([tankhah, amount]):
+            return cleaned_data
+
+        remaining_budget = get_tankhah_remaining_budget(tankhah)
+        if amount > remaining_budget:
+            error_msg = _('مبلغ فاکتور ({:,.0f} ریال) از بودجه باقی‌مانده تنخواه ({:,.0f} ریال) بیشتر است.').format(
+                amount, remaining_budget)
+            raise forms.ValidationError(error_msg)
+
+
+        if tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_period:
+            budget_period = tankhah.project_budget_allocation.budget_period
+            is_locked, lock_reason = budget_period.is_locked
+            if is_locked:
+                logger.warning(f"[FactorForm.clean] خطای اعتبارسنجی: دوره بودجه قفل است. دلیل: {lock_reason}")
+                raise forms.ValidationError(lock_reason)
+
+        logger.debug("[FactorForm.clean] اعتبارسنجی فرم با موفقیت انجام شد")
+        return cleaned_data
+
+class __FactorForm(forms.ModelForm):
     """
     فرم اصلی برای ایجاد یک فاکتور.
     مسئولیت: گرفتن داده‌های کلی فاکتور و اعتبارسنجی اولیه.
@@ -282,6 +446,7 @@ class FactorForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
+        initial = kwargs.get('initial', {})
         super().__init__(*args, **kwargs)
         logger.debug(
             f"[FactorForm.__init__] شروع مقداردهی اولیه برای کاربر '{self.user.username if self.user else 'Anonymous'}'.")
@@ -355,38 +520,54 @@ class FactorForm(forms.ModelForm):
             raise forms.ValidationError(_('فرمت تاریخ نامعتبر است.'))
 
     def clean_tankhah(self):
-        """اعتبارسنجی تنخواه"""
+        # user = self.current_user
         tankhah = self.cleaned_data.get('tankhah')
+        # ✅ دسترسی کامل اگر نقش یا پرمیشن ویژه داشته باشد
+        # if user.is_superuser or user.has_perm("tankhah.factor_full_edit"):
+        #     return tankhah
+
+        # اگر فرم instance.tankhah از ویو ست شده باشد و فیلد در POST نیاید، از instance استفاده کن
+        if not tankhah and getattr(self, 'instance', None) and getattr(self.instance, 'tankhah', None):
+            tankhah = self.instance.tankhah
+
         if not tankhah:
             logger.warning("[FactorForm.clean_tankhah] تنخواه انتخاب نشده است")
             raise forms.ValidationError(_('لطفاً یک تنخواه انتخاب کنید.'))
 
-        if tankhah.due_date < timezone.now():
-            logger.warning(f"[FactorForm.clean_tankhah] تنخواه {tankhah.number} منقضی شده است: {tankhah.due_date}")
-            raise forms.ValidationError(_('تنخواه انتخاب‌شده منقضی شده است.'))
+        # زمان‌بندی/انقضا: مقایسه با تاریخ (date)
+        if getattr(tankhah, 'due_date', None):
+            due = tankhah.due_date
+            if hasattr(due, 'date'):
+                due = due.date()
+            if due < timezone.now().date():
+                logger.warning(f"[FactorForm.clean_tankhah] تنخواه {tankhah.number} منقضی شده است: {due}")
+                raise forms.ValidationError(_('تنخواه انتخاب‌شده منقضی شده است.'))
 
         if not isinstance(tankhah.project, Project):
-            logger.error(f"[FactorForm.clean_tankhah] پروژه نامعتبر برای تنخواه {tankhah.number}: {tankhah.project}")
+            logger.error(
+                f"[FactorForm.clean_tankhah] پروژه نامعتبر برای تنخواه {getattr(tankhah, 'number', 'N/A')}: {tankhah.project}")
             raise forms.ValidationError(_('پروژه مرتبط با تنخواه نامعتبر است.'))
 
         # بررسی دسترسی کاربر به سازمان تنخواه و پروژه
         if self.user and not self.user.is_superuser:
             user_posts = self.user.userpost_set.filter(is_active=True).select_related('post__organization')
             user_orgs = {up.post.organization for up in user_posts
-                         if up.post.organization and not up.post.organization.is_core and not up.post.organization.is_holding}
+                         if
+                         up.post.organization and not up.post.organization.is_core and not up.post.organization.is_holding}
             if not user_orgs:
-                logger.warning(f"[FactorForm.clean_tankhah] هیچ سازمان شعبه‌ای برای کاربر '{self.user.username}' یافت نشد")
+                logger.warning(
+                    f"[FactorForm.clean_tankhah] هیچ سازمان شعبه‌ای برای کاربر '{self.user.username}' یافت نشد")
                 raise forms.ValidationError(_('شما به هیچ شعبه‌ای دسترسی ندارید.'))
 
-            # بررسی سازمان تنخواه
             if tankhah.organization not in user_orgs:
-                logger.warning(f"[FactorForm.clean_tankhah] کاربر '{self.user.username}' به سازمان تنخواه {tankhah.organization.name} دسترسی ندارد")
+                logger.warning(
+                    f"[FactorForm.clean_tankhah] کاربر '{self.user.username}' به سازمان تنخواه {tankhah.organization.name} دسترسی ندارد")
                 raise forms.ValidationError(_('شما به سازمان این تنخواه دسترسی ندارید.'))
 
-            # بررسی سازمان‌های پروژه
             project_orgs = set(tankhah.project.organizations.filter(is_core=False, is_holding=False))
             if not project_orgs.issubset(user_orgs):
-                logger.warning(f"[FactorForm.clean_tankhah] کاربر '{self.user.username}' به برخی سازمان‌های پروژه {tankhah.project.name} دسترسی ندارد")
+                logger.warning(
+                    f"[FactorForm.clean_tankhah] کاربر '{self.user.username}' به برخی سازمان‌های پروژه {tankhah.project.name} دسترسی ندارد")
                 raise forms.ValidationError(_('شما به تمام سازمان‌های مرتبط با پروژه این تنخواه دسترسی ندارید.'))
 
         return tankhah

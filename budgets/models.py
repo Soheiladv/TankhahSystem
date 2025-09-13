@@ -239,7 +239,6 @@ class BudgetPeriod(models.Model):
                 logger.debug(f"Applied RESTRICT action for BudgetPeriod {self.pk}")
         except Exception as e:
             logger.error(f"Error applying warning action for BudgetPeriod {self.pk}: {str(e)}")
-
 # --------------------------------------
 """ BudgetAllocation (تخصیص بودجه):"""
 class BudgetAllocation(models.Model):

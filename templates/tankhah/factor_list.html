@@ -151,7 +151,10 @@
                                                 {% for tankhah_number, tankhah_data in project_data.tankhahs.items %}
                                                     <div class="p-3 ps-5">
                                                         <p class="mb-2"><i class="fas fa-file-alt me-2"></i>{% trans "تنخواه" %}: {{ tankhah_number }}
-                                                            <small class="text-muted">({{ tankhah_data.total_factors|to_persian_number }} {% trans "فاکتور" %} - {% trans "مبلغ کل" %}: {{ tankhah_data.total_amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %})</small>
+                                                            (<small  style="color:#ffc504"> {{ tankhah_data.total_factors|to_persian_number }}
+                                                                <strong style="color:red;">
+                                                                    {% trans "فاکتور" %} - {% trans "مبلغ کل" %}: {{ tankhah_data.total_amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %})
+                                                                </strong></small>
                                                         </p>
                                                         <div class="table-responsive">
                                                             <table class="table table-hover align-middle mb-0 responsive-table">
@@ -163,6 +166,7 @@
                                                                         <th scope="col">{% trans "مبلغ (ریال)" %}</th>
                                                                         <th scope="col">{% trans "وضعیت" %}</th>
                                                                         <th scope="col">{% trans "آخرین اقدام" %}</th>
+                                                                        <th scope="col">{% trans "صادر کننده فاکتور" %}</th>
                                                                         <th scope="col">{% trans "عملیات" %}</th>
                                                                     </tr>
                                                                 </thead>
@@ -192,12 +196,30 @@
                                                                                 {% endif %}
                                                                             </td>
                                                                             <td data-label="{% trans 'آخرین اقدام' %}" class="actor-cell">
-                                                                                <div class="actor-name" data-bs-toggle="tooltip" title="{{ factor.approvers_display_list|default:'بدون تأییدکننده' }}">
+                                                                                <div class="actor-name" data-bs-toggle="tooltip" title="{{ factor.approvers_display_list|default:'بدون تأییدکننده' }} -">
                                                                                     {{ factor.last_actor_name|default:"بدون اقدام" }}
                                                                                 </div>
                                                                                 <span class="badge bg-info text-white actor-action">
                                                                                     {{ factor.last_action_verb|default:"بدون اقدام" }}
                                                                                 </span>
+                                                                            </td>
+
+                                                                            <td data-label="{% trans 'صادر کننده' %}" class="actor-cell">
+                                                                                <div class="actor-name" data-bs-toggle="tooltip"
+                                                                                     title="{{ factor.payee_info.name|default:'بدون تأییدکننده' }}--{{ factor.payee_info.national_id|default:"بدون کد ملی" |format_negative}}
+                                                                                    {{ factor.payee_info.entity_type|default:"بدون ماهیت شخص" }}--{{ factor.payee_info.payee_type|default:"بدون نوع دریافت‌کننده" }} ">
+                                                                                    {{ factor.payee_info.name|default:"بدون مشخصه" }}
+                                                                                <!-- <span class="badge bg-info text-white actor-action">
+                                                                                    {{ factor.payee_info.entity_type|default:"بدون ماهیت شخص" }}
+                                                                                </span>
+                                                                                <span class="badge bg-info text-white actor-action">
+                                                                                    {{ factor.payee_info.payee_type|default:"بدون نوع دریافت‌کننده" }}
+                                                                                </span>
+                                                                                <span class="badge bg-danger text-white actor-action">
+                                                                                    {{ factor.payee_info.payee_type|default:"بدون نوع دریافت‌کننده" }}
+                                                                                </span> -->
+                                                                                </div>
+
                                                                             </td>
                                                                             <td data-label="{% trans 'عملیات' %}">
                                                                                 <div class="btn-group">
@@ -391,9 +413,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.jsdelivr.net/npm/jalalidatepicker@0.0.4/dist/jalalidatepicker.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

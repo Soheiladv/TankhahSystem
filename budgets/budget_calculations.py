@@ -927,7 +927,8 @@ def get_tankhah_used_budget(tankhah, filters=None):
         logger.info(f'💵statuses_considered_as_used={statuses_considered_as_used}')
         factors = Factor.objects.filter(
             tankhah=tankhah,
-            status__code__in='PAID'
+            status__code__in=statuses_considered_as_used
+            # status__code__in='PAID'
         ).exclude(status__code='REJECTED')
         logger.info(f'factors={factors}')
         logger.debug(f"Generated SQL Query: {factors.query}")

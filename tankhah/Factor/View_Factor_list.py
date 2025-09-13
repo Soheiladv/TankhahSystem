@@ -200,6 +200,10 @@ class  FactorListView(PermissionBaseView, ListView):
                 grouped_by_org[org_name]['total_amount'] += factor_amount
                 grouped_by_org[org_name]['total_factors'] += 1
 
+                context['status_choices'] = [
+                    (status.code, status.name) for status in Status.objects.filter(is_active=True)
+                ]
+
                 # گروه‌بندی فاکتورهای نهایی
                 if factor.status_id in final_status_ids:
                     final_factors_stats['count'] += 1
@@ -242,10 +246,30 @@ class  FactorListView(PermissionBaseView, ListView):
                 self._check_factor_permissions(factor, user, tankhah)
                 self._convert_dates_to_jalali(factor)
 
+                payee = getattr(factor, 'payee', None)
+                if payee:
+                    factor.payee_info = {
+                        'entity_type': payee.get_entity_type_display(),
+                        'name': f"{payee.name or payee.legal_name} {payee.family or ''}".strip(),
+                        'national_id': payee.national_id,
+                        'payee_type': payee.get_payee_type_display(),
+                        'created_by': payee.created_by.get_full_name() if payee.created_by else 'نامشخص',
+                    }
+                else:
+                    factor.payee_info = {
+                        'entity_type': 'نامشخص',
+                        'name': 'نامشخص',
+                        'national_id': '',
+                        'payee_type': 'نامشخص',
+                        'created_by': 'نامشخص',
+                    }
             except Exception as e:
                 logger.error(f"[FACTOR_LIST_CONTEXT] خطا در پردازش فاکتور {getattr(factor, 'number', 'نامشخص')}: {e}",
                              exc_info=True)
                 self._set_default_factor_values(factor)
+
+            # sss= Status.objects.filter(is_active=True).values('code', 'name')
+            # logger.info(f'Status Visuible : is ',sss )
 
         context.update({
             'is_hq': is_hq,
@@ -257,7 +281,7 @@ class  FactorListView(PermissionBaseView, ListView):
             'grouped_by_org': grouped_by_org,
             'final_factors_grouped': final_factors_grouped,
             'final_factors_stats': final_factors_stats,
-            'status_choices': Status.objects.filter(is_active=True).values('code', 'name'),
+            # 'status_choices': Status.objects.filter(is_active=True).values('code', 'name'),
             'active_view': self.request.GET.get('view', 'all'),
             'total_factors': sum(org_data['total_factors'] for org_data in grouped_by_org.values()),
             'total_amount': sum(org_data['total_amount'] for org_data in grouped_by_org.values()),
@@ -316,6 +340,9 @@ class  FactorListView(PermissionBaseView, ListView):
     def _check_factor_permissions(self, factor, user, tankhah):
         try:
             current_stage_order = get_factor_current_stage(factor)
+            if hasattr(current_stage_order, 'stage_order'):
+                current_stage_order = current_stage_order.stage_order
+
             access_info = check_user_factor_access(
                 user.username,
                 tankhah=tankhah,

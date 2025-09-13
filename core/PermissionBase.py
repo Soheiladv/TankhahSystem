@@ -135,6 +135,7 @@ class PermissionBaseView(View):
 
         logger.info(f"[PERM_CHECK] User {user.username} passed permission check for {request.path}.")
         return super().dispatch(request, *args, **kwargs)
+
 def check_permission_and_organization(permissions, check_org=False):
     def decorator(view_func):
         @wraps(view_func)
