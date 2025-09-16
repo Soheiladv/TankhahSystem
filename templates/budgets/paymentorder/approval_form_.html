@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% load static i18n rcms_custom_filters jformat %}
+
+{% block content %}
+<div class="container max-w-7xl mx-auto p-4 sm:p-6 lg:p-8" role="main" aria-labelledby="approval-title">
+    <h3 id="approval-title" class="text-2xl font-bold mb-6 text-gray-800">
+        <i class="fas fa-check-circle mr-2" aria-hidden="true"></i> {% trans "بررسی دستور پرداخت" %}: {{ payment_order.order_number|default:"نامشخص" }}
+    </h3>
+
+    <!-- پیام‌های خطا یا موفقیت -->
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} p-4 rounded-lg shadow-sm" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- فرم‌ها -->
+    <form method="post" id="approvalForm" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {% csrf_token %}
+
+        <!-- اطلاعات دستور پرداخت -->
+        <div class="lg:col-span-2">
+            <div class="bg-white p-6 rounded-lg shadow-sm fade-in">
+                <h4 class="text-lg font-semibold mb-4 text-gray-700">{% trans "اطلاعات دستور پرداخت" %}</h4>
+                {{ order_form.as_p }}
+            </div>
+
+            <!-- اطلاعات دریافت‌کننده -->
+            <div class="bg-white p-6 rounded-lg shadow-sm mt-6 fade-in">
+                <h4 class="text-lg font-semibold mb-4 text-gray-700">{% trans "اطلاعات دریافت‌کننده" %}</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">{% trans "نام" %}</label>
+                        <p class="mt-1 text-gray-800">{{ payee_info.name }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">{% trans "شماره حساب" %}</label>
+                        <p class="mt-1 text-gray-800">{{ payee_info.account_number }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">{% trans "شبا" %}</label>
+                        <p class="mt-1 text-gray-800">{{ payee_info.iban }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- فرم تأیید/رد -->
+        <div class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-lg shadow-sm fade-in">
+                <h4 class="text-lg font-semibold mb-4 text-gray-700">{% trans "تأیید / رد" %}</h4>
+                {% if approval_form.errors %}
+                    <div class="alert alert-danger p-4 rounded-lg shadow-sm mb-4" role="alert">
+                        {% for field in approval_form %}
+                            {% for error in field.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in approval_form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div class="mb-4">
+                    <label for="{{ approval_form.status.id_for_label }}" class="block text-sm font-medium text-gray-600">{% trans "وضعیت جدید" %}</label>
+                    <select id="{{ approval_form.status.id_for_label }}" name="{{ approval_form.status.name }}" class="w-full p-2 border rounded-lg mt-1">
+                        {% for status in available_statuses %}
+                            <option value="{{ status.id }}" {% if status.id == approval_form.status.value %}selected{% endif %}>
+                                {{ status.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="{{ approval_form.notes.id_for_label }}" class="block text-sm font-medium text-gray-600">{% trans "یادداشت‌ها (اختیاری)" %}</label>
+                    <textarea id="{{ approval_form.notes.id_for_label }}" name="{{ approval_form.notes.name }}" class="w-full p-2 border rounded-lg mt-1" rows="4">{{ approval_form.notes.value|default_if_none:"" }}</textarea>
+                </div>
+                <div class="flex space-x-2">
+                    <button type="submit" class="btn bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600" data-action="APPROVE">
+                        <i class="fas fa-check mr-1" aria-hidden="true"></i> {% trans "تأیید" %}
+                    </button>
+                    <button type="submit" class="btn bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600" data-action="REJECT">
+                        <i class="fas fa-times mr-1" aria-hidden="true"></i> {% trans "رد" %}
+                    </button>
+                    <a href="{% url 'paymentorder_management_list' %}" class="btn bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
+                        <i class="fas fa-arrow-right mr-1" aria-hidden="true"></i> {% trans "بازگشت" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- جدول فاکتورهای مرتبط -->
+        {% if related_factors %}
+            <div class="lg:col-span-3">
+                <div class="bg-white p-6 rounded-lg shadow-sm mt-6 fade-in">
+                    <h4 class="text-lg font-semibold mb-4 text-gray-700">{% trans "فاکتورهای مرتبط" %}</h4>
+                    <table class="w-full table-auto">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="px-4 py-2 text-right">{% trans "شماره فاکتور" %}</th>
+                                <th class="px-4 py-2 text-right">{% trans "مبلغ" %}</th>
+                                <th class="px-4 py-2 text-right">{% trans "وضعیت" %}</th>
+                                <th class="px-4 py-2 text-right">{% trans "جزئیات" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for factor in related_factors %}
+                                <tr class="border-t">
+                                    <td class="px-4 py-2">{{ factor.factor_number|default:"نامشخص" }}</td>
+                                    <td class="px-4 py-2">{{ factor.amount|floatformat:0|add:" ریال"|default:"0 ریال" }}</td>
+                                    <td class="px-4 py-2">
+                                        <span class="status-badge status-{{ factor.status.code|lower|default:"unknown" }}">
+                                            {{ factor.status.name|default:"نامشخص" }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-2">
+                                        <a href="{% url 'factor_detail' factor.id %}" class="text-blue-500 hover:underline">{% trans "مشاهده" %}</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="mt-4">
+                        <p><strong>{% trans "تعداد فاکتورها" %}:</strong> {{ factors_stats.total_count }}</p>
+                        <p><strong>{% trans "مجموع مبلغ" %}:</strong> {{ factors_stats.total_amount|floatformat:0|add:" ریال" }}</p>
+                        <p><strong>{% trans "فاکتورهای تأییدشده" %}:</strong> {{ factors_stats.approved_count }}</p>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="lg:col-span-3">
+                <div class="alert alert-info p-4 rounded-lg shadow-sm fade-in" role="alert">
+                    {% trans "هیچ فاکتور مرتبطی یافت نشد." %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- سابقه تأیید/رد -->
+        {% if approval_logs %}
+            <div class="lg:col-span-3">
+                <div class="bg-white p-6 rounded-lg shadow-sm mt-6 fade-in">
+                    <h4 class="text-lg font-semibold mb-4 text-gray-700">{% trans "سابقه تأیید/رد" %}</h4>
+                    <ul class="space-y-2">
+                        {% for log in approval_logs %}
+                            <li class="flex justify-between items-center p-2 border-b">
+                                <span>{{ log.timestamp|jformat:"%Y/%m/%d %H:%M" }} - {{ log.user.get_full_name|default:log.user.username|default:"نامشخص" }} - {{ log.comment|default:"بدون یادداشت" }}</span>
+                                <span class="status-badge status-{{ log.to_status.code|lower|default:"unknown" }}">{{ log.to_status.name|default:"نامشخص" }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% else %}
+            <div class="lg:col-span-3">
+                <div class="alert alert-info p-4 rounded-lg shadow-sm fade-in" role="alert">
+                    {% trans "هنوز سابقه‌ای ثبت نشده است." %}
+                </div>
+            </div>
+        {% endif %}
+    </form>
+</div>
+
+<script src="{% static 'admin/js/approval_form.js' %}" defer></script>
+{% endblock %}

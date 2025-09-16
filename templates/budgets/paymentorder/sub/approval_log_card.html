@@ -1,0 +1,18 @@
+{% load static jformat  i18n rcms_custom_filters %}
+
+<div class="factor-card fade-in" role="region" aria-labelledby="log-{{ log.id }}">
+    <div class="factor-header">
+        <div class="factor-title" id="log-{{ log.id }}">
+            <i class="fas fa-user" aria-hidden="true"></i> {{ log.user.get_full_name|default:log.user.username|default:"نامشخص" }}
+        </div>
+        <div class="factor-amount">{{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|default:"نامشخص" }}</div>
+    </div>
+    <p>
+        <span class="action-badge action-{{ log.action.code|lower|default:"unknown" }}">
+            {{ log.action.name|default:"نامشخص" }}
+        </span>
+        {% if log.comment %}
+            <br><strong>{% trans "توضیحات" %}:</strong> {{ log.comment|safe }}
+        {% endif %}
+    </p>
+</div>

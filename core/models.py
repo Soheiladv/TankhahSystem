@@ -447,6 +447,7 @@ class PostAction(models.Model):
 # یک کلاس پایه برای فیلدهای مشترک (ایجادکننده، تاریخ، وضعیت فعالیت)
 # مدل‌ها برای پشتیبانی از تاریخچه و بازنشستگی
 #
+
 class EntityType(models.Model):
     """
     تعریف انواع موجودیت‌های اصلی در سیستم که می‌توانند گردش کار داشته باشند.
@@ -457,6 +458,12 @@ class EntityType(models.Model):
     # این به ما اجازه می‌دهد تا این مدل را به مدل‌های واقعی جنگو متصل کنیم
     content_type = models.OneToOneField('contenttypes.ContentType',on_delete=models.CASCADE,null=True, blank=True, # در ابتدا می‌تواند خالی باشد
         verbose_name=_("نوع محتوای مرتبط")    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+
+    def clean(self):
+        if self.code and not self.code.isupper():
+            raise ValidationError("کد باید uppercase باشد.")
+
     def __str__(self):
         return self.name
     class Meta:
@@ -469,6 +476,9 @@ class EntityType(models.Model):
             ('EntityType_view','نمایش نوع موجودیت گردش کار '),
             ('EntityType_delete','حــذف نوع موجودیت گردش کار '),
         ]
+        indexes = [
+                    models.Index(fields=['code']),
+                ]
 class Status(models.Model):
     """
     تعریف وضعیت‌های ممکن برای موجودیت‌های مختلف در سیستم.
@@ -484,6 +494,7 @@ class Status(models.Model):
     # فیلدهای مشترک به صورت مستقیم اضافه شده‌اند
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, verbose_name=_("ایجادکننده"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("تاریخ به‌روزرسانی"))  # اضافه برای audit
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
 
     def __str__(self):
@@ -499,6 +510,9 @@ class Status(models.Model):
             ('Status_view ','نمایش وضعیت'),
             ('Status_delete ','حــذف وضعیت'),
         ]
+        indexes = [
+                    models.Index(fields=['code']),
+                ]
 class Action(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("نام اقدام"))
     code = models.CharField(max_length=50, unique=True, help_text=_("کد منحصر به فرد انگلیسی، مانند SUBMIT"))
@@ -506,6 +520,7 @@ class Action(models.Model):
 
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, verbose_name=_("ایجادکننده"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("تاریخ به‌روزرسانی"))  # اضافه
     is_active = models.BooleanField(default=True, db_index=True, verbose_name=_("فعال"))
 
     def __str__(self):
@@ -538,6 +553,7 @@ class Transition(models.Model):
     )
     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, verbose_name=_("ایجادکننده"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("تاریخ به‌روزرسانی"))  # اضافه
     is_active = models.BooleanField(default=True, db_index=True, verbose_name=_("فعال"))
 
     def __str__(self):
@@ -553,6 +569,9 @@ class Transition(models.Model):
             ('Transition_update','ویرایش گذار گردش کار '),
             ('Transition_view','نمایش گذار گردش کار '),
             ('Transition_delete','حــذف گذار گردش کار '),
+        ]
+        indexes = [
+            models.Index(fields=['entity_type', 'organization', 'from_status', 'is_active']),
         ]
 
 ##################################################### ##########################################

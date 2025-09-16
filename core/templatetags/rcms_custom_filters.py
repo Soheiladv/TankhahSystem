@@ -724,3 +724,18 @@ def status_badge_class(status_code):
         'PO_CANCELLED': 'dark'
     }
     return status_classes.get(status_code, 'secondary')
+
+
+@register.simple_tag
+def query_transform(request, **kwargs):
+    """
+    بازگرداندن رشته کوئری با به‌روزرسانی پارامترهای مورد نظر
+    """
+    updated = request.GET.copy()
+    for key, value in kwargs.items():
+        if value is not None:
+            updated[key] = value
+        else:
+            updated.pop(key, None)
+
+    return updated.urlencode()

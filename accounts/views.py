@@ -263,7 +263,7 @@ class RoleListView(PermissionBaseView, ListView):
     model = Role
     template_name = 'accounts/users/rols/role_list.html'
     context_object_name = 'roles'
-    permission_codenames = 'see_role'
+    permission_codename = 'see_role'
     check_organization = False
     paginate_by = 10
 
@@ -306,7 +306,7 @@ class RoleListView(PermissionBaseView, ListView):
 #     template_name = 'accounts/users/rols/role_list.html'
 #     # template_name = 'accounts/role/role_list.html'
 #     context_object_name = 'roles'
-#     permission_codenames = 'see_role'
+#     permission_codename = 'see_role'
 #     paginate_by = 10  # صفحه‌بندی با 10 آیتم در هر صفحه
 #
 #     def get_queryset(self):
@@ -336,7 +336,7 @@ class RoleListView(PermissionBaseView, ListView):
 # ===========================================================
 class RoleListView1(PermissionBaseView, View):
     template_name = 'accounts/users/rols/role_list.html'
-    permission_codenames = 'see_role'
+    permission_codename = 'see_role'
     def get(self, request):
         show_inactive = request.GET.get('show_inactive', 'false') == 'true'
         roles = Role.objects.all() if show_inactive else Role.objects.filter(is_active=True)
@@ -359,7 +359,7 @@ class RoleCreateView(PermissionBaseView,CreateView):
     form_class = RoleForm
     template_name = 'accounts/role/role_form.html'
     success_url = reverse_lazy('accounts:role_list')
-    permission_codenames = 'create_role'
+    permission_codename = 'create_role'
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         permissions = Permission.objects.select_related('content_type').all()
@@ -388,7 +388,7 @@ class __RoleUpdateView(PermissionBaseView,  UpdateView):
     form_class = RoleForm
     template_name = 'accounts/role/role_form.html'
     success_url = reverse_lazy('accounts:role_list')
-    permission_codenames = 'modify_role'
+    permission_codename = 'modify_role'
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         permissions = Permission.objects.select_related('content_type').all()
@@ -460,7 +460,7 @@ class RoleFormMixin:
         return sorted_tree
 
 class RoleUpdateView(PermissionBaseView, RoleFormMixin, UpdateView):
-    permission_codenames = 'modify_role'
+    permission_codename = 'modify_role'
 
 
 @method_decorator(has_permission('remove_role'), name='dispatch')
@@ -512,7 +512,7 @@ class RolePrintView(PermissionBaseView, DetailView):
     model = Role
     template_name = 'accounts/role/role_print_view.html'
     context_object_name = 'role'
-    permission_codenames = 'see_role'  # یا هر مجوزی که برای دیدن نقش لازم است
+    permission_codename = 'see_role'  # یا هر مجوزی که برای دیدن نقش لازم است
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

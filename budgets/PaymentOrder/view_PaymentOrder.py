@@ -52,7 +52,7 @@ class PaymentOrderListView(PermissionBaseView, ListView):
     model = PaymentOrder
     template_name = 'budgets/paymentorder/paymentorder_list.html'
     context_object_name = 'payment_orders'
-    permission_required = 'budgets.PaymentOrder_view'
+    permission_codename = 'budgets.PaymentOrder_view'
     paginate_by = 10
 
     def get_queryset(self):
@@ -91,9 +91,9 @@ class PaymentOrderListView(PermissionBaseView, ListView):
 class PaymentOrderCreateView(PermissionBaseView, CreateView):
     model = PaymentOrder
     form_class = PaymentOrderForm
-    template_name = 'budgets/paymentorder/paymentorder_form.html'
+    template_name = 'budgets/paymentorder/paymentorder_form_bootstrap.html'
     success_url = reverse_lazy('budgets:paymentorder_list')
-    permission_required = 'budgets.PaymentOrder_add'
+    permission_codename = 'budgets.PaymentOrder_add'
 
     def form_valid(self, form):
         final_status_ids = Status.objects.filter(is_final_approve=True, is_active=True).values_list('id', flat=True)
@@ -127,9 +127,9 @@ class PaymentOrderCreateView(PermissionBaseView, CreateView):
 class PaymentOrderUpdateView(PermissionBaseView, UpdateView):
     model = PaymentOrder
     form_class = PaymentOrderForm
-    template_name = 'budgets/paymentorder/paymentorder_form.html'
+    template_name = 'budgets/paymentorder/paymentorder_form_bootstrap.html'
     success_url = reverse_lazy('budgets:paymentorder_list')
-    permission_required = 'budgets.PaymentOrder_update'
+    permission_codename = 'budgets.PaymentOrder_update'
 
     def form_valid(self, form):
         with transaction.atomic():
@@ -141,7 +141,7 @@ class PaymentOrderDeleteView(PermissionBaseView, DeleteView):
     model = PaymentOrder
     template_name = 'budgets/paymentorder/paymentorder_confirm_delete.html'
     success_url = reverse_lazy('budgets:paymentorder_list')
-    permission_required = 'budgets.PaymentOrder_delete'
+    permission_codename = 'budgets.PaymentOrder_delete'
 
     def post(self, request, *args, **kwargs):
         payment_order = self.get_object()
@@ -154,7 +154,7 @@ class PaymentOrderDetailView(PermissionBaseView, DetailView):
     model = PaymentOrder
     template_name = 'budgets/paymentorder/paymentorder_detail.html'
     context_object_name = 'payment_order'
-    permission_required = 'budgets.PaymentOrder_view'
+    permission_codename = 'budgets.PaymentOrder_view'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -167,7 +167,7 @@ class PaymentOrderDetailView(PermissionBaseView, DetailView):
         return context
 
 class PerformActionView(PermissionBaseView, View):
-    permission_required = 'budgets.PaymentOrder_sign' # A general permission to perform actions
+    permission_codename = 'budgets.PaymentOrder_sign' # A general permission to perform actions
 
     def post(self, request, *args, **kwargs):
         payment_order_pk = kwargs.get('pk')
@@ -220,4 +220,4 @@ class PerformActionView(PermissionBaseView, View):
 
 class PaymentOrderReviewView(PaymentOrderListView):
     template_name = 'budgets/paymentorder/payment_order_review.html'
-    permission_codenames = ['budgets.PaymentOrder_view']
+    permission_codename = ['budgets.PaymentOrder_view']

@@ -55,10 +55,20 @@ class PaymentOrderForm(forms.ModelForm):
             'placeholder': _('تاریخ را انتخاب کنید (1404/01/17)')
         })
     )
+    
+    order_number = forms.CharField(
+        label=_('شماره دستور پرداخت'),
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'readonly': 'readonly',
+            'placeholder': _('شماره دستور به صورت خودکار تولید می‌شود')
+        })
+    )
     class Meta:
         model = PaymentOrder
         fields = [
-             'payee', 'amount', 'description', 'payee_account_number', 'payee_iban',
+            'order_number', 'payee', 'amount', 'description', 'payee_account_number', 'payee_iban',
             'related_tankhah', 'related_factors', 'organization', 'notes', 'issue_date',
             'min_signatures'
         ]#'tankhah',
@@ -68,13 +78,16 @@ class PaymentOrderForm(forms.ModelForm):
             'payee_account_number': forms.TextInput(attrs={'class': 'form-control'}),
             'payee_iban': forms.TextInput(attrs={'class': 'form-control'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
-            'issue_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'min_signatures': forms.NumberInput(attrs={'class': 'form-control'}),
             'current_stage': forms.Select(attrs={'class': 'form-select'}),
             'order_number': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
             # معمولا فقط خواندنی
             'payment_tracking_id': forms.TextInput(attrs={'class': 'form-control'}),
-            'payment_date': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+            'payment_date': forms.TextInput(attrs={
+                'data-jdp': '',
+                'class': 'form-control',
+                'placeholder': _('تاریخ پرداخت را انتخاب کنید (1404/01/17)')
+            }),
             # اگر DateTimeField است
             'paid_by': forms.Select(attrs={'class': 'form-select'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
@@ -113,6 +126,14 @@ class PaymentOrderForm(forms.ModelForm):
                     self.initial['issue_date'] = j_date_display.strftime('%Y/%m/%d')
                 except Exception as e:
                     logger.warning(f"Could not convert issue_date to Jalali for display: {e}")
+        
+        # تولید شماره دستور پرداخت
+        if not self.instance.pk:  # فقط برای ایجاد جدید
+            try:
+                order_number = self._generate_order_number()
+                self.initial['order_number'] = order_number
+            except Exception as e:
+                logger.warning(f"Could not generate order number: {e}")
 
         # مقداردهی اولیه فیلد payment_date اگر از نوع DateTimeField است
         if self.instance and self.instance.pk and self.instance.payment_date:
@@ -133,7 +154,18 @@ class PaymentOrderForm(forms.ModelForm):
         try:
             j_date = jdatetime.datetime.strptime(date_str, '%Y/%m/%d')
             gregorian_date = j_date.togregorian()
-            return timezone.make_aware(gregorian_date)
+            return gregorian_date.date()  # Return date object, not datetime
+        except ValueError:
+            raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
+    
+    def clean_payment_date(self):
+        date_str = self.cleaned_data.get('payment_date')
+        if not date_str:
+            return None
+        try:
+            j_date = jdatetime.datetime.strptime(date_str, '%Y/%m/%d')
+            gregorian_date = j_date.togregorian()
+            return gregorian_date.date()  # Return date object, not datetime
         except ValueError:
             raise forms.ValidationError(_('لطفاً تاریخ معتبری وارد کنید (مثل 1404/01/17).'))
 
@@ -150,6 +182,23 @@ class PaymentOrderForm(forms.ModelForm):
         if min_signatures < 1:
             raise forms.ValidationError(_('حداقل تعداد امضا باید ۱ یا بیشتر باشد.'))
         return min_signatures
+    
+    def _generate_order_number(self):
+        """تولید شماره دستور پرداخت"""
+        from django.utils import timezone
+        now = timezone.now()
+        j_date = jdatetime.date.fromgregorian(date=now.date())
+        date_str = j_date.strftime('%Y%m%d')
+        
+        # شمارش دستورات پرداخت امروز
+        today_start = j_date.togregorian()
+        today_end = j_date.togregorian()
+        
+        count = PaymentOrder.objects.filter(
+            created_at__date=today_start
+        ).count() + 1
+        
+        return f"PO-{date_str}-{count:03d}"
 
 
     def save(self, commit=True):
@@ -160,6 +209,9 @@ class PaymentOrderForm(forms.ModelForm):
                 instance.current_stage = WorkflowStage.objects.filter(
                     entity_type='PAYMENTORDER', order=1
                 ).first()
+            # تنظیم شماره دستور پرداخت
+            if not instance.order_number:
+                instance.order_number = self._generate_order_number()
         if commit:
             with transaction.atomic():
                 instance.save()
@@ -168,11 +220,11 @@ class PaymentOrderForm(forms.ModelForm):
         return instance
 
 
-# در budgets/forms.py
 class PaymentOrderApprovalForm(forms.ModelForm):
     class Meta:
         model = PaymentOrder
         fields = ['status', 'notes']
         widgets = {
-            'notes': forms.Textarea(attrs={'rows': 3}),
+            'status': forms.Select(attrs={'class': 'form-select'}),  # ✅ کلاس بوت‌استرپ
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }

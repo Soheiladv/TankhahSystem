@@ -117,7 +117,7 @@ class FactorDeleteView(PermissionRequiredMixin, DeleteView):
     model = Factor
     template_name = 'tankhah/factor_confirm_delete.html'
     success_url = reverse_lazy('factor_list')
-    permission_required = 'tankhah.factor_delete'
+    permission_codename = 'tankhah.factor_delete'
 
     def has_permission(self):
         logger.info(f"[FactorDeleteView] Checking permission for user {self.request.user.username}")
@@ -448,7 +448,7 @@ class ApprovalCreateView(PermissionRequiredMixin, CreateView):
     form_class = 'tankhah.forms.ApprovalForm'
     template_name = 'tankhah/approval_form.html'
     success_url = reverse_lazy('approval_list')
-    permission_required = 'Tankhah.Approval_add'
+    permission_codename = 'Tankhah.Approval_add'
 
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -631,7 +631,7 @@ class ApprovalDeleteView(PermissionBaseView, DeleteView):
     model = 'tankhah.ApprovalLog'
     template_name = 'tankhah/approval_confirm_delete.html'
     success_url = reverse_lazy('approval_list')
-    permission_required = 'Tankhah.Approval_delete'
+    permission_codename = 'Tankhah.Approval_delete'
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, _('تأیید با موفقیت حذف شد.'))
@@ -672,7 +672,7 @@ class ItemCategoryListView(PermissionBaseView, ListView):
     model = ItemCategory
     template_name = 'tankhah/itemcategory/list.html'
     context_object_name = 'categories'
-    permission_required = 'tankhah.ItemCategory_view'
+    permission_codename = 'tankhah.ItemCategory_view'
     ordering = ['name']
 
 
@@ -724,7 +724,7 @@ class ItemCategoryDetailView(PermissionRequiredMixin, DetailView):
     model = ItemCategory
     template_name = 'tankhah/itemcategory/itemcategory_details.html'
     context_object_name = 'category'
-    permission_required = 'tankhah.ItemCategory_view'
+    permission_codename = 'tankhah.ItemCategory_view'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -813,7 +813,7 @@ def upload_tankhah_documents(request, tankhah_id):
         'existing_documents':  Tankhah.documents.all()
     })
 class FactorStatusUpdateView(PermissionBaseView, View):
-    permission_required = 'tankhah.FactorItem_approve'
+    permission_codename = 'tankhah.FactorItem_approve'
     def post(self, request, pk, *args, **kwargs):
         factor = Factor.objects.get(pk=pk)
         tankhah = factor.tankhah

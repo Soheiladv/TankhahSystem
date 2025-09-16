@@ -495,6 +495,18 @@ class Factor(models.Model):
 
     payee = models.ForeignKey('budgets.Payee'  , on_delete=models.PROTECT, verbose_name=_("صادرکننده فاکتور"))
 
+    is_archived = models.BooleanField(default=False, verbose_name=_("آرشیو شده"),
+                                      help_text=_("آیا این فاکتور آرشیو شده است؟"))
+    archived_at = models.DateTimeField(null=True, blank=True, verbose_name=_("تاریخ آرشیو"))
+    archived_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='archived_factors',
+        verbose_name=_("آرشیو شده توسط")
+    )
+
     def related_users(self):
         """
         کاربران مرتبط با فاکتور برای دریافت اعلان
@@ -853,8 +865,10 @@ class Factor(models.Model):
         verbose_name = _("فاکتور")
         verbose_name_plural = _("فاکتورها")
         indexes = [
-            models.Index(fields=['number', 'is_deleted', 'date', 'status', 'tankhah']),
+            models.Index(fields=['number', 'is_deleted', 'date', 'status', 'tankhah','status', 'is_archived']),
+            # models.Index(fields=['tankhah__organization_id']),
         ]
+
         default_permissions = ()
         permissions = [
             ('factor_add', _('افزودن فاکتور')),

@@ -1458,7 +1458,7 @@ class UserPostListView(PermissionBaseView, ListView):
     template_name = 'core/post/userpost_list.html'
     context_object_name = 'userposts'
     paginate_by = 10
-    permission_required = 'core.UserPost_view'
+    permission_codename = 'core.UserPost_view'
 
     def get_queryset(self):
         """فیلتر کردن اتصالات بر اساس جستجو و سازمان‌های مجاز"""
@@ -1516,7 +1516,7 @@ class UserPostCreateView(PermissionBaseView,  CreateView):
     form_class = UserPostForm
     template_name = 'core/post/userpost_form.html'
     success_url = reverse_lazy('userpost_list')
-    permission_required = 'core.UserPost_add'
+    permission_codename = 'core.UserPost_add'
     check_organization = True
 
     def get_form_kwargs(self):
@@ -1557,7 +1557,7 @@ class UserPostUpdateView(PermissionBaseView,   UpdateView):
     form_class = UserPostForm
     template_name = 'core/post/userpost_form.html'
     success_url = reverse_lazy('userpost_list')
-    permission_required = 'core.UserPost_update'
+    permission_codename = 'core.UserPost_update'
     check_organization = True
 
     def get_form_kwargs(self):
@@ -1651,7 +1651,7 @@ class PostSearchAPIView(PermissionBaseView, View):
     API برای جستجوی پست‌ها با پشتیبانی از فیلترهای نام و سازمان.
     مسئولیت: ارائه نتایج جستجو برای Select2 در فرم UserPost.
     """
-    permission_required = 'core.UserPost_view'
+    permission_codename = 'core.UserPost_view'
 
     def get(self, request, *args, **kwargs):
         query = request.GET.get('q', '').strip()

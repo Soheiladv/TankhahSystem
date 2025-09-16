@@ -36,7 +36,7 @@ class TankhahTrackingView1(PermissionBaseView, DetailView):
     model = Tankhah
     template_name = 'tankhah/Reports/tankhah_tracking.html'
     context_object_name = 'tankhah'
-    permission_required = 'tankhah.Tankhah_view'
+    permission_codename = 'tankhah.Tankhah_view'
 
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
@@ -175,7 +175,7 @@ class TankhahTrackingViewOLDer(PermissionBaseView, DetailView):
     model = Tankhah
     template_name = 'tankhah/Reports/tankhah_tracking.html'
     context_object_name = 'tankhah'
-    permission_required = 'tankhah.Tankhah_view'
+    permission_codename = 'tankhah.Tankhah_view'
 
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
@@ -322,7 +322,7 @@ class TankhahStatusView(PermissionBaseView, ListView):
     model = Tankhah
     template_name = 'tankhah/Reports/tankhah_status.html'
     context_object_name = 'tankhahs'
-    permission_codenames = ['tankhah.Tankhah_view']
+    permission_codename = ['tankhah.Tankhah_view']
     check_organization = True
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
 
@@ -494,7 +494,7 @@ class old__TankhahApprovalTimelineView(PermissionRequiredMixin, DetailView):
     model = Tankhah
     template_name = 'tankhah/Reports/tankhah_approval_timeline.html'
     context_object_name = 'tankhah'
-    permission_required = ['tankhah.Tankhah_view']
+    permission_codename = ['tankhah.Tankhah_view']
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
@@ -601,7 +601,7 @@ class TankhahApprovalTimelineView(PermissionRequiredMixin, DetailView):
     model = Tankhah
     template_name = 'tankhah/Reports/tankhah_approval_timeline.html'
     context_object_name = 'tankhah'
-    permission_required = ['tankhah.Tankhah_view']
+    permission_codename = ['tankhah.Tankhah_view']
     permission_denied_message = _('متاسفانه دسترسی مجاز نیست')
 
     def get_object(self, queryset=None):

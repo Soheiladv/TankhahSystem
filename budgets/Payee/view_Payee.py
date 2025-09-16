@@ -157,7 +157,7 @@ class PayeeDetailView(PermissionBaseView, DetailView):
     model = Payee
     template_name = 'budgets/payee/payee_detail.html'
     context_object_name = 'payee'
-    permission_required = ['budgets.Payee_view']
+    permission_codename = ['budgets.Payee_view']
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
 
     def get_context_data(self, **kwargs):
@@ -174,7 +174,7 @@ class PayeeCreateView(PermissionBaseView, CreateView):
     form_class = PayeeForm
     template_name = 'budgets/payee/payee_form.html'
     success_url = reverse_lazy('payee_list')
-    permission_required = ['budgets.Payee_add']
+    permission_codename = ['budgets.Payee_add']
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
 
     def validate_national_id(value):
@@ -211,7 +211,7 @@ class PayeeUpdateView(PermissionBaseView, UpdateView):
     form_class = PayeeForm
     template_name = 'budgets/payee/payee_form.html'
     success_url = reverse_lazy('payee_list')
-    permission_required = ['budgets.Payee_update']
+    permission_codename = ['budgets.Payee_update']
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
 
     def form_valid(self, form):
@@ -240,7 +240,7 @@ class PayeeDeleteView(PermissionBaseView, DeleteView):
     model = Payee
     template_name = 'budgets/payee/payee_confirm_delete.html'
     success_url = reverse_lazy('payee_list')
-    permission_required = ['budgets.Payee_delete']
+    permission_codename = ['budgets.Payee_delete']
     permission_denied_message = _('متاسفانه دسترسی مجاز ندارید')
 
     def post(self, request, *args, **kwargs):

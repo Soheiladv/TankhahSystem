@@ -1,21 +1,12 @@
-from django.contrib.postgres.fields import ArrayField
 from django.db.models.functions import Coalesce
 from django.db.models import Value, Q
 import logging
-from django.utils import timezone
 from django.core.cache import cache
-from core.models import Organization, Project, AccessRule, Post, UserPost
-from tankhah.models import Factor, Tankhah, ApprovalLog, get_default_initial_status
-from django.db import models
-from django.utils.translation import gettext_lazy as _
-from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.contrib.contenttypes.models import ContentType
-from budgets.budget_calculations import check_budget_status, get_project_remaining_budget, calculate_remaining_amount, \
-    calculate_threshold_amount, create_budget_transaction
+from budgets.budget_calculations import     calculate_threshold_amount
 
 from django.utils import timezone
-from datetime import date, datetime as dt  # اصلاح وارد کردن datetime
 import jdatetime
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
@@ -23,6 +14,8 @@ from django.db.models import Sum
 from decimal import Decimal
 from django.core.exceptions import ValidationError, ImproperlyConfigured
 from accounts.models import CustomUser
+from tankhah.models import Factor, Tankhah, ApprovalLog
+from core.models import Organization, Project, AccessRule, Post, UserPost, Transition
 
 
 
@@ -781,7 +774,11 @@ class PaymentOrder(models.Model):
 
     created_at = models.DateTimeField(_('تاریخ ایجاد'), auto_now_add=True)
     updated_at = models.DateTimeField(_('تاریخ به‌روزرسانی'), auto_now=True)
-    is_locked = models.BooleanField(_('0قفل شده'), default=False)
+    is_locked = models.BooleanField(_('قفل شده'), default=False)
+    is_archived = models.BooleanField(_('آرشیو شده'), default=False, help_text=_('آیا این دستور پرداخت آرشیو شده است؟'))
+    archived_at = models.DateTimeField(_('تاریخ آرشیو'), null=True, blank=True)
+    archived_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='archived_payment_orders', verbose_name=_('آرشیو شده توسط'))
     notes = models.TextField(_('یادداشت‌ها'), blank=True, null=True)
 
     def generate_payment_order_number(self):
@@ -820,30 +817,97 @@ class PaymentOrder(models.Model):
                         raise ValidationError(_('هیچ سازمان فعالی یافت نشد.'))
 
         if self.payee:
-            self.payee_account_number = self.payee_account_number or self.payee.account_number
-            self.payee_iban = self.payee_iban or self.payee.iban
+            # اطمینان از اینکه مقادیر 0 به None تبدیل شوند
+            payee_account = self.payee.account_number if self.payee.account_number and self.payee.account_number != 0 else None
+            payee_iban = self.payee.iban if self.payee.iban and self.payee.iban != 0 else None
+            
+            self.payee_account_number = self.payee_account_number or payee_account
+            self.payee_iban = self.payee_iban or payee_iban
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f"{self.order_number} - {self.amount:,.0f}"
+    def archive(self, user):
+        """آرشیو کردن دستور پرداخت"""
+        if not self.is_archived:
+            self.is_archived = True
+            self.archived_at = timezone.now()
+            self.archived_by = user
+            self.save()
+            return True
+        return False
+    
+    def unarchive(self):
+        """خارج کردن از آرشیو"""
+        if self.is_archived:
+            self.is_archived = False
+            self.archived_at = None
+            self.archived_by = None
+            self.save()
+            return True
+        return False
+    
+    def can_be_archived(self):
+        """بررسی اینکه آیا دستور پرداخت قابل آرشیو است یا نه"""
+        # فقط دستورات پرداخت تایید نهایی یا پرداخت شده قابل آرشیو هستند
+        return self.status and (self.status.is_final_approve or self.status.code == 'PO_PAID')
 
-    class Meta:
-        verbose_name = _("دستور پرداخت")
-        verbose_name_plural = _("دستورهای پرداخت")
-        ordering = ['-created_at']
-        default_permissions = ()
-        permissions = [
-            ('PaymentOrder_add', 'افزودن دستور پرداخت'),
-            ('PaymentOrder_view', 'نمایش دستور پرداخت'),
-            ('PaymentOrder_update', 'بروزرسانی دستور پرداخت'),
-            ('PaymentOrder_delete', 'حذف دستور پرداخت'),
-            ('PaymentOrder_sign', 'امضای دستور پرداخت'),
-            ('PaymentOrder_issue', 'صدور دستور پرداخت'),
-        ]
+    def execute_transition(self, action_code, user):
+        """
+        اجرای گذار برای تغییر وضعیت دستور پرداخت.
+
+        Args:
+            action_code: کد اقدام (مانند SUBMIT، APPROVE)
+            user: کاربر انجام‌دهنده اقدام
+
+        Raises:
+            PermissionError: اگر گذار مجاز نباشد
+        """
+        transition = Transition.objects.filter(
+            entity_type__code='PAYMENTORDER',
+            from_status=self.status,
+            action__code=action_code,
+            organization=self.organization,
+            is_active=True,
+            allowed_posts__in=user.userpost_set.filter(is_active=True).values_list('post', flat=True)
+        ).first()
+
+        if transition:
+            self.status = transition.to_status
+            self.save()
+            # ثبت لاگ در ApprovalLog
+            ApprovalLog.objects.create(
+                content_type=ContentType.objects.get_for_model(self),
+                object_id=self.id,
+                to_status=transition.to_status,
+                action=transition.action,
+                user=user,
+                comment=f"Transitioned via {action_code}",
+                post=user.userpost_set.filter(is_active=True).first().post if user.userpost_set.filter(is_active=True).exists() else None
+            )
+            logger.info(
+                f"Transition executed: PaymentOrder {self.order_number} to {transition.to_status.code} by {user.username}")
+            # ارسال نوتیفیکیشن
+            try:
+                from notificationApp.utils import send_notification
+                send_notification(
+                    sender=user,
+                    users=[self.created_by],
+                    verb='PAYMENTORDER_STATUS_CHANGED',
+                    description=f"وضعیت دستور پرداخت {self.order_number} به {self.status.name} تغییر کرد.",
+                    target=self,
+                    entity_type='PAYMENTORDER',
+                    priority='HIGH'
+                )
+            except Exception as e:
+                logger.error(f"Error sending notification for PaymentOrder {self.order_number}: {str(e)}",
+                             exc_info=True)
+        else:
+            logger.error(f"Transition not allowed for action {action_code} by user {user.username}")
+            raise PermissionError("گذار مجاز نیست")
 
     def update_budget_impact(self):
         """به‌روزرسانی بودجه پس از پرداخت"""
-        if self.status == 'PAID' and not self.is_locked:
+        # if self.status == 'PAID' and not self.is_locked:
+        if self.status and self.status.code == 'PAID' and not self.is_locked:
             with transaction.atomic():
                 if self.tankhah:
                     self.tankhah.spent += self.amount
@@ -864,6 +928,27 @@ class PaymentOrder(models.Model):
                 )
                 self.is_locked = True
                 self.save()
+
+    def __str__(self):
+        return f"{self.order_number} - {self.amount:,.0f}"
+
+    class Meta:
+        verbose_name = _("دستور پرداخت")
+        verbose_name_plural = _("دستورهای پرداخت")
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'organization']),
+            models.Index(fields=['is_archived', 'is_locked']),
+        ]
+        default_permissions = ()
+        permissions = [
+            ('PaymentOrder_add', 'افزودن دستور پرداخت'),
+            ('PaymentOrder_view', 'نمایش دستور پرداخت'),
+            ('PaymentOrder_update', 'بروزرسانی دستور پرداخت'),
+            ('PaymentOrder_delete', 'حذف دستور پرداخت'),
+            ('PaymentOrder_sign', 'امضای دستور پرداخت'),
+            ('PaymentOrder_issue', 'صدور دستور پرداخت'),
+        ]
 # --------------------------------------
 """TransactionType (نوع تراکنش):"""
 class TransactionType(models.Model):

@@ -2,7 +2,7 @@
 from django.urls import path
 
 from reports.ComprehensiveBudgetReportView import ComprehensiveBudgetReportView
-from .PaymentOrder.PaymentOrderApproval import PaymentOrderApprovalListView, PaymentOrderApprovalView
+
 # وارد کردن تمام ویوهای مورد نیاز از بخش‌های مختلف
 from .views import BudgetDashboardView, NumberToWordsView, budget_Help, TransactionTypeListView, \
     TransactionTypeCreateView, TransactionTypeUpdateView, TransactionTypeDeleteView, \
@@ -21,7 +21,7 @@ from .BudgetReturn.views_BudgetTransferView import BudgetTransferView
 from .BudgetReturn.budget_Api_Return import ProjectAllocationFreeBudgetAPI, ProjectAllocationAPI
 from .Payee.view_Payee import *
 from .PaymentOrder.view_PaymentOrder import *
-from .PaymentOrder.views_payment_management import *
+from .PaymentOrder.views_enhanced import *
 from core.views import BudgetAllocationView
 
 # app_name = 'budgets'
@@ -116,12 +116,22 @@ urlpatterns = [
 
 # دستور پرداخت - مدیریت و تایید
 urlpatterns += [
-    # مدیریت دستورات پرداخت
+    # مدیریت دستورات پرداخت (بهبود یافته)
     path('payment-orders/management/', PaymentOrderManagementListView.as_view(), name='paymentorder_management_list'),
     path('payment-orders/<int:pk>/approval/', PaymentOrderApprovalView.as_view(), name='paymentorder_approval'),
-    path('payment-orders/<int:pk>/detail/', PaymentOrderDetailView.as_view(), name='paymentorder_detail'),
+    path('payment-orders/<int:pk>/detail/', PaymentOrderDetailView.as_view(), name='paymentorder_detail_enhanced'),
     path('create-payment-orders-from-factors/', create_payment_orders_from_factors, name='create_payment_orders_from_factors'),
     
-    # کارتابل تایید (قدیمی)
-    path('payment-orders/approval/', PaymentOrderApprovalListView.as_view(), name='paymentorder_approval_list'),
+    # عملیات آرشیو
+    path('payment-orders/<int:pk>/archive/', PaymentOrderArchiveView.as_view(), name='paymentorder_archive'),
+    path('payment-orders/<int:pk>/unarchive/', PaymentOrderUnarchiveView.as_view(), name='paymentorder_unarchive'),
+    path('payment-orders/bulk-action/', PaymentOrderBulkArchiveView.as_view(), name='paymentorder_bulk_action'),
+    
+    # آمار و گزارشات
+    path('payment-orders/stats/', PaymentOrderStatsView.as_view(), name='paymentorder_stats'),
+    
+    # فاکتورهای تایید نهایی
+#      [New] [Enhanced]
+    path('payment-orders/approved-factors/', ApprovedFactorsListView.as_view(), name='paymentorder_approved_factors'),
+
 ]

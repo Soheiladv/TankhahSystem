@@ -16,7 +16,7 @@
                 {% for item in factor.items.all %}
                     <tr>
                         <td>{{ forloop.counter |format_negative}}</td>
-                        <td>{{ item.description }}</td>
+                        <td>{{ item.description |to_persian_number }}</td>
                         <td class="text-center">{{ item.quantity |format_negative}}</td>
                         <td class="text-end">{{ item.unit_price|format_negative }}</td>
                         <td class="text-end fw-bold">{{ item.total_price|format_negative }}</td>

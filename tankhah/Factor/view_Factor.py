@@ -28,7 +28,7 @@ import  json
 
 class TankhahBudgetInfoAjaxView(PermissionBaseView, View):
     http_method_names = ['get']
-    permission_codenames = ['tankhah.a_factor_add'] # User needs factor add permission to see budget?
+    permission_codename = ['tankhah.Tankhah_add'] # User needs factor add permission to see budget?
 
     def get(self, request, tankhah_id, *args, **kwargs):
         # Basic permission check first
