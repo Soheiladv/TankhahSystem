@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load i18n   rcms_custom_filters  static %}
+
+{% block title %}{% trans " سیستم مدیریت دسترسی‌ها" %}  {% endblock %}
+ 
+{% block content %} 
+   
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-brand p-4 text-center">
+            <h4>سیستم مدیریت دسترسی‌ها</h4>
+        </div>
+        <hr class="my-2">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link text-white py-3" href="#">
+                    <i class="fas fa-tachometer-alt me-2"></i>
+                    داشبورد
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white py-3 active" href="{% url 'user_permission_report' %}">
+                    <i class="fas fa-user-check me-2"></i>
+                    گزارش دسترسی کاربران
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white py-3" href="{% url 'transition_access_report' %}">
+                    <i class="fas fa-exchange-alt me-2"></i>
+                    گزارش جامع ترنزیشن‌ها
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white py-3" href="#">
+                    <i class="fas fa-cog me-2"></i>
+                    تنظیمات
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navbar -->
+        <nav class="navbar navbar-expand navbar-top mb-4">
+            <div class="container-fluid">
+                <button class="btn btn-link d-md-none" type="button">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown no-arrow">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <span class="d-none d-lg-inline text-gray-600 small">{{ user.username }}</span>
+                            <img class="img-profile rounded-circle ms-2" width="32" height="32" src="https://via.placeholder.com/32">
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end shadow animated--grow-in">
+                            <a class="dropdown-item" href="#">
+                                <i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>
+                                پروفایل
+                            </a>
+                            <a class="dropdown-item" href="#">
+                                <i class="fas fa-cogs fa-sm fa-fw me-2 text-gray-400"></i>
+                                تنظیمات
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">
+                                <i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>
+                                خروج
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Page Content -->
+        <div class="container-fluid">
+            {% block content %}
+            <!-- محتوای اصلی صفحات اینجا قرار می‌گیرد -->
+            {% endblock %}
+        </div>
+    </div> 
+ 
+{% endblock %}
+
+{% block extra_css %}
+  <script>
+        $(document).ready(function() {
+            // مدیریت وضعیت منوهای فعال
+            $('.nav-link').on('click', function() {
+                $('.nav-link').removeClass('active');
+                $(this).addClass('active');
+            });
+            
+            // نمایش پیام‌های سیستم
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+        });
+    </script>
+{% endblock %}

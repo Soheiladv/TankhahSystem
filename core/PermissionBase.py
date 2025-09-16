@@ -196,32 +196,82 @@ class PermissionBaseView(View):
         
         return queryset
     
+    # def dispatch(self, request, *args, **kwargs):
+    #     """
+    #     کنترل دسترسی قبل از اجرای ویو
+    #
+    #     مراحل:
+    #     1. بررسی احراز هویت
+    #     2. بررسی مجوزها
+    #     3. اجرای ویو اصلی
+    #     """
+    #     user = request.user
+    #
+    #     # 1. بررسی احراز هویت
+    #     if not user.is_authenticated:
+    #         logger.warning(f"[PERM_CHECK] Unauthorized access attempt by anonymous user to {request.path}")
+    #         messages.error(request, self.login_required_message)
+    #         return redirect('login')
+    #
+    #     # 2. بررسی مجوزها
+    #     if not self.has_required_permissions(user):
+    #         logger.error(f"[PERM_CHECK] Permission denied for user {user.username} to {request.path}")
+    #         messages.error(request, self.permission_denied_message)
+    #         raise PermissionDenied(self.permission_denied_message)
+    #
+    #     logger.info(f"[PERM_CHECK] User {user.username} passed permission check for {request.path}")
+    #     return super().dispatch(request, *args, **kwargs)
+
     def dispatch(self, request, *args, **kwargs):
         """
         کنترل دسترسی قبل از اجرای ویو
-        
         مراحل:
         1. بررسی احراز هویت
         2. بررسی مجوزها
-        3. اجرای ویو اصلی
+        3. بررسی سازمان
+        4. بررسی Transition (در صورت وجود)
+        5. اجرای ویو اصلی
         """
         user = request.user
-        
-        # 1. بررسی احراز هویت
+
+        # --- مرحله 1: بررسی احراز هویت ---
         if not user.is_authenticated:
             logger.warning(f"[PERM_CHECK] Unauthorized access attempt by anonymous user to {request.path}")
             messages.error(request, self.login_required_message)
             return redirect('login')
-        
-        # 2. بررسی مجوزها
+
+        # --- مرحله 2: بررسی پریمیژن‌های عمومی ---
         if not self.has_required_permissions(user):
             logger.error(f"[PERM_CHECK] Permission denied for user {user.username} to {request.path}")
             messages.error(request, self.permission_denied_message)
             raise PermissionDenied(self.permission_denied_message)
-        
-        logger.info(f"[PERM_CHECK] User {user.username} passed permission check for {request.path}")
-        return super().dispatch(request, *args, **kwargs)
 
+        logger.info(f"[PERM_CHECK] User {user.username} passed base permission check for {request.path}")
+
+        # --- مرحله 3: بررسی سازمانی ---
+        if self.check_organization:
+            orgs = self.get_user_active_organizations(user)
+            logger.info(f"[PERM_ORG] User {user.username} has access to organizations {orgs}")
+
+        # --- مرحله 4: بررسی Transition اختصاصی (اگر ویو پیاده‌سازی کرده بود) ---
+        if hasattr(self, "_check_permission") and callable(getattr(self, "_check_permission")):
+            try:
+                payment_order = self.get_object()
+            except Exception as e:
+                logger.error(f"[APPROVAL_DISPATCH] Could not load object for {self.__class__.__name__}: {e}")
+                return super().dispatch(request, *args, **kwargs)
+
+            logger.info(f"[APPROVAL_DISPATCH] User {user.username} → PaymentOrder {payment_order.order_number}, "
+                        f"status={payment_order.status.code}")
+
+            allowed = self._check_permission(payment_order)
+            if not allowed:
+                logger.warning(f"[APPROVAL_BLOCKED] User {user.username} cannot act on PaymentOrder {payment_order.order_number}")
+            else:
+                logger.info(f"[APPROVAL_GRANTED] User {user.username} CAN act on PaymentOrder {payment_order.order_number}")
+
+        # --- مرحله 5: ادامه اجرای ویو ---
+        return super().dispatch(request, *args, **kwargs)
 
 def check_permission_and_organization(permissions: Union[str, List[str]] = None, 
                                     check_org: bool = False, 

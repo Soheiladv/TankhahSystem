@@ -13,9 +13,7 @@ from accounts.models import CustomUser
 
 from tankhah.constants import ACTION_TYPES, ENTITY_TYPES
 from django.contrib.postgres.fields import ArrayField
-
 logger = logging.getLogger(__name__)
-
 class OrganizationType(models.Model):
     fname = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name=_('نام شعبه/مجتمع/اداره'))
     org_type = models.CharField(max_length=100, unique=True, null=True, blank=True,
@@ -100,7 +98,7 @@ class Organization(models.Model):
         indexes = [
             models.Index(fields=['code', 'org_type']),
         ]
-
+#=================================================
 class Branch(models.Model):
     code = models.CharField(max_length=10, unique=True, verbose_name=_("کد شاخه"))
     name = models.CharField(max_length=250, verbose_name=_("نام شاخه"))
@@ -211,7 +209,6 @@ class Post(models.Model):
             ('Post_view', 'نمایش  پست سازمانی برای تعریف سلسله مراتب'),
             ('Post_delete', 'حــذف  پست سازمانی برای تعریف سلسله مراتب'),
         ]
-
 class UserPost(models.Model):
     """مدل اتصال کاربر به پست"""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name=_("کاربر"))
@@ -268,7 +265,38 @@ class UserPost(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.post.name} (از {self.start_date})"
+class PostAction(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='postactions',verbose_name=_("پست"))
+    action_type = models.CharField(max_length=50, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
+    entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, default='TANKHAH',verbose_name=_("نوع موجودیت"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    min_level = models.IntegerField(null=True, blank=True)  # حداقل سطح دسترسی (اختیاری)
+    triggers_payment_order = models.BooleanField(default=False,  verbose_name=_("فعال‌سازی دستور پرداخت"))  # مشخصه دستور پرداخت کاریر
+    allowed_actions = ArrayField(models.CharField(max_length=25, choices=[
+        ('APPROVE', 'تأیید'),
+        ('REJECT', 'رد'),
+        ('STAGE_CHANGE', 'تغییر مرحله'),
+        ('SIGN_PAYMENT', 'امضای دستور پرداخت')
+    ]), default=list, verbose_name=_("اقدامات مجاز"))
+    stage = models.ForeignKey('Status', on_delete=models.CASCADE, related_name='postactions', verbose_name=_("مرحله"))
 
+
+    def __str__(self):
+        # return f"{self.post} - {self.action_type} برای {self.get_entity_type_display()} در {self.stage}"
+        return f"{self.post} → {self.stage} :: {self.action_type}  برای {self.get_entity_type_display()}({'✅' if self.allowed_actions else '❌'})"
+        # return f"{self.post} - {self.action_type} در {self.stage}"
+
+    class Meta:
+        verbose_name = _("اقدام مجاز پست")
+        verbose_name_plural = _("اقدامات مجاز پست‌ها")
+        # unique_together = ('post', 'stage', 'action_type', 'entity_type')  # اضافه کردن entity_type به unique_together
+        default_permissions =()
+        permissions = [
+            ('PostAction_view', 'نمایش اقدامات مجاز پست'),
+            ('PostAction_add', 'افزودن اقدامات مجاز پست'),
+            ('PostAction_update', 'بروزرسانی اقدامات مجاز پست'),
+            ('PostAction_delete', 'حذف اقدامات مجاز پست'),
+        ]
 #=================================================
 class PostHistory(models.Model):
     """
@@ -310,7 +338,7 @@ class PostHistory(models.Model):
         indexes = [
             models.Index(fields=['post', 'changed_at']),
         ]
-#-----
+##=================================================
 class Project(models.Model):
     name = models.CharField(max_length=100, verbose_name=_("نام پروژه"))
     code = models.CharField(max_length=80, unique=True, verbose_name=_("کد پروژه"))
@@ -409,45 +437,7 @@ class SubProject(models.Model):
             ('SubProject_Head_Office', 'تخصیص زیر مجموعه پروژه(دفتر مرکزی)🏠'),
             ('SubProject_Branch', 'تخصیص  زیر مجموعه پروژه(شعبه)🏠'),
         ]
-
-class PostAction(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='postactions',verbose_name=_("پست"))
-    action_type = models.CharField(max_length=50, choices=ACTION_TYPES, verbose_name=_("نوع اقدام"))
-    entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, default='TANKHAH',verbose_name=_("نوع موجودیت"))
-    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
-    min_level = models.IntegerField(null=True, blank=True)  # حداقل سطح دسترسی (اختیاری)
-    triggers_payment_order = models.BooleanField(default=False,  verbose_name=_("فعال‌سازی دستور پرداخت"))  # مشخصه دستور پرداخت کاریر
-    allowed_actions = ArrayField(models.CharField(max_length=25, choices=[
-        ('APPROVE', 'تأیید'),
-        ('REJECT', 'رد'),
-        ('STAGE_CHANGE', 'تغییر مرحله'),
-        ('SIGN_PAYMENT', 'امضای دستور پرداخت')
-    ]), default=list, verbose_name=_("اقدامات مجاز"))
-    stage = models.ForeignKey('Status', on_delete=models.CASCADE, related_name='postactions', verbose_name=_("مرحله"))
-
-
-    def __str__(self):
-        # return f"{self.post} - {self.action_type} برای {self.get_entity_type_display()} در {self.stage}"
-        return f"{self.post} → {self.stage} :: {self.action_type}  برای {self.get_entity_type_display()}({'✅' if self.allowed_actions else '❌'})"
-        # return f"{self.post} - {self.action_type} در {self.stage}"
-
-    class Meta:
-        verbose_name = _("اقدام مجاز پست")
-        verbose_name_plural = _("اقدامات مجاز پست‌ها")
-        # unique_together = ('post', 'stage', 'action_type', 'entity_type')  # اضافه کردن entity_type به unique_together
-        default_permissions =()
-        permissions = [
-            ('PostAction_view', 'نمایش اقدامات مجاز پست'),
-            ('PostAction_add', 'افزودن اقدامات مجاز پست'),
-            ('PostAction_update', 'بروزرسانی اقدامات مجاز پست'),
-            ('PostAction_delete', 'حذف اقدامات مجاز پست'),
-        ]
-
-###################### NEW Config Status For ACTIONS TYPE ENTITY TYPES #######################################
-# یک کلاس پایه برای فیلدهای مشترک (ایجادکننده، تاریخ، وضعیت فعالیت)
-# مدل‌ها برای پشتیبانی از تاریخچه و بازنشستگی
-#
-
+#=================================================
 class EntityType(models.Model):
     """
     تعریف انواع موجودیت‌های اصلی در سیستم که می‌توانند گردش کار داشته باشند.
@@ -573,7 +563,6 @@ class Transition(models.Model):
         indexes = [
             models.Index(fields=['entity_type', 'organization', 'from_status', 'is_active']),
         ]
-
 ##################################################### ##########################################
 class SystemSettings(models.Model):
     budget_locked_percentage_default = models.DecimalField(        max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده پیش‌فرض بودجه"))

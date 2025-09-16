@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% load static i18n jformat rcms_custom_filters %}
+
+{% block title %}{% trans "گزارش دسترسی کاربر" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-soft: rgba(79, 70, 229, 0.1);
+        --success-soft: rgba(16, 185, 129, 0.1);
+        --danger-soft: rgba(239, 68, 68, 0.1);
+    }
+    .stat-card {
+        border-left: 4px solid var(--bs-primary);
+    }
+    .form-switch .form-check-input:checked {
+        background-color: var(--bs-success);
+        border-color: var(--bs-success);
+    }
+    .table-hover tbody tr { transition: background-color 0.2s ease; }
+    .toast-container { z-index: 1090; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 fw-bold">
+            <i class="fas fa-user-shield text-primary me-2"></i>
+            {% trans "گزارش دسترسی کاربر به گذارها" %}
+        </h1>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+            <form method="get" class="row align-items-end g-3">
+                <div class="col-md-6">
+                    <label for="user-select" class="form-label fw-bold">{% trans "انتخاب کاربر:" %}</label>
+                    <select name="user_id" id="user-select" class="form-select form-select-lg" onchange="this.form.submit()">
+                        {% for u in users %}
+                            <option value="{{ u.id }}" {% if u.id == user.id %}selected{% endif %}>
+                                {{ u.get_full_name|default:u.username }} ({{ u.username }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if user %}
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-around">
+                        <div class="text-center">
+                            <h3 class="fw-bolder text-success mb-0">{{ accessible_count }}</h3>
+                            <small class="text-muted">{% trans "گذارهای در دسترس" %}</small>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="fw-bolder text-danger mb-0">{{ inaccessible_count }}</h3>
+                            <small class="text-muted">{% trans "گذارهای خارج از دسترس" %}</small>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </form>
+            {% if user_posts %}
+            <div class="mt-4 border-top pt-3">
+                <strong class="me-2">{% trans "پست‌های فعال کاربر:" %}</strong>
+                {% for post in user_posts %}
+                    <span class="badge bg-light text-dark fs-6 fw-normal me-1">{{ post.name }} ({{ post.organization.code }})</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-light border-0 py-3">
+            <h5 class="mb-0">{% trans "لیست تمام گذارهای سیستم" %}</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="transitions-table" data-user-id="{{ user.id }}">
+                <thead class="table-light">
+                    <tr>
+                        <th>{% trans "#ردیف" %}</th>
+                        <th>{% trans "گذار (Transition)" %}</th>
+                        <th>{% trans "موجودیت" %}</th>
+                        <th>{% trans "از وضعیت" %}</th>
+                        <th>{% trans "اقدام" %}</th>
+                        <th>{% trans "به وضعیت" %}</th>
+                        <th>{% trans "سازمان" %}</th>
+                        <th class="text-center">{% trans "دسترسی برای" %} {{ user.username }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in transitions %}
+                    <tr class-old="{% if t.has_access %}table-success-soft{% else %}table-danger-soft{% endif %}">
+                        <td><strong>{{ forloop.counter | format_negative }}</strong></td>
+                        <td><strong>{{ t.name }}</strong></td>
+                        <td><span class="badge bg-secondary">{{ t.entity_type.name }}</span></td>
+                        <td>{{ t.from_status.name }}</td>
+                        <td><span class="badge bg-info text-white">{{ t.action.name }}</span></td>
+                        <td>{{ t.to_status.name }}</td>
+                        <td>{{ t.organization.name }}</td>
+                        <td class="text-center">
+                            <div class="form-check form-switch d-inline-block">
+                                <input class="form-check-input access-toggle" type="checkbox" role="switch"
+                                       id="toggle-{{ t.id }}"
+                                       data-transition-id="{{ t.id }}"
+                                       {% if t.has_access %}checked{% endif %}>
+                                <label class="form-check-label" for="toggle-{{ t.id }}"></label>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center py-5">{% trans "هیچ گذاری در سیستم تعریف نشده است." %}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="me-auto" id="toast-title"></strong>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body" id="toast-body"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const table = document.getElementById('transitions-table');
+    const userId = table.getAttribute('data-user-id');
+    const toastElement = document.getElementById('liveToast');
+    const toast = new bootstrap.Toast(toastElement);
+
+    table.addEventListener('change', function (event) {
+        if (event.target.classList.contains('access-toggle')) {
+            const checkbox = event.target;
+            const transitionId = checkbox.getAttribute('data-transition-id');
+            const action = checkbox.checked ? 'enable' : 'disable';
+
+            // Disable checkbox during request
+            checkbox.disabled = true;
+
+            const url = `/reports/toggle-transition-access/${userId}/${transitionId}/`;
+            const formData = new FormData();
+            formData.append('action', action);
+
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    // Django's CSRF token is not needed due to @csrf_exempt,
+                    // but in a real app, you'd add the CSRF token header here.
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                showToast(data.status, data.message);
+            })
+            .catch(error => {
+                showToast('error', 'خطای شبکه در برقراری ارتباط.');
+                // Revert checkbox state on error
+                checkbox.checked = !checkbox.checked;
+            })
+            .finally(() => {
+                // Re-enable checkbox
+                checkbox.disabled = false;
+            });
+        }
+    });
+
+    function showToast(status, message) {
+        const toastTitle = document.getElementById('toast-title');
+        const toastBody = document.getElementById('toast-body');
+
+        toastElement.classList.remove('bg-success-subtle', 'bg-danger-subtle');
+
+        if (status === 'success') {
+            toastTitle.textContent = 'موفقیت';
+            toastElement.classList.add('bg-success-subtle');
+        } else {
+            toastTitle.textContent = 'خطا';
+            toastElement.classList.add('bg-danger-subtle');
+        }
+
+        toastBody.textContent = message;
+        toast.show();
+    }
+});
+</script>
+{% endblock %}

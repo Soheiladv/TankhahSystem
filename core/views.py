@@ -1161,25 +1161,15 @@ class ProjectListView(PermissionBaseView, ListView):
         # محاسبه مجموع بودجه تخصیص‌یافته به هر پروژه از طریق BudgetAllocation
         # و مجموع تنخواه‌ها
         queryset = queryset.annotate(
-            # مجموع allocated_amount از BudgetAllocationهایی که به این پروژه لینک شده‌اند
-            # و یا از طریق subproject به این پروژه لینک شده‌اند (اگر هر دو حالت رو نیاز دارید)
-            # اگر project_id در BudgetAllocation کافیه، این سطر کافیه
-            total_allocated_budget_sum=Sum('allocations__allocated_amount', filter=Q(allocations__is_active=True)),
-            # <-- اصلاح شده
-
-            # مجموع بودجه زیرپروژه‌ها: پیچیده‌تر است. اگر subprojects خودشون allocated_budget ندارند
-            # باید از طریق BudgetAllocationهای مرتبط با زیرپروژه فیلتر کنید.
-            # مثال: Sum('subprojects__budget_allocations__allocated_amount')
-            # با فرض اینکه subprojects.budget_allocations related_name به BudgetAllocation هست
-            # یا اگر BudgetAllocation مستقیماً به subproject لینک شده:
-            # subproject_total_budget=Sum('allocations__allocated_amount', filter=Q(allocations__subproject__isnull=False)),
-
-            # برای ساده‌سازی، فرض می‌کنیم subproject_budget در SubProject نیست و از allocations محاسبه می‌شود:
-            # این سطر را حذف کنید یا اصلاح کنید
-            # subproject_budget=Sum('subprojects__allocated_budget'),
-
-            # مجموع تنخواه‌ها با وضعیت PAID
-            tankhah_total=Sum('tankhah_set__amount', filter=Q(tankhah_set__status='PAID'))  # <-- اصلاح شد
+            total_allocated_budget_sum=Sum(
+                'allocations__allocated_amount',
+                filter=Q(allocations__is_active=True)
+            ),
+            # جمع مبالغ تنخواه فقط وقتی status مربوط به PAID باشه
+            tankhah_total=Sum(
+                'tankhah_set__amount',
+                filter=Q(tankhah_set__status__code='PO_PAID')  # 👈 یا کدی که تو core_status برای پرداخت شده داری
+            )
         )
 
         # ... (بقیه کدهای get_queryset) ...

@@ -78,15 +78,16 @@ def dashboard_view(request):
                  "color": "warning"},
             ],
         },
+
         {
             "title": "مدیریت نقش‌ها",
             "icon": "fas fa-user-tag",
             "items": [
                 {"label": "لیست نقش‌ها", "url": "accounts:role_list", "icon": "fas fa-list", "color": "info"},
                 {"label": "ایجاد نقش جدید", "url": "accounts:role_create", "icon": "fas fa-plus", "color": "success"},
+                {"label": "مدیریت قانون کاربری", "url": "user_permission_report", "icon": "fas fa-plus", "color": "success"},
             ],
         },
-
         {
             "title": "مدیریت گروه‌ها",
             "icon": "fas fa-users-cog",

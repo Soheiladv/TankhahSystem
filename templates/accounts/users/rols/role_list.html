@@ -1,107 +1,6 @@
 {% extends "base.html" %}
 {% load static jformat rcms_custom_filters %}
 
-{% block extra_css %}
-<!-- Bootstrap RTL -->
-
-
-<style>
-/* متغیرهای CSS */
-:root {
-    --primary-color: #007bff;
-    --success-color: #28a745;
-    --danger-color: #dc3545;
-    --warning-color: #ffc107;
-    --light-bg: #f8f9fa;
-    --border-radius: 8px;
-    --transition: all 0.3s ease;
-}
-
-/* تنظیمات RTL */
-body {
-    font-family: 'Vazir', sans-serif;
-    direction: rtl;
-    text-align: right;
-}
-
-/* کارت‌ها */
-.card {
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* جدول */
-#roles-table {
-    border-collapse: separate;
-    border-spacing: 0;
-}
-#roles-table th, #roles-table td {
-    vertical-align: middle;
-}
-#roles-table tr {
-    transition: var(--transition);
-}
-#roles-table tr:hover {
-    background-color: var(--light-bg);
-}
-
-/* جستجو */
-.search-container .form-control {
-    border: none;
-    background: #fff;
-    padding: 12px 15px;
-}
-.search-container .form-control:focus {
-    box-shadow: none;
-    background: #f8fafc;
-}
-.search-container .input-group-text {
-    background: #fff;
-    border: none;
-}
-.search-container .btn-clear {
-    display: none;
-    color: var(--danger-color);
-}
-.search-container .btn-clear.show {
-    display: inline-flex;
-}
-
-/* انیمیشن‌ها */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-.table-responsive, .card-header, .page-header {
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-/* هایلایت جستجو */
-.highlight {
-    background-color: #fff3cd;
-    padding: 0 2px;
-    border-radius: 3px;
-}
-
-/* دکمه‌ها */
-.btn {
-    border-radius: var(--border-radius);
-    transition: var(--transition);
-}
-.btn-primary {
-    background: linear-gradient(135deg, var(--primary-color), #0056b3);
-}
-.btn-primary:hover {
-    background: linear-gradient(135deg, #0056b3, var(--primary-color));
-}
-
-/* دسترسی‌پذیری */
-[role="button"], [aria-label] {
-    cursor: pointer;
-}
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="container-fluid py-4">
     <!-- هدر صفحه -->
@@ -153,6 +52,9 @@ body {
                     </div>
                     <a href="{% url 'accounts:role_create' %}" class="btn btn-primary" aria-label="ایجاد نقش جدید">
                         <i class="fas fa-plus-circle me-2"></i>ایجاد نقش جدید
+                    </a>
+                  <a href="{% url 'accounts:admin_dashboard' %}" class="btn btn-link" aria-label="برگشت به داشبورد">
+                        <i class="fas fa-plus-square-o me-2"></i>برگشت به داشبورد
                     </a>
                 </div>
             </div>

@@ -36,12 +36,42 @@ urlpatterns = [
          name='api_tankhahs_for_allocation'),
     path('reports/api/organizations-for-period/<int:period_pk>/', APIOrganizationsForPeriodView.as_view(),
          name='api_organizations_for_period'),
-    path('reports/api/budget-items-for-org-period/<int:period_pk>/<int:org_pk>/',BudgetItemsForOrgPeriodAPIView.as_view(), name='api_budget_items_for_org_period'),
+    path('reports/api/budget-items-for-org-period/<int:period_pk>/<int:org_pk>/',
+         BudgetItemsForOrgPeriodAPIView.as_view(), name='api_budget_items_for_org_period'),
     path('reports/comprehensive-budget/', ComprehensiveBudgetReportView.as_view(), name='comprehensive_budget_report'),
     path('report/paymentorderreport/', PaymentOrderReportView.as_view(), name='payment_order_report'),
 ]
+from django.urls import path
+from reports.TransitionAccess.views_user_permission_report import (
+    UserPermissionReportView,
+    ToggleTransitionAccessView,
+    TransitionAccessReportView
+)
 
+urlpatterns += [
+    # گزارش دسترسی‌های کاربر
+    path(
+        'user-permissions/',
+        UserPermissionReportView.as_view(),
+        name='user_permission_report'
+    ),
+    path(
+        'user-permissions/<int:user_id>/',
+        UserPermissionReportView.as_view(),
+        name='user_permission_report_user'
+    ),
 
+    # فعال/غیرفعال کردن دسترسی ترنزیشن (AJAX)
+    # path('toggle-transition/<int:user_id>/<int:transition_id>/',        ToggleTransitionAccessView.as_view(), name='toggle_transition_access'),
+    path('toggle-transition-access/<int:user_id>/<int:transition_id>/', ToggleTransitionAccessView.as_view(), name='toggle_transition_access'),
+    # گزارش جامع Transition
+    path(
+        'transition-access-report/',
+        TransitionAccessReportView.as_view(),
+        name='transition_access_report'
+    ),
+
+]
 
 # from django.urls import path
 # from reports.ComprehensiveBudgetReportView import (
@@ -81,7 +111,6 @@ urlpatterns = [
 #     path('reports/comprehensive-budget/', ComprehensiveBudgetReportView.as_view(), name='comprehensive_budget_report'),
 #     path('report/paymentorderreport/', PaymentOrderReportView.as_view(), name='payment_order_report'),
 # ]
-
 
 
 # from django.urls import path

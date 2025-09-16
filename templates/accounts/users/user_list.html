@@ -86,6 +86,9 @@
                         <a href="{% url 'accounts:user_edit' user.id %}" class="btn btn-sm btn-warning animate__animated animate__pulse animate__infinite">
                             <i class="fas fa-edit"></i> ویرایش
                         </a>
+                        <a href="{% url 'user_permission_report'  %}" class="btn btn-sm btn-warning animate__animated animate__pulse animate__infinite">
+                            <i class="fas fa-accusoft"></i> قانون برای کاربر
+                        </a>
                         <a href="{% url 'accounts:user_change_password' user.id %}" class="btn btn-sm btn-info">
                             <i class="fas fa-lock"></i> تغییر رمز عبور
                         </a>

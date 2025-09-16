@@ -51,6 +51,34 @@ from django.db import transaction # برای انجام عملیات دیتاب�
 from django.utils import timezone # برای کار با زمان و تاریخ (مورد نیاز برای نام‌گذاری فایل بک‌آپ)
 
 
+from dbbackup.utils import encrypt_file
+
+logger = logging.getLogger(__name__)
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.core.serializers import serialize
+from django.http import HttpResponse, HttpResponseRedirect, FileResponse
+from django.urls import reverse_lazy
+from django.views import View
+from django.db import transaction
+from django.apps import apps
+from django.core.management import call_command
+from django.shortcuts import render
+from django.utils.translation import gettext_lazy as _
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import base64
+import os
+import tempfile
+import json
+import glob
+from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 import subprocess
 import tempfile
 import os
@@ -59,6 +87,17 @@ from django.http import FileResponse
 from django.views.generic.edit import FormView
 from django.contrib import messages
 from django.conf import settings
+#--------------------
+import json
+import logging
+from django.conf import settings
+from django.apps import apps
+from django.db.models import ForeignKey, ManyToManyField, OneToOneField, AutoField
+from django.shortcuts import render
+from django.utils.translation import gettext_lazy as _
+from django.views import View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse  # برای ایجاد لینک ادمین
 
 class DatabaseResetView(LoginRequiredMixin, View):
     template_name = 'core/DashboardDatabase/dashboardReset.html'
@@ -1431,34 +1470,6 @@ class DatabaseManageView(LoginRequiredMixin, View):
 
         return HttpResponseRedirect(redirect_url)
 
-
-from dbbackup.utils import encrypt_file
-
-logger = logging.getLogger(__name__)
-from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.core.serializers import serialize
-from django.http import HttpResponse, HttpResponseRedirect, FileResponse
-from django.urls import reverse_lazy
-from django.views import View
-from django.db import transaction
-from django.apps import apps
-from django.core.management import call_command
-from django.shortcuts import render
-from django.utils.translation import gettext_lazy as _
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-import base64
-import os
-import tempfile
-import json
-import glob
-from datetime import datetime
-import logging
-
-logger = logging.getLogger(__name__)
-
 class SupervisorAndAdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     login_url = reverse_lazy('accounts:login')
 
@@ -1756,17 +1767,6 @@ class DatabaseModelGraphView_x(SupervisorAndAdminRequiredMixin, View):
         logger.debug(f"Rendering model graph: models_count={len(all_models_info)}")
         return render(request, self.template_name, context)
 
-#--------------------
-import json
-import logging
-from django.conf import settings
-from django.apps import apps
-from django.db.models import ForeignKey, ManyToManyField, OneToOneField, AutoField
-from django.shortcuts import render
-from django.utils.translation import gettext_lazy as _
-from django.views import View
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse  # برای ایجاد لینک ادمین
 
 
 class DatabaseModelGraphView(SupervisorAndAdminRequiredMixin, View):

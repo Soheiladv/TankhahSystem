@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load static i18n jformat %}
+
+{% block title %}{% trans "گزارش جامع گذارها" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 fw-bold">
+            <i class="fas fa-route text-primary me-2"></i>
+            {% trans "گزارش جامع گذارها" %}
+        </h1>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="user-filter" class="form-label">{% trans "فیلتر بر اساس کاربر" %}</label>
+                    <select name="user_id" id="user-filter" class="form-select">
+                        <option value="">{% trans "همه کاربران" %}</option>
+                        {% for u in users %}
+                            <option value="{{ u.id }}" {% if u.id|stringformat:"s" == filter_user_id %}selected{% endif %}>
+                                {{ u.get_full_name|default:u.username }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="org-filter" class="form-label">{% trans "فیلتر بر اساس سازمان" %}</label>
+                    <select name="organization_id" id="org-filter" class="form-select">
+                        <option value="">{% trans "همه سازمان‌ها" %}</option>
+                        {% for org in organizations %}
+                            <option value="{{ org.id }}" {% if org.id|stringformat:"s" == filter_organization_id %}selected{% endif %}>
+                                {{ org.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="entity-filter" class="form-label">{% trans "نوع موجودیت" %}</label>
+                    <select name="entity_type_id" id="entity-filter" class="form-select">
+                        <option value="">{% trans "همه" %}</option>
+                         {% for et in entity_types %}
+                            <option value="{{ et.id }}" {% if et.id|stringformat:"s" == filter_entity_type_id %}selected{% endif %}>
+                                {{ et.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="status-filter" class="form-label">{% trans "وضعیت" %}</label>
+                    <select name="status_id" id="status-filter" class="form-select">
+                        <option value="">{% trans "همه" %}</option>
+                        {% for s in statuses %}
+                            <option value="{{ s.id }}" {% if s.id|stringformat:"s" == filter_status_id %}selected{% endif %}>
+                                {{ s.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-1"></i> {% trans "اعمال" %}
+                    </button>
+                    <a href="{% url 'transition_access_report' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-light border-0 py-3">
+            <h5 class="mb-0">{% trans "نتایج گزارش" %}</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{% trans "گذار (Transition)" %}</th>
+                        <th>{% trans "موجودیت" %}</th>
+                        <th>{% trans "از وضعیت" %}</th>
+                        <th>{% trans "اقدام" %}</th>
+                        <th>{% trans "به وضعیت" %}</th>
+                        <th>{% trans "سازمان" %}</th>
+                        <th>{% trans "پست‌های مجاز" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in transitions %}
+                    <tr>
+                        <td><strong>{{ t.name }}</strong></td>
+                        <td><span class="badge bg-secondary">{{ t.entity_type.name }}</span></td>
+                        <td>{{ t.from_status.name }}</td>
+                        <td><span class="badge bg-info text-white">{{ t.action.name }}</span></td>
+                        <td>{{ t.to_status.name }}</td>
+                        <td>{{ t.organization.name }}</td>
+                        <td>
+                            {% for post in t.allowed_posts.all %}
+                                <span class="badge bg-light text-dark fw-normal border me-1">{{ post.name }}</span>
+                            {% empty %}
+                                <span class="text-muted small">{% trans "هیچ پستی مجاز نیست" %}</span>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center py-5">
+                        <i class="fas fa-search-minus fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">{% trans "با فیلترهای انتخابی، نتیجه‌ای یافت نشد." %}</h5>
+                    </td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if transitions.has_other_pages %}
+        <div class="card-footer bg-light border-0">
+            <nav class="d-flex justify-content-center">
+                <ul class="pagination mb-0">
+                    {% if transitions.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ transitions.previous_page_number }}&{{ request.GET.urlencode }}">&laquo;</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                    {% endif %}
+
+                    {% for i in transitions.paginator.page_range %}
+                        {% if transitions.number == i %}
+                            <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="?page={{ i }}&{{ request.GET.urlencode }}">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if transitions.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ transitions.next_page_number }}&{{ request.GET.urlencode }}">&raquo;</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
