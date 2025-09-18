@@ -739,3 +739,21 @@ def query_transform(request, **kwargs):
             updated.pop(key, None)
 
     return updated.urlencode()
+ 
+ 
+default_placeholder = ''
+
+from django import template as template_export_helper
+
+@register.filter(name='get_item')
+def get_item(dictionary, key):
+    """دریافت مقدار یک کلید از دیکشنری در قالب‌ها. اگر وجود نداشت رشته خالی برمی‌گرداند."""
+    try:
+        if isinstance(dictionary, dict):
+            return dictionary.get(key, default_placeholder)
+        # Try attribute access fallback
+        return getattr(dictionary, key, default_placeholder)
+    except Exception:
+        return default_placeholder
+ 
+ 

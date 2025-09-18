@@ -989,6 +989,7 @@ class ApprovalLog(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, verbose_name=_("کاربر"))
     post = models.ForeignKey('core.Post', on_delete=models.SET_NULL, null=True, verbose_name=_("پست سازمانی کاربر"))
     comment = models.TextField(blank=True, null=True, verbose_name=_("توضیحات"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
     timestamp = models.DateTimeField(auto_now_add=True, verbose_name=_("زمان ثبت"))
     created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='approvalLog_created',
                                    verbose_name=_("ایجادکننده"))

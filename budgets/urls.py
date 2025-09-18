@@ -22,7 +22,12 @@ from .BudgetReturn.budget_Api_Return import ProjectAllocationFreeBudgetAPI, Proj
 from .Payee.view_Payee import *
 from .PaymentOrder.view_PaymentOrder import *
 from .PaymentOrder.views_enhanced import *
+from .PaymentOrder.views_enhanced import paymentorder_transitions_api
+from core.views_export import export_api
+from core.views_reportlab import reportlab_pdf_api, reportlab_pdf_custom_api, reportlab_paymentorder_detail 
+
 from core.views import BudgetAllocationView
+from .PaymentOrder.views_enhanced import PaymentOrderAttachFactorsAPI
 
 # app_name = 'budgets'
 
@@ -133,5 +138,16 @@ urlpatterns += [
     # فاکتورهای تایید نهایی
 #      [New] [Enhanced]
     path('payment-orders/approved-factors/', ApprovedFactorsListView.as_view(), name='paymentorder_approved_factors'),
+    
+    # API برای دریافت گذارهای مجاز (با جستجو و صفحه‌بندی)
+    path('api/payment-orders/transitions/', paymentorder_transitions_api, name='paymentorder_transitions_api'),
+    path('payment-orders/<int:pk>/attach-factors/', PaymentOrderAttachFactorsAPI.as_view(), name='paymentorder_attach_factors'),
 
+    # API عمومی خروجی گرفتن از داده‌ها (CSV/XLSX/JSON/PDF)
+    path('api/export/', export_api, name='export_api'),
+
+    # ReportLab PDF APIs
+    path('api/reportlab/pdf/', reportlab_pdf_api, name='reportlab_pdf_api'),
+    path('api/reportlab/pdf/custom/', reportlab_pdf_custom_api, name='reportlab_pdf_custom_api'),
+    path('api/reportlab/paymentorder/<int:pk>/detail/', reportlab_paymentorder_detail , name='reportlab_paymentorder_detail'),
 ]
