@@ -108,8 +108,16 @@ class ComprehensiveBudgetReportView(PermissionBaseView, ListView):
 
     def get_context_data(self, **kwargs):
         logger.info(f"[{self.__class__.__name__}] - Starting get_context_data...")
-        context = super().get_context_data(**kwargs)
-        periods = context.get('object_list', [])
+        # دریافت queryset
+        periods = self.get_queryset()
+        
+        # ایجاد context دستی
+        context = {
+            'object_list': periods,
+            'is_paginated': False,
+            'paginator': None,
+            'page_obj': None,
+        }
         processed_data = []
         for period in periods:
             net_consumed = period.period_total_consumed - period.period_total_returned
