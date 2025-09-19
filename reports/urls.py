@@ -47,6 +47,12 @@ from reports.TransitionAccess.views_user_permission_report import (
     ToggleTransitionAccessView,
     TransitionAccessReportView
 )
+from reports.TransitionAccess.export_views import (
+    ExportUserPermissionsView,
+    GenerateRuleTextView,
+    CopyUserPermissionsView,
+    GetUserPermissionsSummaryView
+)
 
 urlpatterns += [
     # گزارش دسترسی‌های کاربر
@@ -69,6 +75,28 @@ urlpatterns += [
         'transition-access-report/',
         TransitionAccessReportView.as_view(),
         name='transition_access_report'
+    ),
+
+    # خروجی‌های مختلف
+    path(
+        'user-permissions/<int:user_id>/export/<str:format_type>/',
+        ExportUserPermissionsView.as_view(),
+        name='export_user_permissions'
+    ),
+    path(
+        'user-permissions/<int:user_id>/rule-text/',
+        GenerateRuleTextView.as_view(),
+        name='generate_rule_text'
+    ),
+    path(
+        'user-permissions/copy/',
+        CopyUserPermissionsView.as_view(),
+        name='copy_user_permissions'
+    ),
+    path(
+        'user-permissions/<int:user_id>/summary/',
+        GetUserPermissionsSummaryView.as_view(),
+        name='get_user_permissions_summary'
     ),
 
 ]

@@ -778,3 +778,161 @@ class AccessRule(models.Model):
 
     def __str__(self):
             return f"{self.organization} - {self.post} - {self.stage} (ترتیب: {self.stage_order}) - {self.action_type}"
+
+
+class WorkflowRuleTemplate(models.Model):
+    """
+    تمپلیت قوانین گردش کار برای کپی و استفاده مجدد
+    """
+    name = models.CharField(max_length=200, verbose_name=_("نام تمپلیت"))
+    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+    organization = models.ForeignKey('Organization', on_delete=models.CASCADE, verbose_name=_("سازمان"))
+    entity_type = models.CharField(max_length=50, choices=[
+        ('FACTOR', _('فاکتور')),
+        ('TANKHAH', _('تنخواه')),
+        ('PAYMENTORDER', _('دستور پرداخت')),
+        ('BUDGET_ALLOCATION', _('تخصیص بودجه')),
+    ], verbose_name=_("نوع موجودیت"))
+    
+    # قوانین به صورت JSON ذخیره می‌شوند
+    rules_data = models.JSONField(verbose_name=_("داده‌های قوانین"))
+    
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    is_public = models.BooleanField(default=False, verbose_name=_("عمومی (قابل استفاده برای همه)"))
+    
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, verbose_name=_("ایجادکننده"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("تاریخ به‌روزرسانی"))
+    
+    class Meta:
+        verbose_name = _("تمپلیت قانون گردش کار")
+        verbose_name_plural = _("تمپلیت‌های قوانین گردش کار")
+        unique_together = ('name', 'organization', 'entity_type')
+        default_permissions = ()
+        permissions = [
+            ('WorkflowRuleTemplate_add', 'افزودن تمپلیت قانون گردش کار'),
+            ('WorkflowRuleTemplate_view', 'نمایش تمپلیت قانون گردش کار'),
+            ('WorkflowRuleTemplate_update', 'ویرایش تمپلیت قانون گردش کار'),
+            ('WorkflowRuleTemplate_delete', 'حذف تمپلیت قانون گردش کار'),
+        ]
+    
+    def __str__(self):
+        return f"{self.name} - {self.organization} - {self.get_entity_type_display()}"
+    
+    def clean(self):
+        """اعتبارسنجی داده‌های قوانین"""
+        if not self.rules_data:
+            raise ValidationError(_("داده‌های قوانین نمی‌تواند خالی باشد"))
+        
+        # بررسی ساختار داده‌های قوانین
+        required_keys = ['statuses', 'actions', 'transitions', 'post_actions']
+        for key in required_keys:
+            if key not in self.rules_data:
+                raise ValidationError(_(f"کلید '{key}' در داده‌های قوانین وجود ندارد"))
+    
+    def apply_to_organization(self, target_organization):
+        """اعمال تمپلیت به سازمان هدف"""
+        try:
+            with transaction.atomic():
+                # ایجاد وضعیت‌ها
+                for status_data in self.rules_data.get('statuses', []):
+                    Status.objects.get_or_create(
+                        code=status_data['code'],
+                        organization=target_organization,
+                        defaults={
+                            'name': status_data['name'],
+                            'description': status_data.get('description', ''),
+                            'is_initial': status_data.get('is_initial', False),
+                            'is_final': status_data.get('is_final', False),
+                            'is_active': status_data.get('is_active', True),
+                        }
+                    )
+                
+                # ایجاد اقدامات
+                for action_data in self.rules_data.get('actions', []):
+                    Action.objects.get_or_create(
+                        code=action_data['code'],
+                        organization=target_organization,
+                        defaults={
+                            'name': action_data['name'],
+                            'description': action_data.get('description', ''),
+                            'action_type': action_data.get('action_type', 'APPROVE'),
+                            'is_active': action_data.get('is_active', True),
+                        }
+                    )
+                
+                # ایجاد انتقال‌ها
+                for transition_data in self.rules_data.get('transitions', []):
+                    from_status = Status.objects.get(
+                        code=transition_data['from_status'],
+                        organization=target_organization
+                    )
+                    to_status = Status.objects.get(
+                        code=transition_data['to_status'],
+                        organization=target_organization
+                    )
+                    action = Action.objects.get(
+                        code=transition_data['action'],
+                        organization=target_organization
+                    )
+                    
+                    Transition.objects.get_or_create(
+                        from_status=from_status,
+                        to_status=to_status,
+                        action=action,
+                        organization=target_organization,
+                        defaults={
+                            'is_active': transition_data.get('is_active', True),
+                        }
+                    )
+                
+                # ایجاد تخصیص اقدامات به پست‌ها
+                for post_action_data in self.rules_data.get('post_actions', []):
+                    post = Post.objects.get(
+                        id=post_action_data['post_id'],
+                        organization=target_organization
+                    )
+                    action = Action.objects.get(
+                        code=post_action_data['action_code'],
+                        organization=target_organization
+                    )
+                    
+                    PostAction.objects.get_or_create(
+                        post=post,
+                        action=action,
+                        organization=target_organization,
+                        defaults={
+                            'is_active': post_action_data.get('is_active', True),
+                        }
+                    )
+                
+                return True
+        except Exception as e:
+            logger.error(f"خطا در اعمال تمپلیت: {e}")
+            return False
+
+
+class PostRuleAssignment(models.Model):
+    """
+    تخصیص قوانین به پست‌ها
+    """
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name=_("پست"))
+    action = models.ForeignKey(Action, on_delete=models.CASCADE, verbose_name=_("اقدام"))
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, verbose_name=_("سازمان"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    
+    class Meta:
+        verbose_name = _("تخصیص قانون به پست")
+        verbose_name_plural = _("تخصیص‌های قانون به پست‌ها")
+        unique_together = ('post', 'action', 'organization')
+        default_permissions = ()
+        permissions = [
+            ('PostRuleAssignment_add', 'افزودن تخصیص قانون به پست'),
+            ('PostRuleAssignment_view', 'نمایش تخصیص قانون به پست'),
+            ('PostRuleAssignment_update', 'ویرایش تخصیص قانون به پست'),
+            ('PostRuleAssignment_delete', 'حذف تخصیص قانون به پست'),
+        ]
+    
+    def __str__(self):
+        return f"{self.post.name} - {self.action.name} ({self.organization.name})"

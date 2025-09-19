@@ -21,8 +21,12 @@ TEMPLATE_DIRS = [
 
 # تنظیمات حساس از .env
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-for-dev-only')  # پیش‌فرض برای توسعه
-DEBUG = True # os.getenv('DEBUG', 'False') == 'True'  # تبدیل به bool
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')  # تبدیل به لیست
+# DEBUG = True # os.getenv('DEBUG', 'False') == 'True'  # تبدیل به bool
+DEBUG = os.getenv("DEBUG", "False") == "True"
+# دامنه‌های مجاز برای Django
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1' ).split(',')  # تبدیل به لیست
+# دامنه‌های معتبر برای CSRF (POST requests)
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(',')
 
 INSTALLED_APPS = [
     'django.contrib.humanize',

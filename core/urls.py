@@ -1,6 +1,13 @@
-from django.urls import path
+from django.urls import path, include
 
-from BudgetsSystem.view.view_Dashboard import SimpleChartView
+from BudgetsSystem.view.view_Dashboard import SimpleChartView, ExecutiveDashboardView
+from core.views_executive_dashboard import (
+    ComprehensiveBudgetReportView,
+    ComprehensiveFactorReportView, 
+    ComprehensiveTankhahReportView,
+    FinancialPerformanceReportView,
+    AnalyticalReportsView
+)
 from budgets.BudgetAllocation.get_projects_by_organization import get_budget_items_by_organization, \
     get_budget_item_remaining, get_budget_item_details
 from core.views import (
@@ -202,4 +209,17 @@ urlpatterns += [
             path('workflow/transition/create/', TransitionCreateView.as_view(), name='transition_create'),
             path('workflow/transition/<int:pk>/update/', TransitionUpdateView.as_view(), name='transition_update'),
             path('workflow/transition/<int:pk>/delete/', TransitionDeleteView.as_view(), name='transition_delete'),
+            
+            # داشبورد اجرایی
+            path('executive-dashboard/', ExecutiveDashboardView.as_view(), name='executive_dashboard'),
+            
+            # گزارشات جامع
+            path('comprehensive-budget-report/', ComprehensiveBudgetReportView.as_view(), name='comprehensive_budget_report'),
+            path('comprehensive-factor-report/', ComprehensiveFactorReportView.as_view(), name='comprehensive_factor_report'),
+            path('comprehensive-tankhah-report/', ComprehensiveTankhahReportView.as_view(), name='comprehensive_tankhah_report'),
+            path('financial-performance-report/', FinancialPerformanceReportView.as_view(), name='financial_performance_report'),
+            path('analytical-reports/', AnalyticalReportsView.as_view(), name='analytical_reports'),
+            
+            # مدیریت قوانین گردش کار
+            path('workflow-management/', include('core.urls_workflow_management')),
  ]

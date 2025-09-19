@@ -25,7 +25,7 @@ class StaffRequiredMixin(UserPassesTestMixin):
 
 # ===== CBV برای گزارش دسترسی‌های کاربر =====
 class UserPermissionReportView(StaffRequiredMixin, View):
-    template_name = 'reports/TransitionAccess/user_permission_report.html'
+    template_name = 'reports/TransitionAccess/user_permission_report_enhanced.html'
 
     def get(self, request, user_id=None):
         # گرفتن user_id از URL یا GET

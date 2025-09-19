@@ -170,6 +170,14 @@ dashboard_links = {
         {'name': _(' گزارش وضعیت فاکتورها '), 'url': 'factor_status_dashboard', 'permission': 'tankhah.factor_view',
          'icon': 'fas fa-file-invoice'},  # فاکتور خالی
     ],
+    'گزارشات جامع مدیرعامل': [
+        {'name': _('داشبورد اجرایی'), 'url': 'executive_dashboard', 'icon': 'fas fa-tachometer-alt'},
+        {'name': _('گزارشات بودجه (کلی)'), 'url': 'comprehensive_budget_report', 'icon': 'fas fa-chart-bar'},
+        {'name': _('گزارشات فاکتور (کلی)'), 'url': 'comprehensive_factor_report', 'icon': 'fas fa-file-invoice'},
+        {'name': _('گزارشات تنخواه (کلی)'), 'url': 'comprehensive_tankhah_report', 'icon': 'fas fa-money-bill-wave'},
+        {'name': _('گزارشات عملکرد مالی'), 'url': 'financial_performance_report', 'icon': 'fas fa-chart-line'},
+        {'name': _('گزارشات تحلیلی'), 'url': 'analytical_reports', 'icon': 'fas fa-chart-pie'},
+    ],
     'عنوان مرکز هزینه (پروژه)': [
         {'name': _('فهرست مرکز هزینه (پروژه)'), 'url': 'project_list', 'permission': 'core.view_project',
          'icon': 'fas fa-folder-open'},  # پوشه باز برای پروژه
@@ -212,6 +220,8 @@ dashboard_links = {
         {'name': _('قوانین سیستم (رول‌های دسترسی)'), 'url': 'post_access_rule_assign_old', 'icon': 'fas fa-gavel'},
         {'name': _('قوانین سیستم (هیبریدی)'), 'url': 'workflow_select', 'icon': 'fas fa-gavel'},
         {'name': _('قوانین سیستم گردش محور'), 'url': 'workflow_dashboard', 'icon': 'fas fa-gavel'},
+        {'name': _('مدیریت قوانین گردش کار'), 'url': 'workflow_dashboard', 'icon': 'fas fa-cogs'},
+        {'name': _('تمپلیت‌های قوانین'), 'url': 'workflow_management:template_list', 'icon': 'fas fa-file-code'},
         # چکش (نماد قانون)
     ],
     'دیگر لینک‌ها': [
@@ -273,6 +283,543 @@ class SimpleChartView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(request)
         logger.info("Rendering simple chart template")
+        return render(request, self.template_name, context)
+
+
+class ExecutiveDashboardView(LoginRequiredMixin, View):
+    """
+    داشبورد اجرایی برای مدیرعامل - نمایش جامع گزارشات بودجه، فاکتور و تنخواه
+    """
+    template_name = 'core/executive_dashboard.html'
+    login_url = reverse_lazy('accounts:login')
+
+    def get_context_data(self, request):
+        context = {}
+        user = request.user
+        now = timezone.now()
+        j_now = jdatetime.datetime.now()
+        
+        # اطلاعات پایه
+        context['title'] = _("داشبورد اجرایی - گزارشات جامع")
+        context['current_date'] = j_now.strftime('%Y/%m/%d')
+        context['current_time'] = j_now.strftime('%H:%M')
+        
+        # بررسی دسترسی‌ها
+        context['is_ceo'] = user.has_perm('core.view_organization') or user.is_superuser
+        context['can_view_budget'] = user.has_perm('budgets.view_budgetallocation') or user.is_superuser
+        context['can_view_tankhah'] = user.has_perm('tankhah.view_tankhah') or user.is_superuser
+        context['can_view_factors'] = user.has_perm('tankhah.view_factor') or user.is_superuser
+        
+        # آمار کلی بودجه
+        if context['can_view_budget']:
+            try:
+                budget_stats = self._get_budget_statistics()
+                context.update(budget_stats)
+            except Exception as e:
+                logger.error(f"خطا در محاسبه آمار بودجه: {e}")
+                context['budget_error'] = True
+        
+        # آمار کلی تنخواه
+        if context['can_view_tankhah']:
+            try:
+                tankhah_stats = self._get_tankhah_statistics()
+                context.update(tankhah_stats)
+            except Exception as e:
+                logger.error(f"خطا در محاسبه آمار تنخواه: {e}")
+                context['tankhah_error'] = True
+        
+        # آمار کلی فاکتورها
+        if context['can_view_factors']:
+            try:
+                factor_stats = self._get_factor_statistics()
+                context.update(factor_stats)
+            except Exception as e:
+                logger.error(f"خطا در محاسبه آمار فاکتور: {e}")
+                context['factor_error'] = True
+        
+        # گزارشات تحلیلی
+        try:
+            analytical_data = self._get_analytical_data()
+            context.update(analytical_data)
+        except Exception as e:
+            logger.error(f"خطا در محاسبه داده‌های تحلیلی: {e}")
+            context['analytical_error'] = True
+        
+        return context
+
+    def _get_budget_statistics(self):
+        """آمار کلی بودجه"""
+        stats = {}
+        
+        try:
+            # آمار دوره‌های بودجه
+            active_periods = BudgetPeriod.objects.filter(is_active=True, is_completed=False)
+            total_allocated = active_periods.aggregate(total=Coalesce(Sum('total_amount'), Decimal('0')))['total']
+            
+            # آمار مصرف بودجه
+            total_consumed = BudgetTransaction.objects.filter(
+                transaction_type='CONSUMPTION'
+            ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+            
+            stats.update({
+                'total_budget_allocated': total_allocated or Decimal('0'),
+                'total_budget_consumed': total_consumed or Decimal('0'),
+                'total_budget_remaining': (total_allocated or Decimal('0')) - (total_consumed or Decimal('0')),
+                'budget_consumption_percentage': (total_consumed / total_allocated * 100) if total_allocated and total_allocated > 0 else 0,
+                'active_budget_periods_count': active_periods.count(),
+            })
+            
+            # آمار تخصیص‌های بودجه
+            allocations = BudgetAllocation.objects.filter(is_active=True)
+            stats.update({
+                'total_allocations_count': allocations.count(),
+                'total_allocated_amount': allocations.aggregate(total=Coalesce(Sum('allocated_amount'), Decimal('0')))['total'] or Decimal('0'),
+            })
+            
+            # روند ماهانه بودجه
+            monthly_budget_data = self._get_monthly_budget_trend()
+            stats['monthly_budget_trend'] = monthly_budget_data
+            
+        except Exception as e:
+            logger.error(f"خطا در محاسبه آمار بودجه: {e}")
+            stats.update({
+                'total_budget_allocated': Decimal('0'),
+                'total_budget_consumed': Decimal('0'),
+                'total_budget_remaining': Decimal('0'),
+                'budget_consumption_percentage': 0,
+                'active_budget_periods_count': 0,
+                'total_allocations_count': 0,
+                'total_allocated_amount': Decimal('0'),
+                'monthly_budget_trend': {
+                    'labels': '[]',
+                    'allocated': '[]',
+                    'consumed': '[]',
+                    'remaining': '[]'
+                }
+            })
+        
+        return stats
+
+    def _get_tankhah_statistics(self):
+        """آمار کلی تنخواه"""
+        stats = {}
+        
+        try:
+            # آمار کلی تنخواه‌ها
+            total_tankhah = Tankhah.objects.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+            paid_tankhah = Tankhah.objects.filter(status__code='PAID').aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+            pending_tankhah = Tankhah.objects.filter(status__code__in=['PENDING', 'APPROVED']).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+            
+            stats.update({
+                'total_tankhah_amount': total_tankhah or Decimal('0'),
+                'paid_tankhah_amount': paid_tankhah or Decimal('0'),
+                'pending_tankhah_amount': pending_tankhah or Decimal('0'),
+                'tankhah_utilization_percentage': (paid_tankhah / total_tankhah * 100) if total_tankhah and total_tankhah > 0 else 0,
+                'total_tankhah_count': Tankhah.objects.count(),
+                'paid_tankhah_count': Tankhah.objects.filter(status__code='PAID').count(),
+                'pending_tankhah_count': Tankhah.objects.filter(status__code__in=['PENDING', 'APPROVED']).count(),
+            })
+            
+            # روند ماهانه تنخواه
+            monthly_tankhah_data = self._get_monthly_tankhah_trend()
+            stats['monthly_tankhah_trend'] = monthly_tankhah_data
+            
+        except Exception as e:
+            logger.error(f"خطا در محاسبه آمار تنخواه: {e}")
+            stats.update({
+                'total_tankhah_amount': Decimal('0'),
+                'paid_tankhah_amount': Decimal('0'),
+                'pending_tankhah_amount': Decimal('0'),
+                'tankhah_utilization_percentage': 0,
+                'total_tankhah_count': 0,
+                'paid_tankhah_count': 0,
+                'pending_tankhah_count': 0,
+                'monthly_tankhah_trend': {
+                    'labels': '[]',
+                    'created': '[]',
+                    'paid': '[]',
+                    'pending': '[]'
+                }
+            })
+        
+        return stats
+
+    def _get_factor_statistics(self):
+        """آمار کلی فاکتورها"""
+        stats = {}
+        
+        try:
+            # آمار کلی فاکتورها
+            total_factors = Factor.objects.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+            paid_factors = Factor.objects.filter(status__code='PAID').aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+            pending_factors = Factor.objects.filter(status__code__in=['PENDING_APPROVAL', 'APPROVED']).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+            rejected_factors = Factor.objects.filter(status__code='REJECTED').aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+            
+            stats.update({
+                'total_factor_amount': total_factors or Decimal('0'),
+                'paid_factor_amount': paid_factors or Decimal('0'),
+                'pending_factor_amount': pending_factors or Decimal('0'),
+                'rejected_factor_amount': rejected_factors or Decimal('0'),
+                'factor_approval_percentage': (paid_factors / total_factors * 100) if total_factors and total_factors > 0 else 0,
+                'total_factor_count': Factor.objects.count(),
+                'paid_factor_count': Factor.objects.filter(status__code='PAID').count(),
+                'pending_factor_count': Factor.objects.filter(status__code__in=['PENDING_APPROVAL', 'APPROVED']).count(),
+                'rejected_factor_count': Factor.objects.filter(status__code='REJECTED').count(),
+            })
+            
+            # روند ماهانه فاکتورها
+            monthly_factor_data = self._get_monthly_factor_trend()
+            stats['monthly_factor_trend'] = monthly_factor_data
+            
+        except Exception as e:
+            logger.error(f"خطا در محاسبه آمار فاکتور: {e}")
+            stats.update({
+                'total_factor_amount': Decimal('0'),
+                'paid_factor_amount': Decimal('0'),
+                'pending_factor_amount': Decimal('0'),
+                'rejected_factor_amount': Decimal('0'),
+                'factor_approval_percentage': 0,
+                'total_factor_count': 0,
+                'paid_factor_count': 0,
+                'pending_factor_count': 0,
+                'rejected_factor_count': 0,
+                'monthly_factor_trend': {
+                    'labels': '[]',
+                    'created': '[]',
+                    'paid': '[]',
+                    'pending': '[]'
+                }
+            })
+        
+        return stats
+
+    def _get_analytical_data(self):
+        """داده‌های تحلیلی"""
+        data = {}
+        
+        try:
+            # تحلیل عملکرد مالی
+            financial_performance = self._get_financial_performance_analysis()
+            data['financial_performance'] = financial_performance
+            
+            # تحلیل روندها
+            trend_analysis = self._get_trend_analysis()
+            data['trend_analysis'] = trend_analysis
+            
+            # تحلیل ریسک‌ها
+            risk_analysis = self._get_risk_analysis()
+            data['risk_analysis'] = risk_analysis
+            
+        except Exception as e:
+            logger.error(f"خطا در محاسبه داده‌های تحلیلی: {e}")
+            data.update({
+                'financial_performance': {
+                    'budget_utilization_rate': 0,
+                    'tankhah_efficiency': 0,
+                    'cost_per_tankhah': 0,
+                    'average_factor_amount': 0
+                },
+                'trend_analysis': {
+                    'consumption_trend': 0,
+                    'consumption_trend_direction': 'stable',
+                    'current_month_consumption': 0,
+                    'last_month_consumption': 0
+                },
+                'risk_analysis': {
+                    'risks': [],
+                    'risk_count': 0,
+                    'high_risk_count': 0,
+                    'medium_risk_count': 0
+                }
+            })
+        
+        return data
+
+    def _get_monthly_budget_trend(self):
+        """روند ماهانه بودجه"""
+        try:
+            now = timezone.now()
+            monthly_data = []
+            
+            for i in range(11, -1, -1):
+                month_start = (now.replace(day=1) - timedelta(days=i * 30)).replace(day=1)
+                month_end = (month_start + timedelta(days=31)).replace(day=1) - timedelta(days=1)
+                
+                j_month_start = jdatetime.date.fromgregorian(date=month_start)
+                month_label = f"{self._get_jalali_month_name(j_month_start.month)} {j_month_start.year}"
+                
+                allocated = BudgetAllocation.objects.filter(
+                    allocation_date__range=(month_start, month_end)
+                ).aggregate(total=Coalesce(Sum('allocated_amount'), Decimal('0')))['total']
+                
+                consumed = BudgetTransaction.objects.filter(
+                    transaction_type='CONSUMPTION',
+                    timestamp__range=(month_start, month_end)
+                ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+                
+                monthly_data.append({
+                    'month': month_label,
+                    'allocated': float(allocated or 0),
+                    'consumed': float(consumed or 0),
+                    'remaining': float((allocated or 0) - (consumed or 0))
+                })
+            
+            return {
+                'labels': json.dumps([item['month'] for item in monthly_data], ensure_ascii=False),
+                'allocated': json.dumps([item['allocated'] for item in monthly_data]),
+                'consumed': json.dumps([item['consumed'] for item in monthly_data]),
+                'remaining': json.dumps([item['remaining'] for item in monthly_data])
+            }
+        except Exception as e:
+            logger.error(f"خطا در محاسبه روند ماهانه بودجه: {e}")
+            return {
+                'labels': '[]',
+                'allocated': '[]',
+                'consumed': '[]',
+                'remaining': '[]'
+            }
+
+    def _get_monthly_tankhah_trend(self):
+        """روند ماهانه تنخواه"""
+        try:
+            now = timezone.now()
+            monthly_data = []
+            
+            for i in range(11, -1, -1):
+                month_start = (now.replace(day=1) - timedelta(days=i * 30)).replace(day=1)
+                month_end = (month_start + timedelta(days=31)).replace(day=1) - timedelta(days=1)
+                
+                j_month_start = jdatetime.date.fromgregorian(date=month_start)
+                month_label = f"{self._get_jalali_month_name(j_month_start.month)} {j_month_start.year}"
+                
+                created = Tankhah.objects.filter(
+                    created_at__range=(month_start, month_end)
+                ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+                
+                paid = Tankhah.objects.filter(
+                    status__code='PAID',
+                    created_at__range=(month_start, month_end)
+                ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+                
+                monthly_data.append({
+                    'month': month_label,
+                    'created': float(created or 0),
+                    'paid': float(paid or 0),
+                    'pending': float((created or 0) - (paid or 0))
+                })
+            
+            return {
+                'labels': json.dumps([item['month'] for item in monthly_data], ensure_ascii=False),
+                'created': json.dumps([item['created'] for item in monthly_data]),
+                'paid': json.dumps([item['paid'] for item in monthly_data]),
+                'pending': json.dumps([item['pending'] for item in monthly_data])
+            }
+        except Exception as e:
+            logger.error(f"خطا در محاسبه روند ماهانه تنخواه: {e}")
+            return {
+                'labels': '[]',
+                'created': '[]',
+                'paid': '[]',
+                'pending': '[]'
+            }
+
+    def _get_monthly_factor_trend(self):
+        """روند ماهانه فاکتورها"""
+        try:
+            now = timezone.now()
+            monthly_data = []
+            
+            for i in range(11, -1, -1):
+                month_start = (now.replace(day=1) - timedelta(days=i * 30)).replace(day=1)
+                month_end = (month_start + timedelta(days=31)).replace(day=1) - timedelta(days=1)
+                
+                j_month_start = jdatetime.date.fromgregorian(date=month_start)
+                month_label = f"{self._get_jalali_month_name(j_month_start.month)} {j_month_start.year}"
+                
+                created = Factor.objects.filter(
+                    created_at__range=(month_start, month_end)
+                ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+                
+                paid = Factor.objects.filter(
+                    status__code='PAID',
+                    created_at__range=(month_start, month_end)
+                ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+                
+                monthly_data.append({
+                    'month': month_label,
+                    'created': float(created or 0),
+                    'paid': float(paid or 0),
+                    'pending': float((created or 0) - (paid or 0))
+                })
+            
+            return {
+                'labels': json.dumps([item['month'] for item in monthly_data], ensure_ascii=False),
+                'created': json.dumps([item['created'] for item in monthly_data]),
+                'paid': json.dumps([item['paid'] for item in monthly_data]),
+                'pending': json.dumps([item['pending'] for item in monthly_data])
+            }
+        except Exception as e:
+            logger.error(f"خطا در محاسبه روند ماهانه فاکتور: {e}")
+            return {
+                'labels': '[]',
+                'created': '[]',
+                'paid': '[]',
+                'pending': '[]'
+            }
+
+    def _get_financial_performance_analysis(self):
+        """تحلیل عملکرد مالی"""
+        analysis = {}
+        
+        try:
+            # محاسبه شاخص‌های کلیدی
+            total_budget = BudgetPeriod.objects.filter(is_active=True).aggregate(
+                total=Coalesce(Sum('total_amount'), Decimal('0'))
+            )['total']
+            
+            total_consumed = BudgetTransaction.objects.filter(
+                transaction_type='CONSUMPTION'
+            ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+            
+            total_tankhah = Tankhah.objects.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+            total_factors = Factor.objects.aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+            
+            tankhah_count = Tankhah.objects.count()
+            factor_count = Factor.objects.count()
+            
+            analysis.update({
+                'budget_utilization_rate': (total_consumed / total_budget * 100) if total_budget and total_budget > 0 else 0,
+                'tankhah_efficiency': (total_factors / total_tankhah * 100) if total_tankhah and total_tankhah > 0 else 0,
+                'cost_per_tankhah': total_tankhah / tankhah_count if tankhah_count > 0 else 0,
+                'average_factor_amount': total_factors / factor_count if factor_count > 0 else 0,
+            })
+            
+        except Exception as e:
+            logger.error(f"خطا در محاسبه تحلیل عملکرد مالی: {e}")
+            analysis.update({
+                'budget_utilization_rate': 0,
+                'tankhah_efficiency': 0,
+                'cost_per_tankhah': 0,
+                'average_factor_amount': 0,
+            })
+        
+        return analysis
+
+    def _get_trend_analysis(self):
+        """تحلیل روندها"""
+        trends = {}
+        
+        try:
+            # روند مصرف بودجه
+            current_month = timezone.now().replace(day=1)
+            last_month = (current_month - timedelta(days=1)).replace(day=1)
+            
+            current_consumption = BudgetTransaction.objects.filter(
+                transaction_type='CONSUMPTION',
+                timestamp__gte=current_month
+            ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+            
+            last_consumption = BudgetTransaction.objects.filter(
+                transaction_type='CONSUMPTION',
+                timestamp__gte=last_month,
+                timestamp__lt=current_month
+            ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+            
+            current_consumption = current_consumption or Decimal('0')
+            last_consumption = last_consumption or Decimal('0')
+            
+            consumption_trend = ((current_consumption - last_consumption) / last_consumption * 100) if last_consumption > 0 else 0
+            
+            trends.update({
+                'consumption_trend': consumption_trend,
+                'consumption_trend_direction': 'up' if consumption_trend > 0 else 'down' if consumption_trend < 0 else 'stable',
+                'current_month_consumption': float(current_consumption),
+                'last_month_consumption': float(last_consumption),
+            })
+            
+        except Exception as e:
+            logger.error(f"خطا در محاسبه تحلیل روندها: {e}")
+            trends.update({
+                'consumption_trend': 0,
+                'consumption_trend_direction': 'stable',
+                'current_month_consumption': 0,
+                'last_month_consumption': 0,
+            })
+        
+        return trends
+
+    def _get_risk_analysis(self):
+        """تحلیل ریسک‌ها"""
+        risks = []
+        
+        try:
+            # ریسک بودجه کم
+            total_budget = BudgetPeriod.objects.filter(is_active=True).aggregate(
+                total=Coalesce(Sum('total_amount'), Decimal('0'))
+            )['total']
+            
+            total_consumed = BudgetTransaction.objects.filter(
+                transaction_type='CONSUMPTION'
+            ).aggregate(total=Coalesce(Sum('amount'), Decimal('0')))['total']
+            
+            total_budget = total_budget or Decimal('0')
+            total_consumed = total_consumed or Decimal('0')
+            
+            budget_usage_percentage = (total_consumed / total_budget * 100) if total_budget > 0 else 0
+            
+            if budget_usage_percentage > 80:
+                risks.append({
+                    'type': 'high_budget_usage',
+                    'level': 'high',
+                    'message': f'مصرف بودجه به {budget_usage_percentage:.1f}% رسیده است',
+                    'recommendation': 'بررسی و کنترل بیشتر هزینه‌ها ضروری است'
+                })
+            elif budget_usage_percentage > 60:
+                risks.append({
+                    'type': 'medium_budget_usage',
+                    'level': 'medium',
+                    'message': f'مصرف بودجه به {budget_usage_percentage:.1f}% رسیده است',
+                    'recommendation': 'نظارت بر هزینه‌ها توصیه می‌شود'
+                })
+            
+            # ریسک فاکتورهای رد شده
+            rejected_factors_count = Factor.objects.filter(status__code='REJECTED').count()
+            total_factors_count = Factor.objects.count()
+            rejection_rate = (rejected_factors_count / total_factors_count * 100) if total_factors_count > 0 else 0
+            
+            if rejection_rate > 20:
+                risks.append({
+                    'type': 'high_rejection_rate',
+                    'level': 'high',
+                    'message': f'نرخ رد فاکتورها {rejection_rate:.1f}% است',
+                    'recommendation': 'بررسی فرآیند تأیید فاکتورها ضروری است'
+                })
+            
+        except Exception as e:
+            logger.error(f"خطا در محاسبه تحلیل ریسک‌ها: {e}")
+            risks = []
+        
+        return {
+            'risks': risks,
+            'risk_count': len(risks),
+            'high_risk_count': len([r for r in risks if r['level'] == 'high']),
+            'medium_risk_count': len([r for r in risks if r['level'] == 'medium']),
+        }
+
+    def _get_jalali_month_name(self, month_number):
+        """نام ماه شمسی"""
+        j_months_fa = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", 
+                       "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+        try:
+            month_number = int(month_number)
+            if 1 <= month_number <= 12:
+                return j_months_fa[month_number - 1]
+            return str(month_number)
+        except (ValueError, IndexError, TypeError):
+            return str(month_number)
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(request)
         return render(request, self.template_name, context)
 class DashboardView(LoginRequiredMixin, View):
     template_name = 'core/dashboard.html'
