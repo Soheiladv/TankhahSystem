@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.utils import timezone
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from .models import Notification, NotificationRule
+from .models import Notification, NotificationRule, BackupSchedule, BackupLog
 from accounts.models import CustomUser
 from core.models import Post
 from tankhah.models import Tankhah, Factor
@@ -136,3 +136,168 @@ def send_notification(sender, users=None, posts=None, verb=None, description=Non
     # ذخیره دسته‌جمعی اعلان‌ها
     if notifications:
         Notification.objects.bulk_create(notifications, batch_size=100)
+
+def send_backup_notification(schedule, status, message=None, file_path=None, file_size=None):
+    """
+    ارسال اعلان پشتیبان‌گیری به مدیران سیستم
+    
+    پارامترها:
+        schedule: نمونه BackupSchedule
+        status: وضعیت پشتیبان‌گیری ('STARTED', 'COMPLETED', 'FAILED')
+        message: پیام اضافی
+        file_path: مسیر فایل پشتیبان
+        file_size: حجم فایل
+    """
+    from django.core.management import call_command
+    
+    # تعیین گیرندگان
+    recipients = list(schedule.notify_recipients.all())
+    
+    # اگر گیرنده‌ای تعریف نشده، به مدیران سیستم ارسال کن
+    if not recipients:
+        recipients = CustomUser.objects.filter(is_staff=True, is_active=True)
+    
+    if not recipients:
+        logging.warning("هیچ گیرنده‌ای برای اعلان پشتیبان‌گیری یافت نشد")
+        return
+    
+    # تعیین پیام بر اساس وضعیت
+    if status == 'STARTED':
+        verb = 'STARTED'
+        description = f"پشتیبان‌گیری '{schedule.name}' شروع شد"
+        priority = 'MEDIUM'
+    elif status == 'COMPLETED':
+        verb = 'COMPLETED'
+        description = f"پشتیبان‌گیری '{schedule.name}' با موفقیت تکمیل شد"
+        if file_size:
+            description += f" (حجم: {file_size} بایت)"
+        priority = 'LOW'
+    elif status == 'FAILED':
+        verb = 'FAILED'
+        description = f"پشتیبان‌گیری '{schedule.name}' ناموفق بود"
+        if message:
+            description += f" - {message}"
+        priority = 'HIGH'
+    else:
+        verb = 'COMPLETED'
+        description = message or f"پشتیبان‌گیری '{schedule.name}' تکمیل شد"
+        priority = 'MEDIUM'
+    
+    # ارسال اعلان
+    send_notification(
+        sender=None,  # سیستم
+        users=recipients,
+        verb=verb,
+        description=description,
+        target=schedule,
+        entity_type='BACKUP',
+        priority=priority
+    )
+    
+    # ارسال ایمیل به مدیران در صورت خطا
+    if status == 'FAILED' and schedule.notify_on_failure:
+        admin_emails = [user.email for user in recipients if user.email]
+        if admin_emails:
+            send_mail(
+                subject=f"خطا در پشتیبان‌گیری: {schedule.name}",
+                message=f"""
+پشتیبان‌گیری '{schedule.name}' با خطا مواجه شد.
+
+جزئیات:
+- زمان: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}
+- فرکانس: {schedule.get_frequency_display()}
+- دیتابیس: {schedule.get_database_display()}
+- فرمت: {schedule.get_format_type_display()}
+- خطا: {message or 'خطای نامشخص'}
+
+لطفاً سیستم را بررسی کنید.
+                """,
+                from_email='system@example.com',
+                recipient_list=admin_emails,
+                fail_silently=True,
+            )
+
+def execute_scheduled_backup(schedule_id):
+    """
+    اجرای پشتیبان‌گیری زمان‌بندی شده
+    
+    پارامترها:
+        schedule_id: شناسه BackupSchedule
+    """
+    try:
+        schedule = BackupSchedule.objects.get(id=schedule_id, is_active=True)
+    except BackupSchedule.DoesNotExist:
+        logging.error(f"اسکچول پشتیبان‌گیری با شناسه {schedule_id} یافت نشد")
+        return False
+    
+    # ایجاد لاگ
+    log = BackupLog.objects.create(
+        schedule=schedule,
+        status='STARTED'
+    )
+    
+    # ارسال اعلان شروع
+    if schedule.notify_on_success:
+        send_backup_notification(schedule, 'STARTED')
+    
+    try:
+        # اجرای پشتیبان‌گیری
+        from django.core.management import call_command
+        
+        if schedule.database == 'BOTH':
+            # پشتیبان‌گیری از هر دو دیتابیس
+            call_command('custom_backup', database='main', format=schedule.format_type.lower())
+            call_command('custom_backup', database='logs', format=schedule.format_type.lower())
+        else:
+            database_name = 'main' if schedule.database == 'MAIN' else 'logs'
+            call_command('custom_backup', database=database_name, format=schedule.format_type.lower())
+        
+        # رمزگذاری در صورت نیاز
+        if schedule.encrypt and schedule.password:
+            # منطق رمزگذاری
+            pass
+        
+        # بروزرسانی لاگ
+        log.mark_completed()
+        
+        # بروزرسانی زمان اجرای بعدی
+        schedule.last_run = timezone.now()
+        schedule.update_next_run()
+        schedule.save()
+        
+        # ارسال اعلان موفقیت
+        if schedule.notify_on_success:
+            send_backup_notification(schedule, 'COMPLETED')
+        
+        logging.info(f"پشتیبان‌گیری '{schedule.name}' با موفقیت تکمیل شد")
+        return True
+        
+    except Exception as e:
+        error_message = str(e)
+        logging.error(f"خطا در پشتیبان‌گیری '{schedule.name}': {error_message}")
+        
+        # بروزرسانی لاگ
+        log.mark_failed(error_message)
+        
+        # ارسال اعلان خطا
+        if schedule.notify_on_failure:
+            send_backup_notification(schedule, 'FAILED', error_message)
+        
+        return False
+
+def check_and_execute_scheduled_backups():
+    """
+    بررسی و اجرای پشتیبان‌گیری‌های زمان‌بندی شده
+    این تابع باید توسط cron یا celery اجرا شود
+    """
+    now = timezone.now()
+    
+    # پیدا کردن اسکچول‌هایی که باید اجرا شوند
+    schedules = BackupSchedule.objects.filter(
+        is_active=True,
+        next_run__lte=now
+    )
+    
+    for schedule in schedules:
+        logging.info(f"اجرای پشتیبان‌گیری زمان‌بندی شده: {schedule.name}")
+        execute_scheduled_backup(schedule.id)

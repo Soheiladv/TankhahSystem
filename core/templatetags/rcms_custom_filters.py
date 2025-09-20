@@ -772,9 +772,6 @@ def get_item(dictionary, key):
         return default_placeholder
 
 
-from django import template
-
-register = template.Library()
 
 
 @register.filter
