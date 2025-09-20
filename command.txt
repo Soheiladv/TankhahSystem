@@ -1,5 +1,19 @@
 D@d123
 
+
+# پاکسازی داده‌های قدیمی (نگه داشتن 5 نسخه اخیر)
+python manage.py cleanup_old_data --keep-versions 5
+
+# تحلیل حجم دیتابیس
+python manage.py optimize_database --analyze
+
+# بهینه‌سازی دیتابیس
+python manage.py optimize_database --optimize
+
+# به‌روزرسانی نسخه‌ها
+python manage.py update_versions
+
+
 <<<<<<< HEAD
 ######### Compile Output Project Create  ########################
 python -m compileall -b .
