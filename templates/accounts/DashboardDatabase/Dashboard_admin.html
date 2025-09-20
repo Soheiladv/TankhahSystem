@@ -1,159 +1,9 @@
 {% extends 'base.html' %}
 {% load i18n static %}
 
-{% block extra_css %}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.0/Vazirmatn-font-face.css" rel="stylesheet">
+{% block extra_css %} 
     <link href="https://visjs.github.io/vis-network/standalone/umd/vis-network.min.css" rel="stylesheet" type="text/css" />
-    <style>
-        :root {
-            --primary-color: #4e73df;
-            --secondary-color: #858796;
-            --success-color: #1cc88a;
-            --danger-color: #e74a3b;
-            --warning-color: #f6c23e;
-            --light-bg: #f8f9fc;
-            --card-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-            --border-radius: 0.35rem;
-        }
-
-        body {
-            font-family: 'Vazirmatn', sans-serif;
-            background-color: var(--light-bg);
-            color: #5a5c69;
-        }
-
-        .main-container {
-            padding: 2rem 0;
-        }
-
-        .page-header {
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid #e3e6f0;
-            padding-bottom: 1rem;
-        }
-
-        .page-title {
-            font-weight: 700;
-            color: #4e73df;
-            font-size: 1.8rem;
-        }
-
-        .card {
-            border: none;
-            border-radius: var(--border-radius);
-            box-shadow: var(--card-shadow);
-            margin-bottom: 2rem;
-        }
-
-        .card-header {
-            background-color: #f8f9fc;
-            border-bottom: 1px solid #e3e6f0;
-            padding: 1.25rem 1.5rem;
-            font-weight: 600;
-            color: #4e73df;
-        }
-
-        .nav-pills .nav-link {
-            color: #5a5c69;
-            font-weight: 500;
-            border-radius: var(--border-radius);
-            margin: 0 0.25rem;
-            padding: 0.75rem 1.5rem;
-        }
-
-        .nav-pills .nav-link.active {
-            background-color: var(--primary-color);
-            box-shadow: 0 0.15rem 0.3rem rgba(0, 0, 0, 0.1);
-        }
-
-        /* استایل‌های مخصوص بخش نمودار */
-        #graph-container {
-            position: relative;
-            height: 700px; /* ارتفاع بیشتر برای نمودار */
-            background-color: white;
-            border-radius: var(--border-radius);
-            border: 1px solid #e3e6f0;
-            margin-bottom: 1.5rem;
-            overflow: hidden;
-        }
-
-        #model-relations-graph {
-            width: 100%;
-            height: 100%;
-        }
-
-        .graph-controls {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            z-index: 100;
-            display: flex;
-            gap: 8px;
-        }
-
-        .graph-controls .btn {
-            background-color: white;
-            border: 1px solid #d1d3e2;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0.15rem 0.3rem rgba(0, 0, 0, 0.1);
-            color: #5a5c69;
-        }
-
-        .graph-controls .btn:hover {
-            background-color: #f8f9fc;
-        }
-
-        /* استایل‌های جداول */
-        .table-container {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #e3e6f0;
-            border-radius: var(--border-radius);
-        }
-
-        .table {
-            margin-bottom: 0;
-        }
-
-        .table th {
-            background-color: #f8f9fc;
-            font-weight: 600;
-            color: #4e73df;
-            position: sticky;
-            top: 0;
-        }
-
-        /* استایل‌های دکمه‌ها */
-        .btn-action {
-            padding: 0.5rem 1.5rem;
-            border-radius: var(--border-radius);
-            font-weight: 600;
-            min-width: 150px;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-
-        .btn-danger {
-            background-color: var(--danger-color);
-            border-color: var(--danger-color);
-        }
-
-        /* استایل‌های هشدار */
-        .alert-warning-custom {
-            background-color: rgba(244, 217, 72, 0.2);
-            border-left: 4px solid var(--warning-color);
-            color: #856404;
-        }
-    </style>
+    
 {% endblock %}
 
 {% block content %}
@@ -236,6 +86,11 @@
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="backup-tab" data-bs-toggle="pill" data-bs-target="#backup-content" type="button" role="tab">
                                     <i class="bi bi-cloud-arrow-down me-2"></i> {% trans "بک‌آپ گیری" %}
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="backup-manage-tab" data-bs-toggle="pill" data-bs-target="#backup-manage-content" type="button" role="tab">
+                                    <i class="bi bi-gear me-2"></i> {% trans "مدیریت بک‌آپ" %}
                                 </button>
                             </li>
                         </ul>
@@ -376,6 +231,166 @@
                                     </button>
                                 </form>
                             </div>
+
+                            <!-- محتوای مدیریت بک‌آپ -->
+                            <div class="tab-pane fade" id="backup-manage-content" role="tabpanel">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    {% trans "در این بخش می‌توانید فایل‌های بک‌آپ موجود را مدیریت کنید." %}
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="card border-primary">
+                                            <div class="card-header bg-primary text-white">
+                                                <h6 class="mb-0">
+                                                    <i class="bi bi-cloud-arrow-up me-2"></i> {% trans "سیستم بک‌آپ جدید" %}
+                                                </h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="card-text">{% trans "سیستم مدرن و پیشرفته مدیریت بک‌آپ با قابلیت‌های کامل" %}</p>
+                                                <div class="d-grid gap-2">
+                                                    <a href="{% url 'backup:list' %}" class="btn btn-primary">
+                                                        <i class="bi bi-list-ul me-2"></i> {% trans "مشاهده فایل‌ها" %}
+                                                    </a>
+                                                    <a href="{% url 'backup:create' %}" class="btn btn-outline-primary">
+                                                        <i class="bi bi-plus-circle me-2"></i> {% trans "ایجاد بک‌آپ جدید" %}
+                                                    </a>
+                                                    <a href="{% url 'backup:mysql' %}" class="btn btn-outline-success">
+                                                        <i class="bi bi-database me-2"></i> {% trans "MySQL استاندارد" %}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="card border-secondary">
+                                            <div class="card-header bg-secondary text-white">
+                                                <h6 class="mb-0">
+                                                    <i class="bi bi-gear me-2"></i> {% trans "سیستم بک‌آپ قدیمی" %}
+                                                </h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="card-text">{% trans "سیستم قدیمی مدیریت بک‌آپ (برای سازگاری)" %}</p>
+                                                <div class="d-grid gap-2">
+                                                    <a href="/backup-admin/" class="btn btn-secondary">
+                                                        <i class="bi bi-list-ul me-2"></i> {% trans "مشاهده فایل‌ها" %}
+                                                    </a>
+                                                    <a href="/backup-admin/create/" class="btn btn-outline-secondary">
+                                                        <i class="bi bi-plus-circle me-2"></i> {% trans "ایجاد بک‌آپ جدید" %}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="card border-success">
+                                            <div class="card-header bg-success text-white">
+                                                <h6 class="mb-0">
+                                                    <i class="bi bi-database me-2"></i> {% trans "مدیریت کامل دیتابیس" %}
+                                                </h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="card-text">{% trans "دسترسی به تمام قابلیت‌های مدیریت دیتابیس شامل نمایش نمودار روابط، ریست داده‌ها و بک‌آپ پیشرفته" %}</p>
+                                                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                                                    <a href="{% url 'accounts:new_databasebackup' %}" class="btn btn-success">
+                                                        <i class="bi bi-diagram-3 me-2"></i> {% trans "مدیریت کامل دیتابیس" %}
+                                                    </a>
+                                                    <a href="{% url 'admin:index' %}" class="btn btn-outline-success">
+                                                        <i class="bi bi-house me-2"></i> {% trans "بازگشت به ادمین" %}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- آمار فایل‌های بک‌آپ -->
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">
+                                                    <i class="bi bi-bar-chart me-2"></i> {% trans "آمار فایل‌های بک‌آپ" %}
+                                                </h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row text-center">
+                                                    <div class="col-md-3">
+                                                        <div class="border rounded p-3">
+                                                            <h4 class="text-primary mb-1">9</h4>
+                                                            <small class="text-muted">{% trans "تعداد کل فایل‌ها" %}</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="border rounded p-3">
+                                                            <h4 class="text-success mb-1">1.75 MB</h4>
+                                                            <small class="text-muted">{% trans "حجم کل" %}</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="border rounded p-3">
+                                                            <h4 class="text-info mb-1">3</h4>
+                                                            <small class="text-muted">{% trans "فایل‌های اصلی" %}</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="border rounded p-3">
+                                                            <h4 class="text-warning mb-1">6</h4>
+                                                            <small class="text-muted">{% trans "فایل‌های لاگ" %}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- راهنمای استفاده -->
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <div class="card border-info">
+                                            <div class="card-header bg-info text-white">
+                                                <h6 class="mb-0">
+                                                    <i class="bi bi-question-circle me-2"></i> {% trans "راهنمای استفاده" %}
+                                                </h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <h6 class="text-primary">{% trans "سیستم جدید" %}</h6>
+                                                        <ul class="list-unstyled">
+                                                            <li><i class="bi bi-check-circle text-success me-2"></i> {% trans "طراحی مدرن" %}</li>
+                                                            <li><i class="bi bi-check-circle text-success me-2"></i> {% trans "عملکرد سریع" %}</li>
+                                                            <li><i class="bi bi-check-circle text-success me-2"></i> {% trans "مدیریت آسان" %}</li>
+                                                        </ul>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <h6 class="text-secondary">{% trans "سیستم قدیمی" %}</h6>
+                                                        <ul class="list-unstyled">
+                                                            <li><i class="bi bi-check-circle text-success me-2"></i> {% trans "سازگاری کامل" %}</li>
+                                                            <li><i class="bi bi-check-circle text-success me-2"></i> {% trans "عملکرد ثابت" %}</li>
+                                                            <li><i class="bi bi-check-circle text-success me-2"></i> {% trans "پشتیبانی کامل" %}</li>
+                                                        </ul>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <h6 class="text-success">{% trans "مدیریت کامل" %}</h6>
+                                                        <ul class="list-unstyled">
+                                                            <li><i class="bi bi-check-circle text-success me-2"></i> {% trans "نمودار روابط" %}</li>
+                                                            <li><i class="bi bi-check-circle text-success me-2"></i> {% trans "ریست داده‌ها" %}</li>
+                                                            <li><i class="bi bi-check-circle text-success me-2"></i> {% trans "بک‌آپ پیشرفته" %}</li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -433,9 +448,7 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://visjs.github.io/vis-network/standalone/umd/vis-network.min.js"></script>
+{% block extra_js %} 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // متغیرهای جهانی

@@ -12,9 +12,12 @@ from BudgetsSystem.view.view_Dashboard import DashboardView
 from BudgetsSystem.views import TanbakhWorkflowView, GuideView, soft_Help
 from accounts.views import SetTimeLockView, TimeLockListView, LockStatusView
 from accounts.RCMS_Lock.views import lock_status
+from version_tracker.admin_backup import backup_admin
 
 urlpatterns = [
                   path('admin/', admin.site.urls),
+                  path('backup-admin/', backup_admin.urls),
+                  path('backup/', include('version_tracker.backup_urls')),
 
                   path('', DashboardView.as_view(), name='index'),
                   # path('dashboard/', BudgetDashboardView.as_view(), name='index'),

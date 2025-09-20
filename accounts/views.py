@@ -132,6 +132,8 @@ def dashboard_view(request):
             "items": [
                 {"label": "  مدیریت دیتابیس ", "url": "accounts:new_databasebackup", "icon": "fas fa-database",
                  "color": "warning"},
+                {"label": "  مدیریت پشتیبانی از دیتابیس ", "url": "backup:list", "icon": "fas fa-database",
+                 "color": "warning"},
 
             ],
         },

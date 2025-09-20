@@ -241,20 +241,14 @@
         {% endif %}
     </div>
 </div>
-{%  comment %} 
+ 
         <main class="content" id="mainContent">
             <div class="container-fluid mt-5 pt-3">
                 {% block content %}{% endblock %}
             </div>
         </main>
-        {%  endcomment %}
-        {%  comment %}شروع بدنه اصلی پروژه  {%  endcomment %}
-        <main class="content" id="mainContent">
-            <div class="container-fluid mt-5 pt-3" hx-target="#mainContent" hx-swap="innerHTML">
-                {% block content %}{% endblock %}
-            </div>
-        </main>
-
+         
+       
 
 <footer class="footer animate__animated animate__fadeInUp">
     <div class="container">

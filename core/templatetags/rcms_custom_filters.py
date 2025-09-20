@@ -575,6 +575,21 @@ def filename(value):
     return value
 
 #-----------------------------------------------------
+@register.filter(name='format_bytes')
+def format_bytes(bytes_value):
+    """تبدیل بایت به فرمت خوانا"""
+    if bytes_value == 0:
+        return "0 B"
+    
+    size_names = ["B", "KB", "MB", "GB", "TB"]
+    i = 0
+    while bytes_value >= 1024 and i < len(size_names) - 1:
+        bytes_value /= 1024.0
+        i += 1
+    
+    return f"{bytes_value:.2f} {size_names[i]}"
+
+#-----------------------------------------------------
 @register.filter(name='add_class')
 def add_class(base_classes, new_class_or_classes):
     """
@@ -755,5 +770,23 @@ def get_item(dictionary, key):
         return getattr(dictionary, key, default_placeholder)
     except Exception:
         return default_placeholder
- 
- 
+
+
+from django import template
+
+register = template.Library()
+
+
+@register.filter
+def format_bytes(bytes_value):
+    """تبدیل بایت به فرمت خوانا"""
+    if bytes_value == 0:
+        return "0 B"
+
+    size_names = ["B", "KB", "MB", "GB", "TB"]
+    i = 0
+    while bytes_value >= 1024 and i < len(size_names) - 1:
+        bytes_value /= 1024.0
+        i += 1
+
+    return f"{bytes_value:.2f} {size_names[i]}"

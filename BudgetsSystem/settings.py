@@ -24,7 +24,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key-for-dev-only')
 # DEBUG = True # os.getenv('DEBUG', 'False') == 'True'  # تبدیل به bool
 DEBUG = os.getenv("DEBUG", "False") == "True"
 # دامنه‌های مجاز برای Django
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1' ).split(',')  # تبدیل به لیست
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver' ).split(',')  # تبدیل به لیست
 # دامنه‌های معتبر برای CSRF (POST requests)
 CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(',')
 
