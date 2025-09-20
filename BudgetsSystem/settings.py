@@ -99,6 +99,26 @@ DBBACKUP_MAIL_ADMINS = True
 DBBACKUP_MAIL_SUBJECT = '[Django Backup] '
 DBBACKUP_GPG_ALWAYS_TRUST = True
 
+# تنظیمات پشتیبان‌گیری برای دیتابیس لاگ
+DBBACKUP_CONNECTORS = {
+    'default': {
+        'CONNECTOR': 'dbbackup.db.mysql.MysqlDumpConnector',
+        'NAME': os.getenv('DATABASE_DEFAULT_NAME', 'tankhasystem'),
+        'USER': os.getenv('DATABASE_DEFAULT_USER', 'root'),
+        'PASSWORD': os.getenv('DATABASE_DEFAULT_PASSWORD', ''),
+        'HOST': os.getenv('DATABASE_DEFAULT_HOST', '127.0.0.1'),
+        'PORT': os.getenv('DATABASE_DEFAULT_PORT', '3306'),
+    },
+    'logs': {
+        'CONNECTOR': 'dbbackup.db.mysql.MysqlDumpConnector',
+        'NAME': os.getenv('DATABASE_LOGS_NAME', 'tankhah_logs_db'),
+        'USER': os.getenv('DATABASE_LOGS_USER', 'root'),
+        'PASSWORD': os.getenv('DATABASE_LOGS_PASSWORD', ''),
+        'HOST': os.getenv('DATABASE_LOGS_HOST', 'localhost'),
+        'PORT': os.getenv('DATABASE_LOGS_PORT', '3306'),
+    }
+}
+
 # تنظیمات برای ویوی دستی بک‌آپ و ریست
 DATABASE_MANAGE_APP_LABELS = ['core', 'budgets', 'tankhah', 'BudgetsSystem', 'notificationApp', 'accounts', 'reports']
 

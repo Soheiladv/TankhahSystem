@@ -70,6 +70,21 @@ class UserPermissionReportView(StaffRequiredMixin, View):
             else:
                 inaccessible_count += 1
 
+        # دسترسی‌های جدید PostRuleAssignment
+        from core.models import PostRuleAssignment
+        user_rule_assignments = PostRuleAssignment.objects.filter(
+            post__id__in=user_post_ids,
+            is_active=True
+        ).select_related('post', 'action', 'organization', 'rule_template')
+
+        # آمار دسترسی‌ها
+        rule_stats = {
+            'total_assignments': user_rule_assignments.count(),
+            'payment_order_access': user_rule_assignments.filter(entity_type='PAYMENTORDER').count(),
+            'tankhah_access': user_rule_assignments.filter(entity_type='TANKHAH').count(),
+            'factor_access': user_rule_assignments.filter(entity_type='FACTOR').count(),
+        }
+
         context = {
             'users': users,
             'user': user,
@@ -78,6 +93,8 @@ class UserPermissionReportView(StaffRequiredMixin, View):
             'organizations': Organization.objects.filter(is_active=True),
             'accessible_count': accessible_count,
             'inaccessible_count': inaccessible_count,
+            'user_rule_assignments': user_rule_assignments,
+            'rule_stats': rule_stats,
         }
         logger.debug(f"Loaded {len(transitions)} transitions for user {user.username}")
         return render(request, self.template_name, context)

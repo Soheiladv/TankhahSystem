@@ -193,20 +193,18 @@ class AppVersion(models.Model):
 
     @staticmethod
     def get_changed_files(last_version, current_hashes, app_name):
-        """دریافت فایل‌های تغییرکرده و تغییرات کد"""
+        """دریافت فایل‌های تغییرکرده (بدون ذخیره محتوا)"""
         changed_files = []
         code_changes = []
 
         if not last_version:
             app_path = apps.get_app_config(app_name).path
             for path in current_hashes:
-                content = AppVersion._read_file_content(path)
                 rel_path = os.path.relpath(path, app_path)
                 changed_files.append(f"Added: {rel_path}")
                 code_changes.append({
-                    'file_name': rel_path,
-                    'old_code': '',
-                    'new_code': content
+                    'file_name': f"Added: {rel_path}",
+                    'change_type': 'ADDED'
                 })
             return changed_files, code_changes
 
@@ -215,34 +213,26 @@ class AppVersion(models.Model):
 
         for path in current_hashes:
             rel_path = os.path.relpath(path, app_path)
-            content = AppVersion._read_file_content(path)
             if path not in previous_hashes:
                 changed_files.append(f"Added: {rel_path}")
                 code_changes.append({
-                    'file_name': rel_path,
-                    'old_code': '',
-                    'new_code': content
+                    'file_name': f"Added: {rel_path}",
+                    'change_type': 'ADDED'
                 })
             elif current_hashes[path] != previous_hashes[path]:
-                old_hash_obj = last_version.filehash_set.filter(file_path=path).first()
-                old_code = old_hash_obj.content if old_hash_obj else ''
                 changed_files.append(f"Modified: {rel_path}")
                 code_changes.append({
-                    'file_name': rel_path,
-                    'old_code': old_code,
-                    'new_code': content
+                    'file_name': f"Modified: {rel_path}",
+                    'change_type': 'MODIFIED'
                 })
 
         for path in previous_hashes:
             if path not in current_hashes:
                 rel_path = os.path.relpath(path, app_path)
-                old_hash_obj = last_version.filehash_set.filter(file_path=path).first()
-                old_code = old_hash_obj.content if old_hash_obj else ''
                 changed_files.append(f"Deleted: {rel_path}")
                 code_changes.append({
-                    'file_name': rel_path,
-                    'old_code': old_code,
-                    'new_code': ''
+                    'file_name': f"Deleted: {rel_path}",
+                    'change_type': 'DELETED'
                 })
 
         return changed_files, code_changes
@@ -335,7 +325,7 @@ class AppVersion(models.Model):
 
     @classmethod
     def create_file_hashes(cls, version, hashes):
-        """ثبت هش‌های فایل‌ها"""
+        """ثبت هش‌های فایل‌ها (بدون ذخیره محتوا)"""
         if not version.pk:
             logger.error(f"Cannot create file hashes for unsaved version: {version}")
             return
@@ -344,8 +334,8 @@ class AppVersion(models.Model):
             FileHash(
                 app_version=version,
                 file_path=path,
-                hash_value=hash_value,
-                content=cls._read_file_content(path)
+                hash_value=hash_value
+                # حذف content برای کاهش حجم دیتابیس
             )
             for path, hash_value in hashes.items()
         ]
@@ -353,7 +343,7 @@ class AppVersion(models.Model):
 
     @classmethod
     def create_code_changes(cls, version, code_changes):
-        """ثبت تغییرات کد"""
+        """ثبت تغییرات کد (بدون ذخیره محتوا)"""
         if not code_changes:
             logger.info(f"No code changes for {version}")
             return
@@ -362,15 +352,30 @@ class AppVersion(models.Model):
             logger.error(f"Cannot create code changes for unsaved version: {version}")
             return
 
-        CodeChangeLog.objects.bulk_create([
-            CodeChangeLog(
+        # تعیین نوع تغییر بر اساس نام فایل
+        change_logs = []
+        for change in code_changes:
+            file_name = change['file_name']
+            if file_name.startswith('Added:'):
+                change_type = 'ADDED'
+                file_name = file_name.replace('Added: ', '')
+            elif file_name.startswith('Modified:'):
+                change_type = 'MODIFIED'
+                file_name = file_name.replace('Modified: ', '')
+            elif file_name.startswith('Deleted:'):
+                change_type = 'DELETED'
+                file_name = file_name.replace('Deleted: ', '')
+            else:
+                change_type = 'MODIFIED'
+
+            change_logs.append(CodeChangeLog(
                 version=version,
-                file_name=change['file_name'],
-                old_code=change['old_code'] or '',
-                new_code=change['new_code'] or ''
-            ) for change in code_changes
-        ], batch_size=1000)
-        logger.info(f"{len(code_changes)} code changes recorded for {version}")
+                file_name=file_name,
+                change_type=change_type
+            ))
+
+        CodeChangeLog.objects.bulk_create(change_logs, batch_size=1000)
+        logger.info(f"{len(change_logs)} code changes recorded for {version}")
 
     @classmethod
     def get_final_version(cls):
@@ -380,7 +385,8 @@ class FileHash(models.Model):
     app_version = models.ForeignKey(AppVersion, on_delete=models.CASCADE)
     file_path = models.CharField(max_length=255)
     hash_value = models.CharField(max_length=64)
-    content = models.TextField(blank=True, null=True)  # محتوای فایل
+    # حذف فیلد content برای کاهش حجم دیتابیس
+    # content = models.TextField(blank=True, null=True)  # محتوای فایل
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -395,8 +401,14 @@ class FileHash(models.Model):
 class CodeChangeLog(models.Model):
     version = models.ForeignKey(AppVersion, on_delete=models.CASCADE, related_name='change_logs', verbose_name='نسخه')
     file_name = models.CharField(max_length=255, verbose_name='نام فایل')
-    old_code = models.TextField(verbose_name='کد قدیمی')
-    new_code = models.TextField(verbose_name='کد جدید')
+    # حذف فیلدهای old_code و new_code برای کاهش حجم دیتابیس
+    # old_code = models.TextField(verbose_name='کد قدیمی')
+    # new_code = models.TextField(verbose_name='کد جدید')
+    change_type = models.CharField(max_length=20, choices=[
+        ('ADDED', 'اضافه شده'),
+        ('MODIFIED', 'تغییر یافته'),
+        ('DELETED', 'حذف شده')
+    ], verbose_name='نوع تغییر')
     change_date = models.DateTimeField(auto_now_add=True, verbose_name='تاریخ تغییر')
 
     class Meta:
@@ -413,16 +425,7 @@ class CodeChangeLog(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.file_name} - {self.version.version_number}"
-
-    def get_diff(self):
-        return difflib.unified_diff(
-            self.old_code.splitlines(),
-            self.new_code.splitlines(),
-            fromfile=f'old_{self.file_name}',
-            tofile=f'new_{self.file_name}',
-            lineterm=''
-        )
+        return f"{self.file_name} - {self.version.version_number} ({self.change_type})"
 
 class FinalVersion(models.Model):
     version_number = models.CharField(max_length=20, verbose_name=_("نسخه نهایی"))

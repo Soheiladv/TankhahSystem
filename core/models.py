@@ -916,11 +916,21 @@ class PostRuleAssignment(models.Model):
     """
     تخصیص قوانین به پست‌ها
     """
+    ENTITY_TYPES = (
+        ('TANKHAH', _('تنخواه')),
+        ('FACTOR', _('فاکتور')),
+        ('PAYMENTORDER', _('دستور پرداخت')),
+    )
+    
     post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name=_("پست"))
     action = models.ForeignKey(Action, on_delete=models.CASCADE, verbose_name=_("اقدام"))
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, verbose_name=_("سازمان"))
+    rule_template = models.ForeignKey('WorkflowRuleTemplate', on_delete=models.CASCADE, null=True, blank=True, verbose_name=_("تمپلیت قانون"))
+    entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, default='TANKHAH', verbose_name=_("نوع موجودیت"))
+    custom_settings = models.JSONField(blank=True, null=True, verbose_name=_("تنظیمات سفارشی"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, verbose_name=_("ایجادکننده"))
     
     class Meta:
         verbose_name = _("تخصیص قانون به پست")

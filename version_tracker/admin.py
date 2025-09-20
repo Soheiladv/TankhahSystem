@@ -210,25 +210,15 @@ class FileHashAdmin(admin.ModelAdmin):
 @admin.register(CodeChangeLog)
 class CodeChangeLogAdmin(admin.ModelAdmin):
     """پنل مدیریت برای لاگ تغییرات کد"""
-    list_display = ('version', 'file_name_short', 'change_date', 'diff_preview')
-    list_filter = ('version__app_name', 'change_date')
+    list_display = ('version', 'file_name_short', 'change_type', 'change_date')
+    list_filter = ('version__app_name', 'change_type', 'change_date')
     search_fields = ('file_name', 'version__app_name')
-    readonly_fields = ('old_code', 'new_code', 'diff_display')
+    readonly_fields = ('change_type', 'change_date')
     list_per_page = 30
 
     def file_name_short(self, obj):
         return os.path.basename(obj.file_name) if obj.file_name else ''
     file_name_short.short_description = _("نام فایل")
-
-    def diff_preview(self, obj):
-        diff = list(obj.get_diff())[:5]
-        return format_html('<pre>{}</pre>', '\n'.join(diff))
-    diff_preview.short_description = _("پیش‌نمایش تفاوت")
-
-    def diff_display(self, obj):
-        diff = list(obj.get_diff())[:100]
-        return format_html('<pre>{}</pre>', '\n'.join(diff))
-    diff_display.short_description = _("تفاوت کامل")
 
     def has_add_permission(self, request):
         return False

@@ -5,7 +5,13 @@ class LogRouter:
     A router to control all database operations on models that should be
     in the tankhah_logs_db.
     """
-    route_models = {'accounts.auditlog'}
+    route_models = {
+        'accounts.auditlog',
+        'version_tracker.appversion',
+        'version_tracker.filehash', 
+        'version_tracker.codechangelog',
+        'version_tracker.finalversion'
+    }
     route_db = 'tankhah_logs_db'  # <<<< نام صحیح دیتابیس اینجا تعریف شود
 
     def _is_log_model(self, model):

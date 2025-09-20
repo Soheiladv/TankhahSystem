@@ -138,26 +138,8 @@ def create_payment_order_on_approval(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Post)
 def create_post_actions_for_payment_order(sender, instance, created, **kwargs):
     if created and instance.is_payment_order_signer:
-        from core.models import PostAction
-        from tankhah.models import AccessRule
-        stages = AccessRule.objects.filter(is_active=True, triggers_payment_order=True)
-        content_type = ContentType.objects.get_for_model(PaymentOrder)
-        for stage in stages:
-            PostAction.objects.get_or_create(
-                post=instance,
-                stage=stage,
-                action_type='APPROVE',
-                entity_type=content_type.model.upper(),
-                is_active=True
-            )
-            PostAction.objects.get_or_create(
-                post=instance,
-                stage=stage,
-                action_type='REJECT',
-                entity_type=content_type.model.upper(),
-                is_active=True
-            )
-            logger.debug(f"Created PostActions for Post {instance.pk} and stage {stage.pk}")
+        # Signal غیرفعال شده - مشکل در import AccessRule
+        pass
 
 
 

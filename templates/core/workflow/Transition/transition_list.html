@@ -10,7 +10,7 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="mb-0"><i class="fas fa-random me-2"></i>{% trans "لیست گذارها (نقشه راه)" %}</h4>
             <a href="{% url 'transition_create' %}" class="btn btn-primary"><i class="fas fa-plus me-1"></i>{% trans "ایجاد گذار جدید" %}</a>
-            <a href="{% url 'workflow_dashboard' %}" class="btn btn-animate"><i class="fas fa-list-1-2 me-1"></i>{% trans  "داشبورد" %}</a>
+            <a href="{% url 'workflow_management:simple_dashboard' %}" class="btn btn-animate"><i class="fas fa-list-1-2 me-1"></i>{% trans  "داشبورد" %}</a>
         </div>
         <div class="card-body">
             <div class="alert alert-info small">

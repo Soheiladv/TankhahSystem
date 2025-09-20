@@ -824,7 +824,13 @@ class ExecutiveDashboardView(LoginRequiredMixin, View):
 class DashboardView(LoginRequiredMixin, View):
     template_name = 'core/dashboard.html'
     login_url = reverse_lazy('accounts:login')
-    final_version = FinalVersion.calculate_final_version()  # فرض می‌کنیم FinalVersion تعریف شده است
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        try:
+            self.final_version = FinalVersion.calculate_final_version()
+        except Exception:
+            self.final_version = "نامشخص"
 
     def get_jalali_month_name(self, month_number):
         j_months_fa = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]

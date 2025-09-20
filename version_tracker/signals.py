@@ -19,8 +19,9 @@ def update_versions(sender, **kwargs):
     if sender.name == 'version_tracker':
         return
     from django.db import connection
-    if 'version_tracker_appversion' in connection.introspection.table_names():
+    # بررسی وجود جدول در دیتابیس اصلی (نه لاگ)
+    if connection.alias == 'default' and 'version_tracker_appversion' in connection.introspection.table_names():
         logger.info("Calling update_versions command...")
         call_command('update_versions')
     else:
-        logger.warning("جدول AppVersion هنوز ایجاد نشده است.")
+        logger.warning("جدول AppVersion هنوز ایجاد نشده است یا در دیتابیس لاگ است.")
