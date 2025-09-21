@@ -10,7 +10,7 @@ from asgiref.sync import async_to_sync
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum
 from core.PermissionBase import PermissionBaseView
-from core.models import Post, AccessRule
+from core.models import Post, Status
 from notificationApp.utils import send_notification
 from tankhah.models import Tankhah, Factor , StageApprover, ApprovalLog, CustomUser
 from budgets.models import PaymentOrder, Payee

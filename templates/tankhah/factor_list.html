@@ -239,6 +239,11 @@
                                                                                             <i class="fas fa-trash"></i>
                                                                                         </a>
                                                                                     {% endif %}
+                                                                                    {% if user.is_superuser or user.is_staff %}
+                                                                                        <a href="{% url 'admin_workflow_control' 'factor' factor.pk %}" class="btn btn-sm btn-outline-warning" data-bs-toggle="tooltip" title="{% trans 'کنترل گردش کار (ادمین)' %}">
+                                                                                            <i class="fas fa-user-shield"></i>
+                                                                                        </a>
+                                                                                    {% endif %}
                                                                                 </div>
                                                                             </td>
                                                                         </tr>
@@ -323,6 +328,11 @@
                                                                     <a href="{% url 'detail_factor' factor.pk %}" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="{% trans 'جزئیات' %}">
                                                                         <i class="fas fa-info-circle"></i>
                                                                     </a>
+                                                                    {% if user.is_superuser or user.is_staff %}
+                                                                        <a href="{% url 'admin_workflow_control' 'factor' factor.pk %}" class="btn btn-sm btn-outline-warning" data-bs-toggle="tooltip" title="{% trans 'کنترل گردش کار (ادمین)' %}">
+                                                                            <i class="fas fa-user-shield"></i>
+                                                                        </a>
+                                                                    {% endif %}
                                                                 </div>
                                                             </td>
                                                         </tr>

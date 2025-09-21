@@ -138,6 +138,13 @@ def dashboard_view(request):
             ],
         },
         {
+            "title": "مدیریت پیام ها ",
+            "icon": "fas fa-user-tag",
+            "items": [
+                {"label": "مدیریت پیام ها ", "url": "notifications:inbox", "icon": "fas fa-chart", "color": "danger"},
+            ],
+        },
+        {
             "title": "چارت مدل ",
             "icon": "fas fa-user-tag",
             "items": [

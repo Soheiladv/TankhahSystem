@@ -13,7 +13,7 @@ from budgets.budget_calculations import get_tankhah_remaining_budget, get_tankha
 # --- Import های لازم ---
 # مطمئن شوید تمام این مدل‌ها و فرم‌ها به درستی import شده‌اند
 from core.PermissionBase import PermissionBaseView
-from core.models import AccessRule, Post, Status, Transition, Project, Organization
+from core.models import Post, Status, Transition, Project, Organization
 from notificationApp.utils import send_notification
 from tankhah.Factor.NF.form_Nfactor import FactorItemForm, FactorForm
 from tankhah.models import Factor, Tankhah, FactorItem, FactorDocument, ApprovalLog, FactorHistory
@@ -121,29 +121,31 @@ def create_related_objects_and_notify(factor, user, tankhah, initial_stage, docu
     )
     logger.info(f"ApprovalLog و FactorHistory برای فاکتور {factor.pk} ایجاد شد")
 
-    approver_posts_ids = AccessRule.objects.filter(
+    # ارسال اعلان به تأییدکنندگان (بدون AccessRule)
+    # در حال حاضر اعلان به تمام پست‌های سطح 2 و بالاتر ارسال می‌شود
+    approver_posts = Post.objects.filter(
         organization=tankhah.organization,
-        entity_type='FACTORITEM',
-        stage_order=initial_stage.stage_order
-    ).values_list('post_id', flat=True).distinct()
-
-    if approver_posts_ids:
+        level__gte=2,  # سطح 2 و بالاتر
+        is_active=True
+    )
+    
+    if approver_posts.exists():
         send_notification(
             sender=user,
-            posts=Post.objects.filter(id__in=approver_posts_ids),
+            posts=approver_posts,
             verb=_("برای تأیید ارسال شد"),
             target=factor,
             description=_(f"فاکتور جدید #{factor.number} برای تأیید ارسال شد."),
             entity_type='FACTOR'
         )
-        logger.info(f"اعلان به {len(approver_posts_ids)} پست برای تأیید اولیه فاکتور {factor.pk} ارسال شد")
+        logger.info(f"اعلان به {approver_posts.count()} پست برای تأیید اولیه فاکتور {factor.pk} ارسال شد")
 
 # ===== CORE BUSINESS LOGIC =====
 class New_FactorCreateView(PermissionBaseView, CreateView):
     model = Factor
     form_class = FactorForm
     template_name = 'tankhah/Factors/NF/new_factor_form.html'
-    permission_codenames = ['tankhah.factor_add']
+    permission_codename = ['tankhah.factor_add']
     permission_denied_message = _('شما دسترسی لازم برای ویرایش فاکتورها را ندارید.')
     check_organization = True
 

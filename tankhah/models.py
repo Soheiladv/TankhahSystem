@@ -20,11 +20,11 @@ logger = logging.getLogger('Tankhah_Models')
 
 NUMBER_SEPARATOR = getattr(settings, 'NUMBER_SEPARATOR', '-')
 def get_default_workflow_stage():
-    from core.models import AccessRule
+    from core.models import Status
     try:
-        return AccessRule.objects.get(name='HQ_INITIAL').id
-    except AccessRule.DoesNotExist:
-        stage = AccessRule.objects.order_by('order').first()
+        return Status.objects.get(name='HQ_INITIAL').id
+    except Status.DoesNotExist:
+        stage = Status.objects.order_by('id').first()
         return stage.id if stage else None
 def tankhah_document_path(instance, filename):
     extension = os.path.splitext(filename)[1]
@@ -404,7 +404,7 @@ class TankhahAction(models.Model):  # صدور دستور پرداخت
     tankhah = models.ForeignKey(Tankhah, on_delete=models.CASCADE, related_name='actions', verbose_name=_("تنخواه"))
     amount = models.DecimalField(max_digits=25, decimal_places=2, null=True, blank=True,
                                  verbose_name=_("مبلغ (برای پرداخت)"))
-    stage = models.ForeignKey('core.AccessRule', on_delete=models.PROTECT, verbose_name=_("مرحله"))
+    stage = models.ForeignKey('core.Status', on_delete=models.PROTECT, verbose_name=_("مرحله"))
     post = models.ForeignKey('core.Post', on_delete=models.SET_NULL, null=True, verbose_name=_("پست انجام‌دهنده"))
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, verbose_name=_("کاربر"))
     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
@@ -995,6 +995,7 @@ class ApprovalLog(models.Model):
                                    verbose_name=_("ایجادکننده"))
 
     is_final_approval = models.BooleanField(default=False, verbose_name=_("تایید نهایی"))
+    is_admin_action = models.BooleanField(default=False, verbose_name=_("اقدام ادمین"))
 
     seen_by_higher = models.BooleanField(default=False, verbose_name=_("دیده‌شده توسط رده بالاتر"))
 
@@ -1081,7 +1082,7 @@ class FactorHistory(models.Model):
     def __str__(self):
         return f"{self.get_change_type_display()} برای فاکتور {self.factor.number} در {self.change_timestamp}"
 class StageApprover(models.Model):
-    stage = models.ForeignKey('core.AccessRule', on_delete=models.CASCADE, verbose_name=_('مرحله'))
+    stage = models.ForeignKey('core.Status', on_delete=models.CASCADE, verbose_name=_('مرحله'))
     post = models.ForeignKey('core.Post', on_delete=models.CASCADE, verbose_name=_('پست مجاز'))
     is_active = models.BooleanField(default=True, verbose_name="وضعیت فعال")
     entity_type = models.CharField(

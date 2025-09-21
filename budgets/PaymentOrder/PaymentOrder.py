@@ -7,7 +7,7 @@ from budgets.models import PaymentOrder
 from core.PermissionBase import PermissionBaseView
 from notificationApp.utils import send_notification
 from tankhah.models import  ApprovalLog
-from core.models import PostAction, UserPost, AccessRule
+from core.models import PostAction, UserPost, Status
 from django.contrib.contenttypes.models import ContentType
 import logging
 from django.utils.translation import gettext_lazy as _

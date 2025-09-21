@@ -15,7 +15,7 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError, ImproperlyConfigured
 from accounts.models import CustomUser
 from tankhah.models import Factor, Tankhah, ApprovalLog
-from core.models import Organization, Project, AccessRule, Post, UserPost, Transition
+from core.models import Organization, Project, Post, UserPost, Transition
 
 
 

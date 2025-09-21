@@ -8,7 +8,7 @@ from django.views.generic import DetailView
 from accounts.models import CustomUser
 from core.models import UserPost, EntityType, Transition
 from tankhah.Factor.Approved.fun_can_edit_approval import can_edit_approval
-from core.models import  WorkflowStage
+from core.models import  Status
 from tankhah.models import Tankhah, ApprovalLog
 from core.views import PermissionBaseView
 from .utils import restrict_to_user_organization
@@ -18,7 +18,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import PermissionDenied
 from tankhah.models import Tankhah, Factor
-from core.models import Post, UserPost, AccessRule, PostAction, Organization
+from core.models import Post, UserPost, Status, PostAction, Organization
 from django.db.models import Q
 import logging
 
@@ -29,7 +29,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import PermissionDenied
 from tankhah.models import Tankhah, Factor, ApprovalLog
-from core.models import Post, UserPost, AccessRule, Organization
+from core.models import Post, UserPost, Status, Organization
 
 
 class TankhahTrackingView1(PermissionBaseView, DetailView):

@@ -30,7 +30,7 @@ from tankhah.Factor.NF.form_Nfactor import FactorItemForm, FactorForm, FactorDoc
 # وارد کردن مدل‌ها
 from tankhah.models import  Factor, FactorItem, FactorDocument, TankhahDocument, FactorHistory
 
-from core.models import WorkflowStage, PostAction
+from core.models import Status, PostAction
 from budgets.models import BudgetTransaction, BudgetAllocation
 # وارد کردن توابع محاسبات بودجه
 from budgets.budget_calculations import (

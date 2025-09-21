@@ -3,7 +3,7 @@
 # core/views.py
 from django.views.generic.base import TemplateView
 
-from core.models import AccessRule
+from core.models import Status
 from version_tracker.models import FinalVersion, AppVersion
 
 import logging
@@ -33,7 +33,7 @@ class TanbakhWorkflowView(TemplateView): #help
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = _('جریان کار تنخواه‌گردانی')
-        context['stages'] = AccessRule.objects.all().order_by('order')
+        context['stages'] = Status.objects.filter(is_active=True).order_by('id')
         return context
 
 def home_view(request, *args, **kwargs):

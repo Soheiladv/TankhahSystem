@@ -198,7 +198,7 @@ class ItemCategoryAdmin(admin.ModelAdmin):
 
 from django.contrib import admin
 from tankhah.models import StageApprover
-from core.models import AccessRule
+# AccessRule حذف شده است - از Transition استفاده می‌شود
 
 @admin.register(StageApprover)
 class StageApproverAdmin(admin.ModelAdmin):
@@ -208,11 +208,4 @@ class StageApproverAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        # همزمان AccessRule را به‌روزرسانی کنید
-        AccessRule.objects.get_or_create(
-            post=obj.post,
-            stage=obj.stage,
-            action_type=obj.action,
-            entity_type=obj.entity_type,
-            defaults={'is_active': obj.is_active}
-        )
+        # AccessRule حذف شده است - از Transition استفاده می‌شود

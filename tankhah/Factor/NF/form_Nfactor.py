@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models import Q
 
 from BudgetsSystem.utils import format_jalali_date, to_english_digits, parse_jalali_date
-from core.models import Project, SubProject, AccessRule, Organization, UserPost
+from core.models import Project, SubProject, Status, Organization, UserPost
 from tankhah.models import   FactorItem
 from tankhah.utils import restrict_to_user_organization
 from django import forms

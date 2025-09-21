@@ -1,107 +1,130 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
+from notificationApp.models import BackupSchedule
+from accounts.models import CustomUser
 from .models import AppVersion
-from django_jalali.admin.widgets import AdminjDateWidget
-from django.core.exceptions import ValidationError
-import json
 
-class AppVersionForm(forms.ModelForm):
+class BackupScheduleForm(forms.ModelForm):
+    """فرم اسکچول پشتیبان‌گیری"""
+    
     class Meta:
-        model = AppVersion
-        fields = '__all__'
+        model = BackupSchedule
+        fields = [
+            'name', 'description', 'frequency', 'custom_cron', 'is_active',
+            'database', 'format_type', 'encrypt', 'password',
+            'notify_on_success', 'notify_on_failure', 'notify_recipients'
+        ]
         widgets = {
-            'app_name': forms.TextInput(attrs={
+            'name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'style': 'width: 100%; direction: rtl;',
-                'placeholder': 'نام اپلیکیشن را وارد کنید',
+                'placeholder': _('نام اسکچول')
             }),
-            'version_number': forms.TextInput(attrs={
+            'description': forms.Textarea(attrs={
                 'class': 'form-control',
-                'style': 'width: 100%;',
-                'placeholder': 'شماره نسخه (مثال: 1.0.0)',
+                'rows': 3,
+                'placeholder': _('توضیحات اسکچول')
             }),
-            'version_type': forms.Select(attrs={
+            'frequency': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'custom_cron': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('مثال: 0 2 * * *')
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'database': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'format_type': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'encrypt': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'password': forms.PasswordInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('رمز عبور')
+            }),
+            'notify_on_success': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'notify_on_failure': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'notify_recipients': forms.SelectMultiple(attrs={
                 'class': 'form-select',
-                'style': 'width: 100%;',
-            }),
-            'release_date': AdminjDateWidget(attrs={
-                'class': 'jalali_date-date form-control',
-                'style': 'width: 100%;',
-                'placeholder': 'تاریخ انتشار (مثال: 1402/01/01)',
-            }),
-            'code_hash': forms.TextInput(attrs={
-                'class': 'form-control bg-light',
-                'style': 'width: 100%;',
-                'readonly': 'readonly',
-            }),
-            'changed_files': forms.Textarea(attrs={
-                'class': 'form-control',
-                'style': 'width: 100%; direction: ltr;',
-                'rows': 4,
-                'placeholder': 'فایل‌های تغییر یافته را به‌صورت JSON وارد کنید',
-            }),
-            'system_info': forms.Textarea(attrs={
-                'class': 'form-control bg-light',
-                'style': 'width: 100%; direction: ltr;',
-                'rows': 4,
-                'readonly': 'readonly',
-            }),
-            'major': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'style': 'width: 100%;',
-                'placeholder': '0',
-            }),
-            'minor': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'style': 'width: 100%;',
-                'placeholder': '0',
-            }),
-            'patch': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'style': 'width: 100%;',
-                'placeholder': '0',
-            }),
-            'build': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'style': 'width: 100%;',
-                'placeholder': '0',
-            }),
+                'size': 5
+            })
         }
-        labels = {
-            'app_name': 'نام اپلیکیشن',
-            'version_number': 'شماره نسخه',
-            'version_type': 'نوع نسخه',
-            'release_date': 'تاریخ انتشار',
-            'code_hash': 'هش کد',
-            'changed_files': 'فایل‌های تغییر یافته',
-            'system_info': 'اطلاعات سیستم',
-            'major': 'نسخه اصلی',
-            'minor': 'نسخه فرعی',
-            'patch': 'وصله',
-            'build': 'شماره ساخت',
-        }
-
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['code_hash'].disabled = True
-        self.fields['system_info'].disabled = True
-        if self.instance.pk:
-            self.fields['changed_files'].initial = json.dumps(self.instance.changed_files, indent=2, ensure_ascii=False)
-            self.fields['system_info'].initial = json.dumps(self.instance.system_info, indent=2, ensure_ascii=False)
+        
+        # تنظیم choices برای گیرندگان اعلان
+        self.fields['notify_recipients'].queryset = CustomUser.objects.filter(
+            is_active=True
+        ).order_by('username')
+        
+        # تنظیم help text
+        self.fields['name'].help_text = _('نام منحصر به فرد برای اسکچول')
+        self.fields['description'].help_text = _('توضیحات اختیاری')
+        self.fields['frequency'].help_text = _('فرکانس اجرای پشتیبان‌گیری')
+        self.fields['custom_cron'].help_text = _('فرمت cron سفارشی (در صورت انتخاب "سفارشی")')
+        self.fields['database'].help_text = _('دیتابیس مورد نظر برای پشتیبان‌گیری')
+        self.fields['format_type'].help_text = _('فرمت فایل پشتیبان')
+        self.fields['encrypt'].help_text = _('رمزگذاری فایل پشتیبان')
+        self.fields['password'].help_text = _('رمز عبور برای رمزگذاری')
+        self.fields['notify_on_success'].help_text = _('اعلان در صورت موفقیت')
+        self.fields['notify_on_failure'].help_text = _('اعلان در صورت خطا')
+        self.fields['notify_recipients'].help_text = _('کاربرانی که اعلان دریافت خواهند کرد')
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        frequency = cleaned_data.get('frequency')
+        custom_cron = cleaned_data.get('custom_cron')
+        encrypt = cleaned_data.get('encrypt')
+        password = cleaned_data.get('password')
+        
+        # بررسی cron سفارشی
+        if frequency == 'CUSTOM' and not custom_cron:
+            raise forms.ValidationError(_('در صورت انتخاب "سفارشی"، باید cron سفارشی را وارد کنید'))
+        
+        # بررسی رمز عبور
+        if encrypt and not password:
+            raise forms.ValidationError(_('در صورت فعال کردن رمزگذاری، باید رمز عبور را وارد کنید'))
+        
+        return cleaned_data
+    
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if name:
+            # بررسی تکراری نبودن نام
+            queryset = BackupSchedule.objects.filter(name=name)
+            if self.instance.pk:
+                queryset = queryset.exclude(pk=self.instance.pk)
+            if queryset.exists():
+                raise forms.ValidationError(_('اسکچولی با این نام قبلاً وجود دارد'))
+        return name
+    
+    def clean_custom_cron(self):
+        custom_cron = self.cleaned_data.get('custom_cron')
+        if custom_cron:
+            # بررسی فرمت cron (ساده)
+            parts = custom_cron.strip().split()
+            if len(parts) != 5:
+                raise forms.ValidationError(_('فرمت cron باید شامل 5 بخش باشد (دقیقه ساعت روز ماه روز_هفته)'))
+        return custom_cron
 
-    def clean_changed_files(self):
-        data = self.cleaned_data['changed_files']
-        try:
-            if isinstance(data, str):
-                return json.loads(data)
-            return data
-        except json.JSONDecodeError:
-            raise ValidationError("فایل‌های تغییر یافته باید فرمت JSON معتبر داشته باشند.")
-
-    def clean_system_info(self):
-        data = self.cleaned_data['system_info']
-        try:
-            if isinstance(data, str):
-                return json.loads(data)
-            return data
-        except json.JSONDecodeError:
-            raise ValidationError("اطلاعات سیستم باید فرمت JSON معتبر داشته باشند.")
+class AppVersionForm(forms.ModelForm):
+    """فرم AppVersion"""
+    
+    class Meta:
+        model = AppVersion
+        fields = ['app_name', 'version_number', 'version_type']
+        widgets = {
+            'app_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'version_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'version_type': forms.Select(attrs={'class': 'form-select'}),
+        }

@@ -26,7 +26,56 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 # دامنه‌های مجاز برای Django
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver' ).split(',')  # تبدیل به لیست
 # دامنه‌های معتبر برای CSRF (POST requests)
-CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(',')
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000").split(',') if origin.strip()]
+
+# تنظیمات دیتابیس از .env
+DB_NAME = os.getenv('DB_NAME', 'tankhasystem')
+DB_USER = os.getenv('DB_USER', 'root')
+DB_PASSWORD = os.getenv('DB_PASSWORD', 'S@123456@1234')
+DB_HOST = os.getenv('DB_HOST', '127.0.0.1')
+DB_PORT = os.getenv('DB_PORT', '3306')
+
+# تنظیمات ایمیل از .env
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+
+# تنظیمات Redis از .env
+REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0')
+
+# تنظیمات امنیتی از .env
+SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False') == 'True'
+SECURE_BROWSER_XSS_FILTER = os.getenv('SECURE_BROWSER_XSS_FILTER', 'True') == 'True'
+SECURE_CONTENT_TYPE_NOSNIFF = os.getenv('SECURE_CONTENT_TYPE_NOSNIFF', 'True') == 'True'
+
+# تنظیمات USB Dongle Validation
+USB_DONGLE_VALIDATION_ENABLED = os.getenv('USB_DONGLE_VALIDATION_ENABLED', 'False') == 'True'
+USB_DONGLE_CACHE_TIMEOUT = int(os.getenv('USB_DONGLE_CACHE_TIMEOUT', '300'))
+USB_DONGLE_NOTIFICATIONS_ENABLED = os.getenv('USB_DONGLE_NOTIFICATIONS_ENABLED', 'True') == 'True'
+USB_DONGLE_DEBUG_MODE = os.getenv('USB_DONGLE_DEBUG_MODE', 'False') == 'True'
+
+# تنظیمات اعلان‌ها
+NOTIFICATION_ENABLED = os.getenv('NOTIFICATION_ENABLED', 'True') == 'True'
+NOTIFICATION_CHANNELS = os.getenv('NOTIFICATION_CHANNELS', 'in_app,email').split(',')
+NOTIFICATION_RETENTION_DAYS = int(os.getenv('NOTIFICATION_RETENTION_DAYS', '30'))
+
+# تنظیمات workflow
+WORKFLOW_ENABLED = os.getenv('WORKFLOW_ENABLED', 'True') == 'True'
+WORKFLOW_AUTO_APPROVE = os.getenv('WORKFLOW_AUTO_APPROVE', 'False') == 'True'
+WORKFLOW_NOTIFICATION_ENABLED = os.getenv('WORKFLOW_NOTIFICATION_ENABLED', 'True') == 'True'
+
+# تنظیمات گزارش‌گیری
+REPORT_ENABLED = os.getenv('REPORT_ENABLED', 'True') == 'True'
+REPORT_CACHE_TIMEOUT = int(os.getenv('REPORT_CACHE_TIMEOUT', '600'))
+REPORT_MAX_RECORDS = int(os.getenv('REPORT_MAX_RECORDS', '10000'))
+
+# تنظیمات version tracking
+VERSION_TRACKING_ENABLED = os.getenv('VERSION_TRACKING_ENABLED', 'True') == 'True'
+VERSION_AUTO_BACKUP = os.getenv('VERSION_AUTO_BACKUP', 'True') == 'True'
+VERSION_RETENTION_COUNT = int(os.getenv('VERSION_RETENTION_COUNT', '10'))
 
 INSTALLED_APPS = [
     'django.contrib.humanize',
@@ -65,6 +114,7 @@ MIDDLEWARE = [
     'accounts.middleware.AuditLogMiddleware',
     'accounts.middleware.ActiveUserMiddleware',
     'accounts.middleware.RequestMiddleware',
+    'usb_key_validator.middleware.USBDongleValidationMiddleware', 
 ]
 
 ROOT_URLCONF = 'BudgetsSystem.urls'
@@ -91,7 +141,17 @@ WSGI_APPLICATION = 'BudgetsSystem.wsgi.application'
 
 # تنظیمات django-db-backup
 DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
-DBBACKUP_STORAGE_OPTIONS = {'location': os.path.join(BASE_DIR, 'backups')}
+
+# مسیرهای پشتیبان‌گیری (محلی و شبکه)
+BACKUP_LOCATIONS = {
+    'local': os.path.join(BASE_DIR, 'backups'),
+    'network': os.getenv('BACKUP_NETWORK_PATH', '\\\\server\\backups\\budgets'),  # مسیر دیسک شبکه
+    'secondary': os.getenv('BACKUP_SECONDARY_PATH', 'D:\\Backups\\BudgetsSystem'),  # مسیر ثانویه
+}
+
+# مسیر پیش‌فرض
+DBBACKUP_STORAGE_OPTIONS = {'location': BACKUP_LOCATIONS['local']}
+
 DBBACKUP_GPG_RECIPIENT = None
 DBBACKUP_CLEANUP_KEEP_DAYS = 7
 DBBACKUP_CLEANUP_KEEP_MEDIA_DAYS = 7

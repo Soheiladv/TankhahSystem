@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import inlineformset_factory
 from tankhah.models import Factor, FactorItem
-from core.models import AccessRule
+from core.models import Status
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -68,7 +68,7 @@ class FactorTempApproveForm(forms.Form):
 
 class FactorChangeStageForm(forms.Form):
     new_stage = forms.ModelChoiceField(
-        queryset=AccessRule.objects.none(),
+        queryset=Status.objects.none(),
         label=_("مرحله جدید"),
         required=True,
         widget=forms.Select(attrs={'class': 'form-control'})

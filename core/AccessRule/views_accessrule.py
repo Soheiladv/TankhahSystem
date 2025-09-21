@@ -14,7 +14,7 @@ from django.views.generic import FormView
 from django.views.generic import ListView
 from core.AccessRule.forms_accessrule import PostAccessRuleForm_new, PostAccessRuleHybridForm, PostAccessRuleAssignForm, \
     UnifiedAccessForm, WorkflowForm
-from core.models import AccessRule, Post, Organization
+from core.models import Post, Organization, Status
 from core.views import PermissionBaseView
 logger = logging.getLogger(__name__)
 def userGiud_AccessRule(request):
@@ -36,7 +36,7 @@ ENTITY_TYPE_CHOICES = [
 from tankhah.constants import ACTION_TYPES, ENTITY_TYPES
 #-------------- New AccessRule Models
 class AccessRuleListView(PermissionBaseView, ListView):
-    model = AccessRule
+    model = Status
     template_name = 'core/accessrule/accessrule_list.html'
     context_object_name = 'access_rules'
     paginate_by = 10
@@ -97,7 +97,7 @@ class AccessRuleListView(PermissionBaseView, ListView):
         context['total_access_rules'] = self.get_queryset().count()
         return context
 class AccessRuleDetailView(PermissionBaseView, DetailView):
-    model = AccessRule
+    model = Status
     template_name = 'core/accessrule/accessrule_detail.html'
     context_object_name = 'access_rule'
     permission_codenames = ['core.AccessRule_view']
@@ -108,7 +108,7 @@ class AccessRuleDetailView(PermissionBaseView, DetailView):
         context['title'] = _('جزئیات قانون دسترسی') + f" - {self.object.organization} - {self.object.stage_name}"
         return context
 class AccessRuleCreateView(PermissionBaseView, CreateView):
-    model = AccessRule
+    model = Status
     form_class = PostAccessRuleForm_new
     template_name = 'core/accessrule/accessrule_form.html'
     success_url = reverse_lazy('accessrule_list')
@@ -120,7 +120,7 @@ class AccessRuleCreateView(PermissionBaseView, CreateView):
         messages.success(self.request, _('قانون دسترسی با موفقیت ایجاد شد.'))
         return super().form_valid(form)
 class AccessRuleUpdateView(PermissionBaseView, UpdateView):
-    model = AccessRule
+    model = Status
     form_class = PostAccessRuleForm_new
     template_name = 'core/accessrule/accessrule_form.html'
     success_url = reverse_lazy('accessrule_list')
@@ -132,7 +132,7 @@ class AccessRuleUpdateView(PermissionBaseView, UpdateView):
         messages.success(self.request, _('قانون دسترسی با موفقیت به‌روزرسانی شد.'))
         return super().form_valid(form)
 class AccessRuleDeleteView(PermissionBaseView, DeleteView):
-    model = AccessRule
+    model = Status
     template_name = 'core/accessrule/accessrule_confirm_delete.html'
     success_url = reverse_lazy('accessrule_list')
     permission_codenames = ['core.AccessRule_delete']

@@ -3,10 +3,10 @@ import logging
 from django.contrib import messages
 from django.db import models
 from django.db.models import Max
-from core.models import UserPost, AccessRule, PostAction, Organization
+from core.models import UserPost, Status, PostAction, Organization
 from tankhah.models import ApprovalLog, Factor, FactorItem, StageApprover
 from django.utils import timezone
-from core.models import AccessRule, UserPost
+from core.models import Status, UserPost
 from tankhah.models import Factor
 
 from django.db.models import Q
@@ -381,8 +381,22 @@ def check_approval_permissions(user, tankhah, factor, current_stage):
         branch_conditions |= Q(branch=up.post.branch) if up.post.branch else Q(branch__isnull=True)
     generic_rule.add(branch_conditions, Q.AND)
 
-    applicable_rules = AccessRule.objects.filter(base_query & (specific_rule | generic_rule))
-    allowed_actions = list(applicable_rules.values_list('action_type', flat=True).distinct())
+    # استفاده از مدل‌های جدید گردش کار
+    from core.models import Transition, Action, Status
+    
+    # پیدا کردن transition های مجاز برای کاربر
+    user_posts = user_posts_qs.values_list('post', flat=True)
+    
+    # کوئری برای transition های مجاز
+    allowed_transitions = Transition.objects.filter(
+        from_status=current_stage,
+        organization=tankhah.organization,
+        entity_type__code='FACTOR',
+        is_active=True,
+        allowed_posts__in=user_posts
+    ).distinct()
+    
+    allowed_actions = list(allowed_transitions.values_list('action__code', flat=True).distinct())
 
     if allowed_actions:
         permissions['can_edit'] = True

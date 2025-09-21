@@ -50,10 +50,10 @@ class NotificationRuleAdmin(admin.ModelAdmin):
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
     list_display = ('recipient', 'verb', 'entity_type_display', 'priority_display', 'unread', 'timestamp')
-    list_filter = ('entity_type', 'priority', 'unread', 'deleted', 'timestamp')
+    list_filter = ('entity_type', 'priority', 'unread', 'deleted')
     search_fields = ('recipient__username', 'verb', 'description')
     readonly_fields = ('timestamp',)
-    date_hierarchy = 'timestamp'
+    # date_hierarchy = 'timestamp'  # غیرفعال شده به دلیل مشکل timezone
     
     fieldsets = (
         (_('اطلاعات اعلان'), {

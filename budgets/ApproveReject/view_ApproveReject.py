@@ -6,7 +6,7 @@ from django.contrib import messages
 
 from budgets.models import BudgetAllocation
 from core.PermissionBase import PermissionBaseView
-from core.models import WorkflowStage, PostAction
+from core.models import Status, PostAction
 from tankhah.models import Tankhah, ApprovalLog
 from django.utils.translation import gettext_lazy as _
 from django.contrib.contenttypes.models import ContentType

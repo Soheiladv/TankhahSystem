@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q, Max
 
 from accounts.models import CustomUser
-from core.models import AccessRule, Organization, Post
+from core.models import Status, Organization, Post
 import logging
 
 logger = logging.getLogger('Log_check_user_factor_access')

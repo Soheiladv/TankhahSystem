@@ -3,7 +3,7 @@ from core.PermissionBase import PermissionBaseView
 from notificationApp.models import NotificationRule
 from notificationApp.views import send_notification
 from tankhah.models import   ItemCategory,Factor,ApprovalLog
-from core.models import  AccessRule
+from core.models import  Status
 
 from tankhah.Services.forms_approved_2 import FactorForm, FactorItemFormSet, FactorRejectForm, FactorTempApproveForm, \
     FactorChangeStageForm, FactorBatchApproveForm

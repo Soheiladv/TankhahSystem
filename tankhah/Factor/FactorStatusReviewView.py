@@ -17,7 +17,7 @@ from core.views import PermissionBaseView
 from django.views.generic import DetailView
 
 
-from core.models import WorkflowStage, UserPost, Organization
+from core.models import Status, UserPost, Organization
 from budgets.budget_calculations import get_tankhah_remaining_budget, get_project_remaining_budget  # و سایر توابع
 #-------------------------------------------------------------
 class FactorStatusReviewView(PermissionBaseView, ListView):

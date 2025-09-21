@@ -631,285 +631,140 @@ class OrganizationChartView(models.Model):
 
         ]
 
-class WorkflowStage(models.Model):
-    ENTITY_TYPE_CHOICES = (
-        ('TANKHAH', _('تنخواه')),
-        ('FACTOR', _('فاکتور')),
-        ('PAYMENTORDER', _('دستور پرداخت')),
-    )
-
-    name = models.CharField(max_length=100, verbose_name=_('نام مرحله'))
-    order = models.PositiveIntegerField(verbose_name=_('ترتیب'), unique=True)
-    description = models.TextField(blank=True, verbose_name=_('توضیحات'))
-    entity_type = models.CharField(
-        max_length=20,
-        choices=ENTITY_TYPE_CHOICES,
-        verbose_name=_('نوع موجودیت'),
-        db_index=True  # اضافه کردن ایندکس
-    )
-    is_active = models.BooleanField(default=True, verbose_name=_('فعال'))
-    min_signatures = models.PositiveIntegerField(default=1, verbose_name=_('حداقل امضاها'))
-    is_final_stage = models.BooleanField(
-        default=False,
-        help_text=_("آیا این مرحله نهایی برای تکمیل تنخواه است؟"),
-        verbose_name=_("مرحله نهایی")
-    )
-    auto_advance = models.BooleanField(
-        default=True,
-        verbose_name=_("پیش‌رفت خودکار"),
-        help_text=_("اگر فعال باشد، پس از تأیید یک مرحله، فاکتور به مرحله بعدی می‌رود.")
-    )
-    triggers_payment_order = models.BooleanField(
-        default=False,
-        verbose_name=_("فعال‌سازی دستور پرداخت"),
-        help_text=_("آیا این مرحله باعث ایجاد خودکار دستور پرداخت می‌شود؟ (برای تنخواه/فاکتور)")
-    )
-
-    # def get_next_stage(self):
-    #     """
-    #     مرحله بعدی را بر اساس ترتیب (order) پیدا می‌کند.
-    #     اگر مرحله بعدی وجود نداشته باشد، None برمی‌گرداند.
-    #     """
-    #     try:
-    #         # مرحله با order بزرگتر از order فعلی را پیدا می‌کند
-    #         # و مطمئن می‌شود که ترتیب (order) آن حداقل یک واحد بیشتر باشد
-    #         return WorkflowStage.objects.get(order=self.order + 1)
-    #     except WorkflowStage.DoesNotExist:
-    #         return None
-    #
-    # def save(self, *args, **kwargs):
-    #     if not self.pk and WorkflowStage.objects.filter(order=self.order).exists():
-    #         raise ValueError(_("ترتیب مرحله نمی‌تواند تکراری باشد"))
-    #     super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.name} ({self.get_entity_type_display()}, ترتیب: {self.order})"
-
-    class Meta:
-        verbose_name = _('مرحله گردش کار')
-        verbose_name_plural = _('مراحل گردش کار')
-        ordering = ['order']
-        indexes = [
-            models.Index(fields=['entity_type', 'is_active']),
-        ]
-        default_permissions = ()
-        permissions = [
-            ('WorkflowStage_view', 'نمایش مرحله گردش کار'),
-            ('WorkflowStage_add', 'افزودن مرحله گردش کار'),
-            ('WorkflowStage_update', 'بروزرسانی مرحله گردش کار'),
-            ('WorkflowStage_delete', 'حذف مرحله گردش کار'),
-            ('WorkflowStage_triggers_payment_order', 'فعال‌سازی دستور پرداخت - مرحله گردش کار'),
-        ]
-# --
-class AccessRule(models.Model):
-    """این مدل مشخص می‌کنه که پست‌های یک سازمان، با branch و min_level خاص، چه اقداماتی می‌تونن توی چه مراحلی برای چه موجودیت‌هایی انجام بدن."""
-
-    organization = models.ForeignKey('core.Organization', on_delete=models.CASCADE, verbose_name=_("سازمان"))
-    # stage = models.ForeignKey(WorkflowStage, on_delete=models.CASCADE, verbose_name=_('مرحله'))
-    stage = models.CharField(max_length=200, verbose_name=_('نام مرحله'))
-    # stage_order = models.PositiveIntegerField(verbose_name=_('ترتیب مرحله'))
-    stage_order = models.PositiveIntegerField(verbose_name=_('ترتیب مرحله'), null=True, blank=True)
-    post = models.ForeignKey('core.Post', on_delete=models.CASCADE, null=True, blank=True, verbose_name=_('پست'),
-                             help_text=_('پست مرتبط با این قانون. اگر خالی باشد، بر اساس min_level اعمال می‌شود.'))
-    action_type = models.CharField(max_length=25, choices=ACTION_TYPES, verbose_name=_('نوع اقدام'))
-    entity_type = models.CharField(max_length=100, choices=ENTITY_TYPES, verbose_name=_('نوع موجودیت'))
-    min_level = models.IntegerField(default=1, verbose_name=_("حداقل سطح"))
-
-    # branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True,default=None, verbose_name="شاخه")
-    branch = models.ForeignKey('core.Branch', on_delete=models.SET_NULL, null=True, blank=True, default=None, verbose_name="شاخه")
-
-    is_active = models.BooleanField(default=True, verbose_name=_('فعال'))
-    min_signatures = models.PositiveIntegerField(default=1, verbose_name=_("حداقل تعداد امضا"))
-
-    auto_advance = models.BooleanField(default=True, verbose_name=_("پیش‌رفت خودکار"))
-    triggers_payment_order = models.BooleanField(default=False, verbose_name=_("فعال‌سازی دستور پرداخت"))
-    is_payment_order_signer = models.BooleanField(default=False, verbose_name=_("امضاکننده دستور پرداخت"))
-    is_final_stage = models.BooleanField(default=False, verbose_name=_("مرحله نهایی"))
-    created_by = models.ForeignKey('accounts.CustomUser',related_name='access_rules', on_delete=models.SET_NULL, null=True, verbose_name=_("ایجادکننده"))
-
-    class Meta:
-        verbose_name = _("قانون دسترسی")
-        verbose_name_plural = _("قوانین دسترسی")
-        # unique_together = ('organization', 'branch', 'min_level', 'stage', 'action_type', 'entity_type')
-        unique_together = ('organization', 'entity_type', 'stage_order' , 'post', 'action_type')
-
-        default_permissions = ()
-        permissions = [
-            ('AccessRule_add', 'افزودن قانون دسترسی'),
-            ('AccessRule_view', 'نمایش قانون دسترسی'),
-            ('AccessRule_update', 'ویرایش قانون دسترسی'),
-            ('AccessRule_delete', 'حــذف قانون دسترسی'),
-        ]
-    #
-    # def save(self, *args, **kwargs):
-    #     if self.stage_order and self.is_active:
-    #         if AccessRule.objects.filter(
-    #             organization=self.organization,
-    #             entity_type=self.entity_type,
-    #             stage_order=self.stage_order,
-    #             is_active=True
-    #         ).exclude(pk=self.pk).exists():
-    #             raise ValueError(_immediate("ترتیب مرحله {stage_order} برای سازمان {org} و موجودیت {entity} قبلاً استفاده شده است.").format(
-    #                 stage_order=self.stage_order,
-    #                 org=self.organization,
-    #                 entity=self.entity_type
-    #             ))
-    #     super().save(*args, **kwargs)
-
-    # def __str__(self):
-    #     return f"{self.organization} - {self.branch} - {self.action_type} - {self.entity_type}"
-
-    # def save(self, *args, **kwargs):
-    #     # بررسی یکتایی stage_order در سطح مدل، که قبلا داشتید و بسیار خوب است.
-    #     # این باعث می‌شود حتی اگر از جاهای دیگر هم AccessRule ایجاد شود، تداخل پیش نیاید.
-    #     if self.stage_order and self.is_active:
-    #         if AccessRule.objects.filter(
-    #             organization=self.organization,
-    #             entity_type=self.entity_type,
-    #             stage_order=self.stage_order,
-    #             is_active=True
-    #         ).exclude(pk=self.pk).exists():
-    #             raise ValueError(_immediate("ترتیب مرحله {stage_order} برای سازمان {org} و موجودیت {entity} قبلاً استفاده شده است.").format(
-    #                 stage_order=self.stage_order,
-    #                 org=self.organization.name, # استفاده از .name برای نمایش بهتر
-    #                 entity=self.entity_type
-    #             ))
-    #     super().save(*args, **kwargs)
-
-    def __str__(self):
-            return f"{self.organization} - {self.post} - {self.stage} (ترتیب: {self.stage_order}) - {self.action_type}"
+# WorkflowStage مدل حذف شده است - از Transition استفاده می‌شود
+# AccessRule مدل حذف شده است
 
 
-class WorkflowRuleTemplate(models.Model):
-    """
-    تمپلیت قوانین گردش کار برای کپی و استفاده مجدد
-    """
-    name = models.CharField(max_length=200, verbose_name=_("نام تمپلیت"))
-    description = models.TextField(blank=True, verbose_name=_("توضیحات"))
-    organization = models.ForeignKey('Organization', on_delete=models.CASCADE, verbose_name=_("سازمان"))
-    entity_type = models.CharField(max_length=50, choices=[
-        ('FACTOR', _('فاکتور')),
-        ('TANKHAH', _('تنخواه')),
-        ('PAYMENTORDER', _('دستور پرداخت')),
-        ('BUDGET_ALLOCATION', _('تخصیص بودجه')),
-    ], verbose_name=_("نوع موجودیت"))
-    
-    # قوانین به صورت JSON ذخیره می‌شوند
-    rules_data = models.JSONField(verbose_name=_("داده‌های قوانین"))
-    
-    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
-    is_public = models.BooleanField(default=False, verbose_name=_("عمومی (قابل استفاده برای همه)"))
-    
-    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, verbose_name=_("ایجادکننده"))
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("تاریخ به‌روزرسانی"))
-    
-    class Meta:
-        verbose_name = _("تمپلیت قانون گردش کار")
-        verbose_name_plural = _("تمپلیت‌های قوانین گردش کار")
-        unique_together = ('name', 'organization', 'entity_type')
-        default_permissions = ()
-        permissions = [
-            ('WorkflowRuleTemplate_add', 'افزودن تمپلیت قانون گردش کار'),
-            ('WorkflowRuleTemplate_view', 'نمایش تمپلیت قانون گردش کار'),
-            ('WorkflowRuleTemplate_update', 'ویرایش تمپلیت قانون گردش کار'),
-            ('WorkflowRuleTemplate_delete', 'حذف تمپلیت قانون گردش کار'),
-        ]
-    
-    def __str__(self):
-        return f"{self.name} - {self.organization} - {self.get_entity_type_display()}"
-    
-    def clean(self):
-        """اعتبارسنجی داده‌های قوانین"""
-        if not self.rules_data:
-            raise ValidationError(_("داده‌های قوانین نمی‌تواند خالی باشد"))
-        
-        # بررسی ساختار داده‌های قوانین
-        required_keys = ['statuses', 'actions', 'transitions', 'post_actions']
-        for key in required_keys:
-            if key not in self.rules_data:
-                raise ValidationError(_(f"کلید '{key}' در داده‌های قوانین وجود ندارد"))
-    
-    def apply_to_organization(self, target_organization):
-        """اعمال تمپلیت به سازمان هدف"""
-        try:
-            with transaction.atomic():
-                # ایجاد وضعیت‌ها
-                for status_data in self.rules_data.get('statuses', []):
-                    Status.objects.get_or_create(
-                        code=status_data['code'],
-                        organization=target_organization,
-                        defaults={
-                            'name': status_data['name'],
-                            'description': status_data.get('description', ''),
-                            'is_initial': status_data.get('is_initial', False),
-                            'is_final': status_data.get('is_final', False),
-                            'is_active': status_data.get('is_active', True),
-                        }
-                    )
-                
-                # ایجاد اقدامات
-                for action_data in self.rules_data.get('actions', []):
-                    Action.objects.get_or_create(
-                        code=action_data['code'],
-                        organization=target_organization,
-                        defaults={
-                            'name': action_data['name'],
-                            'description': action_data.get('description', ''),
-                            'action_type': action_data.get('action_type', 'APPROVE'),
-                            'is_active': action_data.get('is_active', True),
-                        }
-                    )
-                
-                # ایجاد انتقال‌ها
-                for transition_data in self.rules_data.get('transitions', []):
-                    from_status = Status.objects.get(
-                        code=transition_data['from_status'],
-                        organization=target_organization
-                    )
-                    to_status = Status.objects.get(
-                        code=transition_data['to_status'],
-                        organization=target_organization
-                    )
-                    action = Action.objects.get(
-                        code=transition_data['action'],
-                        organization=target_organization
-                    )
-                    
-                    Transition.objects.get_or_create(
-                        from_status=from_status,
-                        to_status=to_status,
-                        action=action,
-                        organization=target_organization,
-                        defaults={
-                            'is_active': transition_data.get('is_active', True),
-                        }
-                    )
-                
-                # ایجاد تخصیص اقدامات به پست‌ها
-                for post_action_data in self.rules_data.get('post_actions', []):
-                    post = Post.objects.get(
-                        id=post_action_data['post_id'],
-                        organization=target_organization
-                    )
-                    action = Action.objects.get(
-                        code=post_action_data['action_code'],
-                        organization=target_organization
-                    )
-                    
-                    PostAction.objects.get_or_create(
-                        post=post,
-                        action=action,
-                        organization=target_organization,
-                        defaults={
-                            'is_active': post_action_data.get('is_active', True),
-                        }
-                    )
-                
-                return True
-        except Exception as e:
-            logger.error(f"خطا در اعمال تمپلیت: {e}")
-            return False
+# class WorkflowRuleTemplate(models.Model):
+#     """
+#     تمپلیت قوانین گردش کار برای کپی و استفاده مجدد
+#     """
+#     name = models.CharField(max_length=200, verbose_name=_("نام تمپلیت"))
+#     description = models.TextField(blank=True, verbose_name=_("توضیحات"))
+#     organization = models.ForeignKey('Organization', on_delete=models.CASCADE, verbose_name=_("سازمان"))
+#     entity_type = models.CharField(max_length=50, choices=[
+#         ('FACTOR', _('فاکتور')),
+#         ('TANKHAH', _('تنخواه')),
+#         ('PAYMENTORDER', _('دستور پرداخت')),
+#         ('BUDGET_ALLOCATION', _('تخصیص بودجه')),
+#     ], verbose_name=_("نوع موجودیت"))
+#
+#     # قوانین به صورت JSON ذخیره می‌شوند
+#     rules_data = models.JSONField(verbose_name=_("داده‌های قوانین"))
+#
+#     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+#     is_public = models.BooleanField(default=False, verbose_name=_("عمومی (قابل استفاده برای همه)"))
+#
+#     created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, verbose_name=_("ایجادکننده"))
+#     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+#     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("تاریخ به‌روزرسانی"))
+#
+#     class Meta:
+#         verbose_name = _("تمپلیت قانون گردش کار")
+#         verbose_name_plural = _("تمپلیت‌های قوانین گردش کار")
+#         unique_together = ('name', 'organization', 'entity_type')
+#         default_permissions = ()
+#         permissions = [
+#             ('WorkflowRuleTemplate_add', 'افزودن تمپلیت قانون گردش کار'),
+#             ('WorkflowRuleTemplate_view', 'نمایش تمپلیت قانون گردش کار'),
+#             ('WorkflowRuleTemplate_update', 'ویرایش تمپلیت قانون گردش کار'),
+#             ('WorkflowRuleTemplate_delete', 'حذف تمپلیت قانون گردش کار'),
+#         ]
+#
+#     def __str__(self):
+#         return f"{self.name} - {self.organization} - {self.get_entity_type_display()}"
+#
+#     def clean(self):
+#         """اعتبارسنجی داده‌های قوانین"""
+#         if not self.rules_data:
+#             raise ValidationError(_("داده‌های قوانین نمی‌تواند خالی باشد"))
+#
+#         # بررسی ساختار داده‌های قوانین
+#         required_keys = ['statuses', 'actions', 'transitions', 'post_actions']
+#         for key in required_keys:
+#             if key not in self.rules_data:
+#                 raise ValidationError(_(f"کلید '{key}' در داده‌های قوانین وجود ندارد"))
+#
+#     def apply_to_organization(self, target_organization):
+#         """اعمال تمپلیت به سازمان هدف"""
+#         try:
+#             with transaction.atomic():
+#                 # ایجاد وضعیت‌ها
+#                 for status_data in self.rules_data.get('statuses', []):
+#                     Status.objects.get_or_create(
+#                         code=status_data['code'],
+#                         organization=target_organization,
+#                         defaults={
+#                             'name': status_data['name'],
+#                             'description': status_data.get('description', ''),
+#                             'is_initial': status_data.get('is_initial', False),
+#                             'is_final': status_data.get('is_final', False),
+#                             'is_active': status_data.get('is_active', True),
+#                         }
+#                     )
+#
+#                 # ایجاد اقدامات
+#                 for action_data in self.rules_data.get('actions', []):
+#                     Action.objects.get_or_create(
+#                         code=action_data['code'],
+#                         organization=target_organization,
+#                         defaults={
+#                             'name': action_data['name'],
+#                             'description': action_data.get('description', ''),
+#                             'action_type': action_data.get('action_type', 'APPROVE'),
+#                             'is_active': action_data.get('is_active', True),
+#                         }
+#                     )
+#
+#                 # ایجاد انتقال‌ها
+#                 for transition_data in self.rules_data.get('transitions', []):
+#                     from_status = Status.objects.get(
+#                         code=transition_data['from_status'],
+#                         organization=target_organization
+#                     )
+#                     to_status = Status.objects.get(
+#                         code=transition_data['to_status'],
+#                         organization=target_organization
+#                     )
+#                     action = Action.objects.get(
+#                         code=transition_data['action'],
+#                         organization=target_organization
+#                     )
+#
+#                     Transition.objects.get_or_create(
+#                         from_status=from_status,
+#                         to_status=to_status,
+#                         action=action,
+#                         organization=target_organization,
+#                         defaults={
+#                             'is_active': transition_data.get('is_active', True),
+#                         }
+#                     )
+#
+#                 # ایجاد تخصیص اقدامات به پست‌ها
+#                 for post_action_data in self.rules_data.get('post_actions', []):
+#                     post = Post.objects.get(
+#                         id=post_action_data['post_id'],
+#                         organization=target_organization
+#                     )
+#                     action = Action.objects.get(
+#                         code=post_action_data['action_code'],
+#                         organization=target_organization
+#                     )
+#
+#                     PostAction.objects.get_or_create(
+#                         post=post,
+#                         action=action,
+#                         organization=target_organization,
+#                         defaults={
+#                             'is_active': post_action_data.get('is_active', True),
+#                         }
+#                     )
+#
+#                 return True
+#         except Exception as e:
+#             logger.error(f"خطا در اعمال تمپلیت: {e}")
+#             return False
 
 
 class PostRuleAssignment(models.Model):
@@ -925,7 +780,7 @@ class PostRuleAssignment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name=_("پست"))
     action = models.ForeignKey(Action, on_delete=models.CASCADE, verbose_name=_("اقدام"))
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, verbose_name=_("سازمان"))
-    rule_template = models.ForeignKey('WorkflowRuleTemplate', on_delete=models.CASCADE, null=True, blank=True, verbose_name=_("تمپلیت قانون"))
+    # rule_template = models.ForeignKey('WorkflowRuleTemplate', on_delete=models.CASCADE, null=True, blank=True, verbose_name=_("تمپلیت قانون"))  # حذف شده
     entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, default='TANKHAH', verbose_name=_("نوع موجودیت"))
     custom_settings = models.JSONField(blank=True, null=True, verbose_name=_("تنظیمات سفارشی"))
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))

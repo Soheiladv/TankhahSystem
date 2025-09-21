@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from tankhah.models import FactorItem
-from core.models import AccessRule, PostAction
+from core.models import Status, PostAction
 from tankhah.constants import ACTION_TYPES
 from tankhah.models import Factor, FactorItem, Tankhah  # وارد کردن مدل‌ها
 import logging

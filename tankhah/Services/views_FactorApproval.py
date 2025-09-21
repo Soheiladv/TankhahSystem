@@ -11,7 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from tankhah.Services.approval_service import ApprovalService
 from tankhah.Services.forms_Approve import FactorItemForm
 from tankhah.models import Factor, FactorItem, ApprovalLog
-from core.models import  AccessRule, Post, UserPost
+from core.models import  Status, Post, UserPost
 from budgets.models import     PaymentOrder  # Assuming PaymentOrder is in models
 from tankhah.workflow_service import WorkflowService
 

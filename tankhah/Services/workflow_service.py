@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext_lazy as _
 
 from tankhah.models import   ApprovalLog
-from core.models import AccessRule
+from core.models import Status
 
 class WorkflowService:
     @staticmethod

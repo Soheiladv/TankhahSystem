@@ -5,7 +5,7 @@ from django.db import transaction, models, IntegrityError
 from django.db.models import Max
 from django.utils.translation import gettext_lazy as _
 
-from core.models import AccessRule, Post,WorkflowStage, Post, WorkflowStage, AccessRule  # اطمینان حاصل کنید که مدل‌های مورد نیاز وارد شده‌اند
+from core.models import Post, Status  # اطمینان حاصل کنید که مدل‌های مورد نیاز وارد شده‌اند
 from django.utils.translation import gettext_lazy as _
 from collections import defaultdict
 
@@ -736,7 +736,7 @@ class PostAccessRuleAssignForm(forms.Form):
 ACTIONS_WITHOUT_STAGE = [ 'VIEW', 'EDIT', 'CREATE', 'DELETE', 'SIGN_PAYMENT' ]
 
 # این import ها بسیار مهم هستند.
-from core.models import AccessRule, Post, Organization, ENTITY_TYPES, ACTION_TYPES
+from core.models import Post, Organization, Status
 
 # تنظیم یک لاگر مشخص برای این فرم
 logger = logging.getLogger('UnifiedAccessFormLogger')

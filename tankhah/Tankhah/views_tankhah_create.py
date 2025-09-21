@@ -104,7 +104,7 @@ class old__TankhahCreateView(PermissionBaseView, CreateView):
                 tankhah.budget_allocation = project_allocation.budget_allocation
 
                 # تنظیم مرحله اولیه جریان کاری
-                from core.models import WorkflowStage
+                from core.models import Status
                 initial_stage = WorkflowStage.objects.order_by('order').first()
                 if not initial_stage:
                     logger.error("No initial workflow stage defined")
@@ -211,7 +211,7 @@ from django.core.exceptions import ValidationError  # برای مدیریت خط
 from core.PermissionBase import PermissionBaseView  # یا LoginRequiredMixin
 from tankhah.models import Tankhah
 from tankhah.Tankhah.forms_tankhah import TankhahForm  # فرمی که در بالا تعریف کردیم
-from core.models import WorkflowStage, Organization, Project, SubProject
+from core.models import Status, Organization, Project, SubProject
 from budgets.models import BudgetAllocation
 # from accounts.models import CustomUser # اگر برای notify لازم است
 # از django.contrib.auth import get_user_model

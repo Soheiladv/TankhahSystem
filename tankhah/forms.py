@@ -9,7 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from budgets.budget_calculations import get_subproject_remaining_budget, get_project_remaining_budget, \
     get_tankhah_remaining_budget, get_project_total_budget
 from budgets.models import BudgetTransaction, BudgetAllocation
-from core.models import Organization, Project, SubProject, AccessRule
+from core.models import Organization, Project, SubProject, Status
 from .utils import restrict_to_user_organization
 import jdatetime
 from django.utils import timezone

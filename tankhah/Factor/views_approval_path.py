@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django.http import Http404
 from django.db.models import Q
 from tankhah.models import Factor, ApprovalLog, StageApprover
-from core.models import WorkflowStage, UserPost, AccessRule
+from core.models import Status, UserPost, Status
 from core.PermissionBase import PermissionBaseView
 from tankhah.Factor.Approved.fun_can_edit_approval import can_edit_approval
 

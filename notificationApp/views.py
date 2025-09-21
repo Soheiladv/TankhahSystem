@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import JsonResponse
@@ -76,6 +76,24 @@ def unread_notifications(request):
         'title': 'اعلان‌های خوانده‌نشده',
     }
     return render(request, 'notifications/unread.html', context)
+
+@login_required
+def mark_as_read(request, notification_id):
+    """علامت‌گذاری اعلان به عنوان خوانده شده"""
+    try:
+        notification = get_object_or_404(Notification, id=notification_id, recipient=request.user, deleted=False)
+        notification.mark_as_read()
+        messages.success(request, 'اعلان به عنوان خوانده شده علامت‌گذاری شد.')
+        
+        # بازگشت به صفحه قبلی یا inbox
+        next_url = request.GET.get('next', reverse('notifications:inbox'))
+        return redirect(next_url)
+    except Notification.DoesNotExist:
+        messages.error(request, 'اعلان یافت نشد.')
+        return redirect('notifications:inbox')
+    except Exception as e:
+        messages.error(request, f'خطا در علامت‌گذاری اعلان: {str(e)}')
+        return redirect('notifications:inbox')
 
 @login_required
 def get_notifications(request):

@@ -19,7 +19,7 @@ from django.views.generic import DetailView
 from django.views.generic import TemplateView
 
 from core.PermissionBase import PermissionBaseView  # فرض می‌کنم این مسیر درسته
-from core.models import Organization, WorkflowStage, Project
+from core.models import Organization, Status, Project
 from core.views import DecimalEncoder
 from reports.forms import FinancialReportForm
 from reports.models import FinancialReport
@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 # مدل‌های مورد نیاز
 from budgets.models import BudgetAllocation,  BudgetTransaction
 from core.models import SubProject
-from core.models import Organization, Project, WorkflowStage # و هر مدل دیگری از core که لازم است
+from core.models import Organization, Project, Status # و هر مدل دیگری از core که لازم است
 # from core.PermissionBase import PermissionBaseView # اگر از این استفاده می‌کنید
 from django.contrib.auth.mixins import LoginRequiredMixin # جایگزین ساده
 
@@ -190,7 +190,7 @@ from django.utils.functional import cached_property
 
 # Your project's models and base views
 from core.PermissionBase import PermissionBaseView
-from core.models import Organization, Project, Status, WorkflowStage, Action
+from core.models import Organization, Project, Status, Action
 from tankhah.models import Tankhah, Factor, FactorItem, ApprovalLog, TankhahDocument
 
 

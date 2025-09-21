@@ -3,7 +3,7 @@ import logging
 from django.http import JsonResponse
 
 from budgets.models import BudgetAllocation, BudgetTransaction
-from core.models import Organization, Project, WorkflowStage, UserPost, SubProject
+from core.models import Organization, Project, Status, UserPost, SubProject
 from notificationApp.utils import send_notification
 from tankhah.Tankhah.forms_tankhah import  TankhahForm
 from tankhah.models import Factor
@@ -66,7 +66,7 @@ from django.core.exceptions import ValidationError  # برای مدیریت خط
 from core.PermissionBase import PermissionBaseView  # یا LoginRequiredMixin
 from tankhah.models import Tankhah
 from tankhah.Tankhah.forms_tankhah import TankhahForm  # فرمی که در بالا تعریف کردیم
-from core.models import WorkflowStage, Organization, Project, SubProject
+from core.models import Status, Organization, Project, SubProject
 from budgets.models import BudgetAllocation
 # from accounts.models import CustomUser # اگر برای notify لازم است
 # از django.contrib.auth import get_user_model
@@ -600,7 +600,7 @@ class TankhahApproveView(PermissionBaseView, View):
             return redirect('dashboard_flows')
 
         # پیدا کردن مرحله بعدی
-        from core.models import WorkflowStage
+        from core.models import Status
         next_stage =   WorkflowStage.objects.filter(order__gt=tankhah.current_stage.order).order_by('order').first()
         with transaction.atomic():
             if next_stage:

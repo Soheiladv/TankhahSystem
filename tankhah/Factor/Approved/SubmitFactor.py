@@ -7,7 +7,7 @@ from django.db import transaction
 
 from core.PermissionBase import PermissionBaseView
 from tankhah.models import Factor, ApprovalLog
-from core.models import AccessRule, Post
+from core.models import Post, Status
 from notificationApp.utils import send_notification
 import logging
 logger = logging.getLogger('SubmitFactor')

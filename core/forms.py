@@ -1,8 +1,8 @@
 import re
 
 from accounts.models import TimeLockModel, CustomUser
-from core.models import Project, Organization, UserPost, Post, PostHistory, WorkflowStage, SubProject, OrganizationType, \
-    SystemSettings, AccessRule, Branch, PostAction
+from core.models import Project, Organization, UserPost, Post, PostHistory, SubProject, OrganizationType, \
+    SystemSettings, Branch, PostAction, Status
 from django.core.exceptions import ValidationError
 from jdatetime import datetime as jdatetime
 from django.utils.translation import gettext_lazy as _
@@ -531,53 +531,43 @@ class PostHistoryForm(forms.ModelForm):
             'changed_by': forms.Select(attrs={'class': 'form-control'}),
         }
 
-class WorkflowStageForm(forms.ModelForm):
+class StatusForm(forms.ModelForm):
     class Meta:
-        model = WorkflowStage
+        model = Status
         fields = [
             'name',
-            'order',
-            'description',
-            'entity_type',
+            'code',
+            'is_initial',
+            'is_final_approve',
+            'is_final_reject',
             'is_active',
-            'is_final_stage',
-            'auto_advance',
-            'triggers_payment_order'
+            'description'
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'order': forms.NumberInput(attrs={'class': 'form-control'}),
+            'code': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'entity_type': forms.Select(attrs={'class': 'form-control'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'is_final_stage': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'auto_advance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'triggers_payment_order': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_initial': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_final_approve': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_final_reject': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
-            'name': _('نام مرحله'),
-            'order': _('ترتیب نمایش'),
+            'name': _('نام وضعیت'),
+            'code': _('کد وضعیت'),
             'description': _('توضیحات'),
-            'entity_type': _('نوع موجودیت'),
             'is_active': _('فعال باشد'),
-            'is_final_stage': _('مرحله نهایی تأیید تنخواه است'),
-            'auto_advance': _('پیش‌رفت خودکار به مرحله بعد'),
-            'triggers_payment_order': _('باعث ایجاد دستور پرداخت خودکار شود'),
+            'is_initial': _('وضعیت اولیه'),
+            'is_final_approve': _('وضعیت تأیید نهایی'),
+            'is_final_reject': _('وضعیت رد نهایی'),
         }
 
-    def clean_order(self):
-        order = self.cleaned_data.get('order')
+    def clean_code(self):
+        code = self.cleaned_data.get('code')
         instance = self.instance
-        if WorkflowStage.objects.exclude(pk=instance.pk if instance else None).filter(order=order).exists():
-            raise forms.ValidationError(_("ترتیبی که انتخاب کردید قبلاً استفاده شده است."))
-        return order
-
-    def clean_entity_type(self):
-        entity_type = self.cleaned_data.get('entity_type')
-        valid_choices = [choice[0] for choice in WorkflowStage.ENTITY_TYPE_CHOICES]
-        if entity_type not in valid_choices:
-            raise forms.ValidationError(_("نوع موجودیت انتخاب‌شده معتبر نیست."))
-        return entity_type
+        if Status.objects.exclude(pk=instance.pk if instance else None).filter(code=code).exists():
+            raise forms.ValidationError(_("کدی که انتخاب کردید قبلاً استفاده شده است."))
+        return code
 
 class OrganizationTypeForm(forms.ModelForm):
     class Meta:

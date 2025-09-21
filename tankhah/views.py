@@ -13,7 +13,7 @@ from django.views.generic import DetailView, CreateView, UpdateView, DeleteView,
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from accounts.models import CustomUser
-from core.models import UserPost, WorkflowStage, SubProject, Project
+from core.models import UserPost, SubProject, Project
 from tankhah.models import ApprovalLog, Tankhah, StageApprover, Factor, FactorItem, FactorDocument, TankhahDocument, \
     FactorHistory
 from budgets.budget_calculations import create_budget_transaction
@@ -31,7 +31,7 @@ from .models import ItemCategory
 from .forms import ItemCategoryForm
 from django.db import transaction
 from budgets.models import BudgetTransaction
-from core.models import AccessRule, Organization
+from core.models import Organization
 from django.db.models import Max, Q
 from django.utils import timezone
 logger = logging.getLogger('TankhahViews')
@@ -177,20 +177,22 @@ class FactorDeleteView(PermissionRequiredMixin, DeleteView):
             messages.error(self.request, _("فاکتور دارای تأیید در مرحله قبلی است و قابل حذف نیست."))
             return False
 
-        allowed_rules = AccessRule.objects.filter(
-            post__id__in=user_post_ids,
-            organization__id__in=user_orgs,
-            action_type='DELETE',
-            entity_type='FACTOR',
-            is_active=True,
-            min_level__lte=max_post_level,
-            stage_order=current_stage_order
-        )
-        logger.debug(f"[FactorDeleteView] Access rules query: {allowed_rules.query}")
-        if not allowed_rules.exists():
-            logger.warning(
-                f"[FactorDeleteView] No AccessRule for user {user.username} to delete factor {factor.number} at stage {current_stage_order}"
-            )
+        # بررسی مجوز حذف (بدون AccessRule)
+        # کاربر باید مجوز حذف داشته باشد و در همان سازمان باشد
+        if not user.has_perm('tankhah.factor_delete'):
+            logger.warning(f"[FactorDeleteView] User {user.username} lacks delete permission for factor {factor.number}")
+            messages.error(self.request, _("شما اجازه حذف این فاکتور را ندارید."))
+            return False
+        
+        # بررسی سازمان
+        user_orgs = set()
+        for up in user_post_qs.select_related('post__organization'):
+            org = up.post.organization
+            if org and isinstance(org, Organization) and not org.is_core and not org.is_holding:
+                user_orgs.add(org)
+        
+        if factor.tankhah.organization not in user_orgs:
+            logger.warning(f"[FactorDeleteView] User {user.username} not in same organization as factor {factor.number}")
             messages.error(self.request, _("شما اجازه حذف این فاکتور را ندارید."))
             return False
 
@@ -469,9 +471,9 @@ class ApprovalCreateView(PermissionRequiredMixin, CreateView):
                 if branch == 'COMPLEX' and current_status == 'PENDING' and user_level <= 2:
                     tankhah.status = 'APPROVED'
 
-                    tankhah.current_stage = AccessRule.objects.get(name='OPS')
+                    tankhah.current_stage = None  # مرحله بعدی
                 elif branch == 'OPS' and current_status == 'APPROVED' and user_level > 2:
-                     tankhah.current_stage = WorkflowStage.objects.get(name='FIN')
+                    tankhah.current_stage = None  # مرحله بعدی
                 elif branch == 'FIN' and  user_level > 3:
 
                     tankhah.status = 'PAID'
@@ -583,17 +585,11 @@ class ApprovalUpdateView(PermissionBaseView, UpdateView):
             if form.instance.action == 'APPROVE':
                 if branch == 'COMPLEX' and current_status == 'PENDING' and user_level <= 2:
                     tankhah.status = 'APPROVED'
-
-                    next_stage = WorkflowStage.objects.filter(order__gt=tankhah.current_stage.order).order_by(
-                        'order').first()
-                    if next_stage:
-                        tankhah.current_stage = next_stage
+                    # مرحله بعدی (بدون WorkflowStage)
+                    tankhah.current_stage = None
                 elif branch == 'OPS' and current_status == 'APPROVED' and user_level > 2:
-
-                    next_stage = WorkflowStage.objects.filter(order__gt=tankhah.current_stage.order).order_by(
-                        'order').first()
-                    if next_stage:
-                        tankhah.current_stage = next_stage
+                    # مرحله بعدی (بدون WorkflowStage)
+                    tankhah.current_stage = None
                 elif branch == 'FIN'   and user_level > 3:
                     tankhah.status = 'PAID'
                     next_stage = None  # مرحله آخر
@@ -845,31 +841,22 @@ class FactorStatusUpdateView(PermissionBaseView, View):
             post=user_post.post if user_post else None
         )
 
-        # آپدیت مرحله
-        workflow_stages = WorkflowStage.objects.order_by('order')
+        # آپدیت مرحله (بدون WorkflowStage)
         current_stage = tankhah.current_stage
         if not current_stage:
-            tankhah.current_stage = workflow_stages.first()
+            tankhah.current_stage = None
             tankhah.save()
 
-        # چک کردن تأیید همه فاکتورها توی مرحله فعلی
+        # چک کردن تأیید همه فاکتورها (بدون WorkflowStage)
         approvals_in_current = ApprovalLog.objects.filter(
-            tankhah=tankhah, stage=current_stage, action='APPROVE'
+            tankhah=tankhah, action='APPROVE'
         ).count()
         factors_count = tankhah.factors.count()
         if approvals_in_current >= factors_count and action == 'APPROVE':
-            # next_stage = workflow_stages.filter(order__gt=current_stage.order).first()
-            next_stage = workflow_stages.filter(order__lt=current_stage.order).order_by('-order').first()
-
-            if next_stage:
-                tankhah.current_stage = next_stage
-                tankhah.status = 'PENDING'
-                tankhah.save()
-                messages.info(request, _(f"تنخواه به مرحله {next_stage.name} منتقل شد."))
-            elif all(f.status == 'APPROVED' for f in tankhah.factors.all()):
-                tankhah.status = 'APPROVED'
-                tankhah.save()
-                messages.info(request, _('تنخواه کاملاً تأیید شد.'))
+            # همه فاکتورها تأیید شده‌اند
+            tankhah.status = 'APPROVED'
+            tankhah.save()
+            messages.info(request, _('تنخواه کاملاً تأیید شد.'))
 
         messages.success(request, _('وضعیت فاکتور با موفقیت تغییر کرد.'))
         return redirect('tankhah_tracking', pk=tankhah.pk)

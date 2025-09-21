@@ -217,12 +217,9 @@ dashboard_links = {
          'icon': 'fas fa-history'},  # تاریخچه
     ],
     'قوانین سیستم (رول‌های دسترسی)': [
-        {'name': _('قوانین سیستم (رول‌های دسترسی)'), 'url': 'post_access_rule_assign_old', 'icon': 'fas fa-gavel'},
-        {'name': _('قوانین سیستم (هیبریدی)'), 'url': 'workflow_select', 'icon': 'fas fa-gavel'},
         {'name': _('قوانین سیستم گردش محور'), 'url': 'workflow_dashboard', 'icon': 'fas fa-gavel'},
         {'name': _('مدیریت قوانین گردش کار'), 'url': 'workflow_dashboard', 'icon': 'fas fa-cogs'},
-        {'name': _('تمپلیت‌های قوانین'), 'url': 'workflow_management:template_list', 'icon': 'fas fa-file-code'},
-        # چکش (نماد قانون)
+        {'name': _('کنترل گردش کار (ادمین)'), 'url': 'admin_workflow_dashboard', 'icon': 'fas fa-user-shield'},
     ],
     'دیگر لینک‌ها': [
         {'name': _('مدیریت کاربران'), 'url': 'accounts:admin_dashboard', 'icon': 'fas fa-users-cog'},

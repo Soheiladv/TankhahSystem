@@ -3,7 +3,7 @@ from django import forms
 from django.db import transaction
 
 from budgets.models import Payee, PaymentOrder
-from core.models import Organization, WorkflowStage
+from core.models import Organization, Status
 from tankhah.models import Tankhah, Factor
 
 from django.utils.translation import gettext_lazy as _
@@ -14,7 +14,7 @@ from django.utils.translation import gettext_lazy as _
 from django.db import transaction
 from budgets.models import PaymentOrder, Payee
 from tankhah.models import Tankhah, Factor
-from core.models import Organization, WorkflowStage
+from core.models import Organization, Status
 from accounts.models import CustomUser
 import jdatetime
 from django.utils import timezone

@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from BudgetsSystem.utils import parse_jalali_date
 from budgets.models import BudgetAllocation
-from core.models import   Project, SubProject, AccessRule
+from core.models import   Project, SubProject, Status
 import jdatetime
 from django.utils import timezone
 from tankhah.models import  Tankhah

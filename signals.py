@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from accounts.models import CustomUser
 from budgets.models import BudgetAllocation, BudgetTransaction, PaymentOrder, Payee
-from core.models import Post, AccessRule
+from core.models import Post, Status
 from tankhah.models import Tankhah, Factor, ApprovalLog
 from decimal import Decimal
 from django.core.cache import cache

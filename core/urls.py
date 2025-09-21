@@ -41,11 +41,11 @@ from .views import (
 from core.views_API.views_api import OrganizationChartAPIView,OrganizationChartView
 
 from django.urls import path
-from core.AccessRule.views_accessrule import (
-    AccessRuleListView, AccessRuleDetailView, AccessRuleCreateView,
-    AccessRuleUpdateView, AccessRuleDeleteView, userGiud_AccessRule, PostAccessRuleAssignView, PostRuleReportView,
-    UserGuideView, SelectWorkflowView, PostAccessRuleAssignView_old
-)
+# from core.AccessRule.views_accessrule import (
+#     AccessRuleListView, AccessRuleDetailView, AccessRuleCreateView,
+#     AccessRuleUpdateView, AccessRuleDeleteView, userGiud_AccessRule, PostAccessRuleAssignView, PostRuleReportView,
+#     UserGuideView, SelectWorkflowView, PostAccessRuleAssignView_old
+# )  # حذف شده - مدل AccessRule منسوخ شده است
 
 # core/urls.py
 from django.urls import path
@@ -56,7 +56,7 @@ from core.Branch.views_branch import (
     BranchUpdateView,
     BranchDeleteView
 )
-from core.AccessRule.views_accessrule import SelectWorkflowView, WorkflowBuilderView
+# from core.AccessRule.views_accessrule import SelectWorkflowView, WorkflowBuilderView  # حذف شده - مدل AccessRule منسوخ شده است
 from core.workflow.views_workflow import (
     WorkflowDashboardView,
     StatusListView, StatusCreateView, StatusUpdateView , StatusDeleteView,
@@ -136,21 +136,21 @@ urlpatterns += [
 
         ] # چارت سازمانی
 
-urlpatterns += [
-            path('access-rules/', AccessRuleListView.as_view(), name='accessrule_list'),
-            path('access-rules/<int:pk>/', AccessRuleDetailView.as_view(), name='accessrule_detail'),
-            path('access-rules/create/', AccessRuleCreateView.as_view(), name='accessrule_create'),
-            path('access-rules/<int:pk>/edit/', AccessRuleUpdateView.as_view(), name='accessrule_update'),
-            path('access-rules/<int:pk>/delete/', AccessRuleDeleteView.as_view(), name='accessrule_delete'),
-
-            path('workflow/select/', SelectWorkflowView.as_view(), name='workflow_select'),
-            path('access-rules/assign/', PostAccessRuleAssignView_old.as_view(), name='post_access_rule_assign_old'),
-            path('workflow/assign/<int:org_pk>/<str:entity_type>/', PostAccessRuleAssignView.as_view(),
-                 name='post_access_rule_assign'),
-
-            path('access-rules/report/', PostRuleReportView.as_view(), name='post_rule_report'),
-
-         ] # قوانین سیستم
+# urlpatterns += [
+#             path('access-rules/', AccessRuleListView.as_view(), name='accessrule_list'),
+#             path('access-rules/<int:pk>/', AccessRuleDetailView.as_view(), name='accessrule_detail'),
+#             path('access-rules/create/', AccessRuleCreateView.as_view(), name='accessrule_create'),
+#             path('access-rules/<int:pk>/edit/', AccessRuleUpdateView.as_view(), name='accessrule_update'),
+#             path('access-rules/<int:pk>/delete/', AccessRuleDeleteView.as_view(), name='accessrule_delete'),
+#
+#             path('workflow/select/', SelectWorkflowView.as_view(), name='workflow_select'),
+#             path('access-rules/assign/', PostAccessRuleAssignView_old.as_view(), name='post_access_rule_assign_old'),
+#             path('workflow/assign/<int:org_pk>/<str:entity_type>/', PostAccessRuleAssignView.as_view(),
+#                  name='post_access_rule_assign'),
+#
+#             path('access-rules/report/', PostRuleReportView.as_view(), name='post_rule_report'),
+#
+#          ] # قوانین سیستم - حذف شده - مدل AccessRule منسوخ شده است
 
 # ===================================================================
 # ==== Branch شاخه های پست در سازمان ====
@@ -171,19 +171,19 @@ urlpatterns += [
 # ==== # راهنما ====
 # ===================================================================
 urlpatterns += [
-            path('Help_AccessRule',userGiud_AccessRule , name= 'user_Giud_AccessRule'),
-            path('user-guide/', UserGuideView.as_view(), name='user_guide'),
+            # path('Help_AccessRule',userGiud_AccessRule , name= 'user_Giud_AccessRule'),  # حذف شده - مدل AccessRule منسوخ شده است
+            # path('user-guide/', UserGuideView.as_view(), name='user_guide'),  # حذف شده - مدل AccessRule منسوخ شده است
         path ('simple-chart/', SimpleChartView.as_view(), name='simple_chart'),
         ]#راهنما
 # ===================================================================
 # ==== #قسمت قانون گذاری جدید ====
 # ===================================================================
-urlpatterns += [
-            path('access-management/select/', SelectWorkflowView.as_view(), name='workflow_select'),
-            # URL نهایی برای ویوی یکپارچه ما
-            path('access-management/builder/<int:org_pk>/<str:entity_type>/', WorkflowBuilderView.as_view(),
-                 name='workflow_builder'),
-        ]
+# urlpatterns += [
+#             path('access-management/select/', SelectWorkflowView.as_view(), name='workflow_select'),
+#             # URL نهایی برای ویوی یکپارچه ما
+#             path('access-management/builder/<int:org_pk>/<str:entity_type>/', WorkflowBuilderView.as_view(),
+#                  name='workflow_builder'),
+#         ]  # حذف شده - مدل AccessRule منسوخ شده است
 # ===================================================================
 # ==== #قسمت قانون گذاری جدید ====
 # ===================================================================

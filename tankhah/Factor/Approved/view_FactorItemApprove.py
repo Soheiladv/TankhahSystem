@@ -14,7 +14,7 @@ from django.utils.translation import gettext_lazy as _
 # --- Import های پروژه ---
 # مدل‌ها
 from tankhah.models import Factor, FactorItem, ApprovalLog
-from core.models import AccessRule, Post, Transition, Action
+from core.models import Status, Post, Transition, Action
 from accounts.models import CustomUser
 from budgets.models import PaymentOrder
 # فرم‌ها

@@ -3,7 +3,7 @@ from django.urls import reverse_lazy, reverse
 from django.views.generic import   UpdateView
 from accounts.models import CustomUser
 from budgets.models import PaymentOrder
-from core.models import   WorkflowStage, Post, AccessRule
+from core.models import   Status, Post, Status
 from notificationApp.utils import send_notification
 from tankhah.Factor.Approved.from_Approved import FactorItemApprovalForm, FactorApprovalForm
 from tankhah.constants import ACTION_TYPES

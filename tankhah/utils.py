@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied
 from core.models import Organization, Transition
 from django.contrib.contenttypes.models import ContentType
 from tankhah.models import ApprovalLog
-from core.models import AccessRule
+from core.models import Status
 
 logger = logging.getLogger('Util_Tankhah')
 def ok__restrict_to_user_organization(user, allowed_orgs=None):

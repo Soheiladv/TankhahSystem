@@ -10,7 +10,7 @@ import jdatetime
 from budgets.budget_calculations import get_tankhah_remaining_budget
 from tankhah.forms import MultipleFileField, MultipleFileInput
 from tankhah.models import Factor, Tankhah, FactorItem, ItemCategory
-from core.models import WorkflowStage, Project, SubProject, Post
+from core.models import Status, Project, SubProject, Post
 from django.db.models import Q
 
 from tankhah.utils import restrict_to_user_organization

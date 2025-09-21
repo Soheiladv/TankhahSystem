@@ -31,6 +31,9 @@
 
             {# --- بدنه کارت --- #}
             <div class="card-body p-lg-4 p-3">
+                {# --- راهنمای کامل ثبت فاکتور --- #}
+                {% include "partials/factor_creation_guide.html" %}
+                
                 {# --- نمایش خطاهای کلی --- #}
                 {% include "partials/_form_errors.html" with form=form formset=formset %}
 

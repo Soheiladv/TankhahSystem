@@ -54,19 +54,9 @@ urlpatterns = [
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
-#
-# urlpatterns += [
 
-    #     path('inbox/notifications/', include('notifications.urls', namespace='notifications')),
-#     path('notifications/inbox/', notifications_inbox, name='notifications_inbox'),
-#     path('notifications/delete/<int:notification_id>/', delete_notification, name='delete_notification'),
-#     path('notifications/unread/', unread_notifications, name='unread'),
-#     #
-#     path('notifications/get-notifications/', get_notifications, name='get_notifications'),
-#
- # ]
 urlpatterns +=[
-    path('usb-key/', include('usb_key_validator.urls')),
+    path('usb-key-validator/', include('usb_key_validator.urls')),
 ]# validate_usb_key
 
 # path('tanbakhs/',  DashboardView.as_view(), name='dashboard'),
@@ -82,3 +72,14 @@ urlpatterns +=[
 # path('dashboard/', DashboardView.as_view(), name='dashboard'),
 # path('', Tanbakhsystem_DashboardView.as_view(), name='dashboard'),
 # path('', DashboardView.as_view(), name='dashboard_flows'),
+#
+# urlpatterns += [
+
+    #     path('inbox/notifications/', include('notifications.urls', namespace='notifications')),
+#     path('notifications/inbox/', notifications_inbox, name='notifications_inbox'),
+#     path('notifications/delete/<int:notification_id>/', delete_notification, name='delete_notification'),
+#     path('notifications/unread/', unread_notifications, name='unread'),
+#     #
+#     path('notifications/get-notifications/', get_notifications, name='get_notifications'),
+#
+ # ]

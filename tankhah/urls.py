@@ -29,6 +29,9 @@ from tankhah.views import (
     ItemCategoryListView, ItemCategoryCreateView, ItemCategoryUpdateView, ItemCategoryDeleteView, RulesUserGuideView,
     FactorStatusUpdateView, upload_tankhah_documents, ItemCategoryDetailView
 )
+from tankhah.views_admin_workflow import (
+    admin_workflow_control, admin_change_status, admin_reset_workflow, admin_workflow_dashboard
+)
 from tankhah.Factor.FactorDetail.views_FactorDetail import FactorDetailView, PerformFactorTransitionAPI
 #FactorStatusUpdateView, mark_notification_as_read,, get_unread_notifications, FactorDetailView,    upload_tankhah_documents,
 from tankhah.Factor.view_Factor import (TankhahBudgetInfoAjaxView,  BudgetCheckView)
@@ -314,3 +317,11 @@ path('rules_user-guide/', RulesUserGuideView , name='RulesUserGuideView'),
 #     path('get-budget-info/',  get_budget_info, name='get_budget_info'),
 #
 # ]
+
+# Admin workflow control URLs
+urlpatterns += [
+    path('admin/workflow/control/<str:entity_type>/<int:entity_id>/', admin_workflow_control, name='admin_workflow_control'),
+    path('admin/workflow/change-status/<str:entity_type>/<int:entity_id>/', admin_change_status, name='admin_change_status'),
+    path('admin/workflow/reset/<str:entity_type>/<int:entity_id>/', admin_reset_workflow, name='admin_reset_workflow'),
+    path('admin/workflow/dashboard/', admin_workflow_dashboard, name='admin_workflow_dashboard'),
+]

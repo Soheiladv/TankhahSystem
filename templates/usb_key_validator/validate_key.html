@@ -1,40 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n static %}
 
-{% block extra_css %}
-    <style>
-        body {
-            font-family: 'Vazirmatn', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        }
-        .container {
-            max-width: 800px;
-            margin-top: 50px;
-        }
-        .card {
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        .table {
-            background-color: #fff;
-            border-radius: 8px;
-        }
-        .form-check {
-            margin: 0;
-        }
-        .btn-primary {
-            border-radius: 8px;
-            padding: 10px 20px;
-        }
-        .alert, .result-box, .info-table, .key-table {
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-        .info-table th, .key-table th {
-            width: 30%;
-        }
-    </style>
-{% endblock %}
 
 {% block content %}
     <div class="container">
@@ -125,7 +91,8 @@
                         <div class="form-text">{% trans "یک درایو USB را از جدول انتخاب کنید." %}</div>
                     </div>
                     <div class="text-center">
-                        <button type="submit" class="btn btn-primary">{% trans "نوشتن و بررسی کلید" %}</button>
+                        <a class="btn btn-primary" href ="{% url 'usb_key_validator:dongle_dashboard' %}" >{% trans "نوشتن و بررسی کلید" %}</a>
+{#                        <button type="submit" class="btn btn-primary">{% trans "نوشتن و بررسی کلید" %}</button>#}
                     </div>
                 </form>
             </div>

@@ -23,6 +23,7 @@
 
     <!-- استایل‌های سفارشی -->
     <link rel="stylesheet" href="{% static 'admin/css/budgetsStyle.css' %}">
+    <link rel="stylesheet" href="{% static 'css/notification-animations.css' %}">
 
     <style>
         @font-face {
@@ -62,6 +63,7 @@
             right: -5px;
             font-size: 0.75rem;
             padding: 2px 6px;
+            animation: pulse 2s infinite;
         }
 
         .dropdown-divider {
@@ -71,6 +73,42 @@
         .dropdown-header {
             font-weight: bold;
             color: #343a40;
+        }
+
+        /* انیمیشن لرزش برای زنگوله */
+        .notification-bell {
+            transition: transform 0.3s ease;
+        }
+
+        .notification-bell.shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .notification-bell.pulse {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+            20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* انیمیشن برای badge */
+        .notification-badge.animate {
+            animation: bounce 0.6s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
         }
     </style>
 </head>
@@ -123,31 +161,26 @@
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle position-relative" href="#" id="notificationDropdown"
                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-bell"></i>
-                            <span class="notification-badge badge bg-danger" style="display: none;"></span>
+                            <i class="fas fa-bell notification-bell" id="notificationBell"></i>
+                            <span class="notification-badge badge bg-danger" id="notificationBadge" style="display: none;"></span>
                         </a>
-                        {#                                <ul class="dropdown-menu dropdown-menu-end notification-list"#}
-                        {#                                    aria-labelledby="notificationDropdown">#}
-                        {#                                    <li class="dropdown-header">{% trans "اعلان‌ها" %}</li>#}
-                        {#                                    <div id="notification-list"></div>#}
-                        {#                                    <li><hr class="dropdown-divider"></li>#}
-                        {#                                    <li>#}
-                        {#                                        <a class="dropdown-item text-center"#}
-                        {#                                           href="{% url 'notifications:mark_all_as_read' %}?next={% url 'notifications_inbox' %}">#}
-                        {#                                            {% trans "خواندن همه اعلان‌ها" %}#}
-                        {#                                        </a>#}
-                        {#                                    </li>#}
-                        {#                                    <li>#}
-                        {#                                        <a class="dropdown-item text-center" href="{% url 'notifications:unread' %}">#}
-                        {#                                            {% trans "مشاهده اعلان‌های خوانده‌نشده" %}#}
-                        {#                                        </a>#}
-                        {#                                    </li>#}
-                        {#                                    <li>#}
-                        {#                                        <a class="dropdown-item text-center" href="{% url 'notifications_inbox' %}">#}
-                        {#                                            {% trans "مشاهده همه اعلان‌ها" %}#}
-                        {#                                        </a>#}
-                        {#                                    </li>#}
-                        {#                                </ul>#}
+                                <ul class="dropdown-menu dropdown-menu-end notification-list"
+                                    aria-labelledby="notificationDropdown">
+                                    <li class="dropdown-header">{% trans "اعلان‌ها" %}</li>
+                                    <div id="notification-list"></div>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-center"
+                                           href="{% url 'notifications:inbox' %}">
+                                            {% trans "مشاهده همه اعلان‌ها" %}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-center" href="{% url 'notifications:unread' %}">
+                                            {% trans "مشاهده اعلان‌های خوانده‌نشده" %}
+                                        </a>
+                                    </li>
+                                </ul>
                     </li>
                 {% endif %}
             </ul>
@@ -310,30 +343,27 @@
                     url: "{% url 'notifications:get_notifications' %}",
                     type: "GET",
                     success: function (data) {
+                        console.log("Notifications data:", data); // Debug log
                         const notificationList = $('#notification-list');
                         notificationList.empty();
-                        if (data.notifications.length > 0) {
+                        if (data.notifications && data.notifications.length > 0) {
                             data.notifications.forEach(notification => {
                                 const unreadClass = notification.unread ? 'unread' : '';
                                 const item = `
                                             <li class="notification-item ${unreadClass}">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    {#<a class="dropdown-item" href="{% url 'notifications:mark_as_read' 0 %}?next={% url 'notifications_inbox' %}".replace('0', notification.id)>#}
-                                                    {#    <div class="d-flex align-items-center">#}
-                                                    {#        <i class="fas fa-bell me-2 text-primary"></i>#}
-                                                    {#        <div>#}
-                                                    {#            <p class="mb-0">#}
-                                                    {#                ${notification.actor} ${notification.verb}#}
-                                                    {#                ${notification.target ? `(${notification.target})` : ''}#}
-                                                    {#            </p>#}
-                                                    {#            ${notification.description ? `<small class="text-muted">${notification.description}</small><br>` : ''}#}
-                                                    {#            <small class="text-muted">${notification.timestamp}</small>#}
-                                                    {#        </div>#}
-                                                    {#    </div>#}
-                                                    {#</a>#}
-                                                    <button class="btn btn-sm btn-outline-danger delete-notification"
-                                                            data-id="${notification.id}">{% trans "حذف" %}</button>
-                                                </div>
+                                                <a class="dropdown-item" href="{% url 'notifications:mark_as_read' 0 %}?next={% url 'notifications:inbox' %}".replace('0', notification.id)>
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="fas fa-bell me-2 text-primary"></i>
+                                                        <div class="flex-grow-1">
+                                                            <p class="mb-1">
+                                                                ${notification.actor} ${notification.verb}
+                                                                ${notification.target ? `(${notification.target})` : ''}
+                                                            </p>
+                                                            ${notification.description ? `<small class="text-muted">${notification.description}</small><br>` : ''}
+                                                            <small class="text-muted">${notification.timestamp}</small>
+                                                        </div>
+                                                    </div>
+                                                </a>
                                             </li>`;
                                 notificationList.append(item);
                             });
@@ -342,21 +372,41 @@
                         }
 
                         // به‌روزرسانی تعداد اعلان‌ها
-                        updateNotificationBadge(data.unread_count);
+                        updateNotificationBadge(data.unread_count || 0);
                     },
                     error: function (xhr, status, error) {
                         console.error("Error fetching notifications:", error);
+                        console.error("Response:", xhr.responseText);
                     }
                 });
             }
 
             // تابع به‌روزرسانی badge اعلان‌ها
             function updateNotificationBadge(count) {
-                const $badge = $('.notification-badge');
+                const $badge = $('#notificationBadge');
+                const $bell = $('#notificationBell');
+                const previousCount = parseInt($badge.text()) || 0;
+                
                 if (count > 0) {
                     $badge.text(count).show();
+                    
+                    // انیمیشن لرزش برای زنگوله
+                    if (count > previousCount) {
+                        $bell.addClass('shake');
+                        $badge.addClass('animate');
+                        
+                        // حذف کلاس‌های انیمیشن پس از اتمام
+                        setTimeout(() => {
+                            $bell.removeClass('shake');
+                            $badge.removeClass('animate');
+                        }, 500);
+                    }
+                    
+                    // انیمیشن pulse برای زنگوله
+                    $bell.addClass('pulse');
                 } else {
                     $badge.hide();
+                    $bell.removeClass('pulse');
                 }
             }
 
@@ -492,11 +542,30 @@
 
             // تابع به‌روزرسانی badge اعلان‌ها
             function updateNotificationBadge(count) {
-                const $badge = $('.notification-badge');
+                const $badge = $('#notificationBadge');
+                const $bell = $('#notificationBell');
+                const previousCount = parseInt($badge.text()) || 0;
+                
                 if (count > 0) {
                     $badge.text(count).show();
+                    
+                    // انیمیشن لرزش برای زنگوله
+                    if (count > previousCount) {
+                        $bell.addClass('shake');
+                        $badge.addClass('animate');
+                        
+                        // حذف کلاس‌های انیمیشن پس از اتمام
+                        setTimeout(() => {
+                            $bell.removeClass('shake');
+                            $badge.removeClass('animate');
+                        }, 500);
+                    }
+                    
+                    // انیمیشن pulse برای زنگوله
+                    $bell.addClass('pulse');
                 } else {
                     $badge.hide();
+                    $bell.removeClass('pulse');
                 }
             }
 
