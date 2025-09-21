@@ -218,7 +218,6 @@ dashboard_links = {
     ],
     'قوانین سیستم (رول‌های دسترسی)': [
         {'name': _('قوانین سیستم گردش محور'), 'url': 'workflow_dashboard', 'icon': 'fas fa-gavel'},
-        {'name': _('مدیریت قوانین گردش کار'), 'url': 'workflow_dashboard', 'icon': 'fas fa-cogs'},
         {'name': _('کنترل گردش کار (ادمین)'), 'url': 'admin_workflow_dashboard', 'icon': 'fas fa-user-shield'},
     ],
     'دیگر لینک‌ها': [

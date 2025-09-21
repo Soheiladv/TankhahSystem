@@ -1144,3 +1144,19 @@ class Dashboard_Tankhah(models.Model):
         permissions = [
             ('Dashboard_Tankhah_view', 'دسترسی به داشبورد تنخواه گردان ')
         ]
+
+# Admin Workflow Control Permissions
+class AdminWorkflowControl(models.Model):
+    """
+    مدل مجازی برای تعریف دسترسی‌های کنترل گردش کار ادمین
+    تغییر حالت فاکتور به عقب یا دیگر وضعیت ها 
+    """
+    class Meta:
+        managed = False
+        default_permissions = ()
+        permissions = [
+            ('admin_workflow_control', 'دسترسی به کنترل گردش کار ادمین'),
+            ('admin_change_status', 'تغییر وضعیت توسط ادمین'),
+            ('admin_reset_workflow', 'بازنشانی گردش کار توسط ادمین'),
+            ('admin_workflow_dashboard', 'دسترسی به داشبورد گردش کار ادمین'),
+        ]

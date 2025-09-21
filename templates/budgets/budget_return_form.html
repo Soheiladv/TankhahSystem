@@ -41,6 +41,68 @@
 
 {% block content %}
 <div class="container-fluid py-4">
+    <!-- راهنمای کامل سیستم برگشت بودجه -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        راهنمای کامل سیستم برگشت بودجه
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="text-primary">
+                                <i class="fas fa-question-circle"></i>
+                                برگشت بودجه چیست؟
+                            </h5>
+                            <p class="text-muted">
+                                برگشت بودجه فرآیندی است که به شما اجازه می‌دهد بخشی از بودجه تخصیص‌یافته‌ای که 
+                                به آن نیاز ندارید یا استفاده نکرده‌اید را به بودجه کلان دوره بازگردانید.
+                            </p>
+                            
+                            <h5 class="text-success mt-4">
+                                <i class="fas fa-check-circle"></i>
+                                چه زمانی می‌توانید برگشت انجام دهید؟
+                            </h5>
+                            <ul class="text-muted">
+                                <li>بودجه تخصیص‌یافته استفاده نشده باشد</li>
+                                <li>پروژه زودتر از موعد تمام شده باشد</li>
+                                <li>تغییر در نیازهای پروژه رخ داده باشد</li>
+                                <li>بودجه اضافی در دسترس باشد</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="text-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                نکات مهم
+                            </h5>
+                            <ul class="text-muted">
+                                <li>مبلغ برگشت نمی‌تواند بیشتر از مبلغ باقی‌مانده باشد</li>
+                                <li>عملیات برگشت غیرقابل بازگشت است</li>
+                                <li>تمام عملیات در تاریخچه ثبت می‌شود</li>
+                                <li>باید دلیل برگشت را مشخص کنید</li>
+                            </ul>
+                            
+                            <h5 class="text-info mt-4">
+                                <i class="fas fa-cogs"></i>
+                                مراحل انجام برگشت
+                            </h5>
+                            <ol class="text-muted">
+                                <li>مبلغ مورد نظر را وارد کنید</li>
+                                <li>دلیل برگشت را انتخاب کنید</li>
+                                <li>توضیحات تکمیلی بنویسید</li>
+                                <li>دکمه "ثبت نهایی" را کلیک کنید</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -66,6 +128,20 @@
                                 {% for error in form.non_field_errors %}<p class="mb-0">{{ error|to_persian_number }}</p>{% endfor %}
                             </div>
                         {% endif %}
+
+                        <!-- راهنمای فیلد مبلغ -->
+                        <div class="alert alert-light border-start border-primary border-4 mb-3">
+                            <h6 class="text-primary mb-2">
+                                <i class="fas fa-lightbulb"></i>
+                                راهنمای وارد کردن مبلغ
+                            </h6>
+                            <ul class="mb-0 small text-muted">
+                                <li>مبلغ را به صورت عددی وارد کنید (مثال: 1000000)</li>
+                                <li>از دکمه "حداکثر" برای انتخاب کل مبلغ باقی‌مانده استفاده کنید</li>
+                                <li>مبلغ نمی‌تواند بیشتر از مبلغ باقی‌مانده باشد</li>
+                                <li>مبلغ به صورت خودکار به حروف تبدیل می‌شود</li>
+                            </ul>
+                        </div>
 
                         <div class="mb-4">
                             <label for="{{ form.amount.id_for_label }}" class="form-label fw-bold fs-5">{{ form.amount.label }}</label>
@@ -181,7 +257,132 @@
             {% endwith %}
         </div>
     </div>
+
+    <!-- راهنمای گردش کار برگشت بودجه -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-route"></i>
+                        گردش کار برگشت بودجه
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5 class="text-success mb-3">
+                                <i class="fas fa-list-ol"></i>
+                                مراحل گردش کار
+                            </h5>
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-primary"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="text-primary">1. درخواست برگشت</h6>
+                                        <p class="text-muted mb-0">کاربر درخواست برگشت بودجه را ثبت می‌کند</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-warning"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="text-warning">2. بررسی و تأیید</h6>
+                                        <p class="text-muted mb-0">مدیر مالی درخواست را بررسی و تأیید می‌کند</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-success"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="text-success">3. اجرای برگشت</h6>
+                                        <p class="text-muted mb-0">بودجه به حساب اصلی بازگردانده می‌شود</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-info"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="text-info">4. ثبت در تاریخچه</h6>
+                                        <p class="text-muted mb-0">تمام جزئیات در تاریخچه سیستم ثبت می‌شود</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h5 class="text-info mb-3">
+                                <i class="fas fa-info-circle"></i>
+                                نکات مهم گردش کار
+                            </h5>
+                            <div class="alert alert-light">
+                                <h6 class="text-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    شرایط برگشت
+                                </h6>
+                                <ul class="mb-0 small">
+                                    <li>بودجه باید فعال باشد</li>
+                                    <li>مبلغ باقی‌مانده کافی باشد</li>
+                                    <li>دوره بودجه باز باشد</li>
+                                    <li>دسترسی لازم وجود داشته باشد</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="alert alert-light">
+                                <h6 class="text-success">
+                                    <i class="fas fa-check-circle"></i>
+                                    مزایای سیستم
+                                </h6>
+                                <ul class="mb-0 small">
+                                    <li>کنترل دقیق بودجه</li>
+                                    <li>تاریخچه کامل عملیات</li>
+                                    <li>اعتبارسنجی خودکار</li>
+                                    <li>گزارش‌گیری دقیق</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 3px #dee2e6;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+</style>
 {% endblock %}
 
 {% block extra_js %}
