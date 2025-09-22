@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "ویرایش اطلاعات Dongle" %}{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <div class="container-fluid">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-edit"></i> {% trans "ویرایش اطلاعات Dongle" %}
+            </h1>
+            <p class="page-subtitle">{% trans "ویرایش اطلاعات شرکت و تنظیمات dongle" %}</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-edit me-2"></i>{% trans "ویرایش اطلاعات" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.organization_name.id_for_label }}" class="form-label">
+                                    {{ form.organization_name.label }}
+                                </label>
+                                {{ form.organization_name }}
+                                {% if form.organization_name.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.organization_name.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.software_id.id_for_label }}" class="form-label">
+                                    {{ form.software_id.label }}
+                                </label>
+                                {{ form.software_id }}
+                                {% if form.software_id.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.software_id.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.expiry_date.id_for_label }}" class="form-label">
+                                    {{ form.expiry_date.label }}
+                                </label>
+                                {{ form.expiry_date }}
+                                {% if form.expiry_date.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.expiry_date.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> {% trans "ذخیره تغییرات" %}
+                                </button>
+                                
+                                <a href="{% url 'usb_key_validator:dongle_dashboard' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> {% trans "بازگشت" %}
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>{% trans "اطلاعات فعلی" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if signature_data %}
+                        <div class="mb-3">
+                            <strong>{% trans "شناسه دستگاه:" %}</strong><br>
+                            <code>{{ signature_data.device_id|default:"نامشخص" }}</code>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>{% trans "تاریخ ایجاد:" %}</strong><br>
+                            <span>{{ signature_data.created_at|default:"نامشخص" }}</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>{% trans "نسخه:" %}</strong><br>
+                            <span>{{ signature_data.version|default:"نامشخص" }}</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>{% trans "نوع:" %}</strong><br>
+                            <span class="badge bg-info">{{ signature_data.dongle_type|default:"قدیمی" }}</span>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            {% trans "اطلاعات dongle قابل خواندن نیست" %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>{% trans "هشدار" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">
+                            <i class="fas fa-info-circle"></i>
+                            {% trans "ویرایش اطلاعات dongle باعث بازنویسی سکتورها می‌شود. اطمینان حاصل کنید که dongle به درستی متصل است." %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

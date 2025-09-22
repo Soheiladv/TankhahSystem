@@ -145,11 +145,13 @@
                 <ul class="nav nav-tabs" role="tablist">
                     <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#items-tab-content"><i class="fas fa-list-alt me-2"></i>{% trans "اقلام فاکتور" %} <span class="badge rounded-pill bg-light text-dark ms-1">{{ factor.items.count |to_persian_number}}</span></button></li>
                     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#docs-tab-content"><i class="fas fa-paperclip me-2"></i>{% trans "اسناد پیوست" %} <span class="badge rounded-pill bg-light text-dark ms-1">{{ factor.documents.count |to_persian_number}}</span></button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#approval-path-tab-content"><i class="fas fa-route me-2"></i>{% trans "مسیر تأیید" %} <span class="badge rounded-pill bg-light text-dark ms-1">{{ path_stats.total_steps|to_persian_number }}</span></button></li>
                     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#history-tab-content"><i class="fas fa-history me-2"></i>{% trans "تاریخچه اقدامات" %} <span class="badge rounded-pill bg-light text-dark ms-1">{{ approval_logs.count|to_persian_number }}</span></button></li>
                 </ul>
                 <div class="tab-content">
                     <div class="tab-pane fade show active" id="items-tab-content" role="tabpanel">{% include 'tankhah/Factors/Detials/_factor_items_tab.html' %}</div>
                     <div class="tab-pane fade" id="docs-tab-content" role="tabpanel">{% include 'tankhah/Factors/Detials/_factor_documents_tab.html' %}</div>
+                    <div class="tab-pane fade" id="approval-path-tab-content" role="tabpanel">{% include 'tankhah/Factors/Detials/_factor_approval_path_tab.html' %}</div>
                     <div class="tab-pane fade" id="history-tab-content" role="tabpanel">{% include 'tankhah/Factors/Detials/_factor_history_tab.html' %}</div>
                 </div>
             </div>

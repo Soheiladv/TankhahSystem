@@ -157,7 +157,27 @@ class Post(models.Model):
     def get_absolute_url(self):
         return reverse('post_detail', kwargs={'pk': self.pk})
 
-    def save(self, *args, changed_by=None, **kwargs):
+    def clean(self):
+        """اعتبارسنجی مدل برای جلوگیری از حلقه دایره‌ای"""
+        super().clean()
+        
+        # بررسی حلقه دایره‌ای در سلسله مراتب
+        if self.parent:
+            # بررسی اینکه آیا این پست در سلسله والدین خود قرار دارد
+            current = self.parent
+            visited = set()
+            while current:
+                if current.pk == self.pk:
+                    raise ValidationError(_('نمی‌توان پستی را والد خود قرار داد (حلقه دایره‌ای)'))
+                if current.pk in visited:
+                    break  # جلوگیری از حلقه بی‌نهایت در بررسی
+                visited.add(current.pk)
+                current = current.parent
+
+    def save(self, *args, changed_by=None, update_children=True, **kwargs):
+        # اجرای اعتبارسنجی قبل از ذخیره
+        self.full_clean()
+        
         old_level = self.level if self.pk else None
         # محاسبه خودکار سطح بر اساس والد
         if self.parent:
@@ -169,7 +189,7 @@ class Post(models.Model):
             self.max_change_level = self.level
         super().save(*args, **kwargs)
         # ثبت تاریخچه تغییرات سطح
-        if old_level != self.level:
+        if old_level != self.level and changed_by is not None:
             PostHistory.objects.create(
                 post=self,
                 changed_field='level',
@@ -177,8 +197,9 @@ class Post(models.Model):
                 new_value=str(self.level),
                 changed_by=changed_by
             )
-        # به‌روزرسانی سطح فرزندان به‌صورت بازگشتی
-        self._update_children_levels(changed_by=changed_by)
+        # به‌روزرسانی سطح فرزندان به‌صورت بازگشتی (فقط اگر update_children=True باشد)
+        if update_children:
+            self._update_children_levels(changed_by=changed_by)
 
     def _update_children_levels(self, changed_by=None):
         """Recursively update levels of child posts."""
@@ -188,7 +209,8 @@ class Post(models.Model):
             child.level = self.level + 1
             if child.max_change_level < child.level:
                 child.max_change_level = child.level
-            child.save(changed_by=changed_by, update_fields=['level', 'max_change_level'])
+            # استفاده از update_children=False برای جلوگیری از بازگشت بی‌نهایت
+            child.save(changed_by=changed_by, update_fields=['level', 'max_change_level'], update_children=False)
 
     def get_active_users(self):
         """
@@ -198,6 +220,21 @@ class Post(models.Model):
             userpost__post=self,
             userpost__is_active=True
         )
+    
+    @property
+    def active_users_count(self):
+        """تعداد کاربران فعال در این پست"""
+        return self.userpost_set.filter(is_active=True).count()
+    
+    @property
+    def inactive_users_count(self):
+        """تعداد کاربران غیرفعال در این پست"""
+        return self.userpost_set.filter(is_active=False).count()
+    
+    @property
+    def active_user_posts(self):
+        """لیست کاربران فعال در این پست"""
+        return self.userpost_set.filter(is_active=True)
     class Meta:
         verbose_name = _("پست سازمانی")
         verbose_name_plural = _("پست‌های سازمانی")
@@ -218,7 +255,7 @@ class UserPost(models.Model):
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
 
     class Meta:
-        unique_together = ('user', 'post')
+        # Removed unique_together constraint to allow multiple connections with different date ranges
         verbose_name = _("اتصال کاربر به پست")
         verbose_name_plural = _("اتصالات کاربر به پست‌ها")
 
@@ -562,6 +599,78 @@ class Transition(models.Model):
         indexes = [
             models.Index(fields=['entity_type', 'organization', 'from_status', 'is_active']),
         ]
+#####################################################
+class PostRuleAssignment(models.Model):
+    """
+    تخصیص قوانین به پست‌ها
+    """
+    ENTITY_TYPES = (
+        ('TANKHAH', _('تنخواه')),
+        ('FACTOR', _('فاکتور')),
+        ('PAYMENTORDER', _('دستور پرداخت')),
+    )
+
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name=_("پست"))
+    action = models.ForeignKey(Action, on_delete=models.CASCADE, verbose_name=_("اقدام"))
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, verbose_name=_("سازمان"))
+    # rule_template = models.ForeignKey('WorkflowRuleTemplate', on_delete=models.CASCADE, null=True, blank=True, verbose_name=_("تمپلیت قانون"))  # حذف شده
+    entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, default='TANKHAH',
+                                   verbose_name=_("نوع موجودیت"))
+    custom_settings = models.JSONField(blank=True, null=True, verbose_name=_("تنظیمات سفارشی"))
+    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, verbose_name=_("ایجادکننده"))
+
+    class Meta:
+        verbose_name = _("تخصیص قانون به پست")
+        verbose_name_plural = _("تخصیص‌های قانون به پست‌ها")
+        unique_together = ('post', 'action', 'organization', 'entity_type')
+        default_permissions = ()
+        permissions = [
+            ('PostRuleAssignment_add', 'افزودن تخصیص قانون به پست'),
+            ('PostRuleAssignment_view', 'نمایش تخصیص قانون به پست'),
+            ('PostRuleAssignment_update', 'ویرایش تخصیص قانون به پست'),
+            ('PostRuleAssignment_delete', 'حذف تخصیص قانون به پست'),
+        ]
+
+    def __str__(self):
+        return f"{self.post.name} - {self.action.name} ({self.organization.name})"
+class UserRuleOverride(models.Model):
+    """
+    فعال/غیرفعال کردن قانون برای کاربر مشخص
+
+    اگر رکوردی برای کاربر/اقدام/سازمان/نوع‌موجودیت وجود داشته باشد و is_enabled=False باشد،
+    دسترسی آن قانون برای کاربر مسدود می‌شود. اگر True باشد، به‌صورت صریح فعال می‌شود (ارزش آن زمانی است
+    که قانون پستی غیرفعال شده ولی برای کاربر خاص بخواهیم اجازه بدهیم).
+    """
+    user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, verbose_name=_("کاربر"))
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, verbose_name=_("سازمان"))
+    action = models.ForeignKey(Action, on_delete=models.CASCADE, verbose_name=_("اقدام"))
+    entity_type = models.ForeignKey(EntityType, on_delete=models.CASCADE, verbose_name=_("نوع موجودیت"))
+    post = models.ForeignKey(Post, null=True, blank=True, on_delete=models.CASCADE, verbose_name=_("پست (اختیاری)"))
+    is_enabled = models.BooleanField(default=True, verbose_name=_("فعال برای کاربر"))
+    notes = models.CharField(max_length=255, blank=True, verbose_name=_("یادداشت"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("تاریخ به‌روزرسانی"))
+
+    class Meta:
+        verbose_name = _("فعال/غیرفعال قانون برای کاربر")
+        verbose_name_plural = _("فعال/غیرفعال قوانین برای کاربران")
+        default_permissions = ()
+        permissions = [
+            ('UserRuleOverride_add', 'افزودن فعال/غیرفعال قانون برای کاربر'),
+            ('UserRuleOverride_view', 'نمایش فعال/غیرفعال قانون برای کاربر'),
+            ('UserRuleOverride_update', 'ویرایش فعال/غیرفعال قانون برای کاربر'),
+            ('UserRuleOverride_delete', 'حذف فعال/غیرفعال قانون برای کاربر'),
+        ]
+        unique_together = (
+            ('user', 'organization', 'action', 'entity_type', 'post'),
+        )
+
+    def __str__(self):
+        post_name = self.post.name if self.post else _('همه پست‌های کاربر')
+        state = '✅' if self.is_enabled else '⛔'
+        return f"{state} {self.user.username} / {self.action.code} / {self.entity_type.code} @ {self.organization.code} ({post_name})"
 ##################################################### ##########################################
 class SystemSettings(models.Model):
     budget_locked_percentage_default = models.DecimalField(        max_digits=5, decimal_places=2, default=0, verbose_name=_("درصد قفل‌شده پیش‌فرض بودجه"))
@@ -630,7 +739,7 @@ class OrganizationChartView(models.Model):
             ('OrganizationChartView_view', '   دسترسی به گرافیک داشبورد چارت سازمانی 💻'),
 
         ]
-
+#############################################################
 # WorkflowStage مدل حذف شده است - از Transition استفاده می‌شود
 # AccessRule مدل حذف شده است
 
@@ -767,37 +876,3 @@ class OrganizationChartView(models.Model):
 #             return False
 
 
-class PostRuleAssignment(models.Model):
-    """
-    تخصیص قوانین به پست‌ها
-    """
-    ENTITY_TYPES = (
-        ('TANKHAH', _('تنخواه')),
-        ('FACTOR', _('فاکتور')),
-        ('PAYMENTORDER', _('دستور پرداخت')),
-    )
-    
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, verbose_name=_("پست"))
-    action = models.ForeignKey(Action, on_delete=models.CASCADE, verbose_name=_("اقدام"))
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, verbose_name=_("سازمان"))
-    # rule_template = models.ForeignKey('WorkflowRuleTemplate', on_delete=models.CASCADE, null=True, blank=True, verbose_name=_("تمپلیت قانون"))  # حذف شده
-    entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES, default='TANKHAH', verbose_name=_("نوع موجودیت"))
-    custom_settings = models.JSONField(blank=True, null=True, verbose_name=_("تنظیمات سفارشی"))
-    is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("تاریخ ایجاد"))
-    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, verbose_name=_("ایجادکننده"))
-    
-    class Meta:
-        verbose_name = _("تخصیص قانون به پست")
-        verbose_name_plural = _("تخصیص‌های قانون به پست‌ها")
-        unique_together = ('post', 'action', 'organization')
-        default_permissions = ()
-        permissions = [
-            ('PostRuleAssignment_add', 'افزودن تخصیص قانون به پست'),
-            ('PostRuleAssignment_view', 'نمایش تخصیص قانون به پست'),
-            ('PostRuleAssignment_update', 'ویرایش تخصیص قانون به پست'),
-            ('PostRuleAssignment_delete', 'حذف تخصیص قانون به پست'),
-        ]
-    
-    def __str__(self):
-        return f"{self.post.name} - {self.action.name} ({self.organization.name})"

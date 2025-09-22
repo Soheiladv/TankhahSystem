@@ -1,0 +1,666 @@
+{% extends "base.html" %}
+{% load jformat static i18n %}
+{% load rcms_custom_filters %}
+
+{% block title %}{% trans "مدیریت پشتیبان‌گیری" %}{% endblock %}
+
+
+{% block content %}
+<div class="backup-container">
+    <!-- هدر صفحه -->
+    <div class="page-header">
+        <div class="d-flex align-items-center gap-3">
+            <i class="fas fa-database fa-2x"></i>
+            <div>
+                <h1 class="mb-1">{% trans "مدیریت پشتیبان‌گیری" %}</h1>
+                <p class="mb-0 opacity-75">مدیریت و کنترل فایل‌های پشتیبان سیستم</p>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" role="alert">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                    <span>{{ message }}</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- آمار کلی -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.total_files |format_negative }}</div>
+            <div class="stat-label">تعداد کل فایل‌ها</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.total_size_mb|floatformat:2 |format_negative }}</div>
+            <div class="stat-label">مگابایت حجم کل</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.main_files |format_negative }}</div>
+            <div class="stat-label">فایل‌های اصلی</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.logs_files|format_negative  }}</div>
+            <div class="stat-label">فایل‌های لاگ</div>
+        </div>
+    </div>
+
+    <!-- اطلاعات فضای دیسک -->
+   <!-- اطلاعات فضای دیسک -->
+<div class="disk-section">
+    <div class="section-header">
+        <i class="fas fa-hdd"></i>
+        <h3>اطلاعات فضای دیسک</h3>
+    </div>
+
+    <div class="disk-grid">
+        <!-- مسیر پشتیبان‌گیری -->
+        <div class="disk-card">
+            <div class="card-icon">
+                <i class="fas fa-folder"></i>
+            </div>
+            <div class="card-content">
+                <span class="card-label">مسیر پشتیبان‌گیری</span>
+                <span class="card-value" title="{{ disk_info.backup_dir }}">
+                    {{ disk_info.backup_dir|truncatechars:40 }}
+                </span>
+            </div>
+        </div>
+
+        <!-- فضای کل دیسک -->
+        <div class="disk-card">
+            <div class="card-icon">
+                <i class="fas fa-database"></i>
+            </div>
+            <div class="card-content">
+                <span class="card-label">فضای کل دیسک</span>
+                <span class="card-value">{{ disk_info.total_space|format_bytes }}</span>
+            </div>
+        </div>
+
+        <!-- فضای استفاده شده -->
+        <div class="disk-card">
+            <div class="card-icon">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <div class="card-content">
+                <span class="card-label">فضای استفاده شده</span>
+                <span class="card-value">{{ disk_info.used_space|format_bytes }}</span>
+                {% if disk_info.total_space > 0 %}
+                    {% widthratio disk_info.used_space disk_info.total_space 100 as usage_percent %}
+                    <div class="usage-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ usage_percent }}%"></div>
+                        </div>
+                        <div class="progress-text">{{ usage_percent|floatformat:1 }}% پر شده</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- فضای آزاد -->
+        <div class="disk-card">
+            <div class="card-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="card-content">
+                <span class="card-label">فضای آزاد</span>
+                <span class="card-value">{{ disk_info.free_space|format_bytes }}</span>
+                {% if disk_info.total_space > 0 %}
+                    {% widthratio disk_info.free_space disk_info.total_space 100 as free_percent %}
+                    <div class="free-space-text">{{ free_percent|floatformat:1 }}% آزاد</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- آمار اسکچول‌ها -->
+    <div class="schedule-stats-section">
+        <div class="section-header">
+            <i class="fas fa-clock"></i>
+            <h3>آمار اسکچول‌های پشتیبان‌گیری</h3>
+        </div>
+
+        <div class="schedule-stats-grid">
+            <div class="schedule-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-list"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ schedule_stats.total_schedules|default:0 }}</span>
+                    <span class="stat-label">کل اسکچول‌ها</span>
+                </div>
+            </div>
+            <div class="schedule-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-play"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ schedule_stats.active_schedules|default:0 }}</span>
+                    <span class="stat-label">اسکچول‌های فعال</span>
+                </div>
+            </div>
+            <div class="schedule-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ schedule_stats.pending_schedules|default:0 }}</span>
+                    <span class="stat-label">در انتظار اجرا</span>
+                </div>
+            </div>
+            <div class="schedule-stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ schedule_stats.total_logs|default:0 }}</span>
+                    <span class="stat-label">کل اجراها</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+<style>
+.disk-section {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    margin: 24px 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #eaeaea;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.section-header i {
+    font-size: 24px;
+    color: #6366f1;
+    background: #eff6ff;
+    padding: 12px;
+    border-radius: 12px;
+}
+
+.section-header h3 {
+    margin: 0;
+    color: #1f2937;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.disk-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.disk-card {
+    background: #fafafa;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.3s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.disk-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    background: #ffffff;
+}
+
+.card-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.card-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.card-label {
+    display: block;
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.card-value {
+    display: block;
+    color: #1f2937;
+    font-size: 16px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.usage-progress {
+    margin-top: 12px;
+}
+
+.progress-bar {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981 0%, #22c55e 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 12px;
+    color: #6b7280;
+    text-align: left;
+}
+
+.free-space-text {
+    font-size: 12px;
+    color: #10b981;
+    font-weight: 500;
+    margin-top: 4px;
+}
+
+/* رسپانسیو برای موبایل */
+@media (max-width: 768px) {
+    .disk-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .disk-card {
+        padding: 16px;
+    }
+
+    .card-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 18px;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .section-header i {
+        align-self: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .disk-section {
+        padding: 16px;
+        margin: 16px 0;
+    }
+
+    .disk-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+
+    .card-content {
+        width: 100%;
+    }
+}
+
+/* استایل‌های آمار اسکچول‌ها */
+.schedule-stats-section {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.schedule-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.schedule-stat-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.schedule-stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.schedule-stat-card .stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.schedule-stat-card .stat-content {
+    flex: 1;
+}
+
+.schedule-stat-card .stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333;
+    line-height: 1;
+}
+
+.schedule-stat-card .stat-label {
+    display: block;
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 0.25rem;
+}
+
+/* استایل‌های راهنمای سریع */
+.quick-guide-section {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.guide-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.guide-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.guide-card .guide-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: white;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    margin: 0 auto;
+}
+
+.guide-card .guide-content {
+    text-align: center;
+    flex: 1;
+}
+
+.guide-card .guide-content h5 {
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.guide-card .guide-content p {
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.guide-card .guide-content .btn {
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+</style>
+
+    <!-- دکمه‌های عملیات -->
+    <div class="action-buttons">
+        <a href="{% url 'backup:create' %}" class="btn btn-primary btn-action">
+            <i class="fas fa-plus"></i>
+            ایجاد پشتیبان‌گیری جدید
+        </a>
+        <a href="{% url 'backup:mysql' %}" class="btn btn-success btn-action">
+            <i class="fas fa-database"></i>
+            MySQL استاندارد
+        </a>
+                     <a href="{% url 'backup:schedule_list' %}" class="btn btn-info btn-action">
+                         <i class="fas fa-clock"></i>
+                         مدیریت اسکچول‌ها
+                     </a>
+                     <a href="{% url 'backup:locations_list' %}" class="btn btn-outline-info btn-action">
+                         <i class="fas fa-folder-network"></i>
+                         مدیریت مسیرها
+                     </a>
+        <a href="{% url 'backup:schedule_logs' %}" class="btn btn-warning btn-action">
+            <i class="fas fa-history"></i>
+            مشاهده لاگ‌ها
+        </a>
+        <a href="{% url 'backup:schedule_test' %}" class="btn btn-outline-warning btn-action">
+            <i class="fas fa-vial"></i>
+            تست سیستم
+        </a>
+        <a href="/admin/" class="btn btn-outline-secondary btn-action">
+            <i class="fas fa-arrow-left"></i>
+            بازگشت به ادمین
+        </a>
+    </div>
+
+    <!-- جدول فایل‌ها -->
+    <div class="file-table-container">
+        <div class="table-header">
+            <h4 class="mb-0">فایل‌های پشتیبان</h4>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ردیف</th>
+                        <th>نام فایل</th>
+                        <th>نوع</th>
+                        <th>حجم</th>
+                        <th>تاریخ ایجاد</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in files %}
+                    <tr>
+                    <td>{{ forloop.counter|format_negative }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fas fa-file-{% if '.encrypted' in file.file_name %}lock text-warning{% elif '.json' in file.file_name %}code text-info{% else %}database text-success{% endif %}"></i>
+                                <span class="text-truncate" style="max-width: 200px;" title="{{ file.file_name }}">
+                                    {{ file.file_name }}
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if '.encrypted' in file.file_name %}warning{% elif '.json' in file.file_name %}info{% else %}success{% endif %}">
+                                {{ file.file_type }}
+                            </span>
+                        </td>
+                        <td>{{ file.file_size_mb|floatformat:2 }} MB</td>
+                        <td>🗓️{{ file.file_date|jformat:"%Y/%m/%d" |to_persian_number }}  ⌚{{  file.file_date|date:"H:i" |to_persian_number}}</td>
+                        <td>
+                            <div class="file-actions">
+                                <a href="/backups/{{ file.file_name }}" class="btn btn-info btn-sm" download>
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                <a href="{% url 'backup:restore' file.file_name %}" class="btn btn-warning btn-sm"
+                                   onclick="return confirm('آیا مطمئن هستید که می‌خواهید این فایل را بازگردانی کنید؟')">
+                                    <i class="fas fa-undo"></i>
+                                </a>
+                                {% if '.encrypted' not in file.file_name %}
+                                <button class="btn btn-outline-warning btn-sm" 
+                                        onclick="toggleEncryptForm('encrypt-form-{{ forloop.counter }}')">
+                                    <i class="fas fa-lock"></i>
+                                </button>
+                                {% endif %}
+                                <a href="{% url 'backup:delete' file.file_name %}" class="btn btn-danger btn-sm"
+                                   onclick="return confirm('آیا مطمئن هستید که می‌خواهید این فایل را حذف کنید؟')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                            
+                            {% if '.encrypted' not in file.file_name %}
+                            <div id="encrypt-form-{{ forloop.counter }}" class="encrypt-form mt-2" style="display: none;">
+                                <form method="post" action="{% url 'backup:encrypt' file.file_name %}">
+                                    {% csrf_token %}
+                                    <input type="password" name="password" placeholder="رمز عبور" required
+                                           class="form-control form-control-sm">
+                                    <button type="submit" class="btn btn-warning btn-sm">
+                                        تایید
+                                    </button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p>هیچ فایل پشتیبانی یافت نشد</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- راهنمای سریع اسکچول‌ها -->
+    <div class="quick-guide-section">
+        <div class="section-header">
+            <i class="fas fa-lightbulb"></i>
+            <h3>راهنمای سریع اسکچول‌های پشتیبان‌گیری</h3>
+        </div>
+
+        <div class="guide-grid">
+            <div class="guide-card">
+                <div class="guide-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="guide-content">
+                    <h5>ایجاد اسکچول</h5>
+                    <p>برای ایجاد اسکچول جدید، روی "مدیریت اسکچول‌ها" کلیک کنید و سپس "ایجاد اسکچول جدید" را انتخاب کنید.</p>
+                    <a href="{% url 'backup:schedule_create' %}" class="btn btn-sm btn-primary">ایجاد اسکچول</a>
+                </div>
+            </div>
+
+            <div class="guide-card">
+                <div class="guide-icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <div class="guide-content">
+                    <h5>مشاهده لاگ‌ها</h5>
+                    <p>برای مشاهده تاریخچه اجرای اسکچول‌ها و بررسی وضعیت پشتیبان‌گیری‌ها، روی "مشاهده لاگ‌ها" کلیک کنید.</p>
+                    <a href="{% url 'backup:schedule_logs' %}" class="btn btn-sm btn-info">مشاهده لاگ‌ها</a>
+                </div>
+            </div>
+
+            <div class="guide-card">
+                <div class="guide-icon">
+                    <i class="fas fa-vial"></i>
+                </div>
+                <div class="guide-content">
+                    <h5>تست سیستم</h5>
+                    <p>برای تست عملکرد سیستم پشتیبان‌گیری و اجرای اسکچول‌های آماده، روی "تست سیستم" کلیک کنید.</p>
+                    <a href="{% url 'backup:schedule_test' %}" class="btn btn-sm btn-warning">تست سیستم</a>
+                </div>
+            </div>
+
+            <div class="guide-card">
+                <div class="guide-icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="guide-content">
+                    <h5>تنظیمات</h5>
+                    <p>برای تنظیم cron و اجرای خودکار اسکچول‌ها، از پنل ادمین یا تنظیمات سیستم استفاده کنید.</p>
+                    <a href="/admin/notificationApp/backupschedule/" class="btn btn-sm btn-secondary">پنل ادمین</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleEncryptForm(formId) {
+    const form = document.getElementById(formId);
+    form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+}
+
+// نمایش پیشرفت بارگذاری
+document.addEventListener('DOMContentLoaded', function() {
+    const alertElements = document.querySelectorAll('.alert');
+    alertElements.forEach(alert => {
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 5000);
+    });
+});
+</script>
+{% endblock %}

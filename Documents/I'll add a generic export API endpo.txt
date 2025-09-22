@@ -1,0 +1,28 @@
+I'll add a generic export API endpoint that can export any model's queryset to Excel, CSV, JSON, or PDF, with Persian comments and safe filtering. I'll create a new `core/views_export.py`, wire a URL in `budgets/urls.py`, and handle dependencies gracefully (pandas/openpyxl for xlsx, weasyprint fallback). Then you can call it from any form.
+
+[1 tool called]
+
+I'll create a new core/views_export.py with the generic export API and update budgets/urls.py to route to it. Then I'll ensure CSV/JSON work without extra deps and try to use pandas/openpyxl and weasyprint if available.
+
+[4 tools called]
+
+- API خروجی‌گیری عمومی اضافه شد:
+  - مسیر: GET /budgets/api/export/
+  - پارامترها: app, model, format(csv|xlsx|json|pdf), filename, fields, filters(JSON), order_by
+  - CSV/JSON همیشه فعال؛ XLSX نیاز به pandas+openpyxl؛ PDF نیاز به WeasyPrint
+  - امن‌سازی فیلترها روی فیلدهای مستقیم مدل
+  - لاگ کامل عملیات در سرور
+
+نمونه فراخوانی‌ها:
+- CSV از دستور پرداخت‌ها:
+  - /budgets/api/export/?app=budgets&model=PaymentOrder&format=csv&fields=order_number,amount,status_id&order_by=-created_at
+- XLSX با فیلتر سازمان:
+  - /budgets/api/export/?app=budgets&model=PaymentOrder&format=xlsx&filters={"organization_id":1}
+- JSON:
+  - /budgets/api/export/?app=budgets&model=PaymentOrder&format=json
+- PDF:
+  - /budgets/api/export/?app=budgets&model=PaymentOrder&format=pdf&fields=order_number,amount,status_id
+
+نکته:
+- برای PDF، تمپلیت `templates/core/export_pdf.html` اضافه شد. اگر فونت فارسی لازم داشتی، لینک فونت دلخواه را اضافه می‌کنیم.
+- می‌خواهی این API را برای خروجی گرفتن مستقیم از همان فرم تایید هم دکمه بگذارم؟ بگو تا لینک‌های آماده (CSV/PDF/XLSX) را در `approval_form.html` اضافه کنم.

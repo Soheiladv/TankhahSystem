@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django_jalali.admin.filters import JDateFieldListFilter
 from core.models import Organization, OrganizationType, Project, Post, UserPost, PostHistory, \
-    SystemSettings, Branch, Transition, Action, EntityType, Status
+    SystemSettings, Branch, Transition, Action, EntityType, Status, PostAction, PostRuleAssignment, UserRuleOverride
 
 # AccessRule و WorkflowStage حذف شده‌اند - از Transition, Action, EntityType, Status استفاده می‌شود
 
@@ -81,6 +81,14 @@ class StatusAdmin(admin.ModelAdmin):
     list_filter = ('is_initial', 'is_final_approve', 'is_final_reject', 'is_active')
     search_fields = ('name', 'code', 'description')
 
+@admin.register(PostAction)
+class PostActionAdmin(admin.ModelAdmin):
+    list_display = ('post', 'stage', 'action_type', 'entity_type', 'is_active')
+    list_filter = ('stage', 'action_type', 'entity_type', 'is_active', 'post__organization')
+    search_fields = ('post__name', 'stage__name', 'action_type')
+    autocomplete_fields = ('post', 'stage')
+    ordering = ('post__organization', 'post__name', 'stage__name')
+
 @admin.register(SystemSettings)
 class SystemSettingsAdmin(admin.ModelAdmin):
     list_display = ('budget_locked_percentage_default', 'budget_warning_threshold_default', 'budget_warning_action_default')
@@ -97,3 +105,18 @@ class SystemSettingsAdmin(admin.ModelAdmin):
     )
 
 # ثبت مدل‌ها - SystemSettings قبلاً با @admin.register ثبت شده است
+
+@admin.register(PostRuleAssignment)
+class PostRuleAssignmentAdmin(admin.ModelAdmin):
+    list_display = ('post', 'action', 'organization', 'entity_type', 'is_active')
+    list_filter = ('organization', 'entity_type', 'is_active', 'action')
+    search_fields = ('post__name', 'organization__name', 'action__name')
+    autocomplete_fields = ('post', 'action', 'organization')
+
+
+@admin.register(UserRuleOverride)
+class UserRuleOverrideAdmin(admin.ModelAdmin):
+    list_display = ('user', 'organization', 'action', 'entity_type', 'post', 'is_enabled', 'updated_at')
+    list_filter = ('organization', 'entity_type', 'is_enabled', 'action')
+    search_fields = ('user__username', 'organization__name', 'action__code', 'entity_type__code', 'post__name')
+    autocomplete_fields = ('user', 'organization', 'action', 'entity_type', 'post')

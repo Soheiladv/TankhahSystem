@@ -1,120 +1,456 @@
 {% extends 'base.html' %}
 {% load static i18n rcms_custom_filters %}
 
+{% block title %}{% trans "لیست پست‌های سازمانی" %}{% endblock %}
+
 {% block content %}
     <div class="container-fluid py-4">
         <div class="row">
             <div class="col-12">
-                <div class="card animate__animated animate__fadeInDown"> {# Card entrance animation #}
-                    <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-center bg-light py-3">
-                        <h4 class="mb-2 mb-md-0 text-primary">{% trans "لیست پست‌های سازمانی" %}</h4>
-
-                        <div class="d-flex flex-column flex-md-row align-items-center w-100 w-md-auto">
-                            {# Search Form #}
-                            <form method="GET" class="d-flex me-md-2 mb-2 mb-md-0 w-100 w-md-auto">
-                                <input type="search" name="q" class="form-control form-control-sm me-2"
-                                       placeholder="{% trans 'جستجو...' %}" value="{{ search_query|default:'' }}"
-                                       aria-label="{% trans 'جستجو در پست‌ها' %}">
-                                <input type="hidden" name="sort" value="{{ current_sort }}"> {# Preserve current sort #}
-                                <button class="btn btn-outline-primary btn-sm" type="submit">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </form>
-
-                            {# Sort Buttons #}
-                            <div class="btn-group btn-group-sm me-md-2 mb-2 mb-md-0" role="group"
-                                 aria-label="{% trans 'مرتب‌سازی' %}">
-                                <a href="?sort=asc{% if search_query %}&q={{ search_query }}{% endif %}"
-                                   class="btn {% if current_sort == 'asc' %}btn-primary{% else %}btn-outline-primary{% endif %}"
-                                   data-bs-toggle="tooltip" title="{% trans 'مرتب‌سازی صعودی بر اساس سطح' %}">
-                                    <i class="fas fa-sort-numeric-up"></i> {% trans "سطح صعودی" %}
-                                </a>
-                                <a href="?sort=desc{% if search_query %}&q={{ search_query }}{% endif %}"
-                                   class="btn {% if current_sort == 'desc' %}btn-primary{% else %}btn-outline-primary{% endif %}"
-                                   data-bs-toggle="tooltip" title="{% trans 'مرتب‌سازی نزولی بر اساس سطح' %}">
-                                    <i class="fas fa-sort-numeric-down"></i> {% trans "سطح نزولی" %}
-                                </a>
-                            </div>
-
-                            {# Add New Post Button #}
+            <!-- Header Card -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-gradient-primary text-white py-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h4 class="mb-0">
+                                <i class="fas fa-sitemap me-2"></i>
+                                {% trans "لیست پست‌های سازمانی" %}
+                            </h4>
+                        </div>
+                        <div class="col-md-6 text-md-end">
                             {% if perms.core.Post_add %}
-                                <a href="{% url 'post_create' %}" class="btn btn-success btn-sm w-100 w-md-auto">
-                                    <i class="fas fa-plus me-1"></i> {% trans "پست جدید" %}
+                                <a href="{% url 'post_create' %}" class="btn btn-light btn-sm">
+                                    <i class="fas fa-plus me-1"></i>
+                                    {% trans "پست جدید" %}
                                 </a>
                             {% endif %}
                         </div>
                     </div>
-                    <div class="card-body">
+                </div>
+                
+                <!-- Search and Filter Section -->
+                <div class="card-body bg-light">
+                    <div class="row g-3">
+                        <!-- Search Box -->
+                        <div class="col-lg-4 col-md-6">
+                            <form method="GET" class="d-flex">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <i class="fas fa-search text-muted"></i>
+                                    </span>
+                                    <input type="search" name="q" class="form-control border-start-0" 
+                                           placeholder="{% trans 'جستجو در پست‌ها...' %}" 
+                                           value="{{ search_query|default:'' }}"
+                                       aria-label="{% trans 'جستجو در پست‌ها' %}">
+                                    <input type="hidden" name="sort" value="{{ current_sort }}">
+                                    <button class="btn btn-primary" type="submit">
+                                        {% trans "جستجو" %}
+                                </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Simple Filter Row -->
+                        <div class="col-12">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-filter me-2"></i>
+                                        {% trans "فیلترها" %}
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <form method="GET" id="filterForm">
+                                        <!-- Preserve search and sort parameters -->
+                                        <input type="hidden" name="q" value="{{ search_query|default:'' }}">
+                                        <input type="hidden" name="sort" value="{{ current_sort }}">
+                                        <input type="hidden" name="organization" value="{{ current_organization|default:'' }}">
+                                        <input type="hidden" name="branch" value="{{ current_branch|default:'' }}">
+                                        
+                                        <div class="row g-3">
+                                            <!-- Organization Filter -->
+                                            <div class="col-md-3">
+                                                <label for="organization" class="form-label">
+                                                    <i class="fas fa-sitemap me-1"></i>
+                                                    {% trans "سازمان" %}
+                                                </label>
+                                                <select name="organization" id="organization" class="form-select form-select-sm">
+                                                    <option value="">{% trans "همه سازمان‌ها" %}</option>
+                                                    {% for org in organizations %}
+                                                        <option value="{{ org.id }}" 
+                                                                {% if current_organization == org.id|stringformat:"s" %}selected{% endif %}>
+                                                            {{ org.name }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                            <!-- Branch Filter -->
+                                            <div class="col-md-3">
+                                                <label for="branch" class="form-label">
+                                                    <i class="fas fa-building me-1"></i>
+                                                    {% trans "شاخه" %}
+                                                </label>
+                                                <select name="branch" id="branch" class="form-select form-select-sm">
+                                                    <option value="">{% trans "همه شاخه‌ها" %}</option>
+                                                    {% for branch in branches %}
+                                                        <option value="{{ branch.id }}" 
+                                                                {% if current_branch == branch.id|stringformat:"s" %}selected{% endif %}>
+                                                            {{ branch.name }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                            <!-- Level Filter -->
+                                            <div class="col-md-2">
+                                                <label for="level" class="form-label">
+                                                    <i class="fas fa-layer-group me-1"></i>
+                                                    {% trans "سطح" %}
+                                                </label>
+                                                <select name="level" id="level" class="form-select form-select-sm">
+                                                    <option value="">{% trans "همه" %}</option>
+                                                    {% for level in levels %}
+                                                        <option value="{{ level }}" 
+                                                                {% if current_level == level|stringformat:"s" %}selected{% endif %}>
+                                                            {{ level }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                            <!-- Status Filter -->
+                                            <div class="col-md-2">
+                                                <label for="status" class="form-label">
+                                                    <i class="fas fa-toggle-on me-1"></i>
+                                                    {% trans "وضعیت" %}
+                                                </label>
+                                                <select name="status" id="status" class="form-select form-select-sm">
+                                                    <option value="">{% trans "همه" %}</option>
+                                                    <option value="active" {% if current_status == 'active' %}selected{% endif %}>
+                                                        {% trans "فعال" %}
+                                                    </option>
+                                                    <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>
+                                                        {% trans "غیرفعال" %}
+                                                    </option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Approval Filters -->
+                                            <div class="col-md-3">
+                                                <label class="form-label">
+                                                    <i class="fas fa-check-double me-1"></i>
+                                                    {% trans "تایید نهایی" %}
+                                                </label>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="budget_approval" 
+                                                               value="true" id="budget_approval" 
+                                                               {% if current_budget_approval == 'true' %}checked{% endif %}>
+                                                        <label class="form-check-label small" for="budget_approval">
+                                                            {% trans "بودجه" %}
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="factor_approval" 
+                                                               value="true" id="factor_approval" 
+                                                               {% if current_factor_approval == 'true' %}checked{% endif %}>
+                                                        <label class="form-check-label small" for="factor_approval">
+                                                            {% trans "فاکتور" %}
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="tankhah_approval" 
+                                                               value="true" id="tankhah_approval" 
+                                                               {% if current_tankhah_approval == 'true' %}checked{% endif %}>
+                                                        <label class="form-check-label small" for="tankhah_approval">
+                                                            {% trans "تنخواه" %}
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Action Buttons -->
+                                            <div class="col-md-2">
+                                                <label class="form-label">&nbsp;</label>
+                                                <div class="d-flex gap-1">
+                                                    <button type="submit" class="btn btn-primary btn-sm flex-fill">
+                                                        <i class="fas fa-filter me-1"></i>
+                                                        {% trans "اعمال" %}
+                                                    </button>
+                                                    <a href="{% url 'post_list' %}" class="btn btn-outline-secondary btn-sm">
+                                                        <i class="fas fa-times"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sort Buttons -->
+                        <div class="col-lg-5 col-md-12">
+                            <div class="btn-group w-100" role="group" aria-label="{% trans 'مرتب‌سازی' %}">
+                                <a href="?sort=asc{% if search_query %}&q={{ search_query }}{% endif %}{% if current_branch %}&branch={{ current_branch }}{% endif %}{% if current_level %}&level={{ current_level }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_budget_approval %}&budget_approval={{ current_budget_approval }}{% endif %}{% if current_factor_approval %}&factor_approval={{ current_factor_approval }}{% endif %}{% if current_tankhah_approval %}&tankhah_approval={{ current_tankhah_approval }}{% endif %}"
+                                   class="btn {% if current_sort == 'asc' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                    <i class="fas fa-sort-numeric-up me-1"></i>
+                                    {% trans "سطح صعودی" %}
+                                </a>
+                                <a href="?sort=desc{% if search_query %}&q={{ search_query }}{% endif %}{% if current_branch %}&branch={{ current_branch }}{% endif %}{% if current_level %}&level={{ current_level }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_budget_approval %}&budget_approval={{ current_budget_approval }}{% endif %}{% if current_factor_approval %}&factor_approval={{ current_factor_approval }}{% endif %}{% if current_tankhah_approval %}&tankhah_approval={{ current_tankhah_approval }}{% endif %}"
+                                   class="btn {% if current_sort == 'desc' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                    <i class="fas fa-sort-numeric-down me-1"></i>
+                                    {% trans "سطح نزولی" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Table Card -->
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover table-striped align-middle">
+                        <table class="table table-hover align-middle mb-0">
                                 <thead class="table-dark">
                                 <tr>
-                                    <th width="5%">#</th>
-                                    <th>{% trans "نام پست" %}</th>
-                                    <th>{% trans "سازمان" %}</th>
-                                    <th>{% trans "شاخه" %}</th>
-                                    <th>{% trans "سطح" %}</th>
-                                    <th>{% trans "وضعیت" %}</th>
-                                    <th>{% trans "تایید نهایی" %}</th>
-                                    <th width="15%">{% trans "عملیات" %}</th>
+                                    <th width="5%" class="text-center">
+                                        <i class="fas fa-hashtag"></i>
+                                    </th>
+                                    <th>
+                                        <i class="fas fa-sitemap me-1"></i>
+                                        {% trans "نام پست" %}
+                                    </th>
+                                    <th>
+                                        <i class="fas fa-building me-1"></i>
+                                        {% trans "سازمان" %}
+                                    </th>
+                                    <th>
+                                        <i class="fas fa-code-branch me-1"></i>
+                                        {% trans "شاخه" %}
+                                    </th>
+                                    <th class="text-center">
+                                        <i class="fas fa-layer-group me-1"></i>
+                                        {% trans "سطح" %}
+                                    </th>
+                                    <th class="text-center">
+                                        <i class="fas fa-toggle-on me-1"></i>
+                                        {% trans "وضعیت" %}
+                                    </th>
+                                    <th class="text-center">
+                                        <i class="fas fa-check-double me-1"></i>
+                                        {% trans "تایید نهایی" %}
+                                    </th>
+                                    <th class="text-center">
+                                        <i class="fas fa-child me-1"></i>
+                                        {% trans "فرزندان" %}
+                                    </th>
+                                    <th class="text-center">
+                                        <i class="fas fa-users me-1"></i>
+                                        {% trans "کاربران فعال" %}
+                                    </th>
+                                    <th width="15%" class="text-center">
+                                        <i class="fas fa-cogs me-1"></i>
+                                        {% trans "عملیات" %}
+                                    </th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {% for post in posts %} {# Use context_object_name 'posts' #}
-                                    <tr class="animate__animated animate__fadeInUp"
-                                        style="animation-delay: {{ forloop.counter0 | multiply:0.05 }}s;">
-                                        <td>{{ forloop.counter|to_persian_number }}</td>
-                                        <td>{{ post.name }}</td>
-                                        <td>{{ post.organization.name }}</td>
-                                        <td>{{ post.branch.name|default:"-" }}</td>
-                                        <td>
-                                        <span class="badge rounded-pill bg-level-{{ post.level }}">
-                                            {{ post.level }}
-                                        </span>
+                                {% for post in posts %}
+                                    <tr class="border-bottom">
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary rounded-pill">
+                                                {{ forloop.counter|to_persian_number }}
+                                            </span>
                                         </td>
                                         <td>
-                                        <span class="badge rounded-pill bg-{% if post.is_active %}success{% else %}danger{% endif %}">
-                                            {% if post.is_active %}{% trans "فعال" %}{% else %}
-                                                {% trans "غیرفعال" %}{% endif %}
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3">
+                                                    <i class="fas fa-sitemap text-primary"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0 fw-semibold">
+                                                        {{ post.name }}
+                                                        {% if post.post_set.exists %}
+                                                            <span class="badge bg-info-subtle text-info ms-1" data-bs-toggle="tooltip" title="{% trans 'این پست والد پست‌های دیگر است' %}">
+                                                                <i class="fas fa-sitemap me-1"></i>
+                                                                {% trans "والد" %}
                                         </span>
+                                                        {% endif %}
+                                                    </h6>
+                                                    {% if post.description %}
+                                                        <small class="text-muted">{{ post.description|truncatechars:50 }}</small>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
                                         </td>
                                         <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                    <i class="fas fa-building text-info"></i>
+                                                </div>
+                                                <span class="fw-medium">{{ post.organization.name }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if post.branch %}
+                                                <span class="badge bg-light text-dark border">
+                                                    <i class="fas fa-code-branch me-1"></i>
+                                                    {{ post.branch.name }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-level-{{ post.level }} fs-6 px-3 py-2">
+                                                {{ post.level|to_persian_number }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if post.is_active %}
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                                    <i class="fas fa-check-circle me-1"></i>
+                                                    {% trans "فعال" %}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                                                    <i class="fas fa-times-circle me-1"></i>
+                                                    {% trans "غیرفعال" %}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex flex-wrap gap-1 justify-content-center">
                                             {% if post.can_final_approve_budget %}
-                                                بودجه
+                                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle" 
+                                                          data-bs-toggle="tooltip" title="{% trans 'تایید نهایی بودجه' %}">
+                                                        <i class="fas fa-coins me-1"></i>
+                                                        {% trans "بودجه" %}
+                                                    </span>
                                             {% endif %}
                                             {% if post.can_final_approve_factor %}
-                                                فاکتور
+                                                    <span class="badge bg-info-subtle text-info border border-info-subtle"
+                                                          data-bs-toggle="tooltip" title="{% trans 'تایید نهایی فاکتور' %}">
+                                                        <i class="fas fa-file-invoice me-1"></i>
+                                                        {% trans "فاکتور" %}
+                                                    </span>
                                             {% endif %}
                                             {% if post.can_final_approve_tankhah %}
-                                                تنخواه
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle"
+                                                          data-bs-toggle="tooltip" title="{% trans 'تایید نهایی تنخواه' %}">
+                                                        <i class="fas fa-wallet me-1"></i>
+                                                        {% trans "تنخواه" %}
+                                                    </span>
+                                                {% endif %}
+                                                {% if not post.can_final_approve_budget and not post.can_final_approve_factor and not post.can_final_approve_tankhah %}
+                                                    <span class="text-muted small">-</span>
+                                            {% endif %}
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if post.has_children %}
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <span class="badge bg-info-subtle text-info border border-info-subtle mb-1">
+                                                        <i class="fas fa-child me-1"></i>
+                                                        {{ post.child_posts.count|to_persian_number }}
+                                                    </span>
+                                                    <small class="text-muted">
+                                                        {% for child in post.child_posts|slice:":2" %}
+                                                            {{ child.name }}{% if not forloop.last %}, {% endif %}
+                                                        {% endfor %}
+                                                        {% if post.child_posts.count > 2 %}
+                                                            ...
+                                                        {% endif %}
+                                                    </small>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted small">-</span>
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        <td class="text-center">
+                                            {% if post.active_users_count > 0 %}
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle mb-1 position-relative cursor-pointer" 
+                                                          data-bs-toggle="tooltip" 
+                                                          data-bs-html="true"
+                                                          data-bs-placement="top"
+                                                          title="{% for userpost in post.active_users %}{{ userpost.user.get_full_name|default:userpost.user.username }}{% if not forloop.last %}<br>{% endif %}{% endfor %}"
+                                                          onclick="showActiveUsers({{ post.pk }}, '{{ post.name|escapejs }}')"
+                                                          style="cursor: pointer;">
+                                                        <i class="fas fa-users me-1"></i>
+                                                        {{ post.active_users_count|to_persian_number }}
+                                                    </span>
+                                                    <small class="text-muted">
+                                                        {% for userpost in post.active_users|slice:":2" %}
+                                                            {{ userpost.user.get_full_name|default:userpost.user.username }}{% if not forloop.last %}, {% endif %}
+                                                        {% endfor %}
+                                                        {% if post.active_users_count > 2 %}
+                                                            <span class="text-muted">...</span>
+                                                        {% endif %}
+                                                    </small>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted small">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
                                             <div class="btn-group btn-group-sm" role="group">
-                                                <a href="{% url 'post_detail' post.pk %}" class="btn btn-info"
-                                                   data-bs-toggle="tooltip" title="{% trans 'مشاهده جزئیات' %}">
+                                                <a href="{% url 'post_detail' post.pk %}" 
+                                                   class="btn btn-outline-info" 
+                                                   data-bs-toggle="tooltip" 
+                                                   title="{% trans 'مشاهده جزئیات' %}">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 {% if perms.core.Post_update %}
-                                                    <a href="{% url 'post_update' post.pk %}" class="btn btn-warning"
-                                                       data-bs-toggle="tooltip" title="{% trans 'ویرایش' %}">
+                                                    <a href="{% url 'post_update' post.pk %}" 
+                                                       class="btn btn-outline-warning" 
+                                                       data-bs-toggle="tooltip" 
+                                                       title="{% trans 'ویرایش' %}">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                 {% endif %}
+                                                <a href="{% url 'workflow_management:post_assignment_list' %}?post_id={{ post.pk }}" 
+                                                   class="btn btn-outline-primary" 
+                                                   data-bs-toggle="tooltip" 
+                                                   title="{% trans 'مدیریت قوانین پست' %}">
+                                                    <i class="fas fa-cogs"></i>
+                                                </a>
                                                 {% if perms.core.Post_delete %}
-                                                    <button class="btn btn-danger delete-btn" data-id="{{ post.pk }}"
-                                                            data-bs-toggle="tooltip" title="{% trans 'حذف' %}">
+                                                    {% if post.has_children %}
+                                                        <button class="btn btn-outline-danger" 
+                                                                disabled
+                                                                data-bs-toggle="tooltip" 
+                                                                title="{% trans 'این پست والد پست‌های دیگر است و نمی‌تواند حذف شود' %}">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    {% else %}
+                                                        <button class="btn btn-outline-danger delete-btn" 
+                                                                data-id="{{ post.pk }}"
+                                                                data-bs-toggle="tooltip" 
+                                                                title="{% trans 'حذف' %}">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
+                                                    {% endif %}
                                                 {% endif %}
                                             </div>
                                         </td>
                                     </tr>
                                 {% empty %}
-                                    <tr class="animate__animated animate__fadeIn">
-                                        <td colspan="7" class="text-center py-4 text-muted">
-                                            <i class="fas fa-database fa-2x mb-2"></i>
-                                            <p>{% trans "هیچ پست سازمانی یافت نشد." %}</p>
+                                    <tr>
+                                        <td colspan="8" class="text-center py-5">
+                                            <div class="empty-state">
+                                                <i class="fas fa-database fa-3x text-muted mb-3"></i>
+                                                <h5 class="text-muted">{% trans "هیچ پست سازمانی یافت نشد" %}</h5>
+                                                <p class="text-muted">{% trans "لطفاً فیلترهای جستجو را تغییر دهید یا پست جدیدی اضافه کنید" %}</p>
+                                                {% if perms.core.Post_add %}
+                                                    <a href="{% url 'post_create' %}" class="btn btn-primary">
+                                                        <i class="fas fa-plus me-1"></i>
+                                                        {% trans "افزودن پست جدید" %}
+                                                    </a>
+                                                {% endif %}
+                                            </div>
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -122,16 +458,16 @@
                             </table>
                         </div>
                     </div>
-                    {# Django Pagination #}
+
+                <!-- Pagination -->
                     {% if is_paginated %}
-                        <div class="card-footer bg-light py-3">
-                            <nav aria-label="Page navigation">
+                    <div class="card-footer bg-light">
+                        <nav aria-label="{% trans 'صفحه‌بندی' %}">
                                 <ul class="pagination justify-content-center mb-0">
                                     {% if page_obj.has_previous %}
                                         <li class="page-item">
-                                            <a class="page-link" href="?page=
-                                                    {{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}"
-                                               aria-label="Previous">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if current_branch %}&branch={{ current_branch }}{% endif %}{% if current_level %}&level={{ current_level }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_budget_approval %}&budget_approval={{ current_budget_approval }}{% endif %}{% if current_factor_approval %}&factor_approval={{ current_factor_approval }}{% endif %}{% if current_tankhah_approval %}&tankhah_approval={{ current_tankhah_approval }}{% endif %}"
+                                           aria-label="{% trans 'قبلی' %}">
                                                 <span aria-hidden="true">&laquo;</span>
                                             </a>
                                         </li>
@@ -139,16 +475,16 @@
 
                                     {% for num in page_obj.paginator.page_range %}
                                         <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                                            <a class="page-link" href="?page=
-                                                    {{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">{{ num }}</a>
+                                        <a class="page-link" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if current_branch %}&branch={{ current_branch }}{% endif %}{% if current_level %}&level={{ current_level }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_budget_approval %}&budget_approval={{ current_budget_approval }}{% endif %}{% if current_factor_approval %}&factor_approval={{ current_factor_approval }}{% endif %}{% if current_tankhah_approval %}&tankhah_approval={{ current_tankhah_approval }}{% endif %}">
+                                            {{ num|to_persian_number }}
+                                        </a>
                                         </li>
                                     {% endfor %}
 
                                     {% if page_obj.has_next %}
                                         <li class="page-item">
-                                            <a class="page-link" href="?page=
-                                                    {{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}"
-                                               aria-label="Next">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if current_branch %}&branch={{ current_branch }}{% endif %}{% if current_level %}&level={{ current_level }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_budget_approval %}&budget_approval={{ current_budget_approval }}{% endif %}{% if current_factor_approval %}&factor_approval={{ current_factor_approval }}{% endif %}{% if current_tankhah_approval %}&tankhah_approval={{ current_tankhah_approval }}{% endif %}"
+                                           aria-label="{% trans 'بعدی' %}">
                                                 <span aria-hidden="true">&raquo;</span>
                                             </a>
                                         </li>
@@ -162,23 +498,35 @@
         </div>
     </div>
 
+<!-- Delete Confirmation Modal -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content animate__animated animate__zoomIn">
+        <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">{% trans "تأیید حذف" %}</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% trans "تأیید حذف" %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>{% trans "آیا از حذف این پست سازمانی اطمینان دارید؟" %}</p>
+                <div class="text-center">
+                    <i class="fas fa-trash fa-3x text-danger mb-3"></i>
+                    <h6>{% trans "آیا از حذف این پست سازمانی اطمینان دارید؟" %}</h6>
+                    <p class="text-muted small">{% trans "این عمل قابل بازگشت نیست" %}</p>
+                </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary"
-                            data-bs-dismiss="modal">{% trans "انصراف" %}</button>
-                    <form id="deleteForm" method="post" action="">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    {% trans "انصراف" %}
+                </button>
+                <form id="deleteForm" method="post" action="" class="d-inline">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">{% trans "حذف" %}</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>
+                        {% trans "حذف" %}
+                    </button>
                     </form>
                 </div>
             </div>
@@ -186,196 +534,19 @@
     </div>
 {% endblock %}
 
-{% block extra_css %}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-          integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"/>
-    <style>
-        /* General Card & Button Styling */
-        .card {
-            border: none;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-            border-radius: 0.75rem;
-            overflow: hidden; /* Ensures shadows and borders are contained */
-        }
-
-        .card-header {
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            background-color: #f8f9fa !important;
-            color: #343a40 !important;
-            padding: 1.25rem 1.5rem;
-        }
-
-        .card-footer {
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            background-color: #f8f9fa !important;
-            padding: 1.25rem 1.5rem;
-        }
-
-        .btn {
-            transition: all 0.3s ease;
-            border-radius: 0.375rem;
-        }
-
-        .btn-primary {
-            background-color: #007bff;
-            border-color: #007bff;
-        }
-
-        .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #004085;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
-        }
-
-        .btn-outline-primary {
-            color: #007bff;
-            border-color: #007bff;
-        }
-
-        .btn-outline-primary:hover {
-            background-color: #007bff;
-            color: white;
-        }
-
-        .btn-success {
-            background-color: #28a745;
-            border-color: #28a745;
-        }
-
-        .btn-info {
-            background-color: #17a2b8;
-            border-color: #17a2b8;
-        }
-
-        .btn-warning {
-            background-color: #ffc107;
-            border-color: #ffc107;
-            color: #212529; /* Darker text for warning */
-        }
-
-        .btn-danger {
-            background-color: #dc3545;
-            border-color: #dc3545;
-        }
-
-        /* Table Specific Styling */
-        .table thead th {
-            border-bottom: 2px solid #dee2e6;
-            vertical-align: middle;
-            text-align: right; /* RTL support */
-        }
-
-        .table tbody tr {
-            transition: background-color 0.2s ease;
-        }
-
-        .table tbody tr:hover {
-            background-color: rgba(0, 123, 255, 0.05); /* Light blue hover effect */
-        }
-
-        .table td, .table th {
-            padding: 0.75rem 1.5rem; /* More padding for spacious feel */
-        }
-
-        /* Level Badges - Consistent Colors */
-        .badge.bg-level-1 {
-            background-color: #007bff !important;
-        }
-
-        /* Primary blue */
-        .badge.bg-level-2 {
-            background-color: #28a745 !important;
-        }
-
-        /* Success green */
-        .badge.bg-level-3 {
-            background-color: #ffc107 !important;
-            color: #212529 !important;
-        }
-
-        /* Warning yellow */
-        .badge.bg-level-4 {
-            background-color: #17a2b8 !important;
-        }
-
-        /* Info cyan */
-        .badge.bg-level-5 {
-            background-color: #dc3545 !important;
-        }
-
-        /* Danger red */
-        /* Add more levels if needed for distinct colors */
-        .badge.rounded-pill {
-            padding: 0.5em 0.8em;
-            font-size: 0.8em;
-            min-width: 50px; /* Ensure badges have a minimum width */
-        }
-
-        /* Animations */
-        .animate__animated.animate__fadeInDown {
-            animation-duration: 0.8s;
-        }
-
-        .animate__animated.animate__fadeInUp {
-            animation-duration: 0.6s;
-        }
-
-        .animate__animated.animate__zoomIn {
-            animation-duration: 0.4s;
-        }
-
-        /* Responsive Adjustments for Header */
-        @media (max-width: 767.98px) {
-            .card-header {
-                flex-direction: column;
-                align-items: stretch !important;
-            }
-
-            .card-header h4 {
-                text-align: center;
-                margin-bottom: 1rem;
-            }
-
-            .card-header .d-flex {
-                flex-direction: column;
-                align-items: stretch !important;
-            }
-
-            .card-header .d-flex > * {
-                width: 100% !important;
-                margin-bottom: 0.5rem;
-            }
-
-            .card-header .d-flex > *:last-child {
-                margin-bottom: 0;
-            }
-
-            .form-control-sm, .btn-sm {
-                height: calc(1.5em + 0.5rem + 2px); /* Adjust height for consistent sizing */
-                padding: 0.25rem 0.5rem;
-                font-size: 0.875rem;
-                border-radius: 0.2rem;
-            }
-        }
-
-    </style>
-{% endblock %}
 
 {% block extra_js %}
-    {# Ensure Bootstrap's JS bundle (which includes Tooltip, Modal) is loaded #}
-    {# Example: <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> #}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Tooltip initialization
+    // Initialize tooltips if Bootstrap is available
+    if (typeof bootstrap !== 'undefined') {
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
+    }
 
-            // Delete button click handler
+    // Delete button functionality
             const deleteButtons = document.querySelectorAll('.delete-btn');
             deleteButtons.forEach(button => {
                 button.addEventListener('click', function () {
@@ -384,23 +555,130 @@
                     const deleteForm = document.getElementById('deleteForm');
                     deleteForm.setAttribute('action', deleteUrl);
 
+            if (typeof bootstrap !== 'undefined') {
                     const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
                     deleteModal.show();
+            }
                 });
             });
 
-            // Function to apply animations on table rows after page load
-            // This provides a staggered entrance effect for each row
-            function applyRowAnimations() {
-                const rows = document.querySelectorAll('tbody tr.animate__fadeInUp');
-                rows.forEach((row, index) => {
-                    row.style.animationDelay = `${index * 0.05}s`;
-                    row.classList.add('animate__animated'); // Re-add if removed by other processes
-                });
-            }
-
-            // Call animation on DOMContentLoaded
-            applyRowAnimations();
+    // Auto-submit filter form on select change
+    const filterForm = document.getElementById('filterForm');
+    if (filterForm) {
+        const selectElements = filterForm.querySelectorAll('select');
+        selectElements.forEach(select => {
+            select.addEventListener('change', function() {
+                filterForm.submit();
+            });
         });
+    }
+        });
+
+        // Function to show active users modal
+        window.showActiveUsers = function(postId, postName) {
+            // Show loading state
+            document.getElementById('activeUsersContent').innerHTML = 
+                '<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">در حال بارگذاری...</span></div><p class="mt-2 text-muted">در حال بارگذاری...</p></div>';
+            
+            // Show modal first
+            const modal = new bootstrap.Modal(document.getElementById('activeUsersModal'));
+            modal.show();
+            
+            // Fetch data from API
+            fetch(`/posts/${postId}/active-users/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        let content = `
+                            <div class="mb-3">
+                                <h6 class="text-primary">
+                                    <i class="fas fa-sitemap me-2"></i>
+                                    ${data.post_name}
+                                </h6>
+                                <p class="text-muted mb-0">تعداد کاربران فعال: ${data.count}</p>
+                            </div>
+                            <div class="row">
+                        `;
+                        
+                        if (data.active_users.length === 0) {
+                            content = '<div class="text-center text-muted"><i class="fas fa-users fa-2x mb-3"></i><p>هیچ کاربر فعالی یافت نشد</p></div>';
+                        } else {
+                            data.active_users.forEach(user => {
+                                const fullName = user.full_name || user.username;
+                                const startDate = user.start_date ? new Date(user.start_date).toLocaleDateString('fa-IR') : '-';
+                                const endDate = user.end_date ? new Date(user.end_date).toLocaleDateString('fa-IR') : 'فعلی';
+                                
+                                content += `
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card border-0 shadow-sm">
+                                            <div class="card-body">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-sm bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3">
+                                                        <i class="fas fa-user text-primary"></i>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="mb-1">${fullName}</h6>
+                                                        <small class="text-muted">${user.username}</small>
+                                                        ${user.email ? `<br><small class="text-muted">${user.email}</small>` : ''}
+                                                    </div>
+                                                </div>
+                                                <hr class="my-2">
+                                                <div class="row text-center">
+                                                    <div class="col-6">
+                                                        <small class="text-muted d-block">تاریخ شروع</small>
+                                                        <small class="fw-medium">${startDate}</small>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <small class="text-muted d-block">تاریخ پایان</small>
+                                                        <small class="fw-medium">${endDate}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            
+                            content += '</div>';
+                        }
+                        
+                        document.getElementById('activeUsersContent').innerHTML = content;
+                    } else {
+                        document.getElementById('activeUsersContent').innerHTML = 
+                            '<div class="text-center text-danger"><i class="fas fa-exclamation-triangle fa-2x mb-3"></i><p>خطا در دریافت اطلاعات</p></div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('activeUsersContent').innerHTML = 
+                        '<div class="text-center text-danger"><i class="fas fa-exclamation-triangle fa-2x mb-3"></i><p>خطا در دریافت اطلاعات</p></div>';
+                });
+        };
     </script>
 {% endblock %}
+
+<!-- Modal for Active Users -->
+<div class="modal fade" id="activeUsersModal" tabindex="-1" aria-labelledby="activeUsersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="activeUsersModalLabel">
+                    <i class="fas fa-users me-2"></i>
+                    {% trans "کاربران فعال" %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="activeUsersContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    {% trans "بستن" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

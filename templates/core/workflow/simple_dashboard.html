@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}مدیریت گردش کار{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <h1 class="display-6 fw-bold text-primary mb-3">
+                        <i class="fas fa-cogs me-3"></i>
+                        مدیریت گردش کار
+                    </h1>
+                    <p class="lead text-muted mb-0">
+                        سیستم مدیریت قوانین و گردش کار سازمانی
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-primary mb-3">
+                        <i class="fas fa-tasks fa-2x"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark">{{ statuses_count|default:0 }}</h3>
+                    <p class="text-muted mb-0">وضعیت‌های تعریف شده</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-success mb-3">
+                        <i class="fas fa-play-circle fa-2x"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark">{{ actions_count|default:0 }}</h3>
+                    <p class="text-muted mb-0">اقدامات موجود</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-info mb-3">
+                        <i class="fas fa-sitemap fa-2x"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark">{{ assignments_count|default:0 }}</h3>
+                    <p class="text-muted mb-0">تخصیصات فعال</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-warning mb-3">
+                        <i class="fas fa-file-alt fa-2x"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark">{{ templates_count|default:0 }}</h3>
+                    <p class="text-muted mb-0">تمپلیت‌های فعال</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>
+                        اقدامات سریع
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <a href="{% url 'workflow_management:status_list' %}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4">
+                                <i class="fas fa-tasks fa-2x mb-2"></i>
+                                <span class="fw-semibold">مدیریت وضعیت‌ها</span>
+                                <small class="text-muted">تعریف و ویرایش وضعیت‌ها</small>
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6">
+                            <a href="{% url 'workflow_management:action_list' %}" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4">
+                                <i class="fas fa-play-circle fa-2x mb-2"></i>
+                                <span class="fw-semibold">مدیریت اقدامات</span>
+                                <small class="text-muted">تعریف و ویرایش اقدامات</small>
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6">
+                            <a href="{% url 'workflow_management:post_assignment_list' %}" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4">
+                                <i class="fas fa-sitemap fa-2x mb-2"></i>
+                                <span class="fw-semibold">تخصیصات قوانین</span>
+                                <small class="text-muted">مدیریت تخصیصات پست‌ها</small>
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6">
+                            <a href="{% url 'workflow_management:assign_rule_to_post' %}" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4">
+                                <i class="fas fa-link fa-2x mb-2"></i>
+                                <span class="fw-semibold">تخصیص قانون جدید</span>
+                                <small class="text-muted">ایجاد تخصیص جدید</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Create Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        ایجاد جدید
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-4 col-md-6">
+                            <a href="{% url 'workflow_management:status_create' %}" class="btn btn-success w-100">
+                                <i class="fas fa-plus me-2"></i>
+                                ایجاد وضعیت جدید
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-4 col-md-6">
+                            <a href="{% url 'workflow_management:action_create' %}" class="btn btn-success w-100">
+                                <i class="fas fa-plus me-2"></i>
+                                ایجاد اقدام جدید
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-4 col-md-6">
+                            <a href="{% url 'workflow_management:assign_rule_to_post' %}" class="btn btn-success w-100">
+                                <i class="fas fa-plus me-2"></i>
+                                تخصیص قانون جدید
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Items -->
+    {% if recent_statuses or recent_actions or recent_assignments %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock me-2"></i>
+                        موارد اخیر
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if recent_statuses %}
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-tasks me-2"></i>
+                                آخرین وضعیت‌ها:
+                            </h6>
+                            <ul class="list-unstyled">
+                                {% for status in recent_statuses %}
+                                <li class="mb-2">
+                                    <i class="fas fa-circle text-success me-2" style="font-size: 0.5rem;"></i>
+                                    {{ status.name }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        
+                        {% if recent_actions %}
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-play-circle me-2"></i>
+                                آخرین اقدامات:
+                            </h6>
+                            <ul class="list-unstyled">
+                                {% for action in recent_actions %}
+                                <li class="mb-2">
+                                    <i class="fas fa-circle text-info me-2" style="font-size: 0.5rem;"></i>
+                                    {{ action.name }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        
+                        {% if recent_assignments %}
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-sitemap me-2"></i>
+                                آخرین تخصیصات:
+                            </h6>
+                            <ul class="list-unstyled">
+                                {% for assignment in recent_assignments %}
+                                <li class="mb-2">
+                                    <i class="fas fa-circle text-warning me-2" style="font-size: 0.5rem;"></i>
+                                    {{ assignment.post.name }} - {{ assignment.get_entity_type_display }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Help Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>
+                        راهنمای استفاده
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-list-ol me-2"></i>
+                                مراحل کار:
+                            </h6>
+                            <ol class="text-muted">
+                                <li><strong>تعریف وضعیت‌ها:</strong> ابتدا وضعیت‌های مورد نیاز را تعریف کنید</li>
+                                <li><strong>تعریف اقدامات:</strong> سپس اقدامات مورد نیاز را تعریف کنید</li>
+                                <li><strong>تخصیص قوانین:</strong> قوانین را به پست‌های سازمانی تخصیص دهید</li>
+                                <li><strong>تست و بررسی:</strong> گردش کار را تست و بررسی کنید</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="col-lg-6">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-lightbulb me-2"></i>
+                                نکات مهم:
+                            </h6>
+                            <ul class="text-muted">
+                                <li>مراحل را به ترتیب انجام دهید</li>
+                                <li>پس از ایجاد هر قانون، آن را تست کنید</li>
+                                <li>این سیستم با تمامی بخش‌های موجود سازگار است</li>
+                                <li>هیچ قانونی در کد هاردکد نشده است</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Complete Guide Link -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="alert alert-primary text-center">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-graduation-cap me-2"></i>
+                                    راهنمای جامع
+                                </h6>
+                                <p class="mb-3">برای راهنمای کامل و تفصیلی مدیریت گردش کار، راهنمای جامع را مطالعه کنید:</p>
+                                <a href="{% url 'workflow_management:complete_guide' %}" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-book me-2"></i>
+                                    راهنمای جامع مدیریت گردش کار
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to cards
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% load humanize %}
+
+{% block title %}تایید/رد دستور پرداخت - {{ payment_order.order_number }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <!-- هدر تایید -->
+    <div class="approval-header animate__animated animate__fadeInDown">
+        <h1><i class="fas fa-check-circle"></i> تایید/رد دستور پرداخت</h1>
+        <div class="order-number">{{ payment_order.order_number|default:"نامشخص" }}</div>
+        <div class="current-status">
+            <i class="fas fa-arrow-right"></i>
+            وضعیت فعلی: 
+            <span class="status-badge status-{{ payment_order.status.code|lower|default:'draft' }}">
+                {{ payment_order.status.name|default:"پیش‌نویس" }}
+            </span>
+        </div>
+    </div>
+
+    <!-- اطلاعات دستور پرداخت -->
+    <div class="info-grid">
+        <div class="info-card animate__animated animate__fadeInLeft">
+            <h5><i class="fas fa-info-circle"></i> اطلاعات اصلی</h5>
+            <div class="info-item">
+                <span class="info-label">شماره دستور:</span>
+                <span class="info-value">{{ payment_order.order_number|default:"نامشخص" }}</span>
+             
+            <div class="info-item">
+                <span class="info-label">تاریخ صدور:</span>
+                <span class="info-value">{{ payment_order.issue_date|date:"Y/m/d"|default:"نامشخص" }}</span>
+            </div>
+            <div class="info-item">
+            we    <span class="info-label">مبلغ:</span>
+                <span class="info-value">{{ payment_order.amount|floatformat:0|intcomma|default:0 }} ریال</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">سازمان:</span>
+                <span class="info-value">{{ payment_order.organization.name|default:"نامشخص" }}</span>
+            </div>
+        </div>
+
+        <div class="info-card animate__animated animate__fadeInRight">
+            <h5><i class="fas fa-user-circle"></i> اطلاعات طرفین</h5>
+            <div class="info-item">
+                <span class="info-label">دریافت‌کننده:</span>
+                <span class="info-value">{{ payment_order.payee.name|default:"نامشخص" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">ایجادکننده:</span>
+                <span class="info-value">{{ payment_order.created_by.get_full_name|default:payment_order.created_by.username }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">تاریخ ایجاد:</span>
+                <span class="info-value">{{ payment_order.created_at|date:"Y/m/d H:i"|default:"نامشخص" }}</span>
+            </div>
+            {% if payment_order.description %}
+            <div class="info-item">
+                <span class="info-label">توضیحات:</span>
+                <span class="info-value">{{ payment_order.description }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- فرم تایید/رد -->
+    <div class="approval-form-container animate__animated animate__fadeInUp">
+        <h3><i class="fas fa-edit"></i> تغییر وضعیت دستور پرداخت</h3>
+        
+        <!-- نمایش پیام‌ها -->
+        {% if messages %}
+        <div class="alert-messages">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" id="approvalForm">
+            {% csrf_token %}
+            
+            <!-- نمایش خطاهای فرم -->
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <strong><i class="fas fa-exclamation-triangle"></i> خطا!</strong>
+                لطفاً موارد زیر را بررسی کنید:
+                <ul class="mb-0 mt-2">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="form-group-custom">
+                <label for="{{ form.status.id_for_label }}">
+                    <i class="fas fa-flag"></i> وضعیت جدید
+                </label>
+                <select class="form-select-custom" id="{{ form.status.id_for_label }}" name="{{ form.status.name }}" required>
+                    <option value="">لطفاً وضعیت جدید را انتخاب کنید</option>
+                    {% for status in available_statuses %}
+                    <option value="{{ status.id }}" {% if form.status.value == status.id %}selected{% endif %}>
+                        {{ status.name }} ({{ status.code }})
+                    </option>
+                    {% endfor %}
+                </select>
+                {% if form.status.help_text %}
+                <small class="form-text text-muted">{{ form.status.help_text }}</small>
+                {% endif %}
+            </div>
+
+            <div class="form-group-custom">
+                <label for="{{ form.notes.id_for_label }}">
+                    <i class="fas fa-comment"></i> یادداشت (اختیاری)
+                </label>
+                <textarea class="form-control-custom" id="{{ form.notes.id_for_label }}" name="{{ form.notes.name }}" 
+                          rows="4" placeholder="در صورت نیاز، توضیحاتی برای این تغییر وضعیت بنویسید">{{ form.notes.value|default:'' }}</textarea>
+                {% if form.notes.help_text %}
+                <small class="form-text text-muted">{{ form.notes.help_text }}</small>
+                {% endif %}
+            </div>
+
+            <div class="action-buttons">
+                <button type="submit" class="btn-action btn-submit pulse">
+                    <i class="fas fa-paper-plane"></i> ثبت تغییر وضعیت
+                </button>
+                <a href="{% url 'paymentorder_management_list' %}" class="btn-action btn-cancel">
+                    <i class="fas fa-times"></i> انصراف
+                </a>
+            </div>
+        </form>
+
+        <!-- اطلاعات Transition -->
+        <div class="transition-info">
+            <h6><i class="fas fa-info-circle"></i> راهنمای وضعیت‌ها</h6>
+            <div class="transition-details">
+                <div class="transition-detail">
+                    <span class="transition-detail-label">وضعیت فعلی</span>
+                    <span class="transition-detail-value status-badge status-{{ payment_order.status.code|lower|default:'draft' }}">
+                        {{ payment_order.status.name|default:"پیش‌نویس" }}
+                    </span>
+                </div>
+                <div class="transition-detail">
+                    <span class="transition-detail-label">تعداد وضعیت‌های قابل انتخاب</span>
+                    <span class="transition-detail-value">{{ available_statuses|length }} مورد</span>
+                </div>
+                <div class="transition-detail">
+                    <span class="transition-detail-label">دسترسی کاربر</span>
+                    <span class="transition-detail-value">
+                        {% if request.user.is_superuser or request.user.is_staff %}
+                        <i class="fas fa-shield-alt text-success"></i> مدیر سیستم
+                        {% else %}
+                        <i class="fas fa-user-check text-primary"></i> کاربر عادی
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Bootstrap JS -->
+
+    
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('تمپلیت تایید/رد دستور پرداخت بارگذاری شد');
+    
+    // اعتبارسنجی فرم
+    const form = document.getElementById('approvalForm');
+    const statusSelect = document.getElementById('{{ form.status.id_for_label }}');
+    
+    form.addEventListener('submit', function(e) {
+        if (!statusSelect.value) {
+            e.preventDefault();
+            showAlert('لطفاً وضعیت جدید را انتخاب کنید.', 'warning');
+            statusSelect.focus();
+            return false;
+        }
+        
+        // نمایش loading
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> در حال ثبت...';
+        submitBtn.disabled = true;
+    });
+    
+    // تغییر استایل بر اساس وضعیت انتخاب شده
+    statusSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const statusText = selectedOption.text;
+        
+        // حذف کلاس‌های قبلی
+        statusSelect.classList.remove('status-approved', 'status-rejected', 'status-pending');
+        
+        // اضافه کردن کلاس بر اساس وضعیت انتخاب شده
+        if (statusText.includes('APPROVED') || statusText.includes('تایید')) {
+            statusSelect.classList.add('status-approved');
+        } else if (statusText.includes('REJECTED') || statusText.includes('رد')) {
+            statusSelect.classList.add('status-rejected');
+        } else {
+            statusSelect.classList.add('status-pending');
+        }
+    });
+    
+    // راهنمای وضعیت‌ها
+    function showAlert(message, type = 'info') {
+        // پیاده‌سازی ساده alert
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            <i class="fas fa-${type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        const messagesContainer = document.querySelector('.alert-messages') || form;
+        messagesContainer.prepend(alertDiv);
+        
+        // حذف خودکار alert بعد از 5 ثانیه
+        setTimeout(() => {
+            if (alertDiv.parentElement) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+    
+    // فعال کردن انیمیشن‌ها هنگام اسکرول
+    const animatedElements = document.querySelectorAll('.animate__animated');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const animation = entry.target.getAttribute('data-animation');
+                entry.target.classList.add(animation);
+            }
+        });
+    });
+    
+    animatedElements.forEach(element => {
+        observer.observe(element);
+    });
+});
+</script>
+{% endblock %}

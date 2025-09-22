@@ -2,111 +2,439 @@
 {% load i18n %}
 {% load rcms_custom_filters jformat static jalali_tags %}
 
+{% block title %}{% trans "لیست اتصالات کاربر به پست" %}{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <div class="card shadow-sm border-0">
-        <!-- سربرگ -->
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h1 class="h4 mb-0"><i class="fas fa-list me-2"></i>{% trans "لیست اتصالات کاربر به پست" %}</h1>
-            <a href="{% url 'userpost_create' %}" class="btn btn-light btn-sm"><i class="fas fa-plus me-1"></i>{% trans "ایجاد اتصال" %}</a>
-        </div>
-
-        <!-- فرم جستجو -->
-        <div class="card-body border-bottom">
-            <form method="get" class="row g-3">
-                <div class="col-md-3">
-                    <label for="username" class="form-label">{% trans "نام کاربر" %}</label>
-                    <input type="text" name="username" id="username" value="{{ request.GET.username }}" class="form-control" placeholder="{% trans 'نام کاربری...' %}">
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h3 mb-2 text-primary">
+                                <i class="fas fa-users-cog me-2"></i>
+                                {% trans "لیست اتصالات کاربر به پست" %}
+                            </h1>
+                            <p class="text-muted mb-0">
+                                {% trans "مدیریت و نظارت بر اتصالات کاربران به پست‌های سازمانی" %}
+                            </p>
+                        </div>
+                        <div>
+                            {% if perms.core.UserPost_add %}
+                                <a href="{% url 'userpost_create' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>
+                                    {% trans "ایجاد اتصال جدید" %}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label for="post_name" class="form-label">{% trans "نام پست" %}</label>
-                    <input type="text" name="post_name" id="post_name" value="{{ request.GET.post_name }}" class="form-control" placeholder="{% trans 'نام پست...' %}">
-                </div>
-                <div class="col-md-3">
-                    <label for="organization" class="form-label">{% trans "سازمان" %}</label>
-                    <select name="organization" id="organization" class="form-select">
-                        <option value="">{% trans "همه سازمان‌ها" %}</option>
-                        {% for org in organizations %}
-                            <option value="{{ org.id }}" {% if request.GET.organization == org.id|stringformat:"s" %}selected{% endif %}>{{ org.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i>{% trans "جستجو" %}</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- جدول -->
-        <div class="card-body">
-            <div class="mb-3 text-muted">
-                {% trans "تعداد کل اتصالات:" %} <span class="fw-bold">{{ userposts.count|to_persian_number }}</span>
             </div>
-            <div class="table-responsive">
-                <table class="table table-hover table-bordered">
-                    <thead class="table-dark">
-                        <tr>
-                            <th scope="col">{% trans "ردیف" %}</th>
-                            <th scope="col">{% trans "کاربر" %}</th>
-                            <th scope="col">{% trans "پست" %}</th>
-                            <th scope="col">{% trans "سازمان" %}</th>
-                            <th scope="col">{% trans "تاریخ شروع فعالیت" %}</th>
-                            <th scope="col">{% trans "تاریخ خاتمه فعالیت" %}</th>
-                            <th scope="col">{% trans "وضعیت" %}</th>
-                            <th scope="col">{% trans "اقدامات" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for userpost in userposts %}
-                            <tr>
-                                <td>{{ forloop.counter|to_persian_number }}</td>
-                                <td>{{ userpost.user.get_full_name }}</td>
-                                <td>{{ userpost.post.name }}</td>
-                                <td>{{ userpost.post.organization.name }}</td>
-                                <td>{{ userpost.start_date  |jformat:"%Y:%m:%y" |to_persian_number}}</td>
-                                <td>{{ userpost.end_date|jformat:"%Y:%m:%y" |to_persian_number}}</td>
-                                <td>
-                                    <span class="badge {% if userpost.is_active %}bg-success{% else %}bg-danger{% endif %}">
-                                        {% if userpost.is_active %}{% trans "فعال" %}{% else %}{% trans "غیرفعال" %}{% endif %}
-                                    </span>
-                                </td>
-                                <td>
-                                    <a href="{% url 'userpost_update' userpost.pk %}" class="btn btn-warning btn-sm" title="{% trans 'ویرایش' %}">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ userpost.pk }}" title="{% trans 'حذف' %}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    <!-- Modal حذف -->
-                                    <div class="modal fade" id="deleteModal{{ userpost.pk }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ userpost.pk }}" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="deleteModalLabel{{ userpost.pk }}">{% trans "تأیید حذف" %}</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                            <i class="fas fa-users text-primary fa-2x"></i>
+                        </div>
+                    </div>
+                    <h4 class="text-primary mb-1">{{ total_connections|to_persian_number }}</h4>
+                    <p class="text-muted mb-0">{% trans "کل اتصالات" %}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                            <i class="fas fa-check-circle text-success fa-2x"></i>
+                        </div>
+                    </div>
+                    <h4 class="text-success mb-1">{{ active_connections|to_persian_number }}</h4>
+                    <p class="text-muted mb-0">{% trans "اتصالات فعال" %}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                            <i class="fas fa-exclamation-triangle text-warning fa-2x"></i>
+                        </div>
+                    </div>
+                    <h4 class="text-warning mb-1">{{ inactive_connections|to_persian_number }}</h4>
+                    <p class="text-muted mb-0">{% trans "اتصالات غیرفعال" %}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                            <i class="fas fa-building text-info fa-2x"></i>
+                        </div>
+                    </div>
+                    <h4 class="text-info mb-1">{{ organizations_count|to_persian_number }}</h4>
+                    <p class="text-muted mb-0">{% trans "سازمان‌ها" %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>
+                        {% trans "فیلترهای پیشرفته" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <label for="username" class="form-label">
+                                <i class="fas fa-user me-1"></i>
+                                {% trans "نام کاربر" %}
+                            </label>
+                            <input type="text" name="username" id="username" 
+                                   value="{{ request.GET.username }}" 
+                                   class="form-control" 
+                                   placeholder="{% trans 'نام کاربری...' %}">
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6">
+                            <label for="post_name" class="form-label">
+                                <i class="fas fa-briefcase me-1"></i>
+                                {% trans "نام پست" %}
+                            </label>
+                            <input type="text" name="post_name" id="post_name" 
+                                   value="{{ request.GET.post_name }}" 
+                                   class="form-control" 
+                                   placeholder="{% trans 'نام پست...' %}">
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6">
+                            <label for="organization" class="form-label">
+                                <i class="fas fa-building me-1"></i>
+                                {% trans "سازمان" %}
+                            </label>
+                            <select name="organization" id="organization" class="form-select">
+                                <option value="">{% trans "همه سازمان‌ها" %}</option>
+                                {% for org in organizations %}
+                                    <option value="{{ org.id }}" 
+                                            {% if request.GET.organization == org.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ org.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6">
+                            <label for="status" class="form-label">
+                                <i class="fas fa-toggle-on me-1"></i>
+                                {% trans "وضعیت" %}
+                            </label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="">{% trans "همه وضعیت‌ها" %}</option>
+                                <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>
+                                    {% trans "فعال" %}
+                                </option>
+                                <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>
+                                    {% trans "غیرفعال" %}
+                                </option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6">
+                            <label for="start_date_from" class="form-label">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                {% trans "تاریخ شروع از" %}
+                            </label>
+                            <input type="date" name="start_date_from" id="start_date_from" 
+                                   value="{{ request.GET.start_date_from }}" 
+                                   class="form-control">
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6">
+                            <label for="start_date_to" class="form-label">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                {% trans "تاریخ شروع تا" %}
+                            </label>
+                            <input type="date" name="start_date_to" id="start_date_to" 
+                                   value="{{ request.GET.start_date_to }}" 
+                                   class="form-control">
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6">
+                            <label for="per_page" class="form-label">
+                                <i class="fas fa-list me-1"></i>
+                                {% trans "تعداد در صفحه" %}
+                            </label>
+                            <select name="per_page" id="per_page" class="form-select">
+                                <option value="10" {% if request.GET.per_page == '10' %}selected{% endif %}>10</option>
+                                <option value="25" {% if request.GET.per_page == '25' or not request.GET.per_page %}selected{% endif %}>25</option>
+                                <option value="50" {% if request.GET.per_page == '50' %}selected{% endif %}>50</option>
+                                <option value="100" {% if request.GET.per_page == '100' %}selected{% endif %}>100</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 d-flex align-items-end gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>
+                                {% trans "جستجو" %}
+                            </button>
+                            <a href="{% url 'userpost_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                {% trans "پاک کردن" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table me-2"></i>
+                        {% trans "نتایج جستجو" %}
+                    </h5>
+                    <span class="badge bg-primary">
+                        {% trans "تعداد:" %} {{ total_connections|to_persian_number }}
+                    </span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center">{% trans "ردیف" %}</th>
+                                    <th>{% trans "کاربر" %}</th>
+                                    <th>{% trans "پست" %}</th>
+                                    <th>{% trans "سازمان" %}</th>
+                                    <th class="text-center">{% trans "سطح" %}</th>
+                                    <th class="text-center">{% trans "شاخه" %}</th>
+                                    <th class="text-center">{% trans "تاریخ شروع" %}</th>
+                                    <th class="text-center">{% trans "تاریخ پایان" %}</th>
+                                    <th class="text-center">{% trans "وضعیت" %}</th>
+                                    <th class="text-center">{% trans "اقدامات" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for userpost in userposts %}
+                                    <tr>
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary">{{ forloop.counter|to_persian_number }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                                    <i class="fas fa-user text-primary"></i>
                                                 </div>
-                                                <div class="modal-body">
-                                                    {% trans "آیا مطمئن هستید که می‌خواهید اتصال" %} <strong>{{ userpost.user.username }}</strong> {% trans "به پست" %} <strong>{{ userpost.post.name }}</strong> {% trans "را حذف کنید؟" %}
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "انصراف" %}</button>
-                                                    <a href="{% url 'userpost_delete' userpost.pk %}" class="btn btn-danger">{% trans "حذف" %}</a>
+                                                <div>
+                                                    <h6 class="mb-0">{{ userpost.user.get_full_name|default:userpost.user.username }}</h6>
+                                                    <small class="text-muted">{{ userpost.user.username }}</small>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="6" class="text-center text-muted">{% trans "اتصالی یافت نشد." %}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <h6 class="mb-0">{{ userpost.post.name }}</h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-id-card me-1"></i>
+                                                    {% trans "کد:" %} {{ userpost.post.code|default:"-" }}
+                                                </small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <h6 class="mb-0">{{ userpost.post.organization.name }}</h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                                    {{ userpost.post.organization.address|default:"-" }}
+                                                </small>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-layer-group me-1"></i>
+                                                {{ userpost.post.level|to_persian_number }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if userpost.post.branch %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-sitemap me-1"></i>
+                                                    {{ userpost.post.branch.name }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-calendar-check me-1"></i>
+                                                {{ userpost.start_date|jformat:"%Y/%m/%d" }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if userpost.end_date %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-calendar-times me-1"></i>
+                                                    {{ userpost.end_date|jformat:"%Y/%m/%d" |to_persian_number }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if userpost.is_active %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle me-1"></i>
+                                                    {% trans "فعال" %}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-times-circle me-1"></i>
+                                                    {% trans "غیرفعال" %}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group" role="group">
+                                                {% if perms.core.UserPost_update %}
+                                                    <a href="{% url 'userpost_update' userpost.pk %}" 
+                                                       class="btn btn-outline-warning btn-sm" 
+                                                       data-bs-toggle="tooltip" 
+                                                       title="{% trans 'ویرایش' %}"
+                                                       onclick="console.log('Updating userpost:', {{ userpost.pk }})">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                {% endif %}
+                                                
+                                                {% if perms.core.UserPost_delete %}
+                                                    <button class="btn btn-outline-danger btn-sm" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#deleteModal{{ userpost.pk }}" 
+                                                            title="{% trans 'حذف' %}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="10" class="text-center py-5">
+                                            <div class="text-muted">
+                                                <i class="fas fa-search fa-3x mb-3"></i>
+                                                <h5>{% trans "اتصالی یافت نشد" %}</h5>
+                                                <p>{% trans "لطفاً فیلترهای جستجو را تغییر دهید یا اتصال جدیدی ایجاد کنید." %}</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Pagination -->
+                {% if userposts.has_other_pages %}
+                    <div class="card-footer bg-light">
+                        {% include 'core/pagination.html' %}
+                    </div>
+                {% endif %}
             </div>
-            {% include 'core/pagination.html' %}
         </div>
     </div>
 </div>
+
+<!-- Delete Modals -->
+{% for userpost in userposts %}
+    {% if perms.core.UserPost_delete %}
+        <div class="modal fade" id="deleteModal{{ userpost.pk }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ userpost.pk }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel{{ userpost.pk }}">
+                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                            {% trans "تأیید حذف" %}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle me-2"></i>
+                            {% trans "آیا مطمئن هستید که می‌خواهید این اتصال را حذف کنید؟" %}
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>{% trans "کاربر:" %}</strong><br>
+                                {{ userpost.user.get_full_name|default:userpost.user.username }}
+                            </div>
+                            <div class="col-6">
+                                <strong>{% trans "پست:" %}</strong><br>
+                                {{ userpost.post.name }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>
+                            {% trans "انصراف" %}
+                        </button>
+                        <a href="{% url 'userpost_delete' userpost.pk %}" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>
+                            {% trans "حذف" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Add hover effects to table rows
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
+</script>
 {% endblock %}

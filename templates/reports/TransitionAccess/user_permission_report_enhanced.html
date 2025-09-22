@@ -1,0 +1,851 @@
+{% extends "base.html" %}
+{% load static i18n jformat rcms_custom_filters %}
+
+{% block title %}{% trans "گزارش دسترسی کاربر - نسخه بهینه" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-soft: rgba(79, 70, 229, 0.1);
+        --success-soft: rgba(16, 185, 129, 0.1);
+        --danger-soft: rgba(239, 68, 68, 0.1);
+    }
+    .stat-card {
+        border-left: 4px solid var(--bs-primary);
+    }
+    .form-switch .form-check-input:checked {
+        background-color: var(--bs-success);
+        border-color: var(--bs-success);
+    }
+    .table-hover tbody tr { transition: background-color 0.2s ease; }
+    .toast-container { z-index: 1090; }
+    
+    /* استایل‌های جدید برای کپی */
+    .copy-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .rule-text {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 15px;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .copy-btn {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    
+    .copy-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        color: white;
+    }
+    
+    .filter-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .transition-card {
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .transition-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    
+    .access-badge {
+        font-size: 12px;
+        padding: 5px 10px;
+        border-radius: 15px;
+    }
+    
+    .export-section {
+        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 fw-bold">
+            <i class="fas fa-user-shield text-primary me-2"></i>
+            {% trans "گزارش دسترسی کاربر - نسخه بهینه" %}
+        </h1>
+        <div>
+            <button class="btn btn-outline-primary" onclick="exportToWord()">
+                <i class="fas fa-file-word me-2"></i>خروجی Word
+            </button>
+            <button class="btn btn-outline-success" onclick="exportToExcel()">
+                <i class="fas fa-file-excel me-2"></i>خروجی Excel
+            </button>
+        </div>
+    </div>
+
+    <!-- بخش فیلتر و انتخاب کاربر -->
+    <div class="filter-section">
+        <form method="get" class="row align-items-end g-3">
+            <div class="col-md-4">
+                <label for="user-select" class="form-label fw-bold">{% trans "انتخاب کاربر:" %}</label>
+                <select name="user_id" id="user-select" class="form-select form-select-lg" onchange="this.form.submit()">
+                    {% for u in users %}
+                        <option value="{{ u.id }}" {% if u.id == user.id %}selected{% endif %}>
+                            {{ u.get_full_name|default:u.username }} ({{ u.username }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">{% trans "فیلتر دسترسی:" %}</label>
+                <select id="access-filter" class="form-select" onchange="filterByAccess()">
+                    <option value="all">همه</option>
+                    <option value="accessible">فقط در دسترس</option>
+                    <option value="inaccessible">فقط خارج از دسترس</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">{% trans "جستجو:" %}</label>
+                <input type="text" id="search-input" class="form-control" placeholder="جستجو در نام گذار..." onkeyup="searchTransitions()">
+            </div>
+        </form>
+        
+        {% if user %}
+        <div class="row mt-3">
+            <!-- آمار دسترسی‌های جدید -->
+            <div class="col-md-3">
+                <div class="card stat-card h-100">
+                    <div class="card-body text-center">
+                        <div class="d-flex align-items-center justify-content-center mb-2">
+                            <i class="fas fa-cogs text-primary fs-4 me-2"></i>
+                            <h6 class="card-title mb-0">{% trans "دسترسی‌های قانون" %}</h6>
+                        </div>
+                        <h4 class="text-primary mb-1">{{ rule_stats.total_assignments }}</h4>
+                        <small class="text-muted">{% trans "کل تخصیصات" %}</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- آمار دستور پرداخت -->
+            <div class="col-md-3">
+                <div class="card stat-card h-100">
+                    <div class="card-body text-center">
+                        <div class="d-flex align-items-center justify-content-center mb-2">
+                            <i class="fas fa-credit-card text-success fs-4 me-2"></i>
+                            <h6 class="card-title mb-0">{% trans "دستور پرداخت" %}</h6>
+                        </div>
+                        <h4 class="text-success mb-1">{{ rule_stats.payment_order_access }}</h4>
+                        <small class="text-muted">{% trans "تخصیصات فعال" %}</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- آمار تنخواه -->
+            <div class="col-md-3">
+                <div class="card stat-card h-100">
+                    <div class="card-body text-center">
+                        <div class="d-flex align-items-center justify-content-center mb-2">
+                            <i class="fas fa-wallet text-info fs-4 me-2"></i>
+                            <h6 class="card-title mb-0">{% trans "تنخواه" %}</h6>
+                        </div>
+                        <h4 class="text-info mb-1">{{ rule_stats.tankhah_access }}</h4>
+                        <small class="text-muted">{% trans "تخصیصات فعال" %}</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- آمار فاکتور -->
+            <div class="col-md-3">
+                <div class="card stat-card h-100">
+                    <div class="card-body text-center">
+                        <div class="d-flex align-items-center justify-content-center mb-2">
+                            <i class="fas fa-file-invoice text-warning fs-4 me-2"></i>
+                            <h6 class="card-title mb-0">{% trans "فاکتور" %}</h6>
+                        </div>
+                        <h4 class="text-warning mb-1">{{ rule_stats.factor_access }}</h4>
+                        <small class="text-muted">{% trans "تخصیصات فعال" %}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div class="d-flex justify-content-around">
+                    <div class="text-center">
+                        <h3 class="fw-bolder text-success mb-0">{{ accessible_count }}</h3>
+                        <small class="text-muted">{% trans "گذارهای در دسترس" %}</small>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="fw-bolder text-danger mb-0">{{ inaccessible_count }}</h3>
+                        <small class="text-muted">{% trans "گذارهای خارج از دسترس" %}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                {% if user_posts %}
+                <div>
+                    <strong class="me-2">{% trans "پست‌های فعال کاربر:" %}</strong>
+                    {% for post in user_posts %}
+                        <span class="badge bg-primary me-1">{{ post.name }} ({{ post.organization.code }})</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- بخش کپی دسترسی‌ها -->
+    {% if user %}
+    <div class="copy-permissions-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px; padding: 20px; margin-bottom: 20px;">
+        <div class="row">
+            <div class="col-md-12">
+                <h4 class="mb-3">
+                    <i class="fas fa-copy me-2"></i>
+                    کپی دسترسی‌ها از کاربری به کاربر دیگر
+                </h4>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">کاربر مبدأ (منبع):</label>
+                        <select id="source-user-select" class="form-select">
+                            <option value="">انتخاب کاربر مبدأ...</option>
+                            {% for u in users %}
+                                <option value="{{ u.id }}" data-name="{{ u.get_full_name|default:u.username }}">
+                                    {{ u.get_full_name|default:u.username }} ({{ u.username }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div id="source-user-info" class="mt-2" style="display: none;">
+                            <small class="text-light">
+                                <span id="source-accessible-count">0</span> دسترسی، 
+                                <span id="source-inaccessible-count">0</span> عدم دسترسی
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">کاربر مقصد:</label>
+                        <select id="target-user-select" class="form-select">
+                            <option value="">انتخاب کاربر مقصد...</option>
+                            {% for u in users %}
+                                <option value="{{ u.id }}" data-name="{{ u.get_full_name|default:u.username }}">
+                                    {{ u.get_full_name|default:u.username }} ({{ u.username }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div id="target-user-info" class="mt-2" style="display: none;">
+                            <small class="text-light">
+                                <span id="target-accessible-count">0</span> دسترسی، 
+                                <span id="target-inaccessible-count">0</span> عدم دسترسی
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">نوع کپی:</label>
+                        <select id="copy-mode-select" class="form-select">
+                            <option value="all">همه دسترسی‌ها</option>
+                            <option value="accessible_only">فقط دسترسی‌های موجود</option>
+                            <option value="inaccessible_only">فقط عدم دسترسی‌ها</option>
+                        </select>
+                        <button id="copy-permissions-btn" class="btn btn-light mt-2 w-100" disabled>
+                            <i class="fas fa-copy me-2"></i>کپی دسترسی‌ها
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- بخش تولید قانون -->
+    {% if user %}
+    <div class="copy-section">
+        <div class="row">
+            <div class="col-md-8">
+                <h4 class="mb-3">
+                    <i class="fas fa-gavel me-2"></i>
+                    قانون دسترسی برای کاربر: {{ user.get_full_name|default:user.username }}
+                </h4>
+                <div class="rule-text" id="rule-text">
+کاربر {{ user.get_full_name|default:user.username }} ({{ user.username }}) دارای دسترسی به گذارهای زیر است:
+
+{% for t in transitions %}
+{% if t.has_access %}
+- {{ t.name }} ({{ t.entity_type.name }}): از {{ t.from_status.name }} به {{ t.to_status.name }} با اقدام {{ t.action.name }} در سازمان {{ t.organization.name }}
+{% endif %}
+{% endfor %}
+
+{% if inaccessible_count > 0 %}
+کاربر {{ user.get_full_name|default:user.username }} دسترسی به گذارهای زیر ندارد:
+
+{% for t in transitions %}
+{% if not t.has_access %}
+- {{ t.name }} ({{ t.entity_type.name }}): از {{ t.from_status.name }} به {{ t.to_status.name }} با اقدام {{ t.action.name }} در سازمان {{ t.organization.name }}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+تاریخ تولید: {% now "Y/m/d H:i" %}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex flex-column gap-3">
+                    <button class="copy-btn" onclick="copyRule()">
+                        <i class="fas fa-copy me-2"></i>کپی قانون
+                    </button>
+                    <button class="copy-btn" onclick="copyAccessibleOnly()">
+                        <i class="fas fa-check-circle me-2"></i>فقط دسترسی‌ها
+                    </button>
+                    <button class="copy-btn" onclick="copyInaccessibleOnly()">
+                        <i class="fas fa-times-circle me-2"></i>فقط عدم دسترسی‌ها
+                    </button>
+                    <button class="copy-btn" onclick="generateMarkdown()">
+                        <i class="fab fa-markdown me-2"></i>نسخه Markdown
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- بخش خروجی -->
+    <div class="export-section">
+        <h4 class="mb-3">
+            <i class="fas fa-download me-2"></i>
+            خروجی‌های مختلف
+        </h4>
+        <div class="row">
+            <div class="col-md-3">
+                <button class="btn btn-outline-primary w-100" onclick="exportToPDF()">
+                    <i class="fas fa-file-pdf me-2"></i>PDF
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-outline-success w-100" onclick="exportToWord()">
+                    <i class="fas fa-file-word me-2"></i>Word
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-outline-info w-100" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel me-2"></i>Excel
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-outline-warning w-100" onclick="exportToCSV()">
+                    <i class="fas fa-file-csv me-2"></i>CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول گذارها -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-light border-0 py-3">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>
+                لیست تمام گذارهای سیستم
+                <span class="badge bg-primary ms-2" id="total-count">{{ transitions|length }}</span>
+            </h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="transitions-table" data-user-id="{{ user.id }}">
+                <thead class="table-light">
+                    <tr>
+                        <th>{% trans "#ردیف" %}</th>
+                        <th>{% trans "گذار (Transition)" %}</th>
+                        <th>{% trans "موجودیت" %}</th>
+                        <th>{% trans "از وضعیت" %}</th>
+                        <th>{% trans "اقدام" %}</th>
+                        <th>{% trans "به وضعیت" %}</th>
+                        <th>{% trans "سازمان" %}</th>
+                        <th class="text-center">{% trans "دسترسی" %}</th>
+                        <th class="text-center">{% trans "عملیات" %}</th>
+                    </tr>
+                </thead>
+                <tbody id="transitions-tbody">
+                    {% for t in transitions %}
+                    <tr class="transition-row" data-access="{{ t.has_access|yesno:'accessible,inaccessible' }}" data-name="{{ t.name|lower }}">
+                        <td><strong>{{ forloop.counter | format_negative }}</strong></td>
+                        <td>
+                            <strong>{{ t.name }}</strong>
+                            <br><small class="text-muted">ID: {{ t.id }}</small>
+                        </td>
+                        <td><span class="badge bg-secondary">{{ t.entity_type.name }}</span></td>
+                        <td>{{ t.from_status.name }}</td>
+                        <td><span class="badge bg-info text-white">{{ t.action.name }}</span></td>
+                        <td>{{ t.to_status.name }}</td>
+                        <td>{{ t.organization.name }}</td>
+                        <td class="text-center">
+                            {% if t.has_access %}
+                                <span class="badge bg-success access-badge">در دسترس</span>
+                            {% else %}
+                                <span class="badge bg-danger access-badge">خارج از دسترس</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="form-check form-switch d-inline-block">
+                                <input class="form-check-input access-toggle" type="checkbox" role="switch"
+                                       id="toggle-{{ t.id }}"
+                                       data-transition-id="{{ t.id }}"
+                                       {% if t.has_access %}checked{% endif %}>
+                                <label class="form-check-label" for="toggle-{{ t.id }}"></label>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="9" class="text-center py-5">{% trans "هیچ گذاری در سیستم تعریف نشده است." %}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="me-auto" id="toast-title"></strong>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body" id="toast-body"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const table = document.getElementById('transitions-table');
+    const userId = table.getAttribute('data-user-id');
+    const toastElement = document.getElementById('liveToast');
+    const toast = new bootstrap.Toast(toastElement);
+
+    // مدیریت تغییر دسترسی
+    table.addEventListener('change', function (event) {
+        if (event.target.classList.contains('access-toggle')) {
+            const checkbox = event.target;
+            const transitionId = checkbox.getAttribute('data-transition-id');
+            const action = checkbox.checked ? 'enable' : 'disable';
+
+            checkbox.disabled = true;
+
+            const url = `/reports/toggle-transition-access/${userId}/${transitionId}/`;
+            const formData = new FormData();
+            formData.append('action', action);
+
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                showToast(data.status, data.message);
+                if (data.status === 'success') {
+                    // به‌روزرسانی badge
+                    const row = checkbox.closest('tr');
+                    const badge = row.querySelector('.access-badge');
+                    if (checkbox.checked) {
+                        badge.textContent = 'در دسترس';
+                        badge.className = 'badge bg-success access-badge';
+                        row.setAttribute('data-access', 'accessible');
+                    } else {
+                        badge.textContent = 'خارج از دسترس';
+                        badge.className = 'badge bg-danger access-badge';
+                        row.setAttribute('data-access', 'inaccessible');
+                    }
+                    updateRuleText();
+                }
+            })
+            .catch(error => {
+                showToast('error', 'خطای شبکه در برقراری ارتباط.');
+                checkbox.checked = !checkbox.checked;
+            })
+            .finally(() => {
+                checkbox.disabled = false;
+            });
+        }
+    });
+});
+
+// فیلتر بر اساس دسترسی
+function filterByAccess() {
+    const filter = document.getElementById('access-filter').value;
+    const rows = document.querySelectorAll('.transition-row');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        const access = row.getAttribute('data-access');
+        if (filter === 'all' || access === filter) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    document.getElementById('total-count').textContent = visibleCount;
+}
+
+// جستجو در گذارها
+function searchTransitions() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const rows = document.querySelectorAll('.transition-row');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        const name = row.getAttribute('data-name');
+        if (name.includes(searchTerm)) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    document.getElementById('total-count').textContent = visibleCount;
+}
+
+// کپی قانون کامل
+function copyRule() {
+    const ruleText = document.getElementById('rule-text').textContent;
+    navigator.clipboard.writeText(ruleText).then(() => {
+        showToast('success', 'قانون با موفقیت کپی شد!');
+    });
+}
+
+// کپی فقط دسترسی‌ها
+function copyAccessibleOnly() {
+    const rows = document.querySelectorAll('.transition-row[data-access="accessible"]');
+    let text = 'دسترسی‌های کاربر:\n\n';
+    
+    rows.forEach((row, index) => {
+        const cells = row.querySelectorAll('td');
+        text += `${index + 1}. ${cells[1].textContent.trim()}\n`;
+    });
+    
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('success', 'دسترسی‌ها کپی شدند!');
+    });
+}
+
+// کپی فقط عدم دسترسی‌ها
+function copyInaccessibleOnly() {
+    const rows = document.querySelectorAll('.transition-row[data-access="inaccessible"]');
+    let text = 'عدم دسترسی‌های کاربر:\n\n';
+    
+    rows.forEach((row, index) => {
+        const cells = row.querySelectorAll('td');
+        text += `${index + 1}. ${cells[1].textContent.trim()}\n`;
+    });
+    
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('success', 'عدم دسترسی‌ها کپی شدند!');
+    });
+}
+
+// تولید نسخه Markdown
+function generateMarkdown() {
+    const user = '{{ user.get_full_name|default:user.username }}';
+    const username = '{{ user.username }}';
+    let markdown = `# گزارش دسترسی کاربر: ${user}\n\n`;
+    markdown += `**نام کاربری:** ${username}\n`;
+    markdown += `**تاریخ تولید:** ${new Date().toLocaleString('fa-IR')}\n\n`;
+    
+    markdown += `## دسترسی‌ها\n\n`;
+    const accessibleRows = document.querySelectorAll('.transition-row[data-access="accessible"]');
+    accessibleRows.forEach((row, index) => {
+        const cells = row.querySelectorAll('td');
+        markdown += `${index + 1}. **${cells[1].textContent.trim()}**\n`;
+    });
+    
+    markdown += `\n## عدم دسترسی‌ها\n\n`;
+    const inaccessibleRows = document.querySelectorAll('.transition-row[data-access="inaccessible"]');
+    inaccessibleRows.forEach((row, index) => {
+        const cells = row.querySelectorAll('td');
+        markdown += `${index + 1}. **${cells[1].textContent.trim()}**\n`;
+    });
+    
+    navigator.clipboard.writeText(markdown).then(() => {
+        showToast('success', 'نسخه Markdown کپی شد!');
+    });
+}
+
+// به‌روزرسانی متن قانون
+function updateRuleText() {
+    // این تابع می‌تواند متن قانون را به‌روزرسانی کند
+    // فعلاً ساده نگه می‌داریم
+}
+
+// خروجی‌های مختلف
+function exportToPDF() {
+    window.print();
+}
+
+function exportToWord() {
+    const content = document.getElementById('rule-text').textContent;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'user-permissions.txt';
+    a.click();
+}
+
+function exportToExcel() {
+    const userId = document.getElementById('transitions-table').getAttribute('data-user-id');
+    window.open(`/reports/user-permissions/${userId}/export/excel/`, '_blank');
+}
+
+function exportToCSV() {
+    const userId = document.getElementById('transitions-table').getAttribute('data-user-id');
+    window.open(`/reports/user-permissions/${userId}/export/csv/`, '_blank');
+}
+
+// مدیریت کپی دسترسی‌ها
+document.addEventListener('DOMContentLoaded', function () {
+    const sourceUserSelect = document.getElementById('source-user-select');
+    const targetUserSelect = document.getElementById('target-user-select');
+    const copyModeSelect = document.getElementById('copy-mode-select');
+    const copyPermissionsBtn = document.getElementById('copy-permissions-btn');
+    
+    // بررسی فعال بودن دکمه کپی
+    function checkCopyButtonState() {
+        const sourceSelected = sourceUserSelect.value;
+        const targetSelected = targetUserSelect.value;
+        const canCopy = sourceSelected && targetSelected && sourceSelected !== targetSelected;
+        
+        copyPermissionsBtn.disabled = !canCopy;
+        if (canCopy) {
+            copyPermissionsBtn.classList.remove('btn-light');
+            copyPermissionsBtn.classList.add('btn-warning');
+        } else {
+            copyPermissionsBtn.classList.remove('btn-warning');
+            copyPermissionsBtn.classList.add('btn-light');
+        }
+    }
+    
+    // بارگذاری اطلاعات کاربر
+    function loadUserInfo(userId, type) {
+        if (!userId) {
+            document.getElementById(`${type}-user-info`).style.display = 'none';
+            return;
+        }
+        
+        fetch(`/reports/user-permissions/${userId}/summary/`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById(`${type}-accessible-count`).textContent = data.accessible_count;
+                document.getElementById(`${type}-inaccessible-count`).textContent = data.inaccessible_count;
+                document.getElementById(`${type}-user-info`).style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error loading user info:', error);
+            });
+    }
+    
+    // Event listeners
+    sourceUserSelect.addEventListener('change', function() {
+        loadUserInfo(this.value, 'source');
+        checkCopyButtonState();
+    });
+    
+    targetUserSelect.addEventListener('change', function() {
+        loadUserInfo(this.value, 'target');
+        checkCopyButtonState();
+    });
+    
+    copyModeSelect.addEventListener('change', checkCopyButtonState);
+    
+    // کپی دسترسی‌ها
+    copyPermissionsBtn.addEventListener('click', function() {
+        const sourceUserId = sourceUserSelect.value;
+        const targetUserId = targetUserSelect.value;
+        const copyMode = copyModeSelect.value;
+        
+        if (!sourceUserId || !targetUserId || sourceUserId === targetUserId) {
+            showToast('error', 'لطفاً کاربر مبدأ و مقصد را به درستی انتخاب کنید');
+            return;
+        }
+        
+        // تأیید از کاربر
+        const sourceUserName = sourceUserSelect.options[sourceUserSelect.selectedIndex].dataset.name;
+        const targetUserName = targetUserSelect.options[targetUserSelect.selectedIndex].dataset.name;
+        const copyModeText = copyModeSelect.options[copyModeSelect.selectedIndex].text;
+        
+        const confirmMessage = `آیا مطمئن هستید که می‌خواهید ${copyModeText} از ${sourceUserName} به ${targetUserName} کپی کنید؟`;
+        
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+        
+        // غیرفعال کردن دکمه
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>در حال کپی...';
+        
+        // ارسال درخواست
+        const formData = new FormData();
+        formData.append('source_user_id', sourceUserId);
+        formData.append('target_user_id', targetUserId);
+        formData.append('copy_mode', copyMode);
+        
+        fetch('/reports/user-permissions/copy/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast('success', data.message);
+                
+                // به‌روزرسانی اطلاعات کاربر مقصد
+                loadUserInfo(targetUserId, 'target');
+                
+                // اگر کاربر مقصد همان کاربر فعلی است، صفحه را رفرش کن
+                const currentUserId = document.getElementById('transitions-table').getAttribute('data-user-id');
+                if (targetUserId === currentUserId) {
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                }
+            } else {
+                showToast('error', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error copying permissions:', error);
+            showToast('error', 'خطا در کپی دسترسی‌ها');
+        })
+        .finally(() => {
+            // بازگردانی دکمه
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-copy me-2"></i>کپی دسترسی‌ها';
+            checkCopyButtonState();
+        });
+    });
+});
+
+function showToast(status, message) {
+    const toastTitle = document.getElementById('toast-title');
+    const toastBody = document.getElementById('toast-body');
+    const toastElement = document.getElementById('liveToast');
+    const toast = new bootstrap.Toast(toastElement);
+
+    toastElement.classList.remove('bg-success-subtle', 'bg-danger-subtle', 'bg-info-subtle');
+
+    if (status === 'success') {
+        toastTitle.textContent = 'موفقیت';
+        toastElement.classList.add('bg-success-subtle');
+    } else if (status === 'error') {
+        toastTitle.textContent = 'خطا';
+        toastElement.classList.add('bg-danger-subtle');
+    } else {
+        toastTitle.textContent = 'اطلاعات';
+        toastElement.classList.add('bg-info-subtle');
+    }
+
+    toastBody.textContent = message;
+    toast.show();
+}
+</script>
+
+        <!-- بخش دسترسی‌های قانون جدید -->
+        {% if user_rule_assignments %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-cogs me-2"></i>
+                            {% trans "دسترسی‌های قانون جدید" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>{% trans "پست" %}</th>
+                                        <th>{% trans "اقدام" %}</th>
+                                        <th>{% trans "نوع موجودیت" %}</th>
+                                        <th>{% trans "سازمان" %}</th>
+                                        <th>{% trans "تمپلیت قانون" %}</th>
+                                        <th>{% trans "وضعیت" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for assignment in user_rule_assignments %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-primary">{{ assignment.post.name }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ assignment.action.name }}</span>
+                                        </td>
+                                        <td>
+                                            {% if assignment.entity_type == 'PAYMENTORDER' %}
+                                                <span class="badge bg-success">{% trans "دستور پرداخت" %}</span>
+                                            {% elif assignment.entity_type == 'TANKHAH' %}
+                                                <span class="badge bg-warning">{% trans "تنخواه" %}</span>
+                                            {% elif assignment.entity_type == 'FACTOR' %}
+                                                <span class="badge bg-info">{% trans "فاکتور" %}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ assignment.entity_type }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ assignment.organization.name }}</td>
+                                        <td>
+                                            {% if assignment.rule_template %}
+                                                <span class="badge bg-light text-dark">{{ assignment.rule_template.name }}</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if assignment.is_active %}
+                                                <span class="badge bg-success">{% trans "فعال" %}</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">{% trans "غیرفعال" %}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+{% endblock %}

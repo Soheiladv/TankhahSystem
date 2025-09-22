@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "اعتبارسنجی پیشرفته USB Dongle" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dongle-card {
+        border: 2px solid #007bff;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .dongle-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 123, 255, 0.2);
+    }
+    
+    .sector-status {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8em;
+        font-weight: bold;
+    }
+    
+    .sector-valid {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .sector-invalid {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .action-btn {
+        margin: 5px;
+        min-width: 120px;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 2em;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .sector-details {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 10px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <div class="container-fluid">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-key"></i> {% trans "اعتبارسنجی پیشرفته USB Dongle" %}
+            </h1>
+            <p class="page-subtitle">{% trans "مدیریت چند سکتور مخفی و اعتبارسنجی روزانه" %}</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- آمار کلی -->
+        {% if dongle_stats %}
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ dongle_stats.total_sectors }}</div>
+                <div>{% trans "کل سکتورها" %}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ dongle_stats.valid_sectors }}</div>
+                <div>{% trans "سکتورهای معتبر" %}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ dongle_stats.sector_size }}</div>
+                <div>{% trans "اندازه سکتور (بایت)" %}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- لیست USB ها -->
+        <div class="row">
+            {% for drive in usb_drives %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card dongle-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-usb me-2"></i>{{ drive.caption }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>{% trans "درایو:" %}</strong> {{ drive.drive_letter }}<br>
+                            <strong>{% trans "دستگاه:" %}</strong> {{ drive.device_id }}<br>
+                            {% if drive.size %}
+                            <strong>{% trans "حجم:" %}</strong> {{ drive.size|filesizeformat }}
+                            {% endif %}
+                        </div>
+
+                        <!-- عملیات -->
+                        <form method="post" class="mb-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="usb_device" value="{{ drive.device_id }}">
+                            
+                            <!-- اطلاعات شرکت برای ایجاد dongle -->
+                            <div class="mb-3" id="company-info-{{ forloop.counter }}" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">{% trans "نام شرکت:" %}</label>
+                                        <input type="text" class="form-control form-control-sm" name="organization_name" 
+                                               placeholder="{% trans 'نام شرکت' %}" 
+                                               value="{% if latest_lock %}{{ latest_lock.organization_name }}{% endif %}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">{% trans "شناسه نرم‌افزار:" %}</label>
+                                        <input type="text" class="form-control form-control-sm" name="software_id" 
+                                               placeholder="RCMS" value="RCMS">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" name="action" value="create_dongle" 
+                                        class="btn btn-success action-btn"
+                                        onclick="toggleCompanyInfo({{ forloop.counter }})">
+                                    <i class="fas fa-plus"></i> {% trans "ایجاد Dongle" %}
+                                </button>
+                                
+                                <button type="submit" name="action" value="validate_dongle" 
+                                        class="btn btn-primary action-btn">
+                                    <i class="fas fa-check"></i> {% trans "اعتبارسنجی" %}
+                                </button>
+                                
+                                <button type="submit" name="action" value="repair_dongle" 
+                                        class="btn btn-warning action-btn">
+                                    <i class="fas fa-wrench"></i> {% trans "تعمیر" %}
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- وضعیت سکتورها -->
+                        {% if dongle_stats and dongle_stats.sector_status %}
+                        <div class="sector-details">
+                            <h6>{% trans "وضعیت سکتورها:" %}</h6>
+                            {% for sector, status in dongle_stats.sector_status.items %}
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span>{% trans "سکتور" %} {{ sector }}:</span>
+                                <span class="sector-status {% if status.status == 'valid' %}sector-valid{% else %}sector-invalid{% endif %}">
+                                    {% if status.status == 'valid' %}
+                                        <i class="fas fa-check"></i> {% trans "معتبر" %}
+                                    {% else %}
+                                        <i class="fas fa-times"></i> {% trans "نامعتبر" %}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-warning text-center">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                    <h4>{% trans "هیچ USB متصلی یافت نشد" %}</h4>
+                    <p>{% trans "لطفاً یک درایو USB را به سیستم متصل کنید." %}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- عملیات کلی -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cogs"></i> {% trans "عملیات کلی" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="submit" name="action" value="daily_check" 
+                                        class="btn btn-info">
+                                    <i class="fas fa-calendar-day"></i> {% trans "بررسی روزانه" %}
+                                </button>
+                                
+                                <a href="{% url 'usb_key_validator:dongle_dashboard' %}" 
+                                   class="btn btn-secondary">
+                                    <i class="fas fa-tachometer-alt"></i> {% trans "داشبورد" %}
+                                </a>
+                                
+                                <a href="{% url 'usb_key_validator:validate' %}" 
+                                   class="btn btn-outline-primary">
+                                    <i class="fas fa-arrow-left"></i> {% trans "بازگشت" %}
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- راهنما -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle"></i> {% trans "راهنما" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>{% trans "ویژگی‌های Dongle:" %}</h6>
+                                <ul>
+                                    <li>{% trans "چند سکتور مخفی برای امنیت بیشتر" %}</li>
+                                    <li>{% trans "سکتورهای پشتیبان برای مقاومت در برابر خرابی" %}</li>
+                                    <li>{% trans "امضای منحصر به فرد برای هر dongle" %}</li>
+                                    <li>{% trans "اعتبارسنجی خودکار روزانه" %}</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>{% trans "عملیات:" %}</h6>
+                                <ul>
+                                    <li><strong>{% trans "ایجاد Dongle:" %}</strong> {% trans "نوشتن کلید در چند سکتور" %}</li>
+                                    <li><strong>{% trans "اعتبارسنجی:" %}</strong> {% trans "بررسی یکپارچگی dongle" %}</li>
+                                    <li><strong>{% trans "تعمیر:" %}</strong> {% trans "بازسازی سکتورهای خراب" %}</li>
+                                    <li><strong>{% trans "بررسی روزانه:" %}</strong> {% trans "اعتبارسنجی خودکار" %}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// تابع نمایش/مخفی کردن اطلاعات شرکت
+function toggleCompanyInfo(counter) {
+    const companyInfo = document.getElementById('company-info-' + counter);
+    if (companyInfo.style.display === 'none') {
+        companyInfo.style.display = 'block';
+    } else {
+        companyInfo.style.display = 'none';
+    }
+}
+
+// Auto-refresh status every 30 seconds
+setInterval(function() {
+    // You can add AJAX calls here to refresh status
+}, 30000);
+</script>
+{% endblock %}

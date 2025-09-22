@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% load humanize %}
+
+{% block title %}تایید دستور پرداخت - {{ payment_order.order_number }}{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'admin/css/budgetsStyle.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- هدر تایید -->
+    <div class="approval-header animate-fadeIn">
+        <h2><i class="fas fa-check-circle"></i> تایید دستور پرداخت</h2>
+        <div class="order-number">{{ payment_order.order_number }}</div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- اطلاعات کلی -->
+            <div class="card-custom animate-fadeIn" style="animation-delay: 0.1s;">
+                <div class="card-header-custom">
+                    <h5><i class="fas fa-info-circle"></i> اطلاعات کلی</h5>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">شماره دستور</span>
+                        <span class="info-value">{{ payment_order.order_number }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">تاریخ صدور</span>
+                        <span class="info-value">{{ payment_order.issue_date|date:"Y/m/d" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">مبلغ کل</span>
+                        <span class="info-value">{{ payment_order.amount|floatformat:0|intcomma }} ریال</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">وضعیت فعلی</span>
+                        <span class="status-badge status-{{ payment_order.status.code|lower }}">
+                            <i class="fas fa-circle-notch"></i> {{ payment_order.status.name }}
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">سازمان</span>
+                        <span class="info-value">{{ payment_order.organization.name }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">دریافت‌کننده</span>
+                        <span class="info-value">{{ payment_order.payee.name|default:"نامشخص" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- تاییدکنندگان موثر در گردش کار -->
+            <div class="card-custom animate-fadeIn" style="animation-delay: 0.15s;">
+                <div class="card-header-custom">
+                    <h5><i class="fas fa-users"></i> تاییدکنندگان موثر در گردش کار</h5>
+                </div>
+                {% if approval_tree %}
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th class="text-end">پست</th>
+                                <th class="text-end">نام کاربر</th>
+                                <th class="text-end">وضعیت</th>
+                                <th class="text-end">آخرین اقدام</th>
+                                <th class="text-end">زمان</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for node in approval_tree %}
+                                {% for u in node.users %}
+                                <tr>
+                                    <td class="text-end">{{ node.post_name }}</td>
+                                    <td class="text-end">{{ u.full_name|default:u.username }}</td>
+                                    <td class="text-end">
+                                        {% if u.has_approved %}
+                                            <span class="badge bg-success">تایید شده</span>
+                                        {% elif u.has_rejected %}
+                                            <span class="badge bg-danger">رد شده</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">در انتظار</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">{{ u.last_action_name|default:"—" }}</td>
+                                    <td class="text-end">{{ u.last_action_time|date:"Y/m/d H:i" }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">اطلاعات تاییدکنندگان برای این وضعیت یافت نشد.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    <div class="p-3 text-muted">درخت تایید برای این دستور پرداخت موجود نیست.</div>
+                {% endif %}
+            </div>
+
+            <!-- فاکتورهای مرتبط -->
+            {% if related_factors %}
+            <div class="card-custom animate-fadeIn" style="animation-delay: 0.2s;">
+                <div class="card-header-custom">
+                    <h5><i class="fas fa-file-invoice"></i> فاکتورهای مرتبط ({{ related_factors|length }})</h5>
+                </div>
+                <div class="factors-container">
+                    {% for factor in related_factors %}
+                    <div class="factor-card">
+                        <div class="factor-header">
+                            <span class="factor-number">{{ factor.factor_number|default:factor.number }}</span>
+                            <span class="factor-amount">{{ factor.amount|floatformat:0|intcomma }} ریال</span>
+                        </div>
+                        <div class="factor-details">
+                            <div class="factor-detail">
+                                <span class="factor-detail-label">تاریخ</span>
+                                <span class="factor-detail-value">{{ factor.created_at|date:"Y/m/d" }}</span>
+                            </div>
+                            <div class="factor-detail">
+                                <span class="factor-detail-label">وضعیت</span>
+                                <span class="factor-detail-value">{{ factor.status.name }}</span>
+                            </div>
+                            <div class="factor-detail">
+                                <span class="factor-detail-label">پروژه</span>
+                                <span class="factor-detail-value">{{ factor.project.name|default:"-" }}</span>
+                            </div>
+                            <div class="factor-detail">
+                                <span class="factor-detail-label">دپارتمان</span>
+                                <span class="factor-detail-value">{{ factor.department.name|default:"-" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- تاریخچه تاییدات -->
+            {% if approval_logs %}
+            <div class="logs-container animate-fadeIn" style="animation-delay: 0.3s;">
+                <h5 class="mb-4"><i class="fas fa-history"></i> تاریخچه تاییدات</h5>
+                {% for log in approval_logs %}
+                <div class="log-item">
+                    <div class="log-icon log-icon-{{ log.action|lower }}">
+                        <i class="fas fa-{% if log.action == 'approved' %}check-circle{% elif log.action == 'rejected' %}times-circle{% else %}plus-circle{% endif %}"></i>
+                    </div>
+                    <div class="log-content">
+                        <div class="log-header">
+                            <span class="log-user">{{ log.user.get_full_name|default:log.user.username }}</span>
+                            <span class="log-time">{{ log.timestamp|date:"Y/m/d H:i" }}</span>
+                        </div>
+                        <div class="log-action action-{{ log.action|lower }}">
+                            {{ log.get_action_display }}
+                        </div>
+                        {% if log.comment %}
+                        <div class="log-comment">
+                            {{ log.comment }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <!-- آمار -->
+            <div class="stats-grid">
+                <div class="stat-card animate-fadeIn" style="animation-delay: 0.1s;">
+                    <h3>{{ factors_stats.total_count }}</h3>
+                    <p>تعداد فاکتورها</p>
+                </div>
+                <div class="stat-card animate-fadeIn" style="animation-delay: 0.15s;">
+                    <h3>{{ factors_stats.total_amount|floatformat:0|intcomma }}</h3>
+                    <p>مجموع مبلغ (ریال)</p>
+                </div>
+            </div>
+
+            <!-- فرم تایید -->
+            {% if can_approve %}
+            <div class="approval-form-container animate-fadeIn" style="animation-delay: 0.2s;">
+                <h5 class="mb-4"><i class="fas fa-edit"></i> اقدام</h5>
+                <form method="post" id="approvalForm">
+                    {% csrf_token %}
+                    <div class="form-group-custom">
+                        <label for="{{ form.status.id_for_label }}">وضعیت جدید</label>
+                        {{ form.status }}
+                    </div>
+                    <div class="form-group-custom">
+                        <label for="{{ form.notes.id_for_label }}">یادداشت (اختیاری)</label>
+                        {{ form.notes }}
+                    </div>
+                    
+                    <div class="d-grid gap-2 button-group">
+                        <button type="submit" name="action" value="approve" class="btn-custom btn-approve">
+                            <i class="fas fa-check"></i> تایید دستور پرداخت
+                        </button>
+                        <button type="submit" name="action" value="reject" class="btn-custom btn-reject">
+                            <i class="fas fa-times"></i> رد دستور پرداخت
+                        </button>
+                        <a href="{% url 'paymentorder_management_list' %}" class="btn-custom btn-secondary-custom">
+                            <i class="fas fa-arrow-right"></i> بازگشت به لیست
+                        </a>
+                    </div>
+                </form>
+            </div>
+            {% else %}
+            <div class="alert alert-warning alert-custom animate-fadeIn" style="animation-delay: 0.2s;">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <h5>عدم دسترسی</h5>
+                <p class="mb-0">شما مجوز تایید این دستور پرداخت را ندارید.</p>
+                <a href="{% url 'paymentorder_management_list' %}" class="btn-custom btn-secondary-custom mt-3">
+                    <i class="fas fa-arrow-right"></i> بازگشت به لیست
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // تغییر استایل دکمه بر اساس انتخاب وضعیت
+    const statusSelect = document.getElementById('{{ form.status.id_for_label }}');
+    const approveBtn = document.querySelector('button[value="approve"]');
+    const rejectBtn = document.querySelector('button[value="reject"]');
+    
+    if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+            if (this.value === 'PO_APPROVED') {
+                approveBtn.style.display = 'flex';
+                rejectBtn.style.display = 'none';
+            } else if (this.value === 'PO_REJECTED') {
+                approveBtn.style.display = 'none';
+                rejectBtn.style.display = 'flex';
+            } else {
+                approveBtn.style.display = 'flex';
+                rejectBtn.style.display = 'flex';
+            }
+        });
+        
+        // مقداردهی اولیه
+        statusSelect.dispatchEvent(new Event('change'));
+    }
+    
+    // اعتبارسنجی فرم
+    const form = document.getElementById('approvalForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const status = document.getElementById('{{ form.status.id_for_label }}').value;
+            const notes = document.getElementById('{{ form.notes.id_for_label }}').value;
+            
+            if (!status) {
+                e.preventDefault();
+                showAlert('لطفاً وضعیت را انتخاب کنید.', 'warning');
+                return;
+            }
+            
+            if (status === 'PO_REJECTED' && !notes.trim()) {
+                e.preventDefault();
+                showAlert('لطفاً دلیل رد کردن را وارد کنید.', 'warning');
+                return;
+            }
+        });
+    }
+    
+    // نمایش اعلان
+    function showAlert(message, type = 'info') {
+        // می‌توانید از یک کتابگاه toast استفاده کنید یا این تابع را پیاده‌سازی کنید
+        alert(message);
+    }
+});
+</script>
+{% endblock %}

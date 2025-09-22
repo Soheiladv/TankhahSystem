@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "پشتیبان‌گیری MySQL استاندارد" %}{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <div class="container-fluid">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-database"></i> {% trans "پشتیبان‌گیری MySQL استاندارد" %}
+            </h1>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-database me-2"></i> {% trans "MySQL استاندارد" %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {% trans "این روش سعی می‌کند از" %} <code>mysqldump</code> {% trans "برای ایجاد پشتیبان‌گیری استاندارد MySQL استفاده کند. در صورت عدم وجود، از روش‌های جایگزین استفاده می‌شود." %}
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>{% trans "نکته:" %}</strong> {% trans "اگر" %} <code>mysqldump</code> {% trans "نصب نباشد، سیستم به طور خودکار از روش‌های جایگزین استفاده خواهد کرد." %}
+                </div>
+                
+                <h5>{% trans "ویژگی‌ها:" %}</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        {% trans "سازگار با تمام ابزارهای MySQL" %}
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        {% trans "قابل بازگردانی با" %} <code>mysql</code> {% trans "command" %}
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        {% trans "فشرده‌سازی خودکار" %}
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        {% trans "پشتیبان‌گیری از هر دو دیتابیس (اصلی و لاگ)" %}
+                    </li>
+                </ul>
+                
+                <div class="mt-4">
+                    <h6>{% trans "دیتابیس‌های هدف:" %}</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-database text-primary fa-2x mb-2"></i>
+                                    <h6>{% trans "دیتابیس اصلی" %}</h6>
+                                    <small class="text-muted">tankhasystem</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-info">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-file-alt text-info fa-2x mb-2"></i>
+                                    <h6>{% trans "دیتابیس لاگ" %}</h6>
+                                    <small class="text-muted">tankhah_logs_db</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-database me-2"></i> {% trans "ایجاد پشتیبان‌گیری MySQL" %}
+                        </button>
+                        <a href="{% url 'backup:list' %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-arrow-left me-2"></i> {% trans "بازگشت" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "ایجاد تمپلیت جدید" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --success-color: #27ae60;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #17a2b8;
+        --light-color: #f8f9fa;
+        --dark-color: #343a40;
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .main-container {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 25px;
+        box-shadow: 
+            0 25px 50px rgba(0,0,0,0.15),
+            0 0 0 1px rgba(255,255,255,0.1);
+        margin: 20px;
+        padding: 40px;
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .main-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, 
+            var(--secondary-color) 0%, 
+            var(--info-color) 25%, 
+            var(--success-color) 50%, 
+            var(--warning-color) 75%, 
+            var(--danger-color) 100%);
+        border-radius: 25px 25px 0 0;
+    }
+
+    .header-section {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
+
+    .header-section h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .form-container {
+        background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.9) 100%);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 
+            0 15px 35px rgba(0,0,0,0.1),
+            0 5px 15px rgba(0,0,0,0.05);
+        border: 1px solid rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 8px;
+        font-size: 1rem;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid rgba(52, 152, 219, 0.2);
+        border-radius: 15px;
+        padding: 12px 20px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(5px);
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        background: white;
+    }
+
+    .form-control.is-invalid, .form-select.is-invalid {
+        border-color: var(--danger-color);
+        box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25);
+    }
+
+    .invalid-feedback {
+        color: var(--danger-color);
+        font-weight: 500;
+        margin-top: 5px;
+    }
+
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(52, 152, 219, 0.3);
+        border-radius: 6px;
+    }
+
+    .form-check-input:checked {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+    }
+
+    .form-check-label {
+        font-weight: 500;
+        color: var(--dark-color);
+        margin-right: 10px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--secondary-color) 0%, var(--info-color) 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 12px 30px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(52, 152, 219, 0.4);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, var(--light-color) 0%, #e9ecef 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 12px 30px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--dark-color);
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+        color: var(--dark-color);
+    }
+
+    .help-section {
+        background: linear-gradient(135deg, rgba(23, 162, 184, 0.1) 0%, rgba(52, 152, 219, 0.1) 100%);
+        border: 1px solid rgba(23, 162, 184, 0.2);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+
+    .help-section h6 {
+        color: var(--info-color);
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .help-section ul {
+        margin: 0;
+        padding-right: 20px;
+    }
+
+    .help-section li {
+        margin-bottom: 8px;
+        color: var(--dark-color);
+        line-height: 1.5;
+    }
+
+    .alert {
+        border-radius: 15px;
+        border: none;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .fade-in {
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { 
+            opacity: 0; 
+            transform: translateY(20px); 
+        }
+        to { 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
+    }
+
+    @media (max-width: 768px) {
+        .main-container {
+            margin: 10px;
+            padding: 20px;
+        }
+        
+        .header-section h1 {
+            font-size: 2rem;
+        }
+        
+        .form-container {
+            padding: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container fade-in">
+    <!-- هدر -->
+    <div class="header-section">
+        <h1><i class="fas fa-plus me-3"></i>{% trans "ایجاد تمپلیت جدید" %}</h1>
+        <p>{% trans "ایجاد تمپلیت قوانین گردش کار جدید" %}</p>
+    </div>
+
+    <!-- فرم -->
+    <div class="form-container">
+        <button type="button" class="btn btn-info mb-3" data-bs-toggle="collapse" data-bs-target="#helpCollapse">
+            <i class="fas fa-question-circle me-2"></i>
+            {% trans "راهنمای استفاده" %}
+        </button>
+        
+        <div class="collapse" id="helpCollapse">
+            <div class="help-section">
+                <h6>
+                    <i class="fas fa-info-circle me-2"></i>
+                    راهنمای استفاده
+                </h6>
+                <ul>
+                    <li><strong>نام تمپلیت:</strong> نام منحصر به فرد برای تمپلیت قوانین گردش کار</li>
+                    <li><strong>نوع موجودیت:</strong> نوع موجودیتی که این تمپلیت برای آن طراحی شده است</li>
+                    <li><strong>توضیحات:</strong> توضیحات کامل در مورد تمپلیت و کاربرد آن</li>
+                    <li><strong>سازمان مبدا:</strong> سازمانی که این تمپلیت از آن ایجاد می‌شود</li>
+                    <li><strong>عمومی:</strong> اگر فعال باشد، سایر سازمان‌ها نیز می‌توانند از این تمپلیت استفاده کنند</li>
+                </ul>
+            </div>
+        </div>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">{% trans "نام تمپلیت" %} <span class="text-danger">*</span></label>
+                        <input type="text" 
+                               class="form-control {% if form.name.errors %}is-invalid{% endif %}" 
+                               id="{{ form.name.id_for_label }}" 
+                               name="{{ form.name.name }}" 
+                               value="{{ form.name.value|default:'' }}"
+                               required>
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback">{{ form.name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.entity_type.id_for_label }}" class="form-label">{% trans "نوع موجودیت" %} <span class="text-danger">*</span></label>
+                        <select class="form-select {% if form.entity_type.errors %}is-invalid{% endif %}" 
+                                id="{{ form.entity_type.id_for_label }}" 
+                                name="{{ form.entity_type.name }}" 
+                                required>
+                            <option value="">{% trans "انتخاب کنید" %}</option>
+                            {% for value, label in entity_types %}
+                                <option value="{{ value }}" {% if form.entity_type.value == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if form.entity_type.errors %}
+                            <div class="invalid-feedback">{{ form.entity_type.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-12">
+                    <div class="form-group">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">{% trans "توضیحات" %}</label>
+                        <textarea class="form-control {% if form.description.errors %}is-invalid{% endif %}" 
+                                  id="{{ form.description.id_for_label }}" 
+                                  name="{{ form.description.name }}" 
+                                  rows="4">{{ form.description.value|default:'' }}</textarea>
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-12">
+                    <div class="form-group">
+                        <label for="{{ form.organization.id_for_label }}" class="form-label">{% trans "سازمان مبدا" %} <span class="text-danger">*</span></label>
+                        <select class="form-select {% if form.organization.errors %}is-invalid{% endif %}" 
+                                id="{{ form.organization.id_for_label }}" 
+                                name="{{ form.organization.name }}" 
+                                required>
+                            <option value="">{% trans "انتخاب کنید" %}</option>
+                            {% for org in organizations %}
+                                <option value="{{ org.id }}" {% if form.organization.value == org.id %}selected{% endif %}>{{ org.name }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if form.organization.errors %}
+                            <div class="invalid-feedback">{{ form.organization.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-12">
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input class="form-check-input {% if form.is_public.errors %}is-invalid{% endif %}" 
+                                   type="checkbox" 
+                                   id="{{ form.is_public.id_for_label }}" 
+                                   name="{{ form.is_public.name }}" 
+                                   {% if form.is_public.value %}checked{% endif %}>
+                            <label class="form-check-label" for="{{ form.is_public.id_for_label }}">
+                                {% trans "عمومی (قابل استفاده برای همه سازمان‌ها)" %}
+                            </label>
+                            {% if form.is_public.errors %}
+                                <div class="invalid-feedback">{{ form.is_public.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex gap-3 justify-content-center">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            {% trans "ذخیره تمپلیت" %}
+                        </button>
+                        <a href="{% url 'workflow_management:template_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>
+                            {% trans "انصراف" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

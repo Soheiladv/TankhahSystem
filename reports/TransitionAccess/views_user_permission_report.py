@@ -75,7 +75,7 @@ class UserPermissionReportView(StaffRequiredMixin, View):
         user_rule_assignments = PostRuleAssignment.objects.filter(
             post__id__in=user_post_ids,
             is_active=True
-        ).select_related('post', 'action', 'organization', 'rule_template')
+        ).select_related('post', 'action', 'organization')
 
         # آمار دسترسی‌ها
         rule_stats = {
@@ -84,6 +84,28 @@ class UserPermissionReportView(StaffRequiredMixin, View):
             'tankhah_access': user_rule_assignments.filter(entity_type='TANKHAH').count(),
             'factor_access': user_rule_assignments.filter(entity_type='FACTOR').count(),
         }
+
+        # اعمال Overrides کاربر (UserRuleOverride)
+        from core.models import UserRuleOverride
+        overrides = UserRuleOverride.objects.filter(user=user)
+        overrides_map = {}
+        for o in overrides:
+            key = (o.organization_id, o.action_id, o.entity_type_id, o.post_id or 0)
+            overrides_map[key] = o.is_enabled
+
+        # برچسب‌گذاری ترنزیشن‌ها با توجه به override ها
+        for t in transitions:
+            # کلیدهای ممکن (با و بدون پست)
+            keys = [
+                (t.organization_id, t.action_id, t.entity_type_id, pid)
+                for pid in user_post_ids
+            ] + [
+                (t.organization_id, t.action_id, t.entity_type_id, 0)
+            ]
+            for k in keys:
+                if k in overrides_map and overrides_map[k] is False:
+                    t.has_access = False
+                    break
 
         context = {
             'users': users,

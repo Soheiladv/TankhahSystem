@@ -26,6 +26,8 @@ class OrganizationChartAPIView(PermissionBaseView, APIView):
             # دریافت پارامترهای فیلتر
             role_filter = request.query_params.get('role', None)
             org_id = request.query_params.get('org_id', None)
+            branch_id = request.query_params.get('branch_id', None)
+            post_id = request.query_params.get('post_id', None)
             status = request.query_params.get('status', None)
 
             # کوئری پایه برای سازمان‌ها
@@ -33,10 +35,17 @@ class OrganizationChartAPIView(PermissionBaseView, APIView):
             if org_id:
                 queryset = queryset.filter(id=org_id)
 
+            # فیلتر پست‌ها بر اساس شاخه و پست خاص
+            post_queryset = Post.objects.filter(is_active=True)
+            if branch_id:
+                post_queryset = post_queryset.filter(branch_id=branch_id)
+            if post_id:
+                post_queryset = post_queryset.filter(id=post_id)
+
             organizations = queryset.prefetch_related(
-                Prefetch('post_set', queryset=Post.objects.filter(is_active=True).prefetch_related(
+                Prefetch('post_set', queryset=post_queryset.prefetch_related(
                     Prefetch('userpost_set', queryset=UserPost.objects.filter(is_active=True).select_related('user'))
-                ).select_related('parent')),
+                ).select_related('parent', 'branch')),
                 'parent_organization'
             ).select_related('org_type')
 
@@ -68,11 +77,12 @@ class OrganizationChartAPIView(PermissionBaseView, APIView):
 
                 for post in org.post_set.all():
                     # گره پست
+                    branch_name = post.branch.name if post.branch else _('بدون شاخه')
                     post_node = {
                         'id': f'post_{post.id}',
                         'label': post.name,
                         'group': 'post',
-                        'title': f"<b>{_('پست')}:</b> {post.name}<br><b>{_('سازمان')}:</b> {org.name}<br><b>{_('شاخه')}:</b>   ",
+                        'title': f"<b>{_('پست')}:</b> {post.name}<br><b>{_('سازمان')}:</b> {org.name}<br><b>{_('شاخه')}:</b> {branch_name}<br><b>{_('سطح')}:</b> {post.level}",
                         'shape': 'ellipse',
                         'color': '#FBDBA8',
                         'font': {'size': 11}
@@ -141,16 +151,35 @@ class OrganizationChartView(PermissionBaseView, LoginRequiredMixin, TemplateView
         context['title'] = _("نمودار سازمانی")
 
         try:
-            # دریافت لیست نقش‌ها و سازمان‌ها برای فیلترها
-            roles = [role.name for role in CustomUser.objects.values('roles__name').distinct() if role['roles__name']]
-            organizations = Organization.objects.filter(is_active=True).values('id', 'name')
+            # دریافت لیست نقش‌ها، سازمان‌ها، شاخه‌ها و پست‌ها برای فیلترها
+            from core.models import Branch
+            from django.db.models import Q
+            
+            # نقش‌ها - درست کردن کوئری
+            roles = list(CustomUser.objects.filter(roles__isnull=False).values_list('roles__name', flat=True).distinct())
+            roles = [role for role in roles if role]  # حذف مقادیر خالی
+            
+            # سازمان‌ها
+            organizations = Organization.objects.filter(is_active=True).values('id', 'name', 'code')
+            
+            # شاخه‌ها
+            branches = Branch.objects.filter(is_active=True).values('id', 'name', 'code')
+            
+            # پست‌ها (برای فیلتر پیشرفته)
+            posts = Post.objects.filter(is_active=True).select_related('organization', 'branch').values(
+                'id', 'name', 'organization__name', 'branch__name', 'level'
+            )
+            
             context['roles'] = roles
             context['organizations'] = organizations
+            context['branches'] = branches
+            context['posts'] = posts
 
             # در صورت عدم نیاز به داده‌های اولیه در تمپلیت، می‌توان این بخش را حذف کرد
             # زیرا داده‌ها از API دریافت می‌شوند
             context['nodes_json'] = json.dumps([])
             context['edges_json'] = json.dumps([])
+            context['posts_json'] = json.dumps(list(posts))
 
         except Exception as e:
             logger.error(f"Error in OrganizationChartView: {str(e)}", exc_info=True)

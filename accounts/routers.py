@@ -7,10 +7,11 @@ class LogRouter:
     """
     route_models = {
         'accounts.auditlog',
-        'version_tracker.appversion',
-        'version_tracker.filehash', 
-        'version_tracker.codechangelog',
-        'version_tracker.finalversion'
+        # حذف version_tracker models از logs database
+        # 'version_tracker.appversion',
+        # 'version_tracker.filehash', 
+        # 'version_tracker.codechangelog',
+        # 'version_tracker.finalversion',
     }
     route_db = 'tankhah_logs_db'  # <<<< نام صحیح دیتابیس اینجا تعریف شود
 

@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "داشبورد مدیریت USB Dongle" %}{% endblock %}
+ 
+{% block content %}
+<div class="main-container">
+    <div class="container-fluid">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-tachometer-alt"></i> {% trans "داشبورد مدیریت USB Dongle" %}
+            </h1>
+            <p class="page-subtitle">{% trans "نظارت و مدیریت dongle های متصل" %}</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- آمار کلی -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_drives }}</div>
+                <div class="stat-label">{% trans "کل درایوهای متصل" %}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ valid_dongles }}</div>
+                <div class="stat-label">{% trans "Dongle های معتبر" %}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ total_drives|add:"-"|add:valid_dongles }}</div>
+                <div class="stat-label">{% trans "درایوهای بدون Dongle" %}</div>
+            </div>
+        </div>
+
+        <!-- آخرین بررسی روزانه -->
+        {% if last_daily_check %}
+        <div class="last-check-info">
+            <h5><i class="fas fa-calendar-day"></i> {% trans "آخرین بررسی روزانه" %}</h5>
+            <p><strong>{% trans "وضعیت:" %}</strong> 
+                {% if last_daily_check.valid %}
+                    <span class="status-badge status-valid">
+                        <i class="fas fa-check"></i> {% trans "موفق" %}
+                    </span>
+                {% else %}
+                    <span class="status-badge status-invalid">
+                        <i class="fas fa-times"></i> {% trans "ناموفق" %}
+                    </span>
+                {% endif %}
+            </p>
+            <p><strong>{% trans "پیام:" %}</strong> {{ last_daily_check.message }}</p>
+            <p><strong>{% trans "زمان:" %}</strong> {{ last_daily_check.timestamp }}</p>
+            {% if last_daily_check.device %}
+            <p><strong>{% trans "دستگاه:" %}</strong> {{ last_daily_check.device }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- لیست درایوها و dongle ها -->
+        <div class="row">
+            {% for detail in dongle_details %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card dashboard-card">
+                    <div class="card-header {% if detail.valid %}bg-success{% else %}bg-danger{% endif %} text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-usb me-2"></i>{{ detail.drive.caption }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- اطلاعات درایو -->
+                        <div class="mb-3">
+                            <strong>{% trans "درایو:" %}</strong> {{ detail.drive.drive_letter }}<br>
+                            <strong>{% trans "دستگاه:" %}</strong> {{ detail.drive.device_id }}<br>
+                            {% if detail.drive.size %}
+                            <strong>{% trans "حجم:" %}</strong> {{ detail.drive.size|filesizeformat }}
+                            {% endif %}
+                        </div>
+
+                        <!-- وضعیت dongle -->
+                        <div class="mb-3">
+                            <strong>{% trans "وضعیت Dongle:" %}</strong><br>
+                            {% if detail.valid %}
+                                <span class="status-badge status-valid">
+                                    <i class="fas fa-check"></i> {% trans "معتبر" %}
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-invalid">
+                                    <i class="fas fa-times"></i> {% trans "نامعتبر" %}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- پیام وضعیت -->
+                        <div class="mb-3">
+                            <strong>{% trans "پیام:" %}</strong><br>
+                            <small class="text-muted">{{ detail.message }}</small>
+                        </div>
+
+                        <!-- آمار سکتورها -->
+                        {% if detail.stats %}
+                        <div class="dongle-details">
+                            <h6>{% trans "آمار سکتورها:" %}</h6>
+                            <div class="sector-info">
+                                <span>{% trans "کل سکتورها:" %}</span>
+                                <strong>{{ detail.stats.total_sectors }}</strong>
+                            </div>
+                            <div class="sector-info">
+                                <span>{% trans "سکتورهای معتبر:" %}</span>
+                                <strong>{{ detail.stats.valid_sectors }}</strong>
+                            </div>
+                            <div class="sector-info">
+                                <span>{% trans "اندازه سکتور:" %}</span>
+                                <strong>{{ detail.stats.sector_size }} {% trans "بایت" %}</strong>
+                            </div>
+                        </div>
+                        
+                        <!-- اطلاعات شرکت -->
+                        {% if detail.stats.organization_name %}
+                        <div class="dongle-details mt-3">
+                            <h6>{% trans "اطلاعات شرکت:" %}</h6>
+                            <div class="sector-info">
+                                <span>{% trans "نام شرکت:" %}</span>
+                                <strong>{{ detail.stats.organization_name }}</strong>
+                            </div>
+                            <div class="sector-info">
+                                <span>{% trans "شناسه نرم‌افزار:" %}</span>
+                                <strong>{{ detail.stats.software_id }}</strong>
+                            </div>
+                            <div class="sector-info">
+                                <span>{% trans "تاریخ انقضا:" %}</span>
+                                <strong>{{ detail.stats.expiry_date }}</strong>
+                            </div>
+                            <div class="sector-info">
+                                <span>{% trans "نوع Dongle:" %}</span>
+                                <strong>{{ detail.stats.dongle_type }}</strong>
+                            </div>
+                            <div class="sector-info">
+                                <span>{% trans "شناسه دستگاه:" %}</span>
+                                <strong>{{ detail.stats.device_id }}</strong>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+
+                        <!-- دکمه‌های عملیات -->
+                        <div class="action-buttons">
+                            <a href="{% url 'usb_key_validator:enhanced_validate' %}" 
+                               class="btn btn-primary btn-action">
+                                <i class="fas fa-cog"></i> {% trans "مدیریت" %}
+                            </a>
+                            
+                            {% if detail.valid and detail.stats.organization_name %}
+                            <a href="{% url 'usb_key_validator:edit_dongle' detail.drive.device_id %}" 
+                               class="btn btn-info btn-action">
+                                <i class="fas fa-edit"></i> {% trans "ویرایش" %}
+                            </a>
+                            {% endif %}
+                            
+                            {% if not detail.valid %}
+                            <button class="btn btn-warning btn-action" 
+                                    onclick="repairDongle('{{ detail.drive.device_id }}')">
+                                <i class="fas fa-wrench"></i> {% trans "تعمیر" %}
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-warning text-center">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                    <h4>{% trans "هیچ درایو USB متصلی یافت نشد" %}</h4>
+                    <p>{% trans "لطفاً یک درایو USB را به سیستم متصل کنید." %}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- عملیات کلی -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cogs"></i> {% trans "عملیات کلی" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a href="{% url 'usb_key_validator:enhanced_validate' %}" 
+                               class="btn btn-primary">
+                                <i class="fas fa-plus"></i> {% trans "ایجاد Dongle جدید" %}
+                            </a>
+                            
+                            <a href="{% url 'usb_key_validator:create_company_dongle' %}" 
+                               class="btn btn-success">
+                                <i class="fas fa-building"></i> {% trans "شرکت جدید" %}
+                            </a>
+                            
+                            <button class="btn btn-info" onclick="refreshDashboard()">
+                                <i class="fas fa-sync-alt"></i> {% trans "بروزرسانی" %}
+                            </button>
+                            
+                            <button class="btn btn-success" onclick="runDailyCheck()">
+                                <i class="fas fa-calendar-day"></i> {% trans "بررسی روزانه" %}
+                            </button>
+                            
+                            <a href="{% url 'usb_key_validator:validate' %}" 
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> {% trans "بازگشت" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- راهنما -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle"></i> {% trans "راهنما" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>{% trans "وضعیت‌ها:" %}</h6>
+                                <ul>
+                                    <li><span class="status-badge status-valid">{% trans "معتبر" %}</span> - {% trans "Dongle سالم و قابل استفاده" %}</li>
+                                    <li><span class="status-badge status-invalid">{% trans "نامعتبر" %}</span> - {% trans "Dongle خراب یا یافت نشد" %}</li>
+                                    <li><span class="status-badge status-unknown">{% trans "نامشخص" %}</span> - {% trans "وضعیت قابل تشخیص نیست" %}</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>{% trans "عملیات:" %}</h6>
+                                <ul>
+                                    <li><strong>{% trans "مدیریت:" %}</strong> {% trans "رفتن به صفحه مدیریت dongle" %}</li>
+                                    <li><strong>{% trans "تعمیر:" %}</strong> {% trans "بازسازی سکتورهای خراب" %}</li>
+                                    <li><strong>{% trans "بروزرسانی:" %}</strong> {% trans "تازه‌سازی اطلاعات صفحه" %}</li>
+                                    <li><strong>{% trans "بررسی روزانه:" %}</strong> {% trans "اجرای اعتبارسنجی دستی" %}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// تابع تعمیر dongle
+function repairDongle(deviceId) {
+    if (confirm('آیا مطمئن هستید که می‌خواهید این dongle را تعمیر کنید؟')) {
+        // ارسال درخواست AJAX برای تعمیر
+        fetch('{% url "usb_key_validator:dongle_ajax_action" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: `action=repair&device=${deviceId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('تعمیر موفق: ' + data.message);
+                location.reload();
+            } else {
+                alert('تعمیر ناموفق: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('خطا در تعمیر: ' + error);
+        });
+    }
+}
+
+// تابع بروزرسانی داشبورد
+function refreshDashboard() {
+    location.reload();
+}
+
+// تابع اجرای بررسی روزانه
+function runDailyCheck() {
+    // ارسال درخواست AJAX برای بررسی روزانه
+    fetch('{% url "usb_key_validator:dongle_ajax_action" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: 'action=daily_check'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('بررسی روزانه موفق: ' + data.message);
+            location.reload();
+        } else {
+            alert('بررسی روزانه ناموفق: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('خطا در بررسی روزانه: ' + error);
+    });
+}
+
+// Auto-refresh هر 30 ثانیه
+setInterval(function() {
+    // فقط اگر کاربر در صفحه باشد
+    if (!document.hidden) {
+        // می‌توانید AJAX call برای بروزرسانی آمار اضافه کنید
+    }
+}, 30000);
+</script>
+{% endblock %}

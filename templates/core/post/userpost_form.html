@@ -44,3 +44,45 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize Persian datepicker for date fields
+    $('[data-jdp]').pDatepicker({
+        format: 'YYYY/MM/DD',
+        autoClose: true,
+        initialValue: false,
+        persianDigit: true,
+        calendar: {
+            persian: {
+                locale: 'fa',
+                showHint: true,
+                leapYearMode: 'algorithmic'
+            }
+        }
+    });
+    
+    // Force refresh datepicker if it's not working
+    setTimeout(function() {
+        $('[data-jdp]').each(function() {
+            if (!$(this).hasClass('pdatepicker-applied')) {
+                $(this).pDatepicker({
+                    format: 'YYYY/MM/DD',
+                    autoClose: true,
+                    initialValue: false,
+                    persianDigit: true,
+                    calendar: {
+                        persian: {
+                            locale: 'fa',
+                            showHint: true,
+                            leapYearMode: 'algorithmic'
+                        }
+                    }
+                });
+            }
+        });
+    }, 500);
+});
+</script>
+{% endblock %}

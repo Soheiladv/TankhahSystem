@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% load i18n  jformat rcms_custom_filters %}
+{% load static %}
+
+{% block title %}{% trans "لیست تخصیص قوانین به پست‌ها" %}{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid">
+    <!-- راهنمای قدم به قدم -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="guide-step">
+                <h4 class="mb-3">
+                    <i class="fas fa-graduation-cap me-2"></i>
+                    راهنمای قدم به قدم تخصیص قوانین به پست‌ها
+                </h4>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="step-number">1</div>
+                        <h6>تعریف وضعیت‌ها</h6>
+                        <p class="small">ابتدا وضعیت‌های مورد نیاز را در تب "وضعیت‌ها" تعریف کنید</p>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="step-number">2</div>
+                        <h6>تعریف اقدامات</h6>
+                        <p class="small">اقدامات مورد نیاز را در تب "اقدامات" ایجاد کنید</p>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="step-number">3</div>
+                        <h6>ایجاد تمپلیت</h6>
+                        <p class="small">تمپلیت گردش کار را با وضعیت‌ها و اقدامات ایجاد کنید</p>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="step-number">4</div>
+                        <h6>تخصیص به پست‌ها</h6>
+                        <p class="small">قوانین را به پست‌های سازمانی تخصیص دهید</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card assignment-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-users me-2"></i>
+                        {% trans "تخصیص قوانین به پست‌ها" %}
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'workflow_management:assign_rule_to_post' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>
+                            {% trans "تخصیص قانون جدید" %}
+                        </a>
+        <a href="{% url 'workflow_management:unified_workflow_management' %}" class="btn btn-warning">
+            <i class="fas fa-cogs me-2"></i>
+            {% trans "مدیریت ترکیبی" %}
+        </a>
+        <a href="{% url 'workflow_management:stage_approver_list' %}" class="btn btn-info">
+            <i class="fas fa-users-cog me-2"></i>
+            {% trans "تأییدکنندگان مراحل" %}
+        </a>
+                        <a href="{% url 'workflow_management:simple_dashboard' %}" class="btn btn-info">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            {% trans "بازگشت به داشبورد" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- فیلترها -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "فیلتر بر اساس پست:" %}</label>
+                            <select class="form-select" id="postFilter">
+                                <option value="">{% trans "همه پست‌ها" %}</option>
+                                {% for post in posts %}
+                                <option value="{{ post.id }}">{{ post.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "فیلتر بر اساس سازمان:" %}</label>
+                            <select class="form-select" id="organizationFilter">
+                                <option value="">{% trans "همه سازمان‌ها" %}</option>
+                                <!-- سازمان‌ها اینجا اضافه می‌شوند -->
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{% trans "وضعیت:" %}</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="">{% trans "همه وضعیت‌ها" %}</option>
+                                <option value="active">{% trans "فعال" %}</option>
+                                <option value="inactive">{% trans "غیرفعال" %}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {% if assignments %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>{% trans "پست" %}</th>
+                                        <th>{% trans "اقدام" %}</th>
+                                        <th>{% trans "سازمان" %}</th>
+                                        <th>{% trans "وضعیت" %}</th>
+                                        <th>{% trans "تاریخ ایجاد" %}</th>
+                                        <th>{% trans "عملیات" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for assignment in assignments %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-user-tie me-2 text-primary"></i>
+                                                    <strong>{{ assignment.post.name }}</strong>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-play me-2 text-success"></i>
+                                                    {{ assignment.action.name }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-building me-2 text-info"></i>
+                                                    {{ assignment.organization.name }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if assignment.is_active %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check me-1"></i>{% trans "فعال" %}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">
+                                                        <i class="fas fa-times me-1"></i>{% trans "غیرفعال" %}
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar me-1"></i>
+                                                    🗓️{{ assignment.created_at|jformat:"%Y/%m/%d" |to_persian_number}}
+                                                    ⌚{{ assignment.created_at|date:"H:i" |to_persian_number}}
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'workflow_management:get_effective_rules' assignment.pk %}" 
+                                                       class="btn btn-sm btn-outline-info" 
+                                                       title="{% trans 'مشاهده قوانین موثر' %}">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <button class="btn btn-sm btn-outline-warning" 
+                                                            onclick="editAssignment({{ assignment.pk }})"
+                                                            title="{% trans 'ویرایش' %}">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger" 
+                                                            onclick="deleteAssignment({{ assignment.pk }})"
+                                                            title="{% trans 'حذف' %}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- صفحه‌بندی -->
+                        {% if is_paginated %}
+                        <nav aria-label="{% trans 'صفحه\u200cبندی' %}">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1">{% trans "اول" %}</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "قبلی" %}</a>
+                                    </li>
+                                {% endif %}
+                                
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        {% trans "صفحه" %} {{ page_obj.number }} {% trans "از" %} {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "بعدی" %}</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">{% trans "آخر" %}</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <h5>{% trans "هیچ تخصیصی یافت نشد" %}</h5>
+                            <p class="text-muted">{% trans "برای شروع، یک تخصیص قانون جدید ایجاد کنید" %}</p>
+                            <a href="{% url 'workflow_management:assign_rule_to_post' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>{% trans "تخصیص قانون جدید" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// فیلترها
+document.addEventListener('DOMContentLoaded', function() {
+    const postFilter = document.getElementById('postFilter');
+    const organizationFilter = document.getElementById('organizationFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    
+    // بارگذاری سازمان‌ها
+    loadOrganizations();
+    
+    // اعمال فیلترها
+    [postFilter, organizationFilter, statusFilter].forEach(filter => {
+        if (filter) {
+            filter.addEventListener('change', applyFilters);
+        }
+    });
+});
+
+// بارگذاری سازمان‌ها
+function loadOrganizations() {
+    fetch('/workflow-management/api/organizations/')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('organizationFilter');
+            if (select && data.organizations) {
+                data.organizations.forEach(org => {
+                    const option = document.createElement('option');
+                    option.value = org.id;
+                    option.textContent = org.name;
+                    select.appendChild(option);
+                });
+            }
+        })
+        .catch(error => console.error('Error loading organizations:', error));
+}
+
+// اعمال فیلترها
+function applyFilters() {
+    const postId = document.getElementById('postFilter').value;
+    const organizationId = document.getElementById('organizationFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    
+    const params = new URLSearchParams();
+    if (postId) params.append('post_id', postId);
+    if (organizationId) params.append('organization_id', organizationId);
+    if (status) params.append('status', status);
+    
+    window.location.href = window.location.pathname + '?' + params.toString();
+}
+
+// ویرایش تخصیص
+function editAssignment(assignmentId) {
+    window.location.href = `/workflow-management/post-assignments/${assignmentId}/edit/`;
+}
+
+// حذف تخصیص
+function deleteAssignment(assignmentId) {
+    if (confirm('آیا مطمئن هستید که می‌خواهید این تخصیص را حذف کنید؟')) {
+        fetch(`/workflow-management/post-assignments/${assignmentId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('خطا در حذف تخصیص: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('خطا در حذف تخصیص');
+        });
+    }
+}
+</script>
+{% endblock %}

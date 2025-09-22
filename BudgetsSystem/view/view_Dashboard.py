@@ -211,8 +211,6 @@ dashboard_links = {
          'icon': 'fas fa-people-arrows'},  # فلش بین افراد
         {'name': _('ایجاد اتصال'), 'url': 'userpost_create', 'permission': 'core.add_userpost',
          'icon': 'fas fa-user-tie'},  # آدم با کراوات
-    ],
-    'تاریخچه پست‌ها': [
         {'name': _('فهرست تاریخچه پست‌ها'), 'url': 'posthistory_list', 'permission': 'core.view_posthistory',
          'icon': 'fas fa-history'},  # تاریخچه
     ],

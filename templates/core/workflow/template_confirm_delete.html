@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "تایید حذف تمپلیت" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+                        {% trans "تایید حذف تمپلیت" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5>{% trans "هشدار!" %}</h5>
+                        <p>{% trans "آیا مطمئن هستید که می‌خواهید این تمپلیت را حذف کنید؟" %}</p>
+                        <p class="mb-0"><strong>{% trans "این عمل قابل بازگشت نیست." %}</strong></p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>{% trans "جزئیات تمپلیت" %}</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>{% trans "نام:" %}</strong></td>
+                                    <td>{{ object.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "توضیحات:" %}</strong></td>
+                                    <td>{{ object.description }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "سازمان:" %}</strong></td>
+                                    <td>{{ object.organization.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "نوع موجودیت:" %}</strong></td>
+                                    <td>{{ object.get_entity_type_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "عمومی:" %}</strong></td>
+                                    <td>
+                                        {% if object.is_public %}
+                                            <span class="badge bg-success">{% trans "بله" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">{% trans "خیر" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "فعال:" %}</strong></td>
+                                    <td>
+                                        {% if object.is_active %}
+                                            <span class="badge bg-success">{% trans "بله" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{% trans "خیر" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>{% trans "آمار تمپلیت" %}</h5>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="info-box">
+                                        <span class="info-box-icon bg-info">
+                                            <i class="fas fa-flag"></i>
+                                        </span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">{% trans "وضعیت‌ها" %}</span>
+                                            <span class="info-box-number">{{ object.rules_data.statuses|length }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="info-box">
+                                        <span class="info-box-icon bg-success">
+                                            <i class="fas fa-play"></i>
+                                        </span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">{% trans "اقدامات" %}</span>
+                                            <span class="info-box-number">{{ object.rules_data.actions|length }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="info-box">
+                                        <span class="info-box-icon bg-warning">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">{% trans "انتقال‌ها" %}</span>
+                                            <span class="info-box-number">{{ object.rules_data.transitions|length }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="info-box">
+                                        <span class="info-box-icon bg-danger">
+                                            <i class="fas fa-calendar"></i>
+                                        </span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">{% trans "تاریخ ایجاد" %}</span>
+                                            <span class="info-box-number">{{ object.created_at|date:"Y/m/d" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <h6>{% trans "توجه:" %}</h6>
+                                <ul class="mb-0">
+                                    <li>{% trans "تمپلیت غیرفعال خواهد شد (حذف نرم)" %}</li>
+                                    <li>{% trans "تمپلیت‌های اعمال شده همچنان کار خواهند کرد" %}</li>
+                                    <li>{% trans "امکان بازیابی تمپلیت وجود دارد" %}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>
+                                {% trans "حذف تمپلیت" %}
+                            </button>
+                            <a href="{% url 'workflow_management:template_detail' object.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                {% trans "انصراف" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

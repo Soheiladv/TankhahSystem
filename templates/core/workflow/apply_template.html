@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "اعمال تمپلیت" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-copy me-2"></i>
+                        {% trans "اعمال تمپلیت" %}
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'workflow_management:template_detail' template.id %}" class="btn btn-tool">
+                            <i class="fas fa-arrow-left"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-info">
+                                    <i class="fas fa-file-alt"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "نام تمپلیت" %}</span>
+                                    <span class="info-box-number">{{ template.name }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-success">
+                                    <i class="fas fa-building"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "سازمان مبدا" %}</span>
+                                    <span class="info-box-number">{{ template.organization.name }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        {% trans "جزئیات تمپلیت" %}
+                                    </h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>{% trans "توضیحات:" %}</strong> {{ template.description }}</p>
+                                            <p><strong>{% trans "نوع موجودیت:" %}</strong> {{ template.get_entity_type_display }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>{% trans "عمومی:" %}</strong> 
+                                                {% if template.is_public %}
+                                                    <span class="badge bg-success">{% trans "بله" %}</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">{% trans "خیر" %}</span>
+                                                {% endif %}
+                                            </p>
+                                            <p><strong>{% trans "فعال:" %}</strong> 
+                                                {% if template.is_active %}
+                                                    <span class="badge bg-success">{% trans "بله" %}</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">{% trans "خیر" %}</span>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">
+                                        <i class="fas fa-cogs me-2"></i>
+                                        {% trans "اعمال تمپلیت به سازمان" %}
+                                    </h4>
+                                </div>
+                                <div class="card-body">
+                                    <form id="applyTemplateForm" method="post">
+                                        {% csrf_token %}
+                                        <div class="form-group">
+                                            <label for="target_organization_id">{% trans "انتخاب سازمان مقصد" %}</label>
+                                            <select class="form-select" id="target_organization_id" name="target_organization_id" required>
+                                                <option value="">{% trans "لطفاً سازمان مقصد را انتخاب کنید" %}</option>
+                                                {% for org in organizations %}
+                                                    <option value="{{ org.id }}">{{ org.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group mt-3">
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                {% trans "با اعمال این تمپلیت، تمام قوانین گردش کار موجود در آن به سازمان انتخابی اضافه خواهد شد." %}
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group mt-3">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-check me-2"></i>
+                                                {% trans "اعمال تمپلیت" %}
+                                            </button>
+                                            <a href="{% url 'workflow_management:template_detail' template.id %}" class="btn btn-secondary">
+                                                <i class="fas fa-times me-2"></i>
+                                                {% trans "انصراف" %}
+                                            </a>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('applyTemplateForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    // نمایش loading
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>در حال اعمال...';
+    submitBtn.disabled = true;
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // نمایش پیام موفقیت
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="fas fa-check-circle me-2"></i>
+                ${data.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.card-body').insertBefore(alert, document.querySelector('.card-body').firstChild);
+            
+            // بازگشت به صفحه تمپلیت بعد از 2 ثانیه
+            setTimeout(() => {
+                window.location.href = '{% url "workflow_management:template_detail" template.id %}';
+            }, 2000);
+        } else {
+            // نمایش پیام خطا
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-circle me-2"></i>
+                ${data.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.card-body').insertBefore(alert, document.querySelector('.card-body').firstChild);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-danger alert-dismissible fade show';
+        alert.innerHTML = `
+            <i class="fas fa-exclamation-circle me-2"></i>
+            خطا در اعمال تمپلیت. لطفاً دوباره تلاش کنید.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.card-body').insertBefore(alert, document.querySelector('.card-body').firstChild);
+    })
+    .finally(() => {
+        // بازگردانی دکمه
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+});
+</script>
+{% endblock %}

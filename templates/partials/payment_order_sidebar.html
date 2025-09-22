@@ -1,0 +1,43 @@
+{% load i18n %}
+{% load rcms_custom_filters %}
+
+<!-- منوی دسترسی سریع دستورات پرداخت -->
+<div class="card mb-3">
+    <div class="card-header bg-primary text-white">
+        <h6 class="mb-0"><i class="fas fa-credit-card me-2"></i>{% trans "دستورات پرداخت" %}</h6>
+    </div>
+    <div class="card-body p-2">
+        <div class="d-grid gap-2">
+            <a href="{% url 'paymentorder_management_list' %}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-list me-1"></i>{% trans "مدیریت دستورات" %}
+            </a>
+            <a href="{% url 'create_payment_orders_from_factors' %}" class="btn btn-outline-success btn-sm">
+                <i class="fas fa-plus me-1"></i>{% trans "ایجاد از فاکتورها" %}
+            </a>
+            <a href="{% url 'paymentorder_add' %}" class="btn btn-outline-info btn-sm">
+                <i class="fas fa-plus me-1"></i>{% trans "ایجاد دستی" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- آمار سریع -->
+<div class="card mb-3">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>{% trans "آمار سریع" %}</h6>
+    </div>
+    <div class="card-body p-2">
+        <div class="row text-center">
+            <div class="col-6">
+                <div class="border-end">
+                    <h6 class="text-primary mb-0">{{ pending_orders_count|default:0 }}</h6>
+                    <small class="text-muted">{% trans "در انتظار" %}</small>
+                </div>
+            </div>
+            <div class="col-6">
+                <h6 class="text-success mb-0">{{ approved_orders_count|default:0 }}</h6>
+                <small class="text-muted">{% trans "تایید شده" %}</small>
+            </div>
+        </div>
+    </div>
+</div>

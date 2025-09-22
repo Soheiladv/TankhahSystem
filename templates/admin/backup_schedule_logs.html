@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% load static rcms_custom_filters i18n %}
+
+{% block title %}{% trans "لاگ‌های پشتیبان‌گیری" %}{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <div class="container-fluid">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-history me-2"></i> {% trans "لاگ‌های پشتیبان‌گیری" %}
+            </h1>
+            <p class="page-subtitle">{% trans "تاریخچه اجرای اسکچول‌های پشتیبان‌گیری" %}</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- آمار کلی -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0">{{ total_logs }}</h4>
+                                <small>{% trans "کل اجراها" %}</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-history fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0">{{ successful_logs }}</h4>
+                                <small>{% trans "موفق" %}</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0">{{ failed_logs }}</h4>
+                                <small>{% trans "ناموفق" %}</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-times-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0">
+                                    {% if total_logs > 0 %}
+                                        {{ successful_logs|floatformat:0|mul:100|div:total_logs|floatformat:1 }}%
+                                    {% else %}
+                                        0%
+                                    {% endif %}
+                                </h4>
+                                <small>{% trans "نرخ موفقیت" %}</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-chart-line fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- فیلترها -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="schedule" class="form-label">{% trans "اسکچول" %}</label>
+                        <select name="schedule" id="schedule" class="form-select">
+                            <option value="">{% trans "همه اسکچول‌ها" %}</option>
+                            {% for s in schedules %}
+                                <option value="{{ s.id }}" {% if s.id|stringformat:"s" == schedule_id %}selected{% endif %}>
+                                    {{ s.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="status" class="form-label">{% trans "وضعیت" %}</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="">{% trans "همه وضعیت‌ها" %}</option>
+                            <option value="STARTED" {% if status == "STARTED" %}selected{% endif %}>{% trans "شروع شده" %}</option>
+                            <option value="COMPLETED" {% if status == "COMPLETED" %}selected{% endif %}>{% trans "تکمیل شده" %}</option>
+                            <option value="FAILED" {% if status == "FAILED" %}selected{% endif %}>{% trans "ناموفق" %}</option>
+                            <option value="CANCELLED" {% if status == "CANCELLED" %}selected{% endif %}>{% trans "لغو شده" %}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i> {% trans "فیلتر" %}
+                            </button>
+                            <a href="{% url 'backup:schedule_logs' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i> {% trans "پاک کردن" %}
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- جدول لاگ‌ها -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list me-2"></i> {% trans "لیست لاگ‌ها" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if logs %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "اسکچول" %}</th>
+                                    <th>{% trans "وضعیت" %}</th>
+                                    <th>{% trans "زمان شروع" %}</th>
+                                    <th>{% trans "مدت زمان" %}</th>
+                                    <th>{% trans "حجم فایل" %}</th>
+                                    <th>{% trans "جزئیات" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ log.schedule.name }}</strong>
+                                        <br><small class="text-muted">{{ log.schedule.get_frequency_display }}</small>
+                                    </td>
+                                    <td>
+                                        {% if log.status == 'COMPLETED' %}
+                                            <span class="badge bg-success">{% trans "موفق" %}</span>
+                                        {% elif log.status == 'FAILED' %}
+                                            <span class="badge bg-danger">{% trans "ناموفق" %}</span>
+                                        {% elif log.status == 'STARTED' %}
+                                            <span class="badge bg-warning">{% trans "در حال اجرا" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ log.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ log.started_at|date:"Y/m/d H:i:s" }}</small>
+                                        <br><small class="text-muted">{{ log.started_at|timesince }} {% trans "قبل" %}</small>
+                                    </td>
+                                    <td>
+                                        {% if log.duration %}
+                                            <small>{{ log.duration }}</small>
+                                        {% else %}
+                                            <small class="text-muted">-</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if log.file_size %}
+                                            <small>{{ log.file_size|filesizeformat }}</small>
+                                        {% else %}
+                                            <small class="text-muted">-</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if log.error_message %}
+                                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    data-bs-toggle="tooltip" 
+                                                    title="{{ log.error_message }}">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                            </button>
+                                        {% elif log.file_path %}
+                                            <button type="button" class="btn btn-sm btn-outline-info" 
+                                                    data-bs-toggle="tooltip" 
+                                                    title="{{ log.file_path }}">
+                                                <i class="fas fa-file"></i>
+                                            </button>
+                                        {% else %}
+                                            <small class="text-muted">-</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- صفحه‌بندی -->
+                    {% if logs.has_other_pages %}
+                        <nav aria-label="{% trans 'صفحه‌بندی لاگ‌ها' %}">
+                            <ul class="pagination justify-content-center">
+                                {% if logs.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if schedule_id %}&schedule={{ schedule_id }}{% endif %}{% if status %}&status={{ status }}{% endif %}">
+                                            {% trans "اول" %}
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ logs.previous_page_number }}{% if schedule_id %}&schedule={{ schedule_id }}{% endif %}{% if status %}&status={{ status }}{% endif %}">
+                                            {% trans "قبلی" %}
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        {% trans "صفحه" %} {{ logs.number }} {% trans "از" %} {{ logs.paginator.num_pages }}
+                                    </span>
+                                </li>
+
+                                {% if logs.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ logs.next_page_number }}{% if schedule_id %}&schedule={{ schedule_id }}{% endif %}{% if status %}&status={{ status }}{% endif %}">
+                                            {% trans "بعدی" %}
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ logs.paginator.num_pages }}{% if schedule_id %}&schedule={{ schedule_id }}{% endif %}{% if status %}&status={{ status }}{% endif %}">
+                                            {% trans "آخر" %}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">{% trans "هیچ لاگی یافت نشد" %}</h5>
+                        <p class="text-muted">{% trans "هنوز هیچ اجرایی ثبت نشده است" %}</p>
+                        <a href="{% url 'backup:schedule_list' %}" class="btn btn-primary">
+                            <i class="fas fa-clock me-2"></i> {% trans "مشاهده اسکچول‌ها" %}
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- دکمه بازگشت -->
+        <div class="mt-4">
+            <a href="{% url 'backup:schedule_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i> {% trans "بازگشت به اسکچول‌ها" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// فعال کردن tooltip ها
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

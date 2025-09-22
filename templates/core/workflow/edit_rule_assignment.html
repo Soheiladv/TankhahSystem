@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "ویرایش تخصیص قانون" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card form-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-edit me-2"></i>
+                        {% trans "ویرایش تخصیص قانون" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- فرم ویرایش -->
+                    <form id="editRuleForm" method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="post_id" class="form-label">
+                                        <i class="fas fa-user-tie me-2"></i>
+                                        {% trans "انتخاب پست" %} <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="post_id" name="post_id" required>
+                                        <option value="">{% trans "لطفاً پست را انتخاب کنید" %}</option>
+                                        {% for post in posts %}
+                                        <option value="{{ post.id }}" {% if assignment.post.id == post.id %}selected{% endif %}>
+                                            {{ post.name }} - {{ post.organization.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="action_id" class="form-label">
+                                        <i class="fas fa-play me-2"></i>
+                                        {% trans "انتخاب اقدام" %} <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="action_id" name="action_id" required>
+                                        <option value="">{% trans "لطفاً اقدام را انتخاب کنید" %}</option>
+                                        {% for action in actions %}
+                                        <option value="{{ action.id }}" {% if assignment.action.id == action.id %}selected{% endif %}>
+                                            {{ action.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="organization_id" class="form-label">
+                                        <i class="fas fa-building me-2"></i>
+                                        {% trans "انتخاب سازمان" %} <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="organization_id" name="organization_id" required>
+                                        <option value="">{% trans "لطفاً سازمان را انتخاب کنید" %}</option>
+                                        {% for organization in organizations %}
+                                        <option value="{{ organization.id }}" {% if assignment.organization.id == organization.id %}selected{% endif %}>
+                                            {{ organization.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="entity_type" class="form-label">
+                                        <i class="fas fa-cube me-2"></i>
+                                        {% trans "نوع موجودیت" %} <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="entity_type" name="entity_type" required>
+                                        <option value="">{% trans "لطفاً نوع موجودیت را انتخاب کنید" %}</option>
+                                        {% for value, label in entity_types %}
+                                        <option value="{{ value }}" {% if assignment.entity_type == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        {% trans "وضعیت" %}
+                                    </label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                                               {% if assignment.is_active %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_active">
+                                            {% trans "فعال" %}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- دکمه‌های عملیات -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>
+                                        {% trans "ذخیره تغییرات" %}
+                                    </button>
+                                    <a href="{% url 'workflow_management:post_assignment_list' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>
+                                        {% trans "انصراف" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ارسال فرم
+    document.getElementById('editRuleForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitForm();
+    });
+});
+
+// ارسال فرم
+function submitForm() {
+    const formData = new FormData(document.getElementById('editRuleForm'));
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.href = '{% url "workflow_management:post_assignment_list" %}';
+        } else {
+            alert('خطا: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('خطا در ارسال فرم');
+    });
+}
+</script>
+{% endblock %}

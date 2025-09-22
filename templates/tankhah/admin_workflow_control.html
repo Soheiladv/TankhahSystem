@@ -1,0 +1,540 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{% translate "کنترل گردش کار - ادمین" %}{% endblock %}
+
+{% block extra_css %}
+<!-- اطمینان از بارگذاری jQuery -->
+<script src="{% static 'admin/js/jquery-3.6.0.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-cogs"></i>
+                        {% translate "کنترل گردش کار" %} - {{ entity_type|title }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- اطلاعات موجودیت -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>{% translate "اطلاعات موجودیت" %}</h5>
+                            <p><strong>{% translate "شناسه" %}:</strong> {{ entity.id }}</p>
+                            {% if entity_type == 'factor' %}
+                                <p><strong>{% translate "شماره فاکتور" %}:</strong> {{ entity.number }}</p>
+                                <p><strong>{% translate "مبلغ" %}:</strong> {{ entity.amount|floatformat:0 }} {% translate "ریال" %}</p>
+                            {% elif entity_type == 'tankhah' %}
+                                <p><strong>{% translate "شماره تنخواه" %}:</strong> {{ entity.number }}</p>
+                                <p><strong>{% translate "مبلغ" %}:</strong> {{ entity.amount|floatformat:0 }} {% translate "ریال" %}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h5>{% translate "وضعیت فعلی" %}</h5>
+                            {% if current_status %}
+                                <span class="badge badge-{% if current_status.is_final_approve %}success{% elif current_status.is_final_reject %}danger{% else %}warning{% endif %} badge-lg">
+                                    {{ current_status.name }}
+                                </span>
+                            {% else %}
+                                <span class="badge badge-secondary badge-lg">
+                                    {% translate "بدون وضعیت" %}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- راهنمای انتخاب دکمه -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-question-circle"></i>
+                                        کدام دکمه را بزنم؟
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="card border-success h-100">
+                                                <div class="card-header bg-success text-white">
+                                                    <h6 class="mb-0">
+                                                        <i class="fas fa-exchange-alt"></i>
+                                                        دکمه "تغییر وضعیت"
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <h6 class="text-success">زمان استفاده:</h6>
+                                                    <ul class="mb-3">
+                                                        <li>وقتی می‌خواهید <strong>وضعیت خاصی</strong> انتخاب کنید</li>
+                                                        <li>برای <strong>پیش‌بردن</strong> گردش کار (مثل: پیش‌نویس → تأیید)</li>
+                                                        <li>برای <strong>عقب‌گرداندن</strong> گردش کار (مثل: تأیید → پیش‌نویس)</li>
+                                                        <li>وقتی می‌خواهید <strong>کنترل دقیق</strong> داشته باشید</li>
+                                                    </ul>
+                                                    <div class="alert alert-success mb-0">
+                                                        <strong>مثال:</strong> فاکتور در وضعیت "تأیید میانی" است و می‌خواهید آن را به "تأیید نهایی" تغییر دهید
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card border-warning h-100">
+                                                <div class="card-header bg-warning text-dark">
+                                                    <h6 class="mb-0">
+                                                        <i class="fas fa-undo"></i>
+                                                        دکمه "بازنشانی گردش کار"
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <h6 class="text-warning">زمان استفاده:</h6>
+                                                    <ul class="mb-3">
+                                                        <li>وقتی می‌خواهید <strong>شروع مجدد</strong> کنید</li>
+                                                        <li>برای <strong>بازگشت به مرحله اول</strong> (پیش‌نویس)</li>
+                                                        <li>وقتی گردش کار <strong>مشکل دارد</strong> و باید از نو شروع شود</li>
+                                                        <li>برای <strong>پاک کردن</strong> تمام پیشرفت‌ها</li>
+                                                    </ul>
+                                                    <div class="alert alert-warning mb-0">
+                                                        <strong>مثال:</strong> فاکتور در وضعیت "رد شده" است و می‌خواهید آن را به "پیش‌نویس" برگردانید تا از نو شروع شود
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- راهنمای عیب‌یابی -->
+                                    <div class="alert alert-info mt-3">
+                                        <h6><i class="fas fa-tools"></i> راهنمای عیب‌یابی:</h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6><i class="fas fa-exclamation-triangle text-warning"></i> اگر دکمه‌ها کار نمی‌کنند:</h6>
+                                                <ul class="mb-0">
+                                                    <li>صفحه را <strong>مجدداً بارگذاری</strong> کنید (F5)</li>
+                                                    <li>مرورگر را <strong>بازنشانی</strong> کنید</li>
+                                                    <li>از <strong>Developer Tools</strong> (F12) استفاده کنید</li>
+                                                    <li>در Console خطاها را بررسی کنید</li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6><i class="fas fa-check-circle text-success"></i> برای تست عملکرد:</h6>
+                                                <ul class="mb-0">
+                                                    <li>ابتدا <strong>وضعیت جدید</strong> را انتخاب کنید</li>
+                                                    <li>دلیل تغییر را در <strong>توضیحات</strong> وارد کنید</li>
+                                                    <li>دکمه <strong>"تغییر"</strong> را کلیک کنید</li>
+                                                    <li>صفحه باید <strong>خودکار بازنشانی</strong> شود</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- تغییر وضعیت -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>
+                                        <i class="fas fa-exchange-alt"></i>
+                                        {% translate "تغییر وضعیت" %}
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- راهنمای استفاده -->
+                                    <div class="alert alert-info">
+                                        <h6><i class="fas fa-info-circle"></i> راهنمای استفاده - دکمه تغییر وضعیت:</h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6><i class="fas fa-exchange-alt text-primary"></i> کاربرد دکمه "تغییر":</h6>
+                                                <ul class="mb-0">
+                                                    <li><strong>تغییر وضعیت فعلی</strong> به وضعیت جدید</li>
+                                                    <li>برای <strong>پیش‌بردن</strong> یا <strong>عقب‌گرداندن</strong> گردش کار</li>
+                                                    <li>مثال: از "پیش‌نویس" به "در انتظار تأیید"</li>
+                                                    <li>مثال: از "تأیید میانی" به "تأیید نهایی"</li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6><i class="fas fa-list-ol text-success"></i> مراحل استفاده:</h6>
+                                                <ol class="mb-0">
+                                                    <li>وضعیت جدید را از لیست انتخاب کنید</li>
+                                                    <li>دلیل تغییر وضعیت را در فیلد توضیحات وارد کنید</li>
+                                                    <li>دکمه "تغییر" را کلیک کنید</li>
+                                                    <li>تغییرات فوراً اعمال خواهد شد</li>
+                                                </ol>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <form id="changeStatusForm">
+                                        {% csrf_token %}
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <label for="new_status_id">
+                                                    <i class="fas fa-list"></i>
+                                                    {% translate "وضعیت جدید" %}
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <select class="form-control" id="new_status_id" name="new_status_id" required>
+                                                    <option value="">{% translate "انتخاب کنید..." %}</option>
+                                                    {% for status in all_statuses %}
+                                                        <option value="{{ status.id }}" {% if status == current_status %}selected{% endif %}>
+                                                            {{ forloop.counter }}. {{ status.name }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                                <small class="form-text text-muted">
+                                                    {% translate "وضعیت فعلی" %}: 
+                                                    <strong>{{ current_status.name|default:"بدون وضعیت" }}</strong>
+                                                </small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="comment">
+                                                    <i class="fas fa-comment"></i>
+                                                    {% translate "توضیحات" %}
+                                                </label>
+                                                <input type="text" class="form-control" id="comment" name="comment" 
+                                                       placeholder="{% translate 'دلیل تغییر وضعیت...' %}" maxlength="500">
+                                                <small class="form-text text-muted">
+                                                    {% translate "حداکثر 500 کاراکتر" %}
+                                                </small>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label>&nbsp;</label>
+                                                <button type="submit" class="btn btn-primary btn-block">
+                                                    <i class="fas fa-save"></i> {% translate "تغییر" %}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- بازنشانی گردش کار -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>
+                                        <i class="fas fa-undo"></i>
+                                        {% translate "بازنشانی گردش کار" %}
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- راهنمای بازنشانی -->
+                                    <div class="alert alert-warning">
+                                        <h6><i class="fas fa-exclamation-triangle"></i> راهنمای استفاده - دکمه بازنشانی گردش کار:</h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6><i class="fas fa-undo text-warning"></i> کاربرد دکمه "بازنشانی":</h6>
+                                                <ul class="mb-0">
+                                                    <li><strong>بازگرداندن</strong> گردش کار به <strong>مرحله اول</strong></li>
+                                                    <li>برای <strong>شروع مجدد</strong> فرآیند تایید</li>
+                                                    <li>مثال: از "تأیید نهایی" به "پیش‌نویس"</li>
+                                                    <li>مثال: از "رد شده" به "پیش‌نویس"</li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6><i class="fas fa-exclamation-circle text-danger"></i> هشدارهای مهم:</h6>
+                                                <ul class="mb-0">
+                                                    <li>گردش کار به <strong>مرحله اول</strong> بازمی‌گردد</li>
+                                                    <li>تمام پیشرفت‌های قبلی <strong>از بین خواهد رفت</strong></li>
+                                                    <li>این عمل <strong>قابل بازگشت نیست</strong></li>
+                                                    <li>فقط در صورت <strong>ضرورت</strong> استفاده کنید</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <p class="text-muted">
+                                                <i class="fas fa-info-circle"></i>
+                                                {% translate "این عمل گردش کار را به مرحله اول بازمی‌گرداند و تمام تاریخچه تاییدها را حفظ می‌کند." %}
+                                            </p>
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <button type="button" class="btn btn-warning btn-lg" id="resetWorkflowBtn">
+                                                <i class="fas fa-undo"></i> {% translate "بازنشانی گردش کار" %}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- تاریخچه تاییدها -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>
+                                        <i class="fas fa-history"></i>
+                                        {% translate "تاریخچه تاییدها" %}
+                                        <span class="badge badge-info">{{ approval_logs.count }}</span>
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead class="thead-dark">
+                                                <tr>
+                                                    <th width="5%">#</th>
+                                                    <th width="15%">
+                                                        <i class="fas fa-calendar"></i>
+                                                        {% translate "تاریخ" %}
+                                                    </th>
+                                                    <th width="15%">
+                                                        <i class="fas fa-user"></i>
+                                                        {% translate "کاربر" %}
+                                                    </th>
+                                                    <th width="15%">
+                                                        <i class="fas fa-arrow-left"></i>
+                                                        {% translate "از وضعیت" %}
+                                                    </th>
+                                                    <th width="15%">
+                                                        <i class="fas fa-arrow-right"></i>
+                                                        {% translate "به وضعیت" %}
+                                                    </th>
+                                                    <th width="15%">
+                                                        <i class="fas fa-cog"></i>
+                                                        {% translate "اقدام" %}
+                                                    </th>
+                                                    <th width="20%">
+                                                        <i class="fas fa-comment"></i>
+                                                        {% translate "توضیحات" %}
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for log in approval_logs %}
+                                                <tr>
+                                                    <td>
+                                                        <span class="badge badge-primary">{{ forloop.counter }}</span>
+                                                    </td>
+                                                    <td>
+                                                        <i class="fas fa-clock text-muted"></i>
+                                                        {{ log.timestamp|date:"Y/m/d H:i" }}
+                                                    </td>
+                                                    <td>
+                                                        <i class="fas fa-user-circle text-info"></i>
+                                                        {{ log.user.username }}
+                                                        {% if log.is_admin_action %}
+                                                            <span class="badge badge-warning badge-sm">ادمین</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if log.from_status %}
+                                                            <span class="badge badge-secondary">{{ log.from_status.name }}</span>
+                                                        {% else %}
+                                                            <span class="text-muted">-</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if log.to_status %}
+                                                            <span class="badge badge-{% if log.to_status.is_final_approve %}success{% elif log.to_status.is_final_reject %}danger{% else %}warning{% endif %}">
+                                                                {{ log.to_status.name }}
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="text-muted">-</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if log.action %}
+                                                            <i class="fas fa-tools text-primary"></i>
+                                                            {{ log.action.name }}
+                                                        {% else %}
+                                                            <span class="text-muted">-</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if log.comment %}
+                                                            <i class="fas fa-comment-dots text-info"></i>
+                                                            {{ log.comment|truncatechars:50 }}
+                                                        {% else %}
+                                                            <span class="text-muted">-</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% empty %}
+                                                <tr>
+                                                    <td colspan="7" class="text-center text-muted">
+                                                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                                                        <br>
+                                                        {% translate "هیچ رکوردی یافت نشد." %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// بررسی وجود toastr
+if (typeof toastr === 'undefined') {
+    console.warn('toastr is not loaded, using alert instead');
+    window.toastr = {
+        success: function(message, title) { alert(title + ': ' + message); },
+        error: function(message, title) { alert(title + ': ' + message); }
+    };
+}
+
+$(document).ready(function() {
+    console.log('Admin workflow control page loaded');
+    console.log('jQuery version:', $.fn.jquery);
+    
+    // تغییر وضعیت
+    $('#changeStatusForm').on('submit', function(e) {
+        e.preventDefault();
+        console.log('Form submitted');
+        
+        var formData = $(this).serialize();
+        console.log('Form data:', formData);
+        
+        // بررسی وجود وضعیت انتخاب شده
+        var selectedStatus = $('#new_status_id').val();
+        if (!selectedStatus) {
+            alert('لطفاً وضعیت جدید را انتخاب کنید.');
+            return;
+        }
+        
+        $.ajax({
+            url: '{% url "admin_change_status" entity_type entity.id %}',
+            type: 'POST',
+            data: formData,
+            headers: {
+                'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+            },
+            beforeSend: function() {
+                console.log('Sending request...');
+                // نمایش loading
+                $('#changeStatusForm button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> در حال تغییر...');
+            },
+            success: function(response) {
+                console.log('Response:', response);
+                $('#changeStatusForm button[type="submit"]').prop('disabled', false).html('<i class="fas fa-save"></i> تغییر');
+                
+                if (response.success) {
+                    toastr.success(response.message, 'موفقیت', {
+                        timeOut: 3000,
+                        progressBar: true,
+                        positionClass: 'toast-top-center'
+                    });
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    toastr.error(response.message, 'خطا', {
+                        timeOut: 5000,
+                        progressBar: true,
+                        positionClass: 'toast-top-center'
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('Error:', xhr.responseText);
+                $('#changeStatusForm button[type="submit"]').prop('disabled', false).html('<i class="fas fa-save"></i> تغییر');
+                
+                var errorMessage = 'خطا در ارتباط با سرور';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.responseText) {
+                    errorMessage = xhr.responseText;
+                }
+                
+                toastr.error(errorMessage, 'خطا', {
+                    timeOut: 5000,
+                    progressBar: true,
+                    positionClass: 'toast-top-center'
+                });
+            }
+        });
+    });
+    
+    // بازنشانی گردش کار
+    $('#resetWorkflowBtn').on('click', function() {
+        if (confirm('آیا از بازنشانی گردش کار اطمینان دارید؟\n\nاین عمل گردش کار را به مرحله اول بازمی‌گرداند.')) {
+            console.log('Resetting workflow...');
+            
+            $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> در حال بازنشانی...');
+            
+            $.ajax({
+                url: '{% url "admin_reset_workflow" entity_type entity.id %}',
+                type: 'POST',
+                data: {
+                    'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val(),
+                    'clear_logs': 'false'
+                },
+                headers: {
+                    'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    console.log('Reset response:', response);
+                    $('#resetWorkflowBtn').prop('disabled', false).html('<i class="fas fa-undo"></i> بازنشانی گردش کار');
+                    
+                    if (response.success) {
+                        toastr.success(response.message, 'بازنشانی موفق', {
+                            timeOut: 3000,
+                            progressBar: true,
+                            positionClass: 'toast-top-center'
+                        });
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        toastr.error(response.message, 'خطا در بازنشانی', {
+                            timeOut: 5000,
+                            progressBar: true,
+                            positionClass: 'toast-top-center'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log('Reset error:', xhr.responseText);
+                    $('#resetWorkflowBtn').prop('disabled', false).html('<i class="fas fa-undo"></i> بازنشانی گردش کار');
+                    
+                    var errorMessage = 'خطا در ارتباط با سرور';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    } else if (xhr.responseText) {
+                        errorMessage = xhr.responseText;
+                    }
+                    
+                    toastr.error(errorMessage, 'خطا', {
+                        timeOut: 5000,
+                        progressBar: true,
+                        positionClass: 'toast-top-center'
+                    });
+                }
+            });
+        }
+    });
+    
+    // اضافه کردن event listener برای تغییر وضعیت
+    $('#new_status_id').on('change', function() {
+        var selectedStatus = $(this).val();
+        var selectedText = $(this).find('option:selected').text();
+        console.log('Status changed to:', selectedStatus, selectedText);
+    });
+    
+    // اضافه کردن tooltip
+    $('[data-bs-toggle="tooltip"]').tooltip();
+});
+</script>
+{% endblock %}

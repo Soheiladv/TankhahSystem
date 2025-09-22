@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "ایجاد پشتیبان‌گیری جدید" %}{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <div class="container-fluid">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-plus"></i> {% trans "ایجاد پشتیبان‌گیری جدید" %}
+            </h1>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-database me-2"></i> {% trans "تنظیمات پشتیبان‌گیری" %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="database" class="form-label">{% trans "دیتابیس مورد نظر" %}</label>
+                                <select class="form-select" id="database" name="database" required>
+                                    <option value="both">{% trans "هر دو دیتابیس (اصلی و لاگ)" %}</option>
+                                    <option value="main">{% trans "دیتابیس اصلی" %}</option>
+                                    <option value="logs">{% trans "دیتابیس لاگ" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="format" class="form-label">{% trans "فرمت فایل" %}</label>
+                                <select class="form-select" id="format" name="format" required>
+                                    <option value="json">{% trans "JSON (پیش‌فرض)" %}</option>
+                                    <option value="sql">{% trans "SQL" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="encrypt" name="encrypt">
+                                    <label class="form-check-label" for="encrypt">
+                                        {% trans "رمزگذاری فایل" %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="password" class="form-label">{% trans "رمز عبور (اختیاری)" %}</label>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="{% trans 'رمز عبور برای رمزگذاری' %}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>{% trans "نکته:" %}</strong> {% trans "پشتیبان‌گیری از دیتابیس اصلی و لاگ به طور جداگانه انجام می‌شود." %}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-database me-2"></i> {% trans "ایجاد پشتیبان‌گیری" %}
+                        </button>
+                        <a href="{% url 'backup:list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i> {% trans "بازگشت" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i> {% trans "راهنمای استفاده" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>{% trans "فرمت‌های پشتیبان‌گیری:" %}</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i> <strong>JSON:</strong> {% trans "قابل خواندن و ویرایش" %}</li>
+                            <li><i class="fas fa-check text-success me-2"></i> <strong>SQL:</strong> {% trans "سازگار با MySQL" %}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>{% trans "دیتابیس‌ها:" %}</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-database text-primary me-2"></i> <strong>اصلی:</strong> {% trans "داده‌های اصلی سیستم" %}</li>
+                            <li><i class="fas fa-file-alt text-info me-2"></i> <strong>لاگ:</strong> {% trans "فایل‌های لاگ و نسخه" %}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const encryptCheckbox = document.getElementById('encrypt');
+    const passwordField = document.getElementById('password');
+    
+    encryptCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            passwordField.required = true;
+            passwordField.disabled = false;
+        } else {
+            passwordField.required = false;
+            passwordField.disabled = true;
+        }
+    });
+});
+</script>
+{% endblock %}

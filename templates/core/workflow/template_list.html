@@ -1,0 +1,391 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "لیست تمپلیت‌های قوانین" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --success-color: #27ae60;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #17a2b8;
+        --light-color: #f8f9fa;
+        --dark-color: #343a40;
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .main-container {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 25px;
+        box-shadow: 
+            0 25px 50px rgba(0,0,0,0.15),
+            0 0 0 1px rgba(255,255,255,0.1);
+        margin: 20px;
+        padding: 30px;
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .header-section {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
+
+    .header-section h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .template-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.9) 100%);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 
+            0 15px 35px rgba(0,0,0,0.1),
+            0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid rgba(255,255,255,0.2);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+
+    .template-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--secondary-color), var(--info-color));
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .template-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .template-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 
+            0 25px 50px rgba(0,0,0,0.2),
+            0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .template-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .template-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin: 0;
+    }
+
+    .template-status {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: linear-gradient(135deg, var(--success-color), #2ecc71);
+        color: white;
+    }
+
+    .status-inactive {
+        background: linear-gradient(135deg, var(--light-color), #e9ecef);
+        color: var(--dark-color);
+    }
+
+    .template-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--dark-color);
+        font-size: 0.95rem;
+    }
+
+    .meta-item i {
+        color: var(--secondary-color);
+        width: 16px;
+    }
+
+    .template-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        background: linear-gradient(135deg, var(--secondary-color) 0%, var(--info-color) 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-btn.view { background: linear-gradient(135deg, var(--info-color), #17a2b8); }
+    .action-btn.apply { background: linear-gradient(135deg, var(--success-color), #2ecc71); }
+    .action-btn.edit { background: linear-gradient(135deg, var(--warning-color), #f1c40f); }
+    .action-btn.delete { background: linear-gradient(135deg, var(--danger-color), #e67e22); }
+
+    .create-btn {
+        background: linear-gradient(135deg, var(--success-color) 0%, #2ecc71 100%);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        padding: 15px 30px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 
+            0 8px 25px rgba(39, 174, 96, 0.3),
+            0 3px 10px rgba(39, 174, 96, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .create-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s;
+    }
+
+    .create-btn:hover::before {
+        left: 100%;
+    }
+
+    .create-btn:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 
+            0 15px 40px rgba(39, 174, 96, 0.4),
+            0 5px 15px rgba(39, 174, 96, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--dark-color);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: var(--secondary-color);
+        margin-bottom: 20px;
+        opacity: 0.7;
+    }
+
+    .empty-state h3 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        color: var(--primary-color);
+    }
+
+    .empty-state p {
+        font-size: 1.1rem;
+        opacity: 0.8;
+        margin-bottom: 30px;
+    }
+
+    .fade-in {
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { 
+            opacity: 0; 
+            transform: translateY(20px); 
+        }
+        to { 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
+    }
+
+    .bounce-in {
+        animation: bounceIn 0.6s ease-out;
+    }
+
+    @keyframes bounceIn {
+        0% { 
+            opacity: 0; 
+            transform: scale(0.3); 
+        }
+        50% { 
+            opacity: 1; 
+            transform: scale(1.05); 
+        }
+        70% { 
+            transform: scale(0.9); 
+        }
+        100% { 
+            opacity: 1; 
+            transform: scale(1); 
+        }
+    }
+
+    .templates-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 25px;
+        margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .templates-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .main-container {
+            margin: 10px;
+            padding: 20px;
+        }
+        
+        .header-section h1 {
+            font-size: 2rem;
+        }
+        
+        .template-meta {
+            grid-template-columns: 1fr;
+        }
+        
+        .template-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container fade-in">
+    <!-- هدر -->
+    <div class="header-section">
+        <h1><i class="fas fa-file-code me-3"></i>{% trans "تمپلیت‌های قوانین گردش کار" %}</h1>
+        <p>{% trans "مدیریت و مشاهده تمام تمپلیت‌های موجود" %}</p>
+        <a href="{% url 'workflow_management:template_create' %}" class="create-btn">
+            <i class="fas fa-plus"></i>
+            <span>{% trans "ایجاد تمپلیت جدید" %}</span>
+        </a>
+    </div>
+    <!-- محتوای اصلی -->
+    {% if templates %}
+        <div class="templates-grid">
+            {% for template in templates %}
+                <div class="template-card bounce-in" style="animation-delay: {{ forloop.counter0|add:0.1 }}s;">
+                    <div class="template-header">
+                        <h3 class="template-title">{{ template.name }}</h3>
+                        <span class="template-status {% if template.is_active %}status-active{% else %}status-inactive{% endif %}">
+                            {% if template.is_active %}{% trans "فعال" %}{% else %}{% trans "غیرفعال" %}{% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="template-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-info-circle"></i>
+                            <span>{{ template.description|truncatechars:60 }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-tag"></i>
+                            <span>{{ template.get_entity_type_display }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-building"></i>
+                            <span>{{ template.organization.name }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>{{ template.created_at|date:"Y/m/d H:i" }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="template-actions">
+                        <a href="{% url 'workflow_management:template_detail' template.pk %}" class="action-btn view">
+                            <i class="fas fa-eye"></i>
+                            <span>{% trans "مشاهده" %}</span>
+                        </a>
+                        <a href="{% url 'workflow_management:apply_template' template.pk %}" class="action-btn apply">
+                            <i class="fas fa-arrow-right"></i>
+                            <span>{% trans "اعمال" %}</span>
+                        </a>
+                        {% if template.is_active %}
+                            <a href="{% url 'workflow_management:template_edit' template.pk %}" class="action-btn edit">
+                                <i class="fas fa-edit"></i>
+                                <span>{% trans "ویرایش" %}</span>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-file-code"></i>
+            <h3>{% trans "هیچ تمپلیتی یافت نشد" %}</h3>
+            <p>{% trans "هنوز هیچ تمپلیت قوانین گردش کاری ایجاد نشده است" %}</p>
+            <a href="{% url 'workflow_management:template_create' %}" class="create-btn">
+                <i class="fas fa-plus"></i>
+                <span>{% trans "ایجاد اولین تمپلیت" %}</span>
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

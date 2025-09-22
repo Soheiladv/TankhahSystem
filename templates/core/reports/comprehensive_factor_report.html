@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "گزارش جامع فاکتور" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-file-invoice mr-2"></i>
+                        {% trans "گزارش جامع فاکتور" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-info">
+                                    <i class="fas fa-file-alt"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "کل فاکتورها" %}</span>
+                                    <span class="info-box-number">{{ total_factor_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-success">
+                                    <i class="fas fa-check-circle"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "فاکتورهای پرداخت شده" %}</span>
+                                    <span class="info-box-number">{{ paid_factor_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-warning">
+                                    <i class="fas fa-clock"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "فاکتورهای در انتظار" %}</span>
+                                    <span class="info-box-number">{{ pending_factor_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-danger">
+                                    <i class="fas fa-times-circle"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "فاکتورهای رد شده" %}</span>
+                                    <span class="info-box-number">{{ rejected_factor_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-primary">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "کل مبلغ فاکتورها" %}</span>
+                                    <span class="info-box-number">{{ total_factor_amount|floatformat:0 }} {% trans "ریال" %}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-success">
+                                    <i class="fas fa-percentage"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "درصد تأیید" %}</span>
+                                    <span class="info-box-number">{{ factor_approval_percentage|floatformat:1 }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">{% trans "روند ماهانه فاکتورها" %}</h4>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="factorTrendChart" height="100"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('factorTrendChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ monthly_factor_trend.labels|safe }},
+            datasets: [{
+                label: '{% trans "ایجاد شده" %}',
+                data: {{ monthly_factor_trend.created|safe }},
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }, {
+                label: '{% trans "پرداخت شده" %}',
+                data: {{ monthly_factor_trend.paid|safe }},
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                tension: 0.1
+            }, {
+                label: '{% trans "در انتظار" %}',
+                data: {{ monthly_factor_trend.pending|safe }},
+                borderColor: 'rgb(54, 162, 235)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

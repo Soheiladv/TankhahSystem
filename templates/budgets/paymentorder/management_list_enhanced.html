@@ -1,0 +1,710 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% load humanize rcms_custom_filters %}
+
+{% block title %}مدیریت دستورات پرداخت{% endblock %}
+
+{% block extra_css %}
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --pending-gradient: linear-gradient(135deg, #ffc107 0%, #ff8c00 100%);
+            --approved-gradient: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            --paid-gradient: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+            --archived-gradient: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            --stats-gradient: linear-gradient(135deg, #fd7e14 0%, #e83e8c 100%);
+        }
+
+        .stats-card {
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stats-card h3 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .stats-card p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .payment-order-card {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            background: white;
+            height: 100%;
+        }
+
+        .payment-order-card:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-draft {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .status-approved {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .status-paid {
+            background-color: #17a2b8;
+            color: #fff;
+        }
+
+        .status-rejected {
+            background-color: #dc3545;
+            color: #fff;
+        }
+
+        .status-cancelled {
+            background-color: #6c757d;
+            color: #fff;
+        }
+
+        .archive-badge {
+            background-color: #6f42c1;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .bulk-actions {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .bulk-actions.show {
+            display: block;
+        }
+
+        .pagination {
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+
+        .no-results i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .card-title a {
+            transition: color 0.2s ease;
+        }
+
+        .card-title a:hover {
+            color: #0d6efd;
+        }
+
+        .form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .stats-card h3 {
+                font-size: 2rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .action-buttons .btn {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <!-- آمار کلی -->
+        <div class="row">
+            <div class="col-md-2 col-6 mb-3">
+                <div class="stats-card">
+                    <h3>{{ stats.total |format_negative }}</h3>
+                    <p>کل دستورات</p>
+                </div>
+            </div>
+            <div class="col-md-2 col-6 mb-3">
+                <div class="stats-card" style="background: var(--pending-gradient);">
+                    <h3>{{ stats.pending|format_negative }}</h3>
+                    <p>در انتظار</p>
+                </div>
+            </div>
+            <div class="col-md-2 col-6 mb-3">
+                <div class="stats-card" style="background: var(--approved-gradient);">
+                    <h3>{{ stats.approved|format_negative }}</h3>
+                    <p>تایید شده</p>
+                </div>
+            </div>
+            <div class="col-md-2 col-6 mb-3">
+                <div class="stats-card" style="background: var(--paid-gradient);">
+                    <h3>{{ stats.paid |format_negative}}</h3>
+                    <p>پرداخت شده</p>
+                </div>
+            </div>
+            <div class="col-md-2 col-6 mb-3">
+                <div class="stats-card" style="background: var(--archived-gradient);">
+                    <h3>{{ stats.archived|format_negative }}</h3>
+                    <p>آرشیو شده</p>
+                </div>
+            </div>
+            <div class="col-md-2 col-6 mb-3">
+                <div class="stats-card" style="background: var(--stats-gradient);">
+                    <h3><i class="fas fa-chart-line"></i></h3>
+                    <p>آمار</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- فیلترها -->
+        <div class="filter-section">
+            <form method="get" id="filterForm">
+                <div class="row g-2">
+                    <div class="col-md-3 col-12">
+                        <div class="search-box">
+                            <input type="text" class="form-control" name="search" value="{{ search }}"
+                                   placeholder="جستجو در شماره، شرح، دریافت‌کننده...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <select class="form-select" name="status">
+                            <option value="">همه وضعیت‌ها</option>
+                            {% for status in status_choices %}
+                                <option value="{{ status.code }}"
+                                        {% if status.code == request.GET.status %}selected{% endif %}>
+                                    {{ status.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <select class="form-select" name="organization">
+                            <option value="">همه سازمان‌ها</option>
+                            {% for org in organization_choices %}
+                                <option value="{{ org.id }}"
+                                        {% if org.id|stringformat:"s" == request.GET.organization %}selected{% endif %}>
+                                    {{ org.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <input type="text" class="form-control" name="date_from" value="{{ request.GET.date_from }}"
+                               placeholder="از تاریخ (1404/01/01)" data-jdp="">
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <input type="text" class="form-control" name="date_to" value="{{ request.GET.date_to }}"
+                               placeholder="تا تاریخ (1404/01/01)" data-jdp="">
+                    </div>
+                    <div class="col-md-1 col-12">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter"></i> اعمال
+                        </button>
+                    </div>
+                </div>
+                <div class="row mt-3 g-3">
+                    <div class="col-md-3 col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="show_archived" value="true"
+                                   {% if request.GET.show_archived == 'true' %}checked{% endif %} id="showArchived">
+                            <label class="form-check-label" for="showArchived">
+                                نمایش آرشیو شده‌ها
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-8">
+                        <select class="form-select" name="sort">
+                            <option value="-created_at" {% if request.GET.sort == '-created_at' %}selected{% endif %}>
+                                جدیدترین
+                            </option>
+                            <option value="created_at" {% if request.GET.sort == 'created_at' %}selected{% endif %}>
+                                قدیمی‌ترین
+                            </option>
+                            <option value="-amount" {% if request.GET.sort == '-amount' %}selected{% endif %}>بیشترین
+                                مبلغ
+                            </option>
+                            <option value="amount" {% if request.GET.sort == 'amount' %}selected{% endif %}>کمترین
+                                مبلغ
+                            </option>
+                            <option value="order_number" {% if request.GET.sort == 'order_number' %}selected{% endif %}>
+                                شماره دستور
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 col-4 text-end">
+                        <button type="button" class="btn btn-success mb-1" onclick="createFromFactors()">
+                            <i class="fas fa-plus"></i> ایجاد از فاکتورها
+                        </button>
+                        <button type="button" class="btn btn-info mb-1" onclick="showStats()">
+                            <i class="fas fa-chart-bar"></i> آمار
+                        </button>
+                        <a href="{% url 'paymentorder_management_list' %}" class="btn btn-outline-secondary mb-1">
+                            <i class="fas fa-sync"></i> بازنشانی
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- عملیات دسته‌ای -->
+        <div class="bulk-actions" id="bulkActions">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <span id="selectedCount">0</span> مورد انتخاب شده
+                </div>
+                <div class="col-md-6 text-end">
+                    <button type="button" class="btn btn-warning btn-sm me-1" onclick="bulkArchive()">
+                        <i class="fas fa-archive"></i> آرشیو دسته‌ای
+                    </button>
+                    <button type="button" class="btn btn-info btn-sm me-1" onclick="bulkUnarchive()">
+                        <i class="fas fa-box-open"></i> خارج از آرشیو
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="clearSelection()">
+                        <i class="fas fa-times"></i> لغو انتخاب
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- لیست دستورات پرداخت -->
+        <div class="row">
+            {% if payment_orders %}
+                {% for payment_order in payment_orders %}
+                    <div class="col-xl-4 col-lg-6 col-md-6 mb-4">
+                        <div class="payment-order-card card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h6 class="card-title mb-1">
+                                            <a href="{% url 'paymentorder_detail_enhanced' payment_order.pk %}"
+                                               class="text-decoration-none">
+                                                {{ payment_order.order_number |to_persian_number }}
+                                            </a>
+                                        </h6>
+                                        <small class="text-muted">{{ payment_order.issue_date|jformat:"%Y/%m/%d" |to_persian_number }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <input type="checkbox" class="form-check-input payment-order-checkbox"
+                                               value="{{ payment_order.pk }}" onchange="updateSelection()">
+                                        {% if payment_order.is_archived %}
+                                            <span class="archive-badge">آرشیو</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                            <span class="status-badge status-{{ payment_order.status.code|lower|to_persian_number }}">
+                                {{ payment_order.status.name }}
+                            </span>
+                                </div>
+
+                                <div class="mb-2">
+                                    <strong>مبلغ:</strong> {{ payment_order.amount|format_negative}} ریال
+                                </div>
+
+                                {% if payment_order.payee %}
+                                    <div class="mb-2">
+                                        <strong>دریافت‌کننده:</strong> {{ payment_order.payee.name }}
+                                    </div>
+                                {% endif %}
+
+                                {% if payment_order.organization %}
+                                    <div class="mb-2">
+                                        <strong>سازمان:</strong> {{ payment_order.organization.name }}
+                                    </div>
+                                {% endif %}
+
+                                {% if payment_order.related_factors.exists %}
+                                    <div class="mb-2">
+                                        <strong>فاکتورها:</strong> {{ payment_order.related_factors.count |format_negative}} مورد
+                                    </div>
+                                {% endif %}
+ 
+                                {% if payment_order.description %}
+                                    <div class="mb-3">
+                                        <small class="text-muted">{{ payment_order.description|truncatechars:100 }}</small>
+                                    </div>
+                                {% endif %}
+
+                                <div class="action-buttons mt-auto">
+                                    <a href="{% url 'paymentorder_detail_enhanced' payment_order.pk %}"
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye"></i> مشاهده
+                                    </a>
+
+                                    {% if not payment_order.is_archived %}
+                                        {% if payment_order.status.code == 'PO_DRAFT' or payment_order.status.code == 'PO_APPROVED' %}
+                                            <a href="{% url 'paymentorder_approval' payment_order.pk %}"
+                                               class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-check"></i> تایید
+                                            </a>
+                                        {% endif %}
+
+                                        {% if payment_order.can_be_archived %}
+                                            <button type="button" class="btn btn-outline-warning btn-sm"
+                                                    onclick="archiveOrder({{ payment_order.pk }})">
+                                                <i class="fas fa-archive"></i> آرشیو
+                                            </button>
+                                        {% endif %}
+                                    {% else %}
+                                        <button type="button" class="btn btn-outline-info btn-sm"
+                                                onclick="unarchiveOrder({{ payment_order.pk }})">
+                                            <i class="fas fa-box-open"></i> خارج از آرشیو
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="no-results">
+                        <i class="fas fa-inbox"></i>
+                        <h4>هیچ دستور پرداختی یافت نشد</h4>
+                        <p>با تغییر فیلترها دوباره تلاش کنید</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- صفحه‌بندی -->
+        {% if is_paginated %}
+            <nav aria-label="صفحه‌بندی">
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?{% query_transform request page=page_obj.previous_page_number %}">
+                                <i class="fas fa-chevron-right"></i> قبلی
+                            </a>
+
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+{#                            <li class="page-item">#}
+{#                                <a class="page-link" href="?{% query_transform page=num %}">{{ num }}</a>#}
+{#                            </li>#}
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link"   href="?{% query_transform request page=page_obj.next_page_number %}">
+                                بعدی <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+
+    <!-- Modal برای تایید عملیات -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">تایید عملیات</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">لغو</button>
+                    <button type="button" class="btn btn-primary" id="confirmAction">تایید</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        // تابع برای مدیریت پارامترهای URL
+        function queryString(params) {
+            const searchParams = new URLSearchParams(window.location.search);
+            Object.keys(params).forEach(key => {
+                if (params[key] === null || params[key] === '') {
+                    searchParams.delete(key);
+                } else {
+                    searchParams.set(key, params[key]);
+                }
+            });
+            return searchParams.toString();
+        }
+
+        // انتخاب دسته‌ای
+        let selectedOrders = [];
+
+        function updateSelection() {
+            const checkboxes = document.querySelectorAll('.payment-order-checkbox:checked');
+            selectedOrders = Array.from(checkboxes).map(cb => cb.value);
+
+            const bulkActions = document.getElementById('bulkActions');
+            const selectedCount = document.getElementById('selectedCount');
+
+            if (selectedOrders.length > 0) {
+                bulkActions.classList.add('show');
+                selectedCount.textContent = selectedOrders.length;
+            } else {
+                bulkActions.classList.remove('show');
+            }
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('.payment-order-checkbox').forEach(cb => cb.checked = false);
+            updateSelection();
+        }
+
+        // توابع آرشیو/خارج از آرشیو
+        function archiveOrder(orderId) {
+            showConfirmModal('آیا مطمئن هستید که می‌خواهید این دستور پرداخت را آرشیو کنید؟', () => {
+                performOrderAction(`/budgets/payment-orders/${orderId}/archive/`, 'POST');
+            });
+        }
+
+        function unarchiveOrder(orderId) {
+            showConfirmModal('آیا مطمئن هستید که می‌خواهید این دستور پرداخت را از آرشیو خارج کنید؟', () => {
+                performOrderAction(`/budgets/payment-orders/${orderId}/unarchive/`, 'POST');
+            });
+        }
+
+        function performOrderAction(url, method) {
+            fetch(url, {
+                method: method,
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('عملیات موفقیت‌آمیز بود', 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showToast('خطا: ' + data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showToast('خطا در انجام عملیات', 'error');
+                    console.error('Error:', error);
+                });
+        }
+
+        // عملیات دسته‌ای
+        function bulkArchive() {
+            if (selectedOrders.length === 0) return;
+
+            showConfirmModal(`آیا مطمئن هستید که می‌خواهید ${selectedOrders.length} دستور پرداخت را آرشیو کنید؟`, () => {
+                performBulkAction('archive');
+            });
+        }
+
+        function bulkUnarchive() {
+            if (selectedOrders.length === 0) return;
+
+            showConfirmModal(`آیا مطمئن هستید که می‌خواهید ${selectedOrders.length} دستور پرداخت را از آرشیو خارج کنید؟`, () => {
+                performBulkAction('unarchive');
+            });
+        }
+
+        function performBulkAction(action) {
+            fetch('/budgets/payment-orders/bulk-action/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    payment_order_ids: selectedOrders,
+                    action: action
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showToast('خطا: ' + data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showToast('خطا در انجام عملیات', 'error');
+                    console.error('Error:', error);
+                });
+        }
+
+        // ایجاد از فاکتورها
+        function createFromFactors() {
+            showConfirmModal('آیا مطمئن هستید که می‌خواهید دستورات پرداخت را از فاکتورهای تایید نهایی ایجاد کنید؟', () => {
+                fetch('{% url 'create_payment_orders_from_factors' %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCSRFToken(),
+                    },
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            showToast('دستورات پرداخت با موفقیت ایجاد شدند', 'success');
+                            setTimeout(() => location.reload(), 1000);
+                        } else {
+                            showToast('خطا در ایجاد دستورات پرداخت', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showToast('خطا در انجام عملیات', 'error');
+                        console.error('Error:', error);
+                    });
+            });
+        }
+
+        // نمایش آمار
+        function showStats() {
+            window.open('/budgets/payment-orders/stats/', '_blank');
+        }
+
+        // توابع کمکی
+        function getCSRFToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]').value;
+        }
+
+        function showConfirmModal(message, callback) {
+            document.getElementById('confirmMessage').textContent = message;
+            const confirmBtn = document.getElementById('confirmAction');
+            confirmBtn.onclick = callback;
+            new bootstrap.Modal(document.getElementById('confirmModal')).show();
+        }
+
+        function showToast(message, type = 'info') {
+            // پیاده‌سازی ساده toast - می‌توانید از کتابخانه‌های دیگر استفاده کنید
+            const toast = document.createElement('div');
+            toast.className = `position-fixed top-0 end-0 p-3 toast-${type}`;
+            toast.innerHTML = `
+        <div class="toast show" role="alert">
+            <div class="toast-header">
+                <strong class="me-auto">اعلان</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">${message}</div>
+        </div>
+    `;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 3000);
+        }
+
+        // Auto-submit form on filter change
+        document.querySelectorAll('select[name="status"], select[name="organization"], select[name="sort"]').forEach(select => {
+            select.addEventListener('change', () => {
+                document.getElementById('filterForm').submit();
+            });
+        });
+
+        // مقداردهی اولیه
+        document.addEventListener('DOMContentLoaded', function () {
+            // اضافه کردن تاریخ امروز به عنوان مقدار پیش‌فرض برای فیلتر تاریخ
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelectorAll('input[type="date"]').forEach(input => {
+                if (!input.value) {
+                    input.value = today;
+                }
+            });
+        });
+    </script>
+{% endblock %}

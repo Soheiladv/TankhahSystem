@@ -1,0 +1,122 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.so
+*.log
+# Django
+*.sqlite3
+db.sqlite3
+
+
+*.pot
+*.py[cod]
+*.mo
+*.swp
+
+# SQL and database backups
+*.sql
+*.ddl
+backups/*.sql
+db_backup/
+Install/
+
+# Logs
+logs/
+
+# Environment
+.env
+.env.*
+.venv/
+venv/
+ENV/
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Django static/media files
+staticfiles/
+static/
+media/
+mediafiles/
+
+# Django migrations
+**/migrations/*.pyc
+**/migrations/__pycache__/
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# Compiled translations
+*.mo
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build
+build/
+dist/
+*.egg-info/
+*.manifest
+*.spec
+
+# Git conflict backups
+*.orig
+
+# Coverage / test
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+.noseids
+.coverage.*
+
+# Celery / Redis / workers
+celerybeat-schedule
+celerybeat.pid
+
+# Local apps data
+instance/
+
+# Custom additions
+Documents/
+media/
+logs/
+migrations/
+tests/
+*.txt
+*.docx
+*.rar
+*.pdf
+allfiles.txt
+command.txt
+push_log.txt
+budgets/budgets.rar
+budgets/migrations/migrations.rar
+static/admin/img/*.txt
+static/admin/js/vendor/**/*.txt
+*.docx
+*.exe
+media/
+backups/
+logs/
+outputs/
+backups/
+backups/tankhasystem-140405.sql
+BudgetsSystem-config.exe
+*.exe
+venv/
+__pycache__/
+*.pyc

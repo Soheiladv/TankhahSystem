@@ -155,10 +155,16 @@ class AppVersionDeleteView(DeleteView):
 def latest_version_view(request):
     """نمایش نسخه کامل نهایی و آخرین نسخه اپلیکیشن"""
     """نمایش صفحه اصلی با نسخه نهایی و تگ"""
-    # final_version = FinalVersion.objects.first()
-    latest_app_version = AppVersion.objects.order_by('-release_date').first()
-    final_version = FinalVersion.objects.filter(is_active=True).first()
-    app_versions = AppVersion.objects.all().order_by('-release_date')[:10]  # 10 نسخه آخر
+    try:
+        # final_version = FinalVersion.objects.first()
+        latest_app_version = AppVersion.objects.order_by('-release_date').first()
+        final_version = FinalVersion.objects.filter(is_active=True).first()
+        app_versions = AppVersion.objects.all().order_by('-release_date')[:10]  # 10 نسخه آخر
+    except Exception as e:
+        logger.error(f"خطا در بارگذاری version tracker: {e}")
+        latest_app_version = None
+        final_version = None
+        app_versions = []
 
     context = {
         'final_version': final_version.version_number if final_version else "نسخه نهایی تعریف نشده",

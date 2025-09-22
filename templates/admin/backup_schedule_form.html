@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}
+    {% if schedule %}
+        {% trans "ویرایش اسکچول پشتیبان‌گیری" %}
+    {% else %}
+        {% trans "ایجاد اسکچول پشتیبان‌گیری جدید" %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <div class="container-fluid">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-clock me-2"></i>
+                {% if schedule %}
+                    {% trans "ویرایش اسکچول پشتیبان‌گیری" %}
+                {% else %}
+                    {% trans "ایجاد اسکچول پشتیبان‌گیری جدید" %}
+                {% endif %}
+            </h1>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-cog me-2"></i> {% trans "تنظیمات اسکچول" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" id="scheduleForm">
+                            {% csrf_token %}
+                            
+                            <!-- اطلاعات پایه -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fas fa-info-circle me-2"></i> {% trans "اطلاعات پایه" %}
+                                    </h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                                            {% trans "نام اسکچول" %} <span class="text-danger">*</span>
+                                        </label>
+                                        {{ form.name }}
+                                        {% if form.name.errors %}
+                                            <div class="text-danger small">{{ form.name.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.frequency.id_for_label }}" class="form-label">
+                                            {% trans "فرکانس" %} <span class="text-danger">*</span>
+                                        </label>
+                                        {{ form.frequency }}
+                                        {% if form.frequency.errors %}
+                                            <div class="text-danger small">{{ form.frequency.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                                            {% trans "توضیحات" %}
+                                        </label>
+                                        {{ form.description }}
+                                        {% if form.description.errors %}
+                                            <div class="text-danger small">{{ form.description.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- تنظیمات زمان‌بندی -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fas fa-calendar-alt me-2"></i> {% trans "تنظیمات زمان‌بندی" %}
+                                    </h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.custom_cron.id_for_label }}" class="form-label">
+                                            {% trans "Cron سفارشی" %}
+                                        </label>
+                                        {{ form.custom_cron }}
+                                        {% if form.custom_cron.errors %}
+                                            <div class="text-danger small">{{ form.custom_cron.errors.0 }}</div>
+                                        {% endif %}
+                                        <div class="form-text">
+                                            {% trans "مثال: 0 2 * * * (هر روز ساعت 2 صبح)" %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            {{ form.is_active }}
+                                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                                {% trans "فعال" %}
+                                            </label>
+                                        </div>
+                                        {% if form.is_active.errors %}
+                                            <div class="text-danger small">{{ form.is_active.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- تنظیمات پشتیبان‌گیری -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fas fa-database me-2"></i> {% trans "تنظیمات پشتیبان‌گیری" %}
+                                    </h6>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="{{ form.database.id_for_label }}" class="form-label">
+                                            {% trans "دیتابیس" %} <span class="text-danger">*</span>
+                                        </label>
+                                        {{ form.database }}
+                                        {% if form.database.errors %}
+                                            <div class="text-danger small">{{ form.database.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="{{ form.format_type.id_for_label }}" class="form-label">
+                                            {% trans "فرمت" %} <span class="text-danger">*</span>
+                                        </label>
+                                        {{ form.format_type }}
+                                        {% if form.format_type.errors %}
+                                            <div class="text-danger small">{{ form.format_type.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            {{ form.encrypt }}
+                                            <label class="form-check-label" for="{{ form.encrypt.id_for_label }}">
+                                                {% trans "رمزگذاری" %}
+                                            </label>
+                                        </div>
+                                        {% if form.encrypt.errors %}
+                                            <div class="text-danger small">{{ form.encrypt.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-12" id="passwordField" style="display: none;">
+                                    <div class="mb-3">
+                                        <label for="{{ form.password.id_for_label }}" class="form-label">
+                                            {% trans "رمز عبور" %}
+                                        </label>
+                                        {{ form.password }}
+                                        {% if form.password.errors %}
+                                            <div class="text-danger small">{{ form.password.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- تنظیمات اعلان -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fas fa-bell me-2"></i> {% trans "تنظیمات اعلان" %}
+                                    </h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            {{ form.notify_on_success }}
+                                            <label class="form-check-label" for="{{ form.notify_on_success.id_for_label }}">
+                                                {% trans "اعلان در صورت موفقیت" %}
+                                            </label>
+                                        </div>
+                                        {% if form.notify_on_success.errors %}
+                                            <div class="text-danger small">{{ form.notify_on_success.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            {{ form.notify_on_failure }}
+                                            <label class="form-check-label" for="{{ form.notify_on_failure.id_for_label }}">
+                                                {% trans "اعلان در صورت خطا" %}
+                                            </label>
+                                        </div>
+                                        {% if form.notify_on_failure.errors %}
+                                            <div class="text-danger small">{{ form.notify_on_failure.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="{{ form.notify_recipients.id_for_label }}" class="form-label">
+                                            {% trans "گیرندگان اعلان" %}
+                                        </label>
+                                        {{ form.notify_recipients }}
+                                        {% if form.notify_recipients.errors %}
+                                            <div class="text-danger small">{{ form.notify_recipients.errors.0 }}</div>
+                                        {% endif %}
+                                        <div class="form-text">
+                                            {% trans "کاربرانی که اعلان‌ها را دریافت خواهند کرد" %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- دکمه‌های عملیات -->
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>
+                                    {% if schedule %}
+                                        {% trans "بروزرسانی" %}
+                                    {% else %}
+                                        {% trans "ایجاد" %}
+                                    {% endif %}
+                                </button>
+                                <a href="{% url 'backup:schedule_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i> {% trans "انصراف" %}
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- راهنمای کناری -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-lightbulb me-2"></i> {% trans "راهنما" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>{% trans "فرکانس‌های پیشنهادی:" %}</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>{% trans "روزانه:" %}</strong> {% trans "برای پشتیبان‌گیری‌های مهم" %}</li>
+                            <li><strong>{% trans "هفتگی:" %}</strong> {% trans "برای پشتیبان‌گیری‌های معمولی" %}</li>
+                            <li><strong>{% trans "ماهانه:" %}</strong> {% trans "برای آرشیو طولانی‌مدت" %}</li>
+                        </ul>
+
+                        <h6 class="mt-3">{% trans "مثال‌های Cron:" %}</h6>
+                        <ul class="list-unstyled">
+                            <li><code>0 2 * * *</code> {% trans "هر روز ساعت 2 صبح" %}</li>
+                            <li><code>0 0 * * 0</code> {% trans "هر یکشنبه" %}</li>
+                            <li><code>0 0 1 * *</code> {% trans "اول هر ماه" %}</li>
+                            <li><code>*/30 * * * *</code> {% trans "هر 30 دقیقه" %}</li>
+                        </ul>
+
+                        <h6 class="mt-3">{% trans "نکات مهم:" %}</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i> {% trans "نام منحصر به فرد انتخاب کنید" %}</li>
+                            <li><i class="fas fa-check text-success me-2"></i> {% trans "گیرندگان اعلان را مشخص کنید" %}</li>
+                            <li><i class="fas fa-check text-success me-2"></i> {% trans "برای امنیت، رمزگذاری را فعال کنید" %}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // نمایش/مخفی کردن فیلد رمز عبور
+    const encryptCheckbox = document.getElementById('{{ form.encrypt.id_for_label }}');
+    const passwordField = document.getElementById('passwordField');
+    
+    function togglePasswordField() {
+        if (encryptCheckbox.checked) {
+            passwordField.style.display = 'block';
+        } else {
+            passwordField.style.display = 'none';
+        }
+    }
+    
+    encryptCheckbox.addEventListener('change', togglePasswordField);
+    togglePasswordField(); // اجرای اولیه
+});
+</script>
+{% endblock %}

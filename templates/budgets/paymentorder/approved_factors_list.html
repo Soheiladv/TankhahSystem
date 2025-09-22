@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}فاکتورهای تایید نهایی{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid">
+    <!-- هدر فاکتورهای تایید نهایی -->
+    <div class="factors-header">
+        <h1><i class="fas fa-file-invoice-check"></i> فاکتورهای تایید نهایی</h1>
+        <p>فاکتورهای آماده برای ایجاد دستور پرداخت</p>
+    </div>
+
+    <!-- آمار کلی -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>{{ stats.total }}</h3>
+            <p>تعداد فاکتورها</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ stats.total_amount|floatformat:0|add:" ریال" }}</h3>
+            <p>مجموع مبلغ</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ stats.by_organization|length }}</h3>
+            <p>تعداد سازمان‌ها</p>
+        </div>
+    </div>
+
+    <!-- فیلترها -->
+    <div class="filter-section">
+        <form method="get" id="filterForm">
+            <div class="row">
+                <div class="col-md-3">
+                    <input type="text" class="form-control" name="search" value="{{ search }}" 
+                           placeholder="جستجو در شماره فاکتور، شرح...">
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="organization">
+                        <option value="">همه سازمان‌ها</option>
+                        {% for org in organization_choices %}
+                        <option value="{{ org.id }}" {% if org.id|stringformat:"s" == organization %}selected{% endif %}>
+                            {{ org.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="text" class="form-control" name="date_from" value="{{ date_from }}" placeholder="از تاریخ (1404/01/01)" data-jdp="">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" class="form-control" name="date_to" value="{{ date_to }}" placeholder="تا تاریخ (1404/01/01)" data-jdp="">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> جستجو
+                    </button>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-success w-100" onclick="createAllPaymentOrders()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- عملیات دسته‌ای -->
+    <div class="bulk-actions" id="bulkActions">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <span id="selectedCount">0</span> مورد انتخاب شده
+            </div>
+            <div class="col-md-6 text-end">
+                <button type="button" class="btn btn-warning btn-sm" onclick="createSelectedPaymentOrders()">
+                    <i class="fas fa-plus"></i> ایجاد دستور پرداخت
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="clearSelection()">
+                    <i class="fas fa-times"></i> لغو انتخاب
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- لیست فاکتورها -->
+    <div class="row">
+        {% if approved_factors %}
+            {% for factor in approved_factors %}
+            <div class="col-md-6 col-lg-4">
+                <div class="factor-card">
+                    <div class="factor-header">
+                        <span class="factor-number">{{ factor.factor_number|default:factor.number }}</span>
+                        <span class="factor-amount">{{ factor.amount|floatformat:0|add:" ریال" }}</span>
+                    </div>
+                    
+                    <div class="factor-details">
+                        <div class="factor-detail">
+                            <strong>تاریخ:</strong>
+                            <span>{{ factor.created_at|date:"Y/m/d" }}</span>
+                        </div>
+                        <div class="factor-detail">
+                            <strong>سازمان:</strong>
+                            <span>{{ factor.organization.name }}</span>
+                        </div>
+                        <div class="factor-detail">
+                            <strong>تنخواه:</strong>
+                            <span>{{ factor.tankhah.number|default:"نامشخص" }}</span>
+                        </div>
+                        <div class="factor-detail">
+                            <strong>ایجادکننده:</strong>
+                            <span>{{ factor.created_by.get_full_name|default:factor.created_by.username }}</span>
+                        </div>
+                    </div>
+                    
+                    {% if factor.description %}
+                    <div class="factor-detail">
+                        <strong>توضیحات:</strong>
+                        <span>{{ factor.description|truncatechars:100 }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="action-buttons">
+                        <input type="checkbox" class="form-check-input factor-checkbox" 
+                               value="{{ factor.pk }}" onchange="updateSelection()">
+                        <button type="button" class="btn-action btn-create" 
+                                onclick="createSinglePaymentOrder({{ factor.pk }})">
+                            <i class="fas fa-plus"></i> ایجاد دستور
+                        </button>
+                        <a href="#" class="btn-action btn-view">
+                            <i class="fas fa-eye"></i> مشاهده
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="col-12">
+            <div class="no-data">
+                <i class="fas fa-file-invoice"></i>
+                <h4>هیچ فاکتور تایید نهایی‌ای یافت نشد</h4>
+                <p>فاکتورهای تایید نهایی برای ایجاد دستور پرداخت در اینجا نمایش داده می‌شوند.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- صفحه‌بندی -->
+    {% if is_paginated %}
+    <nav aria-label="صفحه‌بندی">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    قبلی
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+            </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    {{ num }}
+                </a>
+            </li>
+            {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    بعدی
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- Modal برای تایید عملیات -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">تایید عملیات</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">لغو</button>
+                <button type="button" class="btn btn-primary" id="confirmAction">تایید</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedFactors = [];
+
+function updateSelection() {
+    const checkboxes = document.querySelectorAll('.factor-checkbox:checked');
+    selectedFactors = Array.from(checkboxes).map(cb => cb.value);
+    
+    const bulkActions = document.getElementById('bulkActions');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    if (selectedFactors.length > 0) {
+        bulkActions.classList.add('show');
+        selectedCount.textContent = selectedFactors.length;
+    } else {
+        bulkActions.classList.remove('show');
+    }
+}
+
+function clearSelection() {
+    document.querySelectorAll('.factor-checkbox').forEach(cb => cb.checked = false);
+    updateSelection();
+}
+
+function createSinglePaymentOrder(factorId) {
+    showConfirmModal('آیا مطمئن هستید که می‌خواهید دستور پرداخت را برای این فاکتور ایجاد کنید؟', () => {
+        createPaymentOrders([factorId]);
+    });
+}
+
+function createSelectedPaymentOrders() {
+    if (selectedFactors.length === 0) return;
+    
+    showConfirmModal(`آیا مطمئن هستید که می‌خواهید دستورات پرداخت را برای ${selectedFactors.length} فاکتور ایجاد کنید؟`, () => {
+        createPaymentOrders(selectedFactors);
+    });
+}
+
+function createAllPaymentOrders() {
+    showConfirmModal('آیا مطمئن هستید که می‌خواهید دستورات پرداخت را برای همه فاکتورها ایجاد کنید؟', () => {
+        fetch('/budgets/create-payment-orders-from-factors/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('خطا: ' + data.message);
+            }
+        });
+    });
+}
+
+function createPaymentOrders(factorIds) {
+    fetch('/budgets/create-payment-orders-from-factors/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            factor_ids: factorIds
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('خطا: ' + data.message);
+        }
+    });
+}
+
+function showConfirmModal(message, callback) {
+    document.getElementById('confirmMessage').textContent = message;
+    document.getElementById('confirmAction').onclick = callback;
+    new bootstrap.Modal(document.getElementById('confirmModal')).show();
+}
+
+// Auto-submit form on filter change
+document.querySelectorAll('select[name="organization"]').forEach(select => {
+    select.addEventListener('change', () => {
+        document.getElementById('filterForm').submit();
+    });
+});
+</script>
+{% endblock %}

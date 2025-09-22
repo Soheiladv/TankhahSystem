@@ -1,0 +1,1038 @@
+{% extends 'base.html' %}
+{% load i18n rcms_custom_filters %}
+
+{% block title %}داشبورد اجرایی - گزارشات جامع{% endblock %}
+
+{% block extra_css %}
+<style>
+    .executive-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .executive-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .metric-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border-left: 4px solid #007bff;
+        transition: all 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .risk-high {
+        border-left-color: #dc3545;
+        background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        color: white;
+    }
+    
+    .risk-medium {
+        border-left-color: #ffc107;
+        background: linear-gradient(135deg, #ffd93d, #ffc107);
+        color: #212529;
+    }
+    
+    .risk-low {
+        border-left-color: #28a745;
+        background: linear-gradient(135deg, #6bcf7f, #28a745);
+        color: white;
+    }
+    
+    .trend-up {
+        color: #28a745;
+    }
+    
+    .trend-down {
+        color: #dc3545;
+    }
+    
+    .section-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px 10px 0 0;
+        margin-bottom: 0;
+    }
+    
+    .tab-content {
+        background: white;
+        border-radius: 0 0 10px 10px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    
+    .nav-tabs .nav-link {
+        border: none;
+        border-radius: 10px 10px 0 0;
+        margin-right: 5px;
+        background: #f8f9fa;
+        color: #495057;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-tabs .nav-link.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        background: #e9ecef;
+        color: #495057;
+    }
+    
+    .nav-tabs .nav-link.active:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 0;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+    
+    .progress-ring {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .chart-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- هدر داشبورد -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="executive-card p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="mb-2">
+                            <i class="fas fa-tachometer-alt me-3"></i>
+                            داشبورد اجرایی - گزارشات جامع
+                        </h1>
+                        <p class="mb-0 opacity-75">
+                            نمایش کلی و تحلیلی از وضعیت بودجه، فاکتور و تنخواه سازمان
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="row">
+                            <div class="col-6">
+                                <h5 class="mb-1">{{ current_date  | to_persian_number }}</h5>
+                                <small class="opacity-75">تاریخ امروز</small>
+                            </div>
+                            <div class="col-6">
+                                <h5 class="mb-1">{{ current_time   | to_persian_number }}</h5>
+                                <small class="opacity-75">ساعت</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- آمار کلی -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card p-4 text-center">
+                <div class="stat-number text-primary">
+                    {% if total_budget_allocated %}
+                        {{ total_budget_allocated|floatformat:0|add:"0"|slice:":-1" | format_negative}}
+                    {% else %}
+                        0
+                    {% endif %}
+                </div>
+                <div class="stat-label">بودجه کل تخصیص‌یافته (ریال)</div>
+                <div class="mt-2">
+                    <small class="text-muted">
+                        <i class="fas fa-chart-line me-1"></i>
+                        {{ budget_consumption_percentage|floatformat:1 | format_negative }}% مصرف شده
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card p-4 text-center">
+                <div class="stat-number text-success">
+                    {% if total_tankhah_amount %}
+                        {{ total_tankhah_amount|floatformat:0|add:"0"|slice:":-1" | format_negative }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </div>
+                <div class="stat-label">مبلغ کل تنخواه (ریال)</div>
+                <div class="mt-2">
+                    <small class="text-muted">
+                        <i class="fas fa-percentage me-1"></i>
+                        {{ tankhah_utilization_percentage|floatformat:1 | format_negative }}% استفاده شده
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card p-4 text-center">
+                <div class="stat-number text-info">
+                    {% if total_factor_amount %}
+                        {{ total_factor_amount|floatformat:0|add:"0"|slice:":-1" | format_negative }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </div>
+                <div class="stat-label">مبلغ کل فاکتورها (ریال)</div>
+                <div class="mt-2">
+                    <small class="text-muted">
+                        <i class="fas fa-check-circle me-1"></i>
+                        {{ factor_approval_percentage|floatformat:1 | format_negative }}% تأیید شده
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card p-4 text-center">
+                <div class="stat-number text-warning">
+                    {{ risk_analysis.risk_count|default:0 | format_negative }}
+                </div>
+                <div class="stat-label">تعداد ریسک‌های شناسایی شده</div>
+                <div class="mt-2">
+                    <small class="text-muted">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        {{ risk_analysis.high_risk_count|default:0 | format_negative }} ریسک بالا
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- تب‌های گزارشات -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header p-0">
+                    <ul class="nav nav-tabs" id="reportTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="budget-tab" data-bs-toggle="tab" data-bs-target="#budget" type="button" role="tab">
+                                <i class="fas fa-chart-bar me-2"></i>گزارشات بودجه
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tankhah-tab" data-bs-toggle="tab" data-bs-target="#tankhah" type="button" role="tab">
+                                <i class="fas fa-money-bill-wave me-2"></i>گزارشات تنخواه
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="factor-tab" data-bs-toggle="tab" data-bs-target="#factor" type="button" role="tab">
+                                <i class="fas fa-file-invoice me-2"></i>گزارشات فاکتور
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="analytical-tab" data-bs-toggle="tab" data-bs-target="#analytical" type="button" role="tab">
+                                <i class="fas fa-chart-pie me-2"></i>گزارشات تحلیلی
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="help-tab" data-bs-toggle="tab" data-bs-target="#help" type="button" role="tab">
+                                <i class="fas fa-question-circle me-2"></i>راهنما
+                            </button>
+                        </li>
+
+                    </ul>
+                </div>
+                <div class="tab-content" id="reportTabsContent">
+                    <!-- تب گزارشات بودجه -->
+                    <div class="tab-pane fade show active" id="budget" role="tabpanel">
+                        <div class="p-4">
+                            {% if budget_error %}
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    خطا در بارگذاری داده‌های بودجه
+                                </div>
+                            {% else %}
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="chart-container">
+                                            <h5 class="chart-title">روند ماهانه بودجه</h5>
+                                            <canvas id="budgetTrendChart" width="400" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="chart-container">
+                                            <h5 class="chart-title">آمار کلی بودجه</h5>
+                                            <div class="row">
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-primary">{{ total_budget_allocated|floatformat:0|add:"0"|slice:":-1" | format_negative }}</h4>
+                                                        <small class="text-muted">بودجه تخصیص‌یافته</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-success">{{ total_budget_consumed|floatformat:0|add:"0"|slice:":-1" | format_negative }}</h4>
+                                                        <small class="text-muted">بودجه مصرف‌شده</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-warning">{{ total_budget_remaining|floatformat:0|add:"0"|slice:":-1" | format_negative }}</h4>
+                                                        <small class="text-muted">بودجه باقی‌مانده</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-info">{{ active_budget_periods_count|default:0 | format_negative }}</h4>
+                                                        <small class="text-muted">دوره‌های فعال</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- تب گزارشات تنخواه -->
+                    <div class="tab-pane fade" id="tankhah" role="tabpanel">
+                        <div class="p-4">
+                            {% if tankhah_error %}
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    خطا در بارگذاری داده‌های تنخواه
+                                </div>
+                            {% else %}
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="chart-container">
+                                            <h5 class="chart-title">روند ماهانه تنخواه</h5>
+                                            <canvas id="tankhahTrendChart" width="400" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="chart-container">
+                                            <h5 class="chart-title">آمار کلی تنخواه</h5>
+                                            <div class="row">
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-primary">{{ total_tankhah_count|default:0 | format_negative }}</h4>
+                                                        <small class="text-muted">تعداد کل تنخواه‌ها</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-success">{{ paid_tankhah_count|default:0 | format_negative }}</h4>
+                                                        <small class="text-muted">تنخواه‌های پرداخت شده</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-warning">{{ pending_tankhah_count|default:0 | format_negative }}</h4>
+                                                        <small class="text-muted">تنخواه‌های در انتظار</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-info">{{ tankhah_utilization_percentage|floatformat:1 | format_negative }}%</h4>
+                                                        <small class="text-muted">نرخ استفاده</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- تب گزارشات فاکتور -->
+                    <div class="tab-pane fade" id="factor" role="tabpanel">
+                        <div class="p-4">
+                            {% if factor_error %}
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    خطا در بارگذاری داده‌های فاکتور
+                                </div>
+                            {% else %}
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="chart-container">
+                                            <h5 class="chart-title">روند ماهانه فاکتورها</h5>
+                                            <canvas id="factorTrendChart" width="400" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="chart-container">
+                                            <h5 class="chart-title">آمار کلی فاکتورها</h5>
+                                            <div class="row">
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-primary">{{ total_factor_count|default:0| format_negative  }}</h4>
+                                                        <small class="text-muted">تعداد کل فاکتورها</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-success">{{ paid_factor_count|default:0 | format_negative }}</h4>
+                                                        <small class="text-muted">فاکتورهای پرداخت شده</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-warning">{{ pending_factor_count|default:0 | format_negative }}</h4>
+                                                        <small class="text-muted">فاکتورهای در انتظار</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-danger">{{ rejected_factor_count|default:0| format_negative }}</h4>
+                                                        <small class="text-muted">فاکتورهای رد شده</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- تب گزارشات تحلیلی -->
+                    <div class="tab-pane fade" id="analytical" role="tabpanel">
+                        <div class="p-4">
+                            {% if analytical_error %}
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    خطا در بارگذاری داده‌های تحلیلی
+                                </div>
+                            {% else %}
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="chart-container">
+                                            <h5 class="chart-title">تحلیل عملکرد مالی</h5>
+                                            <div class="row">
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-primary">{{ financial_performance.budget_utilization_rate|floatformat:1| format_negative  }}%</h4>
+                                                        <small class="text-muted">نرخ استفاده از بودجه</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-success">{{ financial_performance.tankhah_efficiency|floatformat:1| format_negative  }}%</h4>
+                                                        <small class="text-muted">کارایی تنخواه</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-info">{{ financial_performance.cost_per_tankhah|floatformat:0|add:"0"|slice:":-1"| format_negative  }}</h4>
+                                                        <small class="text-muted">هزینه متوسط هر تنخواه</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-warning">{{ financial_performance.average_factor_amount|floatformat:0|add:"0"|slice:":-1"| format_negative  }}</h4>
+                                                        <small class="text-muted">مبلغ متوسط فاکتور</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="chart-container">
+                                            <h5 class="chart-title">تحلیل روندها</h5>
+                                            <div class="row">
+                                                <div class="col-12 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="{% if trend_analysis.consumption_trend_direction == 'up' %}trend-up{% else %}trend-down{% endif %}">
+                                                            <i class="fas fa-arrow-{% if trend_analysis.consumption_trend_direction == 'up' %}up{% else %}down{% endif %} me-2"></i>
+                                                            {{ trend_analysis.consumption_trend|floatformat:1| format_negative  }}%
+                                                        </h4>
+                                                        <small class="text-muted">روند مصرف بودجه نسبت به ماه قبل</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-primary">{{ trend_analysis.current_month_consumption|floatformat:0|add:"0"|slice:":-1" | format_negative }}</h4>
+                                                        <small class="text-muted">مصرف ماه جاری</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 mb-3">
+                                                    <div class="text-center">
+                                                        <h4 class="text-info">{{ trend_analysis.last_month_consumption|floatformat:0|add:"0"|slice:":-1" | format_negative }}</h4>
+                                                        <small class="text-muted">مصرف ماه قبل</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- تحلیل ریسک‌ها -->
+                                {% if risk_analysis.risks %}
+                                    <div class="row mt-4">
+                                        <div class="col-12">
+                                            <div class="chart-container">
+                                                <h5 class="chart-title">تحلیل ریسک‌ها</h5>
+                                                <div class="row">
+                                                    {% for risk in risk_analysis.risks %}
+                                                        <div class="col-md-6 mb-3">
+                                                            <div class="card risk-{{ risk.level }}">
+                                                                <div class="card-body">
+                                                                    <h6 class="card-title">
+                                                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                                                        ریسک {{ risk.level|title }}
+                                                                    </h6>
+                                                                    <p class="card-text">{{ risk.message }}</p>
+                                                                    <small class="text-muted">
+                                                                        <strong>توصیه:</strong> {{ risk.recommendation }}
+                                                                    </small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- تب راهنما -->
+                    <div class="tab-pane fade" id="help" role="tabpanel">
+                        <div class="p-4">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="chart-container">
+                                        <h5 class="chart-title">
+                                            <i class="fas fa-question-circle me-2"></i>
+                                            راهنمای کامل داشبورد اجرایی
+                                        </h5>
+                                        
+                                        <!-- آمار کلی -->
+                                        <div class="mb-4">
+                                            <h6 class="text-primary">
+                                                <i class="fas fa-chart-bar me-2"></i>
+                                                آمار کلی
+                                            </h6>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">بودجه کل تخصیص‌یافته</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> مجموع کل بودجه‌ای که به سازمان تخصیص داده شده است.<br>
+                                                                <strong>محاسبه:</strong> جمع تمام دوره‌های بودجه فعال که هنوز تکمیل نشده‌اند.<br>
+                                                                <strong>واحد:</strong> ریال
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">مبلغ کل تنخواه</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> مجموع کل مبلغ تنخواه‌های ایجاد شده در سیستم.<br>
+                                                                <strong>محاسبه:</strong> جمع تمام تنخواه‌های ثبت شده در سیستم.<br>
+                                                                <strong>واحد:</strong> ریال
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">مبلغ کل فاکتورها</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> مجموع کل مبلغ فاکتورهای ثبت شده در سیستم.<br>
+                                                                <strong>محاسبه:</strong> جمع تمام فاکتورهای ایجاد شده.<br>
+                                                                <strong>واحد:</strong> ریال
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">تعداد ریسک‌های شناسایی شده</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> تعداد ریسک‌های مالی شناسایی شده توسط سیستم.<br>
+                                                                <strong>محاسبه:</strong> بر اساس قوانین تعریف شده برای شناسایی ریسک‌ها.<br>
+                                                                <strong>انواع:</strong> ریسک بالا، متوسط، پایین
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- گزارشات بودجه -->
+                                        <div class="mb-4">
+                                            <h6 class="text-success">
+                                                <i class="fas fa-money-bill-wave me-2"></i>
+                                                گزارشات بودجه
+                                            </h6>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">بودجه تخصیص‌یافته</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> مبلغ بودجه‌ای که به هر پروژه یا مرکز هزینه تخصیص داده شده است.<br>
+                                                                <strong>محاسبه:</strong> جمع تمام تخصیص‌های بودجه فعال.<br>
+                                                                <strong>منبع:</strong> جدول BudgetAllocation
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">بودجه مصرف‌شده</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> مبلغ بودجه‌ای که تا کنون مصرف شده است.<br>
+                                                                <strong>محاسبه:</strong> جمع تمام تراکنش‌های نوع CONSUMPTION.<br>
+                                                                <strong>منبع:</strong> جدول BudgetTransaction
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">بودجه باقی‌مانده</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> مبلغ بودجه‌ای که هنوز مصرف نشده است.<br>
+                                                                <strong>محاسبه:</strong> بودجه تخصیص‌یافته - بودجه مصرف‌شده<br>
+                                                                <strong>فرمول:</strong> Remaining = Allocated - Consumed
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">درصد مصرف بودجه</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> درصدی از بودجه که تا کنون مصرف شده است.<br>
+                                                                <strong>محاسبه:</strong> (بودجه مصرف‌شده / بودجه تخصیص‌یافته) × 100<br>
+                                                                <strong>فرمول:</strong> (Consumed / Allocated) × 100
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- گزارشات تنخواه -->
+                                        <div class="mb-4">
+                                            <h6 class="text-info">
+                                                <i class="fas fa-file-invoice-dollar me-2"></i>
+                                                گزارشات تنخواه
+                                            </h6>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">تعداد کل تنخواه‌ها</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> تعداد کل تنخواه‌های ثبت شده در سیستم.<br>
+                                                                <strong>محاسبه:</strong> شمارش تمام رکوردهای جدول Tankhah.<br>
+                                                                <strong>منبع:</strong> جدول Tankhah
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">تنخواه‌های پرداخت شده</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> تعداد تنخواه‌هایی که وضعیت آن‌ها PAID است.<br>
+                                                                <strong>محاسبه:</strong> شمارش تنخواه‌ها با status.code = 'PAID'.<br>
+                                                                <strong>وضعیت:</strong> پرداخت شده
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">تنخواه‌های در انتظار</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> تعداد تنخواه‌هایی که هنوز در انتظار تأیید هستند.<br>
+                                                                <strong>محاسبه:</strong> شمارش تنخواه‌ها با وضعیت‌های PENDING, APPROVED.<br>
+                                                                <strong>وضعیت:</strong> در انتظار تأیید
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">نرخ استفاده از تنخواه</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> درصدی از تنخواه که به فاکتور تبدیل شده است.<br>
+                                                                <strong>محاسبه:</strong> (مبلغ فاکتورهای پرداخت شده / مبلغ کل تنخواه) × 100<br>
+                                                                <strong>فرمول:</strong> (Paid Factors / Total Tankhah) × 100
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- گزارشات فاکتور -->
+                                        <div class="mb-4">
+                                            <h6 class="text-warning">
+                                                <i class="fas fa-file-invoice me-2"></i>
+                                                گزارشات فاکتور
+                                            </h6>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">تعداد کل فاکتورها</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> تعداد کل فاکتورهای ثبت شده در سیستم.<br>
+                                                                <strong>محاسبه:</strong> شمارش تمام رکوردهای جدول Factor.<br>
+                                                                <strong>منبع:</strong> جدول Factor
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">فاکتورهای پرداخت شده</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> تعداد فاکتورهایی که وضعیت آن‌ها PAID است.<br>
+                                                                <strong>محاسبه:</strong> شمارش فاکتورها با status.code = 'PAID'.<br>
+                                                                <strong>وضعیت:</strong> پرداخت شده
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">فاکتورهای در انتظار</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> تعداد فاکتورهایی که هنوز در انتظار تأیید هستند.<br>
+                                                                <strong>محاسبه:</strong> شمارش فاکتورها با وضعیت‌های PENDING_APPROVAL, APPROVED.<br>
+                                                                <strong>وضعیت:</strong> در انتظار تأیید
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">فاکتورهای رد شده</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> تعداد فاکتورهایی که رد شده‌اند.<br>
+                                                                <strong>محاسبه:</strong> شمارش فاکتورها با status.code = 'REJECTED'.<br>
+                                                                <strong>وضعیت:</strong> رد شده
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- گزارشات تحلیلی -->
+                                        <div class="mb-4">
+                                            <h6 class="text-danger">
+                                                <i class="fas fa-chart-pie me-2"></i>
+                                                گزارشات تحلیلی
+                                            </h6>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">نرخ استفاده از بودجه</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> درصدی از بودجه کل که تا کنون مصرف شده است.<br>
+                                                                <strong>محاسبه:</strong> (بودجه مصرف‌شده / بودجه کل) × 100<br>
+                                                                <strong>فرمول:</strong> (Total Consumed / Total Budget) × 100
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">کارایی تنخواه</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> درصدی از تنخواه که به فاکتور تبدیل شده است.<br>
+                                                                <strong>محاسبه:</strong> (مبلغ فاکتورها / مبلغ تنخواه) × 100<br>
+                                                                <strong>فرمول:</strong> (Total Factors / Total Tankhah) × 100
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">هزینه متوسط هر تنخواه</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> میانگین مبلغ هر تنخواه.<br>
+                                                                <strong>محاسبه:</strong> مبلغ کل تنخواه / تعداد تنخواه‌ها<br>
+                                                                <strong>فرمول:</strong> Total Tankhah Amount / Tankhah Count
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">مبلغ متوسط فاکتور</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> میانگین مبلغ هر فاکتور.<br>
+                                                                <strong>محاسبه:</strong> مبلغ کل فاکتورها / تعداد فاکتورها<br>
+                                                                <strong>فرمول:</strong> Total Factor Amount / Factor Count
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- تحلیل روندها -->
+                                        <div class="mb-4">
+                                            <h6 class="text-secondary">
+                                                <i class="fas fa-trending-up me-2"></i>
+                                                تحلیل روندها
+                                            </h6>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">روند مصرف بودجه</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> تغییرات مصرف بودجه نسبت به ماه قبل.<br>
+                                                                <strong>محاسبه:</strong> ((مصرف ماه جاری - مصرف ماه قبل) / مصرف ماه قبل) × 100<br>
+                                                                <strong>فرمول:</strong> ((Current - Last) / Last) × 100
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">جهت روند</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> جهت تغییرات مصرف بودجه.<br>
+                                                                <strong>مقادیر:</strong> up (افزایش), down (کاهش), stable (ثابت)<br>
+                                                                <strong>شرط:</strong> بر اساس مقایسه با ماه قبل
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- تحلیل ریسک‌ها -->
+                                        <div class="mb-4">
+                                            <h6 class="text-dark">
+                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                تحلیل ریسک‌ها
+                                            </h6>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">ریسک مصرف بالای بودجه</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> زمانی که مصرف بودجه از 80% تجاوز کند.<br>
+                                                                <strong>محاسبه:</strong> اگر (مصرف بودجه / بودجه کل) > 80%<br>
+                                                                <strong>سطح:</strong> ریسک بالا
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card mb-3">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">ریسک نرخ رد فاکتور بالا</h6>
+                                                            <p class="card-text">
+                                                                <strong>تعریف:</strong> زمانی که نرخ رد فاکتورها از 20% تجاوز کند.<br>
+                                                                <strong>محاسبه:</strong> اگر (فاکتورهای رد شده / کل فاکتورها) > 20%<br>
+                                                                <strong>سطح:</strong> ریسک بالا
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- نکات مهم -->
+                                        <div class="alert alert-info">
+                                            <h6 class="alert-heading">
+                                                <i class="fas fa-lightbulb me-2"></i>
+                                                نکات مهم
+                                            </h6>
+                                            <ul class="mb-0">
+                                                <li>تمام محاسبات بر اساس داده‌های لحظه‌ای سیستم انجام می‌شود.</li>
+                                                <li>واحد تمام مبالغ ریال است.</li>
+                                                <li>نمودارها به صورت خودکار به‌روزرسانی می‌شوند.</li>
+                                                <li>در صورت بروز خطا، پیام مناسب نمایش داده می‌شود.</li>
+                                                <li>دسترسی به هر بخش بر اساس مجوزهای کاربر تعیین می‌شود.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+$(document).ready(function() {
+    // نمودار روند بودجه
+    {% if monthly_budget_trend %}
+    const budgetCtx = document.getElementById('budgetTrendChart').getContext('2d');
+    new Chart(budgetCtx, {
+        type: 'line',
+        data: {
+            labels: {{ monthly_budget_trend.labels|safe }},
+            datasets: [{
+                label: 'بودجه تخصیص‌یافته',
+                data: {{ monthly_budget_trend.allocated|safe }},
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }, {
+                label: 'بودجه مصرف‌شده',
+                data: {{ monthly_budget_trend.consumed|safe }},
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'روند ماهانه بودجه'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // نمودار روند تنخواه
+    {% if monthly_tankhah_trend %}
+    const tankhahCtx = document.getElementById('tankhahTrendChart').getContext('2d');
+    new Chart(tankhahCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ monthly_tankhah_trend.labels|safe }},
+            datasets: [{
+                label: 'تنخواه ایجاد شده',
+                data: {{ monthly_tankhah_trend.created|safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.8)'
+            }, {
+                label: 'تنخواه پرداخت شده',
+                data: {{ monthly_tankhah_trend.paid|safe }},
+                backgroundColor: 'rgba(75, 192, 192, 0.8)'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'روند ماهانه تنخواه'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // نمودار روند فاکتورها
+    {% if monthly_factor_trend %}
+    const factorCtx = document.getElementById('factorTrendChart').getContext('2d');
+    new Chart(factorCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ monthly_factor_trend.labels|safe }},
+            datasets: [{
+                label: 'فاکتور ایجاد شده',
+                data: {{ monthly_factor_trend.created|safe }},
+                backgroundColor: 'rgba(255, 206, 86, 0.8)'
+            }, {
+                label: 'فاکتور پرداخت شده',
+                data: {{ monthly_factor_trend.paid|safe }},
+                backgroundColor: 'rgba(153, 102, 255, 0.8)'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'روند ماهانه فاکتورها'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    {% endif %}
+});
+</script>
+{% endblock %}

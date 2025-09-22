@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% translate "داشبورد کنترل گردش کار - ادمین" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-user-shield"></i>
+                        {% translate "داشبورد کنترل گردش کار" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- آمار کلی -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-info"><i class="fas fa-file-invoice"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% translate "کل فاکتورها" %}</span>
+                                    <span class="info-box-number">{{ stats.total_factors }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-warning"><i class="fas fa-clock"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% translate "در انتظار تایید" %}</span>
+                                    <span class="info-box-number">{{ stats.pending_factors }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-success"><i class="fas fa-check"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% translate "تایید شده" %}</span>
+                                    <span class="info-box-number">{{ stats.approved_factors }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-danger"><i class="fas fa-times"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% translate "رد شده" %}</span>
+                                    <span class="info-box-number">{{ stats.rejected_factors }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- فاکتورهای مسدود شده -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>{% translate "فاکتورهای مسدود شده (بیش از 7 روز)" %}</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if blocked_factors %}
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{% translate "شماره فاکتور" %}</th>
+                                                        <th>{% translate "مبلغ" %}</th>
+                                                        <th>{% translate "وضعیت" %}</th>
+                                                        <th>{% translate "سازمان" %}</th>
+                                                        <th>{% translate "آخرین بروزرسانی" %}</th>
+                                                        <th>{% translate "عملیات" %}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for factor in blocked_factors %}
+                                                    <tr>
+                                                        <td>{{ factor.number }}</td>
+                                                        <td>{{ factor.amount|floatformat:0 }} {% translate "ریال" %}</td>
+                                                        <td>
+                                                            <span class="badge badge-warning">{{ factor.status.name }}</span>
+                                                        </td>
+                                                        <td>{{ factor.tankhah.organization.name }}</td>
+                                                        <td>{{ factor.created_at|date:"Y/m/d H:i" }}</td>
+                                                        <td>
+                                                            <a href="{% url 'admin_workflow_control' 'factor' factor.id %}" 
+                                                               class="btn btn-sm btn-primary">
+                                                                <i class="fas fa-cogs"></i> {% translate "کنترل" %}
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted">{% translate "هیچ فاکتور مسدود شده‌ای یافت نشد." %}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- آمار سیستم -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6>{% translate "آمار وضعیت‌ها" %}</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-2">
+                                        <i class="fas fa-list text-primary me-2"></i>
+                                        {% translate "کل وضعیت‌ها:" %} {{ status_stats|length }}
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="fas fa-play text-success me-2"></i>
+                                        {% translate "وضعیت‌های اولیه:" %} 
+                                        {% for status in status_stats %}
+                                            {% if status.is_initial %}{{ forloop.counter }}{% endif %}
+                                        {% empty %}0{% endfor %}
+                                    </p>
+                                    <p class="mb-0">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        {% translate "وضعیت‌های نهایی:" %} 
+                                        {% for status in status_stats %}
+                                            {% if status.is_final_approve or status.is_final_reject %}{{ forloop.counter }}{% endif %}
+                                        {% empty %}0{% endfor %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6>{% translate "آمار گذارها" %}</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-2">
+                                        <i class="fas fa-exchange-alt text-info me-2"></i>
+                                        {% translate "کل گذارها:" %} {{ transition_stats }}
+                                    </p>
+                                    <p class="mb-0">
+                                        <i class="fas fa-building text-primary me-2"></i>
+                                        {% translate "سازمان‌ها:" %} {{ organization_stats.total_organizations }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6>{% translate "آمار سازمان‌ها" %}</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-2">
+                                        <i class="fas fa-building text-primary me-2"></i>
+                                        {% translate "کل سازمان‌ها:" %} {{ organization_stats.total_organizations }}
+                                    </p>
+                                    <p class="mb-0">
+                                        <i class="fas fa-home text-success me-2"></i>
+                                        {% translate "دفتر مرکزی:" %} {{ organization_stats.core_organizations }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- قوانین و راهنمای گردش کار -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>{% translate "قوانین و راهنمای گردش کار" %}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>{% translate "قوانین کلی" %}</h6>
+                                            <ul class="list-group list-group-flush">
+                                                <li class="list-group-item">
+                                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                                    {% translate "فاکتورها باید در مراحل مشخصی تایید شوند" %}
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                                    {% translate "تنخواه‌ها باید توسط پست‌های مجاز تایید شوند" %}
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                                    {% translate "هر تغییر وضعیت باید در لاگ ثبت شود" %}
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                                    {% translate "ادمین می‌تواند وضعیت‌ها را مستقیماً تغییر دهد" %}
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>{% translate "اقدامات ادمین" %}</h6>
+                                            <ul class="list-group list-group-flush">
+                                                <li class="list-group-item">
+                                                    <i class="fas fa-cogs text-primary me-2"></i>
+                                                    {% translate "تغییر وضعیت فاکتورها و تنخواه‌ها" %}
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <i class="fas fa-undo text-warning me-2"></i>
+                                                    {% translate "بازنشانی گردش کار به مرحله اول" %}
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <i class="fas fa-eye text-info me-2"></i>
+                                                    {% translate "مشاهده تاریخچه تغییرات" %}
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <i class="fas fa-chart-bar text-success me-2"></i>
+                                                    {% translate "مشاهده آمار و گزارش‌ها" %}
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- آخرین فعالیت‌های ادمین -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>{% translate "آخرین فعالیت‌های ادمین" %}</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if admin_logs %}
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{% translate "تاریخ" %}</th>
+                                                        <th>{% translate "ادمین" %}</th>
+                                                        <th>{% translate "از وضعیت" %}</th>
+                                                        <th>{% translate "به وضعیت" %}</th>
+                                                        <th>{% translate "توضیحات" %}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for log in admin_logs %}
+                                                    <tr>
+                                                        <td>{{ log.timestamp|date:"Y/m/d H:i" }}</td>
+                                                        <td>{{ log.user.username }}</td>
+                                                        <td>{{ log.from_status.name|default:"-" }}</td>
+                                                        <td>{{ log.to_status.name|default:"-" }}</td>
+                                                        <td>{{ log.comment|default:"-" }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted">{% translate "هیچ فعالیت ادمینی ثبت نشده است." %}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

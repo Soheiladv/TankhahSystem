@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "گزارش عملکرد مالی" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        {% trans "گزارش عملکرد مالی" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-info">
+                                    <i class="fas fa-percentage"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "نرخ استفاده از بودجه" %}</span>
+                                    <span class="info-box-number">{{ financial_performance.budget_utilization_rate|floatformat:1 }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-success">
+                                    <i class="fas fa-efficiency"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "کارایی تنخواه" %}</span>
+                                    <span class="info-box-number">{{ financial_performance.tankhah_efficiency|floatformat:1 }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-warning">
+                                    <i class="fas fa-calculator"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "هزینه هر تنخواه" %}</span>
+                                    <span class="info-box-number">{{ financial_performance.cost_per_tankhah|floatformat:0 }} {% trans "ریال" %}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-primary">
+                                    <i class="fas fa-chart-bar"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "میانگین مبلغ فاکتور" %}</span>
+                                    <span class="info-box-number">{{ financial_performance.average_factor_amount|floatformat:0 }} {% trans "ریال" %}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-danger">
+                                    <i class="fas fa-trending-up"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "روند مصرف" %}</span>
+                                    <span class="info-box-number">
+                                        {% if trend_analysis.consumption_trend_direction == 'up' %}
+                                            <i class="fas fa-arrow-up text-danger"></i>
+                                        {% else %}
+                                            <i class="fas fa-arrow-down text-success"></i>
+                                        {% endif %}
+                                        {{ trend_analysis.consumption_trend|floatformat:1 }}%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">{% trans "تحلیل ریسک‌ها" %}</h4>
+                                </div>
+                                <div class="card-body">
+                                    {% if risk_analysis.risks %}
+                                        <div class="alert alert-warning">
+                                            <h5><i class="fas fa-exclamation-triangle mr-2"></i>{% trans "ریسک‌های شناسایی شده" %}</h5>
+                                            <ul class="mb-0">
+                                                {% for risk in risk_analysis.risks %}
+                                                    <li>
+                                                        <strong>{{ risk.message }}</strong>
+                                                        <br>
+                                                        <small class="text-muted">{{ risk.recommendation }}</small>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% else %}
+                                        <div class="alert alert-success">
+                                            <i class="fas fa-check-circle mr-2"></i>
+                                            {% trans "هیچ ریسک مهمی شناسایی نشده است" %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

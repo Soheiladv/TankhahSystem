@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "جزئیات مسیر پشتیبان‌گیری" %}{% endblock %}
+
+{% block content %}
+<div class="backup-location-detail-container">
+    <!-- هدر صفحه -->
+    <div class="page-header">
+        <div class="d-flex align-items-center gap-3">
+            {% if location.location_type == 'NETWORK' %}
+                <i class="fas fa-network-wired fa-2x"></i>
+            {% elif location.location_type == 'CLOUD' %}
+                <i class="fas fa-cloud fa-2x"></i>
+            {% else %}
+                <i class="fas fa-folder fa-2x"></i>
+            {% endif %}
+            <div>
+                <h1 class="mb-1">{{ location.name }}</h1>
+                <p class="mb-0 opacity-75">
+                    {% if location.is_default %}
+                        <i class="fas fa-star text-warning me-2"></i>{% trans "مسیر پیش‌فرض" %}
+                    {% endif %}
+                    {{ location.get_location_type_display }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" role="alert">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                    <span>{{ message }}</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- اطلاعات اصلی -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i> {% trans "اطلاعات مسیر" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>{% trans "نام:" %}</strong></td>
+                                    <td>{{ location.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "مسیر:" %}</strong></td>
+                                    <td>
+                                        <code class="text-break">{{ location.path }}</code>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "نوع:" %}</strong></td>
+                                    <td>
+                                        {% if location.location_type == 'LOCAL' %}
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-hdd me-1"></i> {% trans "محلی" %}
+                                            </span>
+                                        {% elif location.location_type == 'NETWORK' %}
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-network-wired me-1"></i> {% trans "شبکه" %}
+                                            </span>
+                                        {% elif location.location_type == 'CLOUD' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-cloud me-1"></i> {% trans "ابر" %}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-external-link-alt me-1"></i> {% trans "خارجی" %}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "وضعیت:" %}</strong></td>
+                                    <td>
+                                        {% if location.status == 'ACTIVE' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i> {% trans "فعال" %}
+                                            </span>
+                                        {% elif location.status == 'INACTIVE' %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-pause-circle me-1"></i> {% trans "غیرفعال" %}
+                                            </span>
+                                        {% elif location.status == 'ERROR' %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-exclamation-triangle me-1"></i> {% trans "خطا" %}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-clock me-1"></i> {% trans "در حال تست" %}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>{% trans "ایجادکننده:" %}</strong></td>
+                                    <td>{{ location.created_by.get_full_name|default:location.created_by.username }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "تاریخ ایجاد:" %}</strong></td>
+                                    <td>{{ location.created_at|date:"Y/m/d H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "آخرین تست:" %}</strong></td>
+                                    <td>
+                                        {% if location.last_tested %}
+                                            {{ location.last_tested|date:"Y/m/d H:i" }}
+                                        {% else %}
+                                            <span class="text-muted">{% trans "هنوز تست نشده" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "رمزگذاری:" %}</strong></td>
+                                    <td>
+                                        {% if location.is_encrypted %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-lock me-1"></i> {% trans "فعال" %}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-unlock me-1"></i> {% trans "غیرفعال" %}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if location.description %}
+                        <div class="mt-3">
+                            <h6>{% trans "توضیحات:" %}</h6>
+                            <p class="text-muted">{{ location.description }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if location.last_error %}
+                        <div class="mt-3">
+                            <h6 class="text-danger">{% trans "آخرین خطا:" %}</h6>
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                {{ location.last_error }}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- فایل‌های پشتیبان -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-archive me-2"></i> {% trans "فایل‌های پشتیبان" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if backup_files %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "نام فایل" %}</th>
+                                        <th>{% trans "حجم" %}</th>
+                                        <th>{% trans "تاریخ تغییر" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for file in backup_files %}
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-file-alt me-2"></i>
+                                            {{ file.name }}
+                                        </td>
+                                        <td>{{ file.size|filesizeformat }}</td>
+                                        <td>{{ file.modified|date:"Y/m/d H:i" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-box-open fa-2x text-muted mb-3"></i>
+                            <p class="text-muted">{% trans "هیچ فایل پشتیبانی یافت نشد" %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- پنل کناری -->
+        <div class="col-lg-4">
+            <!-- اطلاعات فضای دیسک -->
+            {% if disk_info %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-hdd me-2"></i> {% trans "اطلاعات فضای دیسک" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>{% trans "فضای کل:" %}</span>
+                            <strong>{{ disk_info.total|filesizeformat }}</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>{% trans "استفاده شده:" %}</span>
+                            <strong>{{ disk_info.used|filesizeformat }}</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>{% trans "فضای خالی:" %}</span>
+                            <strong class="text-success">{{ disk_info.free|filesizeformat }}</strong>
+                        </div>
+                    </div>
+                    <div class="progress mb-3" style="height: 20px;">
+                        <div class="progress-bar" 
+                             role="progressbar" 
+                             style="width: {{ disk_info.used_percent }}%"
+                             aria-valuenow="{{ disk_info.used_percent }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            {{ disk_info.used_percent }}%
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        {% trans "فضای خالی:" %} {{ disk_info.free_gb }} GB
+                    </small>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- عملیات -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i> {% trans "عملیات" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'backup:location_edit' location.id %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i> {% trans "ویرایش" %}
+                        </a>
+                        
+                        <form method="post" action="{% url 'backup:location_test' location.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-info w-100">
+                                <i class="fas fa-vial me-2"></i> {% trans "تست اتصال" %}
+                            </button>
+                        </form>
+                        
+                        {% if not location.is_default %}
+                            <form method="post" action="{% url 'backup:location_set_default' location.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-warning w-100">
+                                    <i class="fas fa-star me-2"></i> {% trans "تنظیم به عنوان پیش‌فرض" %}
+                                </button>
+                            </form>
+                        {% endif %}
+                        
+                        <form method="post" action="{% url 'backup:location_toggle' location.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-{% if location.status == 'ACTIVE' %}secondary{% else %}success{% endif %} w-100">
+                                <i class="fas fa-{% if location.status == 'ACTIVE' %}pause{% else %}play{% endif %} me-2"></i> 
+                                {% if location.status == 'ACTIVE' %}{% trans "غیرفعال کردن" %}{% else %}{% trans "فعال کردن" %}{% endif %}
+                            </button>
+                        </form>
+                        
+                        {% if not location.is_default %}
+                            <form method="post" action="{% url 'backup:location_delete' location.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger w-100" onclick="return confirm('{% trans "آیا مطمئن هستید؟" %}')">
+                                    <i class="fas fa-trash me-2"></i> {% trans "حذف" %}
+                                </button>
+                            </form>
+                        {% endif %}
+                        
+                        <a href="{% url 'backup:locations_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i> {% trans "بازگشت به لیست" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.backup-location-detail-container {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    border: 1px solid #e9ecef;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 15px 15px 0 0 !important;
+    font-weight: 600;
+}
+
+.table-borderless td {
+    border: none;
+    padding: 8px 0;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+}
+
+code {
+    background: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    word-break: break-all;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+
+.btn {
+    border-radius: 10px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 768px) {
+    .backup-location-detail-container {
+        padding: 15px;
+    }
+    
+    .page-header {
+        padding: 20px;
+    }
+    
+    .card-body {
+        padding: 15px;
+    }
+}
+</style>
+{% endblock %}

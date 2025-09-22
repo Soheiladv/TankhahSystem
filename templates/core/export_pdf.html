@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: DejaVu Sans, tahoma, sans-serif; direction: rtl; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 6px 8px; font-size: 12px; }
+        th { background: #f5f5f5; }
+        h1 { font-size: 16px; margin-bottom: 10px; }
+    </style>
+    <title>{{ title }}</title>
+    </head>
+<body>
+<h1>{{ title }}</h1>
+<table>
+    <thead>
+    <tr>
+        {% for f in fields %}
+            <th>{{ f }}</th>
+        {% endfor %}
+    </tr>
+    </thead>
+    <tbody>
+    {% for row in rows %}
+        <tr>
+            {% for f in fields %}
+                <td>{{ row.f|default:row.f }}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+    </tbody>
+ </table>
+</body>
+</html>
+

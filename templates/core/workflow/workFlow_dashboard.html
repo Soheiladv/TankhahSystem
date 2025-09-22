@@ -1,1 +1,264 @@
- 
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% translate "قوانین سیستم گردش محور" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-gavel"></i>
+                        {% translate "قوانین سیستم گردش محور" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- آمار کلی -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-primary"><i class="fas fa-list"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% translate "کل وضعیت‌ها" %}</span>
+                                    <span class="info-box-number">{{ statuses_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-success"><i class="fas fa-cogs"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% translate "کل اقدامات" %}</span>
+                                    <span class="info-box-number">{{ actions_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-info"><i class="fas fa-exchange-alt"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% translate "کل گذارها" %}</span>
+                                    <span class="info-box-number">{{ transitions_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-warning"><i class="fas fa-building"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% translate "تمپلیت‌ها" %}</span>
+                                    <span class="info-box-number">{{ templates_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- مدیریت وضعیت‌ها -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5>{% translate "مدیریت وضعیت‌ها" %}</h5>
+                                    <a href="{% url 'workflow_management:status_create' %}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-plus"></i> {% translate "وضعیت جدید" %}
+                                    </a>
+                                </div>
+                                <div class="card-body">
+                                    {% if statuses %}
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{% translate "نام" %}</th>
+                                                        <th>{% translate "کد" %}</th>
+                                                        <th>{% translate "نوع" %}</th>
+                                                        <th>{% translate "توضیحات" %}</th>
+                                                        <th>{% translate "عملیات" %}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for status in statuses %}
+                                                    <tr>
+                                                        <td>{{ status.name }}</td>
+                                                        <td><code>{{ status.code }}</code></td>
+                                                        <td>
+                                                            {% if status.is_initial %}
+                                                                <span class="badge badge-success">{% translate "اولیه" %}</span>
+                                                            {% elif status.is_final_approve %}
+                                                                <span class="badge badge-primary">{% translate "تایید نهایی" %}</span>
+                                                            {% elif status.is_final_reject %}
+                                                                <span class="badge badge-danger">{% translate "رد نهایی" %}</span>
+                                                            {% else %}
+                                                                <span class="badge badge-secondary">{% translate "عادی" %}</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>{{ status.description|truncatechars:50 }}</td>
+                                                        <td>
+                                                            <a href="{% url 'workflow_management:status_edit' status.pk %}" 
+                                                               class="btn btn-sm btn-warning">
+                                                                <i class="fas fa-edit"></i>
+                                                            </a>
+                                                            <a href="{% url 'workflow_management:status_delete' status.pk %}" 
+                                                               class="btn btn-sm btn-danger">
+                                                                <i class="fas fa-trash"></i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted">{% translate "هیچ وضعیتی تعریف نشده است." %}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- مدیریت اقدامات -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5>{% translate "مدیریت اقدامات" %}</h5>
+                                    <a href="{% url 'workflow_management:action_create' %}" class="btn btn-success btn-sm">
+                                        <i class="fas fa-plus"></i> {% translate "اقدام جدید" %}
+                                    </a>
+                                </div>
+                                <div class="card-body">
+                                    {% if actions %}
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{% translate "نام" %}</th>
+                                                        <th>{% translate "کد" %}</th>
+                                                        <th>{% translate "توضیحات" %}</th>
+                                                        <th>{% translate "عملیات" %}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for action in actions %}
+                                                    <tr>
+                                                        <td>{{ action.name }}</td>
+                                                        <td><code>{{ action.code }}</code></td>
+                                                        <td>{{ action.description|truncatechars:50 }}</td>
+                                                        <td>
+                                                            <a href="{% url 'workflow_management:action_edit' action.pk %}" 
+                                                               class="btn btn-sm btn-warning">
+                                                                <i class="fas fa-edit"></i>
+                                                            </a>
+                                                            <a href="{% url 'workflow_management:action_delete' action.pk %}" 
+                                                               class="btn btn-sm btn-danger">
+                                                                <i class="fas fa-trash"></i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted">{% translate "هیچ اقدامی تعریف نشده است." %}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- مدیریت گذارها -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5>{% translate "مدیریت گذارها" %}</h5>
+                                    <a href="{% url 'transition_create' %}" class="btn btn-info btn-sm">
+                                        <i class="fas fa-plus"></i> {% translate "گذار جدید" %}
+                                    </a>
+                                </div>
+                                <div class="card-body">
+                                    {% if transitions %}
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{% translate "از وضعیت" %}</th>
+                                                        <th>{% translate "اقدام" %}</th>
+                                                        <th>{% translate "به وضعیت" %}</th>
+                                                        <th>{% translate "سازمان" %}</th>
+                                                        <th>{% translate "نوع موجودیت" %}</th>
+                                                        <th>{% translate "عملیات" %}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for transition in transitions %}
+                                                    <tr>
+                                                        <td>{{ transition.from_status.name }}</td>
+                                                        <td>{{ transition.action.name }}</td>
+                                                        <td>{{ transition.to_status.name }}</td>
+                                                        <td>{{ transition.organization.name }}</td>
+                                                        <td>{{ transition.entity_type.name }}</td>
+                                                        <td>
+                                                            <a href="{% url 'transition_update' transition.pk %}" 
+                                                               class="btn btn-sm btn-warning">
+                                                                <i class="fas fa-edit"></i>
+                                                            </a>
+                                                            <a href="{% url 'transition_delete' transition.pk %}" 
+                                                               class="btn btn-sm btn-danger">
+                                                                <i class="fas fa-trash"></i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted">{% translate "هیچ گذاری تعریف نشده است." %}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- راهنمای استفاده -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>{% translate "راهنمای استفاده" %}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>{% translate "مراحل تعریف گردش کار" %}</h6>
+                                            <ol>
+                                                <li>{% translate "ابتدا وضعیت‌های مورد نیاز را تعریف کنید" %}</li>
+                                                <li>{% translate "اقدامات ممکن را تعریف کنید" %}</li>
+                                                <li>{% translate "گذارها را بین وضعیت‌ها تعریف کنید" %}</li>
+                                                <li>{% translate "قوانین دسترسی را تنظیم کنید" %}</li>
+                                            </ol>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>{% translate "نکات مهم" %}</h6>
+                                            <ul>
+                                                <li>{% translate "هر گردش کار باید حداقل یک وضعیت اولیه داشته باشد" %}</li>
+                                                <li>{% translate "وضعیت‌های نهایی باید مشخص شوند" %}</li>
+                                                <li>{% translate "گذارها باید منطقی و قابل پیگیری باشند" %}</li>
+                                                <li>{% translate "قوانین دسترسی باید با ساختار سازمانی هماهنگ باشند" %}</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

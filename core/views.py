@@ -19,7 +19,7 @@ from django.views.generic import TemplateView
 
 from core.forms import OrganizationForm, ProjectForm, PostForm, UserPostForm, PostHistoryForm, StatusForm, \
     SubProjectForm
-from core.models import Project, Post, UserPost, PostHistory, SubProject, PostAction, Status
+from core.models import Project, Post, UserPost, PostHistory, SubProject, PostAction, Status, Branch
 from django.db.models import Sum, Q
 from budgets.models import BudgetAllocation, BudgetPeriod, \
     BudgetTransaction  # فرض بر این که BudgetAllocation در budgets است
@@ -1084,9 +1084,97 @@ class OrganizationDetailView(PermissionBaseView, DetailView):
     permission_codename =  'core.Organization_view'
     check_organization = True  # فعال کردن چک سازمان
 
+    def get_queryset(self):
+        """بهینه‌سازی کوئری برای بارگذاری داده‌های مرتبط"""
+        return Organization.objects.select_related('org_type').prefetch_related(
+            'budget_periods',
+            'budget_allocations__project',
+            'budget_allocations__budget_item',
+            'post_set__branch',
+            'post_set__userpost_set__user'
+        )
+
+    def get_budget_details(self, organization):
+        """محاسبه جزئیات بودجه سازمان"""
+        try:
+            from budgets.models import BudgetTransaction
+            
+            allocations = organization.budget_allocations.filter(is_active=True)
+            total_allocated = allocations.aggregate(total=Sum('allocated_amount'))['total'] or Decimal('0')
+            
+            # محاسبه مصرف واقعی از تراکنش‌ها
+            total_consumed = BudgetTransaction.objects.filter(
+                allocation__in=allocations,
+                transaction_type='CONSUMPTION'
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            
+            remaining_budget = total_allocated - total_consumed
+
+            # محاسبه پروژه‌های منحصر به فرد
+            project_count = allocations.exclude(project__isnull=True).values('project').distinct().count()
+            
+            # آخرین بروزرسانی
+            last_allocation = allocations.order_by('-allocation_date').first()
+            last_update = last_allocation.allocation_date if last_allocation else None
+
+            return {
+                'total_allocated': total_allocated,
+                'total_consumed': total_consumed,
+                'remaining_budget': remaining_budget,
+                'project_count': project_count,
+                'allocation_count': allocations.count(),
+                'last_update': last_update,
+                'status_message': _('فعال') if allocations.exists() else _('بدون تخصیص'),
+            }
+        except Exception as e:
+            logger.error(f"Error calculating budget details for organization {organization.pk}: {str(e)}", exc_info=True)
+            return {
+                'total_allocated': Decimal('0'),
+                'total_consumed': Decimal('0'),
+                'remaining_budget': Decimal('0'),
+                'project_count': 0,
+                'allocation_count': 0,
+                'last_update': None,
+                'status_message': _('خطا در محاسبه'),
+            }
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = _('جزئیات سازمان') + f" - {self.object.code}"
+        
+        # اضافه کردن جزئیات بودجه
+        context['budget_details'] = self.get_budget_details(self.object)
+        
+        # اضافه کردن آمار اضافی
+        organization = self.object
+        
+        # آمار پست‌ها
+        context['posts_stats'] = {
+            'total_posts': organization.post_set.count(),
+            'active_posts': organization.post_set.filter(is_active=True).count(),
+            'inactive_posts': organization.post_set.filter(is_active=False).count(),
+        }
+        
+        # آمار کاربران
+        total_users = 0
+        active_users = 0
+        for post in organization.post_set.all():
+            total_users += post.userpost_set.count()
+            active_users += post.userpost_set.filter(is_active=True).count()
+        
+        context['users_stats'] = {
+            'total_users': total_users,
+            'active_users': active_users,
+            'inactive_users': total_users - active_users,
+        }
+        
+        # آمار دوره‌های بودجه
+        context['budget_periods_stats'] = {
+            'total_periods': organization.budget_periods.count(),
+            'active_periods': organization.budget_periods.filter(is_active=True).count(),
+            'completed_periods': organization.budget_periods.filter(is_completed=True).count(),
+        }
+        
         return context
 class OrganizationCreateView(PermissionBaseView, CreateView):
     model = Organization
@@ -1346,6 +1434,50 @@ class PostListView(PermissionBaseView, ListView):
                 Q(description__icontains=search_query)  # Search by description
             ).distinct()  # Use .distinct() to avoid duplicate results if a post matches multiple Q conditions
 
+        # --- Filter Functionality ---
+        # Filter by Organization
+        organization_filter = self.request.GET.get('organization')
+        if organization_filter:
+            qs = qs.filter(organization_id=organization_filter)
+            logger.info(f"Filtering posts by organization: {organization_filter}")
+
+        # Filter by Branch
+        branch_filter = self.request.GET.get('branch')
+        if branch_filter:
+            qs = qs.filter(branch_id=branch_filter)
+            logger.info(f"Filtering posts by branch: {branch_filter}")
+
+        # Filter by Level
+        level_filter = self.request.GET.get('level')
+        if level_filter:
+            qs = qs.filter(level=level_filter)
+            logger.info(f"Filtering posts by level: {level_filter}")
+
+        # Filter by Approval Types
+        budget_approval = self.request.GET.get('budget_approval')
+        if budget_approval == 'true':
+            qs = qs.filter(can_final_approve_budget=True)
+            logger.info("Filtering posts with budget approval")
+
+        factor_approval = self.request.GET.get('factor_approval')
+        if factor_approval == 'true':
+            qs = qs.filter(can_final_approve_factor=True)
+            logger.info("Filtering posts with factor approval")
+
+        tankhah_approval = self.request.GET.get('tankhah_approval')
+        if tankhah_approval == 'true':
+            qs = qs.filter(can_final_approve_tankhah=True)
+            logger.info("Filtering posts with tankhah approval")
+
+        # Filter by Status
+        status_filter = self.request.GET.get('status')
+        if status_filter == 'active':
+            qs = qs.filter(is_active=True)
+            logger.info("Filtering active posts")
+        elif status_filter == 'inactive':
+            qs = qs.filter(is_active=False)
+            logger.info("Filtering inactive posts")
+
         # --- Sorting Functionality ---
         sort_order = self.request.GET.get('sort', 'asc')  # Default: ascending by level
         if sort_order == 'desc':
@@ -1363,7 +1495,70 @@ class PostListView(PermissionBaseView, ListView):
         context['search_query'] = self.request.GET.get('q', '')
         # Pass the current sort order to the template to highlight the active sort option
         context['current_sort'] = self.request.GET.get('sort', 'asc')
+        
+        # Pass filter data to template
+        context['organizations'] = Organization.objects.filter(is_active=True).order_by('name')
+        context['branches'] = Branch.objects.filter(is_active=True).order_by('name')
+        context['levels'] = range(1, 11)  # Assuming max level is 10, adjust as needed
+        
+        # Pass current filter values
+        context['current_organization'] = self.request.GET.get('organization', '')
+        context['current_branch'] = self.request.GET.get('branch', '')
+        context['current_level'] = self.request.GET.get('level', '')
+        context['current_status'] = self.request.GET.get('status', '')
+        context['current_budget_approval'] = self.request.GET.get('budget_approval', '')
+        context['current_factor_approval'] = self.request.GET.get('factor_approval', '')
+        context['current_tankhah_approval'] = self.request.GET.get('tankhah_approval', '')
+        
+        # اضافه کردن اطلاعات فرزندان و کاربران فعال برای هر پست
+        posts = context.get('posts', [])
+        for post in posts:
+            post.child_posts = Post.objects.filter(parent=post, is_active=True)
+            post.has_children = post.child_posts.exists()
+            # اضافه کردن کاربران فعال
+            post.active_users = post.userpost_set.filter(is_active=True).select_related('user')
+            # active_users_count یک property است، نیازی به setattr نیست
+        
         return context
+
+class PostActiveUsersAPIView(PermissionBaseView, View):
+    """API view برای دریافت کاربران فعال یک پست"""
+    permission_codename = 'core.Post_view'
+    
+    def get(self, request, post_id):
+        try:
+            post = Post.objects.get(pk=post_id, is_active=True)
+            active_users = post.userpost_set.filter(is_active=True).select_related('user')
+            
+            users_data = []
+            for userpost in active_users:
+                users_data.append({
+                    'id': userpost.user.id,
+                    'username': userpost.user.username,
+                    'full_name': userpost.user.get_full_name(),
+                    'email': userpost.user.email,
+                    'start_date': userpost.start_date.strftime('%Y-%m-%d') if userpost.start_date else None,
+                    'end_date': userpost.end_date.strftime('%Y-%m-%d') if userpost.end_date else None,
+                })
+            
+            return JsonResponse({
+                'success': True,
+                'post_name': post.name,
+                'active_users': users_data,
+                'count': len(users_data)
+            })
+            
+        except Post.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'پست یافت نشد'
+            }, status=404)
+        except Exception as e:
+            logger.error(f"خطا در دریافت کاربران فعال پست {post_id}: {e}")
+            return JsonResponse({
+                'success': False,
+                'error': 'خطا در دریافت اطلاعات'
+            }, status=500)
 
 class PostDetailView(PermissionBaseView, DetailView):
     model = Post
@@ -1375,8 +1570,34 @@ class PostDetailView(PermissionBaseView, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        post = self.object
+        
+        # اطلاعات مراحل گردش کار
         from tankhah.models import StageApprover
-        context['stages'] = StageApprover.objects.filter(post=self.object).select_related('stage')
+        context['stages'] = StageApprover.objects.filter(post=post).select_related('stage')
+        
+        # اطلاعات کاربران فعال
+        context['active_users'] = post.userpost_set.filter(is_active=True).select_related('user')
+        context['inactive_users'] = post.userpost_set.filter(is_active=False).select_related('user')
+        
+        # اطلاعات پست‌های فرزند
+        context['child_posts'] = Post.objects.filter(parent=post, is_active=True).select_related('organization', 'branch')
+        
+        # اطلاعات اقدامات مجاز پست
+        context['post_actions'] = post.postactions.filter(is_active=True).select_related('stage')
+        
+        # اطلاعات قوانین تخصیص یافته
+        context['rule_assignments'] = post.postruleassignment_set.filter(is_active=True).select_related('action', 'organization')
+        
+        # آمار کلی
+        context['stats'] = {
+            'active_users_count': context['active_users'].count(),
+            'inactive_users_count': context['inactive_users'].count(),
+            'child_posts_count': context['child_posts'].count(),
+            'post_actions_count': context['post_actions'].count(),
+            'rule_assignments_count': context['rule_assignments'].count(),
+        }
+        
         return context
 
 class PostCreateView(PermissionBaseView, CreateView):
@@ -1392,8 +1613,9 @@ class PostCreateView(PermissionBaseView, CreateView):
         return kwargs
 
     def form_valid(self, form):
-        form.instance.changed_by = self.request.user
         messages.success(self.request, _('پست سازمانی با موفقیت ایجاد شد.'))
+        # تنظیم changed_by قبل از ذخیره
+        form.instance._changed_by = self.request.user
         return super().form_valid(form)
 
     def form_invalid(self, form):
@@ -1414,9 +1636,10 @@ class PostUpdateView(PermissionBaseView, UpdateView):
         return kwargs
 
     def form_valid(self, form):
-        form.instance.changed_by = self.request.user
         logger.debug(f"Form data: {self.request.POST}")
         messages.success(self.request, _('پست سازمانی با موفقیت به‌روزرسانی شد.'))
+        # تنظیم changed_by قبل از ذخیره
+        form.instance._changed_by = self.request.user
         return super().form_valid(form)
 
     def form_invalid(self, form):
@@ -1432,7 +1655,33 @@ class PostDeleteView(PermissionBaseView, DeleteView):
     permission_codename = 'core.Post_delete'
     # check_organization = True  # فعال کردن چک سازمان
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        post = self.get_object()
+        
+        # بررسی پست‌های فرزند
+        child_posts = Post.objects.filter(parent=post, is_active=True).select_related('organization', 'branch')
+        context['child_posts'] = child_posts
+        context['has_children'] = child_posts.exists()
+        context['child_posts_count'] = child_posts.count()
+        
+        return context
+
     def delete(self, request, *args, **kwargs):
+        post = self.get_object()
+        
+        # بررسی پست‌های فرزند
+        child_posts = Post.objects.filter(parent=post, is_active=True)
+        
+        if child_posts.exists():
+            # اگر پست‌های فرزند وجود دارند، حذف نکن
+            child_names = [child.name for child in child_posts]
+            messages.error(
+                self.request, 
+                _('نمی‌توان این پست را حذف کرد زیرا والد پست‌های زیر است: ') + ', '.join(child_names)
+            )
+            return redirect('post_list')
+        
         messages.success(self.request, _('پست سازمانی با موفقیت حذف شد.'))
         return super().delete(request, *args, **kwargs)
 #     ==================================================
@@ -1445,18 +1694,28 @@ class UserPostListView(PermissionBaseView, ListView):
     model = UserPost
     template_name = 'core/post/userpost_list.html'
     context_object_name = 'userposts'
-    paginate_by = 10
+    paginate_by = 25
     permission_codename = 'core.UserPost_view'
 
     def get_queryset(self):
         """فیلتر کردن اتصالات بر اساس جستجو و سازمان‌های مجاز"""
-        queryset = UserPost.objects.select_related('user', 'post__organization').order_by('-start_date')
+        queryset = UserPost.objects.select_related('user', 'post__organization', 'post__branch').order_by('-start_date')
         logger.debug(f"[UserPostListView] شروع فیلتر اتصالات برای کاربر '{self.request.user.username}'")
+        
+        # Handle per_page parameter
+        per_page = self.request.GET.get('per_page', '25')
+        try:
+            self.paginate_by = int(per_page)
+        except (ValueError, TypeError):
+            self.paginate_by = 25
 
         # اعمال فیلترهای جستجو
         username = self.request.GET.get('username', '').strip()
         post_name = self.request.GET.get('post_name', '').strip()
         organization_id = self.request.GET.get('organization', '').strip()
+        status = self.request.GET.get('status', '').strip()
+        start_date_from = self.request.GET.get('start_date_from', '').strip()
+        start_date_to = self.request.GET.get('start_date_to', '').strip()
 
         if username:
             queryset = queryset.filter(user__username__icontains=username)
@@ -1467,6 +1726,28 @@ class UserPostListView(PermissionBaseView, ListView):
         if organization_id:
             queryset = queryset.filter(post__organization__id=organization_id)
             logger.debug(f"[UserPostListView] فیلتر بر اساس سازمان: {organization_id}")
+        if status:
+            if status == 'active':
+                queryset = queryset.filter(is_active=True)
+            elif status == 'inactive':
+                queryset = queryset.filter(is_active=False)
+            logger.debug(f"[UserPostListView] فیلتر بر اساس وضعیت: {status}")
+        if start_date_from:
+            try:
+                from datetime import datetime
+                start_date = datetime.strptime(start_date_from, '%Y-%m-%d').date()
+                queryset = queryset.filter(start_date__gte=start_date)
+                logger.debug(f"[UserPostListView] فیلتر بر اساس تاریخ شروع از: {start_date_from}")
+            except ValueError:
+                logger.warning(f"[UserPostListView] فرمت تاریخ نامعتبر: {start_date_from}")
+        if start_date_to:
+            try:
+                from datetime import datetime
+                end_date = datetime.strptime(start_date_to, '%Y-%m-%d').date()
+                queryset = queryset.filter(start_date__lte=end_date)
+                logger.debug(f"[UserPostListView] فیلتر بر اساس تاریخ شروع تا: {start_date_to}")
+            except ValueError:
+                logger.warning(f"[UserPostListView] فرمت تاریخ نامعتبر: {start_date_to}")
 
         # محدود کردن به سازمان‌های مجاز برای کاربران غیرسوپریوزر
         if not self.request.user.is_superuser:
@@ -1487,11 +1768,22 @@ class UserPostListView(PermissionBaseView, ListView):
         context = super().get_context_data(**kwargs)
         context['title'] = _("لیست اتصالات کاربر به پست")
         context['organizations'] = Organization.objects.filter(is_active=True).order_by('name')
+        
+        # محاسبه آمار
+        queryset = self.get_queryset()
+        context['total_connections'] = queryset.count()
+        context['active_connections'] = queryset.filter(is_active=True).count()
+        context['inactive_connections'] = queryset.filter(is_active=False).count()
+        context['organizations_count'] = context['organizations'].count()
+        
+        # Add per_page to context
+        context['per_page'] = self.request.GET.get('per_page', '25')
+        
         return context
 
     def handle_no_permission(self):
         """مدیریت عدم دسترسی"""
-        logger.warning(f"[UserPostListView] کاربر '{self.request.user.username}' مجوز '{self.permission_required}' را ندارد")
+        logger.warning(f"[UserPostListView] کاربر '{self.request.user.username}' مجوز 'core.UserPost_view' را ندارد")
         messages.error(self.request, _("شما مجوز مشاهده اتصالات کاربر به پست را ندارید."))
         return super().handle_no_permission()
     #     ==================================================
@@ -1515,9 +1807,9 @@ class UserPostCreateView(PermissionBaseView,  CreateView):
 
     def has_permission(self):
         """بررسی مجوزهای کاربر"""
-        has_perm = super().has_permission()
-        if not has_perm:
-            logger.warning(f"[UserPostCreateView] کاربر '{self.request.user.username}' مجوز '{self.permission_required}' را ندارد")
+        # بررسی مجوزهای پایه
+        if not self.request.user.has_perm('core.UserPost_add'):
+            logger.warning(f"[UserPostCreateView] کاربر '{self.request.user.username}' مجوز 'core.UserPost_add' را ندارد")
             messages.error(self.request, _("شما مجوز ایجاد اتصال کاربر به پست را ندارید."))
             return False
         logger.debug(f"[UserPostCreateView] مجوز تأیید شد برای کاربر '{self.request.user.username}'")
@@ -1554,22 +1846,38 @@ class UserPostUpdateView(PermissionBaseView,   UpdateView):
         kwargs['request'] = self.request
         return kwargs
 
+    def dispatch(self, request, *args, **kwargs):
+        """کنترل دسترسی قبل از اجرای ویو"""
+        logger.info(f"[UserPostUpdateView] شروع dispatch برای کاربر '{request.user.username}'")
+        try:
+            return super().dispatch(request, *args, **kwargs)
+        except Exception as e:
+            logger.error(f"[UserPostUpdateView] خطا در dispatch: {e}")
+            messages.error(request, f"خطا در دسترسی به صفحه: {e}")
+            return redirect('userpost_list')
+
     def has_permission(self):
         """بررسی مجوزهای کاربر"""
-        has_perm = super().has_permission()
-        if not has_perm:
-            logger.warning(f"[UserPostUpdateView] کاربر '{self.request.user.username}' مجوز '{self.permission_required}' را ندارد")
+        # بررسی مجوزهای پایه
+        if not self.request.user.has_perm('core.UserPost_update'):
+            logger.warning(f"[UserPostUpdateView] کاربر '{self.request.user.username}' مجوز 'core.UserPost_update' را ندارد")
             messages.error(self.request, _("شما مجوز به‌روزرسانی اتصال کاربر به پست را ندارید."))
             return False
 
-        userpost = self.get_object()
-        if not self.request.user.is_superuser:
-            user_orgs = {up.post.organization for up in self.request.user.userpost_set.filter(is_active=True)
-                         if up.post.organization and not up.post.organization.is_core and not up.post.organization.is_holding}
-            if userpost.post.organization not in user_orgs:
-                logger.warning(f"[UserPostUpdateView] کاربر '{self.request.user.username}' به سازمان پست '{userpost.post.organization.name}' دسترسی ندارد")
-                messages.error(self.request, _('شما به سازمان این پست دسترسی ندارید.'))
-                return False
+        # بررسی دسترسی سازمانی
+        try:
+            userpost = self.get_object()
+            if not self.request.user.is_superuser:
+                user_orgs = {up.post.organization for up in self.request.user.userpost_set.filter(is_active=True)
+                             if up.post.organization and not up.post.organization.is_core and not up.post.organization.is_holding}
+                if userpost.post.organization not in user_orgs:
+                    logger.warning(f"[UserPostUpdateView] کاربر '{self.request.user.username}' به سازمان پست '{userpost.post.organization.name}' دسترسی ندارد")
+                    messages.error(self.request, _('شما به سازمان این پست دسترسی ندارید.'))
+                    return False
+        except Exception as e:
+            logger.error(f"[UserPostUpdateView] خطا در بررسی دسترسی سازمانی: {e}")
+            messages.error(self.request, _('خطا در بررسی دسترسی.'))
+            return False
 
         logger.debug(f"[UserPostUpdateView] مجوز تأیید شد برای کاربر '{self.request.user.username}'")
         return True

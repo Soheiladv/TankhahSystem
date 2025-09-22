@@ -1,0 +1,428 @@
+{% load i18n static rcms_custom_filters file_tags %}
+<!-- راهنمای کامل ثبت فاکتور -->
+<div class="user-guide-section mb-4">
+    <div class="card border-info">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                راهنمای ثبت فاکتور
+            </h6>
+            <button type="button" class="btn btn-sm btn-outline-light" data-bs-toggle="collapse" 
+                    data-bs-target="#userGuide" aria-expanded="false" aria-controls="userGuide">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+        <div class="collapse" id="userGuide">
+            <div class="card-body">
+                
+                <!-- بخش 1: مقدمه -->
+                <div class="guide-section mb-4">
+                    <h6 class="text-primary mb-3">
+                        <i class="fas fa-play-circle me-2"></i>
+                        مقدمه
+                    </h6>
+                    <div class="alert alert-light border-start border-primary border-4">
+                        <p class="mb-2">
+                            <strong>هدف:</strong> ثبت فاکتور برای تنخواه انتخاب شده با رعایت قوانین سیستم
+                        </p>
+                        <p class="mb-0">
+                            <strong>نکته مهم:</strong> فاکتور پس از ثبت در وضعیت "پیش‌نویس" قرار می‌گیرد و نیاز به تأیید دارد
+                        </p>
+                    </div>
+                </div>
+
+                <!-- بخش 2: مراحل ثبت فاکتور -->
+                <div class="guide-section mb-4">
+                    <h6 class="text-primary mb-3">
+                        <i class="fas fa-list-ol me-2"></i>
+                        مراحل ثبت فاکتور
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="step-item mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 30px; height: 30px; font-size: 14px;">1</span>
+                                    <div>
+                                        <strong>انتخاب تنخواه</strong>
+                                        <small class="text-muted d-block">تنخواه باید فعال و منقضی نشده باشد</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="step-item mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 30px; height: 30px; font-size: 14px;">2</span>
+                                    <div>
+                                        <strong>اطلاعات فاکتور</strong>
+                                        <small class="text-muted d-block">تاریخ، دسته‌بندی، دریافت‌کننده</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="step-item mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 30px; height: 30px; font-size: 14px;">3</span>
+                                    <div>
+                                        <strong>ردیف‌های فاکتور</strong>
+                                        <small class="text-muted d-block">حداقل یک ردیف با مبلغ معتبر</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="step-item mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 30px; height: 30px; font-size: 14px;">4</span>
+                                    <div>
+                                        <strong>آپلود اسناد</strong>
+                                        <small class="text-muted d-block">فایل‌های پشتیبان (اختیاری)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="step-item mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 30px; height: 30px; font-size: 14px;">5</span>
+                                    <div>
+                                        <strong>بررسی بودجه</strong>
+                                        <small class="text-muted d-block">مبلغ فاکتور نباید از بودجه در دسترس بیشتر باشد</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="step-item mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 30px; height: 30px; font-size: 14px;">6</span>
+                                    <div>
+                                        <strong>ثبت فاکتور</strong>
+                                        <small class="text-muted d-block">فاکتور با وضعیت "پیش‌نویس" ثبت می‌شود</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- بخش 3: قوانین سیستم -->
+                <div class="guide-section mb-4">
+                    <h6 class="text-primary mb-3">
+                        <i class="fas fa-gavel me-2"></i>
+                        قوانین سیستم
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="rule-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                    <div>
+                                        <strong>مجوزهای لازم</strong>
+                                        <small class="text-muted d-block">شما باید مجوز ثبت فاکتور داشته باشید</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="rule-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                    <div>
+                                        <strong>دسترسی به سازمان</strong>
+                                        <small class="text-muted d-block">باید به سازمان تنخواه دسترسی داشته باشید</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="rule-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                    <div>
+                                        <strong>وضعیت تنخواه</strong>
+                                        <small class="text-muted d-block">تنخواه باید فعال و منقضی نشده باشد</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="rule-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                    <div>
+                                        <strong>بودجه کافی</strong>
+                                        <small class="text-muted d-block">بودجه در دسترس باید کافی باشد</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="rule-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                    <div>
+                                        <strong>حداقل یک ردیف</strong>
+                                        <small class="text-muted d-block">فاکتور باید حداقل یک ردیف معتبر داشته باشد</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="rule-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                    <div>
+                                        <strong>مبلغ مثبت</strong>
+                                        <small class="text-muted d-block">مبلغ کل فاکتور باید بیشتر از صفر باشد</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- بخش 4: وضعیت‌های فاکتور -->
+                <div class="guide-section mb-4">
+                    <h6 class="text-primary mb-3">
+                        <i class="fas fa-tasks me-2"></i>
+                        وضعیت‌های فاکتور
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="status-item mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="status-badge bg-warning text-dark rounded-pill px-2 py-1 me-2" style="font-size: 12px;">پیش‌نویس</span>
+                                    <div>
+                                        <strong>DRAFT</strong>
+                                        <small class="text-muted d-block">فاکتور ایجاد شده، در انتظار ارسال</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="status-item mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="status-badge bg-info text-white rounded-pill px-2 py-1 me-2" style="font-size: 12px;">در انتظار</span>
+                                    <div>
+                                        <strong>PENDING</strong>
+                                        <small class="text-muted d-block">فاکتور ارسال شده، در تعهد</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="status-item mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="status-badge bg-success text-white rounded-pill px-2 py-1 me-2" style="font-size: 12px;">تأیید شده</span>
+                                    <div>
+                                        <strong>APPROVED</strong>
+                                        <small class="text-muted d-block">فاکتور تأیید شده، در تعهد</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- بخش 5: تأثیر بر بودجه -->
+                <div class="guide-section mb-4">
+                    <h6 class="text-primary mb-3">
+                        <i class="fas fa-calculator me-2"></i>
+                        تأثیر بر بودجه
+                    </h6>
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>
+                            محاسبه بودجه در دسترس
+                        </h6>
+                        <p class="mb-2">
+                            <strong>فرمول:</strong> بودجه در دسترس = بودجه اولیه تنخواه - فاکتورهای پرداخت شده - فاکتورهای در تعهد
+                        </p>
+                        <hr>
+                        <p class="mb-2">
+                            <strong>پس از ثبت فاکتور:</strong>
+                        </p>
+                        <ul class="mb-0">
+                            <li>بودجه در دسترس کاهش می‌یابد</li>
+                            <li>فاکتور در تعهد محاسبه می‌شود</li>
+                            <li>تا زمان تأیید نهایی در تعهد باقی می‌ماند</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- بخش 6: نکات مهم -->
+                <div class="guide-section mb-4">
+                    <h6 class="text-primary mb-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        نکات مهم
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="tip-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-lightbulb text-warning me-2 mt-1"></i>
+                                    <div>
+                                        <strong>تعهد بودجه</strong>
+                                        <small class="text-muted d-block">فاکتور تعهد ایجاد می‌کند و بودجه را رزرو می‌کند</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tip-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-lightbulb text-warning me-2 mt-1"></i>
+                                    <div>
+                                        <strong>اعلان‌ها</strong>
+                                        <small class="text-muted d-block">پس از ثبت، اعلان به تأییدکنندگان ارسال می‌شود</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="tip-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-lightbulb text-warning me-2 mt-1"></i>
+                                    <div>
+                                        <strong>تاریخچه</strong>
+                                        <small class="text-muted d-block">تمام تغییرات در تاریخچه فاکتور ثبت می‌شود</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tip-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-lightbulb text-warning me-2 mt-1"></i>
+                                    <div>
+                                        <strong>اسناد</strong>
+                                        <small class="text-muted d-block">می‌توانید چندین فایل را همزمان آپلود کنید</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- بخش 7: مثال عملی -->
+                <div class="guide-section mb-4">
+                    <h6 class="text-primary mb-3">
+                        <i class="fas fa-chart-line me-2"></i>
+                        مثال عملی
+                    </h6>
+                    <div class="example-box p-3 bg-light rounded">
+                        <h6 class="mb-3">سناریو: ثبت فاکتور 1,500,000 ریالی</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>بودجه اولیه تنخواه:</strong> 10,000,000 ریال</p>
+                                <p><strong>فاکتورهای پرداخت شده:</strong> 3,000,000 ریال</p>
+                                <p><strong>فاکتورهای در تعهد:</strong> 2,000,000 ریال</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>بودجه در دسترس:</strong> 5,000,000 ریال</p>
+                                <p><strong>فاکتور جدید:</strong> 1,500,000 ریال</p>
+                                <p><strong>باقیمانده پس از ثبت:</strong> 3,500,000 ریال</p>
+                            </div>
+                        </div>
+                        <div class="alert alert-success mt-3 mb-0">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>نتیجه:</strong> فاکتور قابل ثبت است و بودجه کافی موجود است
+                        </div>
+                    </div>
+                </div>
+
+                <!-- بخش 8: راهنمای استفاده -->
+                <div class="guide-section">
+                    <h6 class="text-primary mb-3">
+                        <i class="fas fa-question-circle me-2"></i>
+                        راهنمای استفاده
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="help-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-hand-point-right text-primary me-2 mt-1"></i>
+                                    <div>
+                                        <strong>مرحله 1:</strong> تنخواه مورد نظر را انتخاب کنید
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="help-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-hand-point-right text-primary me-2 mt-1"></i>
+                                    <div>
+                                        <strong>مرحله 2:</strong> اطلاعات فاکتور را تکمیل کنید
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="help-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-hand-point-right text-primary me-2 mt-1"></i>
+                                    <div>
+                                        <strong>مرحله 3:</strong> ردیف‌های فاکتور را اضافه کنید
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="help-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-hand-point-right text-primary me-2 mt-1"></i>
+                                    <div>
+                                        <strong>مرحله 4:</strong> اسناد را آپلود کنید (اختیاری)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="help-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-hand-point-right text-primary me-2 mt-1"></i>
+                                    <div>
+                                        <strong>مرحله 5:</strong> بودجه را بررسی کنید
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="help-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-hand-point-right text-primary me-2 mt-1"></i>
+                                    <div>
+                                        <strong>مرحله 6:</strong> فاکتور را ثبت کنید
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.guide-section {
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 1rem;
+}
+
+.guide-section:last-child {
+    border-bottom: none;
+}
+
+.step-number {
+    font-weight: bold;
+    min-width: 30px;
+    min-height: 30px;
+}
+
+.status-badge {
+    font-weight: bold;
+    min-width: 80px;
+    text-align: center;
+}
+
+.example-box {
+    border: 1px solid #dee2e6;
+}
+
+.help-item, .tip-item, .rule-item, .step-item, .status-item {
+    transition: all 0.3s ease;
+}
+
+.help-item:hover, .tip-item:hover, .rule-item:hover, .step-item:hover, .status-item:hover {
+    transform: translateX(5px);
+}
+
+.alert {
+    border-radius: 0.5rem;
+}
+
+.card {
+    border-radius: 0.75rem;
+}
+
+.btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+</style>

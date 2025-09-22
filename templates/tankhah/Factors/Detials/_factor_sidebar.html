@@ -1,7 +1,12 @@
 {% load i18n static rcms_custom_filters %}
 
 <div class="card mb-4">
-    <div class="card-header fw-bold"><i class="fas fa-tasks me-2"></i>{% trans "اقدامات مجاز برای شما" %}</div>
+    <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+        <div><i class="fas fa-tasks me-2"></i>{% trans "اقدامات مجاز برای شما" %}</div>
+        <a href="{% url 'workflow_management:factor_approval_path' factor.pk %}" class="btn btn-sm btn-outline-info" title="{% trans 'مشاهده مسیر کامل تأیید' %}">
+            <i class="fas fa-route"></i>
+        </a>
+    </div>
     <div class="card-body">
         {% if available_transitions %}
             <div class="d-grid gap-2">
@@ -78,58 +83,270 @@
     <div class="card-header fw-bold"><i class="fas fa-users me-2"></i>{% trans "افراد و پست‌های مجاز (گام‌های بعدی)" %}</div>
     <div class="card-body">
         {% if workflow_participants %}
-            <div class="accordion" id="nextApproversAccordion">
+            <div class="row g-3">
                 {% for step in workflow_participants %}
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="heading-{{ forloop.counter }}">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ forloop.counter }}">
-                                <span class="me-2 badge bg-light text-dark border">{{ step.action.name }}</span>
-                                <span class="text-muted small">→ {{ step.to_status.name }}</span>
-                            </button>
-                        </h2>
-                        <div id="collapse-{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#nextApproversAccordion">
-                            <div class="accordion-body">
-                                {% if step.posts %}
-                                    <ul class="list-group list-group-flush">
-                                        {% for p in step.posts %}
-                                            <li class="list-group-item">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <span class="badge bg-secondary me-2">{% trans "سطح" %} {{ p.level|default:'-' }}</span>
-                                                        <strong>{{ p.post.name }}</strong>
-                                                    </div>
-                                                    <span class="badge bg-light text-dark border">{{ p.users|length }}</span>
-                                                </div>
-                                                {% if p.users %}
-                                                    <ul class="mt-2 mb-0 ps-3">
-                                                        {% for u in p.users %}
-                                                            <li class="small"><i class="fas fa-user text-muted me-1"></i>{{ u.get_full_name|default:u.username }}</li>
-                                                        {% endfor %}
-                                                    </ul>
-                                                {% else %}
-                                                    <div class="text-muted small mt-2">{% trans "کاربری برای این پست فعال نیست." %}</div>
-                                                {% endif %}
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                {% else %}
-                                    <div class="text-muted small">{% trans "پستی برای این گام تعریف نشده است." %}</div>
-                                {% endif %}
+                    <div class="col-12">
+                        <div class="business-card">
+                            <div class="business-card-header">
+                                <div class="action-badge">
+                                    <i class="fas fa-arrow-right me-1"></i>
+                                    {{ step.action.name }}
+                                </div>
+                                <div class="status-info">
+                                    <small class="text-muted">→ {{ step.to_status.name }}</small>
+                                </div>
                             </div>
+                            
+                            {% if step.posts %}
+                                <div class="business-card-body">
+                                    {% for p in step.posts %}
+                                        <div class="post-card">
+                                            <div class="post-header">
+                                                <div class="post-title">
+                                                    <i class="fas fa-user-tie me-2"></i>
+                                                    <strong>{{ p.post.name }}</strong>
+                                                </div>
+                                                <div class="post-level">
+                                                    <span class="level-badge">سطح {{ p.level|default:'-' }}</span>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if p.users %}
+                                                <div class="users-section">
+                                                    <div class="users-count">
+                                                        <i class="fas fa-users me-1"></i>
+                                                        {{ p.users|length }} {% trans "کاربر فعال" %}
+                                                    </div>
+                                                    <div class="users-list">
+                                                        {% for u in p.users %}
+                                                            <div class="user-item">
+                                                                <div class="user-avatar">
+                                                                    <i class="fas fa-user"></i>
+                                                                </div>
+                                                                <div class="user-info">
+                                                                    <div class="user-name">{{ u.get_full_name|default:u.username }}</div>
+                                                                    <div class="user-username">@{{ u.username }}</div>
+                                                                </div>
+                                                            </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <div class="no-users">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                                    {% trans "کاربری برای این پست فعال نیست" %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="no-posts">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    {% trans "پستی برای این گام تعریف نشده است" %}
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 {% endfor %}
             </div>
         {% else %}
-            <div class="text-muted small">{% trans "مسیر آتی برای این فاکتور یافت نشد." %}</div>
+            <div class="no-workflow">
+                <i class="fas fa-info-circle me-2"></i>
+                {% trans "مسیر آتی برای این فاکتور یافت نشد" %}
+            </div>
         {% endif %}
     </div>
 </div>
 
+<style>
+    .business-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: 1px solid #e9ecef;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        margin-bottom: 15px;
+    }
+    
+    .business-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .business-card-header {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .action-badge {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .status-info {
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+    
+    .business-card-body {
+        padding: 20px;
+    }
+    
+    .post-card {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .post-card:last-child {
+        margin-bottom: 0;
+    }
+    
+    .post-card:hover {
+        border-color: #007bff;
+        box-shadow: 0 2px 10px rgba(0,123,255,0.1);
+    }
+    
+    .post-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f1f3f4;
+    }
+    
+    .post-title {
+        color: #2c3e50;
+        font-size: 1rem;
+    }
+    
+    .level-badge {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .users-section {
+        margin-top: 10px;
+    }
+    
+    .users-count {
+        color: #6c757d;
+        font-size: 0.85rem;
+        margin-bottom: 10px;
+        font-weight: 500;
+    }
+    
+    .users-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .user-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .user-item:hover {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        transform: translateX(5px);
+    }
+    
+    .user-avatar {
+        width: 35px;
+        height: 35px;
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.9rem;
+        margin-right: 12px;
+        box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+    }
+    
+    .user-info {
+        flex: 1;
+    }
+    
+    .user-name {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 0.9rem;
+        margin-bottom: 2px;
+    }
+    
+    .user-username {
+        color: #6c757d;
+        font-size: 0.8rem;
+    }
+    
+    .no-users, .no-posts, .no-workflow {
+        text-align: center;
+        padding: 20px;
+        color: #6c757d;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border: 1px dashed #dee2e6;
+    }
+    
+    .no-users i, .no-posts i, .no-workflow i {
+        color: #ffc107;
+    }
+    
+    @media (max-width: 768px) {
+        .business-card-header {
+            flex-direction: column;
+            gap: 8px;
+            text-align: center;
+        }
+        
+        .post-header {
+            flex-direction: column;
+            gap: 8px;
+            text-align: center;
+        }
+        
+        .user-item {
+            padding: 6px 10px;
+        }
+        
+        .user-avatar {
+            width: 30px;
+            height: 30px;
+            font-size: 0.8rem;
+        }
+    }
+</style>
+
 
 
 <div class="card mb-4">
-    <div class="card-header"><i class="fas fa-route me-2"></i>{% trans "مسیر تأیید فاکتور" %}</div>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div><i class="fas fa-route me-2"></i>{% trans "مسیر تأیید فاکتور" %}</div>
+        <a href="{% url 'workflow_management:factor_approval_path' factor.pk %}" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-eye me-1"></i>{% trans "مشاهده کامل" %}
+        </a>
+    </div>
     <div class="card-body">
         {% if approval_path %}
         <ol>

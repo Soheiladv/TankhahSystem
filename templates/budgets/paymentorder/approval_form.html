@@ -1,0 +1,681 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load rcms_custom_filters %}
+
+{% block title %}{% trans "تایید دستور پرداخت" %} - {{ payment_order.order_number }}{% endblock %}
+
+{% block content %}
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-check-circle me-2"></i>{% trans "تایید دستور پرداخت" %}</h2>
+            <div class="d-flex gap-2">
+                <a href="{% url 'paymentorder_management_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-right me-2"></i>{% trans "بازگشت به لیست" %}
+                </a>
+                <!-- تهیه گزارش -->
+                <form method="get" action="{% url 'reportlab_paymentorder_detail' payment_order.id %}" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-dark">
+                        <i class="fas fa-file-pdf"></i> تهیه PDF
+                    </button>
+                </form>
+                <!-- خروجی Excel -->
+                <form method="get" action="{% url 'export_api' %}" class="d-inline">
+                    <input type="hidden" name="model" value="budgets.PaymentOrder">
+                    <input type="hidden" name="format" value="xlsx">
+                    <input type="hidden" name="ids" value="{{ payment_order.id }}">
+                    <button type="submit" class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- اطلاعات دستور پرداخت -->
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">{% trans "اطلاعات کامل دستور پرداخت" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>{% trans "شماره دستور:" %}</strong> {{ payment_order.order_number }}</p>
+                                <p><strong>{% trans "مبلغ:" %}</strong>
+                                    <span class="text-success fs-5">{{ payment_order.amount|floatformat:0|to_persian_number }}</span>
+                                    <small class="text-muted">{% trans "ریال" %}</small>
+                                </p>
+                                <p><strong>{% trans "دریافت‌کننده:" %}</strong>
+                                    {% if payment_order.payee %}
+                                        {{ payment_order.payee }}
+                                    {% else %}
+                                        <span class="text-muted">{% trans "تعیین نشده" %}</span>
+                                    {% endif %}
+                                </p>
+                                <p><strong>{% trans "تاریخ صدور:" %}</strong>
+                                    {% if payment_order.issue_date %}
+                                        {{ payment_order.issue_date|jformat:"%Y/%m/%d"|to_persian_number }}
+                                    {% else %}
+                                        <span class="text-muted">{% trans "تعیین نشده" %}</span>
+                                    {% endif %}
+                                </p>
+                                <p><strong>{% trans "تاریخ پرداخت:" %}</strong>
+                                    {% if payment_order.payment_date %}
+                                        {{ payment_order.payment_date|jformat:"%Y/%m/%d"|to_persian_number }}
+                                    {% else %}
+                                        <span class="text-muted">{% trans "تعیین نشده" %}</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>{% trans "وضعیت فعلی:" %}</strong>
+                                    <span class="badge bg-{{ payment_order.status.code|status_badge_class }}">
+                                    {{ payment_order.status.name }}
+                                </span>
+                                </p>
+                                <p>
+                                    <strong>{% trans "تاریخ ایجاد:" %}</strong> {{ payment_order.created_at|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}
+                                </p>
+                                <p>
+                                    <strong>{% trans "ایجادکننده:" %}</strong> {{ payment_order.created_by.get_full_name|default:payment_order.created_by.username }}
+                                </p>
+                                <p><strong>{% trans "سازمان:" %}</strong> {{ payment_order.organization.name }}</p>
+                                {% if payment_order.project %}
+                                    <p><strong>{% trans "پروژه:" %}</strong> {{ payment_order.project.name }}</p>
+                                {% endif %}
+                                {% if payment_order.department %}
+                                    <p><strong>{% trans "دپارتمان:" %}</strong> {{ payment_order.department.name }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if payment_order.description %}
+                            <div class="mt-3">
+                                <strong>{% trans "توضیحات:" %}</strong>
+                                <p class="mt-1">{{ payment_order.description|linebreaksbr }}</p>
+                            </div>
+                        {% endif %}
+
+                        <!-- اطلاعات تنخواه مرتبط -->
+                        {% if payment_order.tankhah %}
+                            <div class="mt-3">
+                                <strong>{% trans "تنخواه مرتبط:" %}</strong>
+                                <a href="{% url 'tankhah_detail' payment_order.tankhah.pk %}" class="text-decoration-none">
+                                    {{ payment_order.tankhah.number }}
+                                </a>
+                                <small class="text-muted">({{ payment_order.tankhah.amount|floatformat:0|to_persian_number }} ریال)</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- تاییدکنندگان موثر در گردش کار -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">{% trans "تاییدکنندگان موثر در گردش کار" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if approval_tree %}
+                            <div class="table-responsive">
+                                <table class="table table-striped align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-end">{% trans "پست" %}</th>
+                                            <th class="text-end">{% trans "نام کاربر" %}</th>
+                                            <th class="text-end">{% trans "وضعیت" %}</th>
+                                            <th class="text-end">{% trans "آخرین اقدام" %}</th>
+                                            <th class="text-end">{% trans "زمان" %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for node in approval_tree %}
+                                            {% for log in node.approvals %}
+                                                <tr>
+                                                    <td class="text-end">{{ node.post.name }}</td>
+                                                    <td class="text-end">{{ log.user.get_full_name|default:log.user.username }}</td>
+                                                    <td class="text-end">
+                                                        {% if log.action.code == 'APPROVED' %}
+                                                            <span class="badge bg-success">{% trans "تایید شده" %}</span>
+                                                        {% elif log.action.code == 'REJECTED' %}
+                                                            <span class="badge bg-danger">{% trans "رد شده" %}</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">{% trans "در انتظار" %}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-end">{{ log.action.name|default:"—" }}</td>
+                                                    <td class="text-end">{{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}</td>
+                                                </tr>
+                                            {% empty %}
+                                                <tr>
+                                                    <td class="text-end">{{ node.post.name }}</td>
+                                                    <td class="text-end">—</td>
+                                                    <td class="text-end">
+                                                        <span class="badge bg-warning text-dark">{% trans "در انتظار تایید" %}</span>
+                                                    </td>
+                                                    <td class="text-end">—</td>
+                                                    <td class="text-end">—</td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% empty %}
+                                            <tr>
+                                                <td colspan="5" class="text-center text-muted">{% trans "اطلاعات تاییدکنندگان برای این وضعیت یافت نشد." %}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="p-3 text-muted">{% trans "درخت تایید برای این دستور پرداخت موجود نیست." %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- فاکتورهای مرتبط -->
+                {% if payment_order.related_factors.exists %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">{% trans "فاکتورهای مرتبط" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                    <tr>
+                                        <th>{% trans "شماره فاکتور" %}</th>
+                                        <th>{% trans "مبلغ" %}</th>
+                                        <th>{% trans "وضعیت" %}</th>
+                                        <th>{% trans "عملیات" %}</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for factor in payment_order.related_factors.all %}
+                                        <tr>
+                                            <td>{{ factor.number }}</td>
+                                            <td class="text-end">{{ factor.amount|floatformat:0|to_persian_number }} {% trans "ریال" %}</td>
+                                            <td>
+                                                <span class="badge bg-success">{{ factor.status.name }}</span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'detail_factor' factor.pk %}"
+                                                   class="btn btn-sm btn-outline-info">
+                                                    <i class="fas fa-eye"></i> {% trans "مشاهده" %}
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- فرم تایید/رد دستور پرداخت -->
+                {% if can_approve %}
+                    <div class="card">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">{% trans "تایید/رد دستور پرداخت" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- هشدار برای تغییر تصمیم -->
+                            {% if user_has_previous_approval %}
+                                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <div>
+                                        <strong>{% trans "توجه:" %}</strong> {% trans "شما قبلاً این دستور پرداخت را تایید/رد کرده‌اید. در صورت تغییر تصمیم، اقدام قبلی لغو خواهد شد." %}
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            <!-- اقدامات مجاز بر اساس Transition -->
+                            <h6 class="mb-3"><i class="fas fa-random me-2"></i>{% trans "اقدامات مجاز" %}</h6>
+                            {% if available_transitions %}
+                                <!-- فرم انتخاب گذار با Select2 و AJAX -->
+                                <form method="post" class="row g-2 align-items-end mb-3" id="transition-form">
+                                    {% csrf_token %}
+                                    <div class="col-md-8">
+                                        <label class="form-label">{% trans "انتخاب اقدام" %}</label>
+                                        <!-- Select2 با AJAX برای لود تنبل گذارها -->
+                                        <select id="transition-select" name="transition_id" class="form-select"
+                                                style="width:100%">
+                                            <!-- آیتم‌های اولیه (اختیاری) -->
+                                            <option value="">{% trans "در حال بارگذاری..." %}</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 d-grid">
+                                        <button type="submit" class="btn btn-success" id="apply-transition-btn"
+                                                disabled>
+                                            <i class="fas fa-play me-2"></i>{% trans "اعمال" %}
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <!-- دکمه‌های سریع تایید/رد -->
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    {% for t in available_transitions %}
+                                        <form method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="transition_id" value="{{ t.id }}">
+                                            <button type="submit" class="btn btn-outline-primary btn-sm">
+                                                <span class="me-1">{{ t.action.name }}</span>
+                                                <span class="badge bg-info">→ {{ t.to_status.name }}</span>
+                                            </button>
+                                        </form>
+                                    {% endfor %}
+                                </div>
+
+                                <!-- دکمه‌های اصلی تایید/رد -->
+                                <div class="d-flex justify-content-between">
+                                    <div class="btn-group">
+                                        <a href="{% url 'paymentorder_management_list' %}" class="btn btn-secondary">
+                                            <i class="fas fa-times me-2"></i>{% trans "لغو" %}
+                                        </a>
+                                        {% if can_revert %}
+                                            <button type="button" class="btn btn-danger" onclick="showRevertConfirmation()">
+                                                <i class="fas fa-undo me-2"></i>{% trans "بازگشت به وضعیت قبلی" %}
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                    <div class="btn-group">
+                                        {% if user_has_previous_approval %}
+                                            <button type="button" class="btn btn-warning" onclick="showChangeConfirmation()">
+                                                <i class="fas fa-edit me-2"></i>{% trans "تغییر تصمیم" %}
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" form="transition-form" class="btn btn-primary" id="submitBtn">
+                                                <i class="fas fa-check me-2"></i>{% trans "تایید تغییرات" %}
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info mb-0">
+                                    {% trans "هیچ گذار مجازی برای وضعیت فعلی در این سازمان تعریف نشده است." %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-ban me-2"></i>
+                        <strong>{% trans "عدم دسترسی" %}</strong>
+                        <p class="mb-0">
+                            {% if access_denied_reason %}
+                                {{ access_denied_reason }}
+                            {% else %}
+                                {% trans "شما مجاز به تایید این دستور پرداخت نیستید." %}
+                            {% endif %}
+                        </p>
+                        <hr>
+                        <small class="text-muted">
+                            {% trans "برای دسترسی به این دستور پرداخت، با مدیر سیستم تماس بگیرید." %}
+                        </small>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- نوار کناری -->
+            <div class="col-lg-4">
+                <!-- درخت تایید -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">{% trans "درخت تایید" %}</h6>
+                        <span class="badge bg-{% if approval_required_count == approval_done_count %}success{% else %}secondary{% endif %}">
+                        {{ approval_done_count|default:0 }}/{{ approval_required_count|default:0 }}
+                    </span>
+                    </div>
+                    <div class="card-body">
+                        {% if approval_tree %}
+                            <ul class="list-group list_group-flush">
+                                {% for node in approval_tree %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                                        <div class="ms-2 me-auto">
+                                            <div class="fw-bold">{{ node.post.name }}</div>
+                                            {% if node.approvals %}
+                                                {% for log in node.approvals %}
+                                                    <div class="small text-muted">
+                                                        {{ log.user.get_full_name|default:log.user.username }}
+                                                        - {{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}
+                                                    </div>
+                                                {% endfor %}
+                                            {% else %}
+                                                <div class="small text-muted">{% trans "در انتظار تایید" %}</div>
+                                            {% endif %}
+                                        </div>
+                                        <span class="badge rounded-pill bg-{% if node.approved %}success{% else %}warning text-dark{% endif %}">
+                                        {% if node.approved %}{% trans "تایید شد" %}{% else %}
+                                            {% trans "در انتظار" %}{% endif %}
+                                    </span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <div class="text-muted small">{% trans "قواعد تایید برای این وضعیت تعریف نشده است." %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- لیست کاربران مجاز -->
+                {% if authorized_users %}
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-users me-2"></i>{% trans "کاربران مجاز برای تایید" %}
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "کاربر" %}</th>
+                                        <th>{% trans "پست" %}</th>
+                                        <th>{% trans "وضعیت" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for auth_user in authorized_users %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ auth_user.full_name }}</strong>
+                                                <br>
+                                                <small class="text-muted">@{{ auth_user.username }}</small>
+                                            </td>
+                                            <td>
+                                                {{ auth_user.post_name }}
+                                                <br>
+                                                <small class="text-muted">{{ auth_user.organization }}</small>
+                                            </td>
+                                            <td>
+                                                {% if auth_user.has_approved %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check me-1"></i>{% trans "تایید کرده" %}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">
+                                                        <i class="fas fa-clock me-1"></i>{% trans "در انتظار" %}
+                                                    </span>
+                                                {% endif %}
+                                                <br>
+                                                {% if auth_user.is_superuser %}
+                                                    <span class="badge bg-danger badge-sm">{% trans "سوپروایزر" %}</span>
+                                                {% elif auth_user.is_staff %}
+                                                    <span class="badge bg-warning badge-sm">{% trans "استاف" %}</span>
+                                                {% else %}
+                                                    <span class="badge bg-info badge-sm">{% trans "کاربر عادی" %}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- تاریخچه اقدامات -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">{% trans "تاریخچه اقدامات" %}</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if approval_logs %}
+                            <div class="timeline">
+                                {% for log in approval_logs %}
+                                    <div class="timeline-item">
+                                        <div class="timeline-icon">
+                                            <i class="fas fa-{% if log.action.code == 'APPROVED' %}check{% elif log.action.code == 'REJECTED' %}times{% else %}edit{% endif %}"></i>
+                                        </div>
+                                        <div class="timeline-content">
+                                            <h6 class="mb-1">{{ log.action.name }}</h6>
+                                            <p class="mb-1 text-muted small">
+                                                {% trans "توسط" %}
+                                                <strong>{{ log.user.get_full_name|default:log.user.username }}</strong>
+                                                {% if log.post %}
+                                                    ({{ log.post.name }})
+                                                {% endif %}
+                                            </p>
+                                            <p class="mb-1 text-muted small">
+                                                {{ log.timestamp|jformat:"%Y/%m/%d %H:%M"|to_persian_number }}
+                                            </p>
+                                            {% if log.comment %}
+                                                <p class="mb-0 small">{{ log.comment }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted small">{% trans "هیچ اقدامی تاکنون ثبت نشده است." %}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- اطلاعات تنخواه -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">{% trans "اطلاعات تنخواه" %}</h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>{% trans "شماره تنخواه:" %}</strong>
+                            <a href="{% url 'tankhah_detail' payment_order.tankhah.pk %}" class="text-decoration-none">
+                                {{ payment_order.tankhah.number }}
+                            </a>
+                        </p>
+                        <p><strong>{% trans "سازمان:" %}</strong> {{ payment_order.organization.name }}</p>
+                        {% if payment_order.project %}
+                            <p><strong>{% trans "پروژه:" %}</strong> {{ payment_order.project.name }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <!-- Select2 و jQuery برای AJAX loading گذارها -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    {% comment %} <script src="{% url 'admin/js/select2.min.js' %}"></script> {% endcomment %}
+    <script>
+        $(document).ready(function () {
+            // مقداردهی اولیه Select2 با AJAX
+            $('#transition-select').select2({
+                // تنظیمات AJAX برای لود تنبل گذارها
+                ajax: {
+                    url: '{% url "paymentorder_transitions_api" %}',
+                    dataType: 'json',
+                    delay: 300, // تاخیر 300 میلی‌ثانیه برای کاهش درخواست‌ها
+                    data: function (params) {
+                        // پارامترهای ارسالی به سرور
+                        return {
+                            q: params.term || '', // عبارت جستجو
+                            page: params.page || 1, // شماره صفحه
+                            page_size: 20, // تعداد آیتم در هر صفحه
+                            po_id: {{ payment_order.id }} // شناسه دستور پرداخت
+                        };
+                    },
+                    processResults: function (data, params) {
+                        // پردازش نتایج دریافتی از سرور
+                        params.page = params.page || 1;
+
+                        return {
+                            results: data.results, // لیست گذارهای مجاز
+                            pagination: {
+                                more: data.has_more // آیا صفحه بعدی وجود دارد؟
+                            }
+                        };
+                    },
+                    cache: true // کش کردن نتایج برای بهبود عملکرد
+                },
+                // تنظیمات ظاهری و عملکردی
+                placeholder: '{% trans "انتخاب اقدام..." %}',
+                allowClear: true, // امکان پاک کردن انتخاب
+                minimumInputLength: 0, // حداقل تعداد کاراکتر برای جستجو (0 = بدون محدودیت)
+                language: {
+                    noResults: function () {
+                        return "{% trans 'هیچ گذاری یافت نشد' %}";
+                    },
+                    searching: function () {
+                        return "{% trans 'در حال جستجو...' %}";
+                    },
+                    loadingMore: function () {
+                        return "{% trans 'در حال بارگذاری...' %}";
+                    }
+                }
+            });
+
+            // فعال/غیرفعال کردن دکمه اعمال بر اساس انتخاب
+            $('#transition-select').on('select2:select', function (e) {
+                var data = e.params.data;
+                if (data.id) {
+                    $('#apply-transition-btn').prop('disabled', false);
+                    console.log('انتخاب شد:', data.text, 'ID:', data.id);
+                }
+            });
+
+            $('#transition-select').on('select2:clear', function (e) {
+                $('#apply-transition-btn').prop('disabled', true);
+                console.log('انتخاب پاک شد');
+            });
+
+            // لاگ خطاهای AJAX
+            $('#transition-select').on('select2:error', function (e) {
+                console.error('خطا در Select2:', e);
+            });
+
+            // بارگذاری اولیه گذارهای موجود (اختیاری)
+            // اگر گذارهای موجود در context هستند، آن‌ها را به عنوان گزینه اولیه اضافه کن
+            {% if available_transitions %}
+                var initialOptions = [
+                    {% for t in available_transitions %}
+                        {
+                            id: {{ t.id }},
+                            text: "{{ t.action.name }} → {{ t.to_status.name }}"
+                        }{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ];
+
+                // اضافه کردن گزینه‌های اولیه
+                initialOptions.forEach(function (option) {
+                    var newOption = new Option(option.text, option.id, true, true);
+                    $('#transition-select').append(newOption).trigger('change');
+                });
+
+                // فعال کردن دکمه اگر گزینه‌ای انتخاب شده
+                if (initialOptions.length > 0) {
+                    $('#apply-transition-btn').prop('disabled', false);
+                }
+            {% endif %}
+
+            // مدیریت تغییر تصمیم
+            window.showChangeConfirmation = function() {
+                if (confirm('{% trans "آیا مطمئن هستید که می‌خواهید تصمیم قبلی خود را تغییر دهید؟ این عمل قابل بازگشت نیست." %}')) {
+                    // تغییر دکمه به حالت عادی
+                    var submitBtn = document.getElementById('submitBtn');
+                    if (submitBtn) {
+                        submitBtn.style.display = 'inline-block';
+                        submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>{% trans "تایید تغییرات" %}';
+                    }
+                    
+                    // مخفی کردن دکمه تغییر تصمیم
+                    var changeBtn = document.querySelector('button[onclick="showChangeConfirmation()"]');
+                    if (changeBtn) {
+                        changeBtn.style.display = 'none';
+                    }
+                    
+                    // اضافه کردن فیلد مخفی برای نشان دادن تغییر تصمیم
+                    var hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'change_decision';
+                    hiddenInput.value = 'true';
+                    document.getElementById('transition-form').appendChild(hiddenInput);
+                }
+            };
+
+            // مدیریت بازگشت برای سوپروایزر
+            window.showRevertConfirmation = function() {
+                if (confirm('{% trans "آیا مطمئن هستید که می‌خواهید دستور پرداخت را به وضعیت قبلی بازگردانید؟ این عمل تمام تاییدات قبلی را لغو می‌کند." %}')) {
+                    // ایجاد فرم بازگشت
+                    var revertForm = document.createElement('form');
+                    revertForm.method = 'POST';
+                    revertForm.action = window.location.href;
+                    
+                    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    var csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = csrfToken;
+                    revertForm.appendChild(csrfInput);
+                    
+                    var revertInput = document.createElement('input');
+                    revertInput.type = 'hidden';
+                    revertInput.name = 'revert_decision';
+                    revertInput.value = 'true';
+                    revertForm.appendChild(revertInput);
+                    
+                    document.body.appendChild(revertForm);
+                    revertForm.submit();
+                }
+            };
+
+            // اعتبارسنجی فرم برای تغییر تصمیم
+            document.getElementById('approvalForm').addEventListener('submit', function(e) {
+                var statusField = document.getElementById('{{ form.status.id_for_label }}');
+                var notesField = document.getElementById('{{ form.notes.id_for_label }}');
+                var changeDecision = document.querySelector('input[name="change_decision"]');
+                
+                if (!statusField.value) {
+                    e.preventDefault();
+                    alert('{% trans "لطفاً وضعیت را انتخاب کنید." %}');
+                    return;
+                }
+                
+                if (changeDecision && changeDecision.value === 'true' && !notesField.value.trim()) {
+                    e.preventDefault();
+                    alert('{% trans "لطفاً دلیل تغییر تصمیم را وارد کنید." %}');
+                    return;
+                }
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+            border-left: 2px solid #e9ecef;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-icon {
+            position: absolute;
+            left: -16px;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            background-color: #0d6efd;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #fff;
+        }
+
+        .timeline-content {
+            padding-left: 15px;
+        }
+    </style>
+{% endblock %}

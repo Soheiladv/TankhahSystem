@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="card">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">
+                <i class="fas fa-undo me-2"></i>
+                بازگشت فاکتور به کاربر
+            </h5>
+        </div>
+        <div class="card-body">
+            
+            <!-- اطلاعات فاکتور -->
+            <div class="alert alert-info">
+                <h6 class="alert-heading">
+                    <i class="fas fa-info-circle me-2"></i>
+                    اطلاعات فاکتور
+                </h6>
+                <p class="mb-1"><strong>شماره فاکتور:</strong> {{ factor.number }}</p>
+                <p class="mb-1"><strong>وضعیت فعلی:</strong> 
+                    <span class="badge bg-{{ factor.status|lower }}">
+                        {{ factor.get_status_display }}
+                    </span>
+                </p>
+                <p class="mb-1"><strong>ایجادکننده:</strong> {{ factor.created_by.get_full_name }}</p>
+                <p class="mb-0"><strong>مبلغ:</strong> {{ factor.amount|floatformat:0 }} ریال</p>
+            </div>
+            
+            <!-- فرم بازگشت -->
+            <form method="post" id="returnForm">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="reason" class="form-label">
+                        <i class="fas fa-comment me-1"></i>
+                        دلیل بازگشت
+                    </label>
+                    <textarea class="form-control" id="reason" name="reason" rows="4" 
+                              placeholder="دلیل بازگشت فاکتور را توضیح دهید..." required></textarea>
+                    <div class="form-text">
+                        این توضیحات به کاربر ارسال خواهد شد.
+                    </div>
+                </div>
+                
+                <!-- هشدار -->
+                <div class="alert alert-warning">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        هشدار
+                    </h6>
+                    <ul class="mb-0">
+                        <li>فاکتور به وضعیت "پیش‌نویس" بازگردانده می‌شود</li>
+                        <li>بودجه در تعهد آزاد می‌شود</li>
+                        <li>اعلان به کاربر ارسال می‌شود</li>
+                        <li>این عمل قابل بازگشت نیست</li>
+                    </ul>
+                </div>
+                
+                <!-- دکمه‌ها -->
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'factor_detail' factor.pk %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        بازگشت
+                    </a>
+                    <button type="submit" class="btn btn-warning" id="returnBtn">
+                        <i class="fas fa-undo me-1"></i>
+                        بازگرداندن فاکتور
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal تأیید -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    تأیید بازگشت فاکتور
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>آیا مطمئن هستید که می‌خواهید این فاکتور را به کاربر بازگردانید؟</p>
+                <div class="alert alert-warning">
+                    <strong>توجه:</strong> این عمل قابل بازگشت نیست و فاکتور به وضعیت پیش‌نویس بازمی‌گردد.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    لغو
+                </button>
+                <button type="button" class="btn btn-warning" id="confirmReturn">
+                    <i class="fas fa-undo me-1"></i>
+                    تأیید بازگشت
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('returnForm');
+    const returnBtn = document.getElementById('returnBtn');
+    const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    const confirmReturnBtn = document.getElementById('confirmReturn');
+    
+    // نمایش modal تأیید
+    returnBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const reason = document.getElementById('reason').value.trim();
+        if (!reason) {
+            alert('لطفاً دلیل بازگشت را وارد کنید.');
+            return;
+        }
+        
+        confirmModal.show();
+    });
+    
+    // تأیید نهایی
+    confirmReturnBtn.addEventListener('click', function() {
+        confirmModal.hide();
+        form.submit();
+    });
+});
+</script>
+{% endblock %}

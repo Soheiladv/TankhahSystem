@@ -329,7 +329,9 @@ class PostForm(forms.ModelForm):
     def save(self, commit=True):
         post = super().save(commit=False)
         if commit:
-            post.save(changed_by=self._user)  # بجای getattr(self._user, 'id', None)
+            # استفاده از _changed_by اگر تنظیم شده باشد، در غیر این صورت از self._user
+            changed_by = getattr(post, '_changed_by', self._user)
+            post.save(changed_by=changed_by)
             selected_actions = self.cleaned_data.get('post_actions', [])
 
             # حذف PostAction هایی که انتخاب نشده‌اند
@@ -412,8 +414,18 @@ class UserPostForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         logger.debug(f"[UserPostForm] شروع مقداردهی اولیه برای کاربر '{self.request.user.username if self.request else 'Anonymous'}'")
 
-        # فیلتر کاربران فعال
-        self.fields['user'].queryset = CustomUser.objects.filter(is_active=True).order_by('username')
+        # فیلتر کاربران فعال و تنظیم نمایش نام کامل
+        self.fields['user'].queryset = CustomUser.objects.filter(is_active=True).order_by('first_name', 'last_name')
+        
+        # تنظیم نمایش نام کامل در dropdown
+        def get_user_display_name(user):
+            full_name = user.get_full_name()
+            if full_name and full_name != user.username:
+                return f"{full_name} " #({user.username})
+            return user.username
+        
+        # تنظیم label_from_instance برای نمایش نام کامل
+        self.fields['user'].label_from_instance = get_user_display_name
 
         # فیلتر پست‌های فعال در سازمان‌های مجاز
         if self.request and not self.request.user.is_superuser:
@@ -443,6 +455,7 @@ class UserPostForm(forms.ModelForm):
         # ✅ اصلاح نمایش تاریخ‌ها در فرم
         from jalali_date import date2jalali
         if self.instance.pk:
+            logger.debug(f"[UserPostForm] ویرایش اتصال با ID: {self.instance.pk}, کاربر فعلی: {self.instance.user}, پست فعلی: {self.instance.post}")
             if self.instance.start_date:
                 self.initial['start_date'] = date2jalali(self.instance.start_date).strftime('%Y/%m/%d')
             if self.instance.end_date:
@@ -480,14 +493,38 @@ class UserPostForm(forms.ModelForm):
         is_active = cleaned_data.get('is_active')
 
         if user and post:
-            existing = UserPost.objects.filter(
-                user=user,
-                post=post,
-                is_active=True
-            ).exclude(pk=self.instance.pk if self.instance.pk else None)
-            if existing.exists():
-                logger.warning(f"[UserPostForm.clean] اتصال فعال برای کاربر '{user.username}' و پست '{post.name}' وجود دارد")
-                raise ValidationError(_('این کاربر قبلاً به این پست متصل است و اتصال فعال است.'))
+            # Only check for duplicates if we're creating a new connection or changing user/post
+            current_user = getattr(self.instance, 'user', None)
+            current_post = getattr(self.instance, 'post', None)
+            
+            logger.debug(f"[UserPostForm.clean] بررسی تداخل - Instance PK: {self.instance.pk}, Current User: {current_user}, New User: {user}, Current Post: {current_post}, New Post: {post}")
+            
+            # If user or post is being changed, check for existing active connections
+            if (not self.instance.pk or 
+                (current_user and current_user != user) or 
+                (current_post and current_post != post)):
+                
+                logger.debug(f"[UserPostForm.clean] بررسی تداخل لازم است - Instance PK: {self.instance.pk}")
+                
+                # Check for existing active connections with the same user and post
+                existing_connections = UserPost.objects.filter(
+                    user=user,
+                    post=post,
+                    is_active=True
+                ).exclude(pk=self.instance.pk if self.instance.pk else None)
+                
+                logger.debug(f"[UserPostForm.clean] تعداد اتصالات موجود: {existing_connections.count()}")
+                
+                # Simplified validation: Only check if there are multiple active connections
+                if existing_connections.exists():
+                    logger.warning(f"[UserPostForm.clean] اتصال فعال دیگری برای کاربر '{user.username}' و پست '{post.name}' وجود دارد")
+                    # Allow the update but warn about existing connections
+                    # raise ValidationError(_('این کاربر قبلاً به این پست متصل است و اتصال فعال است.'))
+                    logger.info(f"[UserPostForm.clean] اجازه به‌روزرسانی داده شد - اتصالات موجود: {existing_connections.count()}")
+                else:
+                    logger.debug(f"[UserPostForm.clean] هیچ اتصال فعالی برای این کاربر و پست وجود ندارد")
+            else:
+                logger.debug(f"[UserPostForm.clean] نیازی به بررسی تداخل نیست - کاربر و پست تغییر نکرده‌اند")
 
         # ✅ در اینجا تاریخ‌ها از قبل در clean_start_date و clean_end_date تبدیل شدن
         if end_date and start_date and end_date < start_date:

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "جزئیات تمپلیت" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-file-code mr-2"></i>
+                        {{ object.name }}
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'workflow_management:template_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            {% trans "بازگشت" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>{% trans "اطلاعات کلی" %}</h5>
+                            <table class="table table-striped">
+                                <tr>
+                                    <td><strong>{% trans "نام تمپلیت" %}</strong></td>
+                                    <td>{{ object.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "توضیحات" %}</strong></td>
+                                    <td>{{ object.description|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "نوع موجودیت" %}</strong></td>
+                                    <td>{{ object.get_entity_type_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "سازمان مبدا" %}</strong></td>
+                                    <td>{{ object.organization.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "وضعیت" %}</strong></td>
+                                    <td>
+                                        {% if object.is_active %}
+                                            <span class="badge badge-success">{% trans "فعال" %}</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">{% trans "غیرفعال" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "تاریخ ایجاد" %}</strong></td>
+                                    <td>{{ object.created_at|date:"Y/m/d H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>{% trans "قوانین" %}</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    <pre>{{ object.rules_data|pprint }}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>{% trans "عملیات" %}</h5>
+                                </div>
+                                <div class="card-body">
+                                    <a href="{% url 'workflow_management:apply_template' object.pk %}" class="btn btn-success">
+                                        <i class="fas fa-arrow-right mr-2"></i>
+                                        {% trans "اعمال تمپلیت" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

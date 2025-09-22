@@ -1,0 +1,455 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}راهنمای جامع مدیریت گردش کار{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <h1 class="display-6 fw-bold text-primary mb-3">
+                        <i class="fas fa-graduation-cap me-3"></i>
+                        راهنمای جامع مدیریت گردش کار
+                    </h1>
+                    <p class="lead text-muted mb-0">
+                        راهنمای کامل و مرحله به مرحله برای مدیریت قوانین گردش کار
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table of Contents -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        فهرست مطالب
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <h6 class="text-primary mb-3">مبانی گردش کار:</h6>
+                            <ul class="list-unstyled">
+                                <li><a href="#introduction" class="text-decoration-none">1. مقدمه و مفاهیم پایه</a></li>
+                                <li><a href="#components" class="text-decoration-none">2. اجزای اصلی سیستم</a></li>
+                                <li><a href="#workflow-types" class="text-decoration-none">3. انواع گردش کار</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-lg-6">
+                            <h6 class="text-primary mb-3">راهنمای عملی:</h6>
+                            <ul class="list-unstyled">
+                                <li><a href="#step-by-step" class="text-decoration-none">4. راهنمای مرحله به مرحله</a></li>
+                                <li><a href="#examples" class="text-decoration-none">5. مثال‌های عملی</a></li>
+                                <li><a href="#troubleshooting" class="text-decoration-none">6. عیب‌یابی و نکات مهم</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Introduction -->
+    <div class="row mb-4" id="introduction">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        1. مقدمه و مفاهیم پایه
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-primary mb-3">گردش کار چیست؟</h6>
+                    <p class="text-muted mb-4">
+                        گردش کار (Workflow) مجموعه‌ای از قوانین و مراحل است که تعیین می‌کند یک سند یا درخواست چگونه از یک مرحله به مرحله بعدی منتقل شود. 
+                        در سیستم مدیریت بودجه، گردش کار برای موارد زیر استفاده می‌شود:
+                    </p>
+                    
+                    <div class="row">
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-wallet fa-2x text-primary mb-3"></i>
+                                    <h6 class="card-title">تنخواه</h6>
+                                    <p class="card-text small text-muted">گردش کار درخواست و تایید تنخواه</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-file-invoice fa-2x text-success mb-3"></i>
+                                    <h6 class="card-title">فاکتور</h6>
+                                    <p class="card-text small text-muted">گردش کار تایید و پرداخت فاکتور</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="card border-warning">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-money-check-alt fa-2x text-warning mb-3"></i>
+                                    <h6 class="card-title">دستور پرداخت</h6>
+                                    <p class="card-text small text-muted">گردش کار تایید و اجرای پرداخت</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="text-primary mb-3 mt-4">مزایای استفاده از گردش کار:</h6>
+                    <ul class="text-muted">
+                        <li><strong>کنترل بهتر:</strong> نظارت دقیق بر تمام مراحل</li>
+                        <li><strong>شفافیت:</strong> مشخص بودن وضعیت هر درخواست</li>
+                        <li><strong>امنیت:</strong> تعیین مجوزهای دقیق برای هر مرحله</li>
+                        <li><strong>سرعت:</strong> خودکارسازی فرآیندها</li>
+                        <li><strong>آرشیو:</strong> نگهداری تاریخچه کامل</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Components -->
+    <div class="row mb-4" id="components">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-puzzle-piece me-2"></i>
+                        2. اجزای اصلی سیستم
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-6 mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-tasks me-2"></i>
+                                وضعیت‌ها (Status)
+                            </h6>
+                            <p class="text-muted mb-3">
+                                وضعیت‌ها نشان‌دهنده مرحله فعلی یک درخواست هستند. مثال‌هایی از وضعیت‌ها:
+                            </p>
+                            <ul class="text-muted">
+                                <li><span class="badge bg-secondary">پیش‌نویس</span> - درخواست در حال تکمیل</li>
+                                <li><span class="badge bg-warning">در انتظار تایید</span> - منتظر تایید مسئول</li>
+                                <li><span class="badge bg-success">تایید شده</span> - درخواست تایید شده</li>
+                                <li><span class="badge bg-danger">رد شده</span> - درخواست رد شده</li>
+                                <li><span class="badge bg-info">پرداخت شده</span> - پرداخت انجام شده</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="col-lg-6 mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-play-circle me-2"></i>
+                                اقدامات (Action)
+                            </h6>
+                            <p class="text-muted mb-3">
+                                اقدامات عملیاتی هستند که می‌توان روی یک درخواست انجام داد:
+                            </p>
+                            <ul class="text-muted">
+                                <li><span class="badge bg-primary">ارسال</span> - ارسال درخواست برای تایید</li>
+                                <li><span class="badge bg-success">تایید</span> - تایید درخواست</li>
+                                <li><span class="badge bg-danger">رد</span> - رد درخواست</li>
+                                <li><span class="badge bg-warning">بازگشت</span> - بازگرداندن برای اصلاح</li>
+                                <li><span class="badge bg-info">پرداخت</span> - انجام پرداخت</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-lg-6 mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-sitemap me-2"></i>
+                                پست‌های سازمانی (Post)
+                            </h6>
+                            <p class="text-muted mb-3">
+                                پست‌های سازمانی تعیین می‌کنند که چه کسانی مجاز به انجام چه اقداماتی هستند:
+                            </p>
+                            <ul class="text-muted">
+                                <li>مدیر مالی - تایید پرداخت‌ها</li>
+                                <li>مدیرعامل - تایید نهایی</li>
+                                <li>حسابدار - ثبت و بررسی</li>
+                                <li>کارمند - ارسال درخواست</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="col-lg-6 mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-link me-2"></i>
+                                تخصیصات (Assignment)
+                            </h6>
+                            <p class="text-muted mb-3">
+                                تخصیصات تعیین می‌کنند که هر پست در چه وضعیتی چه اقداماتی می‌تواند انجام دهد:
+                            </p>
+                            <ul class="text-muted">
+                                <li>پست A در وضعیت "در انتظار" می‌تواند "تایید" کند</li>
+                                <li>پست B در وضعیت "تایید شده" می‌تواند "پرداخت" کند</li>
+                                <li>پست C در هر وضعیتی می‌تواند "رد" کند</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step by Step Guide -->
+    <div class="row mb-4" id="step-by-step">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-ol me-2"></i>
+                        3. راهنمای مرحله به مرحله
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-lightbulb me-2"></i>
+                                    نکته مهم
+                                </h6>
+                                <p class="mb-0">برای ایجاد یک گردش کار کامل، باید مراحل زیر را به ترتیب انجام دهید:</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 1 -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">
+                                        <span class="badge bg-light text-primary me-2">1</span>
+                                        تعریف وضعیت‌ها
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-lg-8">
+                                            <h6 class="text-primary mb-3">مرحله اول: تعریف وضعیت‌های مورد نیاز</h6>
+                                            <p class="text-muted mb-3">
+                                                ابتدا باید وضعیت‌های مورد نیاز برای گردش کار خود را تعریف کنید. 
+                                                برای هر نوع درخواست (تنخواه، فاکتور، دستور پرداخت) وضعیت‌های مخصوص آن را ایجاد کنید.
+                                            </p>
+                                            <ul class="text-muted">
+                                                <li>وضعیت‌های اولیه (مثل: پیش‌نویس، در انتظار تایید)</li>
+                                                <li>وضعیت‌های میانی (مثل: در حال بررسی، تایید شده)</li>
+                                                <li>وضعیت‌های نهایی (مثل: پرداخت شده، رد شده)</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <div class="d-grid gap-2">
+                                                <a href="{% url 'workflow_management:status_create' %}" class="btn btn-primary">
+                                                    <i class="fas fa-plus me-2"></i>ایجاد وضعیت جدید
+                                                </a>
+                                                <a href="{% url 'workflow_management:status_list' %}" class="btn btn-outline-primary">
+                                                    <i class="fas fa-list me-2"></i>مشاهده وضعیت‌ها
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0">
+                                        <span class="badge bg-light text-success me-2">2</span>
+                                        تعریف اقدامات
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-lg-8">
+                                            <h6 class="text-success mb-3">مرحله دوم: تعریف اقدامات مورد نیاز</h6>
+                                            <p class="text-muted mb-3">
+                                                پس از تعریف وضعیت‌ها، باید اقداماتی که می‌توان در هر وضعیت انجام داد را تعریف کنید.
+                                                هر اقدام یک عملیات مشخص است که وضعیت درخواست را تغییر می‌دهد.
+                                            </p>
+                                            <ul class="text-muted">
+                                                <li>اقدامات تایید (مثل: تایید، تایید نهایی)</li>
+                                                <li>اقدامات رد (مثل: رد، رد نهایی)</li>
+                                                <li>اقدامات انتقال (مثل: ارسال، بازگشت)</li>
+                                                <li>اقدامات اجرا (مثل: پرداخت، ثبت)</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <div class="d-grid gap-2">
+                                                <a href="{% url 'workflow_management:action_create' %}" class="btn btn-success">
+                                                    <i class="fas fa-plus me-2"></i>ایجاد اقدام جدید
+                                                </a>
+                                                <a href="{% url 'workflow_management:action_list' %}" class="btn btn-outline-success">
+                                                    <i class="fas fa-list me-2"></i>مشاهده اقدامات
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card border-warning">
+                                <div class="card-header bg-warning text-white">
+                                    <h6 class="mb-0">
+                                        <span class="badge bg-light text-warning me-2">3</span>
+                                        تخصیص قوانین
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-lg-8">
+                                            <h6 class="text-warning mb-3">مرحله سوم: تخصیص قوانین به پست‌ها</h6>
+                                            <p class="text-muted mb-3">
+                                                حالا باید تعیین کنید که هر پست سازمانی در چه وضعیتی چه اقداماتی می‌تواند انجام دهد.
+                                                این مرحله مهم‌ترین بخش ایجاد گردش کار است.
+                                            </p>
+                                            <ul class="text-muted">
+                                                <li>انتخاب پست سازمانی</li>
+                                                <li>انتخاب نوع موجودیت (تنخواه، فاکتور، دستور پرداخت)</li>
+                                                <li>تعیین اقدامات مجاز</li>
+                                                <li>تنظیم قوانین خاص (اختیاری)</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <div class="d-grid gap-2">
+                                                <a href="{% url 'workflow_management:assign_rule_to_post' %}" class="btn btn-warning">
+                                                    <i class="fas fa-link me-2"></i>تخصیص قانون جدید
+                                                </a>
+                                                <a href="{% url 'workflow_management:post_assignment_list' %}" class="btn btn-outline-warning">
+                                                    <i class="fas fa-list me-2"></i>مشاهده تخصیصات
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card border-info">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0">
+                                        <span class="badge bg-light text-info me-2">4</span>
+                                        تست و بررسی
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-lg-8">
+                                            <h6 class="text-info mb-3">مرحله چهارم: تست و بررسی گردش کار</h6>
+                                            <p class="text-muted mb-3">
+                                                پس از ایجاد گردش کار، باید آن را تست کنید تا مطمئن شوید که درست کار می‌کند.
+                                                این مرحله برای اطمینان از صحت عملکرد سیستم ضروری است.
+                                            </p>
+                                            <ul class="text-muted">
+                                                <li>تست تمام مسیرهای ممکن</li>
+                                                <li>بررسی مجوزهای پست‌ها</li>
+                                                <li>تست انتقال بین وضعیت‌ها</li>
+                                                <li>بررسی قوانین خاص</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <div class="d-grid gap-2">
+                                                <a href="{% url 'workflow_management:post_assignment_list' %}" class="btn btn-info">
+                                                    <i class="fas fa-check-circle me-2"></i>بررسی تخصیصات
+                                                </a>
+                                                <a href="{% url 'workflow_management:simple_dashboard' %}" class="btn btn-outline-info">
+                                                    <i class="fas fa-home me-2"></i>بازگشت به داشبورد
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Dashboard -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-4">
+                    <h5 class="text-primary mb-3">آیا سوال دیگری دارید؟</h5>
+                    <p class="text-muted mb-4">برای دسترسی به بخش‌های مختلف سیستم، از لینک‌های زیر استفاده کنید:</p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="{% url 'workflow_management:simple_dashboard' %}" class="btn btn-primary">
+                            <i class="fas fa-home me-2"></i>بازگشت به داشبورد
+                        </a>
+                        <a href="{% url 'workflow_management:status_list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-tasks me-2"></i>مدیریت وضعیت‌ها
+                        </a>
+                        <a href="{% url 'workflow_management:action_list' %}" class="btn btn-outline-success">
+                            <i class="fas fa-play-circle me-2"></i>مدیریت اقدامات
+                        </a>
+                        <a href="{% url 'workflow_management:post_assignment_list' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-sitemap me-2"></i>مدیریت تخصیصات
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // Add hover effects to cards
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

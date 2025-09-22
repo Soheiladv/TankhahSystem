@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "گزارش جامع بودجه" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-pie mr-2"></i>
+                        {% trans "گزارش جامع بودجه" %}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-info">
+                                    <i class="fas fa-wallet"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "کل بودجه تخصیص یافته" %}</span>
+                                    <span class="info-box-number">{{ total_budget_allocated|floatformat:0 }} {% trans "ریال" %}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-success">
+                                    <i class="fas fa-check-circle"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "کل بودجه مصرف شده" %}</span>
+                                    <span class="info-box-number">{{ total_budget_consumed|floatformat:0 }} {% trans "ریال" %}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "بودجه باقی‌مانده" %}</span>
+                                    <span class="info-box-number">{{ total_budget_remaining|floatformat:0 }} {% trans "ریال" %}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-primary">
+                                    <i class="fas fa-percentage"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{% trans "درصد مصرف" %}</span>
+                                    <span class="info-box-number">{{ budget_consumption_percentage|floatformat:1 }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">{% trans "روند ماهانه بودجه" %}</h4>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="budgetTrendChart" height="100"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('budgetTrendChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ monthly_budget_trend.labels|safe }},
+            datasets: [{
+                label: '{% trans "تخصیص یافته" %}',
+                data: {{ monthly_budget_trend.allocated|safe }},
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }, {
+                label: '{% trans "مصرف شده" %}',
+                data: {{ monthly_budget_trend.consumed|safe }},
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                tension: 0.1
+            }, {
+                label: '{% trans "باقی‌مانده" %}',
+                data: {{ monthly_budget_trend.remaining|safe }},
+                borderColor: 'rgb(54, 162, 235)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n rcms_custom_filters %}
+
+{% block title %}آمار دستورات پرداخت{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid">
+    <!-- هدر آمار -->
+    <div class="stats-header">
+        <h1><i class="fas fa-chart-bar"></i> آمار دستورات پرداخت</h1>
+        <p>گزارش جامع و تحلیل عملکرد سیستم دستورات پرداخت</p>
+    </div>
+
+    <!-- دکمه‌های عملیات -->
+    <div class="export-buttons">
+        <button class="btn btn-export" onclick="exportToExcel()">
+            <i class="fas fa-file-excel"></i> خروجی Excel
+        </button>
+        <button class="btn btn-export" onclick="exportToPDF()">
+            <i class="fas fa-file-pdf"></i> خروجی PDF
+        </button>
+        <button class="btn btn-refresh" onclick="location.reload()">
+            <i class="fas fa-sync-alt"></i> بروزرسانی
+        </button>
+    </div>
+
+    <!-- آمار کلی -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-file-invoice"></i></div>
+            <h3>{{ stats.total |format_negative}}</h3>
+            <p>کل دستورات پرداخت</p>
+        </div>
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-clock"></i></div>
+            <h3>{{ stats.pending |format_negative}}</h3>
+            <p>در انتظار تایید</p>
+        </div>
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-check-circle"></i></div>
+            <h3>{{ stats.approved|format_negative }}</h3>
+            <p>تایید شده</p>
+        </div>
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
+            <h3>{{ stats.paid |format_negative}}</h3>
+            <p>پرداخت شده</p>
+        </div>
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-archive"></i></div>
+            <h3>{{ stats.archived |format_negative}}</h3>
+            <p>آرشیو شده</p>
+        </div>
+        <div class="stat-card">
+            <div class="icon"><i class="fas fa-dollar-sign"></i></div>
+            <h3>{{ stats.total_amount|format_negative }}   (ريال) </h3>
+            <p>مجموع مبالغ</p>
+        </div>
+    </div>
+
+    <!-- نمودار وضعیت‌ها -->
+    <div class="chart-section">
+        <h3><i class="fas fa-chart-pie"></i> توزیع بر اساس وضعیت</h3>
+        <div class="chart-container">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+
+    <!-- نمودار ماهانه -->
+    <div class="chart-section">
+        <h3><i class="fas fa-chart-line"></i> روند ماهانه</h3>
+        <div class="chart-container">
+            <canvas id="monthlyChart"></canvas>
+        </div>
+    </div>
+
+    <!-- جدول آمار سازمان‌ها -->
+    {% if stats.by_organization %}
+    <div class="table-section">
+        <h3><i class="fas fa-building"></i> آمار بر اساس سازمان</h3>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>{%  trans "ردیف " %}</th>
+                        <th>{%  trans "سازمان " %}</th>
+                        <th>{%  trans "تعداد دستورات " %}</th>
+                        <th>{%  trans "مجموع مبلغ (ريال) " %}</th>
+                        <th>{%  trans "درصد " %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for org in stats.by_organization %}
+                    <tr>
+                        <td>{{  forloop.counter | format_negative }}</td>
+                        <td>{{ org.organization__name|default:"نامشخص" }}</td>
+                        <td><span class="badge badge-info">{{ org.count | format_negative}} </span></td>
+                        <td><span class="amount">{{ org.amount  | format_negative}}</span></td>
+                        <td>{{ org.amount|div:stats.total_amount|mul:100|floatformat:1 | format_negative}}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- جدول آمار وضعیت‌ها -->
+    {% if stats.by_status %}
+    <div class="table-section">
+        <h3><i class="fas fa-list"></i> آمار بر اساس وضعیت</h3>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+
+                        <th>{%  trans 'ردیف' %}</th>
+                        <th>وضعیت</th>
+                        <th>تعداد</th>
+                        <th>مجموع مبلغ</th>
+                        <th>درصد</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for status in stats.by_status %}
+                    <tr>
+                        <td>{{ forloop.counter | format_negative  }}</td>
+
+                        <td>
+                            <span class="badge 
+                                {% if status.status__name == 'تایید شده' %}badge-success
+                                {% elif status.status__name == 'در انتظار' %}badge-warning
+                                {% elif status.status__name == 'پرداخت شده' %}badge-info
+                                {% else %}badge-danger{% endif %}">
+                                {{ status.status__name|default:"نامشخص" }}
+                            </span>
+                        </td>
+                        <td>{{ status.count |format_negative }}</td>
+                        <td><span class="amount">{{ status.amount |format_negative  }} </span></td>
+                        <td>{{ status.amount|div:stats.total_amount|mul:100|floatformat:1 }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- جدول آمار ماهانه -->
+    {% if stats.by_month %}
+    <div class="table-section">
+        <h3><i class="fas fa-calendar"></i> آمار ماهانه</h3>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ردیف</th>
+                        <th>ماه</th>
+                        <th>تعداد دستورات</th>
+                        <th>مجموع مبلغ</th>
+                        <th>میانگین مبلغ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for month in stats.by_month %}
+                    <tr>
+                        <td>{{ forloop.counter | format_negative }}</td>
+                        <td>{{ month.month }}</td>
+                        <td><span class="badge badge-info">{{ month.count }}</span></td>
+                        <td><span class="amount">{{ month.amount|floatformat:0 | format_negative}}ريال </span></td>
+                        <td>{{ month.amount|div:month.count|floatformat:0|format_negative }} ريال</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- پیام عدم وجود داده -->
+    {% if not stats.total %}
+    <div class="no-data">
+        <i class="fas fa-chart-bar"></i>
+        <h4>هیچ داده‌ای یافت نشد</h4>
+        <p>در حال حاضر هیچ دستور پرداختی در سیستم وجود ندارد.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+    function exportToExcel() {
+      const url = `{% url 'export_api' %}?app=budgets&model=PaymentOrder&format=xlsx&filename=payment_orders_stats`;
+      window.location = url;
+    }
+    function exportToPDF() {
+      const url = `{% url 'export_api' %}?app=budgets&model=PaymentOrder&format=pdf&filename=payment_orders_stats`;
+      window.location = url;
+    }
+    </script>
+
+    
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// نمودار وضعیت‌ها
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+const statusData = {
+    labels: [
+        {% for status in stats.by_status %}
+        '{{ status.status__name|default:"نامشخص" }}',
+        {% endfor %}
+    ],
+    datasets: [{
+        data: [
+            {% for status in stats.by_status %}
+            {{ status.count }},
+            {% endfor %}
+        ],
+        backgroundColor: [
+            '#28a745',
+            '#ffc107', 
+            '#17a2b8',
+            '#dc3545',
+            '#6c757d'
+        ],
+        borderWidth: 2,
+        borderColor: '#fff'
+    }]
+};
+
+new Chart(statusCtx, {
+    type: 'doughnut',
+    data: statusData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    usePointStyle: true
+                }
+            }
+        }
+    }
+});
+
+// نمودار ماهانه
+const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+const monthlyData = {
+    labels: [
+        {% for month in stats.by_month %}
+        '{{ month.month }}',
+        {% endfor %}
+    ],
+    datasets: [{
+        label: 'تعداد دستورات',
+        data: [
+            {% for month in stats.by_month %}
+            {{ month.count }},
+            {% endfor %}
+        ],
+        borderColor: '#667eea',
+        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+        tension: 0.4,
+        fill: true
+    }, {
+        label: 'مجموع مبلغ (میلیون ریال)',
+        data: [
+            {% for month in stats.by_month %}
+            {{ month.amount|div:1000000|floatformat:0 }},
+            {% endfor %}
+        ],
+        borderColor: '#764ba2',
+        backgroundColor: 'rgba(118, 75, 162, 0.1)',
+        tension: 0.4,
+        yAxisID: 'y1'
+    }]
+};
+
+new Chart(monthlyCtx, {
+    type: 'line',
+    data: monthlyData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                title: {
+                    display: true,
+                    text: 'تعداد دستورات'
+                }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                title: {
+                    display: true,
+                    text: 'مبلغ (میلیون ریال)'
+                },
+                grid: {
+                    drawOnChartArea: false,
+                },
+            }
+        },
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: {
+                    padding: 20,
+                    usePointStyle: true
+                }
+            }
+        }
+    }
+});
+
+// توابع صادرات
+function exportToExcel() {
+    // پیاده‌سازی صادرات به Excel
+    alert('قابلیت صادرات به Excel در حال توسعه است.');
+}
+
+function exportToPDF() {
+    // پیاده‌سازی صادرات به PDF
+    alert('قابلیت صادرات به PDF در حال توسعه است.');
+}
+</script>
+{% endblock %}

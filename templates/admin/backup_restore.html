@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "بازگردانی پشتیبان" %}{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <div class="container-fluid">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-undo"></i> {% trans "بازگردانی فایل پشتیبان" %}
+            </h1>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i> {% trans "هشدار مهم" %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>{% trans "هشدار:" %}</strong> {% trans "این عملیات تمام داده‌های فعلی دیتابیس را جایگزین خواهد کرد!" %}
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label"><strong>{% trans "فایل انتخاب شده:" %}</strong></label>
+                    <div class="form-control-plaintext bg-light p-2 rounded">
+                        <i class="fas fa-file me-2"></i>{{ file_name }}
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="confirm-text" class="form-label">{% trans "تأیید بازگردانی" %}</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="confirm-text"
+                               name="confirm_text"
+                               placeholder="{% trans 'برای تأیید، کلمه بازگردانی را تایپ کنید' %}" 
+                               required>
+                        <div class="form-text">{% trans "برای امنیت، باید کلمه 'بازگردانی' را تایپ کنید" %}</div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-undo me-2"></i> {% trans "بازگردانی" %}
+                        </button>
+                        <a href="{% url 'backup:list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i> {% trans "انصراف" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

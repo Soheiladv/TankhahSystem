@@ -1,0 +1,20 @@
+# نمونه تنظیمات cron برای سیستم پشتیبان‌گیری
+# این فایل را کپی کرده و در crontab قرار دهید
+
+# هر 5 دقیقه یکبار بررسی پشتیبان‌گیری‌های زمان‌بندی شده
+*/5 * * * * /path/to/python /path/to/scripts/backup_scheduler.py
+
+# هر ساعت یکبار بررسی (کمتر منابع مصرف می‌کند)
+0 * * * * /path/to/python /path/to/scripts/backup_scheduler.py
+
+# هر روز ساعت 2 صبح
+0 2 * * * /path/to/python /path/to/scripts/backup_scheduler.py
+
+# هر یکشنبه ساعت 3 صبح
+0 3 * * 0 /path/to/python /path/to/scripts/backup_scheduler.py
+
+# اجرای اسکچول خاص
+0 1 * * * /path/to/python /path/to/scripts/backup_scheduler.py --schedule-id 1
+
+# اجرای تستی (بدون انجام عملیات)
+0 0 * * * /path/to/python /path/to/scripts/backup_scheduler.py --dry-run

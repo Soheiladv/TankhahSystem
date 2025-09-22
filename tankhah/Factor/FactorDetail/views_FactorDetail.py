@@ -295,6 +295,21 @@ class FactorDetailView(PermissionBaseView, DetailView):
         if factor.tankhah:
             context['tankhah_budget_summary'] = self._compute_tankhah_budget_summary(factor.tankhah)
 
+        # مسیر تأیید کامل
+        from tankhah.Factor.views_factor_approval_path import (
+            get_detailed_approval_path, 
+            get_approval_path_statistics,
+            get_duplicate_actions_analysis,
+            get_termination_rules,
+            get_post_rules_per_branch
+        )
+        
+        context['approval_path'] = get_detailed_approval_path(factor, user)
+        context['path_stats'] = get_approval_path_statistics(factor)
+        context['duplicate_actions'] = get_duplicate_actions_analysis(factor)
+        context['termination_rules'] = get_termination_rules(factor)
+        context['post_rules_per_branch'] = get_post_rules_per_branch(factor)
+
         # اقدامات مجاز و مسیر گردش کار
         if not factor.status or not getattr(factor, 'tankhah', None) or not getattr(factor.tankhah, 'organization', None):
             logger.warning(

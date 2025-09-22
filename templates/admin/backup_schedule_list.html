@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% load static jformat rcms_custom_filters i18n %}
+
+{% block title %}{% trans "مدیریت اسکچول‌های پشتیبان‌گیری" %}{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <div class="container-fluid">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-clock me-2"></i> {% trans "مدیریت اسکچول‌های پشتیبان‌گیری" %}
+            </h1>
+            <p class="page-subtitle">{% trans "تنظیم و مدیریت پشتیبان‌گیری‌های خودکار" %}</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- آمار کلی -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0">{{ total_schedules }}</h4>
+                                <small>{% trans "کل اسکچول‌ها" %}</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-clock fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0">{{ active_schedules }}</h4>
+                                <small>{% trans "اسکچول‌های فعال" %}</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-play fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0">{{ pending_schedules }}</h4>
+                                <small>{% trans "در انتظار اجرا" %}</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-hourglass-half fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0">{{ total_logs }}</h4>
+                                <small>{% trans "کل اجراها" %}</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-history fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- دکمه‌های عملیات -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{% url 'backup:schedule_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i> {% trans "ایجاد اسکچول جدید" %}
+                    </a>
+                    <a href="{% url 'backup:schedule_logs' %}" class="btn btn-info">
+                        <i class="fas fa-history me-2"></i> {% trans "مشاهده لاگ‌ها" %}
+                    </a>
+                    <a href="{% url 'backup:schedule_test' %}" class="btn btn-warning">
+                        <i class="fas fa-vial me-2"></i> {% trans "تست سیستم" %}
+                    </a>
+                    <a href="{% url 'backup:list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i> {% trans "بازگشت به پشتیبان‌گیری" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- جدول اسکچول‌ها -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list me-2"></i> {% trans "لیست اسکچول‌های پشتیبان‌گیری" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if schedules %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "ردیف" %}</th>
+                                    <th>{% trans "نام" %}</th>
+                                    <th>{% trans "فرکانس" %}</th>
+                                    <th>{% trans "دیتابیس" %}</th>
+                                    <th>{% trans "فرمت" %}</th>
+                                    <th>{% trans "وضعیت" %}</th>
+                                    <th>{% trans "اجرای بعدی" %}</th>
+                                    <th>{% trans "آخرین اجرا" %}</th>
+                                    <th>{% trans "عملیات" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for schedule in schedules %}
+                                <tr>
+                                    <td>
+                                        {{ forloop.counter |format_negative }}
+                                    </td>
+                                    <td>
+                                        <strong>{{ schedule.name }}</strong>
+                                        {% if schedule.description %}
+                                            <br><small class="text-muted">{{ schedule.description|truncatechars:50 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ schedule.get_frequency_display }}</span>
+                                        {% if schedule.custom_cron %}
+                                            <br><small class="text-muted">{{ schedule.custom_cron }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ schedule.get_database_display }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ schedule.get_format_type_display }}</span>
+                                        {% if schedule.encrypt %}
+                                            <br><small class="text-success"><i class="fas fa-lock"></i> {% trans "رمزگذاری" %}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if schedule.is_active %}
+                                            <span class="badge bg-success">{% trans "فعال" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{% trans "غیرفعال" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if schedule.next_run %}
+                                            <small>{{ schedule.next_run|date:"Y/m/d H:i" }}</small>
+                                        {% else %}
+                                            <small class="text-muted">-</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if schedule.last_run %}
+                                            <small>{{ schedule.last_run|date:"Y/m/d H:i" }}</small>
+                                        {% else %}
+                                            <small class="text-muted">{% trans "هنوز اجرا نشده" %}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'backup:schedule_detail' schedule.id %}" class="btn btn-outline-info" title="{% trans 'مشاهده جزئیات' %}">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'backup:schedule_edit' schedule.id %}" class="btn btn-outline-primary" title="{% trans 'ویرایش' %}">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form method="post" action="{% url 'backup:schedule_run' schedule.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-outline-success" title="{% trans 'اجرای دستی' %}">
+                                                    <i class="fas fa-play"></i>
+                                                </button>
+                                            </form>
+                                            <form method="post" action="{% url 'backup:schedule_delete' schedule.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-outline-danger" title="{% trans 'حذف' %}" onclick="return confirm('{% trans "آیا مطمئن هستید؟" %}')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">{% trans "هیچ اسکچولی یافت نشد" %}</h5>
+                        <p class="text-muted">{% trans "برای شروع، یک اسکچول جدید ایجاد کنید" %}</p>
+                        <a href="{% url 'backup:schedule_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i> {% trans "ایجاد اسکچول جدید" %}
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- راهنمای سریع -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-question-circle me-2"></i> {% trans "راهنمای سریع" %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>{% trans "انواع فرکانس:" %}</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i> {% trans "روزانه: هر روز در ساعت مشخص" %}</li>
+                            <li><i class="fas fa-check text-success me-2"></i> {% trans "هفتگی: هر هفته در روز مشخص" %}</li>
+                            <li><i class="fas fa-check text-success me-2"></i> {% trans "ماهانه: هر ماه در روز مشخص" %}</li>
+                            <li><i class="fas fa-check text-success me-2"></i> {% trans "سفارشی: با فرمت cron" %}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>{% trans "نکات مهم:" %}</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-info-circle text-info me-2"></i> {% trans "اسکچول‌ها باید فعال باشند تا اجرا شوند" %}</li>
+                            <li><i class="fas fa-info-circle text-info me-2"></i> {% trans "گیرندگان اعلان را مشخص کنید" %}</li>
+                            <li><i class="fas fa-info-circle text-info me-2"></i> {% trans "cron را برای اجرای خودکار تنظیم کنید" %}</li>
+                            <li><i class="fas fa-info-circle text-info me-2"></i> {% trans "لاگ‌ها را مرتب بررسی کنید" %}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

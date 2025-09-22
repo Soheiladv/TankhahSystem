@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}نمایش استایل‌های سیستم بودجه{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'admin/css/budgetsStyle.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="budgets-container">
+    <!-- هدر اصلی -->
+    <div class="budgets-header">
+        <h1><i class="fas fa-chart-line"></i> نمایش استایل‌های سیستم بودجه</h1>
+        <p>این صفحه نمونه‌ای از استایل‌های موجود در سیستم است</p>
+    </div>
+
+    <!-- کارت‌های آمار -->
+    <div class="stats-grid">
+        <div class="stats-card">
+            <div class="icon"><i class="fas fa-file-invoice"></i></div>
+            <h3>150</h3>
+            <p>کل دستورات پرداخت</p>
+        </div>
+        <div class="stats-card">
+            <div class="icon"><i class="fas fa-check-circle"></i></div>
+            <h3>120</h3>
+            <p>تایید شده</p>
+        </div>
+        <div class="stats-card">
+            <div class="icon"><i class="fas fa-clock"></i></div>
+            <h3>25</h3>
+            <p>در انتظار تایید</p>
+        </div>
+        <div class="stats-card">
+            <div class="icon"><i class="fas fa-archive"></i></div>
+            <h3>5</h3>
+            <p>آرشیو شده</p>
+        </div>
+    </div>
+
+    <!-- بخش اطلاعات -->
+    <div class="info-section">
+        <h5><i class="fas fa-info-circle"></i> اطلاعات کلی</h5>
+        <div class="info-row">
+            <span class="info-label">شماره دستور:</span>
+            <span class="info-value">PO-14040101-001</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">تاریخ صدور:</span>
+            <span class="info-value">1404/01/01</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">مبلغ کل:</span>
+            <span class="info-value amount">1,500,000 ریال</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">وضعیت:</span>
+            <span class="status-badge status-approved">تایید شده</span>
+        </div>
+    </div>
+
+    <!-- کارت فاکتور -->
+    <div class="factor-card">
+        <div class="factor-header">
+            <div class="factor-title">فاکتور شماره 001</div>
+            <div class="factor-amount">500,000 ریال</div>
+        </div>
+        <p>شرح فاکتور: خرید تجهیزات اداری</p>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <span class="badge badge-success">تایید نهایی</span>
+            <small class="text-muted">1404/01/01</small>
+        </div>
+    </div>
+
+    <!-- جدول نمونه -->
+    <div class="table-section">
+        <h3><i class="fas fa-table"></i> جدول نمونه</h3>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>شماره</th>
+                        <th>شرح</th>
+                        <th>مبلغ</th>
+                        <th>وضعیت</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>001</td>
+                        <td>خرید تجهیزات</td>
+                        <td class="amount">500,000 ریال</td>
+                        <td><span class="status-badge status-approved">تایید شده</span></td>
+                    </tr>
+                    <tr>
+                        <td>002</td>
+                        <td>خدمات مشاوره</td>
+                        <td class="amount">300,000 ریال</td>
+                        <td><span class="status-badge status-draft">در انتظار</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- دکمه‌های نمونه -->
+    <div class="budgets-card">
+        <h5>دکمه‌های نمونه</h5>
+        <div class="d-flex gap-3 flex-wrap">
+            <button class="btn btn-primary">دکمه اصلی</button>
+            <button class="btn btn-success">دکمه موفقیت</button>
+            <button class="btn btn-warning">دکمه هشدار</button>
+            <button class="btn btn-danger">دکمه خطر</button>
+        </div>
+    </div>
+
+    <!-- فیلتر نمونه -->
+    <div class="filter-section">
+        <h5>بخش فیلتر</h5>
+        <div class="row">
+            <div class="col-md-3">
+                <input type="text" class="form-control" placeholder="جستجو...">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select">
+                    <option>همه وضعیت‌ها</option>
+                    <option>تایید شده</option>
+                    <option>در انتظار</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="text" class="form-control" placeholder="از تاریخ (1404/01/01)" data-jdp="">
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-primary w-100">اعمال فیلتر</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

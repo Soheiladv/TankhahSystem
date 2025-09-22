@@ -19,7 +19,7 @@ from core.views import (
     # پروژه‌ها
     ProjectListView, ProjectDetailView, ProjectCreateView, ProjectUpdateView, ProjectDeleteView,
     # پست‌ها
-    PostListView, PostDetailView, PostCreateView, PostUpdateView, PostDeleteView,
+    PostListView, PostDetailView, PostCreateView, PostUpdateView, PostDeleteView, PostActiveUsersAPIView,
     # اتصال کاربر به پست
     UserPostListView, UserPostCreateView, UserPostUpdateView, UserPostDeleteView,
     # تاریخچه پست‌ها
@@ -30,6 +30,7 @@ from core.views import (
 
 )
 from reports.views import FinancialDashboardView
+from . import views_workflow_management
 from .workflow.views_Transition import TransitionListView, TransitionCreateView, TransitionUpdateView, \
     TransitionDeleteView
 
@@ -93,6 +94,7 @@ urlpatterns = [
             path('posts/create/', PostCreateView.as_view(), name='post_create'),
             path('posts/<int:pk>/update/', PostUpdateView.as_view(), name='post_update'),
             path('posts/<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),
+            path('posts/<int:post_id>/active-users/', PostActiveUsersAPIView.as_view(), name='post_active_users_api'),
         # ========================================================
         # اتصال کاربر به پست
         # ========================================================
@@ -191,7 +193,11 @@ urlpatterns += [
 # ActionCreateView,
 urlpatterns += [
             # --- داشبورد اصلی ---
-            path('workflow/', WorkflowDashboardView.as_view(), name='workflow_dashboard'),
+            # path('workflow/', WorkflowDashboardView.as_view(), name='workflow_dashboard'),
+            path('workflow/', views_workflow_management.simple_workflow_dashboard, name='workflow_dashboard'),
+
+    # مدیریت قوانین گردش کار
+            path('workflow-management/', include('core.urls_workflow_management')),
 
             path('workflow/statuses/', StatusListView.as_view(), name='status_list'),
             path('workflow/statuses/create/', StatusCreateView.as_view(), name='status_create'),
@@ -220,6 +226,5 @@ urlpatterns += [
             path('financial-performance-report/', FinancialPerformanceReportView.as_view(), name='financial_performance_report'),
             path('analytical-reports/', AnalyticalReportsView.as_view(), name='analytical_reports'),
             
-            # مدیریت قوانین گردش کار
-            path('workflow-management/', include('core.urls_workflow_management')),
+
  ]

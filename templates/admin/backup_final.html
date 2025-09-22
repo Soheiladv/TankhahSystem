@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load static i18n jformat rcms_custom_filters %}
+
+{% block title %}{% trans "مدیریت پشتیبان‌گیری" %}{% endblock %}
+
+{% block content %}
+    <div class="main-container">
+        <!-- هدر -->
+        <div class="header-section">
+            <h1 class="mb-3">
+                <i class="fas fa-database text-primary"></i> مدیریت پشتیبان‌گیری</h1>
+            <p class="text-muted"> مدیریت و کنترل فایل‌های پشتیبان سیستم</p>
+        </div>
+        
+        <!-- آمار -->
+        <div class="backup-stats">
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.total_files }}</div>
+                <div class="stat-label">تعداد کل فایل‌ها</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.total_size_mb|floatformat:2 |format_negative }} MB</div>
+                <div class="stat-label">حجم کل</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.main_files }}</div>
+                <div class="stat-label">فایل‌های اصلی</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.logs_files }}</div>
+                <div class="stat-label">فایل‌های لاگ</div>
+            </div>
+        </div>
+
+        <!-- دکمه‌های عملیات -->
+        <div class="mb-4">
+            <a href="/backup-admin/create/" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus"></i> ایجاد پشتیبان‌گیری جدید
+            </a>
+            <a href="{% url 'backup:schedule_list' %}" class="btn btn-info btn-lg">
+                <i class="fas fa-clock"></i> مدیریت اسکچول‌ها
+            </a>
+            <a href="/admin/" class="btn btn-secondary btn-lg">
+                <i class="fas fa-arrow-left"></i> بازگشت به ادمین
+            </a>
+        </div>
+
+        <!-- جدول فایل‌ها -->
+        {% if files %}
+        <div class="backup-table">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>نام فایل</th>
+                        <th>نوع</th>
+                        <th>حجم</th>
+                        <th>تاریخ</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in files %}
+                    <tr>
+                        <td>
+                            <strong>{{ file.file_name }}</strong>
+                        </td>
+                        <td>
+                            {% if file.file_type == 'دیتابیس اصلی' %}
+                                <span class="file-type-main">{{ file.file_type }}</span>
+                            {% elif file.file_type == 'دیتابیس لاگ' %}
+                                <span class="file-type-logs">{{ file.file_type }}</span>
+                            {% else %}
+                                <span class="file-type-unknown">{{ file.file_type }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ file.size_mb|floatformat:2 }} MB</td>
+                        <td>{{ file.formatted_date }}</td>
+                        <td>
+                            <div class="file-actions">
+                                <a href="/backup-admin/delete/{{ file.file_name }}/" 
+                                   class="btn btn-danger btn-sm"
+                                   onclick="return confirm('آیا مطمئن هستید که می‌خواهید این فایل را حذف کنید؟')">
+                                    <i class="fas fa-trash"></i> حذف
+                                </a>
+                                
+                                {% if '.encrypted' not in file.file_name %}
+                                <form method="post" action="/backup-admin/encrypt/{{ file.file_name }}/" class="encrypt-form">
+                                    {% csrf_token %}
+                                    <input type="password" name="password" placeholder="رمز عبور" required>
+                                    <button type="submit" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-lock"></i> رمزگذاری
+                                    </button>
+                                </form>
+                                {% endif %}
+                                
+                                <a href="/backups/{{ file.file_name }}" 
+                                   class="btn btn-info btn-sm" 
+                                   download>
+                                    <i class="fas fa-download"></i> دانلود
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle fa-2x mb-3"></i>
+            <h4>هیچ فایل پشتیبان‌ای یافت نشد</h4>
+            <p>برای ایجاد پشتیبان‌گیری جدید، روی دکمه "ایجاد پشتیبان‌گیری جدید" کلیک کنید.</p>
+        </div>
+        {% endif %}
+
+        {% if stats.oldest_file %}
+        <div class="mt-4 text-center">
+            <small class="text-muted">
+                <i class="fas fa-clock"></i>
+                قدیمی‌ترین فایل: {{ stats.oldest_file|date:"Y-m-d H:i" }} | 
+                جدیدترین فایل: {{ stats.newest_file|date:"Y-m-d H:i" }}
+            </small>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "تست سیستم پشتیبان‌گیری" %}{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <div class="container-fluid">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-vial me-2"></i> {% trans "تست سیستم پشتیبان‌گیری" %}
+            </h1>
+            <p class="page-subtitle">{% trans "بررسی و تست عملکرد سیستم پشتیبان‌گیری" %}</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-cogs me-2"></i> {% trans "تست سیستم" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            {% trans "این تست سیستم پشتیبان‌گیری را بررسی می‌کند و اسکچول‌های آماده اجرا را پیدا می‌کند." %}
+                        </div>
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-play me-2"></i> {% trans "اجرای تست" %}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- راهنمای تست -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-question-circle me-2"></i> {% trans "راهنمای تست" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>{% trans "این تست چه کاری انجام می‌دهد:" %}</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i> {% trans "بررسی اسکچول‌های فعال" %}</li>
+                            <li><i class="fas fa-check text-success me-2"></i> {% trans "پیدا کردن اسکچول‌های آماده اجرا" %}</li>
+                            <li><i class="fas fa-check text-success me-2"></i> {% trans "اجرای پشتیبان‌گیری‌های زمان‌بندی شده" %}</li>
+                            <li><i class="fas fa-check text-success me-2"></i> {% trans "بروزرسانی زمان اجرای بعدی" %}</li>
+                            <li><i class="fas fa-check text-success me-2"></i> {% trans "ارسال اعلان‌ها" %}</li>
+                        </ul>
+
+                        <h6 class="mt-3">{% trans "نکات مهم:" %}</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-exclamation-triangle text-warning me-2"></i> {% trans "این تست فقط اسکچول‌های آماده اجرا را اجرا می‌کند" %}</li>
+                            <li><i class="fas fa-exclamation-triangle text-warning me-2"></i> {% trans "پشتیبان‌گیری واقعی انجام می‌شود" %}</li>
+                            <li><i class="fas fa-exclamation-triangle text-warning me-2"></i> {% trans "اعلان‌ها ارسال خواهند شد" %}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- آمار سیستم -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-bar me-2"></i> {% trans "آمار سیستم" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h4 class="text-primary">{{ total_schedules }}</h4>
+                                <small class="text-muted">{% trans "کل اسکچول‌ها" %}</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-success">{{ active_schedules }}</h4>
+                                <small class="text-muted">{% trans "اسکچول‌های فعال" %}</small>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h4 class="text-warning">{{ pending_schedules }}</h4>
+                                <small class="text-muted">{% trans "آماده اجرا" %}</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-info">{{ total_logs }}</h4>
+                                <small class="text-muted">{% trans "کل اجراها" %}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- اسکچول‌های آماده اجرا -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-clock me-2"></i> {% trans "آماده اجرا" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if pending_schedules > 0 %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                {% trans "اسکچول‌هایی آماده اجرا هستند" %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                {% trans "هیچ اسکچولی آماده اجرا نیست" %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- عملیات سریع -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-tools me-2"></i> {% trans "عملیات سریع" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'backup:schedule_list' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-list me-2"></i> {% trans "مشاهده اسکچول‌ها" %}
+                            </a>
+                            <a href="{% url 'backup:schedule_logs' %}" class="btn btn-outline-info">
+                                <i class="fas fa-history me-2"></i> {% trans "مشاهده لاگ‌ها" %}
+                            </a>
+                            <a href="{% url 'backup:list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-database me-2"></i> {% trans "پشتیبان‌گیری" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
