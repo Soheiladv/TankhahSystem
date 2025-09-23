@@ -19,7 +19,7 @@ from tankhah.models import Factor
 logger = logging.getLogger(__name__) 
 
 # یک تابع کمکی برای نمایش بهتر مبالغ در پیام‌های خطا
-def format_currency_for_display(value):
+def __format_currency_for_display(value):
     try:
         # اگر از فیلتر to_persian_number_with_comma استفاده می‌کنید
         from core.templatetags.rcms_custom_filters import to_persian_number_with_comma
@@ -31,189 +31,174 @@ def format_currency_for_display(value):
         except:
             return str(value)
 
+# =========================================================
+
 class BudgetTransferForm(forms.Form):
     source_allocation = forms.ModelChoiceField(
-        queryset=BudgetAllocation.objects.none(),
+        queryset=None,
         label=_("از تخصیص پروژه مبدأ"),
-        widget=forms.Select(attrs={'class': 'form-select select2-ajax', 'data-url': reverse_lazy('project_allocation_api_list')})
+        widget=forms.Select(attrs={
+            'class': 'form-select select2-ajax',
+            'data-url': reverse_lazy('project_allocation_api_list')
+        })
     )
     destination_allocation = forms.ModelChoiceField(
-        queryset=BudgetAllocation.objects.none(),
+        queryset=None,
         label=_("به تخصیص پروژه مقصد"),
-        widget=forms.Select(attrs={'class': 'form-select select2-ajax', 'data-url': reverse_lazy('project_allocation_api_list')})
+        widget=forms.Select(attrs={
+            'class': 'form-select select2-ajax',
+            'data-url': reverse_lazy('project_allocation_api_list')
+        })
     )
     amount = forms.DecimalField(
         label=_("مبلغ جابجایی (ریال)"),
         min_value=Decimal('0.01'),
         decimal_places=0,
-        widget=forms.NumberInput(attrs={'class': 'form-control ltr-input', 'placeholder': _('مبلغ به ریال')})
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control ltr-input',
+            'placeholder': _('مبلغ به ریال')
+        })
     )
     description = forms.CharField(
         label=_("توضیحات جابجایی"),
         required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': _('دلیل جابجایی بودجه...')})
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': _('دلیل جابجایی بودجه...')
+        })
     )
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
 
-        # کوئری‌ست برای انتخاب تخصیص‌های پروژه مجاز
-        # حالا می‌توانیم مستقیماً روی فیلدهای is_locked فیلتر کنیم
+        from budgets.models import BudgetAllocation
+
+        # استفاده از فیلدهای واقعی برای فیلتر، چون is_locked در property است و نمی‌توان فیلتر روی آن انجام داد
         valid_project_allocations = BudgetAllocation.objects.filter(
             is_active=True,
-            is_locked=False,  # قفل خود BudgetAllocation
-            budget_allocation__is_active=True,
-            budget_allocation__is_locked=False,  # قفل BudgetAllocation والد
-            budget_allocation__budget_period__is_active=True,
-            budget_allocation__budget_period__is_locked=False # قفل BudgetPeriod والد
+            is_locked=False,
+            budget_period__is_active=True,
+            budget_period__is_completed=False,
         ).select_related(
-            'project', # برای نمایش نام پروژه در Select2
-            'budget_allocation__organization', # برای نمایش نام سازمان
-            'budget_allocation__budget_period'
-        ).distinct() # distinct مهم است اگر join ها باعث تکرار شوند
+            'project',
+            'organization',
+            'budget_period',
+        ).distinct()
 
         self.fields['source_allocation'].queryset = valid_project_allocations
         self.fields['destination_allocation'].queryset = valid_project_allocations
-        logger.debug(f"BudgetTransferForm: User {user.username if user else 'Anon'}. Valid PBA count: {valid_project_allocations.count()}")
+
+        logger.debug(f"BudgetTransferForm: User {user.username if user else 'Anon'}. Valid allocations count: {valid_project_allocations.count()}")
 
     def clean(self):
         cleaned_data = super().clean()
-        source_pba = cleaned_data.get('source_allocation')
-        destination_pba = cleaned_data.get('destination_allocation')
+        source_alloc = cleaned_data.get('source_allocation')
+        dest_alloc = cleaned_data.get('destination_allocation')
         amount = cleaned_data.get('amount')
 
-        if not all([source_pba, destination_pba, amount]):
+        if not all([source_alloc, dest_alloc, amount]):
             return cleaned_data
 
-        if source_pba == destination_pba:
+        if source_alloc == dest_alloc:
             raise ValidationError(_("تخصیص مبدأ و مقصد نمی‌توانند یکسان باشند."))
 
-        # بررسی مجدد قفل بودن به عنوان لایه دفاعی (ویژگی is_locked حالا باید در مدل‌ها باشد)
-        if source_pba.is_locked or source_pba.budget_allocation.is_locked or source_pba.budget_allocation.budget_period.is_locked:
+        # چک کردن وضعیت قفل به صورت property (tuple) روی مدل مرتبط
+        if source_alloc.budget_period.is_locked[0]:
             raise ValidationError(_("تخصیص پروژه مبدأ یا بودجه‌های والد آن برای انتقال قفل شده است."))
-        if destination_pba.is_locked or destination_pba.budget_allocation.is_locked or destination_pba.budget_allocation.budget_period.is_locked:
+
+        if dest_alloc.budget_period.is_locked[0]:
             raise ValidationError(_("تخصیص پروژه مقصد یا بودجه‌های والد آن برای دریافت انتقال قفل شده است."))
 
-        # بررسی تعلق به یک دوره بودجه یکسان
-        if source_pba.budget_allocation.budget_period_id != destination_pba.budget_allocation.budget_period_id:
+        if source_alloc.budget_period_id != dest_alloc.budget_period_id:
             raise ValidationError(_("جابجایی بودجه فقط بین تخصیص‌های یک دوره بودجه امکان‌پذیر است."))
 
-        # بررسی بودجه کافی در مبدأ
-        # اطمینان از وجود و صحت متد get_remaining_amount در مدل BudgetAllocation
-        if not hasattr(source_pba, 'get_remaining_amount') or not callable(source_pba.get_remaining_amount):
-             logger.error(f"Method 'get_remaining_amount' missing on BudgetAllocation {source_pba.pk}")
-             raise ValidationError(_("خطای سیستمی: امکان محاسبه باقیمانده مبدأ وجود ندارد."))
-        source_remaining = source_pba.get_remaining_amount()
-        if amount > source_remaining:
+        if not hasattr(source_alloc, 'get_remaining_amount') or not callable(source_alloc.get_remaining_amount):
+            logger.error(f"Method 'get_remaining_amount' missing or not callable on BudgetAllocation {source_alloc.pk}")
+            raise ValidationError(_("خطای سیستمی: امکان محاسبه باقیمانده مبدأ وجود ندارد."))
+
+        remaining = source_alloc.get_remaining_amount()
+        if amount > remaining:
             raise ValidationError(
                 _("مبلغ جابجایی ({}) از بودجه باقیمانده تخصیص مبدأ ({}) بیشتر است.").format(
-                    format_currency_for_display(amount), format_currency_for_display(source_remaining)
+                    format_currency_for_display(amount),
+                    format_currency_for_display(remaining)
                 )
             )
         return cleaned_data
 
-
-    # def clean(self):
-    #     cleaned_data = super().clean()
-    #     source_pba = cleaned_data.get('source_allocation')
-    #     destination_pba = cleaned_data.get('destination_allocation')
-    #     amount = cleaned_data.get('amount')
-    #
-    #     if not all([source_pba, destination_pba, amount]):
-    #         return cleaned_data
-    #
-    #     if source_pba == destination_pba:
-    #         raise ValidationError(_("تخصیص مبدأ و مقصد نمی‌توانند یکسان باشند."))
-    #
-    #     # بررسی مجدد قفل بودن (اینجا باید از متدهای get_is_locked یا property استفاده شود اگر is_locked فیلد مستقیم نیست)
-    #     # یا به فیلد is_locked که در مدل BudgetPeriod/BudgetAllocation/BudgetAllocation اضافه کردیم ارجاع دهید.
-    #     if source_pba.is_locked or source_pba.budget_allocation.is_locked or source_pba.budget_allocation.budget_period.is_locked:
-    #         raise ValidationError(_("تخصیص پروژه مبدأ یا بودجه‌های والد آن قفل شده است."))
-    #     if destination_pba.is_locked or destination_pba.budget_allocation.is_locked or destination_pba.budget_allocation.budget_period.is_locked:
-    #         raise ValidationError(_("تخصیص پروژه مقصد یا بودجه‌های والد آن قفل شده است."))
-    #
-    #     if source_pba.budget_allocation.budget_period != destination_pba.budget_allocation.budget_period:
-    #         raise ValidationError(_("جابجایی بودجه فقط بین تخصیص‌های یک دوره بودجه امکان‌پذیر است."))
-    #
-    #     # **مهم:** اطمینان از وجود و صحت متد get_remaining_amount در مدل BudgetAllocation
-    #     if not hasattr(source_pba, 'get_remaining_amount') or not callable(source_pba.get_remaining_amount):
-    #          logger.error(f"Method 'get_remaining_amount' not found or not callable on BudgetAllocation {source_pba.pk}")
-    #          raise ValidationError(_("خطای سیستمی: امکان محاسبه باقیمانده مبدأ وجود ندارد."))
-    #
-    #     source_remaining = source_pba.get_remaining_amount()
-    #     if amount > source_remaining:
-    #         raise ValidationError(
-    #             _("مبلغ جابجایی ({}) از بودجه باقیمانده تخصیص مبدأ ({}) بیشتر است.").format(
-    #                 format_currency_for_display(amount),
-    #                 format_currency_for_display(source_remaining)
-    #             )
-    #         )
-    #     return cleaned_data
-
     def execute_transfer(self):
-        # ... (منطق execute_transfer که قبلاً ارائه شد، باید با این فرم کار کند) ...
-        # اطمینان از اینکه source_pba.budget_allocation و destination_pba.budget_allocation استفاده می‌شود.
-        source_pba = self.cleaned_data['source_allocation']
-        destination_pba = self.cleaned_data['destination_allocation']
+        from budgets.models import BudgetTransaction, BudgetHistory
+        user = self.user
+        source_alloc = self.cleaned_data['source_allocation']
+        dest_alloc = self.cleaned_data['destination_allocation']
         amount = self.cleaned_data['amount']
         description = self.cleaned_data.get('description', '')
-        user = self.user
-        transfer_group_id = f"TRNSFR-{timezone.now().strftime('%Y%m%d%H%M%S%f')}"
+
+        transfer_id = f"TRNSFR-{timezone.now().strftime('%Y%m%d%H%M%S%f')}"
+
         with transaction.atomic():
-            # ۱. کسر از BudgetAllocation والد مبدأ
-            logger.info(f"Transfer: Creating RETURN Tx from source BA {source_pba.budget_allocation.pk} for {amount}")
+            logger.info(f"Transfer: Creating RETURN Tx from BudgetAllocation {source_alloc.pk} for amount {amount}")
             return_tx = BudgetTransaction.objects.create(
-                allocation=source_pba.budget_allocation,
+                allocation=source_alloc,
                 transaction_type='RETURN',
                 amount=amount,
-                description=_("بازگشت جهت جابجایی به تخصیص پروژه {} ({})").format(destination_pba.project.name, destination_pba.id) + (f" - {description}" if description else ""),
+                description=_("بازگشت جهت جابجایی به تخصیص پروژه {} ({}). {}").format(dest_alloc.project.name, dest_alloc.pk, description),
                 created_by=user,
-                transaction_id=f"{transfer_group_id}-RET-{source_pba.budget_allocation.id}"
+                transaction_id=f"{transfer_id}-RET-{source_alloc.pk}"
             )
 
-            # ۲. کاهش سهم BudgetAllocation مبدأ
-            # استفاده از F() برای جلوگیری از race condition
-            # source_pba.allocated_amount = F('allocated_amount') - amount
-            # source_pba.save(update_fields=['allocated_amount'], skip_status_update=True) # skip_status_update برای جلوگیری از فراخوانی دوباره update_status
-            # source_pba.refresh_from_db()
-            # logger.info(f"Transfer: Source PBA {source_pba.pk} allocated_amount updated to {source_pba.allocated_amount}")
-
-            # ۳. ثبت تاریخچه برای مبدأ (BudgetAllocation)
             BudgetHistory.objects.create(
-                content_type=ContentType.objects.get_for_model(source_pba),
-                object_id=source_pba.id, action='REALLOCATE_OUT', amount=amount, created_by=user,
-                details=_("جابجایی مبلغ {:,} ریال از {} به {}").format(amount, source_pba, destination_pba) + (f" - {description}" if description else ""),
-                transaction_id=return_tx.transaction_id # لینک به تراکنش اصلی
+                content_type=ContentType.objects.get_for_model(source_alloc),
+                object_id=source_alloc.pk,
+                action='REALLOCATE_OUT',
+                amount=amount,
+                created_by=user,
+                details=_("جابجایی مبلغ {:,} ریال از {} به {}").format(amount, source_alloc, dest_alloc),
+                transaction_id=return_tx.transaction_id
             )
 
-            # ۴. افزایش تخصیص BudgetAllocation والد مقصد
-            logger.info(f"Transfer: Creating ADJUSTMENT_INCREASE Tx to destination BA {destination_pba.budget_allocation.pk} for {amount}")
+            logger.info(f"Transfer: Creating ADJUSTMENT_INCREASE Tx to BudgetAllocation {dest_alloc.pk} for amount {amount}")
             alloc_tx = BudgetTransaction.objects.create(
-                allocation=destination_pba.budget_allocation,
+                allocation=dest_alloc,
                 transaction_type='ADJUSTMENT_INCREASE',
                 amount=amount,
-                description=_("افزایش جهت جابجایی از تخصیص پروژه {} ({})").format(source_pba.project.name, source_pba.id) + (f" - {description}" if description else ""),
+                description=_("افزایش جهت جابجایی از تخصیص پروژه {} ({}). {}").format(source_alloc.project.name, source_alloc.pk, description),
                 created_by=user,
-                transaction_id=f"{transfer_group_id}-ADD-{destination_pba.budget_allocation.id}"
+                transaction_id=f"{transfer_id}-ADD-{dest_alloc.pk}"
             )
 
-            # ۵. افزایش سهم BudgetAllocation مقصد
-            destination_pba.allocated_amount = F('allocated_amount') + amount
-            destination_pba.save(update_fields=['allocated_amount'], skip_status_update=True)
-            destination_pba.refresh_from_db()
-            logger.info(f"Transfer: Destination PBA {destination_pba.pk} allocated_amount updated to {destination_pba.allocated_amount}")
+            dest_alloc.allocated_amount = F('allocated_amount') + amount
+            dest_alloc.save(update_fields=['allocated_amount'], skip_status_update=True)
+            dest_alloc.refresh_from_db()
 
-            # ۶. ثبت تاریخچه برای مقصد (BudgetAllocation)
+            logger.info(f"Transfer: Destination BudgetAllocation {dest_alloc.pk} allocated_amount updated.")
+
             BudgetHistory.objects.create(
-                content_type=ContentType.objects.get_for_model(destination_pba),
-                object_id=destination_pba.id, action='REALLOCATE_IN', amount=amount, created_by=user,
-                details=_("دریافت مبلغ {:,} ریال از {} به {}").format(amount, source_pba, destination_pba) + (f" - {description}" if description else ""),
+                content_type=ContentType.objects.get_for_model(dest_alloc),
+                object_id=dest_alloc.pk,
+                action='REALLOCATE_IN',
+                amount=amount,
+                created_by=user,
+                details=_("دریافت مبلغ {:,} ریال از {} به {}").format(amount, source_alloc, dest_alloc),
                 transaction_id=alloc_tx.transaction_id
             )
-            # سیگنال‌ها باید وضعیت‌ها و total_allocated را آپدیت کنند
-            logger.info(f"Budget transfer executed by {user.username}: {amount} from PBA {source_pba.id} to PBA {destination_pba.id}")
-            return return_tx, alloc_tx
+
+        logger.info(f"Budget transfer executed by {user.username}: {amount} from {source_alloc.pk} to {dest_alloc.pk}")
+
+        return return_tx, alloc_tx
+
+# تابع کمکی برای فرمت ارز
+def format_currency_for_display(value):
+    try:
+        return "{:,.0f}".format(value)
+    except Exception:
+        return str(value)
+
+
+# =========================================================
+
 
 class BudgetReturnForm(forms.Form):
     allocation = forms.ModelChoiceField(
@@ -277,14 +262,15 @@ class BudgetReturnForm(forms.Form):
             consumed = transactions['consumed'] or Decimal('0')
             returned = transactions['returned'] or Decimal('0')
 
+            # وضعیت‌ها کُدی هستند (Status.code). فیلتر بر اساس code
             tankhah_consumed = Tankhah.objects.filter(
                 project_budget_allocation=allocation,
-                status__in=['APPROVED', 'PAID']
+                status__code__in=['APPROVED', 'PAID']
             ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
 
             factor_consumed = Factor.objects.filter(
                 tankhah__project_budget_allocation=allocation,
-                status='PAID'
+                status__code='PAID'
             ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
 
             free_budget = allocation.allocated_amount - consumed + returned - tankhah_consumed - factor_consumed

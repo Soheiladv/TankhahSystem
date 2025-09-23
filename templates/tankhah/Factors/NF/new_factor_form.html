@@ -85,6 +85,23 @@
                                         class="text-muted">{% trans "ریال" %}</small>
                                     <div id="amount-comparison-result" class="small mt-1"></div>
                                 </div>
+                                <div class="col-12">
+                                    <div class="alert alert-light border d-flex align-items-center py-2 px-3 mb-0">
+                                        <div class="me-3">
+                                            <i class="fas fa-calendar-check text-primary"></i>
+                                        </div>
+                                        <div class="flex-fill small">
+                                            <div>
+                                                {% trans "دوره بودجه" %}: <strong id="bp-name">—</strong>
+                                                <span class="text-muted">(<span id="bp-start">—</span> تا <span id="bp-end">—</span>)</span>
+                                            </div>
+                                            <div class="mt-1">
+                                                {% trans "وضعیت قفل" %}: <span id="bp-lock-state" class="badge bg-secondary">—</span>
+                                                <span class="ms-2 text-muted">{% trans "درصد پیشروی دوره" %}: <strong id="bp-progress">—</strong></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -548,6 +565,45 @@
             const budgetWarningEl = document.getElementById('tankhah-budget-warning');
             const budgetProgressBarEl = document.querySelector('#calculation-summary .progress-bar');
             const budgetInfoDisplayEl = document.getElementById('tankhah-budget-info-display');
+            // --- Auto description generation (keeps editable) ---
+            let userEditedDesc = false;
+            const descInput = document.getElementById('id_description');
+            if(descInput){
+                descInput.addEventListener('input', ()=> userEditedDesc = true);
+            }
+
+            function getSelTextById(id){
+                const el = document.getElementById(id);
+                if(!el) return '';
+                const opt = el.options?.[el.selectedIndex];
+                return (opt && opt.text) ? opt.text.trim() : (el.value || '').trim();
+            }
+
+            function buildAutoDescription(){
+                const tn = getSelTextById('id_tankhah');
+                const payee = getSelTextById('id_payee');
+                const org = getSelTextById('id_organization');
+                const project = getSelTextById('id_project');
+                const subproject = getSelTextById('id_subproject');
+                const dateVal = document.getElementById('id_date')?.value || '';
+                const amountNum = getNumericValue(factorAmountInput);
+                const amountFa = formatCurrency(amountNum) + ' ریال';
+
+                const parts = [];
+                if(tn) parts.push(`تنخواه: ${tn}`);
+                if(org) parts.push(`سازمان: ${org}`);
+                if(project) parts.push(`پروژه: ${project}`);
+                if(subproject) parts.push(`زیرپروژه: ${subproject}`);
+                if(payee) parts.push(`ذی‌نفع: ${payee}`);
+                if(dateVal) parts.push(`تاریخ: ${dateVal}`);
+                parts.push(`مبلغ: ${amountFa}`);
+                return parts.join(' | ');
+            }
+
+            function maybeUpdateDescription(){
+                if(!descInput || userEditedDesc) return;
+                descInput.value = buildAutoDescription();
+            }
             const budgetLoadingEl = document.getElementById('tankhah-budget-loading');
             const budgetErrorEl = document.getElementById('tankhah-budget-error');
             const itemCountBadge = document.getElementById('item-count-badge');
@@ -645,7 +701,7 @@
 
                 if (displayItemsTotalEl) displayItemsTotalEl.textContent = formatCurrency(itemsGrandTotal);
                 if (itemCountBadge) itemCountBadge.textContent = toPersianDigits(activeItemCount);
-                if (displayFactorTotalEl) displayItemsTotalEl.textContent = formatCurrency(factorAmount);
+                if (displayFactorTotalEl) displayFactorTotalEl.textContent = formatCurrency(factorAmount);
                 if (displayInitialBudgetEl) displayInitialBudgetEl.textContent = formatCurrency(ajaxInitialRemainingBudget);
                 if (displayRemainingBudgetEl) {
                     displayRemainingBudgetEl.textContent = formatCurrency(adjustedRemainingBudget);
@@ -693,6 +749,37 @@
                 }
             }
 
+            async function fetchBudgetPeriodInfo(tankhahId){
+                try{
+                    const resp = await $.get('{% url "get_tankhah_budget_info" %}', {tankhah_id: tankhahId});
+                    // Back-end already returns budget_period details? If not, we compute a simple progress fallback
+                    const bpNameEl = document.getElementById('bp-name');
+                    const bpStartEl = document.getElementById('bp-start');
+                    const bpEndEl = document.getElementById('bp-end');
+                    const bpLockEl = document.getElementById('bp-lock-state');
+                    const bpProgEl = document.getElementById('bp-progress');
+
+                    const bp = resp.budget_period || {}; // expected keys: name, start_date, end_date, is_locked, lock_reason, progress
+                    if(bpNameEl) bpNameEl.textContent = bp.name || '—';
+                    if(bpStartEl) bpStartEl.textContent = (bp.start_date || '—');
+                    if(bpEndEl) bpEndEl.textContent = (bp.end_date || '—');
+                    if(bpLockEl){
+                        const locked = !!bp.is_locked;
+                        bpLockEl.textContent = locked ? '{% trans "قفل" %}' : '{% trans "باز" %}';
+                        bpLockEl.className = 'badge ' + (locked ? 'bg-danger' : 'bg-success');
+                        if(locked && bp.lock_reason){
+                            bpLockEl.setAttribute('title', bp.lock_reason);
+                        }
+                    }
+                    if(bpProgEl){
+                        const pr = bp.progress;
+                        bpProgEl.textContent = (pr !== undefined && pr !== null) ? (String(pr).replace(/\B(?=(\d{3})+(?!\d))/g, ',')) + '%' : '—';
+                    }
+                }catch(e){
+                    console.warn('BP info unavailable in response; skipping', e);
+                }
+            }
+
             function fetchTankhahBudgetInfo(tankhahId) {
                 if (!tankhahId) {
                     resetBudgetDisplay();
@@ -731,6 +818,8 @@
                                 budgetErrorEl.classList.add('d-none');
                             }
                             updateAllCalculations();
+                            // Try to populate budget period box
+                            fetchBudgetPeriodInfo(tankhahId);
                         }
                     },
                     error: function (xhr, status, error) {
@@ -1016,13 +1105,50 @@
             }
             if (addItemButton) addItemButton.addEventListener('click', () => addFormsetRow());
             if (factorAmountInput) factorAmountInput.addEventListener('input', updateAllCalculations);
+
+            function onTankhahChanged(){
+                fetchTankhahBudgetInfo(tankhahSelect.value);
+                maybeUpdateDescription();
+            }
+
             if (tankhahSelect) {
-                tankhahSelect.addEventListener('change', () => fetchTankhahBudgetInfo(tankhahSelect.value));
-                if (tankhahSelect.value) fetchTankhahBudgetInfo(tankhahSelect.value);
-                else resetBudgetDisplay();
+                // Native change
+                tankhahSelect.addEventListener('change', onTankhahChanged);
+                // Select2 support if applied
+                if (window.$ && $(tankhahSelect).data('select2')){
+                    $(tankhahSelect).on('select2:select select2:clear', onTankhahChanged);
+                } else {
+                    // try binding after a short delay for late-initialized select2
+                    setTimeout(() => {
+                        if (window.$ && $(tankhahSelect).data('select2')){
+                            $(tankhahSelect).on('select2:select select2:clear', onTankhahChanged);
+                        }
+                    }, 600);
+                }
+                // Initial fetch even if disabled field is prefilled
+                if (tankhahSelect.value) fetchTankhahBudgetInfo(tankhahSelect.value); else resetBudgetDisplay();
             } else {
                 resetBudgetDisplay();
             }
+
+            // Hook for amount/date/payee/project changes to refresh description when user has not edited
+            if (factorAmountInput) factorAmountInput.addEventListener('input', maybeUpdateDescription);
+            document.getElementById('id_date')?.addEventListener('change', maybeUpdateDescription);
+            const payeeSel = document.getElementById('id_payee');
+            payeeSel?.addEventListener('change', maybeUpdateDescription);
+            if (payeeSel && window.$ && $(payeeSel).data('select2')){
+                $(payeeSel).on('select2:select select2:clear', maybeUpdateDescription);
+            } else if (payeeSel){
+                setTimeout(() => {
+                    if (window.$ && $(payeeSel).data('select2')){
+                        $(payeeSel).on('select2:select select2:clear', maybeUpdateDescription);
+                    }
+                }, 600);
+            }
+            document.getElementById('id_project')?.addEventListener('change', maybeUpdateDescription);
+            document.getElementById('id_subproject')?.addEventListener('change', maybeUpdateDescription);
+            document.getElementById('id_organization')?.addEventListener('change', maybeUpdateDescription);
+            setTimeout(maybeUpdateDescription, 400);
 
             if (factorFileInput && factorPreviewContainer && factorPreviewTitle) {
                 factorFileInput.addEventListener('change', function (e) {
@@ -1081,7 +1207,7 @@
                     let errors = [];
                     form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
 
-                    if (ajaxInitialRemainingBudget !== 0 && projectedRemaining < 0) {
+                    if (isFinite(ajaxInitialRemainingBudget) && projectedRemaining < 0) {
                         errors.push('{% trans "مبلغ کل فاکتور از بودجه باقی‌مانده تنخواه بیشتر است." %}');
                         factorAmountInput?.classList.add('is-invalid');
                     }

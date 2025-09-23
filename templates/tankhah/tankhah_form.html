@@ -30,6 +30,11 @@
             border-radius: 10px 10px 0 0 !important;
         }
 
+        .card-subtitle{
+            font-size: 0.95rem;
+            opacity: .9;
+        }
+
         .form-control, .form-select, .select2-selection {
             border-radius: 8px;
             padding: 10px 15px;
@@ -79,6 +84,10 @@
             box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
         }
 
+        .btn-outline-secondary:hover{
+            transform: translateY(-1px);
+        }
+
         .select2-container--bootstrap-5 .select2-selection {
             padding: 8px 15px;
         }
@@ -97,6 +106,28 @@
                 transform: translateY(0);
             }
         }
+        .section-title{
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin: 20px 0 10px;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .field-hint{
+            font-size: .85rem;
+            color: #6c757d;
+        }
+
+        .sticky-summary{
+            position: sticky;
+            top: 90px;
+        }
+
+        .summary-card .list-group-item{
+            display:flex;justify-content:space-between;align-items:center;
+        }
     </style>
 {% endblock %}
 
@@ -113,7 +144,8 @@
             </div>
 
             <div class="card-body">
-                <form method="post" id="tankhah-form" class="needs-validation" novalidate>
+                <div class="row g-4">
+                <form method="post" id="tankhah-form" class="needs-validation col-lg-8" novalidate>
                     {% csrf_token %}
 
                     {% if form.non_field_errors %}
@@ -125,12 +157,16 @@
                     {% endif %}
 
                     <div class="row g-3">
+                        <div class="section-title"><i class="fas fa-calendar-alt text-primary"></i> تاریخ‌ها</div>
                         <!-- تاریخ‌ها -->
                         <div class="col-md-6">
                             <label for="{{ form.date.id_for_label }}" class="form-label">
                                 {{ form.date.label }} <span class="text-danger">*</span>
                             </label>
                             {{ form.date }}
+                            <div class="form-text text-muted mt-1">
+                                تاریخ به فارسی: <span id="date-persian">—</span>
+                            </div>
                             {% for error in form.date.errors %}
                                 <div class="invalid-feedback d-block">{{ error }}</div>
                             {% endfor %}
@@ -141,11 +177,15 @@
                                 {{ form.due_date.label }}
                             </label>
                             {{ form.due_date }}
+                            <div class="form-text text-muted mt-1">
+                                مهلت به فارسی: <span id="due-date-persian">—</span>
+                            </div>
                             {% for error in form.due_date.errors %}
                                 <div class="invalid-feedback d-block">{{ error }}</div>
                             {% endfor %}
                         </div>
 
+                        <div class="section-title"><i class="fas fa-sitemap text-primary"></i> سازمان و پروژه</div>
                         <!-- سازمان و پروژه -->
                         <div class="col-md-6">
                             <label for="{{ form.organization.id_for_label }}" class="form-label">
@@ -223,6 +263,7 @@
                             {% endfor %}
                         </div>
 
+                        <div class="section-title"><i class="fas fa-money-bill-wave text-primary"></i> مبلغ و توضیحات</div>
                         <!-- مبلغ و توضیحات -->
                         <div class="col-md-12">
                             <label for="{{ form.amount.id_for_label }}" class="form-label">
@@ -232,6 +273,7 @@
                                 {{ form.amount }}
                                 <span class="input-group-text">ریال</span>
                             </div>
+                            <div class="field-hint">مقدار ریالی به صورت لحظه‌ای به حروف و رقم فارسی نمایش داده می‌شود.</div>
                             {% for error in form.amount.errors %}
                                 <div class="invalid-feedback d-block">{{ error }}</div>
                             {% endfor %}
@@ -277,6 +319,31 @@
                         </a>
                     </div>
                 </form>
+
+                <!-- Summary Sidebar -->
+                <aside class="col-lg-4 d-none d-lg-block">
+                    <div class="summary-card card sticky-summary">
+                        <div class="card-header">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span><i class="fas fa-info-circle me-2"></i>خلاصه</span>
+                                <span class="badge bg-light text-dark">لحظه‌ای</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><span>تاریخ</span><span id="date-persian-summary">—</span></li>
+                                <li class="list-group-item"><span>مهلت</span><span id="due-date-persian-summary">—</span></li>
+                                <li class="list-group-item"><span>سازمان</span><span id="org-summary">—</span></li>
+                                <li class="list-group-item"><span>پروژه</span><span id="proj-summary">—</span></li>
+                                <li class="list-group-item"><span>زیرپروژه</span><span id="subp-summary">—</span></li>
+                                <li class="list-group-item"><span>مبلغ</span><span id="amount-persian-summary">۰ ریال</span></li>
+                            </ul>
+                            <hr/>
+                            <div class="small text-muted">توضیحات به‌صورت خودکار از فیلدها ساخته می‌شود؛ می‌توانید آن را ویرایش کنید.</div>
+                        </div>
+                    </div>
+                </aside>
+                </div>
             </div>
         </div>
     </div>
@@ -341,6 +408,14 @@
                 return new Intl.NumberFormat('fa-IR').format(number);
             }
 
+            // Convert yyyy-mm-dd to Persian formatted date (yyyy/mm/dd with Persian digits)
+            function toPersianDateStr(isoDateStr){
+                if(!isoDateStr) return '—';
+                // Expect input like 1403-07-01 or 2025-09-23 depending on widget; we only format digits and separators visually
+                const normalized = isoDateStr.replaceAll('-', '/');
+                return toPersianNumber(normalized);
+            }
+
             // Number to Persian words conversion
             function numberToWords(num) {
                 if (!num || num == 0) return 'صفر';
@@ -391,7 +466,17 @@
                 $('#amount-persian').text(formatCurrency(amount) + ' ریال');
                 $('#amount-words').text(numberToWords(amount));
                 updateRemainingBudget(amount);
+                $('#amount-persian-summary').text(formatCurrency(amount) + ' ریال');
             });
+
+            // Persian preview for dates (date pickers)
+            function updatePersianDates(){
+                $('#date-persian').text(toPersianDateStr($('#id_date').val()));
+                $('#due-date-persian').text(toPersianDateStr($('#id_due_date').val()));
+                $('#date-persian-summary').text(toPersianDateStr($('#id_date').val()));
+                $('#due-date-persian-summary').text(toPersianDateStr($('#id_due_date').val()));
+            }
+            $('#id_date, #id_due_date').on('change input', updatePersianDates);
 
             // Update remaining budget display
             function updateRemainingBudget(amount) {
@@ -554,6 +639,67 @@
             if ($('#id_project').val()) {
                 $('#id_project').trigger('change');
             }
+            updatePersianDates();
+
+            // ================== Auto-fill Description ==================
+            let userEditedDescription = false;
+            const $desc = $('#id_description');
+            $desc.on('input', function(){ userEditedDescription = true; });
+
+            function getSelectedText($sel){
+                const val = $sel.val();
+                if(!val) return '';
+                const opt = $sel.find('option:selected');
+                return opt.text() || '';
+            }
+
+            function buildAutoDescription(){
+                const org = getSelectedText($('#id_organization'));
+                const proj = getSelectedText($('#id_project'));
+                const subp = getSelectedText($('#id_subproject'));
+                const amount = parseFloat($('#id_amount').val()) || 0;
+                const amountStr = amount ? (formatCurrency(amount) + ' ریال (' + numberToWords(amount) + ')') : '';
+                const date = ($('#id_date').val() || '').trim();
+                const due = ($('#id_due_date').val() || '').trim();
+                const letter = ($('#id_letter_number').val() || '').trim();
+
+                let parts = [];
+                if(org) parts.push('سازمان: ' + org);
+                if(proj) parts.push('پروژه: ' + proj);
+                if(subp) parts.push('زیرپروژه: ' + subp);
+                if(amount) parts.push('مبلغ: ' + amountStr);
+                if(date) parts.push('تاریخ: ' + date);
+                if(due) parts.push('مهلت: ' + due);
+                if(letter) parts.push('شماره نامه: ' + letter);
+
+                if(parts.length === 0) return '';
+                return 'ایجاد تنخواه - ' + parts.join(' | ');
+            }
+
+            function updateDescriptionIfNotEdited(){
+                if(userEditedDescription) return;
+                const text = buildAutoDescription();
+                $desc.val(text);
+            }
+
+            // Trigger auto-fill on relevant field changes
+            $('#id_organization, #id_project, #id_subproject, #id_amount, #id_date, #id_due_date, #id_letter_number')
+                .on('change input', updateDescriptionIfNotEdited);
+
+            // Initial auto-fill
+            updateDescriptionIfNotEdited();
+
+            // Live summary for selects
+            function updateSelectSummary(){
+                const org = $('#id_organization option:selected').text() || '—';
+                const proj = $('#id_project option:selected').text() || '—';
+                const subp = $('#id_subproject option:selected').text() || '—';
+                $('#org-summary').text(org);
+                $('#proj-summary').text(proj);
+                $('#subp-summary').text(subp);
+            }
+            $('#id_organization, #id_project, #id_subproject').on('change', updateSelectSummary);
+            updateSelectSummary();
         });
     </script>
 {% endblock %}

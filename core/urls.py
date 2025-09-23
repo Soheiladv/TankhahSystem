@@ -40,6 +40,12 @@ from .views import (
     SubProjectListView, SubProjectCreateView, SubProjectUpdateView, SubProjectDeleteView
 )
 from core.views_API.views_api import OrganizationChartAPIView,OrganizationChartView
+from core.views_workflow_debug import workflow_debug_view, factor_workflow_shortcuts_view
+from core.views_workflow_chart import (
+    WorkflowChartView, workflow_chart_api,
+    workflow_transition_create, workflow_transition_update,
+    workflow_transition_toggle, workflow_transition_delete,
+)
 
 from django.urls import path
 # from core.AccessRule.views_accessrule import (
@@ -135,6 +141,15 @@ urlpatterns += [
 urlpatterns += [
             path('api/organization-chart/', OrganizationChartAPIView.as_view(), name='organization_chart_api'),
             path('organization-chart/', OrganizationChartView.as_view(), name='organization_chart'),
+      
+        path('workflow-debug/', workflow_debug_view, name='workflow_debug'),
+        path('factor-workflow-tools/', factor_workflow_shortcuts_view, name='factor_workflow_tools'),
+        path('workflow-chart/', WorkflowChartView.as_view(), name='workflow_chart'),
+        path('api/workflow-chart/', workflow_chart_api, name='workflow_chart_api'),
+        path('api/workflow/transitions/create', workflow_transition_create, name='workflow_transition_create'),
+        path('api/workflow/transitions/<int:transition_id>/update', workflow_transition_update, name='workflow_transition_update'),
+        path('api/workflow/transitions/<int:transition_id>/toggle', workflow_transition_toggle, name='workflow_transition_toggle'),
+        path('api/workflow/transitions/<int:transition_id>/delete', workflow_transition_delete, name='workflow_transition_delete'),
 
         ] # چارت سازمانی
 

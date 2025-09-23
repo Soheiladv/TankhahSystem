@@ -414,8 +414,12 @@ class FactorForm(forms.ModelForm):
             budget_period = tankhah.project_budget_allocation.budget_period
             is_locked, lock_reason = budget_period.is_locked
             if is_locked:
-                logger.warning(f"[FactorForm.clean] خطای اعتبارسنجی: دوره بودجه قفل است. دلیل: {lock_reason}")
-                raise forms.ValidationError(lock_reason)
+                # اجازه عبور برای ادمین یا پرمیشن خاص
+                if self.user and (self.user.is_superuser or self.user.has_perm('budgets.allow_factor_after_period_end')):
+                    logger.info("[FactorForm.clean] Period locked but override permission granted; allowing save.")
+                else:
+                    logger.warning(f"[FactorForm.clean] خطای اعتبارسنجی: دوره بودجه قفل است. دلیل: {lock_reason}")
+                    raise forms.ValidationError(lock_reason)
 
         logger.debug("[FactorForm.clean] اعتبارسنجی فرم با موفقیت انجام شد")
         return cleaned_data
@@ -603,8 +607,11 @@ class __FactorForm(forms.ModelForm):
             budget_period = tankhah.project_budget_allocation.budget_period
             is_locked, lock_reason = budget_period.is_locked
             if is_locked:
-                logger.warning(f"[FactorForm.clean] خطای اعتبارسنجی: دوره بودجه قفل است. دلیل: {lock_reason}")
-                raise forms.ValidationError(lock_reason)
+                if self.user and (self.user.is_superuser or self.user.has_perm('budgets.allow_factor_after_period_end')):
+                    logger.info("[FactorForm.clean] Period locked but override permission granted; allowing save.")
+                else:
+                    logger.warning(f"[FactorForm.clean] خطای اعتبارسنجی: دوره بودجه قفل است. دلیل: {lock_reason}")
+                    raise forms.ValidationError(lock_reason)
 
         logger.debug("[FactorForm.clean] اعتبارسنجی فرم با موفقیت انجام شد")
         return cleaned_data

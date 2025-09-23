@@ -141,10 +141,10 @@ def _register_persian_font(explicit_path: str = None):
             logger.warning('[RPT] فونت فارسی پیدا نشد; استفاده از فونت پیش فرض Helvetica')
             return False
         pdfmetrics.registerFont(TTFont(PERSIAN_FONT_NAME, font_path))
-        logger.info(f'[RPT] ثبت فونت فارسی از مسیر {font_path}')
+        # logger.info(f'[RPT] ثبت فونت فارسی از مسیر {font_path}')
         return True
     except Exception as e:
-        logger.error(f'[RPT] مشکل مسیر یابی در فونت: {e}')
+        # logger.error(f'[RPT] مشکل مسیر یابی در فونت: {e}')
         return False
 
 

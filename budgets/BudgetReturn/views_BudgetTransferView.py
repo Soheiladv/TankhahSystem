@@ -14,62 +14,42 @@ from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger(__name__)
 
-class BudgetTransferView(PermissionBaseView, FormView):
+
+class BudgetTransferView(FormView):
     form_class = BudgetTransferForm
-    template_name = 'budgets/ReturnTransfer/budget_transfer_form.html' # تمپلیت شما
-    success_url = reverse_lazy('budgetallocation_list') # یا URL مناسب دیگر
-    permission_codenames = ['budgets.BudgetTransfer'] # دسترسی لازم (مطمئن شوید این پرمیشن وجود دارد)
-    check_organization = False # یا True اگر لازم است
+    template_name = 'budgets/ReturnTransfer/budget_transfer_form.html'
+    success_url = reverse_lazy('budgetallocation_list')
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        logger.debug(f"BudgetTransferView: Passing user {self.request.user.username} to form.")
+        kwargs['user'] = self.request.user  # ارسال کاربر به فرم برای کوئری منطقی
         return kwargs
 
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        logger.debug(f"source_allocation queryset count: {form.fields['source_allocation'].queryset.count()}")
+        logger.debug(f"destination_allocation queryset count: {form.fields['destination_allocation'].queryset.count()}")
+        return form
+
     def form_valid(self, form):
-        logger.info(f"BudgetTransferView: Form is valid for user {self.request.user.username}. Attempting transfer.")
         try:
-            return_tx, alloc_tx = form.execute_transfer() # فراخوانی متد اجرای انتقال
-
-            messages.success(
-                self.request,
-                _("جابجایی بودجه از تخصیص پروژه '{}' به '{}' به مبلغ {:,} ریال با موفقیت انجام شد.").format(
-                    form.cleaned_data['source_allocation'].project.name, # نمایش نام پروژه
-                    form.cleaned_data['destination_allocation'].project.name,
-                    form.cleaned_data['amount']
-                )
-            )
-            logger.info(
-                f"Budget transferred successfully by {self.request.user.username}: "
-                f"{form.cleaned_data['amount']} from PBA {form.cleaned_data['source_allocation'].pk} "
-                f"to PBA {form.cleaned_data['destination_allocation'].pk}."
-            )
+            return_tx, alloc_tx = form.execute_transfer()
+            messages.success(self.request, "جابجایی بودجه با موفقیت انجام شد.")
             return super().form_valid(form)
-
-        except ValidationError as e:
-            logger.warning(f"BudgetTransferView: Validation error during transfer execution - {e}")
-            # اضافه کردن خطاها به فرم تا در تمپلیت نمایش داده شوند
-            if hasattr(e, 'message_dict'):
-                for field, errors_list in e.message_dict.items():
-                    for error_msg in errors_list:
-                        form.add_error(field if field != '__all__' else None, error_msg)
-            elif hasattr(e, 'messages'):
-                 for error_msg in e.messages:
-                      form.add_error(None, error_msg)
-            else:
-                form.add_error(None, str(e))
-            return self.form_invalid(form)
         except Exception as e:
-            logger.error(f"BudgetTransferView: Unexpected error during transfer execution - {e}", exc_info=True)
-            messages.error(self.request, _("خطای پیش‌بینی نشده‌ای در هنگام جابجایی بودجه رخ داد."))
-            return self.form_invalid(form)
+            logger.error(f"خطا در اجرای جابجایی بودجه: {e}", exc_info=True)
+            form.add_error(None, "خطا در اجرای جابجایی بودجه")
+            return super().form_invalid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "خطا در داده‌های وارد شده، لطفاً اصلاح کنید.")
+        return super().form_invalid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = _('جابجایی بودجه بین تخصیص‌های پروژه')
-        context['operation_type'] = 'transfer'
-        logger.debug(f"BudgetTransferView: Context data prepared for user {self.request.user.username}")
+        if 'form' not in context:
+            context['form'] = self.get_form()
+        context['title'] = 'جابجایی بودجه بین تخصیص‌ها'
         return context
 
 

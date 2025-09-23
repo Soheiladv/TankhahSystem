@@ -4,19 +4,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% trans "نمودار سازمانی" %}{% endblock %} - {% trans "سیستم شما" %}</title>
+    <title>{% block title %}{% trans "چارت سازمان شما" %}{% endblock %}</title>
+    <link rel="icon" href="{% static 'admin/img/favicon.ico' %}" type="image/x-icon">
+    <!-- CSS های اصلی -->
+    <link href="{% static 'admin/css/bootstrap.rtl.min.css' %}" rel="stylesheet">
+    <link href="{% static 'admin/css/all.min.css' %}" rel="stylesheet">
+    <link href="{% static 'admin/css/animate.min.css' %}" rel="stylesheet">
+    <!-- CSS فارسی دیتاپیکر -->
+    <link href="{% static 'admin/css/jalalidatepicker.min.css' %}" rel="stylesheet">
+    <link href="{% static 'admin/css/custom.css' %}" rel="stylesheet">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    {% if LANGUAGE_CODE == 'fa' %}
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.rtl.min.css" integrity="sha384-gXt9imSW0VcJVHezoNQsP+TNrjYXoGcrqBZJpry9zJt8PCQjobwmhMGaDHTASo9N" crossorigin="anonymous">
-        <link href="{% static 'css/vazirmatn-font-face.css' %}" rel="stylesheet">
-        <style> body { font-family: 'Vazirmatn', sans-serif; } </style>
-    {% endif %}
+    {# Select2 CSS #}
+    <link href="{% static 'admin/css/select2.min.css' %}" rel="stylesheet"/>
+    {# Select2 Bootstrap 5 Theme #}
+    <link rel="stylesheet" href="{% static 'admin/css/select2-bootstrap-5-theme.min.css' %}"/>
 
-    <link href="https://unpkg.com/vis-network/styles/vis-network.min.css" rel="stylesheet" type="text/css" />
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- استایل‌های سفارشی -->
+    <link rel="stylesheet" href="{% static 'admin/css/budgetsStyle.css' %}">
+    <link rel="stylesheet" href="{% static 'css/notification-animations.css' %}">
 
+    <style>
+        @font-face {
+            font-family: 'Parastoo';
+            src: url('{% static "admin/fonts/Parastoo.ttf" %}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            font-family: 'Parastoo', 'Yekan', 'IRANSans', sans-serif;
+        }
+
+        /* استایل برای اعلان‌ها */
+        .notification-list {
+            max-height: 400px;
+            overflow-y: auto;
+            min-width: 300px;
+        }
+
+        .notification-item .dropdown-item {
+            transition: background-color 0.3s ease;
+        }
+
+        .notification-item .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .notification-item.unread .dropdown-item {
+            background-color: #e9f7ff;
+            font-weight: bold;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            animation: pulse 2s infinite;
+        }
+
+        .dropdown-divider {
+            margin: 0.25rem 0;
+        }
+
+        .dropdown-header {
+            font-weight: bold;
+            color: #343a40;
+        }
+
+        /* انیمیشن لرزش برای زنگوله */
+        .notification-bell {
+            transition: transform 0.3s ease;
+        }
+
+        .notification-bell.shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .notification-bell.pulse {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+            20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* انیمیشن برای badge */
+        .notification-badge.animate {
+            animation: bounce 0.6s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+    </style>
     <style>
         body {
             background-color: #f4f6f8; /* Light gray background */
@@ -66,9 +159,12 @@
         {% endblock %}
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+
+<!-- اسکریپت‌ها -->
+<script src="{% static 'admin/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'admin/js/vis-network.min.js' %}"></script>
+<script src="{% static 'admin/js/jquery-3.6.0.min.js' %}"></script>
 
     {% block extra_js %}{% endblock %}
 </body>

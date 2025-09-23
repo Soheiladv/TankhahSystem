@@ -85,13 +85,16 @@ class UserPermissionReportView(StaffRequiredMixin, View):
             'factor_access': user_rule_assignments.filter(entity_type='FACTOR').count(),
         }
 
-        # اعمال Overrides کاربر (UserRuleOverride)
-        from core.models import UserRuleOverride
-        overrides = UserRuleOverride.objects.filter(user=user)
+        # اعمال Overrides کاربر (UserRuleOverride) - ایمن در نبود جدول
         overrides_map = {}
-        for o in overrides:
-            key = (o.organization_id, o.action_id, o.entity_type_id, o.post_id or 0)
-            overrides_map[key] = o.is_enabled
+        try:
+            from core.models import UserRuleOverride
+            overrides = UserRuleOverride.objects.filter(user=user)
+            for o in overrides:
+                key = (o.organization_id, o.action_id, o.entity_type_id, o.post_id or 0)
+                overrides_map[key] = o.is_enabled
+        except Exception as e:
+            logger.warning(f"UserRuleOverride table not available or query failed: {e}")
 
         # برچسب‌گذاری ترنزیشن‌ها با توجه به override ها
         for t in transitions:

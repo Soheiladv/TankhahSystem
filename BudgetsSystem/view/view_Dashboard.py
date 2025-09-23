@@ -119,6 +119,7 @@ dashboard_links = {
         {'name': _('فهرست فاکتورها'), 'url': 'factor_list',    'permission': 'tankhah.view_factor',     'icon': 'fas fa-clipboard-list'},  # لیست کلیپ‌بورد برای فاکتورها
         # {'name': _('فهرست فاکتورها2'), 'url': 'factor_list2', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-clipboard-list'}, # لیست کلیپ‌بورد برای فاکتورها
        {'name': _('ایجاد فاکتور'),    'url': 'Nfactor_create', 'permission': 'tankhah.add_factor',      'icon': 'fas fa-file-invoice'},  # فاکتور خالی
+       {'name': _('ابزار گردش کار فاکتور'), 'url': 'workflow_chart', 'permission': 'tankhah.view_factor', 'icon': 'fas fa-project-diagram'},
 
     ],
     'تنخواه': [

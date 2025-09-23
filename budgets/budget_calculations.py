@@ -581,6 +581,104 @@ def get_tankhah_budget_info(request):
 
         logger.info('Step 2: Calculating budget info')
         from budgets.models import BudgetTransaction
+        # --- Budget Period details for UI ---
+        bp = getattr(allocation, 'budget_period', None)
+        bp_payload = None
+        try:
+            if bp is not None:
+                # Support tuple-return of is_locked property (locked, reason)
+                bp_locked = None
+                bp_reason = ''
+                try:
+                    locked_val = bp.is_locked
+                    if isinstance(locked_val, (list, tuple)) and len(locked_val) >= 1:
+                        bp_locked = bool(locked_val[0])
+                        if len(locked_val) > 1:
+                            bp_reason = locked_val[1] or ''
+                    else:
+                        bp_locked = bool(locked_val)
+                except Exception:
+                    bp_locked = None
+
+                # Prefer explicit model flags over computed property if available
+                explicit_locked = None
+                for attr in ('locked', 'is_locked_flag', 'manual_locked', 'is_closed'):
+                    if hasattr(bp, attr):
+                        try:
+                            explicit_locked = bool(getattr(bp, attr))
+                            break
+                        except Exception:
+                            pass
+
+                # Apply feature toggle: ignore date-based auto-lock if disabled
+                try:
+                    from django.conf import settings as _dj_settings
+                    autolock_enabled = getattr(_dj_settings, 'BUDGET_PERIOD_DATE_AUTOLOCK', True)
+                except Exception:
+                    autolock_enabled = True
+
+                # Determine final lock
+                final_locked = explicit_locked if (explicit_locked is not None) else (bp_locked if autolock_enabled else False)
+
+                # Simple progress heuristic based on date range
+                progress_percent = None
+                try:
+                    from datetime import date
+                    start_date = getattr(bp, 'start_date', None) or getattr(bp, 'from_date', None)
+                    end_date = getattr(bp, 'end_date', None) or getattr(bp, 'to_date', None)
+                    if start_date and end_date and hasattr(start_date, 'toordinal') and hasattr(end_date, 'toordinal'):
+                        today = date.today()
+                        total_days = max(1, (end_date - start_date).days)
+                        elapsed_days = (min(max(today, start_date), end_date) - start_date).days
+                        progress_percent = round((elapsed_days / total_days) * 100)
+                except Exception:
+                    progress_percent = None
+
+                bp_payload = {
+                    'name': getattr(bp, 'name', None) or getattr(bp, 'title', None) or '-',
+                    'start_date': str(getattr(bp, 'start_date', None) or getattr(bp, 'from_date', '') or ''),
+                    'end_date': str(getattr(bp, 'end_date', None) or getattr(bp, 'to_date', '') or ''),
+                    'is_locked': final_locked,
+                    'lock_reason': bp_reason,
+                    'progress': progress_percent,
+                    'debug': {
+                        'explicit_locked': explicit_locked,
+                        'computed_locked': bp_locked,
+                        'autolock_enabled': autolock_enabled,
+                    }
+                }
+        except Exception as _e:
+            logger.warning(f"Budget period payload build failed: {_e}")
+
+        # --- Allocation details and dynamic status ---
+        alloc_payload = None
+        try:
+            if allocation is not None:
+                # Remaining vs thresholds
+                try:
+                    remaining_alloc = allocation.get_remaining_amount()
+                    locked_amt_alloc = allocation.get_locked_amount()
+                    warning_amt_alloc = allocation.get_warning_amount()
+                    status_code_alloc, status_msg_alloc = allocation.check_allocation_status()
+                except Exception as _e:
+                    remaining_alloc = None
+                    locked_amt_alloc = None
+                    warning_amt_alloc = None
+                    status_code_alloc, status_msg_alloc = 'unknown', str(_e)
+
+                alloc_payload = {
+                    'locked_percentage': float(allocation.locked_percentage),
+                    'warning_threshold': float(allocation.warning_threshold),
+                    'warning_action': allocation.warning_action,
+                    'is_locked': bool(getattr(allocation, 'is_locked', False)),
+                    'remaining': decimal_to_clean_str(remaining_alloc) if remaining_alloc is not None else None,
+                    'locked_amount': decimal_to_clean_str(locked_amt_alloc) if locked_amt_alloc is not None else None,
+                    'warning_amount': decimal_to_clean_str(warning_amt_alloc) if warning_amt_alloc is not None else None,
+                    'status': {'code': status_code_alloc, 'message': str(status_msg_alloc)},
+                }
+        except Exception as _e:
+            logger.warning(f"Allocation payload build failed: {_e}")
+
         budget_info = {
             'project_name': project.name if project else '-',
             'project_budget': decimal_to_clean_str(get_project_total_budget(project) or Decimal('0')),
@@ -595,6 +693,8 @@ def get_tankhah_budget_info(request):
             'tankhah_budget': decimal_to_clean_str(get_tankhah_total_budget(tankhah) or Decimal('0')),
             'tankhah_consumed': decimal_to_clean_str(get_tankhah_used_budget(tankhah) or Decimal('0')),
             'tankhah_remaining': decimal_to_clean_str(get_tankhah_remaining_budget(tankhah) or Decimal('0')),
+            'budget_period': bp_payload,
+            'allocation': alloc_payload,
         }
 
         logger.info(f'Step 3: Budget info retrieved for tankhah {tankhah.number}: {budget_info}')

@@ -4,50 +4,7 @@
 
 {% block title %}{% trans "ایجاد/ویرایش دوره بودجه" %}{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* ... (استایل‌های قبلی شما) ... */
-    .form-control-plaintext {
-        padding-top: 0.375rem;
-        padding-bottom: 0.375rem;
-        margin-bottom: 0;
-        line-height: 1.8; /* تنظیم مشابه سایر فیلدها */
-        background-color: transparent;
-        border: solid transparent;
-        border-width: 1px 0;
-        color: #555; /* رنگ متن مشابه سایر فیلدها */
-        font-weight: 500; /* کمی برجسته‌تر */
-    }
 
-    .form-label {
-        margin-bottom: 0.3rem;
-    }
-
-    /* کمی کاهش فاصله لیبل */
-    .info-label { /* استایل برای لیبل‌های فیلدهای نمایشی */
-        color: #6c757d; /* خاکستری */
-        font-weight: 500;
-        font-size: 0.9rem; /* کمی کوچکتر */
-    }
-
-    .info-value { /* استایل برای مقادیر فیلدهای نمایشی */
-        font-size: 0.95rem;
-        font-weight: bold;
-        color: #343a40; /* مشکی مایل به خاکستری */
-    }
-
-    .amount-words {
-        font-size: 0.85rem; /* کمی کوچکتر */
-        color: #6c757d;
-        margin-top: 0.2rem;
-        display: block; /* اطمینان از نمایش در خط جدید */
-    }
-
-    .input-group-text {
-        font-size: 0.85rem;
-    }
-</style>
-{% endblock %}
 
 {% block content %}
     <div class="container-lg budget-form-page">
@@ -106,6 +63,7 @@
                         <label for="{{ form.start_date.id_for_label }}" class="form-label">{{ form.start_date.label }}
                             <span class="text-danger">*</span></label>
                         {{ form.start_date }}
+                        <div class="form-text text-muted mt-1">{% trans "تاریخ به فارسی" %}: <span id="start-date-fa">—</span></div>
                         {% if form.start_date.errors %}
                             <div class="invalid-feedback d-block">{{ form.start_date.errors|striptags }}</div>{% endif %}
                     </div>
@@ -113,6 +71,7 @@
                         <label for="{{ form.end_date.id_for_label }}" class="form-label">{{ form.end_date.label }} <span
                                 class="text-danger">*</span></label>
                         {{ form.end_date }}
+                        <div class="form-text text-muted mt-1">{% trans "تاریخ به فارسی" %}: <span id="end-date-fa">—</span></div>
                         {% if form.end_date.errors %}
                             <div class="invalid-feedback d-block">{{ form.end_date.errors|striptags }}</div>{% endif %}
                     </div>
@@ -134,6 +93,7 @@
                             <div class="invalid-feedback d-block">{{ form.total_amount.errors|striptags }}</div>
                         {% endif %}
                         {# نمایش مقدار به حروف #}
+                        <div class="small text-muted mt-1">{% trans "مبلغ به فارسی" %}: <strong id="total_amount_persian">۰</strong> {% trans "ریال" %}</div>
                         <div id="total_amount_words_display" class="amount-words">
                             {% if form.total_amount_words %}{% trans "به حروف" %}:
                                 {{ form.total_amount_words }}{% endif %}
@@ -184,6 +144,9 @@
                         <label for="{{ form.lock_condition.id_for_label }}"
                                class="form-label">{{ form.lock_condition.label }}</label>
                         {{ form.lock_condition }}
+                        <div class="mt-1">
+                            <span id="badge-lock-condition" class="badge bg-secondary">—</span>
+                        </div>
                         {% if form.lock_condition.errors %}
                             <div class="invalid-feedback d-block">{{ form.lock_condition.errors|striptags }}</div>{% endif %}
                     </div>
@@ -193,6 +156,9 @@
                         <div class="input-group">
                             {{ form.locked_percentage }}
                             <span class="input-group-text">%</span>
+                        </div>
+                        <div class="mt-1">
+                            <span id="badge-locked-percentage" class="badge bg-secondary">0%</span>
                         </div>
                         {% if form.locked_percentage.errors %}
                             <div class="invalid-feedback d-block">{{ form.locked_percentage.errors|striptags }}</div>{% endif %}
@@ -204,6 +170,9 @@
                             {{ form.warning_threshold }}
                             <span class="input-group-text">%</span>
                         </div>
+                        <div class="mt-1">
+                            <span id="badge-warning-threshold" class="badge bg-secondary">0%</span>
+                        </div>
                         {% if form.warning_threshold.errors %}
                             <div class="invalid-feedback d-block">{{ form.warning_threshold.errors|striptags }}</div>{% endif %}
                     </div>
@@ -211,6 +180,9 @@
                         <label for="{{ form.warning_action.id_for_label }}"
                                class="form-label">{{ form.warning_action.label }}</label>
                         {{ form.warning_action }}
+                        <div class="mt-1">
+                            <span id="badge-warning-action" class="badge bg-secondary">—</span>
+                        </div>
                         {% if form.warning_action.errors %}
                             <div class="invalid-feedback d-block">{{ form.warning_action.errors|striptags }}</div>{% endif %}
                     </div>
@@ -324,6 +296,19 @@
             // return; // شاید بدون جی‌کوئری هم کار کند، فعلا ادامه می‌دهیم
         }
 
+        // --- کمکی‌ها: تبدیل اعداد ---
+        function toLatinDigits(str){
+            return String(str ?? '').replace(/[۰-۹]/g, d => '0123456789'[d.charCodeAt(0)-1776])
+                                     .replace(/[٠-٩]/g, d => '0123456789'[d.charCodeAt(0)-1632]);
+        }
+        function toPersianDigits(str){
+            return String(str ?? '').replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+        }
+        function formatFaNumber(n){
+            const num = Number(toLatinDigits(String(n)).replace(/,/g,'')) || 0;
+            return toPersianDigits(num.toLocaleString('en-US'));
+        }
+
         // --- راه‌اندازی Datepicker ---
         const datepickerOptions = {
             format: 'YYYY/MM/DD',
@@ -343,6 +328,12 @@
 
                 const startDateVal = startDateInput.value;
                 const endDateVal = endDateInput.value;
+
+                // نمایش فارسی زیر باکس‌ها
+                try{
+                    document.getElementById('start-date-fa').textContent = startDateVal ? toPersianDigits(startDateVal) : '—';
+                    document.getElementById('end-date-fa').textContent = endDateVal ? toPersianDigits(endDateVal) : '—';
+                }catch(_e){}
 
                 if (startDateVal && endDateVal) {
                     // تبدیل تاریخ‌ها به میلادی برای مقایسه آسان‌تر
@@ -364,6 +355,11 @@
         // اعمال Datepicker به هر دو فیلد
         if (typeof $ !== 'undefined') { // اگر jQuery هست
             $('.jalali-datepicker').persianDatepicker(datepickerOptions);
+            // نمایش اولیه تاریخ‌ها به فارسی
+            try{
+                document.getElementById('start-date-fa').textContent = toPersianDigits(document.getElementById('{{ form.start_date.id_for_label }}')?.value || '');
+                document.getElementById('end-date-fa').textContent = toPersianDigits(document.getElementById('{{ form.end_date.id_for_label }}')?.value || '');
+            }catch(_e){}
         } else { // اگر jQuery نیست (Vanilla JS)
             document.querySelectorAll('.jalali-datepicker').forEach(el => {
                 // نیاز به پیاده‌سازی یا استفاده از نسخه Vanilla JS datepicker
@@ -428,42 +424,52 @@
 
         // --- به‌روزرسانی مقدار به حروف به صورت پویا ---
         const totalAmountInput = document.getElementById('{{ form.total_amount.id_for_label }}');
+        const totalAmountPersian = document.getElementById('total_amount_persian');
         const amountWordsDiv = document.getElementById('total_amount_words_display'); // استفاده از id جدید
+
+        function numberToWordsFa(num){
+            // ساده و کافی برای میلیاردها، بدون جزئیات اعشار
+            num = Math.floor(Number(num) || 0);
+            if (num === 0) return 'صفر';
+            const ones = ['','یک','دو','سه','چهار','پنج','شش','هفت','هشت','نه'];
+            const teens = ['ده','یازده','دوازده','سیزده','چهارده','پانزده','شانزده','هفده','هجده','نوزده'];
+            const tens = ['','','بیست','سی','چهل','پنجاه','شصت','هفتاد','هشتاد','نود'];
+            const hundreds = ['','صد','دویست','سیصد','چهارصد','پانصد','ششصد','هفتصد','هشتصد','نهصد'];
+            const scales = ['','هزار','میلیون','میلیارد','هزار میلیارد'];
+            function underThousand(n){
+                let parts=[];
+                const h = Math.floor(n/100); const t = Math.floor((n%100)/10); const o = n%10; const lastTwo = n%100;
+                if (h) parts.push(hundreds[h]);
+                if (lastTwo>=10 && lastTwo<20){ parts.push(teens[lastTwo-10]); }
+                else{
+                    if (t) parts.push(tens[t]);
+                    if (o) parts.push(ones[o]);
+                }
+                return parts.join(' و ');
+            }
+            let parts=[]; let scaleIndex=0;
+            while(num>0 && scaleIndex<scales.length){
+                const chunk = num%1000;
+                if (chunk){
+                    const chunkWords = underThousand(chunk);
+                    parts.unshift((chunkWords + (scales[scaleIndex] ? ' ' + scales[scaleIndex] : '')).trim());
+                }
+                num = Math.floor(num/1000); scaleIndex++;
+            }
+            return parts.join(' و ');
+        }
 
         async function updateAmountWords() {
             if (!totalAmountInput || !amountWordsDiv) return;
 
             // برای اعداد فارسی در ورودی، آن‌ها را به انگلیسی تبدیل می‌کنیم
-            const englishValue = totalAmountInput.value.replace(/[\u0660-\u0669\u06F0-\u06F9]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/,/g, '');
+            const englishValue = toLatinDigits(totalAmountInput.value).replace(/,/g, '');
+            if (totalAmountPersian) totalAmountPersian.textContent = formatFaNumber(englishValue);
 
             // فقط اگر مقدار عددی معتبر و مثبت باشد
             if (englishValue && !isNaN(englishValue) && Number(englishValue) > 0) {
-                amountWordsDiv.textContent = '{% trans "در حال تبدیل..." %}'; // نمایش پیام موقت
-                try {
-                    const response = await fetch('/convert_number_to_words/', { // URL باید درست باشد
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}' // اطمینان از وجود توکن
-                        },
-                        body: JSON.stringify({number: englishValue})
-                    });
-                    if (!response.ok) {
-                        throw new Error(`Server responded with status: ${response.status}`);
-                    }
-                    const data = await response.json();
-                    if (data.words) {
-                        amountWordsDiv.textContent = '{% trans "به حروف" %}: ' + data.words;
-                    } else if (data.error) {
-                        amountWordsDiv.textContent = '{% trans "خطا در تبدیل" %}: ' + data.error;
-                        console.error("Error from conversion API:", data.error);
-                    } else {
-                        amountWordsDiv.textContent = ''; // پاک کردن در صورت عدم وجود کلمات یا خطا
-                    }
-                } catch (error) {
-                    console.error('Error fetching/processing words:', error);
-                    amountWordsDiv.textContent = '{% trans "خطا در ارتباط با سرور" %}';
-                }
+                const words = numberToWordsFa(englishValue);
+                amountWordsDiv.textContent = '{% trans "به حروف" %}: ' + words + ' {% trans "ریال" %}';
             } else {
                 amountWordsDiv.textContent = ''; // پاک کردن اگر ورودی نامعتبر است
             }
@@ -471,9 +477,78 @@
 
         // اجرای تابع در زمان تغییر ورودی و در بارگذاری اولیه
         if (totalAmountInput) {
-            totalAmountInput.addEventListener('input', debounce(updateAmountWords, 500)); // استفاده از debounce برای کاهش تعداد درخواست‌ها
-            updateAmountWords(); // اجرا در بارگذاری اولیه
+            totalAmountInput.addEventListener('input', debounce(updateAmountWords, 400));
+            updateAmountWords();
         }
+        // --- رنگ‌های متمایز برای تنظیمات قفل/هشدار ---
+        const lockCondSel = document.getElementById('{{ form.lock_condition.id_for_label }}') || document.getElementById('id_lock_condition');
+        const lockBadge = document.getElementById('badge-lock-condition');
+        const lockPercInput = document.getElementById('{{ form.locked_percentage.id_for_label }}') || document.getElementById('id_locked_percentage');
+        const lockPercBadge = document.getElementById('badge-locked-percentage');
+        const warnThrInput = document.getElementById('{{ form.warning_threshold.id_for_label }}') || document.getElementById('id_warning_threshold');
+        const warnThrBadge = document.getElementById('badge-warning-threshold');
+        const warnActionSel = document.getElementById('{{ form.warning_action.id_for_label }}') || document.getElementById('id_warning_action');
+        const warnActionBadge = document.getElementById('badge-warning-action');
+
+        function updateBadges(){
+            if (lockCondSel && lockBadge){
+                const v = lockCondSel.value || '';
+                lockBadge.textContent = lockCondSel.options[lockCondSel.selectedIndex]?.text || '—';
+                lockBadge.className = 'badge ' + (v==='AFTER_DATE' ? 'bg-warning' : v==='MANUAL' ? 'bg-danger' : v==='ZERO_REMAINING' ? 'bg-info' : 'bg-secondary');
+            }
+            if (lockPercInput && lockPercBadge){
+                const p = Number(toLatinDigits(lockPercInput.value)) || 0;
+                lockPercBadge.textContent = `${p}%`;
+                lockPercBadge.className = 'badge ' + (p>=50 ? 'bg-danger' : p>=20 ? 'bg-warning' : 'bg-success');
+            }
+            if (warnThrInput && warnThrBadge){
+                const w = Number(toLatinDigits(warnThrInput.value)) || 0;
+                warnThrBadge.textContent = `${w}%`;
+                warnThrBadge.className = 'badge ' + (w>=50 ? 'bg-danger' : w>=20 ? 'bg-warning' : 'bg-success');
+            }
+            if (warnActionSel && warnActionBadge){
+                const t = warnActionSel.options[warnActionSel.selectedIndex]?.text || '—';
+                const v = warnActionSel.value || '';
+                warnActionBadge.textContent = t;
+                warnActionBadge.className = 'badge ' + (v==='LOCK' ? 'bg-danger' : v==='RESTRICT' ? 'bg-warning' : 'bg-secondary');
+            }
+        }
+        lockCondSel?.addEventListener('change', updateBadges);
+        lockPercInput?.addEventListener('input', updateBadges);
+        warnThrInput?.addEventListener('input', updateBadges);
+        warnActionSel?.addEventListener('change', updateBadges);
+        setTimeout(updateBadges, 200);
+
+        // --- توضیحات خودکار بر اساس اطلاعات ---
+        let userEditedDesc = false;
+        const descInput = document.getElementById('{{ form.description.id_for_label }}') || document.getElementById('id_description');
+        if (descInput) descInput.addEventListener('input', ()=> userEditedDesc = true);
+        function autoDescription(){
+            if (!descInput || userEditedDesc) return;
+            const org = document.getElementById('{{ form.organization.id_for_label }}') || document.getElementById('id_organization');
+            const name = document.getElementById('{{ form.name.id_for_label }}') || document.getElementById('id_name');
+            const s = document.getElementById('{{ form.start_date.id_for_label }}') || document.getElementById('id_start_date');
+            const e = document.getElementById('{{ form.end_date.id_for_label }}') || document.getElementById('id_end_date');
+            const lp = lockPercInput?.value || '';
+            const wt = warnThrInput?.value || '';
+            const wa = warnActionSel?.options[warnActionSel.selectedIndex]?.text || '';
+            const parts = [];
+            if (name?.value) parts.push(`نام دوره: ${name.value}`);
+            if (org) parts.push(`سازمان: ${org.options[org.selectedIndex]?.text || ''}`);
+            if (s?.value && e?.value) parts.push(`بازه: ${s.value} تا ${e.value}`);
+            if (lp) parts.push(`درصد قفل: ${lp}%`);
+            if (wt) parts.push(`آستانه اخطار: ${wt}%`);
+            if (wa) parts.push(`اقدام هشدار: ${wa}`);
+            descInput.value = parts.join(' | ');
+        }
+        document.getElementById('{{ form.organization.id_for_label }}')?.addEventListener('change', autoDescription);
+        document.getElementById('{{ form.name.id_for_label }}')?.addEventListener('input', autoDescription);
+        document.getElementById('{{ form.start_date.id_for_label }}')?.addEventListener('change', autoDescription);
+        document.getElementById('{{ form.end_date.id_for_label }}')?.addEventListener('change', autoDescription);
+        lockPercInput?.addEventListener('input', autoDescription);
+        warnThrInput?.addEventListener('input', autoDescription);
+        warnActionSel?.addEventListener('change', autoDescription);
+        setTimeout(autoDescription, 400);
 
         // --- تابع Debounce ---
         function debounce(func, wait) {

@@ -11,7 +11,22 @@ import accounts.models
 from accounts.models import CustomUser
 
 from tankhah.constants import ACTION_TYPES, ENTITY_TYPES
-from django.contrib.postgres.fields import ArrayField
+# Portable ArrayField shim: use Postgres ArrayField when available, else JSONField
+try:
+    from django.contrib.postgres.fields import ArrayField as _PgArrayField
+    from django.db import connection as _db_connection
+    if getattr(_db_connection, 'vendor', '') == 'postgresql':
+        ArrayField = _PgArrayField
+    else:
+        # Fallback for non-Postgres engines (e.g., sqlite, mysql in tests)
+        class ArrayField(models.JSONField):
+            def __init__(self, base_field, *args, **kwargs):  # base_field ignored in JSON fallback
+                super().__init__(*args, **kwargs)
+except Exception:
+    class ArrayField(models.JSONField):
+        def __init__(self, base_field, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            
 logger = logging.getLogger(__name__)
 class OrganizationType(models.Model):
     fname = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name=_('نام شعبه/مجتمع/اداره'))
@@ -308,12 +323,8 @@ class PostAction(models.Model):
     is_active = models.BooleanField(default=True, verbose_name=_("فعال"))
     min_level = models.IntegerField(null=True, blank=True)  # حداقل سطح دسترسی (اختیاری)
     triggers_payment_order = models.BooleanField(default=False,  verbose_name=_("فعال‌سازی دستور پرداخت"))  # مشخصه دستور پرداخت کاریر
-    allowed_actions = ArrayField(models.CharField(max_length=25, choices=[
-        ('APPROVE', 'تأیید'),
-        ('REJECT', 'رد'),
-        ('STAGE_CHANGE', 'تغییر مرحله'),
-        ('SIGN_PAYMENT', 'امضای دستور پرداخت')
-    ]), default=list, verbose_name=_("اقدامات مجاز"))
+    # Use JSON for portability in tests and non-Postgres backends
+    allowed_actions = models.JSONField(default=list, verbose_name=_("اقدامات مجاز"))
     stage = models.ForeignKey('Status', on_delete=models.CASCADE, related_name='postactions', verbose_name=_("مرحله"))
 
 
