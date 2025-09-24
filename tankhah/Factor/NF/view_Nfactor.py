@@ -230,6 +230,20 @@ class New_FactorCreateView(PermissionBaseView, CreateView):
             messages.error(self.request, _("تنخواه انتخاب شده منقضی شده است و نمی‌توان برای آن فاکتور ثبت کرد."))
             return self.form_invalid(form)
 
+        # بررسی تاریخ انقضای بودجه تنخواه
+        if tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_period:
+            budget_period = tankhah.project_budget_allocation.budget_period
+            is_locked, lock_reason = budget_period.is_locked
+            if is_locked:
+                # اجازه عبور برای ادمین یا پرمیشن خاص
+                if not (user.is_superuser or user.has_perm('budgets.allow_factor_after_period_end')):
+                    logger.warning(f"دوره بودجه تنخواه {tankhah.number} قفل شده است: {lock_reason}")
+                    messages.error(self.request, 
+                                   _("دوره بودجه تنخواه انتخاب شده قفل شده است و نمی‌توان برای آن فاکتور ثبت کرد. دلیل: {}").format(lock_reason))
+                    return self.form_invalid(form)
+                else:
+                    logger.info(f"دوره بودجه قفل است اما کاربر {user.username} مجوز عبور دارد")
+
         context = self.get_context_data()
         item_formset = context['formset']
         document_form = context['document_form']

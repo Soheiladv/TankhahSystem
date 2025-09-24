@@ -218,6 +218,9 @@ class TankhahListView(PermissionBaseView, ListView):
 
         query = self.request.GET.get('q', '').strip()
         date_query = self.request.GET.get('date', '').strip()
+        # فیلتر بازه تاریخ شمسی (جلالی)
+        date_from_query = self.request.GET.get('date_from', '').strip()
+        date_to_query = self.request.GET.get('date_to', '').strip()
         amount_query = self.request.GET.get('amount', '').strip()
         remaining_query = self.request.GET.get('remaining', '').strip()
         stage = self.request.GET.get('stage', '').strip()
@@ -236,7 +239,8 @@ class TankhahListView(PermissionBaseView, ListView):
 
         if date_query:
             try:
-                parts = date_query.split('-')
+                date_query_norm = date_query.replace('/', '-')
+                parts = date_query_norm.split('-')
                 if len(parts) == 1:
                     year = int(parts[0])
                     gregorian_year = year - 621
@@ -259,6 +263,27 @@ class TankhahListView(PermissionBaseView, ListView):
                 filter_conditions &= Q(date__isnull=True)
             logger.debug(
                 f"[TankhahListView] فیلتر تاریخ '{date_query}', تعداد: {queryset.filter(filter_conditions).count()}")
+
+        # بازه تاریخ (از/تا) با فرمت جلالی و جداکننده / یا -
+        if date_from_query or date_to_query:
+            try:
+                def parse_jalali_to_gregorian(s):
+                    s = s.replace('/', '-')
+                    y, m, d = map(int, s.split('-'))
+                    return jdate(y, m, d).togregorian()
+
+                start_g = parse_jalali_to_gregorian(date_from_query) if date_from_query else None
+                end_g = parse_jalali_to_gregorian(date_to_query) if date_to_query else None
+                if start_g and end_g:
+                    filter_conditions &= Q(date__range=(start_g, end_g))
+                elif start_g:
+                    filter_conditions &= Q(date__gte=start_g)
+                elif end_g:
+                    filter_conditions &= Q(date__lte=end_g)
+            except Exception as e:
+                logger.warning(f"[TankhahListView] خطای بازه تاریخ: from={date_from_query}, to={date_to_query}, err={e}")
+                messages.error(self.request, _('بازه تاریخ نامعتبر است.'))
+                filter_conditions &= Q(id__in=[])
 
         if amount_query:
             try:
@@ -300,6 +325,28 @@ class TankhahListView(PermissionBaseView, ListView):
                 messages.info(self.request, _('هیچ تنخواهی یافت نشد.'))
                 logger.info("[TankhahListView] هیچ تنخواهی با شرایط فیلتر یافت نشد")
 
+        # فیلتر وضعیت: همه | فقط منقضی | فقط غیر منقضی
+        from django.utils import timezone as _tz
+        current_date = _tz.now().date()
+        status_filter = self.request.GET.get('status', '').strip().lower()
+        # سازگاری با پارامتر قدیمی expired_only
+        if not status_filter:
+            if self.request.GET.get('expired_only', 'false').lower() in ('true', '1'):
+                status_filter = 'expired'
+
+        if status_filter in ('expired', 'active'):
+            filtered_ids = []
+            for t in queryset.select_related('project_budget_allocation__budget_period'):
+                bp = t.project_budget_allocation.budget_period if (t.project_budget_allocation and t.project_budget_allocation.budget_period) else None
+                is_expired = False
+                if bp:
+                    is_expired = (bp.end_date < current_date) or bool(bp.is_completed)
+                if status_filter == 'expired' and is_expired:
+                    filtered_ids.append(t.id)
+                if status_filter == 'active' and not is_expired:
+                    filtered_ids.append(t.id)
+            queryset = queryset.filter(id__in=filtered_ids) if filtered_ids else Tankhah.objects.none()
+
         final_queryset = queryset.select_related(
             'project', 'subproject', 'organization', 'current_stage',
             'created_by', 'project_budget_allocation', 'project_budget_allocation__budget_item',
@@ -340,13 +387,22 @@ class TankhahListView(PermissionBaseView, ListView):
         context['user_orgs'] = user_orgs
         context['query'] = self.request.GET.get('q', '')
         context['date_query'] = self.request.GET.get('date', '')
+        context['date_from_query'] = self.request.GET.get('date_from', '')
+        context['date_to_query'] = self.request.GET.get('date_to', '')
         context['amount_query'] = self.request.GET.get('amount', '')
         context['remaining_query'] = self.request.GET.get('remaining', '')
         context['stage'] = self.request.GET.get('stage', '')
         context['show_archived'] = self.request.GET.get('show_archived', 'false').lower() == 'true'
+        context['expired_only'] = self.request.GET.get('expired_only', 'false').lower() in ('true','1')
+        context['status_filter'] = self.request.GET.get('status', '')
         context['org_display_name'] = (
             _('دفتر مرکزی') if is_hq_user else (user_orgs[0].name if user_orgs else _('بدون سازمان'))
         )
+        # حذف فیلد اشتباه قدیمی reminid_tankhahs
+        # اضافه کردن اطلاعات منقضی شدن
+        from django.utils import timezone
+        current_date = timezone.now().date()
+        context['current_date'] = current_date
 
         tankhah_list = context[self.context_object_name]
         grouped_by_org = {}

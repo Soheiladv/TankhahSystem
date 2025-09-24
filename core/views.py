@@ -1350,6 +1350,7 @@ class ProjectCreateView(PermissionBaseView, CreateView):
         logger.error(f"Form errors: {form.errors.as_json()}, data: {form.data}")
         messages.error(self.request, _('خطایی در ثبت پروژه رخ داد. لطفاً اطلاعات را بررسی کنید.'))
         return super().form_invalid(form)
+
 class ProjectUpdateView(PermissionBaseView, UpdateView):
     model = Project
     form_class = ProjectForm

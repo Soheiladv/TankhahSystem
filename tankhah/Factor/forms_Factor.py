@@ -59,11 +59,18 @@ class W_FactorForm(forms.ModelForm):
                 subprojects = SubProject.objects.filter(project__in=projects)
                 queryset = Tankhah.objects.filter(
                     status__code=['DRAFT', 'PENDING'],
-                    current_stage__order=initial_stage_order
+                    current_stage__order=initial_stage_order,
+                    is_archived=False,
+                    canceled=False,
+                    is_locked=False
                 ).filter(
                     Q(organization__in=user_orgs) |
                     Q(project__in=projects) |
                     Q(subproject__in=subprojects)
+                ).filter(
+                    Q(due_date__isnull=True) | Q(due_date__date__gte=timezone.now().date())
+                ).filter(
+                    remaining_budget__gt=0
                 ).distinct()
                 self.fields['tankhah'].queryset = queryset
                 logger.info(f"Tankhah queryset: {list(queryset.values('number', 'project__name', 'subproject__name'))}")
@@ -197,7 +204,14 @@ class FactorWizardStep1Form(forms.ModelForm): # Renamed for clarity
         initial_stage_order = initial_stage.order
         base_queryset = Tankhah.objects.filter(
             status__code=['DRAFT', 'PENDING'],
-            current_stage__order=initial_stage_order
+            current_stage__order=initial_stage_order,
+            is_archived=False,
+            canceled=False,
+            is_locked=False
+        ).filter(
+            Q(due_date__isnull=True) | Q(due_date__date__gte=timezone.now().date())
+        ).filter(
+            remaining_budget__gt=0
         ).select_related('project', 'subproject', 'organization') # Optimize query
 
         if self.user:

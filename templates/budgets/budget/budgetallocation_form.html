@@ -13,10 +13,18 @@
 
         <div class="card-body p-lg-4">
             {% if budget_period %}
-                <div class="budget-summary border rounded p-3 mb-4 bg-light">
+                <div class="budget-summary border rounded p-3 mb-4 bg-light position-relative">
+                    <div id="budget-meta"
+                         data-total="{{ total_amount|default:0|floatformat:0 }}"
+                         data-remaining="{{ remaining_amount|default:0|floatformat:0 }}"
+                         data-locked="{{ locked_percentage|default:0|floatformat:0 }}"
+                         data-warning="{{ warning_threshold|default:0|floatformat:0 }}"
+                         class="d-none"></div>
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="mb-0 text-muted">{% trans "دوره بودجه:" %} <strong>{{ budget_period.name }}</strong></h6>
-                        <span class="badge bg-success">{% trans "فعال" %}</span> {# Or dynamically set based on period status #}
+                        <h6 class="mb-0 text-muted">{% trans "دوره بودجه:" %} <strong>{{ budget_period.name  | to_persian_number }}</strong></h6>
+                        <span class="badge {% if budget_period.is_completed or budget_period.end_date < today %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                            {% if budget_period.is_completed or budget_period.end_date < today %}{% trans "منقضی/تمام‌شده" %}{% else %}{% trans "فعال" %}{% endif %}
+                        </span>
                     </div>
                     <div class="row g-3 align-items-center mb-3">
                         <div class="col-md-4 col-6">
@@ -160,6 +168,9 @@
                                 </div>
                                 <div class="word-display text-muted small mt-1 text-end" id="allocated-amount-words"></div>
                              </div>
+                             <div class="mt-2 small text-muted" id="auto-desc-preview" style="min-height:1.5rem">
+                                 
+                             </div>
                         </div>
                     </div>
                 </div>
@@ -214,6 +225,12 @@
                         <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">
                             <i class="fas fa-align-left fa-fw me-1 text-muted"></i> {% trans "شرح:" %}
                         </label>
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" id="autoFillDescSwitch" checked>
+                                <label class="form-check-label" for="autoFillDescSwitch">{% trans "پر کردن خودکار شرح" %}</label>
+                            </div>
+                        </div>
                         {{ form.description }}
                         {% if form.description.errors %}
                             <div class="invalid-feedback d-block">{{ form.description.errors|striptags }}</div>
@@ -236,6 +253,10 @@
                         {% if form.locked_percentage.errors %}
                             <div class="invalid-feedback d-block">{{ form.locked_percentage.errors|striptags }}</div>
                         {% endif %}
+                        <div class="mt-2">
+                            <span class="small text-muted">{% trans "نمایش" %}:</span>
+                            <span id="badge-locked-percentage" class="badge bg-secondary">0%</span>
+                        </div>
                     </div>
 
                     <!-- آستانه اخطار -->
@@ -251,6 +272,10 @@
                         {% if form.warning_threshold.errors %}
                             <div class="invalid-feedback d-block">{{ form.warning_threshold.errors|striptags }}</div>
                         {% endif %}
+                        <div class="mt-2">
+                            <span class="small text-muted">{% trans "نمایش" %}:</span>
+                            <span id="badge-warning-threshold" class="badge bg-secondary">0%</span>
+                        </div>
                     </div>
 
                     <!-- اقدام هشدار -->
@@ -262,6 +287,10 @@
                         {% if form.warning_action.errors %}
                             <div class="invalid-feedback d-block">{{ form.warning_action.errors|striptags }}</div>
                         {% endif %}
+                        <div class="mt-2">
+                            <span class="small text-muted">{% trans "نمایش" %}:</span>
+                            <span id="badge-warning-action" class="badge bg-secondary">—</span>
+                        </div>
                     </div>
                  </div>
 
@@ -564,12 +593,22 @@ $(document).ready(function() {
                 const allocatedAmountDisplay = document.getElementById('allocated-amount-display');
                 const allocatedAmountUnitDisplay = document.getElementById('allocated-amount-unit-display');
                 const allocatedAmountWords = document.getElementById('allocated-amount-words');
+                const autoDescPreview = document.getElementById('auto-desc-preview');
+                const autoFillSwitch = document.getElementById('autoFillDescSwitch');
+                const descriptionField = document.getElementById('{{ form.description.id_for_label }}');
 
-                const totalAmount = {{ total_amount|default:0 }};
-                let remainingAmount = {{ remaining_amount|default:0 }};
-                const lockedPercentage = {{ locked_percentage|default:0 }};
-                const warningThreshold = {{ warning_threshold|default:0 }};
+                const metaEl = document.getElementById('budget-meta');
+                const totalAmount = metaEl ? parseFloat(metaEl.dataset.total || '0') : 0;
+                let remainingAmount = metaEl ? parseFloat(metaEl.dataset.remaining || '0') : 0;
+                const lockedPercentage = metaEl ? parseFloat(metaEl.dataset.locked || '0') : 0;
+                const warningThreshold = metaEl ? parseFloat(metaEl.dataset.warning || '0') : 0;
                 const budgetAvailable = {{ budget_period|yesno:"true,false" }};
+                const periodName = '{{ budget_period.name|default:"" }}';
+                const orgName = (function(){ try { return document.querySelector('#id_organization option:checked').text || ''; } catch(e){ return ''; } })();
+                function jalaliToday(){
+                    const d = new Date();
+                    return d.toLocaleDateString('fa-IR');
+                }
 
                 allocatedAmountInput.addEventListener('input', function (e) {
                     let value = e.target.value;
@@ -633,6 +672,18 @@ $(document).ready(function() {
                             progressBar.classList.add('bg-warning');
                         } else {
                             progressBar.classList.add('bg-success');
+                        }
+                    }
+
+                    // پیش‌نویس شرح خودکار
+                    if (autoDescPreview) {
+                        let txt = '';
+                        if (displayAmount > 0) {
+                            txt = `تخصیص بودجه به مبلغ ${NumberFormatter.separate(displayAmount)} ریال برای سازمان «${orgName}» در دوره «${periodName}» در تاریخ ${jalaliToday()}`;
+                        }
+                        autoDescPreview.textContent = txt;
+                        if (autoFillSwitch && autoFillSwitch.checked && descriptionField) {
+                            descriptionField.value = txt;
                         }
                     }
                 }

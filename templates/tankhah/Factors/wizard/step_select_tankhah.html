@@ -24,6 +24,7 @@
 
             {# رندر کردن خود ویجت Select (که کلاس‌های بوت‌استرپ را در forms.py گرفته) #}
             {{ form.tankhah }}
+            <small class="form-text text-muted">{% trans "می‌توانید با تایپ کردن جستجو کنید." %}</small>
 
             {# نمایش متن راهنما اگر وجود داشته باشد #}
             {% if form.tankhah.help_text %}
@@ -76,6 +77,17 @@
     {# --- JavaScript برای دریافت اطلاعات بودجه با AJAX --- #}
     <script>
         $(document).ready(function() { // یا معادل آن در Vanilla JS
+            // فعال‌سازی جستجو روی انتخاب تنخواه
+            try {
+                if ($.fn.select2) {
+                    $('#id_tankhah').select2({
+                        placeholder: '{% trans "انتخاب تنخواه" %}',
+                        allowClear: true,
+                        width: '100%'
+                    });
+                }
+            } catch (e) { console.warn('Select2 not available:', e); }
+
             const budgetInfoDiv = $('#tankhah-budget-info');
             const loadingSpinner = $('#budget-loading-spinner');
             const errorMsgDiv = $('#budget-error-message');
@@ -144,6 +156,23 @@
                     return num.toLocaleString('fa-IR', { maximumFractionDigits: 0 });
                 } catch (e) { return String(numStr); }
             }
+
+            // رنگ‌بندی گزینه‌ها بر اساس تاریخ/بودجه (درصورت ارسال data-attribute از سرور)
+            function colorizeOptions() {
+                $('#id_tankhah option').each(function(){
+                    const $opt = $(this);
+                    const isExpired = $opt.data('expired') === true || $opt.data('expired') === 'true';
+                    const hasNoBudget = $opt.data('nobudget') === true || $opt.data('nobudget') === 'true';
+                    if (isExpired) {
+                        $opt.css('color', '#b02a37'); // قرمز
+                    } else if (hasNoBudget) {
+                        $opt.css('color', '#b58105'); // کهربایی
+                    } else {
+                        $opt.css('color', '');
+                    }
+                });
+            }
+            colorizeOptions();
 
             // اتصال رویداد به تغییر انتخاب تنخواه
             $('#id_tankhah').on('change', function() { // مطمئن شوید ID فیلد select درست است (معمولا id_نام_فیلد)

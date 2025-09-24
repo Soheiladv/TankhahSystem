@@ -1,3 +1,267 @@
+
+{% extends 'base.html' %}
+{% load i18n static humanize jformat rcms_custom_filters %}
+
+
+{% block content %}
+<div class="container py-5">
+    <div class="card fade-in">
+        <div class="card-body">
+            <h2 class="card-title text-center mb-4">
+                <i class="fas fa-wallet me-2"></i> {% trans "لیست تنخواه‌ها" %}
+            </h2>
+
+            <!-- فرم فیلتر -->
+            <form method="get" class="mb-4">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <input type="text" name="q" value="{{ query|default_if_none:'' }}" class="form-control" placeholder="{% trans 'شماره، سازمان، پروژه...' %}" aria-label="{% trans 'جستجو' %}">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="date_from" id="date_from" value="{{ date_from_query|default_if_none:'' }}" class="form-control" placeholder="1403/01/01" aria-label="{% trans 'از تاریخ' %}" data-jdp autocomplete="off">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="date_to" id="date_to" value="{{ date_to_query|default_if_none:'' }}" class="form-control" placeholder="1403/12/29" aria-label="{% trans 'تا تاریخ' %}" data-jdp autocomplete="off">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" name="amount" value="{{ amount_query|default_if_none:'' }}" class="form-control" placeholder="{% trans 'مبلغ (ریال)' %}" aria-label="{% trans 'مبلغ' %}">
+                    </div>
+                  
+                    <div class="col-md-2">
+                        <input type="text" name="remaining" value="{{ remaining_query|default_if_none:'' }}" class="form-control" placeholder="{% trans 'باقیمانده (ریال)' %}" aria-label="{% trans 'باقیمانده' %}">
+                    </div>
+                    <!-- حذف انتخاب مرحله برای سادگی و نبود داده stages -->
+                    <div class="col-md-2">
+                        <div class="form-check">
+                            <input type="checkbox" name="show_archived" value="true" class="form-check-input" id="showArchived" {% if show_archived %}checked{% endif %} aria-label="{% trans 'نمایش آرشیو' %}">
+                            <label class="form-check-label" for="showArchived">{% trans "آرشیو" %}</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex gap-3 align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="status" id="status_all" value="" {% if not status_filter %}checked{% endif %}>
+                                <label class="form-check-label" for="status_all">{% trans "همه" %}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="status" id="status_expired" value="expired" {% if status_filter == 'expired' or expired_only %}checked{% endif %}>
+                                <label class="form-check-label" for="status_expired">{% trans "منقضی" %}</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="status" id="status_active" value="active" {% if status_filter == 'active' %}checked{% endif %}>
+                                <label class="form-check-label" for="status_active">{% trans "غیرمنقضی" %}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary btn-custom w-100">
+                            <i class="fas fa-filter me-2"></i> {% trans "فیلتر" %}
+                        </button>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <a href="{% url 'tankhah_list' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-undo me-2"></i> {% trans "ریست" %}
+                        </a>
+                    </div>
+
+                </div>
+            </form>
+
+            <!-- پیام‌ها -->
+            {% if messages %}
+                <div class="alert alert-dismissible fade show alert-info" role="alert">
+                    {% for message in messages %}
+                        <div class="alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+                    {% endfor %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'بستن' %}"></button>
+                </div>
+            {% endif %}
+
+            <!-- هشدار تنخواه‌های منقضی -->
+            <div class="alert alert-warning d-flex align-items-center justify-content-between mb-4" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <div>
+                        <strong>توجه:</strong> تنخواه‌هایی که دوره بودجه‌شان منقضی شده با رنگ زرد و نشان "منقضی" نمایش داده می‌شوند.
+                    </div>
+                </div>
+                <div>
+                    <a href="{% url 'return_expired_budget' %}" class="btn btn-warning btn-sm">
+                        <i class="fas fa-undo me-1"></i>
+                        {% trans "بازگرداندن بودجه منقضی" %}
+                    </a>
+                </div>
+            </div>
+
+            <!-- لیست تنخواه‌ها -->
+            {% if grouped_by_org %}
+                <div class="accordion" id="orgAccordion">
+                    {% for org_name, org_data in grouped_by_org.items %}
+                        <div class="accordion-item fade-in">
+                            <h2 class="accordion-header" id="orgHeading{{ forloop.counter }}">
+                                {% trans " مرکزهزینه  " %}<strong style="color: orangered">  {{ org_data.projects|length |to_persian_number}}   </strong>
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#orgCollapse{{ forloop.counter }}" aria-expanded="false" aria-controls="orgCollapse{{ forloop.counter }}">
+                                    <i class="fas fa-building me-2"></i>
+                                    {{ org_name  }}
+                                    <span class="ms-3">
+                                        - {% trans "مبلغ" %}: {{ org_data.total_amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
+                                        - {% trans "باقیمانده" %}: {{ org_data.total_remaining|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
+                                    </span>
+                                </button>
+                            </h2>
+                            <div id="orgCollapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="orgHeading{{ forloop.counter }}" data-bs-parent="#orgAccordion">
+                                <div class="accordion-body">
+                                    <div class="accordion" id="projectAccordion{{ forloop.counter }}">
+                                        {% for project_name, project_data in org_data.projects.items %}
+                                            <div class="accordion-item">
+                                                <h3 class="accordion-header" id="projectHeading{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                                   <strong style="color: green"> {{ project_data.tankhahs|length |to_persian_number}} </strong>
+                                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}" aria-expanded="false" aria-controls="projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                                        <i class="fas fa-project-diagram me-2"></i>
+                                                        {{ project_name }} {% trans "تنخواه" %}
+                                                        <span class="ms-3">
+                                                            - {% trans "مبلغ" %}: {{ project_data.total_amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
+                                                            - {% trans "باقیمانده" %}: {{ project_data.total_remaining|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
+                                                        </span>
+                                                    </button>
+                                                </h3>
+                                                <div id="projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="projectHeading{{ forloop.parentloop.counter }}_{{ forloop.counter }}" data-bs-parent="#projectAccordion{{ forloop.counter }}">
+                                                    <div class="accordion-body">
+                                                        <table class="table table-hover">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>{% trans "ردیف" %}</th>
+                                                                    <th>{% trans "شماره" %}</th>
+                                                                    <th>{% trans "تاریخ" %}</th>
+                                                                    <th>{% trans "مبلغ" %}</th>
+                                                                    <th>{% trans "باقیمانده" %}</th>
+                                                                    <th>{% trans "وضعیت" %}</th>
+                                                                    <th>{% trans "مانده تنخواه" %}</th>
+                                                                    <th>{% trans "عملیات" %}</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {% for tankhah in project_data.tankhahs %}
+                                                                    {% comment %} بررسی منقضی شدن دوره بودجه {% endcomment %}
+                                                                    {% if tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_period %}
+                                                                        {% with budget_period=tankhah.project_budget_allocation.budget_period %}
+                                                                            {% if budget_period.end_date < current_date or budget_period.is_completed %}
+                                                                                <tr class="fade-in table-warning" style="background-color: #fff3cd; border-left: 4px solid #ffc107;">
+                                                                            {% else %}
+                                                                                <tr class="fade-in">
+                                                                            {% endif %}
+                                                                        {% endwith %}
+                                                                    {% else %}
+                                                                        <tr class="fade-in">
+                                                                    {% endif %}
+                                                                        <td>{{ forloop.counter |to_persian_number }}</td>
+                                                                        <td>
+                                                                            {{ tankhah.number|to_persian_number }}
+                                                                            {% if tankhah.project_budget_allocation and tankhah.project_budget_allocation.budget_period %}
+                                                                                {% with budget_period=tankhah.project_budget_allocation.budget_period %}
+                                                                                    {% if budget_period.end_date < current_date or budget_period.is_completed %}
+                                                                                        <span class="badge bg-warning text-dark ms-2" title="دوره بودجه منقضی شده">
+                                                                                            <i class="fas fa-exclamation-triangle"></i> منقضی
+                                                                                        </span>
+                                                                                    {% endif %}
+                                                                                {% endwith %}
+                                                                            {% endif %}
+                                                                        </td>
+                                                                        <td>{{ tankhah.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
+                                                                        <td>{{ tankhah.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
+                                                                        <td>{{ tankhah.get_remaining_budget|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
+                                                                        <td>
+                                                                            <span class="status-badge status-{{ tankhah.status|lower }}">
+                                                                                {{ tankhah.get_status_display }}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td>
+                                                                            <a href="{% url 'tankhah_detail' tankhah.pk %}" class="btn btn-sm btn-info btn-custom" title="{% trans 'جزئیات' %}" aria-label="{% trans 'مشاهده جزئیات تنخواه' %} {{ tankhah.number }}">
+                                                                                <i class="fas fa-eye"></i>
+                                                                            </a>
+
+                                                                            <a href="{% url 'tankhah_approval_timeline' tankhah.pk %}" class="btn btn-sm btn-info btn-custom" title="{% trans 'وضعیت' %}" aria-label="{% trans 'مشاهده وضعیت تنخواه' %} {{ tankhah.number }}">
+                                                                                <i class="fas fa-eye"></i>
+                                                                            </a>
+
+                                                                            <a href="{% url 'enhancedtankhah_update_status' pk=tankhah.pk %}" class="btn btn-primary">{% trans "به‌روزرسانی وضعیت" %}</a>
+
+
+                                                                        </td>
+                                                                    </tr>
+                                                                {% endfor %}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted text-center">{% trans "هیچ تنخواهی یافت نشد." %}</p>
+            {% endif %}
+
+            <!-- صفحه‌بندی -->
+            {% if is_paginated %}
+                <nav aria-label="{% trans 'صفحه‌بندی' %}" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if date_from_query %}&date_from={{ date_from_query }}{% endif %}{% if date_to_query %}&date_to={{ date_to_query }}{% endif %}{% if amount_query %}&amount={{ amount_query }}{% endif %}{% if remaining_query %}&remaining={{ remaining_query }}{% endif %}{% if show_archived %}&show_archived=true{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if expired_only and not status_filter %}&expired_only=true{% endif %}" aria-label="{% trans 'صفحه قبلی' %}">
+                                    « {% trans "قبلی" %}
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% for num in page_obj.paginator.page_range %}
+                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if date_from_query %}&date_from={{ date_from_query }}{% endif %}{% if date_to_query %}&date_to={{ date_to_query }}{% endif %}{% if amount_query %}&amount={{ amount_query }}{% endif %}{% if remaining_query %}&remaining={{ remaining_query }}{% endif %}{% if show_archived %}&show_archived=true{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if expired_only and not status_filter %}&expired_only=true{% endif %}">{{ num|to_persian_number }}</a>
+                            </li>
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if date_from_query %}&date_from={{ date_from_query }}{% endif %}{% if date_to_query %}&date_to={{ date_to_query }}{% endif %}{% if amount_query %}&amount={{ amount_query }}{% endif %}{% if remaining_query %}&remaining={{ remaining_query }}{% endif %}{% if show_archived %}&show_archived=true{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if expired_only and not status_filter %}&expired_only=true{% endif %}" aria-label="{% trans 'صفحه بعدی' %}">
+                                    {% trans "بعدی" %} »
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(function() {
+        // انیمیشن‌های lazy
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.accordion-item, .table tbody tr').forEach((el, index) => {
+            el.style.animationDelay = `${index * 0.1}s`;
+            observer.observe(el);
+        });
+
+        // دیتاپیکر جلالی بازه
+        try { jalaliDatepicker.startWatch(); } catch(e) {}
+    });
+</script>
+{% endblock %}
+
 <!--
 {#{% extends 'base.html' %}#}
 {#{% load i18n static jformat rcms_custom_filters %}#}
@@ -535,322 +799,3 @@
 {#{% endblock %}#}
 
 -->
-{% extends 'base.html' %}
-{% load i18n static humanize jformat rcms_custom_filters %}
-
-{% block extra_head %}
-<style>
-    :root {
-        --primary: #007bff;
-        --success: #28a745;
-        --danger: #dc3545;
-        --warning: #ffc107;
-        --info: #17a2b8;
-        --purple: #6f42c1;
-        --light: #f8f9fa;
-        --bg: #f4f6f9;
-        --shadow: 0 4px 20px rgba(0,0,0,0.1);
-    }
-
-    body {
-        background-color: var(--bg);
-        font-family: 'Vazir', sans-serif;
-        direction: rtl;
-    }
-
-    .card {
-        border: none;
-        border-radius: 15px;
-        box-shadow: var(--shadow);
-        margin-bottom: 2rem;
-    }
-
-    .table thead th {
-        background: var(--primary);
-        color: white;
-        font-weight: 500;
-        text-align: right;
-    }
-
-    .table tbody tr {
-        transition: all 0.2s ease;
-    }
-
-    .table tbody tr:hover {
-        background: #f1f3f5;
-        transform: translateY(-2px);
-    }
-
-    .status-badge {
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.85em;
-        color: white;
-    }
-
-    .status-draft { background: var(--warning); }
-    .status-pending { background: var(--info); }
-    .status-approved { background: var(--success); }
-    .status-rejected { background: var(--danger); }
-    .status-paid { background: var(--purple); }
-
-    .btn-custom {
-        transition: all 0.2s ease;
-    }
-
-    .btn-custom:hover {
-        transform: scale(1.05);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    .fade-in {
-        animation: fadeIn 0.4s ease-in forwards;
-    }
-
-    @keyframes fadeIn {
-        0% { opacity: 0; transform: translateY(10px); }
-        100% { opacity: 1; transform: translateY(0); }
-    }
-
-    .accordion-button {
-        background: var(--light);
-        font-weight: 500;
-        text-align: right;
-    }
-
-    .accordion-button:not(.collapsed) {
-        background: var(--primary);
-        color: white;
-    }
-
-    .accordion-button:focus {
-        box-shadow: none;
-    }
-
-    .form-control, .form-select {
-        border-radius: 8px;
-    }
-
-    .alert {
-        border-radius: 8px;
-    }
-
-    .pagination .page-link {
-        border-radius: 5px;
-        margin: 0 3px;
-    }
-
-    .pagination .page-item.active .page-link {
-        background: var(--primary);
-        border-color: var(--primary);
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="container py-5">
-    <div class="card fade-in">
-        <div class="card-body">
-            <h2 class="card-title text-center mb-4">
-                <i class="fas fa-wallet me-2"></i> {% trans "لیست تنخواه‌ها" %}
-            </h2>
-
-            <!-- فرم فیلتر -->
-            <form method="get" class="mb-4">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <input type="text" name="q" value="{{ query|default_if_none:'' }}" class="form-control" placeholder="{% trans 'شماره، سازمان، پروژه...' %}" aria-label="{% trans 'جستجو' %}">
-                    </div>
-                    <div class="col-md-3">
-                        <input type="text" name="date" id="jalali-date" value="{{ date_query|default_if_none:'' }}" class="form-control" placeholder="1403-05-15" aria-label="{% trans 'تاریخ' %}">
-                    </div>
-                    <div class="col-md-2">
-                        <input type="text" name="amount" value="{{ amount_query|default_if_none:'' }}" class="form-control" placeholder="{% trans 'مبلغ (ریال)' %}" aria-label="{% trans 'مبلغ' %}">
-                    </div>
-                    <div class="col-md-2">
-                        <input type="text" name="remaining" value="{{ remaining_query|default_if_none:'' }}" class="form-control" placeholder="{% trans 'باقیمانده (ریال)' %}" aria-label="{% trans 'باقیمانده' %}">
-                    </div>
-                    <div class="col-md-2">
-                        <select name="stage" class="form-select" aria-label="{% trans 'مرحله' %}">
-                            <option value="">{% trans "همه مراحل" %}</option>
-                            {% for stage in stages %}
-                                <option value="{{ stage.order }}" {% if stage.order|stringformat:"s" == stage %}selected{% endif %}>
-                                    {{ stage.name }} ({{ stage.order|to_persian_number }})
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-check">
-                            <input type="checkbox" name="show_archived" value="true" class="form-check-input" id="showArchived" {% if show_archived %}checked{% endif %} aria-label="{% trans 'نمایش آرشیو' %}">
-                            <label class="form-check-label" for="showArchived">{% trans "آرشیو" %}</label>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary btn-custom w-100">
-                            <i class="fas fa-filter me-2"></i> {% trans "فیلتر" %}
-                        </button>
-                    </div>
-                </div>
-            </form>
-
-            <!-- پیام‌ها -->
-            {% if messages %}
-                <div class="alert alert-dismissible fade show alert-info" role="alert">
-                    {% for message in messages %}
-                        <div class="alert-{{ message.tags|default:'info' }}">{{ message }}</div>
-                    {% endfor %}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'بستن' %}"></button>
-                </div>
-            {% endif %}
-
-            <!-- لیست تنخواه‌ها -->
-            {% if grouped_by_org %}
-                <div class="accordion" id="orgAccordion">
-                    {% for org_name, org_data in grouped_by_org.items %}
-                        <div class="accordion-item fade-in">
-                            <h2 class="accordion-header" id="orgHeading{{ forloop.counter }}">
-                                {% trans " مرکزهزینه  " %}<strong style="color: orangered">  {{ org_data.projects|length |to_persian_number}}   </strong>
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#orgCollapse{{ forloop.counter }}" aria-expanded="false" aria-controls="orgCollapse{{ forloop.counter }}">
-                                    <i class="fas fa-building me-2"></i>
-                                    {{ org_name  }}
-                                    <span class="ms-3">
-                                        - {% trans "مبلغ" %}: {{ org_data.total_amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
-                                        - {% trans "باقیمانده" %}: {{ org_data.total_remaining|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
-                                    </span>
-                                </button>
-                            </h2>
-                            <div id="orgCollapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="orgHeading{{ forloop.counter }}" data-bs-parent="#orgAccordion">
-                                <div class="accordion-body">
-                                    <div class="accordion" id="projectAccordion{{ forloop.counter }}">
-                                        {% for project_name, project_data in org_data.projects.items %}
-                                            <div class="accordion-item">
-                                                <h3 class="accordion-header" id="projectHeading{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
-                                                   <strong style="color: green"> {{ project_data.tankhahs|length |to_persian_number}} </strong>
-                                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}" aria-expanded="false" aria-controls="projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
-                                                        <i class="fas fa-project-diagram me-2"></i>
-                                                        {{ project_name }} {% trans "تنخواه" %}
-                                                        <span class="ms-3">
-                                                            - {% trans "مبلغ" %}: {{ project_data.total_amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
-                                                            - {% trans "باقیمانده" %}: {{ project_data.total_remaining|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}
-                                                        </span>
-                                                    </button>
-                                                </h3>
-                                                <div id="projectCollapse{{ forloop.parentloop.counter }}_{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="projectHeading{{ forloop.parentloop.counter }}_{{ forloop.counter }}" data-bs-parent="#projectAccordion{{ forloop.counter }}">
-                                                    <div class="accordion-body">
-                                                        <table class="table table-hover">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th>{% trans "ردیف" %}</th>
-                                                                    <th>{% trans "شماره" %}</th>
-                                                                    <th>{% trans "تاریخ" %}</th>
-                                                                    <th>{% trans "مبلغ" %}</th>
-                                                                    <th>{% trans "باقیمانده" %}</th>
-                                                                    <th>{% trans "وضعیت" %}</th>
-                                                                    <th>{% trans "عملیات" %}</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {% for tankhah in project_data.tankhahs %}
-                                                                    <tr class="fade-in">
-                                                                        <td>{{ forloop.counter |to_persian_number }}</td>
-                                                                        <td>{{ tankhah.number|to_persian_number }}</td>
-                                                                        <td>{{ tankhah.date|jformat:"%Y/%m/%d"|to_persian_number }}</td>
-                                                                        <td>{{ tankhah.amount|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
-                                                                        <td>{{ tankhah.get_remaining_budget|floatformat:0|intcomma|to_persian_number }} {% trans "ریال" %}</td>
-                                                                        <td>
-                                                                            <span class="status-badge status-{{ tankhah.status|lower }}">
-                                                                                {{ tankhah.get_status_display }}
-                                                                            </span>
-                                                                        </td>
-                                                                        <td>
-                                                                            <a href="{% url 'tankhah_detail' tankhah.pk %}" class="btn btn-sm btn-info btn-custom" title="{% trans 'جزئیات' %}" aria-label="{% trans 'مشاهده جزئیات تنخواه' %} {{ tankhah.number }}">
-                                                                                <i class="fas fa-eye"></i>
-                                                                            </a>
-
-                                                                            <a href="{% url 'tankhah_approval_timeline' tankhah.pk %}" class="btn btn-sm btn-info btn-custom" title="{% trans 'وضعیت' %}" aria-label="{% trans 'مشاهده وضعیت تنخواه' %} {{ tankhah.number }}">
-                                                                                <i class="fas fa-eye"></i>
-                                                                            </a>
-
-                                                                            <a href="{% url 'enhancedtankhah_update_status' pk=tankhah.pk %}" class="btn btn-primary">{% trans "به‌روزرسانی وضعیت" %}</a>
-
-
-                                                                        </td>
-                                                                    </tr>
-                                                                {% endfor %}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p class="text-muted text-center">{% trans "هیچ تنخواهی یافت نشد." %}</p>
-            {% endif %}
-
-            <!-- صفحه‌بندی -->
-            {% if is_paginated %}
-                <nav aria-label="{% trans 'صفحه‌بندی' %}" class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}{% if amount_query %}&amount={{ amount_query }}{% endif %}{% if remaining_query %}&remaining={{ remaining_query }}{% endif %}{% if stage %}&stage={{ stage }}{% endif %}{% if show_archived %}&show_archived=true{% endif %}" aria-label="{% trans 'صفحه قبلی' %}">
-                                    « {% trans "قبلی" %}
-                                </a>
-                            </li>
-                        {% endif %}
-                        {% for num in page_obj.paginator.page_range %}
-                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                                <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}{% if amount_query %}&amount={{ amount_query }}{% endif %}{% if remaining_query %}&remaining={{ remaining_query }}{% endif %}{% if stage %}&stage={{ stage }}{% endif %}{% if show_archived %}&show_archived=true{% endif %}">{{ num|to_persian_number }}</a>
-                            </li>
-                        {% endfor %}
-                        {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if date_query %}&date={{ date_query }}{% endif %}{% if amount_query %}&amount={{ amount_query }}{% endif %}{% if remaining_query %}&remaining={{ remaining_query }}{% endif %}{% if stage %}&stage={{ stage }}{% endif %}{% if show_archived %}&show_archived=true{% endif %}" aria-label="{% trans 'صفحه بعدی' %}">
-                                    {% trans "بعدی" %} »
-                                </a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-            {% endif %}
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    $(function() {
-        // انیمیشن‌های lazy
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('fade-in');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.1 });
-
-        document.querySelectorAll('.accordion-item, .table tbody tr').forEach((el, index) => {
-            el.style.animationDelay = `${index * 0.1}s`;
-            observer.observe(el);
-        });
-
-        // دیتاپیکر جلالی
-        $('#jalali-date').persianDatepicker({
-            format: 'YYYY-MM-DD',
-            altFormat: 'YYYY-MM-DD',
-            autoClose: true,
-            persianDigit: true,
-            calendar: { persian: { locale: 'fa' } }
-        });
-    });
-</script>
-{% endblock %}

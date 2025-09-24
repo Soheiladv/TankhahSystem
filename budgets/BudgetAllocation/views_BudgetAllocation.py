@@ -86,6 +86,26 @@ class BudgetAllocationListView(PermissionBaseView, ListView):
             except ValueError:
                 logger.warning(f"Invalid date_to format: {date_to}")
 
+        # فیلتر نمایش منقضی/غیرمنقضی (پیش‌فرض: غیرمنقضی)
+        from django.utils import timezone as _tz
+        expired_only = self.request.GET.get('expired_only', 'false').lower() in ('true', '1')
+        current_date = _tz.now().date()
+        expired_ids = []
+        non_expired_ids = []
+        for alloc in queryset.select_related('budget_period'):
+            bp = alloc.budget_period
+            is_expired = False
+            if bp:
+                is_expired = (bp.end_date < current_date) or bool(bp.is_completed)
+            if is_expired:
+                expired_ids.append(alloc.id)
+            else:
+                non_expired_ids.append(alloc.id)
+        if expired_only:
+            queryset = queryset.filter(id__in=expired_ids) if expired_ids else queryset.none()
+        else:
+            queryset = queryset.filter(id__in=non_expired_ids) if non_expired_ids else queryset.none()
+
         return queryset.order_by('-allocation_date')
 
     def get_context_data(self, **kwargs):
@@ -229,6 +249,8 @@ class BudgetAllocationListView(PermissionBaseView, ListView):
             'selected_budget_period': budget_period_id,
             'selected_project': project_id,
             'selected_allocation_date': allocation_date,  # ✅ اصلاح شد
+            'expired_only': self.request.GET.get('expired_only', 'false').lower() in ('true','1'),
+            'today': timezone.now().date(),
         })
 
         logger.debug(f"BudgetAllocationListView context: {context}")
@@ -390,6 +412,10 @@ class BudgetAllocationCreateView(PermissionBaseView, CreateView):
 
         context['projects'] = Project.objects.filter(is_active=True).select_related('category')
         logger.debug(f"Loaded {context['projects'].count()} projects")
+
+        # for template badge (active/expired)
+        from django.utils import timezone as _tz
+        context['today'] = _tz.now().date()
 
         return context
 

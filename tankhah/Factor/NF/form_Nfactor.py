@@ -10,6 +10,7 @@ from tankhah.models import   FactorItem
 from tankhah.utils import restrict_to_user_organization
 from django import forms
 from django.utils import timezone
+from django.conf import settings
 from decimal import Decimal
 import jdatetime
 
@@ -313,12 +314,37 @@ class FactorForm(forms.ModelForm):
         # ✅ استفاده از متد داخلی برای تشخیص دسترسی
         has_full_access, accessible_orgs = self._get_user_scope()
 
-        tankhah_queryset = Tankhah.objects.filter(
-            is_archived=False,
-            status__code__in=['DRAFT', 'PENDING', 'APPROVED'],
-            due_date__gte=timezone.now(),
-            project__isnull=False
-        ).select_related('organization', 'project')
+        # --- تنظیمات قابل پیکربندی از settings.py (جلوگیری از هاردکد) ---
+        allowed_status_codes = getattr(settings, 'TANKHAH_ALLOWED_STATUS_CODES', ['DRAFT', 'PENDING', 'APPROVED'])
+        exclude_expired = getattr(settings, 'TANKHAH_EXCLUDE_EXPIRED', True)
+        require_project = getattr(settings, 'TANKHAH_REQUIRE_PROJECT', True)
+        exclude_archived = getattr(settings, 'TANKHAH_EXCLUDE_ARCHIVED', True)
+        exclude_locked = getattr(settings, 'TANKHAH_EXCLUDE_LOCKED', False)
+        require_remaining_positive = getattr(settings, 'TANKHAH_REQUIRE_REMAINING_POSITIVE', False)
+
+        # --- ساخت QuerySet پایه بر اساس تنظیمات ---
+        tankhah_queryset = Tankhah.objects.all()
+        if exclude_archived:
+            tankhah_queryset = tankhah_queryset.filter(is_archived=False)
+        if allowed_status_codes:
+            tankhah_queryset = tankhah_queryset.filter(status__code__in=allowed_status_codes)
+        if require_project:
+            tankhah_queryset = tankhah_queryset.filter(project__isnull=False)
+        if exclude_expired:
+            tankhah_queryset = tankhah_queryset.filter(Q(due_date__isnull=True) | Q(due_date__gte=timezone.now()))
+        
+        # فیلتر تنخواه‌هایی که دوره بودجه‌شان منقضی/قفل شده
+        tankhah_queryset = tankhah_queryset.filter(
+         Q(project_budget_allocation__isnull=True) |  # تنخواه‌هایی که تخصیص بودجه ندارند
+            Q(project_budget_allocation__budget_period__isnull=True) |  # تنخواه‌هایی که دوره بودجه ندارند
+            Q(project_budget_allocation__budget_period__is_completed=False) &  # تنخواه‌هایی که دوره بودجه‌شان تکمیل نشده
+            Q(project_budget_allocation__budget_period__end_date__gte=timezone.now().date())  # و تاریخ انقضای دوره نگذشته
+        )
+        if exclude_locked and hasattr(Tankhah, 'is_locked'):
+            tankhah_queryset = tankhah_queryset.filter(is_locked=False)
+        if require_remaining_positive and hasattr(Tankhah, 'remaining_budget'):
+            tankhah_queryset = tankhah_queryset.filter(remaining_budget__gt=0)
+        tankhah_queryset = tankhah_queryset.select_related('organization', 'project')
 
         # اگر کاربر دسترسی کامل ندارد، لیست تنخواه‌ها را فیلتر کن
         if not has_full_access:
@@ -456,12 +482,36 @@ class __FactorForm(forms.ModelForm):
             f"[FactorForm.__init__] شروع مقداردهی اولیه برای کاربر '{self.user.username if self.user else 'Anonymous'}'.")
 
         # فیلتر اولیه تنخواه‌ها
-        tankhah_queryset = Tankhah.objects.filter(
-            is_archived=False,
-            status__code__in=['DRAFT', 'PENDING', 'APPROVED'],
-            due_date__gte=timezone.now(),
-            project__isnull=False
-        ).select_related('organization', 'project').order_by('-created_at')
+        # --- همان منطق تنظیم‌پذیر برای فرم جایگزین ---
+        allowed_status_codes = getattr(settings, 'TANKHAH_ALLOWED_STATUS_CODES', ['DRAFT', 'PENDING', 'APPROVED'])
+        exclude_expired = getattr(settings, 'TANKHAH_EXCLUDE_EXPIRED', True)
+        require_project = getattr(settings, 'TANKHAH_REQUIRE_PROJECT', True)
+        exclude_archived = getattr(settings, 'TANKHAH_EXCLUDE_ARCHIVED', True)
+        exclude_locked = getattr(settings, 'TANKHAH_EXCLUDE_LOCKED', False)
+        require_remaining_positive = getattr(settings, 'TANKHAH_REQUIRE_REMAINING_POSITIVE', False)
+
+        tankhah_queryset = Tankhah.objects.all()
+        if exclude_archived:
+            tankhah_queryset = tankhah_queryset.filter(is_archived=False)
+        if allowed_status_codes:
+            tankhah_queryset = tankhah_queryset.filter(status__code__in=allowed_status_codes)
+        if require_project:
+            tankhah_queryset = tankhah_queryset.filter(project__isnull=False)
+        if exclude_expired:
+            tankhah_queryset = tankhah_queryset.filter(Q(due_date__isnull=True) | Q(due_date__gte=timezone.now()))
+        
+        # فیلتر تنخواه‌هایی که دوره بودجه‌شان منقضی/قفل شده
+        tankhah_queryset = tankhah_queryset.filter(
+            Q(project_budget_allocation__isnull=True) |  # تنخواه‌هایی که تخصیص بودجه ندارند
+            Q(project_budget_allocation__budget_period__isnull=True) |  # تنخواه‌هایی که دوره بودجه ندارند
+            Q(project_budget_allocation__budget_period__is_completed=False) &  # تنخواه‌هایی که دوره بودجه‌شان تکمیل نشده
+            Q(project_budget_allocation__budget_period__end_date__gte=timezone.now().date())  # و تاریخ انقضای دوره نگذشته
+        )
+        if exclude_locked and hasattr(Tankhah, 'is_locked'):
+            tankhah_queryset = tankhah_queryset.filter(is_locked=False)
+        if require_remaining_positive and hasattr(Tankhah, 'remaining_budget'):
+            tankhah_queryset = tankhah_queryset.filter(remaining_budget__gt=0)
+        tankhah_queryset = tankhah_queryset.select_related('organization', 'project').order_by('-created_at')
 
         # اگر کاربر وارد سیستم شده و سوپر یوزر نیست، فیلتر دسترسی اعمال شود
         if self.user and not self.user.is_superuser:

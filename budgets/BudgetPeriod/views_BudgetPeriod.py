@@ -1,3 +1,11 @@
+from django.core.paginator import Paginator
+from django.contrib import messages
+from django.db.models import Prefetch
+from django.conf import settings
+from decimal import Decimal
+from budgets.models import BudgetPeriod, BudgetTransaction
+from core.views import PermissionBaseView
+from django.views.generic import DetailView
 from decimal import Decimal
 
 from django.db.models import Q, Sum
@@ -212,16 +220,33 @@ class BudgetPeriodListView(PermissionBaseView, ListView):
         # --- محاسبه وضعیت و remaining برای آیتم‌های صفحه فعلی ---
         from django.utils import timezone
         today = timezone.now().date()  # تاریخ امروز
+        context['today'] = today
 
         context['query'] = self.request.GET.get('q', '')
         context['status'] = self.request.GET.get('status', '')
         context['date_from'] = self.request.GET.get('date_from', '')
         context['date_to'] = self.request.GET.get('date_to', '')
+        # شمارنده تخصیص‌ها و برگشتی‌ها
+        from budgets.models import BudgetTransaction
+        returned_totals = full_filtered_queryset.annotate(
+        ).count()
+
         context['status_summary'] = {
             'active': queryset.filter(is_active=True).count(),
             'locked': queryset.filter(lock_condition='MANUAL').count(),
             'completed': queryset.filter(is_completed=True).count(),
             'total': queryset.count(),
+        }
+
+        # آمار تکمیلی برای جدول: remaining_amount، تعداد تخصیص‌ها، مجموع برگشتی‌ها
+        from django.db.models import Count
+        context['period_stats'] = {
+            bp.id: {
+                'alloc_count': bp.allocations.count(),
+                'returned_sum': BudgetTransaction.objects.filter(allocation__budget_period=bp, transaction_type='RETURN').aggregate(total=Sum('amount'))['total'] or Decimal('0'),
+                'remaining_amount': bp.get_remaining_amount(),
+            }
+            for bp in full_filtered_queryset
         }
         # تعداد نتایج یافت‌شده را به جای کل، تعداد نتایج کوئری‌ست فیلتر شده بگذاریم
         context['result_count'] = full_filtered_queryset.count()
@@ -273,14 +298,6 @@ class old__BudgetPeriodDetailView(PermissionBaseView, DetailView):
         return context
 
 
-from django.core.paginator import Paginator
-from django.contrib import messages
-from django.db.models import Prefetch
-from django.conf import settings
-from decimal import Decimal
-from budgets.models import BudgetPeriod, BudgetTransaction
-from core.views import PermissionBaseView
-from django.views.generic import DetailView
 class BudgetPeriodDetailView(PermissionBaseView, DetailView):
     model = BudgetPeriod
     template_name = 'budgets/budget/budgetperiod_detail.html'
@@ -355,6 +372,21 @@ class BudgetPeriodDetailView(PermissionBaseView, DetailView):
         context['transactions'] = self.get_transactions()
         context['budget_details'] = self.get_budget_details()
         context['budget_status'] = self.check_budget_status()
+
+        # مجموع و لیست برگشتی‌ها (RETURN)
+        try:
+            from django.db.models import Sum
+            total_returned = BudgetTransaction.objects.filter(
+                allocation__budget_period=self.object,
+                transaction_type='RETURN'
+            ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        except Exception:
+            total_returned = Decimal('0')
+        context['total_returned'] = total_returned
+        context['return_transactions'] = BudgetTransaction.objects.filter(
+            allocation__budget_period=self.object,
+            transaction_type='RETURN'
+        ).select_related('allocation','created_by','related_tankhah').order_by('-timestamp')[:50]
 
         # افزودن اطلاعات اضافی برای رندرینگ
         context['is_locked'] = self.object.is_locked

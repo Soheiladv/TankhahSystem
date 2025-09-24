@@ -89,13 +89,13 @@
                         <div class="col-md-4">
                             <div class="p-3 border rounded h-100 d-flex flex-column justify-content-between">
                                 <h6 class="text-muted">{% trans "تخصیص یافته" %}</h6>
-                                <p class="h4 text-info">{{ budget_details.total_allocated|intcomma|to_persian_number }} {% trans "تومان" %}</p>
+                                <p class="h4 text-info">{{ budget_details.total_allocated|to_persian_number }} {% trans "تومان" %}</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="p-3 border rounded h-100 d-flex flex-column justify-content-between">
                                 <h6 class="text-muted">{% trans "باقی‌مانده" %}</h6>
-                                <p class="h4 text-warning">{{ budget_details.remaining_budget|intcomma|to_persian_number }} {% trans "تومان" %}</p>
+                                <p class="h4 text-warning">{{ budget_details.remaining_budget|to_persian_number }} {% trans "تومان" %}</p>
                             </div>
                         </div>
                     </div>
@@ -166,6 +166,56 @@
                     {% else %}
                     <div class="alert alert-info text-center" role="alert">
                         {% trans "هیچ تخصیصی برای این دوره بودجه ثبت نشده است." %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# برگشتی‌های این دوره #}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-lg">
+                <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-undo me-2"></i>{% trans "برگشت بودجه در این دوره" %}</h5>
+                    <span class="badge bg-dark text-white">{{ total_returned|intcomma|to_persian_number }} {% trans "تومان" %}</span>
+                </div>
+                <div class="card-body">
+                    {% if return_transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>{% trans "تاریخ" %}</th>
+                                    <th>{% trans "مبلغ" %}</th>
+                                    <th>{% trans "تنخواه" %}</th>
+                                    <th>{% trans "تخصیص" %}</th>
+                                    <th>{% trans "شرح" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tx in return_transactions %}
+                                <tr>
+                                    <td>{{ tx.timestamp|date:"Y/m/d H:i"|to_persian_number }}</td>
+                                    <td>{{ tx.amount|intcomma|to_persian_number }} {% trans "تومان" %}</td>
+                                    <td>
+                                        {% if tx.related_tankhah %}
+                                            <a href="{% url 'tankhah_detail' tx.related_tankhah.pk %}">{{ tx.related_tankhah.number|to_persian_number }}</a>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>#{{ tx.allocation.id }}</td>
+                                    <td>{{ tx.description|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mb-0" role="alert">
+                        {% trans "برگشتی برای این دوره ثبت نشده است." %}
                     </div>
                     {% endif %}
                 </div>

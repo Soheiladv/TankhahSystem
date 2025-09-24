@@ -547,6 +547,27 @@
     <script src="{% static 'admin/js/sweetalert2.all.min.js' %}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // --- فعال‌سازی جستجو روی منوی تنخواه و ذی‌نفع (در صورت موجود بودن Select2) ---
+            try {
+                if (window.$ && $.fn.select2) {
+                    const $tankhah = $('#id_tankhah');
+                    if ($tankhah.length) {
+                        $tankhah.select2({
+                            placeholder: '{% trans "انتخاب تنخواه" %}',
+                            allowClear: true,
+                            width: '100%'
+                        });
+                    }
+                    const $payee = $('#id_payee');
+                    if ($payee.length) {
+                        $payee.select2({
+                            placeholder: '{% trans "انتخاب ذی‌نفع" %}',
+                            allowClear: true,
+                            width: '100%'
+                        });
+                    }
+                }
+            } catch (e) { console.warn('Select2 init failed:', e); }
             // --- انتخاب عناصر DOM ---
             const form = document.getElementById('factor-form');
             const formsetContainer = document.getElementById('items-formset-container');

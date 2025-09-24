@@ -5,7 +5,22 @@
  
 
 {% block content %}
-    <div class="container-lg budget-list-page">
+    <div class="container-fluid budget-list-page">
+        <style>
+            .status-badge { display: inline-block; padding: .25rem .5rem; border-radius: .5rem; font-size: .85rem; font-weight: 600; }
+            .status-active { background: #e6f4ea; color: #137333; border: 1px solid #c6e7cf; }
+            .status-inactive { background: #f1f3f4; color: #5f6368; border: 1px solid #e0e0e0; }
+            .status-locked { background: #fff4e5; color: #a15b00; border: 1px solid #ffe2b5; }
+            .status-completed { background: #e8f0fe; color: #1967d2; border: 1px solid #c6dafc; }
+            .status-archived { background: #f3e8fd; color: #7b1fa2; border: 1px solid #e5c7fb; }
+            .status-upcoming { background: #e6fffa; color: #0d9488; border: 1px solid #c7fff5; }
+            .status-expired { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+            tr.row-expired { background-color: #fff7f7 !important; }
+            tr.row-expired td { border-top: 1px solid #ffe1e1 !important; }
+            .text-numeric { white-space: nowrap; }
+            .table thead th { position: sticky; top: 0; background: #f8f9fa; z-index: 1; }
+            .table-wrapper { overflow-x: auto; }
+        </style>
         <div class="card shadow-sm">
             <div class="card-header text-numeric d-flex justify-content-between align-items-center no-print">
             <h4 class="mb-0 d-flex align-items-center gap-2">
@@ -90,7 +105,7 @@
                 </form>
             </div>
 
-            <div class="table-responsive">
+            <div class="table-responsive table-wrapper">
                 <table class="table table-striped table-hover table-bordered table-sm align-middle mb-0">
                     <thead class="text-center table-light">
                     <tr>
@@ -99,6 +114,8 @@
                         <th>{% trans "دفتر مرکزی" %}</th>
                         <th class="text-end">{% trans "مبلغ کل" %} <small>({% trans "ریال" %})</small></th>
                         <th class="text-end">{% trans "باقی‌مانده" %} <small>({% trans "ریال" %})</small></th>
+                        <th class="text-end">{% trans "مجموع برگشتی" %} <small>({% trans "ریال" %})</small></th>
+                        <th class="text-end">{% trans "تعداد تخصیص" %}</th>
                         <th>{% trans "تاریخ شروع" %}</th>
                         <th>{% trans "تاریخ پایان" %}</th>
                         <th>{% trans "وضعیت" %}</th>
@@ -107,19 +124,39 @@
                 </thead>
                     <tbody class="text-center">
                     {% for budget_period in budget_periods %}
-                        <tr style="--row-index: {{ forloop.counter0 }};">
+                        <tr style="--row-index: {{ forloop.counter0 }};" class="{% if budget_period.display_status == 'expired' %}row-expired{% else %}{% if budget_period.end_date and budget_period.end_date < today and not budget_period.is_completed %}row-expired{% endif %}{% endif %}">
                         <td>{{ forloop.counter|to_persian_number }}</td>
                             <td class="text-start">{{ budget_period.name|to_persian_number_with_comma }}</td>
                             <td class="text-start">{{ budget_period.organization.name|to_persian_number_with_comma }}</td>
                             <td class="text-numeric">{{ budget_period.total_amount|format_negative }}</td>
-                            <td class="text-numeric {% if budget_period.remaining_amount < 0 %}text-danger fw-bold{% endif %}">
-                            {{ budget_period.remaining_amount|format_negative }}
-                        </td>
+                        {% with ps=period_stats|dict_get:budget_period.id %}
+                            <td class="text-numeric {% if ps and ps.remaining_amount and ps.remaining_amount < 0 %}text-danger fw-bold{% endif %}">
+                                {% if ps %}
+                                    {{ ps.remaining_amount|default_if_none:0|format_negative }}
+                                {% else %}
+                                    {{ budget_period.get_remaining_amount|format_negative }}
+                                {% endif %}
+                            </td>
+                            <td class="text-numeric">
+                                {% if ps %}
+                                    {{ ps.returned_sum|default_if_none:0|format_negative }}
+                                {% else %}
+                                    {{ 0|format_negative }}
+                                {% endif %}
+                            </td>
+                            <td class="text-numeric">
+                                {% if ps %}
+                                    {{ ps.alloc_count|default_if_none:0|to_persian_number }}
+                                {% else %}
+                                    {{ 0|to_persian_number }}
+                                {% endif %}
+                            </td>
+                        {% endwith %}
                         <td class="font-monospace">{{ budget_period.start_date|jformat:'%Y/%m/%d'|to_persian_number }}</td>
-                        <td class="font-monospace">{{ budget_period.end_date|jformat:'%Y/%m/%d'|to_persian_number }}</td>
+                        <td class="font-monospace">{{ budget_period.end_date|jformat:'%Y/%m/%d'|to_persian_number }} {% if budget_period.display_status == 'expired' %}<span class="badge bg-danger-subtle text-danger ms-1">{% trans "منقضی" %}</span>{% else %}{% if budget_period.end_date and budget_period.end_date < today and not budget_period.is_completed %}<span class="badge bg-danger-subtle text-danger ms-1">{% trans "منقضی" %}</span>{% endif %}{% endif %}</td>
                         <td>
                             {# --- نمایش وضعیت جدید --- #}
-                            <span class="status-badge {{ budget_period.status_css_class }}">
+                            <span class="status-badge {% if budget_period.status_css_class %}{{ budget_period.status_css_class }}{% else %}{% if budget_period.is_completed %}status-completed{% elif budget_period.end_date and budget_period.end_date < today %}status-expired{% elif budget_period.lock_condition == 'MANUAL' %}status-locked{% elif not budget_period.is_active %}status-inactive{% else %}status-active{% endif %}{% endif %}">
                             {% if budget_period.display_status == 'active' %}
                                 {% trans "فعال" %}
                             {% elif budget_period.display_status == 'inactive' %}
@@ -135,7 +172,11 @@
                             {% elif budget_period.display_status == 'expired' %}
                                 {% trans "منقضی" %}
                             {% else %}
-                                - {# نمایش برای وضعیت نامشخص #}
+                                {% if budget_period.is_completed %}{% trans "تمام‌شده" %}
+                                {% elif budget_period.end_date and budget_period.end_date < today %}{% trans "منقضی" %}
+                                {% elif budget_period.lock_condition == 'MANUAL' %}{% trans "قفل‌شده" %}
+                                {% elif not budget_period.is_active %}{% trans "غیرفعال" %}
+                                {% else %}{% trans "فعال" %}{% endif %}
                             {% endif %}
                         </span>
                             {# نمایش بایگانی به صورت جداگانه دیگر لازم نیست #}
@@ -152,6 +193,11 @@
                                 </a>
                                 <a href="{% url 'budgetperiod_delete' budget_period.pk %}" class="btn btn-outline-danger" title="{% trans 'حذف' %}" onclick="return confirm('{% trans 'آیا از حذف این دوره بودجه و تمام تخصیص‌های مرتبط با آن مطمئن هستید؟' %}');">
                                     <i class="fas fa-trash"></i>
+                                </a>
+                                <a href="{% url 'budgetperiod_detail' budget_period.pk %}" 
+                                   class="btn btn-outline-info" title="{% trans 'جزئیات دوره بودجه' %}" 
+                                   >
+                                    <i class="fas fa-info"></i>
                                 </a>
                                 </div>
                                 <div class="btn-group btn-group-sm mt-1" role="group">
@@ -185,10 +231,8 @@
                         {# نمایش جمع مبلغ کل #}
                         <td class="text-numeric {% if total_remaining < 0 %}text-danger{% endif %}">{{ total_remaining|format_negative }}</td>
                         {# نمایش جمع باقی‌مانده #}
-                        <td colspan="3"></td>
-                        {# ادغام ستون‌های تاریخ و وضعیت #}
-                        <td class="no-print"></td>
-                        {# ستون اقدامات خالی #}
+                        <td colspan="6"></td>
+                        {# ادغام ستون‌های باقیمانده تا هم‌تراز با 11 ستون #}
                     </tr>
                     </tfoot>
                     {# --- پایان بخش جمع کل --- #}

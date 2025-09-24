@@ -107,6 +107,12 @@
                                     <i class="fas fa-times me-2"></i>{% trans "حذف فیلتر" %}
                                 </a>
                             </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="expiredOnlySwitch" name="expired_only" value="true" {% if expired_only %}checked{% endif %}>
+                                    <label class="form-check-label" for="expiredOnlySwitch">{% trans "نمایش فقط منقضی‌ها" %}</label>
+                                </div>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -197,10 +203,26 @@
                 </thead>
                 <tbody>
                     {% for allocation in budget_allocations %}
-                    <tr>
+                    {% with bp=allocation.budget_period %}
+                    {% if bp %}
+                        {% if bp.end_date < today or bp.is_completed %}
+                            <tr class="table-warning">
+                        {% else %}
+                            <tr>
+                        {% endif %}
+                    {% else %}
+                        <tr>
+                    {% endif %}
                         <td class="text-center">{{ forloop.counter|to_persian_number }}</td>
                         <td>{{ allocation.organization.name }}</td>
-                        <td>{{ allocation.budget_period.name | to_persian_number_with_comma}}</td>
+                        <td>
+                            {{ allocation.budget_period.name | to_persian_number_with_comma}}
+                            {% if bp %}
+                                {% if bp.end_date < today or bp.is_completed %}
+                                    <span class="badge bg-warning text-dark ms-2"><i class="fas fa-exclamation-triangle"></i> {% trans "منقضی" %}</span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
                         <td>{{ allocation.project.name|default:"-" }}</td>
                         <td>{{ allocation.budget_item.name }}</td>
                         <td>{{ allocation.allocation_date |jformat:"%Y/%m/%d" | to_persian_number_with_comma}}</td>
@@ -246,6 +268,7 @@
                             </div>
                         </td>
                     </tr>
+                    {% endwith %}
                     {% endfor %}
                 </tbody>
             </table>

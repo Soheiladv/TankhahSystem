@@ -22,6 +22,7 @@ from tankhah.view_folder_tankhah.view_tankhah import (
     TankhahDetailView, TankhahDeleteView,
     TankhahListView, TankhahApproveView, TankhahUpdateView, TankhahRejectView, get_projects
 )
+from tankhah.views_return_budget import ReturnExpiredTankhahBudgetView, ReturnExpiredBudgetAPIView
 from tankhah.views import (
     ApprovalListView, ApprovalCreateView, ApprovalDetailView, ApprovalUpdateView, ApprovalDeleteView,
     FactorItemRejectView, ApprovalLogListView,
@@ -43,6 +44,8 @@ urlpatterns = [
     # path('', DashboardView.as_view(), name='dashboard'),
     path('tankhah/', TankhahListView.as_view(), name='tankhah_list'),
     path('tankhah/<int:pk>/' , TankhahDetailView.as_view(),        name='tankhah_detail'),
+    path('tankhah/return-expired-budget/', ReturnExpiredTankhahBudgetView.as_view(), name='return_expired_budget'),
+    path('api/tankhah/expired-budget/', ReturnExpiredBudgetAPIView.as_view(), name='api_expired_budget'),
 
     path('tankhah/create/', TankhahCreateView.as_view(), name='tankhah_create'),
     path('tankhah/update/<int:pk>/', TankhahUpdateView.as_view(), name='tankhah_update'),
